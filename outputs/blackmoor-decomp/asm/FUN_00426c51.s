@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_00426c51
+# name:         inferred_app_exit_instance_cleanup
+# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/426c51.c.txt, not original source) refers to the data labelled s_ExitInstance____good_exit____00545528, s_Exit_Memory_Status__005454f0
+# name-note:    ExitInstance: logs the exit memory status, total max dirty rects and the good exit message, then calls the final shutdown helper.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_ca145; [ecx + n] field_34888; [edx + n] field_ca145
 # callees:      calls FUN_00437614, FUN_0044a2b7, FUN_0043f0fb, FUN_0050ca3e, FUN_0050cee4, FUN_00524f85
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 45 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 45 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

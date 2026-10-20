@@ -8,13 +8,15 @@
 # region:       crt_mfc
 # frame:        none
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_005285ba
+# name:         eh_handler_stub_of_004a36a0
+# naming:       function-xrefs.json eh_stubs entry (container 0x005285b0); a structural fact about the bytes
+# name-note:    The compiler's exception handler stub (loads the FuncInfo at 0x005330c8 and jumps to the shared handler) of the function at 0x004a36a0
 # arguments:    no ebp frame so stack arguments are esp-relative and are not resolved by this machine pass; no ret instruction in the code part; ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       none resolved: no ebp frame so slots are listed under fields as esp-relative stk symbols
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      calls tail jump FUN_0050c6c6
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 2 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 2 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name states a structural role that function-xrefs.json records about the bytes; it is not read from this code and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

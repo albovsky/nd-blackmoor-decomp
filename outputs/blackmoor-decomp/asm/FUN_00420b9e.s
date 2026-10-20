@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_00420b9e
+# name:         inferred_hotspot_surface_refresh
+# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_3f_runtime.c:1289 says "hotspot surface refresh (0x420b9e)"
+# name-note:    Hotspot surface refresh routine used by the conversation phase 1.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [ecx + n] field_f75; [edx + n] field_f73
 # callees:      calls FUN_004c51a5
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 32 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 32 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

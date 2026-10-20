@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0047b767
+# name:         inferred_memory_puzzle_click_handler
+# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_ee_runtime.h:24 says "0x47b767 accepted-release chain (0x43b3a9): acts on the retained candidate"
+# name-note:    Accepted-release chain click of the Memory puzzle, acting on the retained candidate.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [eax + n] field_4, field_6, field_14, field_1c, field_20, field_34, field_27c, field_280, field_290, field_294, field_2b4; [ecx + n] field_8, field_c, field_10, field_14, field_1c, field_20, field_24, field_28, field_2c, field_290, field_294, field_2b4 and 1 more; [edx + n] field_4, field_6, field_8, field_c, field_14, field_1c, field_34, field_38, field_27c, field_28c, field_290, field_294 and 1 more
 # callees:      calls FUN_004fb2e3, FUN_0047d02d, FUN_0047badf, FUN_0047cd90, FUN_00427a40, FUN_0047ce6f, KERNEL32.dll!GetTickCount
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 197 instruction(s), 19 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/action_family_ee_runtime.h:mp_click (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 197 instruction(s), 19 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

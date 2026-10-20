@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004c492c
+# name:         inferred_fast_flood_fill_rect_rgb
+# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/4c492c.c.txt, not original source) refers to the data labelled s_ERROR___FastFloodFillRect_____in_005545e8
+# name-note:    Converts an RGB triple to a 16-bit pixel using the surface bit masks and fills a rectangle by scanline; odd widths report the FastFloodFillRect error.
 # arguments:    5 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10, arg_14, arg_18; ret 0x14 (callee pops 20 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       7 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c
 # fields:       [eax + n] field_4, field_8, field_c, field_38c6, field_38c8, field_38c9, field_38ca; [ecx + n] field_4, field_2f, field_38c0, field_38c1, field_38c2, field_38c4; [edx + n] field_2f, field_38c5
 # callees:      calls FUN_0043efb6, FUN_0043ef77, FUN_004264e8, FUN_004c97b4
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 155 instruction(s), 6 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 155 instruction(s), 6 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

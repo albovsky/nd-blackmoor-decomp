@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_00418e52
+# name:         inferred_resource_payload_reader
+# naming:       INFERRED (lower confidence, not verified): the repository text archive-recovery.md:15 says "`0x418e52` | Uppercases a query, resolves a resource and reads its payload"
+# name-note:    Uppercases a query, resolves a resource and reads its payload (CIFTREE file image).
 # arguments:    3 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10; ret 0xc (callee pops 12 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       32 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_118, local_11c, local_120, local_128, local_152, local_154, local_16c and 20 more
 # fields:       [eax + n] field_1, field_51, field_59, field_5d, field_571, field_573, field_577, field_57f, field_5c0; [ecx + n] field_27, field_51, field_59, field_571, field_577, field_57b, field_5c4; [edx + n] field_1, field_23, field_51, field_59, field_5d, field_571, field_577, field_57b, field_845
 # callees:      calls FUN_0050d0bc, FUN_0050cd72, FUN_0041a102, FUN_0050d0a9, FUN_0050cf61, FUN_0050ca3e, FUN_0052139c, FUN_0051dc43, FUN_0041b6e2, FUN_0050cee4, FUN_004c7314, FUN_0041a216, FUN_0041a19c, FUN_0050ce2b, FUN_0051dc6c
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 716 instruction(s), 34 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# unverified:   machine annotation only: the 716 instruction(s), 34 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

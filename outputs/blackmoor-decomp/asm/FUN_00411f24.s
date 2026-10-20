@@ -13,8 +13,8 @@
 # locals:       9 ebp-relative slot(s): local_4, local_8, local_c, local_14, local_18, local_1c, local_20, local_24, local_28
 # fields:       [eax + n] field_4, field_8, field_c, field_23, field_27; [ecx + n] field_4, field_8, field_c; [edx + n] field_2
 # callees:      calls FUN_00413187, FUN_0042ba3a, FUN_0051dc43, FUN_0050ca3e, FUN_0042639d, FUN_004c97b4, FUN_0048945b, FUN_005193ca, FUN_0051dc6c
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 191 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/session_bindings_a36.c:is_served_raw_type (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 191 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32
 .text

@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0042b510
+# name:         inferred_hot_multiframe_scene_change_handler
+# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/42b510.c.txt, not original source) refers to the data labelled s_ProcessHotMultiFrMultiSceneChang_0054570c
+# name-note:    Three-state handler for a hot multi-frame scene-change record: checks a variable condition, sets the next scene globals, and errors with ProcessHotMultiFrMultiSceneChange on a bad type.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       5 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14
 # fields:       [eax + n] field_6, field_8, field_13, field_19, field_1f, field_22, field_2f, field_31, field_3a; [ecx + n] field_4, field_a, field_f, field_17, field_1d, field_1f, field_2a, field_2e, field_2f, field_3e; [edx + n] field_2, field_8, field_b, field_17, field_1b, field_21, field_26, field_31, field_32, field_34, field_36, field_42
 # callees:      calls FUN_0050ca3e, FUN_0052139c, FUN_004c97b4, FUN_0042ba3a
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 214 instruction(s), 16 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 214 instruction(s), 16 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

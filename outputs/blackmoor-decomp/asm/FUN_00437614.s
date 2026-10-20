@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_00437614
+# name:         inferred_game_cleanup_routine
+# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/437614.c.txt, not original source) refers to the data labelled s_Begin_CleanUp___00546a58
+# name-note:    Begin CleanUp: sets shutdown state, restores a system parameter, frees ten entries and other resources, and shows the cursor again.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [edx + n] field_58
 # callees:      calls FUN_0044a2b7, USER32.dll!SystemParametersInfoA, FUN_00425fc0, FUN_00433bd2, FUN_004fad50, FUN_0043dbe3, FUN_004e7c72, FUN_004c425e, USER32.dll!ShowCursor, FUN_0051dc6c; plus 1 indirect transfer(s) whose target is not resolved
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 67 instruction(s), 6 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; indirect transfers are not followed
+# unverified:   machine annotation only: the 67 instruction(s), 6 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; indirect transfers are not followed
 .intel_syntax noprefix
 .code32
 .text

@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004915e8
+# name:         inferred_raycast_lookup_table_builder
+# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/4915e8.c.txt, not original source) refers to the data labelled s_CRayCast__CRayCast___constructor_0054ed40, s_CRayCast__CRayCast___constructor_0054ed88
+# name-note:    CRayCast constructor part: allocates tables, calls three init helpers and fills two 4096-entry float tables from math calls FUN_0050e054 and FUN_0050e104.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       10 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c, local_24, local_28, local_2c
 # fields:       [eax + n] field_200f, field_2013; [ecx + n] field_1eeb, field_200f, field_2017; [edx + n] field_2013
 # callees:      calls FUN_0051dc43, FUN_0052139c, FUN_004c97b4, FUN_004922f4, FUN_00491885, FUN_0049173f, FUN_0050e054, FUN_0050e104
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 98 instruction(s), 4 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 98 instruction(s), 4 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

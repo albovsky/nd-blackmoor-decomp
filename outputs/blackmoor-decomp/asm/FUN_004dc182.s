@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004dc182
+# name:         inferred_partner_logo_animation_handler
+# naming:       INFERRED (lower confidence, not verified): the repository text src/avf_player.c:118 says "0x4dc182 case 0 always plays the partner animation single-buffered."; src/avf_player.h:28 says "PARTNER_LOGO 0x4dc182 case 2 + 0x4dcdd3; worker 0x4c0c7d."
+# name-note:    Handler that plays the partner logo animation (case 0 animated AVF, case 2 blit).
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       12 ebp-relative slot(s): local_4, local_c, local_10, local_14, local_18, local_1c, local_20, local_24, local_28, local_2c, local_30, local_34
 # fields:       [eax + n] field_1c, field_24, field_2a, field_2e, field_36, field_3a, field_3d, field_3e, field_46, field_4a, field_6f, field_b1 and 17 more; [ecx + n] field_20, field_24, field_26, field_2a, field_36, field_3a, field_3e, field_42, field_46, field_4a, field_4e, field_b1 and 17 more; [edx + n] field_1c, field_32, field_36, field_3a, field_41, field_42, field_46, field_4a, field_90, field_b1, field_b3, field_b7 and 18 more
 # callees:      calls FUN_0044a2b7, FUN_004dad60, FUN_004c2790, FUN_004c2a8d, FUN_004c46d1, FUN_004bede7, FUN_0041632b, FUN_0044c4c1, FUN_004c2c3a, FUN_004161d1, FUN_0051dc43, FUN_004497a0, FUN_0042639d, FUN_004c97b4, FUN_00449bff, FUN_004bef11 and 21 more
 # track-n:      outputs/blackmoor-decomp/src/avf_player.c:avf_player_start (function ledger class candidate_port; also check_config, partner_step_index; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 748 instruction(s), 60 conditional branch(es) and 1 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 748 instruction(s), 60 conditional branch(es) and 1 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

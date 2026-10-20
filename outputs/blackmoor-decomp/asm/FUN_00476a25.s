@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_00476a25
+# name:         inferred_match_puzzle_handler
+# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_e4_runtime.h:20 says "0x476a25 the handler: a phase switch on the row phase dword"
+# name-note:    Handler of the raw 0xe4 Match Puzzle: phase switch with an inner state machine.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       14 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c, local_20, local_24, local_28, local_2c, local_30 and 2 more
 # fields:       [eax + n] field_2, field_4, field_8, field_c, field_20, field_28, field_2c, field_30, field_44, field_238, field_63e, field_640 and 24 more; [ecx + n] field_2, field_4, field_8, field_c, field_1c, field_20, field_22, field_24, field_2c, field_25f, field_63e, field_640 and 25 more; [edx + n] field_1c, field_20, field_22, field_28, field_2c, field_30, field_42, field_58, field_23a, field_63e, field_77d, field_783 and 19 more
 # callees:      calls FUN_004e8d96, FUN_00475a1e, FUN_004d39f9, FUN_004c2790, FUN_004fb77a, KERNEL32.dll!GetTickCount, FUN_0050ca3e, FUN_0044a2b7, FUN_004763b3, FUN_004f6334, FUN_004fb2e3, FUN_004fba69, FUN_004c92c5, FUN_0042ba3a, FUN_00475885
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 969 instruction(s), 53 conditional branch(es) and 1 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# unverified:   machine annotation only: the 969 instruction(s), 53 conditional branch(es) and 1 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

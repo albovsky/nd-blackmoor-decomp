@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004d7a15
+# name:         inferred_save_game_routine
+# naming:       INFERRED (lower confidence, not verified): the repository text src/session_bindings_a65_a68_a69.h:20 says "the save routine 0x4d7a15"; src/blackmoor_app.mm:4515 says "calls the save routine 0x4d7a15"
+# name-note:    The save routine called with a name and a report-failure flag, e.g. "SAVE CONTINUE".
 # arguments:    2 ebp-relative stack slot(s) referenced: arg_8, arg_c; ret 0x8 (callee pops 8 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       7 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c
 # fields:       [eax + n] field_449, field_98a8, field_98ac, field_990c; [ecx + n] field_98a8, field_98ac, field_990a, field_9910; [edx + n] field_98a8, field_98ac, field_990e
 # callees:      calls FUN_0050ca3e, FUN_0050cd72, FUN_0050d0a9, FUN_0042639d, FUN_004c97b4, FUN_0050e493, FUN_0050cee4
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 329 instruction(s), 16 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/blackmoor_app.mm:native_a65_save_game (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 329 instruction(s), 16 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

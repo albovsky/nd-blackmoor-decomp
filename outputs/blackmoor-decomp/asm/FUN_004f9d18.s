@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004f9d18
+# name:         inferred_direct_sound_init_random_linear_motion
+# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/4f9d18.c.txt, not original source) refers to the data labelled s_CDirectSound__InitRandomLinearMo_0055f4a0
+# name-note:    Sets up random linear motion of a channel 3D source: distance, target offset, per-step increments and timer; logs CDirectSound::InitRandomLinearMotion.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       14 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c, local_20, local_24, local_28, local_2c, local_30 and 2 more
 # fields:       [eax + n] field_3c, field_40, field_48, field_54, field_64, field_2a3, field_2ab; [ecx + n] field_18, field_1c, field_20, field_24, field_28, field_38, field_44, field_5c, field_60, field_64, field_68, field_2a7 and 2 more; [edx + n] field_14, field_20, field_28, field_44, field_48, field_4c, field_5c, field_68, field_2a3, field_2a7; [esi + n] field_1c, field_24
 # callees:      calls KERNEL32.dll!GetTickCount, FUN_0050df94, FUN_004f9f92, FUN_004fa127, FUN_004f8f94, FUN_004f9040, FUN_0050ca3e, FUN_0044a2b7
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 199 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 199 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

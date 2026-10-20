@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_00453ce2
+# name:         inferred_arcade_puzzle_dying_tile_expirer
+# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/453ce2.c.txt, not original source) refers to the data labelled s_Arcade_Puzzle_Background_behind_a_00549d54
+# name-note:    Walks a list of dying arcade tiles, restores the background for those whose GetTickCount timer expired, unlinks neighbours and sets the solved flag when all are gone.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       5 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14
 # fields:       [eax + n] field_8, field_44, field_48, field_4c, field_50, field_58, field_2a0, field_510, field_6a7, field_6d7, field_6db; [ecx + n] field_48, field_58, field_2a0, field_2a4, field_510, field_6a7, field_6d3, field_6db, field_6df; [edx + n] field_1c, field_20, field_44, field_50, field_54, field_ac, field_2a0, field_6a7, field_6d3, field_6d7, field_6db, field_6df
 # callees:      calls KERNEL32.dll!GetTickCount, FUN_004c51a5, FUN_004540bd
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 156 instruction(s), 11 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 156 instruction(s), 11 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

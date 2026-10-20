@@ -13,7 +13,7 @@
 # locals:       2 ebp-relative slot(s): local_4, local_8
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      calls KERNEL32.dll!InterlockedIncrement, KERNEL32.dll!InterlockedDecrement, FUN_00512c18, FUN_00512c79, FUN_005129a0, FUN_0050ea90, FUN_005128b0, FUN_0050e936
-# track-n:      host-adapter: none
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl19a.c:m423259_find_by_name (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
 # unverified:   machine annotation only: the 119 instruction(s), 16 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32

@@ -7,7 +7,8 @@ human renames them later without touching the bytes.  This tool fills them from 
 and the committed project evidence state, nothing else:
 
 * ``name``        ``fn_<va>``, or the name ``asm/function-names.json`` records for the function (native port symbol,
-                  Ghidra library name; see ``function_names.py``), with a ``naming`` and a ``name-note`` line;
+                  Ghidra library name, a structural role or a lower-confidence ``inferred_<role>``; see
+                  ``function_names.py``), with a ``naming`` and a ``name-note`` line;
 * ``arguments``   ``[ebp+n]`` argument slots, the ``ret n`` pop size and whether ``ecx`` is read before it is written;
 * ``locals``      ``[ebp-n]`` slots;
 * ``fields``      register-relative displacements per base register (``field_n``, ``stk_n``);
@@ -357,7 +358,7 @@ class Annotator:
         unverified = (
             f"machine annotation only: the {len(layout.insns)} instruction(s), {conditional} conditional branch(es) and {tables} jump table(s) "
             "are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; "
-            + (f"frame, argument and field names are generated from offsets and addresses, and {fnames.NAMED_CLAUSE}"
+            + (f"frame, argument and field names are generated from offsets and addresses, and {fnames.unverified_clause(named)}"
                if named else "names are generated from offsets and addresses")
         )
         if indirect:
@@ -505,6 +506,9 @@ def cmd_annotate(args: argparse.Namespace) -> int:
         layouts, _decoded = gen.analyze_all(image)
         auditor.apply_derived_evidence(image, layouts)
         vas = derived_vas(image, layouts, args)
+        if args.named:  # only the derived entries the names table names (structural roles)
+            table = fnames.load()
+            vas = [va for va in vas if va in table]
     else:
         vas = selected_vas(image, args)
         if args.named:  # only the functions asm/function-names.json names: the name, naming and note lines change
@@ -641,7 +645,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     run.add_argument("--hi", type=gen.parse_va)
     run.add_argument("--derived", action="store_true", help="annotate the derived entries (found by the span split) instead of the indexed functions")
     run.add_argument("--fragments", action="store_true", help="annotate every entry that no batch holds (the 2026-10-16 ruling: call endings, fall-through fragments, block-copy code runs)")
-    run.add_argument("--named", action="store_true", help="only the indexed functions that asm/function-names.json names")
+    run.add_argument("--named", action="store_true", help="only the functions (indexed, or derived with --derived) that asm/function-names.json names")
     run.add_argument("--exclude-manifests", action="store_true", help="skip functions already in asm/batch-*.json")
     run.add_argument("--batch-size", type=int, default=0, help="also write batch manifests of this many functions")
     run.add_argument("--first-batch", type=int, default=3)

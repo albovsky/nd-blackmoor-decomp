@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004b5848
+# name:         inferred_tower_puzzle_redraw
+# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/4b5848.c.txt, not original source) refers to the data labelled s_Tower_Puzzle_CURRENT_area_under_d_00551a60, s_Tower_Puzzle_Disk_Overlay_00551a44
+# name-note:    Redraws the Tower puzzle: restores RES and CURRENT areas and draws the disk overlays on the three pegs, with Tower_Puzzle blit tags.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [ecx + n] field_89; [edx + n] field_29
 # callees:      calls FUN_004c5377, FUN_004c5d4b
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 128 instruction(s), 8 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 128 instruction(s), 8 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_00426148
+# name:         inferred_outer_state_switcher
+# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_70_runtime.h:25 says "Outer states are switched by 0x426148"
+# name-note:    Switches the outer engine states (0x583981).
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      calls FUN_00426063, FUN_004dc182, FUN_004dbcd0, FUN_004d9d70, FUN_004de743, FUN_004d47b0, FUN_004d6705, FUN_004dd409, FUN_00438150, FUN_004011c0, FUN_004d42e0, FUN_004262ac, FUN_0042639d, FUN_004c97b4, FUN_004f52a9
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 69 instruction(s), 1 conditional branch(es) and 1 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 69 instruction(s), 1 conditional branch(es) and 1 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

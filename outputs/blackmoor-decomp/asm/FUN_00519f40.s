@@ -8,13 +8,15 @@
 # region:       crt_mfc
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_00519f40
+# name:         inferred_common_dialog_hook_proc
+# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/519f40.c.txt, not original source) refers to the data labelled s_CFileDialog_00530200
+# name-note:    Common dialog hook: registers the commdlg messages on WM_INITDIALOG and dispatches share-violation, file-name-OK, selection-change and help messages to the CFileDialog object.
 # arguments:    4 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10, arg_14; ret 0x10 (callee pops 16 bytes); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       none: no [ebp-n] slot referenced
 # fields:       [eax + n] field_d0, field_d4, field_d8; [esi + n] field_18, field_92, field_1f4
 # callees:      calls FUN_00525b0f, FUN_0051d392, FUN_0051dc77, FUN_0051ac0b, FUN_0051f599, USER32.dll!SendMessageA; plus 10 indirect transfer(s) whose target is not resolved
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 114 instruction(s), 14 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; indirect transfers are not followed
+# unverified:   machine annotation only: the 114 instruction(s), 14 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; indirect transfers are not followed
 .intel_syntax noprefix
 .code32
 .text

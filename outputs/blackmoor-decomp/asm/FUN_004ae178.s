@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004ae178
+# name:         inferred_tangram_solution_setup
+# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/4ae178.c.txt, not original source) refers to the data labelled s_CTangramPuzzle__SolutionSetup_____00551510, s_DF_Solution_Source_Surface_005514c4
+# name-note:    Builds the tangram solution mask from the CIFTREE DF_Solution_Source_Surface; on allocation failure reports CTangramPuzzle::SolutionSetup with Unable to get memory for Solution.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       10 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c, local_20, local_24, local_28
 # fields:       [eax + n] field_4, field_8, field_c, field_c17, field_e59, field_e5d, field_e61, field_e65, field_e69, field_e6d, field_e71, field_e73 and 4 more; [ecx + n] field_2f, field_c17, field_e71, field_e73, field_e75, field_e79, field_e85, field_minus_1; [edx + n] field_4, field_8, field_c, field_e59, field_e5d, field_e6d, field_e79, field_e7d
 # callees:      calls FUN_004c2790, FUN_0051dc43, FUN_0050ca3e, FUN_004c2dfb, FUN_0052139c, FUN_0044a2b7, FUN_004c97b4
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 197 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 197 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

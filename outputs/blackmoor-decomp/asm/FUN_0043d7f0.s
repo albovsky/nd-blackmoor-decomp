@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0043d7f0
+# name:         inferred_invalidate_redraw_sweep
+# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_76_runtime.h:27 says "0x43d7f0 / 0x43dbe3 / 0x435015 invalidate (entry flag := 1 while active)"
+# name-note:    Invalidate/redraw-request sweep that sets entry flags while objects are active.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       none: no [ebp-n] slot referenced
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      calls FUN_004d3ced, FUN_00468f68, FUN_004a3910, FUN_0048a82e, FUN_004b3da2, FUN_00459bd6, FUN_004a1ce0, FUN_0048e393, FUN_0048d0e5, FUN_004a6477, FUN_004b5c11, FUN_004ab425, FUN_00465b9f, FUN_004618ab, FUN_00487b98, FUN_004afdc7 and 31 more
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 139 instruction(s), 8 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# unverified:   machine annotation only: the 139 instruction(s), 8 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

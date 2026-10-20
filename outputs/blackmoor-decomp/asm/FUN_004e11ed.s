@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004e11ed
+# name:         inferred_ui_button_new_info_notify
+# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/4e11ed.c.txt, not original source) refers to the data labelled s_CUIButton_new_info_notify_0055be80
+# name-note:    For five UI buttons, redraws the new-info notification image, otherwise calls a helper; blit tagged CUIButton new info notify.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_753, field_757, field_75b, field_f2a; [ecx + n] field_154, field_753; [edx + n] field_753
 # callees:      calls FUN_004e2956, FUN_004e2b99, FUN_004c5377
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 67 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class static_navigation_only is a native-touch record, not a counterpart claim
+# unverified:   machine annotation only: the 67 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class static_navigation_only is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

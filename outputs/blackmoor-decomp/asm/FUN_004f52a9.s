@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004f52a9
+# name:         inferred_sound_channel_pump
+# naming:       INFERRED (lower confidence, not verified): the repository text src/live_audio.c:10 says "the pump 0x4f52a9 drains events and"; src/live_audio.h:236 says "the recovered channel pump (original 0x4f52a9)"
+# name-note:    Sound pump that drains events and calls the channel update 0x4f55d5.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       7 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c
 # fields:       [eax + n] field_10, field_156, field_15e, field_3c2; [ecx + n] field_4, field_8, field_c, field_10, field_166, field_5af; [edx + n] field_4, field_8, field_10, field_15e, field_162, field_3c2, field_3ce, field_5af
 # callees:      calls FUN_004f709c, KERNEL32.dll!WaitForMultipleObjects, FUN_0050ca3e, FUN_0052139c, FUN_0044a2b7, FUN_004f6334, KERNEL32.dll!GetTickCount, FUN_004f8157, FUN_004f356e, FUN_004fa2a8, FUN_004f61e7, FUN_004f57e3, FUN_004f55d5, FUN_004f572b, FUN_004f7207, FUN_004f79ce and 1 more
 # track-n:      outputs/blackmoor-decomp/src/blackmoor_app.mm:update (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 223 instruction(s), 21 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 223 instruction(s), 21 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

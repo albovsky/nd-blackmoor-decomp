@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004cf9f4
+# name:         inferred_main_display_render_pass
+# naming:       INFERRED (lower confidence, not verified): the repository text src/caption_lifecycle.h:278 says "RenderMainDisplay 0x4cf9f4 view of the caption-related layers"; src/caption_lifecycle.h:12 says "(inside RenderMainDisplay 0x4cf9f4)"
+# name-note:    RenderMainDisplay: the main render pass over render-list layers including overlays and captions.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       9 ebp-relative slot(s): local_40, local_44, local_48, local_4c, local_50, local_54, local_58, local_5c, local_60
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      calls FUN_0050ca3e, FUN_004c5377, FUN_004c5d4b, FUN_0052139c, FUN_004c97b4, FUN_004e11ed, FUN_004e6658, FUN_004de584, FUN_004e7a10, FUN_004e97ad, FUN_004ed71e, FUN_00447c36, FUN_004c4c2b; plus 4 indirect transfer(s) whose target is not resolved
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 485 instruction(s), 42 conditional branch(es) and 1 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; indirect transfers are not followed; function ledger class partial_native is a native-touch record, not a counterpart claim
+# unverified:   machine annotation only: the 485 instruction(s), 42 conditional branch(es) and 1 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; indirect transfers are not followed; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

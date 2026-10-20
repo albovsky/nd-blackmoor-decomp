@@ -13,7 +13,7 @@
 # locals:       4 ebp-relative slot(s): local_14, local_18, local_1c, local_20
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      calls FUN_005110a9, FUN_00510f91
-# track-n:      host-adapter: none
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl20c.c:m412db8_wrap_text (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
 # unverified:   machine annotation only: the 32 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32

@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_00411b16
+# name:         inferred_d8_record_builder
+# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_44_runtime.h:17 says "0x411b16 builds the 0xd8 record"
+# name-note:    Builds the 0xd8 record from the 0x44 object and the link table the text writer left.
 # arguments:    3 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10; ret 0xc (callee pops 12 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       9 ebp-relative slot(s): local_4, local_c, local_10, local_14, local_18, local_1c, local_20, local_24, local_28
 # fields:       [eax + n] field_4, field_8, field_c, field_4c, field_50, field_134, field_15e; [ecx + n] field_4, field_8, field_c, field_e, field_42, field_15e, field_162, field_1eb, field_102a; [edx + n] field_2, field_4, field_8, field_c, field_15e, field_102e; [esi + n] field_160
 # callees:      calls FUN_0051dc43, FUN_0050ca3e, FUN_0042639d, FUN_004c97b4, FUN_005193ca, FUN_0051dc6c
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 286 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class static_navigation_only is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/action_family_44_runtime.h:a44_build_record (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 286 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

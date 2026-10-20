@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004f9b50
+# name:         inferred_direct_sound_init_frame_anchor_pos
+# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/4f9b50.c.txt, not original source) refers to the data labelled s_CDirectSound__InitFrameAnchorPos_0055f414
+# name-note:    Computes the channel 3D anchor position from the frame angle and applies it; logs CDirectSound::InitFrameAnchorPos.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       10 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c, local_20, local_24, local_28
 # fields:       [eax + n] field_2a7, field_3f4; [ecx + n] field_d1, field_dd, field_2a3, field_3ce, field_3f4; [edx + n] field_4, field_8, field_2ab, field_3da
 # callees:      calls FUN_004ccb50, FUN_004ccc50, FUN_004f8f94, FUN_004f9040, FUN_0050ca3e, FUN_0044a2b7
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 124 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 124 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

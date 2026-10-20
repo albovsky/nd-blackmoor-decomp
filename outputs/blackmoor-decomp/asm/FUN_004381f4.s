@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004381f4
+# name:         inferred_world_init
+# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_2d_runtime.h:44 says "the world init 0x4381f4 runs 0x4cd218 (0x4383f2) and 0x4cecf7 (0x439500) once"
+# name-note:    World initialisation, which runs 0x4cd218 and 0x4cecf7 once and does the scene clear.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       9 ebp-relative slot(s): local_4, local_8, local_10c, local_110, local_114, local_118, local_11c, local_120, local_124
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      calls FUN_0044a2b7, KERNEL32.dll!GetTickCount, FUN_00433bd2, FUN_004cd218, FUN_004a3947, FUN_0048e324, FUN_004a1d14, FUN_0048d119, FUN_004a64ae, FUN_004b5c48, FUN_004ab459, FUN_00465bd3, FUN_004618df, FUN_00487bcc, FUN_004afdfe, FUN_00470e71 and 94 more
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 1100 instruction(s), 28 conditional branch(es) and 2 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# unverified:   machine annotation only: the 1100 instruction(s), 28 conditional branch(es) and 2 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

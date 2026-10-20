@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004d37af
+# name:         inferred_sec1_screen_redraw
+# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/4d37af.c.txt, not original source) refers to the data labelled s_pDFSSec1VideoBitmapOverlay_0055a3e4, s_pSBackground_0055a3c4, s_sec_1_surface_0055a3d4
+# name-note:    Draws the sec 1 screen: background, the sec_1 surface and, if present, the video bitmap overlay (pSBackground, sec_1_surface, pDFSSec1VideoBitmapOverlay).
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       none: no [ebp-n] slot referenced
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      calls FUN_004c5377, FUN_004c5d4b
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 37 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 37 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

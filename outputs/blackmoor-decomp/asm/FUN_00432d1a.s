@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_00432d1a
+# name:         inferred_raw_97_a1_caption_sound_handler
+# naming:       INFERRED (lower confidence, not verified): the repository text src/blackmoor_app.mm:3257 says "raw 0xa1 shares the caption writer and the caption flag with raw 0x97 (0x432d1a is"
+# name-note:    Single function handling raw 0x97 and raw 0xa1 rows (shares the caption writer and caption flag).
 # arguments:    3 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       25 ebp-relative slot(s): local_104, local_108, local_10c, local_11f, local_140, local_144, local_148, local_14c, local_150, local_154, local_158, local_15c and 13 more
 # fields:       [eax + n] field_21, field_25, field_27, field_90, field_93, field_99, field_a5, field_a8; [ecx + n] field_91, field_97, field_a1, field_a5, field_a7, field_aa; [edx + n] field_23, field_2b, field_2d, field_2f, field_33, field_37, field_3b, field_3f, field_43, field_47, field_4b, field_4f and 21 more
 # callees:      calls FUN_0044a2b7, FUN_00448d11, FUN_004fc62d, FUN_004faf98, FUN_004f6334, FUN_004fba69, FUN_0042ba3a
 # track-n:      outputs/blackmoor-decomp/src/action_family_97_runtime.h:action97_runtime_step (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 461 instruction(s), 22 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 461 instruction(s), 22 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0043a7ca
+# name:         inferred_accepted_release_click_block
+# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_76_runtime.h:26 says "0x43a7ca click block (accepted-release chain, at 0x43beee)"
+# name-note:    Click block run on an accepted release, calling the click and state handlers.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       38 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c, local_20, local_24, local_28, local_2c, local_30 and 26 more
 # fields:       [eax + n] field_8, field_c, field_14, field_49, field_de; [ecx + n] field_4, field_14, field_18, field_21, field_23, field_de, field_e0, field_138, field_169, field_256, field_292, field_557; [edi + n] field_4, field_6; [edx + n] field_4, field_10, field_18, field_21, field_23, field_138, field_292
 # callees:      calls KERNEL32.dll!GetTickCount, FUN_0043d7f0, FUN_004dadff, FUN_004fafc7, FUN_004e8622, FUN_004e8994, FUN_004e89b9, FUN_004e94c1, FUN_004ebb5b, FUN_004ebd2e, FUN_004ebd53, FUN_004ec9a2, FUN_004e3093, FUN_004e3525, FUN_004e40fb, FUN_004e4cb6 and 103 more
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 2335 instruction(s), 299 conditional branch(es) and 5 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# unverified:   machine annotation only: the 2335 instruction(s), 299 conditional branch(es) and 5 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

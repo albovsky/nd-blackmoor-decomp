@@ -13,7 +13,7 @@
 # locals:       none resolved: no ebp frame so slots are listed under fields as esp-relative stk symbols
 # fields:       [esp + n] stk_c
 # callees:      calls FUN_0050ea90; plus 1 indirect transfer(s) whose target is not resolved
-# track-n:      host-adapter: none
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl27b.c:m4161d1_alloc_buffers (function ledger class candidate_port; also m4c2c3a_make_record; this machine pass does not re-verify the equivalence)
 # unverified:   machine annotation only: the 21 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; indirect transfers are not followed
 .intel_syntax noprefix
 .code32

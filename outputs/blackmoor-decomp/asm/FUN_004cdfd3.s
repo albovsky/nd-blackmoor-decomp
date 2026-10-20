@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004cdfd3
+# name:         inferred_random_movie_clip_loader
+# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_2d_runtime.h:39 says "0x4cdfd3 clip load: four file probes (BIK, BIK in the second directory, AVF"
+# name-note:    Clip load: probes BIK and AVF files, copies the name and initialises the player state.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       9 ebp-relative slot(s): local_4, local_c, local_10, local_114, local_118, local_11c, local_120, local_124, local_128
 # fields:       [eax + n] field_21, field_2b, field_17e, field_1b2, field_1ba, field_1be, field_1d6, field_1da, field_212, field_21a, field_222, field_226 and 1 more; [ecx + n] field_2d, field_18e, field_1b2, field_1b6, field_1ba, field_1be, field_1ca, field_1cc, field_1d4, field_1d6, field_20a, field_212 and 2 more; [edx + n] field_21, field_18e, field_1b2, field_1b6, field_1ba, field_1ce, field_1d6, field_20e, field_212, field_21a
 # callees:      calls FUN_0050cd72, FUN_00449d90, FUN_0044c4c1, FUN_0050ca3e, FUN_004264e8, FUN_0044a2b7, FUN_004c2a8d, FUN_004161d1, FUN_0051dc43, FUN_004497a0, FUN_0042639d, FUN_00449bff, FUN_004bef11, FUN_004bf3b8, FUN_004bf19a
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 361 instruction(s), 24 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/action_family_2d_runtime.c:load_clip (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 361 instruction(s), 24 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

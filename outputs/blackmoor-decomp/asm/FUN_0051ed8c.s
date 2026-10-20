@@ -14,7 +14,7 @@
 # fields:       [esi + n] field_28, field_2c
 # callees:      calls FUN_0050f920, FUN_0052513f, FUN_0050fe79, KERNEL32.dll!ResumeThread, KERNEL32.dll!WaitForSingleObject, KERNEL32.dll!SuspendThread, KERNEL32.dll!SetEvent; plus 6 indirect transfer(s) whose target is not resolved
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 88 instruction(s), 6 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; indirect transfers are not followed
+# unverified:   machine annotation only: the 88 instruction(s), 6 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; indirect transfers are not followed; function ledger class partial_native is a native-touch record, not a counterpart claim
 # note:         further_unindexed_code_at:0x0051ee6e
 .intel_syntax noprefix
 .code32

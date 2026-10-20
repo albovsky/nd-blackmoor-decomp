@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004fc878
+# name:         inferred_scene_sound_channel_stop
+# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_9a_runtime.h:27 says "each stop is 0x4fc878 on the scene sound object 0x5c3a67"; src/action_family_9a_runtime.h:61 says "0x4fc878(channel) on 0x5c3a67"
+# name-note:    Stops one sound channel by index on the scene sound object 0x5c3a67.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_132; [ecx + n] field_132
 # callees:      calls FUN_0050ca3e, FUN_0044a2b7, FUN_004f61e7
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 38 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/blackmoor_app.mm:native_a9a_stop_channel (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 38 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

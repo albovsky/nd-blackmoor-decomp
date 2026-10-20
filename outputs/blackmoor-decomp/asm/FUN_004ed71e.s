@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004ed71e
+# name:         inferred_notebook_render
+# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/4ed71e.c.txt, not original source) refers to the data labelled s_Drawing_checked_box_0055cd80, s_Render_Journal_list_0055cd58, s_Render_Task_list_0055cd6c
+# name-note:    Renders the notebook: tab strings, the Journal list or the Task list (with checked boxes), tagged write_tab_string, Render_Journal_list, Render_Task_list.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       2 ebp-relative slot(s): local_4, local_8
 # fields:       [eax + n] field_985, field_b77, field_ca0, field_ca8, field_fc6, field_fca, field_fda, field_28da; [ecx + n] field_989, field_b7f, field_c70, field_ca0, field_fc6, field_fca, field_fde, field_28da; [edx + n] field_b85, field_fc6, field_fe6, field_28da
 # callees:      calls FUN_004ee86f, FUN_004e2b99, FUN_004ee630, FUN_004c5377, FUN_004c5d4b
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 168 instruction(s), 13 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 168 instruction(s), 13 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004b8e92
+# name:         inferred_typing_quiz_f5_handler
+# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_f5_runtime.h:22 says "0x4b8e92 the handler: a phase switch on the row phase dword"
+# name-note:    Handler of the 0xf5 Typing Quiz Puzzle: a phase switch on the row phase dword.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       4 ebp-relative slot(s): local_4, local_8, local_c, local_10
 # fields:       [eax + n] field_4, field_6, field_8, field_c, field_14, field_1c, field_34, field_6a, field_405, field_409, field_419, field_431 and 32 more; [ecx + n] field_4, field_6, field_8, field_c, field_14, field_20, field_6a, field_7d, field_40d, field_411, field_434, field_464 and 16 more; [edx + n] field_4, field_6, field_8, field_c, field_10, field_18, field_1c, field_6a, field_73, field_7d, field_173, field_415 and 17 more
 # callees:      calls FUN_004e8d96, FUN_004d39f9, FUN_004c2790, FUN_004fb77a, FUN_004460d6, FUN_0044655e, FUN_00446532, KERNEL32.dll!GetTickCount, FUN_004462d3, FUN_00446598, FUN_00446548, FUN_004c924d, FUN_004b8783, FUN_004b832c, FUN_004b8d5e, FUN_004fb2e3 and 6 more
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 736 instruction(s), 43 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class static_navigation_only is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/action_family_f5_runtime.c:phase0 (function ledger class candidate_port; also phase1, phase2; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 736 instruction(s), 43 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

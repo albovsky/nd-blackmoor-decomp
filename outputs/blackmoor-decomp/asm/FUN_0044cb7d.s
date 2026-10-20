@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0044cb7d
+# name:         inferred_primary_secondary_threads_killer
+# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/44cb7d.c.txt, not original source) refers to the data labelled s_KillPriSecThreads_____done____0054950c, s_KillPriSecThreads_____killed_pCo_00549430
+# name-note:    KillPriSecThreads: stops and deletes four thread objects one by one under their locks, logging each kill and the final done message.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       12 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c, local_20, local_24, local_28, local_2c, local_30
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      calls FUN_0044c479, FUN_00449a94, FUN_0044c4ab, FUN_0044a2b7; plus 4 indirect transfer(s) whose target is not resolved
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 144 instruction(s), 13 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; indirect transfers are not followed
+# unverified:   machine annotation only: the 144 instruction(s), 13 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; indirect transfers are not followed
 .intel_syntax noprefix
 .code32
 .text

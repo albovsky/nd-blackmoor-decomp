@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004163b4
+# name:         inferred_scene_background_video_opener
+# naming:       INFERRED (lower confidence, not verified): the repository text media-recovery.md:15 says "calls `0x4163b4`, the single-frame video-stream opener, for the scene background"
+# name-note:    Single-frame video-stream opener for the scene background; tests .BIK candidates before .AVF.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       10 ebp-relative slot(s): local_104, local_108, local_10c, local_110, local_114, local_118, local_11c, local_120, local_124, local_128
 # fields:       [eax + n] field_4, field_10, field_15, field_17, field_208, field_20c, field_210, field_212, field_214, field_218, field_21a, field_21c and 4 more; [ecx + n] field_4, field_c, field_208, field_20c, field_212, field_214, field_21a, field_21c, field_21e, field_222, field_226, field_22a and 3 more; [edx + n] field_17, field_19, field_1b, field_1c, field_20, field_208, field_20c, field_210, field_212, field_214, field_218, field_21c and 6 more
 # callees:      calls FUN_0050cd72, FUN_00449d90, FUN_0050ca3e, FUN_0052139c, FUN_0044a2b7, FUN_004c97b4, FUN_00414ceb, FUN_004bf315, FUN_004bf3b8, FUN_004264e8, FUN_004bee5f, FUN_0050ce04, FUN_004bef11
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 464 instruction(s), 16 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# unverified:   machine annotation only: the 464 instruction(s), 16 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

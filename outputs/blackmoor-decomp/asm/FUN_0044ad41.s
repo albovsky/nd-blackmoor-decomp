@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0044ad41
+# name:         inferred_file_version_info_reader
+# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/44ad41.c.txt, not original source) refers to the data labelled s_GetVersionInfo_____Bad_return_on_00548d94, s__StringFileInfo_040904B0_FileVer_00548e40
+# name-note:    Reads the file version resource with GetFileVersionInfo/VerQueryValue (\StringFileInfo\040904B0\FileVersion) and parses four numbers into globals.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       11 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c, local_20, local_24, local_28, local_2c
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      calls FUN_004fcee2, FUN_004264e8, FUN_0051dc43, FUN_0042639d, FUN_004fcedc, FUN_004fced6, FUN_0050deda, FUN_0050cb1b, FUN_0051dc6c
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 144 instruction(s), 6 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 144 instruction(s), 6 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

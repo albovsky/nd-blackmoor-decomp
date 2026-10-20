@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004fc341
+# name:         inferred_scene_header_sound_player
+# naming:       INFERRED (lower confidence, not verified): the repository text his-audio-recovery.md:13 says "`0x4fc341` opens a sound channel, calls `0x4fc62d`, and then calls `0x4fb2e3` for playback."
+# name-note:    Opens a sound channel, calls 0x4fc62d and then 0x4fb2e3 to play it; scene-header playback.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       18 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c, local_20, local_24, local_28, local_2c, local_30 and 6 more
 # fields:       [eax + n] field_130, field_132, field_134, field_13c; [ecx + n] field_138, field_13c, field_16a; [edx + n] field_138
 # callees:      calls FUN_004fc62d, FUN_004fb2e3
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 175 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# unverified:   machine annotation only: the 175 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

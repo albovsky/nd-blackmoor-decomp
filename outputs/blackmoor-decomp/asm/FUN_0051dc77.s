@@ -8,13 +8,15 @@
 # region:       crt_mfc
 # frame:        none
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0051dc77
+# name:         inferred_mfc_dialog_init_handler
+# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/51dc77.c.txt, not original source) refers to the data labelled s_CDialog_0052f190
+# name-note:    On WM_INITDIALOG looks up the CDialog for the window handle and calls its virtual init handler.
 # arguments:    no ebp frame so stack arguments are esp-relative and are not resolved by this machine pass; ret 0x10 (callee pops 16 bytes); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       none resolved: no ebp frame so slots are listed under fields as esp-relative stk symbols
 # fields:       [edx + n] field_bc; [esp + n] stk_4, stk_8
 # callees:      calls FUN_0051ac0b, FUN_0051f5ab; plus 1 indirect transfer(s) whose target is not resolved
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 20 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; indirect transfers are not followed
+# unverified:   machine annotation only: the 20 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; indirect transfers are not followed
 # note:         further_unindexed_code_at:0x0051dcb1
 .intel_syntax noprefix
 .code32

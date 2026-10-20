@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004867bd
+# name:         inferred_onebuild_puzzle_handler
+# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_ea_runtime.h:17 says "0x4867bd the handler, a switch on the row phase dword"
+# name-note:    Handler of the raw 0xea Onebuild puzzle: a switch on the row phase dword.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       13 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_e4, local_e8, local_ec, local_f0, local_f4, local_f8 and 1 more
 # fields:       [eax + n] field_4, field_8, field_c, field_1c, field_1e, field_21, field_22, field_24, field_26, field_5ec, field_5f4, field_608 and 27 more; [ecx + n] field_4, field_8, field_c, field_1c, field_26, field_5ec, field_5f0, field_604, field_60a, field_610, field_635, field_a92 and 25 more; [edi + n] field_minus_1; [edx + n] field_4, field_8, field_c, field_1c, field_1e, field_22, field_26, field_28, field_5e8, field_5f4, field_5fc, field_60a and 29 more
 # callees:      calls FUN_004e8d96, FUN_004c2790, FUN_0048421e, FUN_004d39f9, FUN_00486725, FUN_004fb77a, FUN_004fb2e3, KERNEL32.dll!GetTickCount, FUN_004f6334, FUN_004fba69, FUN_0048633c, FUN_004866b4, FUN_00485fb6, FUN_00448d11, FUN_00423259, FUN_0042ba3a and 1 more
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 819 instruction(s), 47 conditional branch(es) and 1 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class static_navigation_only is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/action_family_ea_runtime.c:ea_step (function ledger class candidate_port; also phase0, phase1, phase2; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 819 instruction(s), 47 conditional branch(es) and 1 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

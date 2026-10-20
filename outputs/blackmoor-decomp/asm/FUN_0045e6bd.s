@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0045e6bd
+# name:         inferred_random_caption_line_player
+# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_f6_runtime.c:151 says "0x45e6bd(names, record, count): pick a line, play it and show its caption."
+# name-note:    Picks a line from a name list at random, plays it and shows its caption.
 # arguments:    3 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10; ret 0xc (callee pops 12 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       9 ebp-relative slot(s): local_4, local_28, local_50, local_54, local_58, local_5c, local_128, local_12c, local_130
 # fields:       [eax + n] field_3aa; [ecx + n] field_373, field_39e; [edi + n] field_minus_1; [edx + n] field_21
 # callees:      calls FUN_0050cd50, FUN_0045e67d, FUN_004fb77a, FUN_004fb2e3, FUN_00423259, FUN_00448d11
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 174 instruction(s), 10 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 174 instruction(s), 10 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

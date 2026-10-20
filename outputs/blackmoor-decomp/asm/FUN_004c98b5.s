@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004c98b5
+# name:         inferred_adjust_gamma_ramp
+# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/4c98b5.c.txt, not original source) refers to the data labelled s_AdjustGammaRamp____Unable_to_set_00557c2c
+# name-note:    Builds a 256-entry gamma ramp from the current gamma setting and applies it to the gamma control; failure reports AdjustGammaRamp unable to set.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       17 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c, local_20, local_24, local_28, local_2c, local_30 and 5 more
 # fields:       [eax + n] field_10, field_46, field_4a, field_24a, field_44a, field_64a, field_84a, field_a4a, field_c62, field_c66, field_e82; [ecx + n] field_46, field_c52, field_c62, field_e82; [edx + n] field_10, field_46, field_c4a, field_c5e, field_e82
 # callees:      calls FUN_0050ce04, FUN_004c88c7, FUN_0042639d, FUN_004c97b4; plus 2 indirect transfer(s) whose target is not resolved
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 186 instruction(s), 10 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; indirect transfers are not followed
+# unverified:   machine annotation only: the 186 instruction(s), 10 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; indirect transfers are not followed
 .intel_syntax noprefix
 .code32
 .text

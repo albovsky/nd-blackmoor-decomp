@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004ac498
+# name:         inferred_spigot_puzzle_redraw
+# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/4ac498.c.txt, not original source) refers to the data labelled s_Letter_rotating_Animation_00551098, s_Spigot_Frame_Animation_00551080, s_Update_Letters_005510b4
+# name-note:    Redraws the spigot puzzle: frame animation, letters, rotating letter, release button up/down states, each blit tagged by Spigot/Letter strings.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       5 ebp-relative slot(s): local_10, local_14, local_18, local_1c, local_2c
 # fields:       [eax + n] field_21, field_509, field_569; [ecx + n] field_21, field_3f, field_15f, field_1bf; [edx + n] field_25, field_ff, field_1bf, field_269
 # callees:      calls FUN_004ac3d2, FUN_004ac37f, FUN_004c5377
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 217 instruction(s), 6 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 217 instruction(s), 6 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

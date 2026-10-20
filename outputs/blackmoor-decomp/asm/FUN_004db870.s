@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004db870
+# name:         inferred_cursor_recenter
+# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_ee_runtime.h:31 says "0x4db870 recenter the mouse cursor (ECX 0x5830ce; only when body+0x345 != 0): SetCursorPos(0, 0), cursor cells."
+# name-note:    Recenters the mouse cursor with SetCursorPos(0, 0) and updates the cursor cells.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       2 ebp-relative slot(s): local_8, local_c
 # fields:       [eax + n] field_4, field_14, field_18; [ecx + n] field_14, field_18, field_2c, field_30; [edx + n] field_14, field_18, field_1c, field_20, field_24, field_28, field_minus_1
 # callees:      calls FUN_004dae88, FUN_004daeb5
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 73 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/blackmoor_app.mm:native_aee_view (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 73 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

@@ -8,13 +8,15 @@
 # region:       crt_mfc
 # frame:        none
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0051fc5c
+# name:         inferred_only_call_GlobalFree
+# naming:       INFERRED (lower confidence, not verified): function-xrefs.json lists KERNEL32.dll!GlobalFree as the only import of the 14-byte function and no callee
+# name-note:    A 14-byte leaf function with no direct callee whose only external call is KERNEL32.dll!GlobalFree
 # arguments:    no ebp frame so stack arguments are esp-relative and are not resolved by this machine pass; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       none resolved: no ebp frame so slots are listed under fields as esp-relative stk symbols
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      calls KERNEL32.dll!GlobalFree
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 6 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class nn_reviewed is a native-touch record, not a counterpart claim
+# unverified:   machine annotation only: the 6 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class nn_reviewed is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004c51a5
+# name:         inferred_surface_rect_copy
+# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_ea_runtime.h:136 says "0x4c51a5(src, dst, src rect, dst rect, tag): rects are left, top, right, bottom."; src/blackmoor_app.mm:5644 says "0x4c51a5: copy between two surfaces (equally sized rectangles, inclusive edges)."
+# name-note:    Copies a rectangle between two surfaces (equally sized rectangles, inclusive edges).
 # arguments:    5 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10, arg_14, arg_18; ret 0x14 (callee pops 20 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       11 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_114, local_118, local_11c, local_120, local_124
 # fields:       [eax + n] field_4, field_c, field_2f; [ecx + n] field_4, field_8, field_c, field_2f; [edx + n] field_4, field_8, field_c
 # callees:      calls FUN_0050ca3e, FUN_0052139c, FUN_004c97b4
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 153 instruction(s), 6 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/blackmoor_app.mm:create_native_session_bindings (function ledger class candidate_port; also native_aea_blit, native_aea_image; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 153 instruction(s), 6 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

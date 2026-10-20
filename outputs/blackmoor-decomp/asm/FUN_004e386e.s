@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004e386e
+# name:         inferred_scene_change_80_handler
+# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_80_runtime.h:20 says "0x4e386e w = signed body word. w != 9999 (0x270f)"
+# name-note:    Handler of raw 0x80: sets scene-change cells from a signed body word (9999 meaning none).
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [eax + n] field_6b2, field_6b4, field_6ba, field_6bc, field_6c6, field_4530; [ecx + n] field_6b2, field_6b4, field_6ba, field_6c2, field_4528; [edi + n] field_minus_1; [edx + n] field_6ba, field_6be, field_6ca, field_4528, field_65d2
 # callees:      calls FUN_0050ca3e, FUN_0044a2b7, FUN_00427a40
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 107 instruction(s), 7 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class static_navigation_only is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/action_family_80_runtime.h:action_family_80_runtime_visit (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 107 instruction(s), 7 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text
