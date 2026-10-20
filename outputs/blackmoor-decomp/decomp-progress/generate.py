@@ -447,9 +447,12 @@ def audited_data_evidence(layout: dict, out_dir: Path):
             require(report["ranges"] == man["ranges"], "audited ranges differ from the manifest")
             for r in man["ranges"]:
                 off, size = int(r["offset"], 16), r["length"]
-                sec = sections[r["section"]]
-                require(type(size) is int and size > 0 and r["section"] != ".text" and
-                        sec["raw_off"] <= off and off + size <= sec["raw_off"] + sec["raw_size"],
+                # the file headers are the pseudo-section "<headers>" of the data batches ("headers" in this layout)
+                sec = sections["headers" if r["section"] == DATA_ASM.HEADERS else r["section"]]
+                # .text holds code, so a data range there may only lie in the zero fill past its virtual size
+                code_end = sec["raw_off"] + sec["virt_size"] if sec["name"] == ".text" else sec["raw_off"]
+                require(type(size) is int and size > 0 and
+                        code_end <= off and off + size <= sec["raw_off"] + sec["raw_size"],
                         "data range is outside its section's raw data")
                 require(int(r["va"], 16) == layout["image_base"] + sec["rva"] + off - sec["raw_off"],
                         "data range VA/offset disagree")
@@ -863,12 +866,13 @@ def write_report(model, path: Path):
         notes += [
             "- Baseline code totals are function spans (start to next indexed start). A span "
             "also holds the function's switch jump tables and `int 3` padding "
-            "(about 10.9 KB in all, M0 report section 3), so baseline code is slightly "
+            "(11,530 bytes in all: 5,856 switch table, 2,214 `int 3`, 1,934 index table and 1,526 alignment padding; "
+            "11,290 are audited data items of the M03 batches, 240 are the tables of two CRT block copies), so baseline code is slightly "
             "overstated and baseline data slightly understated until the M02 ledger splits them.",
             "- M03 tables and padding are excluded from matched code; their data items are "
             "handed to M02. Baseline mode counts the audited data sources (`asm_data/data-*.json`) as "
-            "matched data; the composer's `structured` data (PE headers, import tables, resource "
-            "directory, section padding) is not counted here, use a ledger for it."]
+            "matched data, including the `structures` batches (PE headers, import tables, resource "
+            "directory tree, section padding); the composer's `structured` jump tables and `int 3` padding are not counted here, use a ledger for them."]
     else:
         notes += [
             "- Code and data totals come from the composer ledger, where every classified byte has "

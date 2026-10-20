@@ -46,7 +46,7 @@ Owner ruling of 2026-10-14 (see `AGENTS.md` and `M0-binary-census-report.md`): f
 | M02 | [Whole-file skeleton and image composer](tasks/M02-whole-file-skeleton-and-composer.md) | New `image/` sources, composer script, tests, private M02.* evidence |
 | M03 | [Hinted assembly generator and first reviewed batch](tasks/M03-hinted-assembly-generator-and-first-batch.md) | New generator/audit scripts, `asm/` batch sources, tests, private M03.* evidence |
 | M04 | Machine annotation of every remaining indexed function (batches 003-008, `scripts/annotate_machine.py`, auditor `annotation: machine` mode; Glib's ruling of 2026-10-15) | `asm/` batch sources and reports, `scripts/annotate_machine.py`, auditor machine mode |
-| M-C | `.rdata`, `.data` and resource payloads as audited labeled data directives (`scripts/data_asm.py`, `asm_data/data-001..002`; Glib's ruling of 2026-10-19), full sources regenerated at build time, only manifest, report and payload-free layout committed; composer `data_batches` and the map's matched data | `asm_data/`, `scripts/data_asm.py`, composer data binding, map data evidence |
+| M-C | `.rdata`, `.data` and resource payloads as audited labeled data directives (`scripts/data_asm.py`, `asm_data/data-001..004`; Glib's ruling of 2026-10-19; 003 and 004 are the PE headers, import tables, resource directory tree and padding), full sources regenerated at build time, only manifest, report and payload-free layout committed; composer `data_batches` and the map's matched data | `asm_data/`, `scripts/data_asm.py`, composer data binding, map data evidence |
 
 ## Runtime path (RT) slices, 2026-10-14
 

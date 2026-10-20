@@ -243,6 +243,53 @@ class LayoutTests(unittest.TestCase):
             self.assertFalse(data_asm.safe_batch_names(bad), bad)
 
 
+class StructureBatchTests(unittest.TestCase):
+    """Batches 003 and 004 (profile ``structures``): the bytes the composer's structured groups also generate."""
+
+    def test_structure_ranges_are_the_complement_of_the_payload_batches(self):
+        payload = list(data_asm.DEFAULT_RANGES) + list(data_asm.resource_ranges())
+        pe, resource = data_asm.structure_ranges("pe"), data_asm.structure_ranges("resource")
+        self.assertEqual(sum(hi - lo for lo, hi in pe), 18914)
+        self.assertEqual(sum(hi - lo for lo, hi in resource), 4516)
+        everything = sorted(payload + list(pe) + list(resource))
+        for (_, end), (start, _) in zip(everything, everything[1:]):
+            self.assertLessEqual(end, start)  # disjoint
+        # together with the payloads they tile the file apart from the function spans of .text
+        text = next(s for s in data_asm.load_sections() if s.name == ".text")
+        self.assertEqual(everything[0][0], 0)
+        covered = sum(hi - lo for lo, hi in everything)
+        self.assertEqual(covered, 1511424 - text.virtual_size)
+        self.assertRaises(data_asm.DataAsmError, data_asm.structure_ranges, "nope")
+
+    def test_gen_structures_needs_an_explicit_batch_and_refuses_other_range_options(self):
+        self.assertEqual(data_asm.main(["gen", "--structures", "pe"]), 2)  # would otherwise overwrite batch 001
+        self.assertEqual(data_asm.main(["gen", "--structures", "pe", "--batch", "003", "--resources"]), 2)
+
+    def test_committed_structures_manifests_claim_exactly_the_derived_ranges(self):
+        claimed = {}
+        for name in ("data-003.json", "data-004.json"):
+            manifest = json.loads((ASM_DATA / name).read_text())
+            self.assertEqual(manifest["profile"], data_asm.PROFILE_STRUCTURES)
+            claimed[name] = data_asm.manifest_ranges(manifest)
+        self.assertEqual(claimed["data-003.json"], data_asm.structure_ranges("pe"))
+        self.assertEqual(claimed["data-004.json"], data_asm.structure_ranges("resource"))
+
+    def test_the_file_headers_are_a_pseudo_section(self):
+        sections = data_asm.load_sections()
+        self.assertEqual(data_asm.containing_section(sections, 0, 0x1000).name, data_asm.HEADERS)
+        self.assertEqual(data_asm.bias_of(sections, ((0, 0x1000), (0x12925A, 0x12A000))), 0x400000)
+        self.assertIsNone(data_asm.containing_section(sections, 0, 0x2000))  # headers and .text are not one range
+        self.assertEqual(data_asm.section_name_at(sections, 0x10), data_asm.HEADERS)
+
+    def test_the_structures_header_names_the_profile_and_is_accepted_by_the_layout_audit(self):
+        sections = data_asm.load_sections()
+        lines = data_asm.header_lines(((0, 0x1000),), sections, 0x400000, 0x400000, False, data_asm.PROFILE_STRUCTURES)
+        self.assertIn("# pointers: not detected (PE structures)", lines)
+        self.assertIn("# ranges: 0x00400000-0x00401000 (<headers>)", lines)
+        layout = data_asm.layout_of("\n".join(lines) + "\n.intel_syntax noprefix\n.data\nIMG:\nDAT_00400000:\n.long 0x905a4d\n")
+        self.assertEqual(data_asm.audit_layout(layout), [])
+
+
 class CommittedBatchTests(unittest.TestCase):
     """The committed asm_data/ batches against the local original (skipped without it)."""
 
@@ -251,7 +298,7 @@ class CommittedBatchTests(unittest.TestCase):
 
     def test_the_committed_batches_cover_the_non_code_sections_and_carry_no_payload(self):
         manifests = self.manifests()
-        self.assertEqual([m.name for m in manifests], ["data-001.json", "data-002.json"])
+        self.assertEqual([m.name for m in manifests], ["data-001.json", "data-002.json", "data-003.json", "data-004.json"])
         self.assertEqual(sorted(ASM_DATA.glob("*.s")), [])  # the full sources are build outputs, never committed
         total = 0
         for path in manifests:
@@ -268,7 +315,8 @@ class CommittedBatchTests(unittest.TestCase):
             self.assertEqual(report["manifest_sha256"], data_asm.file_sha256(path))
             self.assertEqual(report["source"]["sha256"], manifest["source_sha256"])
             self.assertEqual(report["layout"]["sha256"], manifest["layout_sha256"])
-        self.assertEqual(total, 274976)  # .rdata 41,924 + .data 208,896 + resource payloads 24,156
+        # .rdata 41,924 + .data 208,896 + resource payloads 24,156 + headers/IAT/imports/padding 18,914 + resource tree and padding 4,516
+        self.assertEqual(total, 298406)
 
     @needs_toolchain
     def test_every_committed_batch_audits_clean_and_regenerates_identically(self):
@@ -346,6 +394,26 @@ class MutantTests(unittest.TestCase):
         report = self.audit(lambda text: text + "# edited\n", rehash=False)
         self.assertFalse(report["all_accepted"])
         self.assertTrue(any("manifest hash" in e for e in report["errors"]))
+
+    def test_an_unknown_profile_is_rejected(self):
+        manifest_path = self.dir / "data-002.json"
+        manifest = json.loads(manifest_path.read_text())
+        manifest["profile"] = "anything"
+        manifest_path.write_text(json.dumps(manifest))
+        report = data_asm.audit_manifest(manifest_path, data_asm.DEFAULT_ORIGINAL, data_asm.DEFAULT_ASSEMBLER, source_path=None, build_dir=self.dir)
+        self.assertFalse(report["all_accepted"])
+        self.assertTrue(any("unknown profile" in e for e in report["errors"]))
+
+    def test_a_shrunk_structures_manifest_is_rejected(self):
+        for name in ("data-003.json", "data-003.layout"):
+            shutil.copy(ASM_DATA / name, self.dir / name)
+        manifest_path = self.dir / "data-003.json"
+        manifest = json.loads(manifest_path.read_text())
+        manifest["ranges"] = manifest["ranges"][:-1]
+        manifest_path.write_text(json.dumps(manifest))
+        report = data_asm.audit_manifest(manifest_path, data_asm.DEFAULT_ORIGINAL, data_asm.DEFAULT_ASSEMBLER, build_dir=self.dir)
+        self.assertFalse(report["all_accepted"])
+        self.assertTrue(any("structure_ranges" in e for e in report["errors"]))
 
     def test_an_incbin_is_rejected(self):
         report = self.audit(lambda text: text + '.incbin "GAME.EXE"\n')

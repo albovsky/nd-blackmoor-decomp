@@ -1,0 +1,46 @@
+{
+ "schema": "blackmoor-data-asm/1",
+ "batch": "003",
+ "class": "tool_assisted_reconstructed_data",
+ "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+ "description": "PE headers, import tables, resource directory tree and section padding as labeled data directives, regenerated from the local original at build time (owner ruling of 2026-10-19)",
+ "image_base": "0x00400000",
+ "va_bias": "0x00400000",
+ "pointers": false,
+ "origin_va": "0x00400000",
+ "source": "data-003.s",
+ "source_sha256": "788b2e692afb38857181a0cc1fc10b5fae28a2fb4852373ca7185c4de690ba3e",
+ "layout": "data-003.layout",
+ "layout_sha256": "4e8bfc6cfb2527a157f4af0525b8f1d6e9a17c30ae6f30d1c354cdcbfe418353",
+ "ranges": [
+  {
+   "offset": "0x0",
+   "length": 4096,
+   "va": "0x00400000",
+   "section": "<headers>",
+   "sha256": "d20dbf017f452b2f753ef19b0e45b59fee5dc8e5c96fe9c6e2be7f7a732d87cc"
+  },
+  {
+   "offset": "0x12925a",
+   "length": 3494,
+   "va": "0x0052925a",
+   "section": ".text",
+   "sha256": "47674d477d507a99c28d9929f44a409a0c9d9707083d8d6b3cada5acff9d0ddd"
+  },
+  {
+   "offset": "0x12a000",
+   "length": 1356,
+   "va": "0x0052a000",
+   "section": ".rdata",
+   "sha256": "b5502bcfa2e13e6f78894802753c5f8ff10a2ecd48c4f0346c588c2f17ebf9ee"
+  },
+  {
+   "offset": "0x134910",
+   "length": 9968,
+   "va": "0x00534910",
+   "section": ".rdata",
+   "sha256": "5d81b4cb5794fcc56c67c956803287afa963bd3c8974c72d6766c62745980f82"
+  }
+ ],
+ "profile": "structures"
+}
