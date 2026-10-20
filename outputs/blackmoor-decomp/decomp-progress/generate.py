@@ -406,7 +406,7 @@ def audited_data_evidence(layout: dict, out_dir: Path):
     audited one and carry no payload value, and the manifest and report must name the same source hash.
     Each range is matched data (kind ``data``); nothing here reads the assembler or the original.
     """
-    rows, inputs, batches, claimed = [], [], [], []
+    rows, inputs, batches, claimed, table_claims = [], [], [], [], []
     sections = {s["name"]: s for s in layout["sections"]}
     for path in sorted((out_dir / "asm_data").glob("data-*.json")):
         if not re.fullmatch(r"data-[0-9]+\.json", path.name):
@@ -428,6 +428,7 @@ def audited_data_evidence(layout: dict, out_dir: Path):
             require(man["batch"] == report["batch"] == path.stem.removeprefix("data-"),
                     "batch identity differs from its audit")
             total = sum(r["length"] for r in man["ranges"])
+            counted = 0 if man.get("profile") == DATA_ASM.PROFILE_TABLES else total
             require(report["all_accepted"] is True and report["errors"] == [] and report["relocations"] == 0 and
                     report["compared_bytes"] == report["bytes_total"] == total and report["labels_checked"] > 0,
                     "data audit not accepted")
@@ -449,18 +450,30 @@ def audited_data_evidence(layout: dict, out_dir: Path):
                 off, size = int(r["offset"], 16), r["length"]
                 # the file headers are the pseudo-section "<headers>" of the data batches ("headers" in this layout)
                 sec = sections["headers" if r["section"] == DATA_ASM.HEADERS else r["section"]]
-                # .text holds code, so a data range there may only lie in the zero fill past its virtual size
-                code_end = sec["raw_off"] + sec["virt_size"] if sec["name"] == ".text" else sec["raw_off"]
-                require(type(size) is int and size > 0 and
-                        code_end <= off and off + size <= sec["raw_off"] + sec["raw_size"],
-                        "data range is outside its section's raw data")
+                tables = man.get("profile") == DATA_ASM.PROFILE_TABLES
+                if tables:
+                    # jump tables inside .text (batch 005): lie within the code atoms the map already accounts for, so
+                    # they are validated here but add no row (code and data totals stay as they are)
+                    require(sec["name"] == ".text" and type(size) is int and size > 0 and
+                            sec["raw_off"] <= off and off + size <= sec["raw_off"] + sec["virt_size"],
+                            "jump-table range is outside .text")
+                else:
+                    # .text holds code, so a data range there may only lie in the zero fill past its virtual size
+                    code_end = sec["raw_off"] + sec["virt_size"] if sec["name"] == ".text" else sec["raw_off"]
+                    require(type(size) is int and size > 0 and
+                            code_end <= off and off + size <= sec["raw_off"] + sec["raw_size"],
+                            "data range is outside its section's raw data")
                 require(int(r["va"], 16) == layout["image_base"] + sec["rva"] + off - sec["raw_off"],
                         "data range VA/offset disagree")
+                if tables:
+                    require(not overlap(table_claims, off, off + size), "jump-table ranges overlap")
+                    table_claims = merge_intervals([tuple(c) for c in table_claims] + [(off, off + size)])
+                    continue
                 require(not overlap(claimed, off, off + size), "data ranges overlap")
                 claimed = merge_intervals([tuple(c) for c in claimed] + [(off, off + size)])
                 rows.append((off, off + size, "reconstructed", name, r["va"]))
             batches.append({"manifest": name, "audit": report_path.relative_to(out_dir).as_posix(),
-                            "ranges": len(man["ranges"]), "bytes": total,
+                            "ranges": len(man["ranges"]), "bytes": counted,
                             "labels_checked": report["labels_checked"],
                             "assembler_sha256": assembler["sha256"], "assembler_version": assembler["version_line"]})
             inputs.extend([{"path": name, "sha256": sha256_file(path), "role": "counted"},
@@ -915,6 +928,8 @@ def write_report(model, path: Path):
                   "| Manifest | Ranges | Matched data bytes | Labels checked |", "|---|---:|---:|---:|"]
         for b in ev["tool_assisted_data_batches"]:
             lines += [f"| {b['manifest']} | {b['ranges']} | {b['bytes']:,} | {b['labels_checked']:,} |"]
+        lines += ["", "A `jump_tables` batch lies inside `.text`, in code atoms the map already accounts for; it is "
+                  "validated like the others and shown with 0 matched data bytes."]
         lines += ["", "Each source is reassembled by `scripts/data_asm.py audit` with the pinned GNU assembler: "
                   "no relocation, every range identical to the original, every label at the address in its "
                   "name. This metadata check re-reads manifests, audit reports and source hashes only. "

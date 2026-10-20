@@ -743,6 +743,47 @@ class AuditedBatchTests(unittest.TestCase):
         report["manifest_sha256"] = GEN.sha256_file(manifest_path)
         write(report_path, report)
 
+    def create_jump_table_batch(self, offset):
+        self.create_text_fill_batch(offset)
+        manifest_path = self.dir / "asm_data" / "data-001.json"
+        manifest = GEN.load_json(manifest_path)
+        manifest["profile"] = "jump_tables"
+        write(manifest_path, manifest)
+        report_path = self.dir / "asm_data" / "data-001-report.json"
+        report = GEN.load_json(report_path)
+        report["manifest_sha256"] = GEN.sha256_file(manifest_path)
+        write(report_path, report)
+
+    def test_jump_tables_inside_text_are_validated_but_add_no_matched_bytes(self):
+        before = self.model()["totals"]
+        self.tearDown()
+        self.setUp()
+        self.create_jump_table_batch(0x120)  # inside the code, where a payload batch would be refused
+        model = self.model()
+        self.assertEqual(model["totals"]["matched_code"], before["matched_code"])
+        self.assertEqual(model["totals"]["matched_data"], before["matched_data"])
+        self.assertEqual(model["evidence"]["tool_assisted_data_batches"][0]["bytes"], 0)
+        self.tearDown()
+        self.setUp()
+        self.create_jump_table_batch(0x120)
+        manifest_path = self.dir / "asm_data" / "data-001.json"
+        manifest = GEN.load_json(manifest_path)
+        manifest["ranges"].append(dict(manifest["ranges"][0], offset=hex(0x128), length=0x10, va=f"0x{0x400128:08x}"))
+        write(manifest_path, manifest)
+        report_path = self.dir / "asm_data" / "data-001-report.json"
+        report = GEN.load_json(report_path)
+        report["ranges"] = manifest["ranges"]
+        report["bytes_total"] = report["compared_bytes"] = sum(r["length"] for r in manifest["ranges"])
+        report["manifest_sha256"] = GEN.sha256_file(manifest_path)
+        write(report_path, report)
+        with self.assertRaisesRegex(GEN.ProgressError, "overlap"):  # two table ranges claiming the same bytes
+            self.model()
+        self.tearDown()
+        self.setUp()
+        self.create_jump_table_batch(0x140)  # past the code: not a jump table of .text
+        with self.assertRaisesRegex(GEN.ProgressError, "outside .text"):
+            self.model()
+
     def test_data_in_the_zero_fill_past_text_is_counted_but_data_over_text_code_is_not(self):
         # the .text section holds code up to its virtual size (0x140 here); only the zero fill after it may be data
         self.create_text_fill_batch(0x140)

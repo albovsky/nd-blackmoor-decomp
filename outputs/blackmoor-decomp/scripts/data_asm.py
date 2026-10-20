@@ -114,7 +114,8 @@ def load_sections(image_dir: Path = IMAGE_DIR) -> list[Section]:
 HEADERS = "<headers>"
 PROFILE_PAYLOADS = "payloads"  # .rdata / .data / resource payloads (the default; manifests of batches 001 and 002 carry no profile)
 PROFILE_STRUCTURES = "structures"  # PE headers, import tables, resource directory tree and section padding
-PROFILES = (PROFILE_PAYLOADS, PROFILE_STRUCTURES)
+PROFILE_TABLES = "jump_tables"  # the jump tables inside .text that no audited function source carries (the two CRT block copies)
+PROFILES = (PROFILE_PAYLOADS, PROFILE_STRUCTURES, PROFILE_TABLES)
 
 
 def containing_section(sections: list[Section], lo: int, hi: int) -> Optional[Section]:
@@ -356,6 +357,11 @@ def _not_claimed_lines(profile: Optional[str]) -> list[str]:
             "# Not claimed: original C provenance, that any value is a pointer or a string in the original program, that any field is",
             "# meaningful, or an x86 match of the whole file (code and the other data sources are separate batches).",
         ]
+    if profile == PROFILE_TABLES:
+        return [
+            "# Not claimed: original C provenance, that these tables belong to the functions around them, that any case address is a",
+            "# labelled entry of the original program, or an x86 match of the whole file (code and the other data sources are separate batches).",
+        ]
     return [
         "# Not claimed: original C provenance, that any value is a pointer or a string in the original program, or an x86",
         "# match of the PE headers, import tables and resources (they are not in this source).",
@@ -372,11 +378,18 @@ def header_lines(ranges: tuple[tuple[int, int], ...], sections: list[Section], o
     parts = []
     for lo, hi in ranges:
         parts.append(f"{hx8(bias + lo)}-{hx8(bias + hi)} ({section_name_at(sections, lo)})")
+    ruling = (
+        ["# scripts/data_asm.py and audited byte for byte with the pinned i686-w64-mingw32-as 2.43.1.  These are code-section jump",
+         "# tables, not data-section bytes: the 2026-10-19 data ruling is not claimed for them; the composer reports them as the class",
+         "# tool_assisted_reconstructed_jump_table and the map counts no byte for them.  No datum is interpreted: names state the"]
+        if profile == PROFILE_TABLES
+        else ["# scripts/data_asm.py and audited byte for byte with the pinned i686-w64-mingw32-as 2.43.1.  Owner ruling of",
+              "# 2026-10-19: rebuilt data with machine-named labels counts as matched.  No datum is interpreted: names state the"]
+    )
     return [
         MACHINE_HEADER,
         "# Machine-generated data source of GAME.EXE (Track M, packet M-C), emitted from the owner's local original by",
-        "# scripts/data_asm.py and audited byte for byte with the pinned i686-w64-mingw32-as 2.43.1.  Owner ruling of",
-        "# 2026-10-19: rebuilt data with machine-named labels counts as matched.  No datum is interpreted: names state the",
+        *ruling,
         "# kind found by the generator (STR_ string, WSTR_ UTF-16 string, DAT_ data, FUN_/CODE_/BSS_/IAT_/RSRC_/OUT_ pointer targets) and the VA.",
         f"# original-sha256: {ORIGINAL_SHA256}",
         f"# image-base: {hx8(IMAGE_BASE)}",
@@ -527,7 +540,7 @@ def _fixed_comments() -> frozenset[str]:
     """The constant prose lines of the layout and source headers (the variable header lines have their own patterns)."""
     variable = r"# (?:original-sha256|image-base|pointers|origin-va|ranges):"
     return frozenset(LAYOUT_HEADER) | frozenset(
-        l for profile in (None, PROFILE_STRUCTURES) for l in header_lines(((0, 0),), [], 0, 0, True, profile) if not re.match(variable, l)
+        l for profile in (None, PROFILE_STRUCTURES, PROFILE_TABLES) for l in header_lines(((0, 0),), [], 0, 0, True, profile) if not re.match(variable, l)
     )
 
 
@@ -723,6 +736,8 @@ def build_manifest(
     description = (
         "PE headers, import tables, resource directory tree and section padding as labeled data directives, regenerated from the local original at build time (owner ruling of 2026-10-19)"
         if profile == PROFILE_STRUCTURES
+        else "jump tables inside .text (case addresses of the two CRT block copies) as labeled data directives, regenerated from the local original at build time"
+        if profile == PROFILE_TABLES
         else "initialized data or resource payloads as labeled data directives, regenerated from the local original at build time (owner ruling of 2026-10-19)"
     )
     manifest = {
@@ -809,6 +824,8 @@ def audit_manifest(
         problems.append(f"unknown profile {profile!r}")
     elif profile == PROFILE_STRUCTURES and manifest_ranges(manifest) not in (structure_ranges("pe", image_dir), structure_ranges("resource", image_dir)):
         problems.append("a structures manifest must claim exactly the ranges structure_ranges() derives")
+    elif profile == PROFILE_TABLES and manifest_ranges(manifest) != table_ranges(image_dir):
+        problems.append("a jump_tables manifest must claim exactly the ranges table_ranges() derives")
     if sha256(original) != ORIGINAL_SHA256 or manifest.get("original_sha256") != ORIGINAL_SHA256:
         problems.append("the original is not the pinned GAME.EXE")
     if source_path is None:
@@ -923,10 +940,43 @@ def structure_ranges(kind: str, image_dir: Path = IMAGE_DIR) -> tuple[tuple[int,
     )
 
 
+def table_ranges(image_dir: Path = IMAGE_DIR) -> tuple[tuple[int, int], ...]:
+    """File-offset ranges of the switch jump tables in ``.text`` that no audited function source carries.
+
+    ``text_data.json`` lists every jump table; the audited M03 batches (``asm_batches`` of ``reconstructed.json``) carry
+    all but the 14 tables (240 bytes) that lie between the code runs of the two CRT block-copy routines, which are cut
+    into separate entries.  Adjacent tables are one range.
+    """
+    text = next(s for s in load_sections(image_dir) if s.name == ".text")
+    project = image_dir.parent
+    carried: set[int] = set()
+    for batch in load_json(image_dir / "reconstructed.json").get("asm_batches", []):
+        for function in load_json(project / batch["manifest"])["functions"]:
+            for item in function.get("data_items", []):
+                if item["kind"] == "switch_table":
+                    carried.add(text.raw_off + int(item["rva"]) - (text.va - IMAGE_BASE))
+    spans = sorted(
+        (int(t["offset"], 16), int(t["offset"], 16) + 4 * len(t["entries"]))
+        for t in load_json(image_dir / "text_data.json")["jump_tables"]
+        if t.get("kind") == "dword" and int(t["offset"], 16) not in carried
+    )
+    merged: list[list[int]] = []
+    for lo, hi in spans:
+        if merged and merged[-1][1] == lo:
+            merged[-1][1] = hi
+        else:
+            merged.append([lo, hi])
+    return tuple((a, b) for a, b in merged)
+
+
 def cmd_gen(args: argparse.Namespace) -> int:
     original = args.original.read_bytes()
-    profile = PROFILE_STRUCTURES if args.structures else None
-    if args.structures:
+    profile = PROFILE_STRUCTURES if args.structures else PROFILE_TABLES if args.jump_tables else None
+    if args.jump_tables:
+        if args.structures or args.range or args.resources or args.batch is None:
+            raise DataAsmError("--jump-tables needs an explicit --batch and cannot be combined with --structures, --range or --resources")
+        ranges = table_ranges()
+    elif args.structures:
         if args.range or args.resources or args.batch is None:
             raise DataAsmError("--structures needs an explicit --batch and cannot be combined with --range or --resources")
         ranges = structure_ranges(args.structures)
@@ -987,6 +1037,7 @@ def make_parser() -> argparse.ArgumentParser:
     g.add_argument("--no-pointers", action="store_true", help="resource payloads: do not detect pointers")
     g.add_argument("--resources", action="store_true", help="the resource leaf payloads of image/resources.json (implies --no-pointers)")
     g.add_argument("--structures", choices=("pe", "resource"), help="the bytes the composer's structured groups generate: PE headers, import tables and padding (pe), or the resource directory tree and padding (resource)")
+    g.add_argument("--jump-tables", action="store_true", help="the jump tables inside .text that no audited function source carries (the two CRT block copies)")
     g.add_argument("--range", type=lambda s: tuple(int(x, 16) for x in s.split(":")), action="append", help="LO:HI file offsets in hex (default: the .rdata and .data ranges)")
     g.set_defaults(func=cmd_gen)
     a = sub.add_parser("audit")

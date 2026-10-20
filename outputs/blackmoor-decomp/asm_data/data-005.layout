@@ -1,0 +1,165 @@
+# Layout of a generated GAME.EXE data source (Track M, packet M-C): labels, offsets, zero runs, pointer expressions and named
+# constants only.  Every string, numeric dword and byte list is masked as [length]; scripts/data_asm.py regenerates the full source from the owner's local original.
+# annotation:  machine
+# Machine-generated data source of GAME.EXE (Track M, packet M-C), emitted from the owner's local original by
+# scripts/data_asm.py and audited byte for byte with the pinned i686-w64-mingw32-as 2.43.1.  These are code-section jump
+# tables, not data-section bytes: the 2026-10-19 data ruling is not claimed for them; the composer reports them as the class
+# tool_assisted_reconstructed_jump_table and the map counts no byte for them.  No datum is interpreted: names state the
+# kind found by the generator (STR_ string, WSTR_ UTF-16 string, DAT_ data, FUN_/CODE_/BSS_/IAT_/RSRC_/OUT_ pointer targets) and the VA.
+# original-sha256: afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45
+# image-base: 0x00400000
+# pointers: detected
+# origin-va: 0x0050e000
+# ranges: 0x0050edb4-0x0050edc0 (.text) 0x0050ee2c-0x0050ee4c (.text) 0x0050ee98-0x0050eea8 (.text) 0x0050ef3c-0x0050ef48 (.text) 0x0050efc4-0x0050efe4 (.text) 0x0050f030-0x0050f040 (.text) 0x0050faf4-0x0050fb00 (.text) 0x0050fb6c-0x0050fb8c (.text) 0x0050fbd8-0x0050fbe8 (.text) 0x0050fc7c-0x0050fc88 (.text) 0x0050fd04-0x0050fd24 (.text) 0x0050fd70-0x0050fd80 (.text)
+# classification: strings are printable ASCII runs of 4 or more bytes ended by a NUL (wide strings: the same in UTF-16LE); pointers are aligned dwords
+# that point into a mapped section (a target in these ranges is resolved from its label, any other target is a named
+# absolute constant); aligned zero runs are .fill; every other aligned dword is numeric; leftovers are bytes.
+# Not claimed: original C provenance, that these tables belong to the functions around them, that any case address is a
+# labelled entry of the original program, or an x86 match of the whole file (code and the other data sources are separate batches).
+.intel_syntax noprefix
+.data
+.set CODE_0050edc0, 0x50edc0
+.set CODE_0050edec, 0x50edec
+.set CODE_0050ee10, 0x50ee10
+.set CODE_0050ee4c, 0x50ee4c
+.set CODE_0050ee54, 0x50ee54
+.set CODE_0050ee5c, 0x50ee5c
+.set CODE_0050ee64, 0x50ee64
+.set CODE_0050ee6c, 0x50ee6c
+.set CODE_0050ee74, 0x50ee74
+.set CODE_0050ee7c, 0x50ee7c
+.set CODE_0050ee8f, 0x50ee8f
+.set CODE_0050eea8, 0x50eea8
+.set CODE_0050eeb0, 0x50eeb0
+.set CODE_0050eebc, 0x50eebc
+.set CODE_0050eed0, 0x50eed0
+.set CODE_0050ef48, 0x50ef48
+.set CODE_0050ef68, 0x50ef68
+.set CODE_0050ef90, 0x50ef90
+.set CODE_0050efe4, 0x50efe4
+.set CODE_0050efec, 0x50efec
+.set CODE_0050eff4, 0x50eff4
+.set CODE_0050effc, 0x50effc
+.set CODE_0050f004, 0x50f004
+.set CODE_0050f00c, 0x50f00c
+.set CODE_0050f014, 0x50f014
+.set CODE_0050f027, 0x50f027
+.set CODE_0050f040, 0x50f040
+.set CODE_0050f048, 0x50f048
+.set CODE_0050f058, 0x50f058
+.set CODE_0050f06c, 0x50f06c
+.set CODE_0050fb00, 0x50fb00
+.set CODE_0050fb2c, 0x50fb2c
+.set CODE_0050fb50, 0x50fb50
+.set CODE_0050fb8c, 0x50fb8c
+.set CODE_0050fb94, 0x50fb94
+.set CODE_0050fb9c, 0x50fb9c
+.set CODE_0050fba4, 0x50fba4
+.set CODE_0050fbac, 0x50fbac
+.set CODE_0050fbb4, 0x50fbb4
+.set CODE_0050fbbc, 0x50fbbc
+.set CODE_0050fbcf, 0x50fbcf
+.set CODE_0050fbe8, 0x50fbe8
+.set CODE_0050fbf0, 0x50fbf0
+.set CODE_0050fbfc, 0x50fbfc
+.set CODE_0050fc10, 0x50fc10
+.set CODE_0050fc88, 0x50fc88
+.set CODE_0050fca8, 0x50fca8
+.set CODE_0050fcd0, 0x50fcd0
+.set CODE_0050fd24, 0x50fd24
+.set CODE_0050fd2c, 0x50fd2c
+.set CODE_0050fd34, 0x50fd34
+.set CODE_0050fd3c, 0x50fd3c
+.set CODE_0050fd44, 0x50fd44
+.set CODE_0050fd4c, 0x50fd4c
+.set CODE_0050fd54, 0x50fd54
+.set CODE_0050fd67, 0x50fd67
+.set CODE_0050fd80, 0x50fd80
+.set CODE_0050fd88, 0x50fd88
+.set CODE_0050fd98, 0x50fd98
+.set CODE_0050fdac, 0x50fdac
+IMG:
+.org 0xdb4
+DAT_0050edb4:
+.long CODE_0050edc0
+.long CODE_0050edec
+.long CODE_0050ee10
+.org 0xe2c
+DAT_0050ee2c:
+.long CODE_0050ee8f
+.long CODE_0050ee7c
+.long CODE_0050ee74
+.long CODE_0050ee6c
+.long CODE_0050ee64
+.long CODE_0050ee5c
+.long CODE_0050ee54
+.long CODE_0050ee4c
+.org 0xe98
+DAT_0050ee98:
+.long CODE_0050eea8
+.long CODE_0050eeb0
+.long CODE_0050eebc
+.long CODE_0050eed0
+.org 0xf3c
+DAT_0050ef3c:
+.long CODE_0050ef48
+.long CODE_0050ef68
+.long CODE_0050ef90
+.org 0xfc4
+DAT_0050efc4:
+.long CODE_0050efe4
+.long CODE_0050efec
+.long CODE_0050eff4
+.long CODE_0050effc
+.long CODE_0050f004
+.long CODE_0050f00c
+.long CODE_0050f014
+.long CODE_0050f027
+.org 0x1030
+DAT_0050f030:
+.long CODE_0050f040
+.long CODE_0050f048
+.long CODE_0050f058
+.long CODE_0050f06c
+.org 0x1af4
+DAT_0050faf4:
+.long CODE_0050fb00
+.long CODE_0050fb2c
+.long CODE_0050fb50
+.org 0x1b6c
+DAT_0050fb6c:
+.long CODE_0050fbcf
+.long CODE_0050fbbc
+.long CODE_0050fbb4
+.long CODE_0050fbac
+.long CODE_0050fba4
+.long CODE_0050fb9c
+.long CODE_0050fb94
+.long CODE_0050fb8c
+.org 0x1bd8
+DAT_0050fbd8:
+.long CODE_0050fbe8
+.long CODE_0050fbf0
+.long CODE_0050fbfc
+.long CODE_0050fc10
+.org 0x1c7c
+DAT_0050fc7c:
+.long CODE_0050fc88
+.long CODE_0050fca8
+.long CODE_0050fcd0
+.org 0x1d04
+DAT_0050fd04:
+.long CODE_0050fd24
+.long CODE_0050fd2c
+.long CODE_0050fd34
+.long CODE_0050fd3c
+.long CODE_0050fd44
+.long CODE_0050fd4c
+.long CODE_0050fd54
+.long CODE_0050fd67
+.org 0x1d70
+DAT_0050fd70:
+.long CODE_0050fd80
+.long CODE_0050fd88
+.long CODE_0050fd98
+.long CODE_0050fdac
