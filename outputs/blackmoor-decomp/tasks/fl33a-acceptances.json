@@ -1,0 +1,266 @@
+[
+ {
+  "va": "0x4dae88",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-33a implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl33a.c",
+   "symbol": "m4dae88_set_cursor"
+  },
+  "tests": [
+   {
+    "path": "tests/fl33a_direct_test.c",
+    "test_id": "test_m4dae88_set_cursor"
+   },
+   {
+    "path": "tests/test_fl33a_direct.py",
+    "test_id": "Fl33aDirect.test_4dae88_set_cursor"
+   },
+   {
+    "path": "tests/test_fl33a_differential.py",
+    "test_id": "Fl33aDifferential.test_4dae88_set_cursor"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl33a_original_oracle.py",
+   "window": [
+    "0x4dae88",
+    "0x4daeb5"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Stores x, y at [self+0x18], [self+0x1c], then calls SetCursorPos(x, y) (slot 0x52a488) and returns its eax; 18/18 instructions, ret 8 checked."
+ },
+ {
+  "va": "0x473117",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-33a implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl33a.c",
+   "symbol": "m473117_mark_entry"
+  },
+  "tests": [
+   {
+    "path": "tests/fl33a_direct_test.c",
+    "test_id": "test_m473117_mark_entry"
+   },
+   {
+    "path": "tests/test_fl33a_direct.py",
+    "test_id": "Fl33aDirect.test_473117_mark_entry"
+   },
+   {
+    "path": "tests/test_fl33a_differential.py",
+    "test_id": "Fl33aDifferential.test_473117_mark_entry"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl33a_original_oracle.py",
+   "window": [
+    "0x473117",
+    "0x47314b"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Sets the dword of record [signed word self+0x14] at 0x5d15a5 (stride 0x4a) to 1 when dword [self+0x7a] is non-zero and the word is not -1; 18/18 instructions, 4/4 directions."
+ },
+ {
+  "va": "0x4234dd",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-33a implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl33a.c",
+   "symbol": "m4234dd_push_pair"
+  },
+  "tests": [
+   {
+    "path": "tests/fl33a_direct_test.c",
+    "test_id": "test_m4234dd_push_pair"
+   },
+   {
+    "path": "tests/test_fl33a_direct.py",
+    "test_id": "Fl33aDirect.test_4234dd_push_pair"
+   },
+   {
+    "path": "tests/test_fl33a_differential.py",
+    "test_id": "Fl33aDifferential.test_4234dd_push_pair"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl33a_original_oracle.py",
+   "window": [
+    "0x4234dd",
+    "0x42356d"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Appends (a, b) at [self + n*12 + 0xc/0x10] and bumps [self+4]; for n >= 0x80 (signed) first runs the 0x50ca3e, 0x52139c, 0x44a2b7, 0x4c97b4 report; 43/43 instructions, 4/4 directions."
+ },
+ {
+  "va": "0x4c7623",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-33a implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl33a.c",
+   "symbol": "m4c7623_draw_frame"
+  },
+  "tests": [
+   {
+    "path": "tests/fl33a_direct_test.c",
+    "test_id": "test_m4c7623_draw_frame"
+   },
+   {
+    "path": "tests/test_fl33a_direct.py",
+    "test_id": "Fl33aDirect.test_4c7623_draw_frame"
+   },
+   {
+    "path": "tests/test_fl33a_differential.py",
+    "test_id": "Fl33aDifferential.test_4c7623_draw_frame"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl33a_original_oracle.py",
+   "window": [
+    "0x4c7623",
+    "0x4c7770"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Calls 0x4c4067 with a local descriptor, four 0x4c808f line draws from the rectangle at the second argument, 0x4c4202 and, when a == [self+0xc], 0x4c952f; 115/115 instructions, 2/2 directions."
+ },
+ {
+  "va": "0x4bf3b8",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-33a implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl33a.c",
+   "symbol": "m4bf3b8_set_text"
+  },
+  "tests": [
+   {
+    "path": "tests/fl33a_direct_test.c",
+    "test_id": "test_m4bf3b8_set_text"
+   },
+   {
+    "path": "tests/test_fl33a_direct.py",
+    "test_id": "Fl33aDirect.test_4bf3b8_set_text"
+   },
+   {
+    "path": "tests/test_fl33a_differential.py",
+    "test_id": "Fl33aDifferential.test_4bf3b8_set_text"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl33a_original_oracle.py",
+   "window": [
+    "0x4bf3b8",
+    "0x4bf52a"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Selects by [self+0x2c0]+6 (unsigned, jump table of 6): copies one of five game strings to self+0xc0 or formats it through 0x50ca3e (one case with BinkGetError); returns self+0xc0; 130/130 instructions, 2/2."
+ },
+ {
+  "va": "0x4db993",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-33a implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl33a.c",
+   "symbol": "m4db993_move_cursor"
+  },
+  "tests": [
+   {
+    "path": "tests/fl33a_direct_test.c",
+    "test_id": "test_m4db993_move_cursor"
+   },
+   {
+    "path": "tests/test_fl33a_direct.py",
+    "test_id": "Fl33aDirect.test_4db993_move_cursor"
+   },
+   {
+    "path": "tests/test_fl33a_differential.py",
+    "test_id": "Fl33aDifferential.test_4db993_move_cursor"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl33a_original_oracle.py",
+   "window": [
+    "0x4db993",
+    "0x4dbb13"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Reads the cursor pair through 0x4dae88 and 0x4daeb5, stores it in the object and globals, chooses selector 4, 0 or word+0x25 by four signed bounds, and updates the six rectangle globals; 95/95 instructions, 10/10."
+ },
+ {
+  "va": "0x47d24e",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-33a implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl33a.c",
+   "symbol": "m47d24e_report_fields"
+  },
+  "tests": [
+   {
+    "path": "tests/fl33a_direct_test.c",
+    "test_id": "test_m47d24e_report_fields"
+   },
+   {
+    "path": "tests/test_fl33a_direct.py",
+    "test_id": "Fl33aDirect.test_47d24e_report_fields"
+   },
+   {
+    "path": "tests/test_fl33a_differential.py",
+    "test_id": "Fl33aDifferential.test_47d24e_report_fields"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl33a_original_oracle.py",
+   "window": [
+    "0x47d24e",
+    "0x47d3d2"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "When 0x61e3bc is set: reports the pending flag, the byte at [obj+0x35b] and one line per entry through 0x4c5377 (5 arguments, entry flag == 1 selects the format); 100/100 instructions, 10/10 directions."
+ },
+ {
+  "va": "0x4c7070",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-33a implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl33a.c",
+   "symbol": "m4c7070_rotate_image"
+  },
+  "tests": [
+   {
+    "path": "tests/fl33a_direct_test.c",
+    "test_id": "test_m4c7070_rotate_image"
+   },
+   {
+    "path": "tests/test_fl33a_direct.py",
+    "test_id": "Fl33aDirect.test_4c7070_rotate_image"
+   },
+   {
+    "path": "tests/test_fl33a_differential.py",
+    "test_id": "Fl33aDifferential.test_4c7070_rotate_image"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl33a_original_oracle.py",
+   "window": [
+    "0x4c7070",
+    "0x4c71f9"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Copies the image through a 0x51dc43 buffer, rotates it by word (columns, last row first), swaps the width and height words and frees the buffer; the allocator-failure report is taken too; 121/121, 6/6."
+ }
+]

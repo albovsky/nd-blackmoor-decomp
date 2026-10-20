@@ -367,13 +367,16 @@ ROTATE = [(3, 2, 4, 2, 0x10), (2, 3, 6, 2, 0x11), (1, 1, 2, 2, 3), (0, 3, 4, 2, 
 
 
 def gen_4c7070(rng, n):
-    (kind, *rest), variant = prof(n, [('null', 0x10), ('null', 0x13)] + [('ok', *r) for r in ROTATE])
+    (kind, *rest), variant = prof(n, [('null', 0x10), ('null', 0x13)] + [('ok', *r) for r in ROTATE] + [('big', 2, 2, 4, 2, 0x10005)])
+    big = kind == 'big'                           # a size above 16 bits: the image and the block are 0x10800 bytes (regions 4 and 6, the regions between stay unused)
+    img_va, buf_region = (od.region_va(4), od.region_va(6)) if big else (IMG_VA, od.region_va(3))
+    buf_va = buf_region + 0x400
     s = bytearray(rng.randbytes(0x40))
     desc = bytearray(rng.randbytes(0x60))
-    img = bytearray(rng.randbytes(0x400))
-    buf = bytearray(rng.randbytes(0x800))
+    img = bytearray(rng.randbytes(0x10800 if big else 0x400))
+    buf = bytearray(rng.randbytes(0x10800 if big else 0x800))
     off = 3 + (variant % 2)                      # the descriptor lies at an unaligned address, the image at a varying offset
-    img_at = IMG_VA + 0x10 + 5 * (variant % 3)
+    img_at = img_va + 0x10 + 5 * (variant % 3)
     if kind == 'null':
         w1, w2, w3, bpp, size = 3, 2, 4, 2, rest[0]
     else:
@@ -386,10 +389,10 @@ def gen_4c7070(rng, n):
     put16(desc, off + 0x31, rng.randrange(0x10000))
     arg2 = rnd32(rng)
     probe_img = [('img', 0, 0x40)]
-    stubs = {0x51dc43: stub(0x51dc43, CDECL(1), probe=probe_img, results=[0 if kind == 'null' else BUF_VA]),
+    stubs = {0x51dc43: stub(0x51dc43, CDECL(1), probe=probe_img, results=[0 if kind == 'null' else buf_va]),
              0x51dc6c: stub(0x51dc6c, CDECL(1), probe=[('img', 0, 0x40), ('desc', 0, 0x60)]), 0x42639d: stub(0x42639d, THISCALL(2), probe=probe_img),
              0x4c97b4: stub(0x4c97b4, THISCALL(0), probe=probe_img)}
-    areas = [self_area(s), Area('desc', DESC_VA, desc, image=False), Area('img', IMG_VA, img, image=False), Area('buf', od.region_va(3), buf, image=False)]
+    areas = [self_area(s), Area('desc', DESC_VA, desc, image=False), Area('img', img_va, img, image=False), Area('buf', buf_region, buf, image=False)]
     # the allocator's block starts 0x400 bytes into 'buf' (slack below it for a negative row stride); BUF_VA is that block
     g = {'word_639895': bpp}
     return make('4c7070', areas, stubs, g, [DESC_VA + off, arg2], (DESC_VA + off, arg2), (kind, *rest, off, variant % 3))
@@ -405,7 +408,7 @@ SPECS = {
     '4bf3b8': dict(id=5, va=0x4bf3b8, size=370, gen=gen_4bf3b8, cleanup=4, retoff=0xc0, n=12 * 11),
     '4db993': dict(id=6, va=0x4db993, size=384, gen=gen_4db993, cleanup=8, n=54 * 5),
     '47d24e': dict(id=7, va=0x47d24e, size=388, gen=gen_47d24e, cleanup=0, n=len(REPORT_PROFILES) * 2),
-    '4c7070': dict(id=8, va=0x4c7070, size=393, gen=gen_4c7070, cleanup=8, n=14 * 3),
+    '4c7070': dict(id=8, va=0x4c7070, size=393, gen=gen_4c7070, cleanup=8, n=15 * 3),
     # SPECS-END
 }
 KEYS = list(SPECS)
