@@ -9,14 +9,14 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         m48d5f4_confirm_pick
-# naming:       native port src/original_methods_fl20b.c:m48d5f4_confirm_pick (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-18); the summary is the acceptance note
-# summary:      1:1 with m48d5f4_confirm_pick. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 682 bytes.
+# naming:       native port src/original_methods_fl20b.c:m48d5f4_confirm_pick (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-18); the note is the acceptance note, a statement about the native port
+# name-note:    1:1 with m48d5f4_confirm_pick. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 682 bytes.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       6 ebp-relative slot(s): local_4, local_8, local_c, local_d8, local_dc, local_e0
 # fields:       [eax + n] field_1e, field_24, field_27, field_29, field_33, field_317, field_337, field_736; [ecx + n] field_27, field_2b, field_2f, field_37, field_39, field_3d, field_317, field_358, field_736; [edi + n] field_minus_1; [edx + n] field_1e, field_26, field_27, field_3b; [esi + n] field_3f
 # callees:      calls FUN_004f6334, FUN_004fb77a, FUN_004fb2e3, KERNEL32.dll!GetTickCount, FUN_00423259, FUN_00448d11
-# track-n:      outputs/blackmoor-decomp/src/action_family_d0_runtime.h:d0_click (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 172 instruction(s), 12 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl20b.c:m48d5f4_confirm_pick (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 172 instruction(s), 12 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

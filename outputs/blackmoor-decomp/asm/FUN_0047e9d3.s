@@ -9,14 +9,14 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         top_piece_47e9d3
-# naming:       native port src/action_family_eb_runtime.c:top_piece_47e9d3 (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-18); the summary is the acceptance note
-# summary:      1:1 with top_piece_47e9d3 (list +0x13ef, count +0x1417; -1 if empty). The empty list is unreachable by click (K3), so a new oracle calls the original on forced lists; native results come from the direct test.
+# naming:       native port src/action_family_eb_runtime.c:top_piece_47e9d3 (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-18); the note is the acceptance note, a statement about the native port
+# name-note:    1:1 with top_piece_47e9d3 (list +0x13ef, count +0x1417; -1 if empty). The empty list is unreachable by click (K3), so a new oracle calls the original on forced lists; native results come from the direct test.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [eax + n] field_1417; [ecx + n] field_7b4; [edx + n] field_13ef, field_1417
 # callees:      none: no call or outward jump
-# track-n:      outputs/blackmoor-decomp/src/action_family_eb_runtime.c:top_piece_47e9d3 (function ledger class native_oracle_verified; also top_piece_of_list; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 44 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
+# track-n:      outputs/blackmoor-decomp/src/action_family_eb_runtime.c:top_piece_47e9d3 (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 44 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

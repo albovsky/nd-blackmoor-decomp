@@ -9,14 +9,14 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         pick_sound
-# naming:       native port src/action_family_ea_runtime.c:pick_sound (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-18); the summary is the acceptance note
-# summary:      1:1 with pick_sound (record +0x6a7: NO SOUND test, copy, prepare, play, state 1, deadline tick+300). Body is a parameter; tick/sound are host callbacks; oracle aggregate.
+# naming:       native port src/action_family_ea_runtime.c:pick_sound (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-18); the note is the acceptance note, a statement about the native port
+# name-note:    1:1 with pick_sound (record +0x6a7: NO SOUND test, copy, prepare, play, state 1, deadline tick+300). Body is a parameter; tick/sound are host callbacks; oracle aggregate.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       2 ebp-relative slot(s): local_4, local_8
 # fields:       [eax + n] field_26, field_b87; [ecx + n] field_bac; [edx + n] field_b73, field_bc9
 # callees:      calls FUN_004fb77a, FUN_004fb2e3, KERNEL32.dll!GetTickCount
-# track-n:      outputs/blackmoor-decomp/src/action_family_ea_runtime.c:pick_sound (function ledger class native_oracle_verified; also piece_sound; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 48 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
+# track-n:      outputs/blackmoor-decomp/src/action_family_ea_runtime.c:pick_sound (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 48 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

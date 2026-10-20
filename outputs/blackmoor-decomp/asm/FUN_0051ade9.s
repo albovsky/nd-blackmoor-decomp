@@ -10,13 +10,13 @@
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         Catch@0051ade9
 # naming:       Ghidra name from function-index.json (not re-derived here)
-# summary:      Compiler-generated C++ catch handler funclet named by Ghidra; the body was not read for intent here
+# name-note:    Compiler-generated C++ catch handler funclet named by Ghidra; the body was not read for intent here
 # arguments:    no ebp frame so stack arguments are esp-relative and are not resolved by this machine pass; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       none resolved: no ebp frame so slots are listed under fields as esp-relative stk symbols
 # fields:       [ebp + n] field_8, field_c, field_10, field_14, field_minus_14, field_minus_20, field_minus_40, field_minus_44, field_minus_48, field_minus_4c; [edx + n] field_6c
 # callees:      calls FUN_0051ec6f, FUN_0051f636; plus 1 indirect transfer(s) whose target is not resolved
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 20 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code; indirect transfers are not followed
+# unverified:   machine annotation only: the 20 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code; indirect transfers are not followed
 .intel_syntax noprefix
 .code32
 .text

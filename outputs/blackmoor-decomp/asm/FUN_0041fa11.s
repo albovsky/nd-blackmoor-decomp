@@ -9,14 +9,14 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         m41fa11_add_entry
-# naming:       native port src/original_methods_fl28b.c:m41fa11_add_entry (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the summary is the acceptance note
-# summary:      Adds an entry to the 0x1e-slot table unless an equal block exists: the debug trace, the limit, the dedupe loop with release, the 400-byte copy and the field and string stores; all instructions and jumps covered. See tasks/fl28b-handoff.md.
+# naming:       native port src/original_methods_fl28b.c:m41fa11_add_entry (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port
+# name-note:    Adds an entry to the 0x1e-slot table unless an equal block exists: the debug trace, the limit, the dedupe loop with release, the 400-byte copy and the field and string stores; all instructions and jumps covered. See tasks/fl28b-handoff.md.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [eax + n] field_1b8, field_1c4, field_1cf, field_7fc, field_800, field_80a, field_80e, field_ea5, field_f21; [ecx + n] field_1ba, field_1be, field_1c8, field_1cc, field_7fe, field_802, field_810, field_ea5, field_f21; [edx + n] field_1bc, field_1c0, field_1ce, field_7d9, field_7fa, field_806, field_811, field_f21
 # callees:      calls FUN_0050ca3e, FUN_004264e8, FUN_0051ea75, FUN_0050d550, FUN_0051eac4
-# track-n:      outputs/blackmoor-decomp/src/action_family_3f_runtime.c:add_response (function ledger class native_oracle_verified; also copy_name_cstr; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 188 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl28b.c:m41fa11_add_entry (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 188 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

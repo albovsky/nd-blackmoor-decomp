@@ -9,14 +9,14 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         m42ed54_run_state
-# naming:       native port src/original_methods_fl22b.c:m42ed54_run_state (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the summary is the acceptance note
-# summary:      1:1 with m42ed54_run_state (rand via host, idiv in port, 4-arm table). Direct: objects, ordered calls. Unicorn differential: 300 fixtures, every instruction reached. Window covers all 1964 bytes. See tasks/fl22b-handoff.md.
+# naming:       native port src/original_methods_fl22b.c:m42ed54_run_state (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port
+# name-note:    1:1 with m42ed54_run_state (rand via host, idiv in port, 4-arm table). Direct: objects, ordered calls. Unicorn differential: 300 fixtures, every instruction reached. Window covers all 1964 bytes. See tasks/fl22b-handoff.md.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       5 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14
 # fields:       [eax + n] field_223, field_225, field_2a2; [ecx + n] field_21, field_27f, field_2a2, field_2b2, field_2b4, field_2b6, field_2b8, field_2ba, field_2be, field_2c2, field_2c6, field_2c8 and 1 more; [edx + n] field_21, field_223, field_266, field_268, field_26a, field_26c, field_26e, field_272, field_276, field_27a, field_27c, field_27e
 # callees:      calls FUN_0050cd50, FUN_004c2dfb, FUN_004c2790, FUN_004fb77a, KERNEL32.dll!GetTickCount, FUN_004fb2e3, FUN_004f6334, FUN_004fba69, FUN_0042ba3a
-# track-n:      outputs/blackmoor-decomp/src/action_family_77_runtime.h:a77_step (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 397 instruction(s), 25 conditional branch(es) and 1 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl22b.c:m42ed54_run_state (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 397 instruction(s), 25 conditional branch(es) and 1 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

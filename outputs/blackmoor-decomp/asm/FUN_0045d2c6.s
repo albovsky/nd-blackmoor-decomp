@@ -9,14 +9,14 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         m45d2c6_render
-# naming:       native port src/original_methods_fl22a.c:m45d2c6_render (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the summary is the acceptance note
-# summary:      1:1 with m45d2c6_render. Loops 3 and 5 stop at counter 0x7fff (direct test only). Unicorn differential: 600 fixtures, 590/590 instructions, 26086 ordered calls. Window covers all 2212 bytes. See tasks/fl22a-handoff.md.
+# naming:       native port src/original_methods_fl22a.c:m45d2c6_render (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port
+# name-note:    1:1 with m45d2c6_render. Loops 3 and 5 stop at counter 0x7fff (direct test only). Unicorn differential: 600 fixtures, 590/590 instructions, 26086 ordered calls. Window covers all 2212 bytes. See tasks/fl22a-handoff.md.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       4 ebp-relative slot(s): local_4, local_8, local_c, local_1c
 # fields:       [eax + n] field_2d, field_31d; [ecx + n] field_46d; [edx + n] field_23, field_6d, field_19d, field_1fd, field_25d, field_2bd, field_31d
 # callees:      calls FUN_0045b568, FUN_004c5377, FUN_004c5d4b
-# track-n:      outputs/blackmoor-decomp/src/blackmoor_app.mm:native_ada_alloc_slot (function ledger class native_oracle_verified; also native_ada_render, native_caption_finish_tick; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 590 instruction(s), 25 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl22a.c:m45d2c6_render (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 590 instruction(s), 25 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

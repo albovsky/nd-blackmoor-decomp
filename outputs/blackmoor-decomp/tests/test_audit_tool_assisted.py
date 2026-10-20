@@ -213,8 +213,8 @@ class AuditorMutants(unittest.TestCase):
         text = (work / f"FUN_{va:08x}.s").read_text(encoding="utf-8")
         self.assertRegex(text, r"(?m)^# name:\s+fixture_frame_entry$")
         self.assertIn(f"# naming:       {entry['source']}", text)
-        self.assertIn(f"# summary:      {entry['summary']}", text)
-        self.assertIn("copied from the evidence in the naming line", text)
+        self.assertIn(f"# name-note:    {entry['summary']}", text)
+        self.assertIn("copied from the evidence in the naming line, not read from this code", text)
         by_name = {f["function"]: f for f in report["functions"]}
         self.assertEqual(by_name[f"FUN_{va:08x}"]["naming"], "native_port")
         self.assertNotIn("naming", by_name[f"FUN_{BASE + fixture.F_LEAF:08x}"])  # the others keep fn_<va>
@@ -231,7 +231,7 @@ class AuditorMutants(unittest.TestCase):
         for old, new, needle in (
             ("fixture_frame_entry", "better_name", "is not the name"),
             (entry["source"], "native port src/other.c:other (port_acceptances)", "'naming' differs"),
-            (entry["summary"], "Does something else entirely.", "'summary' differs"),
+            (entry["summary"], "Does something else entirely.", "'name-note' differs"),
         ):
             with self.subTest(old=old[:20]):
                 report, _w = self.machine_batch(lambda w: self.edit(w, va, old, new), names={va: entry})
@@ -242,10 +242,23 @@ class AuditorMutants(unittest.TestCase):
         entry = self.named_entry(va)
 
         def add(work: Path) -> None:
-            self.edit(work, va, f"# name:         fn_{va:08x}\n", f"# name:         fn_{va:08x}\n# summary:      {entry['summary']}\n")
+            self.edit(work, va, f"# name:         fn_{va:08x}\n", f"# name:         fn_{va:08x}\n# name-note:    {entry['summary']}\n")
 
         report, _w = self.machine_batch(add)
-        self.rejected(report, va, "header 'summary' present but")
+        self.rejected(report, va, "header 'name-note' present but")
+
+    def test_a_named_source_must_keep_the_not_read_from_this_code_caveat(self) -> None:
+        va = BASE + fixture.F_FRAME
+        entry = self.named_entry(va)
+        report, _w = self.machine_batch(
+            lambda w: self.edit(w, va, "the function name and note are copied from the evidence in the naming line, not read from this code", "the name is probably right"),
+            names={va: entry})
+        self.rejected(report, va, "must say that the function name and note are copied")
+
+    def test_naming_and_note_lines_are_rejected_in_a_hand_annotated_source(self) -> None:
+        va = BASE + fixture.F_FRAME
+        report, _work, _manifest = self.batch(lambda w: self.edit(w, va, "# name:", "# naming:       native port x.c:y (verified)\n# name:"))
+        self.rejected(report, va, "only valid in a machine-annotated source")
 
     def test_machine_header_needs_the_function_own_address_in_the_name(self) -> None:
         va = BASE + fixture.F_FRAME

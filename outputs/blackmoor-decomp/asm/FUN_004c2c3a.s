@@ -9,14 +9,14 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         m4c2c3a_make_record
-# naming:       native port src/original_methods_fl27b.c:m4c2c3a_make_record (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the summary is the acceptance note
-# summary:      1:1 with m4c2c3a_make_record: the oracle runs every instruction and both directions of every conditional jump (untaken edges only as listed in the handoff). See tasks/fl27b-handoff.md.
+# naming:       native port src/original_methods_fl27b.c:m4c2c3a_make_record (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port
+# name-note:    1:1 with m4c2c3a_make_record: the oracle runs every instruction and both directions of every conditional jump (untaken edges only as listed in the handoff). See tasks/fl27b-handoff.md.
 # arguments:    5 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10, arg_14, arg_18; ret 0x14 (callee pops 20 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       5 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14
 # fields:       [eax + n] field_21, field_31, field_35, field_3d; [ecx + n] field_4, field_8, field_c, field_23, field_27, field_2d, field_39, field_55; [edx + n] field_18, field_2b, field_2f, field_33, field_41
 # callees:      calls FUN_0051dc43, FUN_0042639d, FUN_004c97b4
-# track-n:      outputs/blackmoor-decomp/src/original_methods_fl27b.c:m4c2c3a_make_record (function ledger class native_oracle_verified; also strlen_at; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 144 instruction(s), 4 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl27b.c:m4c2c3a_make_record (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 144 instruction(s), 4 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

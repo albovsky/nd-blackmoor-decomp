@@ -9,14 +9,14 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         sort_phone_records
-# naming:       native port src/action_ui.c:sort_phone_records (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-15); the summary is the acceptance note
-# summary:      Static sort_phone_records. Oracle compares the 12 real BOOT rows (4 distinct ASCII names) byte for byte; prefix, high-bit and case ties are native-test only. ASCII normalization only; native rejects unterminated names.
+# naming:       native port src/action_ui.c:sort_phone_records (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-15); the note is the acceptance note, a statement about the native port
+# name-note:    Static sort_phone_records. Oracle compares the 12 real BOOT rows (4 distinct ASCII names) byte for byte; prefix, high-bit and case ties are native-test only. ASCII normalization only; native rejects unterminated names.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       13 ebp-relative slot(s): local_2c, local_30, local_34, local_48, local_4c, local_60, local_64, local_68, local_6c, local_6d, local_6e, local_74 and 1 more
 # fields:       [ecx + n] field_1; [edx + n] field_1
 # callees:      calls FUN_0050d0bc
 # track-n:      outputs/blackmoor-decomp/src/action_ui.c:sort_phone_records (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 154 instruction(s), 11 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
+# unverified:   machine annotation only: the 154 instruction(s), 11 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

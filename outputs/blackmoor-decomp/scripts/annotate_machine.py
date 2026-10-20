@@ -7,7 +7,7 @@ human renames them later without touching the bytes.  This tool fills them from 
 and the committed project evidence state, nothing else:
 
 * ``name``        ``fn_<va>``, or the name ``asm/function-names.json`` records for the function (native port symbol,
-                  Ghidra library name; see ``function_names.py``), with a ``naming`` and a ``summary`` line;
+                  Ghidra library name; see ``function_names.py``), with a ``naming`` and a ``name-note`` line;
 * ``arguments``   ``[ebp+n]`` argument slots, the ``ret n`` pop size and whether ``ecx`` is read before it is written;
 * ``locals``      ``[ebp-n]`` slots;
 * ``fields``      register-relative displacements per base register (``field_n``, ``stk_n``);
@@ -336,7 +336,16 @@ class Annotator:
             callee_text = "none: no call or outward jump"
         entry = self.ledger.get(va)
         link = counterpart(entry)
-        if link:
+        native = (self.names.get(va) or {}).get("native_source")
+        if native and len(native["symbol"]) < 6:
+            # the auditor refuses track-n symbols shorter than 6 characters (too easy to match by accident); the naming line
+            # still states the acceptance's symbol, and the ledger's other symbols of the file are not this function's
+            track = "host-adapter: none"
+        elif native and (REPOSITORY / "outputs/blackmoor-decomp" / native["path"]).is_file():
+            # the reviewed port acceptance names the counterpart; the ledger's first symbol of the file may be another one
+            track = (f"outputs/blackmoor-decomp/{native['path']}:{native['symbol']} (function ledger class {native['class']}; "
+                     "this machine pass does not re-verify the equivalence)")
+        elif link:
             more = f"; also {', '.join(link[1][1:])}" if len(link[1]) > 1 else ""
             track = (f"{link[0]}:{link[1][0]} (function ledger class {link[2]}{more}; "
                      "this machine pass does not re-verify the equivalence)")
@@ -348,8 +357,7 @@ class Annotator:
         unverified = (
             f"machine annotation only: the {len(layout.insns)} instruction(s), {conditional} conditional branch(es) and {tables} jump table(s) "
             "are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; "
-            + ("frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from "
-               "the evidence in the naming line, not read from this code"
+            + (f"frame, argument and field names are generated from offsets and addresses, and {fnames.NAMED_CLAUSE}"
                if named else "names are generated from offsets and addresses")
         )
         if indirect:
@@ -373,7 +381,7 @@ class Annotator:
                   "fields": field_text, "callees": callee_text, "track-n": track, "unverified": unverified}
         if named:
             result["naming"] = fnames.naming_text(named)
-            result["summary"] = fnames.summary_text(named)
+            result["name-note"] = fnames.summary_text(named)
         return result
 
     # -- file --------------------------------------------------------------
@@ -427,7 +435,7 @@ class Annotator:
                     out.append(f"# annotation:  {HEADER_LINE}")
                 out.append(f"# {key + ':':<13} {fields[key]}")
                 if key == "name":
-                    for extra in ("naming", "summary"):
+                    for extra in ("naming", "name-note"):
                         if extra in fields:
                             out.append(f"# {extra + ':':<13} {fields[extra]}")
                 continue
@@ -499,8 +507,9 @@ def cmd_annotate(args: argparse.Namespace) -> int:
         vas = derived_vas(image, layouts, args)
     else:
         vas = selected_vas(image, args)
-        if args.named:  # only the functions asm/function-names.json names: the name, naming and summary lines change
-            vas = [va for va in vas if va in fnames.load()]
+        if args.named:  # only the functions asm/function-names.json names: the name, naming and note lines change
+            table = fnames.load()
+            vas = [va for va in vas if va in table]
         layouts, _decoded = gen.analyze_all(image, [va for va in vas if va in image.starts])
         auditor.apply_derived_evidence(image, layouts)
     annotator = Annotator(image)

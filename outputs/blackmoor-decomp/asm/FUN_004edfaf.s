@@ -9,14 +9,14 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         m4edfaf_centre_rect
-# naming:       native port src/original_methods_fl28b.c:m4edfaf_centre_rect (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the summary is the acceptance note
-# summary:      Centres a rectangle: the kind == 3 test of the whole dword, four truncating halvings (cdq/sub/sar) with wrapping sums, then the 0x4db993 call; every instruction and jump direction executed. See tasks/fl28b-handoff.md.
+# naming:       native port src/original_methods_fl28b.c:m4edfaf_centre_rect (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port
+# name-note:    Centres a rectangle: the kind == 3 test of the whole dword, four truncating halvings (cdq/sub/sar) with wrapping sums, then the 0x4db993 call; every instruction and jump direction executed. See tasks/fl28b-handoff.md.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [eax + n] field_24, field_28, field_66d, field_671, field_68d; [ecx + n] field_1c, field_20, field_4af, field_665, field_669; [edx + n] field_1c, field_20, field_665, field_669, field_689, field_68d
 # callees:      calls FUN_004db993
-# track-n:      outputs/blackmoor-decomp/src/original_methods_fl16.c:m4e7786_forward (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 95 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl28b.c:m4edfaf_centre_rect (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 95 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

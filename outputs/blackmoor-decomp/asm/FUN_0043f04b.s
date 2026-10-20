@@ -9,14 +9,14 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         m43f04b_copy_rows
-# naming:       native port src/original_methods_fl16.c:m43f04b_copy_rows (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-18); the summary is the acceptance note
-# summary:      1:1 with m43f04b_copy_rows. Direct test plus a differential test against the original bytes (Unicorn), every original instruction reached. Oracle window runs all 88 bytes.
+# naming:       native port src/original_methods_fl16.c:m43f04b_copy_rows (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-18); the note is the acceptance note, a statement about the native port
+# name-note:    1:1 with m43f04b_copy_rows. Direct test plus a differential test against the original bytes (Unicorn), every original instruction reached. Oracle window runs all 88 bytes.
 # arguments:    5 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10, arg_14, arg_18; ret 0x14 (callee pops 20 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       2 ebp-relative slot(s): local_4, local_8
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      none: no call or outward jump
 # track-n:      outputs/blackmoor-decomp/src/original_methods_fl16.c:m43f04b_copy_rows (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 35 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
+# unverified:   machine annotation only: the 35 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

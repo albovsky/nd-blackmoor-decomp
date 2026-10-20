@@ -9,14 +9,14 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         m41e0b4_add_slot
-# naming:       native port src/original_methods_fl28b.c:m41e0b4_add_slot (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the summary is the acceptance note
-# summary:      Adds an entry at a slot: the two guards (full, occupied) that report and go on, the kind byte switch (0x39 0x3b 0x3e), the per-count loop with the word argument, the stores; all instructions and jumps covered. See tasks/fl28b-handoff.md.
+# naming:       native port src/original_methods_fl28b.c:m41e0b4_add_slot (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port
+# name-note:    Adds an entry at a slot: the two guards (full, occupied) that report and go on, the kind byte switch (0x39 0x3b 0x3e), the per-count loop with the word argument, the stores; all instructions and jumps covered. See tasks/fl28b-handoff.md.
 # arguments:    2 ebp-relative stack slot(s) referenced: arg_8, arg_c; ret 0x8 (callee pops 8 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [eax + n] field_6, field_68e; [ecx + n] field_68e, field_75a, field_fa1; [edx + n] field_1c, field_696, field_f9b, field_fb5
 # callees:      calls FUN_0052139c, FUN_004c97b4, FUN_00417b04
-# track-n:      outputs/blackmoor-decomp/src/action_family_3f_runtime.c:cel_load_slot (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 85 instruction(s), 6 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl28b.c:m41e0b4_add_slot (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 85 instruction(s), 6 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

@@ -9,14 +9,14 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         m4fb2e3_start_slot
-# naming:       native port src/original_methods_fl28a.c:m4fb2e3_start_slot (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the summary is the acceptance note
-# summary:      1:1 with m4fb2e3_start_slot: the oracle runs every instruction of 0x4fb2e3..0x4fb397 and both jump directions, comparing ordered host calls and memory. See tasks/fl28a-handoff.md.
+# naming:       native port src/original_methods_fl28a.c:m4fb2e3_start_slot (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port
+# name-note:    1:1 with m4fb2e3_start_slot: the oracle runs every instruction of 0x4fb2e3..0x4fb397 and both jump directions, comparing ordered host calls and memory. See tasks/fl28a-handoff.md.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_132
 # callees:      calls FUN_0050ca3e, FUN_0044a2b7, FUN_004f6059, FUN_004fa2a8
-# track-n:      outputs/blackmoor-decomp/src/action_family_3f_runtime.c:sound_start (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 48 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl28a.c:m4fb2e3_start_slot (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 48 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

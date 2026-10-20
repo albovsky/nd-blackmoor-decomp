@@ -42,7 +42,9 @@ LEDGER = PROJECT / "function-ledger.json"
 OVERRIDES = PROJECT / "function-ledger-overrides.json"
 INDEX = PROJECT / "function-index.json"
 SCHEMA = "blackmoor-function-names/1"
-BASES = ("native_port", "parity_rule", "ghidra_name")
+BASES = ("native_port", "parity_rule", "ghidra_name", "ghidra_funclet")
+# The clause the ``unverified`` header line of a named source must carry (auditor and annotator share it).
+NAMED_CLAUSE = ("the function name and note are copied from the evidence in the naming line, not read from this code")
 SHARED_ADAPTER_SYMBOL = "his_audio_decode_memory"
 # Ghidra spellings: C++ scopes, destructors, templates (CMap<>), compiler-generated `scalar_deleting_destructor',
 # MSVC funclets (Unwind@0050c5ee) and CRT underscores.  The name only ever appears in a header comment.
@@ -66,6 +68,10 @@ def is_machine_source(va: int) -> bool:
         return any(re.match(r"^#\s*annotation:\s*machine\b", line) for line in (next(handle, "") for _ in range(30)))
 
 
+def table_sha256(path: Path = NAMES) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
 def one_line(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
@@ -77,6 +83,8 @@ def naming_text(entry: dict[str, Any]) -> str:
 
 
 def summary_text(entry: dict[str, Any]) -> str:
+    """The ``# name-note:`` header line: the evidence's one-line statement about the function (not a claim about the assembly)."""
+
     return entry["summary"]
 
 
@@ -96,7 +104,7 @@ def ghidra_summary(name: str, reason: Optional[dict[str, Any]]) -> tuple[str, st
 
     if reason and reason.get("text"):
         text = re.sub(r"^\[[^\]]*\]\s*", "", one_line(reason["text"]))
-        return text, (f"Ghidra name from function-index.json (not re-derived here); summary is the ledger reason "
+        return text, (f"Ghidra name from function-index.json (not re-derived here); note is the ledger reason "
                       f"({reason.get('code')}, function-ledger-overrides.json not_needed_entries)")
     if _UNWIND.match(name):
         kind = "compiler-generated exception-unwind funclet"
@@ -119,10 +127,13 @@ def build(ledger: Optional[dict] = None, overrides: Optional[dict] = None, index
 
     for va, name in sorted(ghidra.items()):
         ent = by_va.get(va)
-        if ent is None or ent.get("origin") == "game" or not NAME_RE.match(name):
+        # FID_conflict: is Ghidra's marker for a Function ID match it could not resolve, not a name
+        if ent is None or ent.get("origin") == "game" or not NAME_RE.match(name) or name.startswith("FID_conflict"):
             continue
         summary, source = ghidra_summary(name, reasons.get(va))
-        entries[va] = {"va": va_text(va), "name": name, "basis": "ghidra_name", "summary": summary, "source": source}
+        funclet = bool(_UNWIND.match(name) or _CATCH.match(name))
+        entries[va] = {"va": va_text(va), "name": name, "basis": "ghidra_funclet" if funclet else "ghidra_name",
+                       "summary": summary, "source": source}
 
     for acc in overrides["port_acceptances"]:
         va = int(acc["va"], 16)
@@ -132,16 +143,18 @@ def build(ledger: Optional[dict] = None, overrides: Optional[dict] = None, index
             continue
         where = f"{native['path']}:{symbol}"
         source = (f"native port {where} (port_acceptances, ledger class {acc['class']}, reviewed {acc['date']}); "
-                  "the summary is the acceptance note")
+                  "the note is the acceptance note, a statement about the native port")
         if va in entries:  # a library routine with a native counterpart keeps Ghidra's name
             entries[va]["basis"] = "ghidra_name"
             entries[va]["source"] = (f"Ghidra name from function-index.json (not re-derived here); native counterpart {where} "
                                      f"(port_acceptances, ledger class {acc['class']}, reviewed {acc['date']}); "
-                                     "the summary is the acceptance note")
+                                     "the note is the acceptance note")
             entries[va]["summary"] = one_line(acc["note"])
+            entries[va]["native_source"] = {"path": native["path"], "symbol": symbol, "class": acc["class"]}
             continue
         entries[va] = {"va": va_text(va), "name": symbol, "basis": "native_port",
-                       "summary": one_line(acc["note"]), "source": source}
+                       "summary": one_line(acc["note"]), "source": source,
+                       "native_source": {"path": native["path"], "symbol": symbol, "class": acc["class"]}}
 
     criterion = overrides["vorbis_parity_rule"]["criterion"]
     ported = {int(a["va"], 16) for a in overrides["port_acceptances"]}
@@ -196,7 +209,7 @@ def check(path: Path = NAMES, strict_count: bool = False) -> list[str]:
         expected = want.get(va)
         if expected is None:
             problems.append(f"{entry['va']} {entry['name']!r}: no committed evidence names this function any more")
-        elif {k: expected[k] for k in ("name", "basis", "summary", "source")} != {k: entry[k] for k in ("name", "basis", "summary", "source")}:
+        elif {k: expected.get(k) for k in ("name", "basis", "summary", "source", "native_source")} != {k: entry.get(k) for k in ("name", "basis", "summary", "source", "native_source")}:
             problems.append(f"{entry['va']}: differs from what the evidence states ({expected['name']!r} / {expected['basis']})")
     if strict_count:
         problems += [f"{va_text(va)} {e['name']!r}: evidence names it but the file does not" for va, e in want.items() if va not in have]
@@ -212,10 +225,10 @@ def count_sources(asm: Path = PROJECT / "asm") -> dict[str, Any]:
     """Annotation tiers of every ``asm/FUN_*.s`` read from the sources themselves.
 
     ``hand`` has no machine header (names an implementer chose); ``named`` is machine annotation whose name is not
-    ``fn_<va>`` (it comes from the names table); ``machine_only`` keeps ``fn_<va>``.
+    ``fn_<va>`` (it comes from the names table), ``funclet`` the same when the name is Ghidra's ``Unwind@``/``Catch@`` label; ``machine_only`` keeps ``fn_<va>``.
     """
 
-    tiers = {"hand": 0, "named": 0, "machine_only": 0}
+    tiers = {"hand": 0, "named": 0, "funclet": 0, "machine_only": 0}
     by_basis = {basis: 0 for basis in BASES}
     table = load() if NAMES.is_file() else {}
     for path in sorted(asm.glob("FUN_*.s")):
@@ -227,8 +240,10 @@ def count_sources(asm: Path = PROJECT / "asm") -> dict[str, Any]:
         if name.startswith("fn_"):
             tiers["machine_only"] += 1
         else:
-            tiers["named"] += 1
-            by_basis[table[int(path.stem[4:], 16)]["basis"]] += 1
+            known = table.get(int(path.stem[4:], 16))
+            basis = known["basis"] if known else "unknown"
+            tiers["funclet" if basis == "ghidra_funclet" else "named"] += 1
+            by_basis[basis] = by_basis.get(basis, 0) + 1
     return {"sources": sum(tiers.values()), **tiers, "named_by_basis": by_basis}
 
 

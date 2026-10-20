@@ -9,14 +9,14 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         m4b64a9_run_scene
-# naming:       native port src/original_methods_fl22b.c:m4b64a9_run_scene (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the summary is the acceptance note
-# summary:      1:1 with m4b64a9_run_scene (thiscall state machine, six-arm table compared in the differential). Zero divisor rejected natively (direct only). Unicorn: 300 fixtures, 725/725 instructions. See tasks/fl22b-handoff.md.
+# naming:       native port src/original_methods_fl22b.c:m4b64a9_run_scene (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port
+# name-note:    1:1 with m4b64a9_run_scene (thiscall state machine, six-arm table compared in the differential). Zero divisor rejected natively (direct only). Unicorn: 300 fixtures, 725/725 instructions. See tasks/fl22b-handoff.md.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       14 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c, local_20, local_24, local_28, local_2c, local_30 and 2 more
 # fields:       [eax + n] field_1c, field_21, field_23, field_24, field_27, field_28, field_2c, field_30, field_53, field_130, field_225, field_22a and 18 more; [ecx + n] field_1c, field_1e, field_20, field_21, field_23, field_4b, field_4f, field_128, field_12c, field_229, field_22a, field_22b and 13 more; [edx + n] field_4, field_8, field_c, field_1c, field_1e, field_23, field_25, field_47, field_124, field_224, field_229, field_22b and 14 more; [esi + n] field_27
 # callees:      calls FUN_004e8d96, FUN_004b6355, FUN_004d39f9, FUN_004c2790, FUN_004fb77a, FUN_004b642d, KERNEL32.dll!GetTickCount, FUN_004fb2e3, FUN_004f6334, FUN_004fba69, FUN_0042ba3a, FUN_004b5bc8
-# track-n:      outputs/blackmoor-decomp/src/action_family_d1_runtime.h:d1_step (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 725 instruction(s), 42 conditional branch(es) and 1 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl22b.c:m4b64a9_run_scene (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 725 instruction(s), 42 conditional branch(es) and 1 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

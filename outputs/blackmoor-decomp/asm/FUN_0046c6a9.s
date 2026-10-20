@@ -9,14 +9,14 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         m46c6a9_click_27e2_27ea
-# naming:       native port src/original_methods_fl25c.c:m46c6a9_click_27e2_27ea (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the summary is the acceptance note
-# summary:      1:1 (guards, arms, host calls in order). Direct, differential, oracle: 1800 fixtures, 304/304; both jcc ways except the three allowlisted untaken edges 0x46c840, 0x46c99f, 0x46cb02 (re-tests of a known selector). See handoff.
+# naming:       native port src/original_methods_fl25c.c:m46c6a9_click_27e2_27ea (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port
+# name-note:    1:1 (guards, arms, host calls in order). Direct, differential, oracle: 1800 fixtures, 304/304; both jcc ways except the three allowlisted untaken edges 0x46c840, 0x46c99f, 0x46cb02 (re-tests of a known selector). See handoff.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       4 ebp-relative slot(s): local_4, local_8, local_c, local_10
 # fields:       [eax + n] field_1e, field_62d, field_65e, field_48a0, field_48a4, field_48a8, field_48aa, field_48ac, field_48ae, field_49e0, field_49e2, field_4a28 and 5 more; [ecx + n] field_1e, field_48aa, field_48ac, field_48ae, field_49e0, field_49e2, field_4a24, field_4a2c, field_4a34, field_4a3c, field_4a3e, field_4a50 and 2 more; [edx + n] field_1e, field_48a0, field_48a4, field_48a8, field_48ac, field_48ae, field_49e0, field_49e2, field_4a2c, field_4a30, field_4a34, field_4a3c and 2 more
 # callees:      calls FUN_0046cc8b, FUN_004f6334, FUN_004fb2e3
-# track-n:      outputs/blackmoor-decomp/src/original_methods_fl25c.c:cell16 (function ledger class native_oracle_verified; also m46c6a9_click_27e2_27ea; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 304 instruction(s), 32 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl25c.c:m46c6a9_click_27e2_27ea (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 304 instruction(s), 32 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

@@ -9,14 +9,14 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         m4ccfbd_release_surface
-# naming:       native port src/original_methods_fl16.c:m4ccfbd_release_surface (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-18); the summary is the acceptance note
-# summary:      1:1 with m4ccfbd_release_surface (dword +0x212 released through 0x4c2dfb via the Fl16Host callback, then := 0). The older release_surface in action_family_2d_runtime.c works on a typed struct and is not the credited symbol.
+# naming:       native port src/original_methods_fl16.c:m4ccfbd_release_surface (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-18); the note is the acceptance note, a statement about the native port
+# name-note:    1:1 with m4ccfbd_release_surface (dword +0x212 released through 0x4c2dfb via the Fl16Host callback, then := 0). The older release_surface in action_family_2d_runtime.c works on a typed struct and is not the credited symbol.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_212; [edx + n] field_212
 # callees:      calls FUN_004c2dfb
-# track-n:      outputs/blackmoor-decomp/src/action_family_2d_runtime.c:release_surface (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 17 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl16.c:m4ccfbd_release_surface (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 17 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

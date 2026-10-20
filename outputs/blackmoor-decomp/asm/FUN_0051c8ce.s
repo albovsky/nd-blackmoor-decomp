@@ -10,13 +10,13 @@
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         CWnd::OnDisplayChange
 # naming:       Ghidra name from function-index.json (not re-derived here)
-# summary:      Statically linked library routine named by Ghidra; the body was not read for intent here
+# name-note:    Statically linked library routine named by Ghidra; the body was not read for intent here
 # arguments:    no ebp frame so stack arguments are esp-relative and are not resolved by this machine pass; ret 0x8 (callee pops 8 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       none resolved: no ebp frame so slots are listed under fields as esp-relative stk symbols
 # fields:       [eax + n] field_4, field_8, field_c; [esi + n] field_1c
 # callees:      calls FUN_0050c193, FUN_0051f96d, FUN_0051d526, FUN_0051ab16, FUN_0051c22e, FUN_0051ab4b
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 23 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
+# unverified:   machine annotation only: the 23 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

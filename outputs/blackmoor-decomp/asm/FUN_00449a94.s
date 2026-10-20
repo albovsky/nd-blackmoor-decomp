@@ -9,14 +9,14 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         m449a94_stop_thread
-# naming:       native port src/original_methods_fl27b.c:m449a94_stop_thread (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the summary is the acceptance note
-# summary:      1:1 with m449a94_stop_thread: the oracle runs every instruction and both directions of every conditional jump (untaken edges only as listed in the handoff). See tasks/fl27b-handoff.md.
+# naming:       native port src/original_methods_fl27b.c:m449a94_stop_thread (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port
+# name-note:    1:1 with m449a94_stop_thread: the oracle runs every instruction and both directions of every conditional jump (untaken edges only as listed in the handoff). See tasks/fl27b-handoff.md.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       3 ebp-relative slot(s): local_4, local_68, local_6c
 # fields:       [eax + n] field_36, field_3e; [ecx + n] field_28, field_36, field_3a, field_42; [edx + n] field_24, field_36, field_42, field_78
 # callees:      calls FUN_00449bff, KERNEL32.dll!Sleep, KERNEL32.dll!GetExitCodeThread, FUN_00426367, FUN_0044a2b7, FUN_0050ca3e; plus 1 indirect transfer(s) whose target is not resolved
-# track-n:      outputs/blackmoor-decomp/src/action_family_3f_runtime.c:phase0 (function ledger class native_oracle_verified; also phase2; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 84 instruction(s), 8 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code; indirect transfers are not followed
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl27b.c:m449a94_stop_thread (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 84 instruction(s), 8 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code; indirect transfers are not followed
 .intel_syntax noprefix
 .code32
 .text

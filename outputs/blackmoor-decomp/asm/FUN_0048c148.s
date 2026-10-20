@@ -9,14 +9,14 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         d8_press
-# naming:       native port src/action_family_d8_runtime.c:d8_press (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-18); the summary is the acceptance note
-# summary:      1:1 with d8_press (active, row phase 1, candidate 0x27a7, can_move[hot]: first press stores GetTickCount in +0x50, then dir := hot, pressed := 1). Phase and candidate are parameters, tick a host callback; hot outside 0..3 skipped.
+# naming:       native port src/action_family_d8_runtime.c:d8_press (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-18); the note is the acceptance note, a statement about the native port
+# name-note:    1:1 with d8_press (active, row phase 1, candidate 0x27a7, can_move[hot]: first press stores GetTickCount in +0x50, then dir := hot, pressed := 1). Phase and candidate are parameters, tick a host callback; hot outside 0..3 skipped.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_28, field_34, field_46; [ecx + n] field_28, field_50; [edx + n] field_1c, field_26, field_40
 # callees:      calls KERNEL32.dll!GetTickCount
 # track-n:      outputs/blackmoor-decomp/src/action_family_d8_runtime.c:d8_press (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 40 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
+# unverified:   machine annotation only: the 40 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

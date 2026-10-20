@@ -9,14 +9,14 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         entry
-# naming:       Ghidra name from function-index.json (not re-derived here); summary is the ledger reason (crt_startup_termination, function-ledger-overrides.json not_needed_entries)
-# summary:      entry: GetVersion, heap/io/cmdline/env init, _cinit, GetStartupInfo, calls WinMain wrapper, exit; no callers, not game reached
+# naming:       Ghidra name from function-index.json (not re-derived here); note is the ledger reason (crt_startup_termination, function-ledger-overrides.json not_needed_entries)
+# name-note:    entry: GetVersion, heap/io/cmdline/env init, _cinit, GetStartupInfo, calls WinMain wrapper, exit; no callers, not game reached
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       9 ebp-relative slot(s): local_4, local_14, local_18, local_2c, local_30, local_5c, local_60, local_64, local_68
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      calls KERNEL32.dll!GetVersion, FUN_00514d5d, FUN_0050e912, FUN_00510d6c, FUN_00512d28, KERNEL32.dll!GetCommandLineA, FUN_00514c2b, FUN_005149de, FUN_00514925, FUN_0050d7b6, KERNEL32.dll!GetStartupInfoA, FUN_005148cd, KERNEL32.dll!GetModuleHandleA, FUN_00519a60, FUN_0050d7e3, FUN_00514755
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 81 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code; function ledger class nn_reviewed is a native-touch record, not a counterpart claim
+# unverified:   machine annotation only: the 81 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code; function ledger class nn_reviewed is a native-touch record, not a counterpart claim
 # note:         further_unindexed_code_at:0x0050e8e2
 .intel_syntax noprefix
 .code32

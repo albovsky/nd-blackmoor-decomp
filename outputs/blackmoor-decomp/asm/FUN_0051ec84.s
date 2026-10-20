@@ -10,13 +10,13 @@
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         AfxEndThread
 # naming:       Ghidra name from function-index.json (not re-derived here)
-# summary:      Statically linked library routine named by Ghidra; the body was not read for intent here
+# name-note:    Statically linked library routine named by Ghidra; the body was not read for intent here
 # arguments:    no ebp frame so stack arguments are esp-relative and are not resolved by this machine pass; ret 0x8 (callee pops 8 bytes); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       none resolved: no ebp frame so slots are listed under fields as esp-relative stk symbols
 # fields:       [eax + n] field_78; [edi + n] field_4; [esi + n] field_54; [esp + n] stk_c, stk_10
 # callees:      calls FUN_00525397, FUN_0051ed28, FUN_0050ff80; plus 2 indirect transfer(s) whose target is not resolved
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 27 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code; indirect transfers are not followed; function ledger class partial_native is a native-touch record, not a counterpart claim
+# unverified:   machine annotation only: the 27 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code; indirect transfers are not followed; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

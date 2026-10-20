@@ -10,13 +10,13 @@
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         __ftol
 # naming:       Ghidra name from function-index.json (not re-derived here)
-# summary:      Statically linked library routine named by Ghidra; the body was not read for intent here
+# name-note:    Statically linked library routine named by Ghidra; the body was not read for intent here
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       4 ebp-relative slot(s): local_2, local_4, local_8, local_c
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      none: no call or outward jump
 # track-n:      outputs/blackmoor-decomp/src/action_family_d9_runtime.c:ftol_low (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 16 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
+# unverified:   machine annotation only: the 16 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

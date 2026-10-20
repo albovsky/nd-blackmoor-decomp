@@ -9,14 +9,14 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         first_wave
-# naming:       native port src/action_family_f5_runtime.c:first_wave (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-17); the summary is the acceptance note
-# summary:      1:1 with first_wave (count, clear, per-balloon draws, text centring). Shares place_balloon with more_balloons (not credited here). Aggregate oracle.
+# naming:       native port src/action_family_f5_runtime.c:first_wave (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-17); the note is the acceptance note, a statement about the native port
+# name-note:    1:1 with first_wave (count, clear, per-balloon draws, text centring). Shares place_balloon with more_balloons (not credited here). Aggregate oracle.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [eax + n] field_4, field_8, field_c, field_23, field_66, field_6b, field_6f, field_7b; [ecx + n] field_8, field_48, field_4a, field_5a, field_5e, field_62, field_6a, field_77, field_7d, field_452, field_454, field_456; [edi + n] field_5a, field_5e; [edx + n] field_4, field_8, field_c, field_21, field_5a, field_62, field_66, field_452, field_456, field_458; [esi + n] field_62, field_66, field_175
 # callees:      calls FUN_0050cd50, FUN_004b866e, FUN_004b85f6, KERNEL32.dll!GetTickCount
-# track-n:      outputs/blackmoor-decomp/src/action_family_f5_runtime.c:first_wave (function ledger class native_oracle_verified; also place_balloon; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 201 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
+# track-n:      outputs/blackmoor-decomp/src/action_family_f5_runtime.c:first_wave (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 201 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

@@ -9,14 +9,14 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         m4b9a88_draw_slots
-# naming:       native port src/original_methods_fl20c.c:m4b9a88_draw_slots (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-18); the summary is the acceptance note
-# summary:      1:1 with m4b9a88_draw_slots. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 835 bytes.
+# naming:       native port src/original_methods_fl20c.c:m4b9a88_draw_slots (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-18); the note is the acceptance note, a statement about the native port
+# name-note:    1:1 with m4b9a88_draw_slots. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 835 bytes.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       7 ebp-relative slot(s): local_4, local_7, local_8, local_c, local_10, local_14, local_18
 # fields:       [eax + n] field_41d, field_421, field_425; [ecx + n] field_41d, field_429; [edx + n] field_173, field_421, field_425, field_429
 # callees:      calls FUN_004c5d4b, FUN_004d2c20, FUN_004b8e42, FUN_004c5377
-# track-n:      outputs/blackmoor-decomp/src/blackmoor_app.mm:native_af5_alloc_slot (function ledger class native_oracle_verified; also native_af5_draw, native_caption_finish_tick; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 208 instruction(s), 7 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl20c.c:m4b9a88_draw_slots (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 208 instruction(s), 7 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

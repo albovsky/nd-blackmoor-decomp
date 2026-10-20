@@ -9,14 +9,14 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         triggers
-# naming:       native port src/action_family_35_runtime.c:triggers (port_acceptances, ledger class native_tests_only, reviewed 2026-10-15); the summary is the acceptance note
-# summary:      Static triggers matches branch for branch. The Bink oracle (action_family_35_bink) compares event table and order, 0 mismatches, but the debug-log arm never runs, so tests-only. Frame is a parameter.
+# naming:       native port src/action_family_35_runtime.c:triggers (port_acceptances, ledger class native_tests_only, reviewed 2026-10-15); the note is the acceptance note, a statement about the native port
+# name-note:    Static triggers matches branch for branch. The Bink oracle (action_family_35_bink) compares event table and order, 0 mismatches, but the debug-log arm never runs, so tests-only. Frame is a parameter.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [eax + n] field_2, field_22e, field_230, field_244; [ecx + n] field_2, field_22a, field_22e, field_244; [edx + n] field_2, field_4
 # callees:      calls FUN_0050ca3e, FUN_0044a2b7
 # track-n:      outputs/blackmoor-decomp/src/action_family_35_runtime.c:triggers (function ledger class native_tests_only; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 62 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
+# unverified:   machine annotation only: the 62 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

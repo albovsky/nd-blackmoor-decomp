@@ -9,14 +9,14 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         std_set_clock
-# naming:       native port src/score_time_display.c:std_set_clock (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-18); the summary is the acceptance note
-# summary:      1:1 with std_set_clock (stores +0x240/+0x244, sprintf "%02d" into +0x248/+0x252). Native-only: STD_ERR_BOUNDS and no store when a value is outside 0..99 (original has no guard); returns int where the original is void.
+# naming:       native port src/score_time_display.c:std_set_clock (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-18); the note is the acceptance note, a statement about the native port
+# name-note:    1:1 with std_set_clock (stores +0x240/+0x244, sprintf "%02d" into +0x248/+0x252). Native-only: STD_ERR_BOUNDS and no store when a value is outside 0..99 (original has no guard); returns int where the original is void.
 # arguments:    2 ebp-relative stack slot(s) referenced: arg_8, arg_c; ret 0x8 (callee pops 8 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_240; [ecx + n] field_240, field_244; [edx + n] field_244
 # callees:      calls FUN_0050ca3e
 # track-n:      outputs/blackmoor-decomp/src/score_time_display.c:std_set_clock (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 31 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
+# unverified:   machine annotation only: the 31 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

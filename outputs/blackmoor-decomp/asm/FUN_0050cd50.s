@@ -9,14 +9,14 @@
 # frame:        none
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         _rand
-# naming:       Ghidra name from function-index.json (not re-derived here); native counterpart src/session_bindings_conditions.c:session_conditions_crt_rand (port_acceptances, ledger class host_adapter_tested, reviewed 2026-10-15); the summary is the acceptance note
-# summary:      Same LCG and 15-bit result as the pseudocode; the per-thread seed cell is a struct field. No oracle calls this symbol. Test passed on macOS arm64, 2026-10-15.
+# naming:       Ghidra name from function-index.json (not re-derived here); native counterpart src/session_bindings_conditions.c:session_conditions_crt_rand (port_acceptances, ledger class host_adapter_tested, reviewed 2026-10-15); the note is the acceptance note
+# name-note:    Same LCG and 15-bit result as the pseudocode; the per-thread seed cell is a struct field. No oracle calls this symbol. Test passed on macOS arm64, 2026-10-15.
 # arguments:    no ebp frame so stack arguments are esp-relative and are not resolved by this machine pass; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       none resolved: no ebp frame so slots are listed under fields as esp-relative stk symbols
 # fields:       [eax + n] field_14
 # callees:      calls FUN_00510dd3
-# track-n:      outputs/blackmoor-decomp/src/blackmoor_app.mm:native_a77_random (function ledger class host_adapter_tested; also native_ae4_alloc_slot, native_ae4_random, native_aee_random, native_af6_alloc_slot, native_af6_random, native_audio_random; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 9 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
+# track-n:      outputs/blackmoor-decomp/src/session_bindings_conditions.c:session_conditions_crt_rand (function ledger class host_adapter_tested; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 9 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

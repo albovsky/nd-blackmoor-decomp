@@ -9,14 +9,14 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         avf_get_chunk
-# naming:       native port src/avf_decoder.c:avf_get_chunk (port_acceptances, ledger class native_tests_only, reviewed 2026-10-16); the summary is the acceptance note
-# summary:      Chunk fetch (key, then deltas). Fatal paths are status returns, buffers passed in, 0x4c7314 is the convert hook, extra native rejections of truncated input. Oracle not run whole.
+# naming:       native port src/avf_decoder.c:avf_get_chunk (port_acceptances, ledger class native_tests_only, reviewed 2026-10-16); the note is the acceptance note, a statement about the native port
+# name-note:    Chunk fetch (key, then deltas). Fatal paths are status returns, buffers passed in, 0x4c7314 is the convert hook, extra native rejections of truncated input. Oracle not run whole.
 # arguments:    5 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10, arg_14, arg_18; ret 0x14 (callee pops 20 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       4 ebp-relative slot(s): local_4, local_8, local_c, local_10
 # fields:       [eax + n] field_6, field_21, field_31, field_35, field_3d, field_49; [ecx + n] field_e, field_21, field_31, field_35, field_39, field_3d, field_41, field_45, field_49; [edx + n] field_6, field_a, field_e, field_35, field_41, field_45, field_49
 # callees:      calls FUN_0050ca3e, FUN_004150af, FUN_004159db, FUN_004c7314, FUN_0051dc43, FUN_00416af3, FUN_0051dc6c, FUN_00415011, FUN_004264e8, FUN_004c97b4
-# track-n:      outputs/blackmoor-decomp/src/avf_decoder.c:avf_get_chunk (function ledger class native_tests_only; also is_empty; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 258 instruction(s), 17 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
+# track-n:      outputs/blackmoor-decomp/src/avf_decoder.c:avf_get_chunk (function ledger class native_tests_only; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 258 instruction(s), 17 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

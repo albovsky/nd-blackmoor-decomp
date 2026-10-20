@@ -267,7 +267,7 @@ def audit_source(text: str, header_expect: dict[str, Any], code_symbol: str, all
     name = header.get("name", "")
     if machine:
         # asm/function-names.json (scripts/function_names.py) may give a function the name that committed evidence states;
-        # then the source must carry exactly that name, naming line and summary, and nothing else may carry them.
+        # then the source must carry exactly that name, naming line and note, and nothing else may carry them.
         named = (names or {}).get(int(code_symbol[4:], 16))
         facts["naming"] = named["basis"] if named else ""
         if named:
@@ -275,12 +275,14 @@ def audit_source(text: str, header_expect: dict[str, Any], code_symbol: str, all
                 reasons.append(f"machine-annotated function name {name!r} is not the name {named['name']!r} that asm/function-names.json records for {code_symbol}")
             if header.get("naming") != fnames.naming_text(named):
                 reasons.append("header 'naming' differs from asm/function-names.json")
-            if header.get("summary") != fnames.summary_text(named):
-                reasons.append("header 'summary' differs from asm/function-names.json")
+            if header.get("name-note") != fnames.summary_text(named):
+                reasons.append("header 'name-note' differs from asm/function-names.json")
+            if fnames.NAMED_CLAUSE not in header.get("unverified", ""):
+                reasons.append("header 'unverified' must say that the function name and note are copied from the evidence, not read from the code")
         else:
             if name != "fn_" + code_symbol[4:]:
                 reasons.append(f"machine-annotated function name {name!r} is not fn_<va> of {code_symbol}")
-            for key in ("naming", "summary"):
+            for key in ("naming", "name-note"):
                 if key in header:
                     reasons.append(f"header {key!r} present but asm/function-names.json has no entry for {code_symbol}")
     elif name and (
@@ -289,6 +291,10 @@ def audit_source(text: str, header_expect: dict[str, Any], code_symbol: str, all
         or _SYNTHETIC_FUNCTION_NAME.match(name)
     ):
         reasons.append(f"function name {name!r} is not a real name")
+    if not machine:
+        for key in ("naming", "name-note"):
+            if key in header:
+                reasons.append(f"header {key!r} is only valid in a machine-annotated source whose name asm/function-names.json records")
     track = header.get("track-n", "")
     if track and track != "host-adapter: none":
         if not re.match(r"^[\w./+-]+:[\w:~]+( .*)?$", track):
@@ -614,6 +620,7 @@ class AuditConfig:
     allow_index_byte_lists: bool = True
     # va -> entry of asm/function-names.json; None means no function has a recorded name
     names: Optional[dict[int, dict[str, Any]]] = None
+    names_path: Optional[Path] = None
 
 
 def audit_manifest(manifest_path: Path, config: AuditConfig) -> dict[str, Any]:
@@ -683,6 +690,8 @@ def audit_manifest(manifest_path: Path, config: AuditConfig) -> dict[str, Any]:
             handoff.append({"function": result["function"], **item})
     report["accepted_count"] = len(accepted)
     report["named_functions"] = sum(1 for f in accepted if f.get("naming"))
+    if config.names:
+        report["names_sha256"] = fnames.table_sha256(config.names_path) if config.names_path else ""
     report["code_bytes_accepted"] = sum(f["code"]["size"] for f in accepted)
     report["by_region"] = by_region
     report["data_items_for_m02"] = handoff
@@ -956,7 +965,13 @@ def main(argv: Optional[list[str]] = None) -> int:
                         help="function names table (default asm/function-names.json; a missing file means no recorded names)")
     args = parser.parse_args(argv)
     names = fnames.load(args.names) if args.names.is_file() else None
-    config = AuditConfig(original=args.original, names=names)
+    if names:
+        # the table must be supported by the committed evidence, or an invented name would pass the header comparison
+        problems = fnames.check(args.names)
+        if problems:
+            print("function names table is not supported by the evidence:", *problems[:10], sep="\n  ")
+            return 1
+    config = AuditConfig(original=args.original, names=names, names_path=args.names if names else None)
     report = audit_manifest(args.manifest, config)
     encoded = json.dumps(report, indent=2, sort_keys=True) + "\n"
     if args.report:

@@ -2,10 +2,10 @@
   "accepted_count": 554,
   "all_accepted": true,
   "assembler": {
-    "binutils_archive_sha512": "archive not present beside the pinned prefix",
-    "path": "/home/user/nd-blackmoor-decomp/work/tools/s08-binutils-2.43.1/prefix/bin/i686-w64-mingw32-as",
+    "binutils_archive_sha512": "20977ad17729141a2c26d358628f44a0944b84dcfefdec2ba029c2d02f40dfc41cc91c0631044560d2bd6f9a51e1f15846b4b311befbe14f1239f14ff7d57824",
+    "path": "work/tools/s08-binutils-2.43.1/prefix/bin/i686-w64-mingw32-as",
     "self_test": "passed",
-    "sha256": "b6b187cbc5de31e423ce4c997762382454731280a0474dab3dbbfd31d0b92e1d",
+    "sha256": "e098415986a220be7e4b2d14f3b0894cf065a8f21d6aaf117140d2966039e5c4",
     "version_line": "GNU assembler (GNU Binutils) 2.43.1"
   },
   "baseline": {
@@ -17740,6 +17740,8 @@
     }
   ],
   "manifest_sha256": "a4c8940a62b5cb9c3770332729edb87ab4cd4332ee73fc8eb127fe8706112f7b",
+  "named_functions": 0,
+  "names_sha256": "8cc2637ff0a9d392ef9a50dbf4b5cecd2133e326e17ecb0f017e51e4acdf82ac",
   "note": "Accepted functions are candidates for the tool_assisted_reconstructed_assembly class; they count only after root accepts the independent review. No claim is made about original C++ or compiler provenance.",
   "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45"
 }

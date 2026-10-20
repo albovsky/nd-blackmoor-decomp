@@ -9,14 +9,14 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         controller_setup
-# naming:       native port src/session_exit.c:controller_setup (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-15); the summary is the acceptance note
-# summary:      Static controller_setup, parent granularity: 178-case RT-5 oracle compares the ordered boundary calls and stores. Callees 0x43a7ca (nested tick), 0x447ac7 (capture) and the buffer clear are host seams (RT-5 divergence).
+# naming:       native port src/session_exit.c:controller_setup (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-15); the note is the acceptance note, a statement about the native port
+# name-note:    Static controller_setup, parent granularity: 178-case RT-5 oracle compares the ordered boundary calls and stores. Callees 0x43a7ca (nested tick), 0x447ac7 (capture) and the buffer clear are host seams (RT-5 divergence).
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       2 ebp-relative slot(s): local_4, local_8
 # fields:       [eax + n] field_2d, field_31, field_49; [ecx + n] field_2d; [edx + n] field_35, field_39
 # callees:      calls FUN_004d36ed, FUN_0043dbd5, FUN_0043a7ca, FUN_00447ac7
 # track-n:      outputs/blackmoor-decomp/src/session_exit.c:controller_setup (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 52 instruction(s), 4 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
+# unverified:   machine annotation only: the 52 instruction(s), 4 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

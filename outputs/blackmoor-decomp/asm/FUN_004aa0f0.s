@@ -9,14 +9,14 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         m4aa0f0_hit_test
-# naming:       native port src/original_methods_fl24b.c:m4aa0f0_hit_test (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the summary is the acceptance note
-# summary:      1:1 with m4aa0f0_hit_test (guards, arms, host calls in order). Direct: hand-derived arms and boundaries. Unicorn differential and oracle: 640 fixtures, every code instruction reached. See tasks/fl24b-handoff.md.
+# naming:       native port src/original_methods_fl24b.c:m4aa0f0_hit_test (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port
+# name-note:    1:1 with m4aa0f0_hit_test (guards, arms, host calls in order). Direct: hand-derived arms and boundaries. Unicorn differential and oracle: 640 fixtures, every code instruction reached. See tasks/fl24b-handoff.md.
 # arguments:    2 ebp-relative stack slot(s) referenced: arg_8, arg_c; ret 0x8 (callee pops 8 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [eax + n] field_21, field_23, field_2b, field_45, field_eb, field_ef, field_109, field_10d, field_111, field_115; [ecx + n] field_25, field_e7, field_f7, field_245, field_249, field_24d, field_251; [edx + n] field_23, field_f3
 # callees:      none: no call or outward jump
 # track-n:      outputs/blackmoor-decomp/src/original_methods_fl24b.c:m4aa0f0_hit_test (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 154 instruction(s), 17 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
+# unverified:   machine annotation only: the 154 instruction(s), 17 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

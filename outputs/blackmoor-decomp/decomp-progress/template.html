@@ -409,8 +409,8 @@ $("facts").innerHTML =
   `<span><b>${fmt(T.functions_complete)}</b> of ${fmt(T.functions)} indexed functions fully matched</span>` +
   `<span><b>${fmt(D.units.filter(u=>u.matched_code||u.matched_data).length)}</b> of ${fmt(D.units.length)} units touched</span>` +
   Object.entries(T.by_provenance||{}).map(([p,n])=>`<span>${p.replace(/_/g," ")}: <b>${fmt(n)} B</b>${p in (T.functions_by_provenance||{}) ? ` · ${fmt(T.functions_by_provenance[p])} complete function claims` : ""}</span>`).join("") +
-  (()=>{ const t={hand:0,named:0,machine_only:0}; for(const b of (D.evidence.tool_assisted_batches||[])) for(const k in t) t[k]+=((b.annotation||{})[k]||0);
-    const n=t.hand+t.named+t.machine_only; return n ? `<span>Assembly annotation (${fmt(n)} sources): <b>${fmt(t.hand)}</b> hand · <b>${fmt(t.named)}</b> named from evidence · <b>${fmt(t.machine_only)}</b> machine only</span>` : ""; })() +
+  (()=>{ const t={hand:0,named:0,funclet:0,machine_only:0}; for(const b of (D.evidence.tool_assisted_batches||[])) for(const k in t) t[k]+=((b.annotation||{})[k]||0);
+    const n=t.hand+t.named+t.funclet+t.machine_only; return n ? `<span>Assembly annotation (${fmt(n)} sources): <b>${fmt(t.hand)}</b> hand · <b>${fmt(t.named)}</b> named from evidence · <b>${fmt(t.funclet)}</b> funclet labels · <b>${fmt(t.machine_only)}</b> machine only</span>` : ""; })() +
   `<span>Whole-file rebuild: <b>incomplete</b></span>` +
   (T.unclassified ? `<span><b>${fmt(T.unclassified)}</b> bytes unclassified (partial ledger)</span>` : "") +
   `<span>${D.evidence.mode === "baseline" ? "Legacy byte ranges" : "Composed image"} re-verified this run: <b>${D.evidence.verification && D.evidence.verification.run ? "yes" : "no"}</b></span>`;

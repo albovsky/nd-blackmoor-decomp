@@ -9,14 +9,14 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         m4b8e42_expire_slot
-# naming:       native port src/original_methods_fl16.c:m4b8e42_expire_slot (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-18); the summary is the acceptance note
-# summary:      1:1 with m4b8e42_expire_slot. Direct test plus a differential test against the original bytes (Unicorn), every original instruction reached. Oracle window runs all 80 bytes. Direct test covers slot -1.
+# naming:       native port src/original_methods_fl16.c:m4b8e42_expire_slot (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-18); the note is the acceptance note, a statement about the native port
+# name-note:    1:1 with m4b8e42_expire_slot. Direct test plus a differential test against the original bytes (Unicorn), every original instruction reached. Oracle window runs all 80 bytes. Direct test covers slot -1.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_48, field_7d; [ecx + n] field_48
 # callees:      calls KERNEL32.dll!GetTickCount, FUN_004b8a27
 # track-n:      outputs/blackmoor-decomp/src/original_methods_fl16.c:m4b8e42_expire_slot (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 24 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
+# unverified:   machine annotation only: the 24 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

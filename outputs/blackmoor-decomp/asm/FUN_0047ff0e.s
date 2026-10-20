@@ -9,14 +9,14 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         m47ff0e_handle_click
-# naming:       native port src/original_methods_fl22b.c:m47ff0e_handle_click (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the summary is the acceptance note
-# summary:      1:1 with m47ff0e_handle_click. Caption longer than 200 is rejected natively (original overruns its frame; direct test only). Unicorn differential: 300 fixtures, all instructions. Window covers 2713 bytes. See tasks/fl22b-handoff.md.
+# naming:       native port src/original_methods_fl22b.c:m47ff0e_handle_click (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port
+# name-note:    1:1 with m47ff0e_handle_click. Caption longer than 200 is rejected natively (original overruns its frame; direct test only). Unicorn differential: 300 fixtures, all instructions. Window covers 2713 bytes. See tasks/fl22b-handoff.md.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       5 ebp-relative slot(s): local_4, local_8, local_c, local_d8, local_dc
 # fields:       [eax + n] field_4, field_8, field_c, field_1e, field_5e, field_b9, field_7a0, field_7b6, field_7be, field_7c2, field_7c6, field_7c9 and 13 more; [ecx + n] field_4, field_8, field_c, field_1e, field_5e, field_e9, field_7a0, field_7b6, field_7c6, field_7d7, field_1344, field_1348 and 5 more; [edi + n] field_minus_1; [edx + n] field_4, field_8, field_c, field_a9, field_e9, field_7a0, field_7b6, field_7d6, field_7d7, field_7d8, field_1344, field_1350 and 6 more; [esi + n] field_7b6, field_7ba
 # callees:      calls FUN_00480b34, FUN_0047e8fe, FUN_0047fa11, FUN_00480abe, FUN_0047e9d3, FUN_0047fb76, FUN_0047e582, FUN_0047ed96, FUN_0047e99e, FUN_0047e52f, FUN_004809a7, FUN_00480a1d, FUN_004fb2e3, KERNEL32.dll!GetTickCount, FUN_00423259, FUN_00448d11
-# track-n:      outputs/blackmoor-decomp/src/action_family_eb_runtime.c:caption_block (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 583 instruction(s), 32 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl22b.c:m47ff0e_handle_click (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 583 instruction(s), 32 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

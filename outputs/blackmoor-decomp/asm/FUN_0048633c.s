@@ -9,14 +9,14 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         good_drop_feedback
-# naming:       native port src/action_family_ea_runtime.c:good_drop_feedback (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-18); the summary is the acceptance note
-# summary:      1:1 with good_drop_feedback (feedback +0x74b; always sets the caption flag). Native errors where the original overruns its 204-byte caption buffer; untested range.
+# naming:       native port src/action_family_ea_runtime.c:good_drop_feedback (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-18); the note is the acceptance note, a statement about the native port
+# name-note:    1:1 with good_drop_feedback (feedback +0x74b; always sets the caption flag). Native errors where the original overruns its 204-byte caption buffer; untested range.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       6 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_dc, local_e0
 # fields:       [eax + n] field_26, field_76c, field_7be, field_bc1; [ecx + n] field_821, field_bac, field_bc1, field_bc9; [edi + n] field_minus_1; [edx + n] field_7be, field_821, field_bac
 # callees:      calls FUN_0050cd50, FUN_004fb77a, FUN_004fb2e3, FUN_00423259, FUN_00448d11, KERNEL32.dll!GetTickCount
-# track-n:      outputs/blackmoor-decomp/src/action_family_ea_runtime.c:caption_block (function ledger class native_oracle_verified; also feedback_sound, good_drop_feedback, pick_alternate; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 244 instruction(s), 14 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
+# track-n:      outputs/blackmoor-decomp/src/action_family_ea_runtime.c:good_drop_feedback (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 244 instruction(s), 14 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

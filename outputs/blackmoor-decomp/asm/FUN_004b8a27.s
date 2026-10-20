@@ -9,14 +9,14 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         m4b8a27_spawn_slots
-# naming:       native port src/original_methods_fl20b.c:m4b8a27_spawn_slots (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-18); the summary is the acceptance note
-# summary:      1:1 with m4b8a27_spawn_slots. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 823 bytes.
+# naming:       native port src/original_methods_fl20b.c:m4b8a27_spawn_slots (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-18); the note is the acceptance note, a statement about the native port
+# name-note:    1:1 with m4b8a27_spawn_slots. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 823 bytes.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       4 ebp-relative slot(s): local_4, local_8, local_c, local_10
 # fields:       [eax + n] field_4, field_8, field_c, field_23, field_48, field_5a, field_5e, field_62, field_6b, field_6f, field_7b; [ecx + n] field_4, field_8, field_c, field_48, field_4a, field_5a, field_6a, field_77, field_7d, field_452, field_454, field_456; [edi + n] field_5a, field_5e; [edx + n] field_4, field_8, field_c, field_21, field_48, field_62, field_66, field_173, field_452, field_456, field_458; [esi + n] field_62, field_66, field_175
 # callees:      calls FUN_0050cd50, FUN_004b866e, FUN_004b85f6, KERNEL32.dll!GetTickCount
-# track-n:      outputs/blackmoor-decomp/src/action_family_f5_runtime.c:more_balloons (function ledger class native_oracle_verified; also place_balloon; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 242 instruction(s), 6 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl20b.c:m4b8a27_spawn_slots (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 242 instruction(s), 6 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

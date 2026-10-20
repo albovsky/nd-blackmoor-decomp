@@ -9,14 +9,14 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         m41e250_release_slot
-# naming:       native port src/original_methods_fl28b.c:m41e250_release_slot (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the summary is the acceptance note
-# summary:      Releases one slot: free slot early return, the pointer free, four dword calls and the word count decrement with the signed floor at 0; every instruction and both directions of every jump executed. See tasks/fl28b-handoff.md.
+# naming:       native port src/original_methods_fl28b.c:m41e250_release_slot (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port
+# name-note:    Releases one slot: free slot early return, the pointer free, four dword calls and the word count decrement with the signed floor at 0; every instruction and both directions of every jump executed. See tasks/fl28b-handoff.md.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [eax + n] field_1e; [ecx + n] field_1c, field_68e; [edx + n] field_6, field_1e, field_68e
 # callees:      calls FUN_0051dc6c, FUN_004c2e5b
-# track-n:      outputs/blackmoor-decomp/src/action_family_3f_runtime.c:cel_evict (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 65 instruction(s), 4 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl28b.c:m41e250_release_slot (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 65 instruction(s), 4 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

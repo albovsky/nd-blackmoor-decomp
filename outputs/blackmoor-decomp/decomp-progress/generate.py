@@ -340,7 +340,7 @@ def audited_batch_evidence(layout: dict, out_dir: Path):
             require(sum(f["code"]["size"] for f in functions) == report["code_bytes_accepted"],
                     "audit code byte total differs from manifest")
             batch_ranges, batch_data = [], 0
-            tally = {"hand": 0, "named": 0, "machine_only": 0}
+            tally = {"hand": 0, "named": 0, "funclet": 0, "machine_only": 0}
             for fn in functions:
                 a = by_symbol[fn["function"]]
                 code = fn["code"]
@@ -357,8 +357,11 @@ def audited_batch_evidence(layout: dict, out_dir: Path):
                         re.fullmatch(r"[0-9a-f]{64}", a["object"]["sha256"]) is not None,
                         "missing code/object hash in audit")
                 # annotation tier of the audited source: hand (an implementer's names), named (machine annotation whose
-                # function name committed evidence states, asm/function-names.json) or machine_only (fn_<va>)
-                tally["hand" if a.get("annotation", "hand") != "machine" else "named" if a.get("naming") else "machine_only"] += 1
+                # function name committed evidence states, asm/function-names.json), funclet (a compiler funclet whose
+                # only name is Ghidra's Unwind@/Catch@ address label) or machine_only (fn_<va>)
+                tally["hand" if a.get("annotation", "hand") != "machine" else
+                      "funclet" if a.get("naming") == "ghidra_funclet" else
+                      "named" if a.get("naming") else "machine_only"] += 1
                 data = fn["data_items"]
                 require(len(data) == len(a["data_items"]) and
                         all(all(item.get(k) == v for k, v in expected.items())
@@ -388,6 +391,10 @@ def audited_batch_evidence(layout: dict, out_dir: Path):
                                    "sha256": fn["source_sha256"], "role": "audited-source"})
             require(sum(e - s for s, e in merge_intervals(batch_ranges)) == report["code_bytes_accepted"],
                     "code extents overlap within the batch")
+            if tally["named"] + tally["funclet"]:
+                names_file = out_dir / "asm" / "function-names.json"
+                require(names_file.is_file() and report.get("names_sha256") == sha256_file(names_file),
+                        "the audit was made against a different asm/function-names.json than the committed one")
             batches.append({"manifest": name, "audit": report_path.relative_to(out_dir).as_posix(),
                             "functions": len(functions), "code_bytes": report["code_bytes_accepted"],
                             "excluded_data_bytes": batch_data, "source_hashes_checked": True, "annotation": tally,
@@ -917,24 +924,19 @@ def write_report(model, path: Path):
         lines += ["", f"Byte evidence was **not** re-verified in this run ({ver.get('reason', 'not run')})."]
     if ev.get("tool_assisted_batches"):
         lines += ["", "## Audited M03 batches", "",
-                  "| Manifest | Functions | Audited code bytes | Excluded data bytes | Hand | Named | Machine only |",
-                  "|---|---:|---:|---:|---:|---:|---:|"]
+                  "| Manifest | Functions | Audited code bytes | Excluded data bytes | Hand | Named | Funclet | Machine only |",
+                  "|---|---:|---:|---:|---:|---:|---:|---:|"]
         for b in ev["tool_assisted_batches"]:
             t = b.get("annotation", {})
             lines += [f"| {b['manifest']} | {b['functions']} | {b['code_bytes']:,} | {b['excluded_data_bytes']:,} | "
-                      f"{t.get('hand', 0)} | {t.get('named', 0)} | {t.get('machine_only', 0)} |"]
+                      f"{t.get('hand', 0)} | {t.get('named', 0)} | {t.get('funclet', 0)} | {t.get('machine_only', 0)} |"]
         tot = {k: sum(b.get("annotation", {}).get(k, 0) for b in ev["tool_assisted_batches"])
-               for k in ("hand", "named", "machine_only")}
+               for k in ("hand", "named", "funclet", "machine_only")}
         lines += ["", f"Annotation tiers of the {sum(tot.values()):,} audited sources: **{tot['hand']:,} hand** (names an "
-                  f"implementer chose), **{tot['named']:,} named** (machine annotation with the function name and summary "
-                  f"that committed evidence states: a reviewed native port, the Ghidra library or funclet name, `asm/function-names.json`) "
+                  f"implementer chose), **{tot['named']:,} named** (machine annotation with the function name that committed "
+                  f"evidence states: a reviewed native port, a Ghidra library name or the parity rule, `asm/function-names.json`), "
+                  f"**{tot['funclet']:,} funclet** (a compiler funclet whose only name is Ghidra's `Unwind@`/`Catch@` address label) "
                   f"and **{tot['machine_only']:,} machine only** (`fn_<va>`, nothing recovered about intent)."]
-        lines += ["", "Audit manifest hashes, accepted function records, pinned GNU assembler 2.43.1 "
-                  "metadata and current source hashes were checked in this run. The audit reports "
-                  "record object/code hashes, no relocations and exact comparisons of code and "
-                  "separate data items. The assembler and original executable are not read by "
-                  "this metadata check. Publication relies on root's accepted independent review "
-                  "of each batch; an audit alone is not review acceptance."]
     if ev.get("tool_assisted_data_batches"):
         lines += ["", "## Audited data batches", "",
                   "| Manifest | Ranges | Matched data bytes | Labels checked |", "|---|---:|---:|---:|"]

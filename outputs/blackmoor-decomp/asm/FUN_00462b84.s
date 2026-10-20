@@ -9,14 +9,14 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         cell_rect
-# naming:       native port src/action_family_d3_runtime.c:cell_rect (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-17); the summary is the acceptance note
-# summary:      1:1 with cell_rect (cell base/rect from gap, origin, view). Native takes view_x/view_y as arguments; oracle compares the resulting grid cells.
+# naming:       native port src/action_family_d3_runtime.c:cell_rect (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-17); the note is the acceptance note, a statement about the native port
+# name-note:    1:1 with cell_rect (cell base/rect from gap, origin, view). Native takes view_x/view_y as arguments; oracle compares the resulting grid cells.
 # arguments:    3 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_14; ret 0x10 (callee pops 16 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       2 ebp-relative slot(s): local_4, local_8
 # fields:       [eax + n] field_1e; [ecx + n] field_4, field_4f, field_53; [edx + n] field_4, field_8, field_c, field_240, field_244, field_248
 # callees:      none: no call or outward jump
 # track-n:      outputs/blackmoor-decomp/src/action_family_d3_runtime.c:cell_rect (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 54 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
+# unverified:   machine annotation only: the 54 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

@@ -9,14 +9,14 @@
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         std_reset_score
-# naming:       native port src/score_time_display.c:std_reset_score (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-18); the summary is the acceptance note
-# summary:      1:1 with std_reset_score (zeroes +4, +0xc, +0x23c, string first bytes +0x25c/+0x27a, digit tables +0x14/+0x3c, block +0xbc). StdDisplay is a field-per-offset model starting at object offset 4; offsets asserted in the test.
+# naming:       native port src/score_time_display.c:std_reset_score (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-18); the note is the acceptance note, a statement about the native port
+# name-note:    1:1 with std_reset_score (zeroes +4, +0xc, +0x23c, string first bytes +0x25c/+0x27a, digit tables +0x14/+0x3c, block +0xbc). StdDisplay is a field-per-offset model starting at object offset 4; offsets asserted in the test.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_4, field_25c; [ecx + n] field_c, field_27a; [edx + n] field_23c
 # callees:      none: no call or outward jump
 # track-n:      outputs/blackmoor-decomp/src/score_time_display.c:std_reset_score (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 34 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
+# unverified:   machine annotation only: the 34 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text
