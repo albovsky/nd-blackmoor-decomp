@@ -230,10 +230,10 @@ PIX_BASE = 0x300
 
 
 def gen_4c5b3a(rng, n):
-    shapes = ['normal1', 'normal2', 'normal3', 'normal4', 'odd', 'rows0', 'rows_neg', 'cols0', 'cols_neg', 'negA', 'negB', 'bpp0', 'allkey', 'nokey', 'mixed']
+    shapes = ['normal1', 'normal2', 'normal3', 'normal4', 'bppneg', 'odd', 'rows0', 'rows_neg', 'cols0', 'cols_neg', 'negA', 'negB', 'bpp0', 'allkey', 'nokey', 'mixed']
     profiles = [('off', s) for s in shapes] + [('on', s) for s in ('ok', 'w', 'h', 'wh', 'a0', 'b0', 'ok_neg', 'hi1x', 'hi1y', 'hi2x', 'hi2y')]
     (mode, shape), variant = prof(n, profiles)
-    bpp = {'normal1': 1, 'odd': 1, 'normal3': 3, 'normal4': 4, 'bpp0': 0}.get(shape, 2)
+    bpp = {'normal1': 1, 'odd': 1, 'normal3': 3, 'normal4': 4, 'bpp0': 0, 'bppneg': -2}.get(shape, 2)       # -2: the word 0xfffe, sign-extended
     pitch_a = {'negA': -0x20, 'ok_neg': -0x18}.get(shape, rng.choice([8, 0x10, 0x20, 0x14, 0x30]))
     pitch_b = {'negB': -0x18, 'ok_neg': -0x28}.get(shape, rng.choice([8, 0x10, 0x20, 0x14, 0x30]))
     x0, y0 = rng.randrange(0, 4), rng.randrange(0, 3)
@@ -312,7 +312,9 @@ WORD_ARGS[0x42ba3a] = (0,)
 
 
 def gen_42e844(rng, n):
-    profiles = [('s01', st, c, m) for st in (0, 1) for c in (-1, 0, 1, 3, 5) for m in range(-1, c)] + [('s2', pat) for pat in range(6)]
+    profiles = [('s01', st, c, m) for st in (0, 1) for c in (0, 1, 3, 5) for m in range(-1, c)] + [('s2', pat) for pat in range(6)]
+    # counts that are negative as signed words (an unsigned compare would loop): no entry may be visited
+    profiles += [('s01', st, c, -1) for st in (0, 1) for c in (0xffff, 0x8000, 0xfffe)]
     profiles += [('other', st) for st in (3, 0x100, 0xffffffff, 0x80000000)]
     (kind, *rest), variant = prof(n, profiles)
     slot = (0, 2, -1, 1)[(n + variant) % 4]
@@ -322,6 +324,7 @@ def gen_42e844(rng, n):
     items = bytearray(rng.randbytes(0x400))
     if kind == 's01':
         c, m = rest[1], rest[2]
+        c = c - 0x10000 if c >= 0x8000 else c          # the signed value of the count word
         put16(items, 0x28, c)
         for i in range(0, max(c, 0)):
             put16(items, i * 0x12 + 0x2a, (key if i == m else key ^ rng.choice([1, 0x8000, 0xffff, 0x100, 0x7fff])) if True else 0)
@@ -376,7 +379,7 @@ def gen_411f24(rng, n):
     stubs = {0x413187: stub(0x413187, THISCALL(4), probe), 0x42ba3a: stub(0x42ba3a, CDECL(1), probe),
              0x51dc43: stub(0x51dc43, CDECL(1), probe, results=[0 if kind == 'null1' else BUF1_VA, 0 if kind == 'null2' else BUF2_VA]),
              0x50ca3e: stub(0x50ca3e, CDECL(4), probe), 0x42639d: stub(0x42639d, THISCALL(2), probe), 0x4c97b4: stub(0x4c97b4, THISCALL(0), probe),
-             0x48945b: stub(0x48945b, THISCALL(2), probe), 0x5193ca: stub(0x5193ca, CDECL(3), probe, writes=[(0, 1, 0, 0, text)]), 0x51dc6c: stub(0x51dc6c, CDECL(1), probe)}
+             0x48945b: stub(0x48945b, THISCALL(2), probe, writes=([(0, -1, RECORDS_VA + slot * REC_STRIDE, 4, 0x1234abcc)] if variant % 2 else [])), 0x5193ca: stub(0x5193ca, CDECL(3), probe, writes=[(0, 1, 0, 0, text)]), 0x51dc6c: stub(0x51dc6c, CDECL(1), probe)}
     areas = [self_area(me), Area('item', p_va, item, image=False), recs, Area('buf', BUF1_VA, buf1, image=False), Area('buf2', BUF2_VA, buf2, image=False),
              Area('const', CONST_VA, const, image=True, compare=False)]
     partial = None
@@ -442,11 +445,11 @@ def gen_4d214b(rng, n):
 SPECS = {
     '44b26a': dict(id=1, va=0x44b26a, size=350, gen=gen_44b26a, cleanup=4, fpcw=0x27f, n=(16 + 4 * 3 * len(WORDS) + 4 * 3 * len(FLOATS)) * 2),
     '488e9c': dict(id=2, va=0x488e9c, size=447, gen=gen_488e9c, cleanup=12, n=61 * 10),
-    '42e844': dict(id=4, va=0x42e844, size=579, gen=gen_42e844, cleanup=0, n=60 * 3),
+    '42e844': dict(id=4, va=0x42e844, size=579, gen=gen_42e844, cleanup=0, n=42 * 4),
     '411f24': dict(id=5, va=0x411f24, size=660, gen=gen_411f24, cleanup=4, n=7 * 12),
     '4cbba9': dict(id=6, va=0x4cbba9, size=969, gen=gen_4cbba9, cleanup=4, n=(3 + 2 + 18 + 6) * 4),
     '4d214b': dict(id=7, va=0x4d214b, size=1472, code=1002, gen=gen_4d214b, cleanup=0, ret=True, n=512),
-    '4c5b3a': dict(id=3, va=0x4c5b3a, size=529, gen=gen_4c5b3a, cleanup=20, n=26 * 16),
+    '4c5b3a': dict(id=3, va=0x4c5b3a, size=529, gen=gen_4c5b3a, cleanup=20, n=27 * 16),
 }
 KEYS = list(SPECS)
 NAMES = {'44b26a': 'apply_delta', '488e9c': 'init_record', '4c5b3a': 'copy_keyed', '42e844': 'step_record', '411f24': 'replace_record', '4cbba9': 'load_file', '4d214b': 'lookup_word'}

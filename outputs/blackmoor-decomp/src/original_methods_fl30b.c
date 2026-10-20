@@ -77,7 +77,8 @@ static __attribute__((unused)) uint32_t call5(const Fl18Host *host, uint32_t cal
     return callv(host, callee, this_ptr, a, 5);
 }
 
-/* ---- 0x44b26a apply_delta -------------------------------------------------------------------------------------------------------- */
+/* ---- apply_delta ---- */
+/* 0x44b26a m44b26a_apply_delta */
 void m44b26a_apply_delta(uint32_t index, const Fl30bWorld *world, const Fl18Host *host)
 {
     const uint8_t *item = res(host, rd32(world->records_5bb5e5, (ptrdiff_t)(int16_t)index * 0x8d));
@@ -109,7 +110,7 @@ void m44b26a_apply_delta(uint32_t index, const Fl30bWorld *world, const Fl18Host
     call1(host, 0x42ba3a, 0, (uint16_t)index);
 }
 
-/* ---- 0x488e9c init_record -------------------------------------------------------------------------------------------------------- */
+/* ---- init_record ---- */
 /* rep movsd (count / 4 dwords) then rep movsb (count % 4 bytes), forward, as the original does it */
 static void rep_copy(uint8_t *dst, const uint8_t *src, uint32_t count)
 {
@@ -118,6 +119,7 @@ static void rep_copy(uint8_t *dst, const uint8_t *src, uint32_t count)
     for (i = 4 * (count / 4); i < count; i++) dst[i] = src[i];
 }
 
+/* 0x488e9c m488e9c_init_record */
 int32_t m488e9c_init_record(uint8_t *self, uint32_t p0, uint32_t p1, uint32_t p2, const Fl30bWorld *world, const Fl18Host *host)
 {
     uint32_t buf;
@@ -155,7 +157,8 @@ int32_t m488e9c_init_record(uint8_t *self, uint32_t p0, uint32_t p1, uint32_t p2
     return 0;
 }
 
-/* ---- 0x4c5b3a copy_keyed --------------------------------------------------------------------------------------------------------- */
+/* ---- copy_keyed ---- */
+/* 0x4c5b3a m4c5b3a_copy_keyed */
 int32_t m4c5b3a_copy_keyed(const uint8_t *self, uint32_t from, uint32_t to, uint32_t fr, uint32_t tr, uint32_t tag, const Fl30bWorld *world, const Fl18Host *host)
 {
     const uint8_t *r1 = NULL, *r2 = NULL;
@@ -200,7 +203,8 @@ int32_t m4c5b3a_copy_keyed(const uint8_t *self, uint32_t from, uint32_t to, uint
     return 0;
 }
 
-/* ---- 0x42e844 step_record -------------------------------------------------------------------------------------------------------- */
+/* ---- step_record ---- */
+/* 0x42e844 m42e844_step_record */
 void m42e844_step_record(uint32_t index, Fl30bWorld *world, const Fl18Host *host)
 {
     uint8_t *r = world->records_5bb5e5 + (ptrdiff_t)(int16_t)index * 0x8d;
@@ -237,7 +241,7 @@ void m42e844_step_record(uint32_t index, Fl30bWorld *world, const Fl18Host *host
     }
 }
 
-/* ---- 0x411f24 replace_record ----------------------------------------------------------------------------------------------------- */
+/* ---- replace_record ---- */
 static size_t c_strlen(const uint8_t *s)
 {
     size_t n = 0;
@@ -245,6 +249,7 @@ static size_t c_strlen(const uint8_t *s)
     return n;
 }
 
+/* 0x411f24 m411f24_replace_record */
 int32_t m411f24_replace_record(uint8_t *self, uint32_t index, const Fl30bWorld *world, const Fl18Host *host)
 {
     uint8_t *rec = world->records_5bb5e5 + (ptrdiff_t)(int16_t)index * 0x8d;
@@ -294,12 +299,13 @@ int32_t m411f24_replace_record(uint8_t *self, uint32_t index, const Fl30bWorld *
     return 0;
 }
 
-/* ---- 0x4cbba9 load_file ---------------------------------------------------------------------------------------------------------- */
+/* ---- load_file ---- */
 static int read4cbba9(const Fl18Host *host, uint32_t dst, uint32_t size, uint32_t file)
 {
     return call4(host, 0x50cf61, 0, dst, size, 1, file) == 1;
 }
 
+/* 0x4cbba9 m4cbba9_load_file */
 void m4cbba9_load_file(uint8_t *self, uint32_t path, const Fl30bWorld *world, const Fl18Host *host)
 {
     if (rd32(self, 0x1a) != 0) call0(host, 0x4cbb00, (uintptr_t)self);
@@ -350,7 +356,8 @@ failure:
     call0(host, 0x4c97b4, 0x5cf659);
 }
 
-/* ---- 0x4d214b lookup_word -------------------------------------------------------------------------------------------------------- */
+/* ---- lookup_word ---- */
+/* 0x4d214b m4d214b_lookup_word */
 int32_t m4d214b_lookup_word(uint32_t ch, uint32_t obj, uint32_t out, const Fl18Host *host)
 {
     int32_t off;

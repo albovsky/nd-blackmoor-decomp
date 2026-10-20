@@ -152,8 +152,8 @@ static void ck_call(int line, int idx, uint32_t callee, uintptr_t this_ptr, int 
 #define CKC0(idx, callee, thisp) ck_call(__LINE__, (idx), (callee), (thisp), 0, NULL)
 #define SELFP ((uintptr_t)SELF)
 
-/* ---- 0x44b26a ------------------------------------------------------------------------------------------------------------------ */
 static void rec44(int slot, uint32_t item_va) { set32(g_w.records_5bb5e5 + (ptrdiff_t)slot * 0x8d, 0, item_va); }
+/* 0x44b26a test_m44b26a_apply_delta */
 static void test_m44b26a_apply_delta(void)
 {
     uint8_t *item = g_r[1];
@@ -233,7 +233,6 @@ static void test_m44b26a_apply_delta(void)
     CK(f == 7.0f);
 }
 
-/* ---- 0x488e9c ------------------------------------------------------------------------------------------------------------------ */
 static void init488(int mode_d2, int n, int m, int dbg)
 {
     uint8_t *q = g_r[2];
@@ -260,6 +259,7 @@ static void init488(int mode_d2, int n, int m, int dbg)
     script(0x51dc43, 1, RVA(3), 0, 0, 0);
 }
 static int run488(void) { return m488e9c_init_record(SELF, RVA(1), RVA(1) + 4, RVA(1) + 8, &g_w, &g_host); }
+/* 0x488e9c test_m488e9c_init_record */
 static void test_m488e9c_init_record(void)
 {
     uint8_t *q = g_r[2], *buf = g_r[3];
@@ -318,7 +318,6 @@ static void test_m488e9c_init_record(void)
     CK(buf[0x6ec] == 0x5a);
 }
 
-/* ---- 0x4c5b3a ------------------------------------------------------------------------------------------------------------------ */
 /* surfaces: from = RVA(1) (pixels RVA(5) + 0x100, pitch 0x10), to = RVA(2) (pixels RVA(6) + 0x100, pitch 0x20), rectangles RVA(3), RVA(4) */
 static void copy5b(int bpp, int dbg, const uint32_t fr[4], const uint32_t tr[4])
 {
@@ -340,6 +339,7 @@ static void copy5b(int bpp, int dbg, const uint32_t fr[4], const uint32_t tr[4])
     g_w.word_639895 = (int16_t)bpp;
     g_w.word_63a4cd = (int16_t)dbg;
 }
+/* 0x4c5b3a test_m4c5b3a_copy_keyed */
 static void test_m4c5b3a_copy_keyed(void)
 {
     const uint32_t fr[4] = {1, 2, 3, 3}, tr[4] = {2, 1, 4, 2};      /* 3 words wide, 2 rows */
@@ -392,7 +392,6 @@ static void test_m4c5b3a_copy_keyed(void)
     }
 }
 
-/* ---- 0x42e844 ------------------------------------------------------------------------------------------------------------------ */
 static uint8_t g_dt[80];
 static void step42(int slot, uint32_t state)
 {
@@ -404,6 +403,7 @@ static void step42(int slot, uint32_t state)
     set32(g_w.records_5bb5e5 + (ptrdiff_t)slot * 0x8d, 0x4d, state);
     memset(g_r[1], 0, 0x100);
 }
+/* 0x42e844 test_m42e844_step_record */
 static void test_m42e844_step_record(void)
 {
     uint8_t *r, *p = g_r[1];
@@ -459,7 +459,6 @@ static void test_m42e844_step_record(void)
     CK(g_w.value_5bb1ca == 0 && get32(g_w.records_5bb5e5, 0x4d) == 3 && L.n == 0);
 }
 
-/* ---- 0x411f24 ------------------------------------------------------------------------------------------------------------------ */
 static void rep411(int slot, const char *num, uint32_t buf1, uint32_t buf2)
 {
     size_t i;
@@ -477,6 +476,7 @@ static void rep411(int slot, const char *num, uint32_t buf1, uint32_t buf2)
     g_w.value_5bb57b = 0x0a0b0c0du;
     g_w.word_5c39e3 = -2;
 }
+/* 0x411f24 test_m411f24_replace_record */
 static void test_m411f24_replace_record(void)
 {
     uint8_t *r, expect[0xaba];
@@ -533,7 +533,6 @@ static void test_m411f24_replace_record(void)
     CK(m411f24_replace_record(SELF, 0, &g_w, &g_host) == 1 && L.n == 5 && get32(g_w.records_5bb5e5, 0) == RVA(1));
 }
 
-/* ---- 0x4cbba9 ------------------------------------------------------------------------------------------------------------------ */
 static void wscript(uint32_t callee, int call, uint32_t value, int size)
 {
     W[g_nw].callee = callee;
@@ -573,6 +572,7 @@ static void load4cb(uint32_t n, uint32_t m0, uint32_t m1, uint32_t file, uint32_
     wscript(0x50cf61, 3, m0, 2);
     wscript(0x50cf61, 9, m1, 2);
 }
+/* 0x4cbba9 test_m4cbba9_load_file */
 static void test_m4cbba9_load_file(void)
 {
     const uint32_t ok[40] = {1};      /* every read returns 1 (the last scripted value repeats) */
@@ -649,13 +649,13 @@ static void test_m4cbba9_load_file(void)
     }
 }
 
-/* ---- 0x4d214b ------------------------------------------------------------------------------------------------------------------ */
 static int lookup4d(int ch, uint32_t *result)
 {
     set16(g_r[2], 0, 0xdead);
     *result = (uint32_t)m4d214b_lookup_word((uint32_t)ch | 0x7f000000u, RVA(1), RVA(2), &g_host);
     return get16(g_r[2], 0);
 }
+/* 0x4d214b test_m4d214b_lookup_word */
 static void test_m4d214b_lookup_word(void)
 {
     uint32_t r;
