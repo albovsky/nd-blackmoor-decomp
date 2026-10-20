@@ -1,0 +1,299 @@
+[
+ {
+  "va": "0x40a613",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-32b implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl32b.c",
+   "symbol": "m40a613_read_tag_word"
+  },
+  "tests": [
+   {
+    "path": "tests/fl32b_direct_test.c",
+    "test_id": "test_m40a613_read_tag_word"
+   },
+   {
+    "path": "tests/test_fl32b_direct.py",
+    "test_id": "Fl32bDirect.test_40a613_read_tag_word"
+   },
+   {
+    "path": "tests/test_fl32b_differential.py",
+    "test_id": "Fl32bDifferential.test_40a613_read_tag_word"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl32b_original_oracle.py",
+   "window": [
+    "0x40a613",
+    "0x40a665"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Fills a 0x13-byte local via 0x51d5b2(self+0xcc), compares 4 bytes with the tag at 0x53ec5c; if they differ stores the low word of 0x50cb1b(buf) to 0x5ec2d8; returns 0x4090ab(self). je taken both ways."
+ },
+ {
+  "va": "0x40a665",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-32b implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl32b.c",
+   "symbol": "m40a665_read_tag_word"
+  },
+  "tests": [
+   {
+    "path": "tests/fl32b_direct_test.c",
+    "test_id": "test_m40a665_read_tag_word"
+   },
+   {
+    "path": "tests/test_fl32b_direct.py",
+    "test_id": "Fl32bDirect.test_40a665_read_tag_word"
+   },
+   {
+    "path": "tests/test_fl32b_differential.py",
+    "test_id": "Fl32bDifferential.test_40a665_read_tag_word"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl32b_original_oracle.py",
+   "window": [
+    "0x40a665",
+    "0x40a6b7"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Twin of 0x40a613 on field self+0x10c, tag 0x53ec60 and word 0x5ec2da (own constants checked separately); returns 0x4090ab(self). Every instruction run, je taken both ways."
+ },
+ {
+  "va": "0x4a9f27",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-32b implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl32b.c",
+   "symbol": "m4a9f27_reset_fields"
+  },
+  "tests": [
+   {
+    "path": "tests/fl32b_direct_test.c",
+    "test_id": "test_m4a9f27_reset_fields"
+   },
+   {
+    "path": "tests/test_fl32b_direct.py",
+    "test_id": "Fl32bDirect.test_4a9f27_reset_fields"
+   },
+   {
+    "path": "tests/test_fl32b_differential.py",
+    "test_id": "Fl32bDifferential.test_4a9f27_reset_fields"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl32b_original_oracle.py",
+   "window": [
+    "0x4a9f27",
+    "0x4a9f63"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Straight-line reset: words +0x21/+0x29 = 0xffff, dword +0x1d = 0, bytes +0x45..+0x47 = 0; returns this. Every instruction executed; no conditional jumps."
+ },
+ {
+  "va": "0x4b71f7",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-32b implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl32b.c",
+   "symbol": "m4b71f7_reset_fields"
+  },
+  "tests": [
+   {
+    "path": "tests/fl32b_direct_test.c",
+    "test_id": "test_m4b71f7_reset_fields"
+   },
+   {
+    "path": "tests/test_fl32b_direct.py",
+    "test_id": "Fl32bDirect.test_4b71f7_reset_fields"
+   },
+   {
+    "path": "tests/test_fl32b_differential.py",
+    "test_id": "Fl32bDifferential.test_4b71f7_reset_fields"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl32b_original_oracle.py",
+   "window": [
+    "0x4b71f7",
+    "0x4b7229"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Straight-line reset: words +0x21/+0x2f = 0xffff, bytes +0x35, +0x36, +0x3b = 0; returns this. Every instruction executed under the original-only oracle; no jumps."
+ },
+ {
+  "va": "0x4781fa",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-32b implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl32b.c",
+   "symbol": "m4781fa_reset_fields"
+  },
+  "tests": [
+   {
+    "path": "tests/fl32b_direct_test.c",
+    "test_id": "test_m4781fa_reset_fields"
+   },
+   {
+    "path": "tests/test_fl32b_direct.py",
+    "test_id": "Fl32bDirect.test_4781fa_reset_fields"
+   },
+   {
+    "path": "tests/test_fl32b_differential.py",
+    "test_id": "Fl32bDifferential.test_4781fa_reset_fields"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl32b_original_oracle.py",
+   "window": [
+    "0x4781fa",
+    "0x47823e"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Straight-line reset: words +0x1e/+0x1c = 0xffff, dwords +0x157a, +0x157e, +0x1576 = 0; returns this. Every instruction executed; no conditional jumps."
+ },
+ {
+  "va": "0x4afd3a",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-32b implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl32b.c",
+   "symbol": "m4afd3a_reset_fields"
+  },
+  "tests": [
+   {
+    "path": "tests/fl32b_direct_test.c",
+    "test_id": "test_m4afd3a_reset_fields"
+   },
+   {
+    "path": "tests/test_fl32b_direct.py",
+    "test_id": "Fl32bDirect.test_4afd3a_reset_fields"
+   },
+   {
+    "path": "tests/test_fl32b_differential.py",
+    "test_id": "Fl32bDifferential.test_4afd3a_reset_fields"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl32b_original_oracle.py",
+   "window": [
+    "0x4afd3a",
+    "0x4afd7e"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Straight-line reset: words +0x1e/+0x1c = 0xffff, dwords +0x1515, +0x1519, +0x151d = 0 (own offsets, not the 0x4781fa ones); returns this. Every instruction executed."
+ },
+ {
+  "va": "0x4e04f3",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-32b implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl32b.c",
+   "symbol": "m4e04f3_reset_fields"
+  },
+  "tests": [
+   {
+    "path": "tests/fl32b_direct_test.c",
+    "test_id": "test_m4e04f3_reset_fields"
+   },
+   {
+    "path": "tests/test_fl32b_direct.py",
+    "test_id": "Fl32bDirect.test_4e04f3_reset_fields"
+   },
+   {
+    "path": "tests/test_fl32b_differential.py",
+    "test_id": "Fl32bDifferential.test_4e04f3_reset_fields"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl32b_original_oracle.py",
+   "window": [
+    "0x4e04f3",
+    "0x4e053f"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Straight-line reset: dwords +0xf2a, +0x74f, +0xf2e = 0 and +0xf32, +0xf36 = 0xffffffff; returns this. Every instruction executed under the original-only oracle; no jumps."
+ },
+ {
+  "va": "0x454565",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-32b implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl32b.c",
+   "symbol": "m454565_cross_product"
+  },
+  "tests": [
+   {
+    "path": "tests/fl32b_direct_test.c",
+    "test_id": "test_m454565_cross_product"
+   },
+   {
+    "path": "tests/test_fl32b_direct.py",
+    "test_id": "Fl32bDirect.test_454565_cross_product"
+   },
+   {
+    "path": "tests/test_fl32b_differential.py",
+    "test_id": "Fl32bDifferential.test_454565_cross_product"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl32b_original_oracle.py",
+   "window": [
+    "0x454565",
+    "0x4545b0"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "ret 0xc: for points a, b, c (dword x, y) returns (b.x-a.x)*(c.y-a.y) - (c.x-a.x)*(b.y-a.y) modulo 2^32; points only read; aliased pointers covered. Every instruction executed."
+ },
+ {
+  "va": "0x4a638a",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-32b implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl32b.c",
+   "symbol": "m4a638a_reset_fields"
+  },
+  "tests": [
+   {
+    "path": "tests/fl32b_direct_test.c",
+    "test_id": "test_m4a638a_reset_fields"
+   },
+   {
+    "path": "tests/test_fl32b_direct.py",
+    "test_id": "Fl32bDirect.test_4a638a_reset_fields"
+   },
+   {
+    "path": "tests/test_fl32b_differential.py",
+    "test_id": "Fl32bDifferential.test_4a638a_reset_fields"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl32b_original_oracle.py",
+   "window": [
+    "0x4a638a",
+    "0x4a63dc"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Straight-line reset: words +0x1e/+0x1c = 0xffff, dwords +0x21, +0x25, +0x86 = 0, bytes +0x8a, +0x8b = 0; returns this. Every instruction executed; no conditional jumps."
+ }
+]
