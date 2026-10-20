@@ -193,6 +193,52 @@ static void test_m4fcb5c_set_category_master(void)
     CK(get32(self, CH4F(1) + 0x140) == 0 && get32(self, CH4F(1) + 0x144) == 0 && L.n == 1);
 }
 
+/* ---- 0x43d7f0 ---- */
+static void test_m43d7f0_init_scenes(void)
+{
+    int i;
+    reset();
+    /* nothing set: [0x5d15a5] = 1, 47 thiscalls with no arguments (first 0x4d3ced on 0x61c387, then 0x468f68 on 0x616ab2, ..., last 0x489722 on 0x619935); every other global untouched */
+    g_w.value_5d1a8f = 5;
+    g_w.value_5b15d6 = 0x1111;
+    m43d7f0_init_scenes(&g_w, &g_host);
+    CK(g_w.value_5d15a5 == 1 && g_w.value_5d1a8f == 5 && g_w.value_5b15d6 == 0x1111 && g_w.value_5d1ad9 == 0 && g_w.value_5d1b6d == 0);
+    CK(L.n == 47);
+    CK(L.c[0].callee == 0x4d3ced && L.c[0].this_ptr == 0x61c387 && L.c[0].nargs == 0);
+    CK(L.c[1].callee == 0x468f68 && L.c[1].this_ptr == 0x616ab2);
+    CK(L.c[2].callee == 0x4a3910 && L.c[2].this_ptr == 0x61c8cf);
+    CK(L.c[19].callee == 0x446075 && L.c[19].this_ptr == 0x638603);
+    CK(L.c[46].callee == 0x489722 && L.c[46].this_ptr == 0x619935);
+    for (i = 0; i < L.n; i++) CK(L.c[i].nargs == 0);
+    /* [0x5bb1d2] != 0: [0x5b15d6] = [0x5bb1ce], [0x5bb1d2] = 0; [0x5bb1da] != 0: [0x5b1606] = [0x5bb1d6], [0x5bb1da] = 0 */
+    reset();
+    g_w.value_5bb1d2 = 0x80000000u;
+    g_w.value_5bb1ce = 0xabcdef01u;
+    g_w.value_5bb1da = 0x10000u;
+    g_w.value_5bb1d6 = 0x22223333u;
+    m43d7f0_init_scenes(&g_w, &g_host);
+    CK(g_w.value_5b15d6 == 0xabcdef01u && g_w.value_5bb1d2 == 0 && g_w.value_5b1606 == 0x22223333u && g_w.value_5bb1da == 0);
+    CK(g_w.value_5bb1ce == 0xabcdef01u && g_w.value_5bb1d6 == 0x22223333u);
+    reset();
+    g_w.value_5bb1da = 1;
+    g_w.value_5bb1d6 = 9;
+    m43d7f0_init_scenes(&g_w, &g_host);
+    CK(g_w.value_5b1606 == 9 && g_w.value_5bb1da == 0 && g_w.value_5b15d6 == 0 && g_w.value_5bb1d2 == 0);
+    /* the six bytes each set their own flag dword to 1 (a byte 0x80 or 0xff counts); the others stay */
+    reset();
+    g_w.byte_5b5158 = 0x80;
+    g_w.byte_5b51c6 = 0xff;
+    g_w.byte_5b61af = 1;
+    m43d7f0_init_scenes(&g_w, &g_host);
+    CK(g_w.value_5d1a8f == 1 && g_w.value_5d1ad9 == 0 && g_w.value_5d1b23 == 1 && g_w.value_5d1bb7 == 0 && g_w.value_5d1c01 == 1 && g_w.value_5d1b6d == 0);
+    reset();
+    g_w.byte_5b51ab = 2;
+    g_w.byte_5b615e = 0x7f;
+    g_w.byte_5b51f6 = 3;
+    m43d7f0_init_scenes(&g_w, &g_host);
+    CK(g_w.value_5d1a8f == 0 && g_w.value_5d1ad9 == 1 && g_w.value_5d1b23 == 0 && g_w.value_5d1bb7 == 1 && g_w.value_5d1c01 == 0 && g_w.value_5d1b6d == 1);
+}
+
 /* TESTS-END */
 
 /* ---- the bounded sweep: every port on random in-bounds buffers (meant for the sanitiser builds) ---- */
@@ -210,6 +256,12 @@ static void test_sweep_bounded(void)
         for (k = 0; k < (int)sizeof sv; k++) sv[k] = (uint8_t)rnd();
         for (k = 0; k < 0x20; k++) { set16(sv, (size_t)k * 0x5bb + 0x10c, (uint16_t)(rnd() % 4)); set16(sv, (size_t)k * 0x5bb + 0x132, (uint16_t)(rnd() % 3)); }
         m4fcb5c_set_category_master(sv, (int32_t)(rnd() % 6) - 2, &g_host);
+        /* 0x43d7f0 */
+        g_w.value_5bb1d2 = rnd() & 1;
+        g_w.value_5bb1da = rnd() & 1;
+        g_w.byte_5b5158 = (uint8_t)(rnd() & 1);
+        g_w.byte_5b51f6 = (uint8_t)(rnd() & 1);
+        m43d7f0_init_scenes(&g_w, &g_host);
         /* SWEEP-END */
     }
 }
@@ -231,6 +283,7 @@ int main(void)
 {
     int failures = 0;
     RUN(test_m4fcb5c_set_category_master);
+    RUN(test_m43d7f0_init_scenes);
     /* RUN-END */
     RUN(test_sweep_bounded);
     return failures;

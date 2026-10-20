@@ -70,6 +70,10 @@ class Fl30cDirect(unittest.TestCase):
         """FL-30c: direct test of m4fcb5c_set_category_master (original 0x4fcb5c)"""
         self.check('test_m4fcb5c_set_category_master')
 
+    def test_43d7f0_init_scenes(self):
+        """FL-30c: direct test of m43d7f0_init_scenes (original 0x43d7f0)"""
+        self.check('test_m43d7f0_init_scenes')
+
     # CASES-END
 
     def test_sweep_bounded(self):

@@ -365,11 +365,48 @@ def gen_4fcb5c(rng, n):
     return make('4fcb5c', [self_area(s)], stubs, {}, [a], (a,), (v, idx))
 
 
+# ---- 0x43d7f0 ------------------------------------------------------------------------------------------------------------------------------
+
+CALLS_43D7F0 = [(0x61c387, 0x4d3ced), (0x616ab2, 0x468f68), (0x61c8cf, 0x4a3910), (0x61d10f, 0x48a82e), (0x617066, 0x4b3da2), (0x61c7ed, 0x459bd6), (0x61d2dd, 0x4a1ce0),
+                (0x624dc9, 0x48e393), (0x61d345, 0x48d0e5), (0x61d3a1, 0x4a6477), (0x61d449, 0x4b5c11), (0x61d6c1, 0x4ab425), (0x61d723, 0x465b9f), (0x61d779, 0x4618ab),
+                (0x61d7d8, 0x487b98), (0x6204c1, 0x4afdc7), (0x61d873, 0x44fb54), (0x61e398, 0x47b3bc), (0x61df56, 0x4ba22e), (0x638603, 0x446075), (0x621a02, 0x478287),
+                (0x622fa2, 0x4758e8), (0x62387c, 0x470e31), (0x624686, 0x48bc38), (0x6246dc, 0x47d640), (0x624734, 0x45b477), (0x6248ed, 0x456d77), (0x624931, 0x44e7d7),
+                (0x6249a0, 0x4b7272), (0x6249dc, 0x454e39), (0x6252ad, 0x4840d9), (0x625ee8, 0x47e440), (0x627335, 0x4a7da5), (0x61e65c, 0x467651), (0x61e95c, 0x473117),
+                (0x61ed7b, 0x458045), (0x61f4b1, 0x45dd96), (0x61ee6e, 0x4b80a5), (0x630a34, 0x4a9fcb), (0x624b50, 0x4640c9), (0x628732, 0x46b707), (0x624c2a, 0x46e7ef),
+                (0x624cbf, 0x44d19d), (0x624d12, 0x48220e), (0x6369e4, 0x4acbba), (0x63847b, 0x4cafc1), (0x619935, 0x489722)]
+BYTE_FLAGS_43D7F0 = ['byte_5b5158', 'byte_5b51ab', 'byte_5b51c6', 'byte_5b615e', 'byte_5b61af', 'byte_5b51f6']
+OUT_FLAGS_43D7F0 = ['value_5d1a8f', 'value_5d1ad9', 'value_5d1b23', 'value_5d1bb7', 'value_5d1c01', 'value_5d1b6d']
+
+
+def profiles_43d7f0():
+    return [(d1, d2, mask) for d1 in (0, 1) for d2 in (0, 1) for mask in range(64)]
+
+
+def gen_43d7f0(rng, n):
+    (d1, d2, mask), variant = prof(n, profiles_43d7f0())
+    g = world_all(rng)
+    g['value_5bb1d2'] = 0 if not d1 else rng.choice([1, 0x80000000, 0xffffffff, rng.randrange(1, 1 << 32)])
+    g['value_5bb1da'] = 0 if not d2 else rng.choice([1, 0x100, 0xffff0000, rng.randrange(1, 1 << 32)])
+    for k, name in enumerate(BYTE_FLAGS_43D7F0):
+        g[name] = rng.choice([1, 0x80, 0xff, 0x7f, rng.randrange(1, 256)]) if (mask >> k) & 1 else 0
+    for name in OUT_FLAGS_43D7F0:
+        g[name] = rng.choice([0, 0, 7, 0xffffffff, rng.randrange(1 << 32)])      # each flag is only ever set to 1: a clear flag stays 0, an old value stays
+    probe = [('g:' + name, 0, size) for name, (address, size) in GLOBALS.items() if name != 'word_63a4cd']
+    stubs = {callee: stub(callee, THISCALL(0), probe) for _, callee in CALLS_43D7F0}
+    return make('43d7f0', [], stubs, g, [], (), (d1, d2, mask))
+
+
+def world_all(rng):
+    """Every global of Fl30cWorld with random contents."""
+    return {name: rng.randrange(1 << (8 * size)) for name, (address, size) in GLOBALS.items()}
+
+
 SPECS = {
     '4fcb5c': dict(id=1, va=0x4fcb5c, size=406, gen=gen_4fcb5c, cleanup=4, fpcw=0x27f, n=len(profiles_4fcb5c()) * 6),
+    '43d7f0': dict(id=2, va=0x43d7f0, size=675, gen=gen_43d7f0, cleanup=0, n=len(profiles_43d7f0()) * 2),
 }
 KEYS = list(SPECS)
-NAMES = {'4fcb5c': 'set_category_master'}
+NAMES = {'4fcb5c': 'set_category_master', '43d7f0': 'init_scenes'}
 
 
 def build(key, rng, n):

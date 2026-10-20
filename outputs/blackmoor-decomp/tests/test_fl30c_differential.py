@@ -148,6 +148,10 @@ class Fl30cDifferential(DiffBase):
         """FL-30c: differential test of m4fcb5c_set_category_master (original 0x4fcb5c)"""
         self.run_key('4fcb5c')
 
+    def test_43d7f0_init_scenes(self):
+        """FL-30c: differential test of m43d7f0_init_scenes (original 0x43d7f0)"""
+        self.run_key('43d7f0')
+
     # TESTS-END
 
 

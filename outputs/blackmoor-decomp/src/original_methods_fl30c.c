@@ -112,3 +112,81 @@ void m4fcb5c_set_category_master(uint8_t *self, int32_t idx, const Fl18Host *hos
         call1(host, 0x4f684a, 0x5cf1eb, (uint32_t)(int32_t)c);
     }
 }
+
+/* ---- 0x43d7f0 ------------------------------------------------------------------------------------------------------------------ */
+
+/* {ecx, callee} of the 47 thiscalls (no arguments) of 0x43d7f0; entry 0 is made first, the other 46 after the flag stores */
+static const struct {
+    uint32_t object, callee;
+} kInitCalls[47] = {
+    {0x61c387, 0x4d3ced},
+    {0x616ab2, 0x468f68},
+    {0x61c8cf, 0x4a3910},
+    {0x61d10f, 0x48a82e},
+    {0x617066, 0x4b3da2},
+    {0x61c7ed, 0x459bd6},
+    {0x61d2dd, 0x4a1ce0},
+    {0x624dc9, 0x48e393},
+    {0x61d345, 0x48d0e5},
+    {0x61d3a1, 0x4a6477},
+    {0x61d449, 0x4b5c11},
+    {0x61d6c1, 0x4ab425},
+    {0x61d723, 0x465b9f},
+    {0x61d779, 0x4618ab},
+    {0x61d7d8, 0x487b98},
+    {0x6204c1, 0x4afdc7},
+    {0x61d873, 0x44fb54},
+    {0x61e398, 0x47b3bc},
+    {0x61df56, 0x4ba22e},
+    {0x638603, 0x446075},
+    {0x621a02, 0x478287},
+    {0x622fa2, 0x4758e8},
+    {0x62387c, 0x470e31},
+    {0x624686, 0x48bc38},
+    {0x6246dc, 0x47d640},
+    {0x624734, 0x45b477},
+    {0x6248ed, 0x456d77},
+    {0x624931, 0x44e7d7},
+    {0x6249a0, 0x4b7272},
+    {0x6249dc, 0x454e39},
+    {0x6252ad, 0x4840d9},
+    {0x625ee8, 0x47e440},
+    {0x627335, 0x4a7da5},
+    {0x61e65c, 0x467651},
+    {0x61e95c, 0x473117},
+    {0x61ed7b, 0x458045},
+    {0x61f4b1, 0x45dd96},
+    {0x61ee6e, 0x4b80a5},
+    {0x630a34, 0x4a9fcb},
+    {0x624b50, 0x4640c9},
+    {0x628732, 0x46b707},
+    {0x624c2a, 0x46e7ef},
+    {0x624cbf, 0x44d19d},
+    {0x624d12, 0x48220e},
+    {0x6369e4, 0x4acbba},
+    {0x63847b, 0x4cafc1},
+    {0x619935, 0x489722}
+};
+
+/* 0x43d7f0, plain call: see the header. */
+void m43d7f0_init_scenes(Fl30cWorld *world, const Fl18Host *host)
+{
+    int i;
+    world->value_5d15a5 = 1;
+    call0(host, kInitCalls[0].callee, kInitCalls[0].object);
+    if (world->value_5bb1d2 != 0) {
+        world->value_5b15d6 = world->value_5bb1ce;
+        world->value_5bb1d2 = 0;
+    }
+    if (world->value_5bb1da != 0) {
+        world->value_5b1606 = world->value_5bb1d6;
+        world->value_5bb1da = 0;
+    }
+    if (world->byte_5b5158 != 0) world->value_5d1a8f = 1;
+    if (world->byte_5b51ab != 0) world->value_5d1ad9 = 1;
+    if (world->byte_5b51c6 != 0) world->value_5d1b23 = 1;
+    if (world->byte_5b615e != 0) world->value_5d1bb7 = 1;
+    if (world->byte_5b61af != 0) world->value_5d1c01 = 1;
+    if (world->byte_5b51f6 != 0) world->value_5d1b6d = 1;
+    for (i = 1; i < 47; i++) call0(host, kInitCalls[i].callee, kInitCalls[i].object);
+}

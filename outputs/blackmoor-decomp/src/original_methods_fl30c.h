@@ -22,6 +22,9 @@ extern "C" {
 
 typedef struct Fl30cWorld {
     int16_t word_63a4cd;       /* the debug flag: a non-zero word turns on the trace calls */
+    uint32_t value_5d15a5, value_5bb1d2, value_5bb1ce, value_5b15d6, value_5bb1da, value_5bb1d6, value_5b1606;       /* 0x43d7f0 */
+    uint8_t byte_5b5158, byte_5b51ab, byte_5b51c6, byte_5b615e, byte_5b61af, byte_5b51f6;
+    uint32_t value_5d1a8f, value_5d1ad9, value_5d1b23, value_5d1bb7, value_5d1c01, value_5d1b6d;
 } Fl30cWorld;
 
 /* 0x4fcb5c, thiscall (`self` = ecx), `ret 4`, the stack argument `idx` is a signed dword: the float table at self + 0xb764 (indexed by idx) holds a master volume per category.
@@ -34,6 +37,13 @@ typedef struct Fl30cWorld {
  * 64-bit range; the helper is original library code that the oracle runs as it is, the port reproduces it with ftol_low32). Then 0x4f684a(this 0x5cf1eb, c sign-extended) (thiscall, one
  * argument) per matching channel; the loop goes on. */
 void m4fcb5c_set_category_master(uint8_t *self, int32_t idx, const Fl18Host *host);
+
+/* 0x43d7f0, plain `ret` (no arguments; ecx is not read): the start-of-scene initialiser. dword [0x5d15a5] = 1; then 0x4d3ced(this 0x61c387) (thiscall, no arguments); when dword [0x5bb1d2] is
+ * not zero: dword [0x5b15d6] = dword [0x5bb1ce] and [0x5bb1d2] = 0; when dword [0x5bb1da] is not zero: dword [0x5b1606] = dword [0x5bb1d6] and [0x5bb1da] = 0; each of the six bytes
+ * 0x5b5158, 0x5b51ab, 0x5b51c6, 0x5b615e, 0x5b61af, 0x5b51f6 that is not zero sets its flag dword to 1 (0x5d1a8f, 0x5d1ad9, 0x5d1b23, 0x5d1bb7, 0x5d1c01, 0x5d1b6d in that order). Then the 46
+ * initialisers of the other scene objects, each a thiscall with no arguments on its object address, in the order of the table kInitCalls in the source (the first call above is entry 0 of it). The
+ * results are ignored, a callee that changes one of the globals above is not exercised. */
+void m43d7f0_init_scenes(Fl30cWorld *world, const Fl18Host *host);
 
 #ifdef __cplusplus
 }
