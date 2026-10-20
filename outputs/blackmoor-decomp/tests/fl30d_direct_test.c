@@ -437,6 +437,94 @@ static void test_m4f684a_prepare_entry(void)
     CK(get32(SELF, 0x3c2) == 0x3ef && get32(SELF, 0x3be) == 0 && L.n == 1 && get32(q, 0x13c) == 5);
 }
 
+/* ---- 0x414692 ------------------------------------------------------------------------------------------------------------------ */
+static void rb_setup(int cnt1, int cnt2)
+{
+    int i;
+    uint8_t *src = g_r[2];
+    setup();
+    memset(SELF, 0x55, 0x40);
+    memset(g_r[1], 0, 0x40);
+    memset(g_r[3], 0x66, 0x40);
+    memset(g_r[4], 0x77, 0x100);
+    memset(g_r[5], 0x88, 0x100);
+    set32(g_r[1], 0, 0xdead);
+    set32(g_r[1], 4, RVA(2) + 0x10);
+    set32(g_r[1], 8, 0xfffffff8u);
+    if (cnt1 >= 0) {
+        for (i = 0; i < cnt1 * 0x16; i++) src[0x12 + i] = (uint8_t)(i + 1);
+        for (i = 0; i < 0x16; i++) src[0x12 + cnt1 * 0x16 + i] = (uint8_t)(0x80 + i);
+        set16(src, 0x12 + cnt1 * 0x16 + 0x16, (uint16_t)cnt2);
+        for (i = 0; i < cnt2 * 0x12; i++) src[0x14 + cnt1 * 0x16 + 0x16 + i] = (uint8_t)(0xc0 + i);
+    }
+    set16(src, 0x10, (uint16_t)cnt1);                 /* a negative first count: nothing after it is read */
+    g_w.dword_5bb57b = 0x12345678u;
+    g_w.word_5c39e3 = (int16_t)0x8001;
+}
+static void test_m414692_read_block(void)
+{
+    uint8_t *cells = g_r[1], *b = g_r[3], *c = g_r[4], *d = g_r[5];
+    uint32_t delta;
+    int i;
+    rb_setup(2, 3);
+    script(0x51dc43, 3, RVA(3), RVA(4), RVA(5), 0);
+    g_w.word_63a4cd = 1;
+    CK(m414692_read_block(SELF, RVA(1), RVA(1) + 4, RVA(1) + 8, &g_w, &g_host) == 0);
+    delta = 2 + 2 * 0x16 + 0x16 + 2 + 3 * 0x12;
+    CK(get32(cells, 0) == RVA(3) && get32(cells, 4) == RVA(2) + 0x10 + delta && get32(cells, 8) == 0xfffffff8u + delta);
+    CK(get32(SELF, 0x1c) == RVA(3) && get32(SELF, 0x20) == RVA(4) && get32(SELF, 0x24) == RVA(5) && get32(SELF, 0x18) == 0x55555555u && get32(SELF, 0x28) == 0x55555555u);
+    CK(get16(b, 0) == 2 && get32(b, 2) == RVA(4) && get16(b, 0x1c) == 3 && get32(b, 0x1e) == RVA(5) && b[0x22] == 0x66 && b[0x23] == 0x66);
+    for (i = 0; i < 2 * 0x16; i++) CK(c[i] == (uint8_t)(i + 1));
+    CK(c[2 * 0x16] == 0x77);
+    for (i = 0; i < 0x16; i++) CK(b[6 + i] == (uint8_t)(0x80 + i));
+    for (i = 0; i < 3 * 0x12; i++) CK(d[i] == (uint8_t)(0xc0 + i));
+    CK(d[3 * 0x12] == 0x88);
+    CK(L.n == 4);
+    CKC(0, 0x51dc43, 0, 1, 0x22);
+    CKC(1, 0x51dc43, 0, 1, 2 * 0x16);
+    CKC(2, 0x51dc43, 0, 1, 3 * 0x12);
+    CKC(3, 0x44a2b7, 0, 1, 0x54187c);
+    /* the debug word zero: no trace; counts 0: the allocations are of size 0 and nothing is copied */
+    rb_setup(0, 0);
+    g_nscript = 0;
+    script(0x51dc43, 3, RVA(3), RVA(4), RVA(5), 0);
+    L.n = 0;
+    CK(m414692_read_block(SELF, RVA(1), RVA(1) + 4, RVA(1) + 8, &g_w, &g_host) == 0);
+    CK(L.n == 3 && get32(cells, 4) == RVA(2) + 0x10 + 2 + 0x16 + 2);
+    CKC(1, 0x51dc43, 0, 1, 0);
+    CK(c[0] == 0x77 && d[0] == 0x88);
+    /* the three allocation failures: the report with the failing allocation's messages, and the rejection (nothing after it) */
+    for (i = 0; i < 3; i++) {
+        static const uint32_t m1[3] = {0x5417a4, 0x5417ec, 0x541834}, m2[3] = {0x5417d0, 0x541818, 0x541860};
+        rb_setup(1, 1);
+        g_nscript = 0;
+        script(0x51dc43, 3, i == 0 ? 0 : RVA(3), i == 0 ? 0 : i == 1 ? 0 : RVA(4), 0, 0);       /* the allocation number i fails */
+        L.n = 0;
+        CK(m414692_read_block(SELF, RVA(1), RVA(1) + 4, RVA(1) + 8, &g_w, &g_host) == 1);
+        CK(L.n == 1 + i + 3);
+        CKC(i + 1, 0x50ca3e, 0, 4, 0x63888b, m1[i], 0x12345678u, 0xffff8001u);
+        CKC(i + 2, 0x42639d, 0x583979, 2, m2[i], 0x63888b);
+        CKC0(i + 3, 0x4c97b4, 0x5cf659);
+        CK(get32(cells, 0) == (i == 0 ? 0u : RVA(3)));
+        CK(get32(SELF, 0x20) == (i == 0 ? 0x55555555u : i == 1 ? 0x55555555u : RVA(4)));
+        CK(get32(SELF, 0x24) == 0x55555555u);
+        CK(i == 0 ? (get32(SELF, 0x1c) == 0x55555555u) : (get32(SELF, 0x1c) == RVA(3)));
+    }
+    /* negative count words: native rejection before the allocation of that size, nothing more */
+    rb_setup(-1, 1);
+    g_nscript = 0;
+    script(0x51dc43, 3, RVA(3), RVA(4), RVA(5), 0);
+    L.n = 0;
+    CK(m414692_read_block(SELF, RVA(1), RVA(1) + 4, RVA(1) + 8, &g_w, &g_host) == 1);
+    CK(L.n == 1 && get32(b, 2) == 0x66666666u && get16(b, 0) == 0xffff);
+    rb_setup(0, -1);
+    g_nscript = 0;
+    script(0x51dc43, 3, RVA(3), RVA(4), RVA(5), 0);
+    L.n = 0;
+    CK(m414692_read_block(SELF, RVA(1), RVA(1) + 4, RVA(1) + 8, &g_w, &g_host) == 1);
+    CK(L.n == 2 && get16(b, 0x1c) == 0xffff && get32(b, 0x1e) == 0x66666666u && get32(SELF, 0x24) == 0x55555555u);
+}
+
 /*TESTS*/
 
 /* ---- bounded sweep ------------------------------------------------------------------------------------------------------------- */
@@ -479,6 +567,13 @@ static void test_sweep_bounded(void)
         m4f684a_prepare_entry(SELF, 0, &g_w, &g_host);
         L.n = 0;
         g_nscript = 0;
+        rb_setup((int)((seed >> 4) % 4), (int)((seed >> 8) % 4));
+        g_nscript = 0;
+        script(0x51dc43, 3, RVA(3), RVA(4), RVA(5), 0);
+        g_w.word_63a4cd = (int16_t)(seed >> 11);
+        m414692_read_block(SELF, RVA(1), RVA(1) + 4, RVA(1) + 8, &g_w, &g_host);
+        L.n = 0;
+        g_nscript = 0;
         /*SWEEPBODY*/
     }
 }
@@ -501,6 +596,7 @@ int main(void)
     int failures = 0;
     RUN(test_m4e2e05_copy_state);
     RUN(test_m48d3cb_select_entry);
+    RUN(test_m414692_read_block);
     RUN(test_m4f684a_prepare_entry);
     RUN(test_m4c2a8d_make_record);
     /*RUNS*/

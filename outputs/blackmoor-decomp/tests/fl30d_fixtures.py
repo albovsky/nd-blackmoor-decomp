@@ -24,6 +24,18 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import original_differential as od
 from fl28b_fixtures import (Original27, stub, CDECL, STDCALL, THISCALL, Area, put32, put16, prof, normalize, conditional_edges, LOCAL, FMT)
 
+class Original30(Original27):
+    """Original27 that can end the run when the stub at `stop_after[0]` has returned for the call number `stop_after[1]` (0 based): the function is made to return
+    there (EIP = the stop address), which models the point after which the original goes on through a null pointer and the native port rejects. Nothing the original
+    decides is replaced: every instruction up to that point is the original's."""
+
+    def _stub_hook(self, uc, address, size, user):
+        super()._stub_hook(uc, address, size, user)
+        stop = getattr(self, 'stop_after', None)
+        if stop is not None and address == stop[0] and self._calln[address] == stop[1] + 1:
+            uc.reg_write(self._r['EIP'], od.STOP)
+
+
 PROJECT = Path(__file__).resolve().parents[1]
 CTYPES = {'uint8_t': ctypes.c_uint8, 'int16_t': ctypes.c_int16, 'uint16_t': ctypes.c_uint16, 'int32_t': ctypes.c_int32, 'uint32_t': ctypes.c_uint32}
 
@@ -61,11 +73,11 @@ VT_A = od.STUB_BASE + 0x900          # the vtable entry that the original reads 
 NONZERO = [1, 0x80000000, 0x10000, 0xff000000, 0x00ff0000, 0xdeadbeef, 0xffffffff, 0x100]    # non-zero dwords, some with a zero low word / byte
 
 
-def make(key, areas, stubs, g, stack, args, profile, pointers=None, partial=None):
+def make(key, areas, stubs, g, stack, args, profile, pointers=None, partial=None, stop_after=None):
     sp = SPECS[key]
     return SimpleNamespace(key=key, fn=sp['id'], va=sp['va'], size=sp['size'], code=sp.get('code', sp['size']), areas=areas, stubs=stubs, iat={}, g=g,
                            ecx=od.region_va(0), pointers=pointers or {}, word_args=WORD_ARGS, profile=profile, stack=stack, args=args, seh=None,
-                           partial=partial)
+                           partial=partial, stop_after=stop_after)
 
 
 def run_original(sc):
@@ -80,10 +92,11 @@ def run_original(sc):
         read['g:' + field] = GLOBALS[field]
     for x in sc.stubs.values():
         x.probe_addr = [(next(a.va for a in sc.areas if a.name == name) + off, ln) for name, off, ln in (x.probe or ())]
-    runner = Original27(image_patches, regions, sc.stubs, {}, fpcw=SPECS[sc.key].get('fpcw'))
+    runner = Original30(image_patches, regions, sc.stubs, {}, fpcw=SPECS[sc.key].get('fpcw'))
+    runner.stop_after = sc.stop_after
     orig = runner.run(sc.va, sc.size, ecx=sc.ecx, stack_args=sc.stack, read=read)
     orig.edges = getattr(runner, 'edges', set())      # (address, next address) of the instructions executed in a row
-    if orig.cleanup != SPECS[sc.key].get('cleanup', 0):
+    if sc.stop_after is None and orig.cleanup != SPECS[sc.key].get('cleanup', 0):
         raise AssertionError('the function popped %d bytes' % orig.cleanup)
     calls = normalize(orig.calls, sc.stubs, {}, sc.word_args)
     h = hashlib.sha256()
@@ -299,16 +312,54 @@ def gen_4f684a(rng, n):
                 (kind, *rest, a0))
 
 
+# ---- 0x414692 ---------------------------------------------------------------------------------------------------------------------
+
+CELLS_VA, SRC_VA, B_VA, C_VA, D_VA = od.region_va(1), od.region_va(2), od.region_va(3), od.region_va(4), od.region_va(5)
+CNT1 = [0, 1, 3, 5]
+CNT2 = [0, 1, 2, 4]
+MSGS = [(0x5417a4, 0x5417d0), (0x5417ec, 0x541818), (0x541834, 0x541860)]
+
+
+def gen_414692(rng, n):
+    profiles = [('f1',)] + [('f2', a) for a in CNT1] + [('f3', a, b) for a in CNT1 for b in CNT2] + [('ok', a, b) for a in CNT1 for b in CNT2]
+    (kind, *rest), variant = prof(n, profiles)
+    cnt1, cnt2 = (rest + [rng.choice(CNT1), rng.choice(CNT2)])[:2] if kind != 'f2' else (rest[0], rng.choice(CNT2))
+    if kind == 'f1':
+        cnt1, cnt2 = rng.choice(CNT1), rng.choice(CNT2)
+    s = bytearray(rng.randbytes(0x40))
+    cells = bytearray(rng.randbytes(0x20))
+    src_off = 0x10
+    put32(cells, 0, rng.randrange(1 << 32))
+    put32(cells, 4, SRC_VA + src_off)
+    put32(cells, 8, rng.choice([0, 0xfffffff0, 0x7fffffff, rng.randrange(1 << 32)]))
+    src = bytearray(rng.randbytes(0x400))
+    put16(src, src_off, cnt1)
+    put16(src, src_off + 2 + cnt1 * 0x16 + 0x16, cnt2)
+    b = bytearray(rng.randbytes(0x40))
+    c = bytearray(rng.randbytes(0x100))
+    d = bytearray(rng.randbytes(0x100))
+    results = {'f1': [0], 'f2': [B_VA, 0], 'f3': [B_VA, C_VA, 0]}.get(kind, [B_VA, C_VA, D_VA])
+    g = {'word_63a4cd': [0, 1, 0x8000, 0x100, 0xffff][variant % 5], 'dword_5bb57b': rng.randrange(1 << 32), 'word_5c39e3': rng.choice([0, 1, -1, 0x7fff, -0x8000, 0x1234])}
+    probes = [('self', 0x18, 0x10), ('cells', 0, 0xc), ('b', 0, 0x24)]
+    stubs = {0x51dc43: stub(0x51dc43, CDECL(1), results=results, probe=probes), 0x50ca3e: stub(0x50ca3e, CDECL(4)), 0x42639d: stub(0x42639d, THISCALL(2)),
+             0x4c97b4: stub(0x4c97b4, THISCALL(0)), 0x44a2b7: stub(0x44a2b7, CDECL(1))}
+    stack = [CELLS_VA, CELLS_VA + 4, CELLS_VA + 8]
+    stop = None if kind == 'ok' else (0x4c97b4, 0)
+    return make('414692', [self_area(s), Area('cells', CELLS_VA, cells, image=False), Area('src', SRC_VA, src, image=False), Area('b', B_VA, b, image=False),
+                           Area('c', C_VA, c, image=False), Area('d', D_VA, d, image=False)], stubs, g, stack, tuple(stack), (kind, cnt1, cnt2), stop_after=stop)
+
+
 # @@GENERATORS@@
 
 SPECS = {
     '4e2e05': dict(id=1, va=0x4e2e05, size=421, gen=gen_4e2e05, cleanup=0, n=28 * 4),
     '48d3cb': dict(id=3, va=0x48d3cb, size=553, gen=gen_48d3cb, cleanup=8, n=2 * 3 * 21 * 2 + 6),
     '4f684a': dict(id=4, va=0x4f684a, size=564, gen=gen_4f684a, cleanup=4, ret=True, fpcw=0x27f, n=66 * 4),
+    '414692': dict(id=5, va=0x414692, size=693, gen=gen_414692, cleanup=12, n=37 * 5),
     '4c2a8d': dict(id=2, va=0x4c2a8d, size=429, gen=gen_4c2a8d, cleanup=16, ret=True, n=74 * 2),
 }
 KEYS = list(SPECS)
-NAMES = {'4e2e05': 'copy_state', '4c2a8d': 'make_record', '48d3cb': 'select_entry', '4f684a': 'prepare_entry'}
+NAMES = {'4e2e05': 'copy_state', '4c2a8d': 'make_record', '48d3cb': 'select_entry', '4f684a': 'prepare_entry', '414692': 'read_block'}
 
 
 def build(key, rng, n):

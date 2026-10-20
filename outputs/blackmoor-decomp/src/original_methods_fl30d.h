@@ -36,7 +36,9 @@ typedef struct Fl30dWorld {
     uint32_t dword_5d1631;     /* 0x48d3cb: written */
     uint32_t dword_5d1639;     /* 0x48d3cb: written */
     uint32_t dword_5c39e5;     /* 0x48d3cb: written */
-    int16_t word_63a4cd;       /* 0x4f684a: the debug flag: a non-zero signed word turns on the trace output */
+    int16_t word_63a4cd;       /* 0x4f684a, 0x414692: the debug flag: a non-zero signed word turns on the trace output */
+    uint32_t dword_5bb57b;     /* 0x414692: the dword in the allocation-failure report */
+    int16_t word_5c39e3;       /* 0x414692: the word in the allocation-failure report (sign-extended) */
 } Fl30dWorld;
 
 /* 0x4e2e05, thiscall, plain `ret`, no result. Native rejection (NOT original behaviour): when the signed word [self+0x1471] is negative, or its product with 0x29 does not fit
@@ -74,6 +76,18 @@ void m48d3cb_select_entry(uint8_t *self, uint32_t sel, uint32_t k, Fl30dWorld *w
  * the stack arguments (obj, dword [q+0x13c]) (a stdcall callee, pops 8); dword [self+0x3ca] = hr. When hr == 0: when the signed word 0x63a4cd is non-zero: 0x50ca3e(0x63888b, 0x55e8fc, dword
  * [q+0x13c], a0, q + 4) (cdecl, 5 arguments), 0x44a2b7(0x63888b) (cdecl, 1 argument); the result is 1. Otherwise (hr != 0): dword [self+0x3c2] = 0x408, dword [self+0x3be] = 0, result 0. */
 uint32_t m4f684a_prepare_entry(uint8_t *self, uint32_t a0, const Fl30dWorld *world, const Fl18Host *host);
+
+/* 0x414692, thiscall, `ret 0xc`, no result used; the stack arguments are the original addresses p0, p1, p2 of three dword cells. B = 0x51dc43(0x22) (cdecl, 1 argument) is stored to dword [p0];
+ * when B == 0 the allocation-failure report (R1) is made: 0x50ca3e(0x63888b, <msg>, dword 0x5bb57b, sign-extended word 0x5c39e3) (cdecl, 4 arguments), 0x42639d(this 0x583979, <msg2>,
+ * 0x63888b) (thiscall, 2 arguments), 0x4c97b4(this 0x5cf659) (thiscall, 0 arguments), with the message pairs (0x5417a4, 0x5417d0), (0x5417ec, 0x541818), (0x541834, 0x541860) for the
+ * three allocations. THE ORIGINAL THEN GOES ON AND WRITES THROUGH THE NULL POINTER after each failed allocation: this port returns 1 right after the report (native rejection, not original
+ * behaviour; the oracle stops the original at the return of the reporting call 0x4c97b4, so the effects up to that point are compared). Otherwise: dword [self+0x1c] = B; s = dword [p1];
+ * word [B] = word [s]; dword [p1] += 2; dword [p2] += 2; n = signed word [B] * 0x16; C = 0x51dc43(n) is stored to dword [B+2] (R2 when 0); dword [self+0x20] = C; the n bytes at dword [p1] are
+ * copied to C; [p1] += n, [p2] += n; the 0x16 bytes at [p1] are copied to B + 6; [p1] += 0x16, [p2] += 0x16; word [B+0x1c] = word [[p1]]; [p1] += 2, [p2] += 2; m = signed word [B+0x1c] * 0x12;
+ * D = 0x51dc43(m) is stored to dword [B+0x1e] (R3 when 0); dword [self+0x24] = D; the m bytes at [p1] are copied to D; [p1] += m, [p2] += m; when the signed word 0x63a4cd is non-zero:
+ * 0x44a2b7(0x54187c) (cdecl, 1 argument). A second native rejection: a negative count word (n or m would be a huge unsigned size
+ * in the original, which then fails or overruns) makes the port return 1 before the allocation call of that size (the effects before it are those of the original). Returns 0 otherwise. */
+int32_t m414692_read_block(uint8_t *self, uint32_t p0, uint32_t p1, uint32_t p2, const Fl30dWorld *world, const Fl18Host *host);
 
 #ifdef __cplusplus
 }

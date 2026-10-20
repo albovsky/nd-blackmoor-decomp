@@ -110,6 +110,8 @@ class Fl30dDifferential(DiffBase):
         self_ptr = ptr(by_name['self']) if 'self' in by_name else None
         stack_args = (ctypes.c_uint64 * 8)(*[v & 0xffffffffffffffff for v in sc.args])
         self.lib.shim_fl30d(sc.fn, self_ptr, ctypes.byref(stack_args), ctypes.byref(sw), ctypes.byref(result))
+        if sc.stop_after is not None:       # the original was stopped at its reporting call: the port rejects there
+            self.assertEqual(result.value, 1, 'native rejection status')
         if fx.SPECS[sc.key].get('retself'):
             self.assertEqual(result.value, 0, 'the constructor must return self')
         if fx.SPECS[sc.key].get('ret16'):
@@ -172,6 +174,10 @@ class Fl30dDifferential(DiffBase):
     def test_4f684a_prepare_entry(self):
         """FL-30d: differential test of m4f684a_prepare_entry (original 0x4f684a)"""
         self.run_key('4f684a')
+
+    def test_414692_read_block(self):
+        """FL-30d: differential test of m414692_read_block (original 0x414692)"""
+        self.run_key('414692')
 
     # CASES-END
 

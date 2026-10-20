@@ -263,3 +263,73 @@ uint32_t m4f684a_prepare_entry(uint8_t *self, uint32_t a0, const Fl30dWorld *wor
     wr32(self, 0x3be, 0);
     return rd32(self, 0x3be);
 }
+
+/* ---- 0x414692 read_block --------------------------------------------------------------------------------------------------------- */
+static void alloc_report(const Fl30dWorld *world, const Fl18Host *host, uint32_t msg1, uint32_t msg2)
+{
+    call4(host, 0x50ca3e, 0, 0x63888b, msg1, world->dword_5bb57b, (uint32_t)(int32_t)world->word_5c39e3);
+    call2(host, 0x42639d, 0x583979, msg2, 0x63888b);
+    call0(host, 0x4c97b4, 0x5cf659);
+}
+
+/* adds n to the dword cell at the original address cell */
+static void cell_add(const Fl18Host *host, uint32_t cell, uint32_t n)
+{
+    uint8_t *c = res(host, cell);
+    wr32(c, 0, rd32(c, 0) + n);
+}
+
+int32_t m414692_read_block(uint8_t *self, uint32_t p0, uint32_t p1, uint32_t p2, const Fl30dWorld *world, const Fl18Host *host)
+{
+    uint32_t b_va, c_va, d_va, src;
+    uint8_t *b;
+    int32_t count;
+    b_va = call1(host, 0x51dc43, 0, 0x22);
+    wr32(res(host, p0), 0, b_va);
+    if (b_va == 0) {
+        alloc_report(world, host, 0x5417a4, 0x5417d0);
+        return 1;                                            /* native rejection: the original stores through address 0 */
+    }
+    b = res(host, b_va);
+    wr32(self, 0x1c, b_va);
+    src = rd32(res(host, p1), 0);
+    wr16(b, 0, rd16(res(host, src), 0));
+    cell_add(host, p1, 2);
+    cell_add(host, p2, 2);
+    count = rds16(b, 0);
+    if (count < 0) return 1;                                 /* native rejection: a huge unsigned size in the original */
+    c_va = call1(host, 0x51dc43, 0, (uint32_t)(count * 0x16));
+    wr32(b, 2, c_va);
+    if (c_va == 0) {
+        alloc_report(world, host, 0x5417ec, 0x541818);
+        return 1;
+    }
+    wr32(self, 0x20, c_va);
+    src = rd32(res(host, p1), 0);
+    memcpy(res(host, c_va), res(host, src), (size_t)(count * 0x16));
+    cell_add(host, p1, (uint32_t)(count * 0x16));
+    cell_add(host, p2, (uint32_t)(count * 0x16));
+    src = rd32(res(host, p1), 0);
+    memcpy(b + 6, res(host, src), 0x16);
+    cell_add(host, p1, 0x16);
+    cell_add(host, p2, 0x16);
+    src = rd32(res(host, p1), 0);
+    wr16(b, 0x1c, rd16(res(host, src), 0));
+    cell_add(host, p1, 2);
+    cell_add(host, p2, 2);
+    count = rds16(b, 0x1c);
+    if (count < 0) return 1;
+    d_va = call1(host, 0x51dc43, 0, (uint32_t)(count * 0x12));
+    wr32(b, 0x1e, d_va);
+    if (d_va == 0) {
+        alloc_report(world, host, 0x541834, 0x541860);
+        return 1;
+    }
+    wr32(self, 0x24, d_va);
+    src = rd32(res(host, p1), 0);
+    memcpy(res(host, d_va), res(host, src), (size_t)(count * 0x12));
+    cell_add(host, p1, (uint32_t)(count * 0x12));
+    cell_add(host, p2, (uint32_t)(count * 0x12));
+    if (world->word_63a4cd != 0) call1(host, 0x44a2b7, 0, 0x54187c);
+    return 0;
+}
