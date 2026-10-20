@@ -1,0 +1,233 @@
+[
+ {
+  "va": "0x44b26a",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-30b implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl30b.c",
+   "symbol": "m44b26a_apply_delta"
+  },
+  "tests": [
+   {
+    "path": "tests/fl30b_direct_test.c",
+    "test_id": "test_m44b26a_apply_delta"
+   },
+   {
+    "path": "tests/test_fl30b_direct.py",
+    "test_id": "Fl30bDirect.test_44b26a_apply_delta"
+   },
+   {
+    "path": "tests/test_fl30b_differential.py",
+    "test_id": "Fl30bDifferential.test_44b26a_apply_delta"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl30b_original_oracle.py",
+   "window": [
+    "0x44b26a",
+    "0x44b3c8"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Applies a delta word from a record item to a word table (kinds 0 to 0x1d, 0x270f sentinel) or a float table (kinds 0x1e to 0x27, 9999.0 sentinel via x87 fcomp, 53-bit fadd) and reports kinds above 0x27 when the debug word is set; every instruction executed, one jump direction (the jl after a zero-extended byte) is impossible by construction and allowlisted. See tasks/fl30b-handoff.md."
+ },
+ {
+  "va": "0x488e9c",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-30b implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl30b.c",
+   "symbol": "m488e9c_init_record"
+  },
+  "tests": [
+   {
+    "path": "tests/fl30b_direct_test.c",
+    "test_id": "test_m488e9c_init_record"
+   },
+   {
+    "path": "tests/test_fl30b_direct.py",
+    "test_id": "Fl30bDirect.test_488e9c_init_record"
+   },
+   {
+    "path": "tests/test_fl30b_differential.py",
+    "test_id": "Fl30bDifferential.test_488e9c_init_record"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl30b_original_oracle.py",
+   "window": [
+    "0x488e9c",
+    "0x48905b"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Allocates a 0xaba byte buffer and fills it from the three copies read from the source pointer (0xac header, n*16 and m*0x26 bytes); every instruction executed; the allocation-failure branch and the negative or overrunning counts are native rejections, not original behaviour. See tasks/fl30b-handoff.md."
+ },
+ {
+  "va": "0x42e844",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-30b implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl30b.c",
+   "symbol": "m42e844_step_record"
+  },
+  "tests": [
+   {
+    "path": "tests/fl30b_direct_test.c",
+    "test_id": "test_m42e844_step_record"
+   },
+   {
+    "path": "tests/test_fl30b_direct.py",
+    "test_id": "Fl30bDirect.test_42e844_step_record"
+   },
+   {
+    "path": "tests/test_fl30b_differential.py",
+    "test_id": "Fl30bDifferential.test_42e844_step_record"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl30b_original_oracle.py",
+   "window": [
+    "0x42e844",
+    "0x42ea87"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Three-state record stepper: state 0 sets the global and falls into state 1 (first entry whose key word matches), state 2 loads ten (index, value) pairs into a dword table and calls 0x42ba3a; every instruction and jump direction executed. See tasks/fl30b-handoff.md."
+ },
+ {
+  "va": "0x411f24",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-30b implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl30b.c",
+   "symbol": "m411f24_replace_record"
+  },
+  "tests": [
+   {
+    "path": "tests/fl30b_direct_test.c",
+    "test_id": "test_m411f24_replace_record"
+   },
+   {
+    "path": "tests/test_fl30b_direct.py",
+    "test_id": "Fl30bDirect.test_411f24_replace_record"
+   },
+   {
+    "path": "tests/test_fl30b_differential.py",
+    "test_id": "Fl30bDifferential.test_411f24_replace_record"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl30b_original_oracle.py",
+   "window": [
+    "0x411f24",
+    "0x4121b8"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Replaces a record: free-and-reallocate with a built text (constant string at 0x5415c8 plus a converted number), two allocation-failure branches that are native rejections; every instruction executed. See tasks/fl30b-handoff.md."
+ },
+ {
+  "va": "0x4cbba9",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-30b implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl30b.c",
+   "symbol": "m4cbba9_load_file"
+  },
+  "tests": [
+   {
+    "path": "tests/fl30b_direct_test.c",
+    "test_id": "test_m4cbba9_load_file"
+   },
+   {
+    "path": "tests/test_fl30b_direct.py",
+    "test_id": "Fl30bDirect.test_4cbba9_load_file"
+   },
+   {
+    "path": "tests/test_fl30b_differential.py",
+    "test_id": "Fl30bDifferential.test_4cbba9_load_file"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl30b_original_oracle.py",
+   "window": [
+    "0x4cbba9",
+    "0x4cbf72"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "File loader: open, read header, entry table and per-entry blobs through scripted callees, with the failure block; every instruction and jump direction executed, the 0x4cc70f host stub stores the allocation addresses. See tasks/fl30b-handoff.md."
+ },
+ {
+  "va": "0x4d214b",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-30b implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl30b.c",
+   "symbol": "m4d214b_lookup_word"
+  },
+  "tests": [
+   {
+    "path": "tests/fl30b_direct_test.c",
+    "test_id": "test_m4d214b_lookup_word"
+   },
+   {
+    "path": "tests/test_fl30b_direct.py",
+    "test_id": "Fl30bDirect.test_4d214b_lookup_word"
+   },
+   {
+    "path": "tests/test_fl30b_differential.py",
+    "test_id": "Fl30bDifferential.test_4d214b_lookup_word"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl30b_original_oracle.py",
+   "window": [
+    "0x4d214b",
+    "0x4d2535"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Byte-to-word lookup through a jmp-table switch (53 mapped byte values, default 0); all 256 byte values run through the original; the oracle window is the code part (the jump and index tables behind the ret are data). See tasks/fl30b-handoff.md."
+ },
+ {
+  "va": "0x4c5b3a",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-30b implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl30b.c",
+   "symbol": "m4c5b3a_copy_keyed"
+  },
+  "tests": [
+   {
+    "path": "tests/fl30b_direct_test.c",
+    "test_id": "test_m4c5b3a_copy_keyed"
+   },
+   {
+    "path": "tests/test_fl30b_direct.py",
+    "test_id": "Fl30bDirect.test_4c5b3a_copy_keyed"
+   },
+   {
+    "path": "tests/test_fl30b_differential.py",
+    "test_id": "Fl30bDifferential.test_4c5b3a_copy_keyed"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl30b_original_oracle.py",
+   "window": [
+    "0x4c5b3a",
+    "0x4c5d4b"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Colour-keyed word copy between two surface descriptors with the size-equality report under the debug word; every instruction and both directions of every jump executed; a null descriptor on the copy path is a native rejection. See tasks/fl30b-handoff.md."
+ }
+]
