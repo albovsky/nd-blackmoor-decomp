@@ -188,7 +188,7 @@ static uint32_t host_call(void *context, uint32_t callee, uintptr_t this_ptr, co
     return result;
 }
 
-enum { F30C_4FCB5C = 1, F30C_43D7F0, F30C_434025 /* ENUM-END */ };
+enum { F30C_4FCB5C = 1, F30C_43D7F0, F30C_434025, F30C_41B6E2 /* ENUM-END */ };
 
 /* Runs one port; `a` holds the stack arguments of the function as 64-bit values (the original addresses of the fixture memory). `self` is the host pointer of the object (ecx) when the
  * scenario has one. Pointer arguments are resolved to host pointers here, as the host would. `result` is the return value of the ports that have one. */
@@ -206,6 +206,7 @@ void shim_fl30c(int fn, uint8_t *self, const uintptr_t *a, Fl30cWorld *w, int32_
     case F30C_4FCB5C: m4fcb5c_set_category_master(self, (int32_t)a[0], &host); break;
     case F30C_43D7F0: m43d7f0_init_scenes(w, &host); break;
     case F30C_434025: m434025_scan_entries(self, &host); break;
+    case F30C_41B6E2: m41b6e2_lz_decode((const uint8_t *)R(0), R(1), (uint32_t)a[2], (uint32_t)a[3], w); break;
     /* CASES-END */
     default: break;
     }

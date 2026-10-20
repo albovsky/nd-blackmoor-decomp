@@ -78,6 +78,10 @@ class Fl30cDirect(unittest.TestCase):
         """FL-30c: direct test of m434025_scan_entries (original 0x434025)"""
         self.check('test_m434025_scan_entries')
 
+    def test_41b6e2_lz_decode(self):
+        """FL-30c: direct test of m41b6e2_lz_decode (original 0x41b6e2)"""
+        self.check('test_m41b6e2_lz_decode')
+
     # CASES-END
 
     def test_sweep_bounded(self):

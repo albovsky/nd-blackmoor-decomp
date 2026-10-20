@@ -445,15 +445,61 @@ def gen_434025(rng, n):
     return make('434025', [self_area(s)], stubs, {}, [], (), (kind, k))
 
 
+# ---- 0x41b6e2 ------------------------------------------------------------------------------------------------------------------------------
+
+RING_VA = 0x56f354
+
+
+def lz_tokens(rng, groups, bias):
+    """The tokens of an LZ stream: ('flag', byte) then, for the eight bits of the flag byte (lowest first), a literal (bit set: 1 token) or a match (bit clear: lo and hi tokens)."""
+    toks = []
+    for _ in range(groups):
+        bits = [1 if rng.random() >= bias else 0 for _ in range(8)]
+        toks.append(('flag', sum(b << i for i, b in enumerate(bits))))
+        for b in bits:
+            if b:
+                toks.append(('lit', rng.randrange(256)))
+            else:
+                toks.append(('m1', rng.randrange(256) if rng.random() < 0.6 else rng.choice([0xf0, 0xff, 0xee, 0])))
+                toks.append(('m2', rng.randrange(256) if rng.random() < 0.7 else rng.choice([0xff, 0xf0, 0x0f, 0, 0xfe])))
+    return toks
+
+
+def profiles_41b6e2():
+    return [(cut, groups, bias) for cut in ('flag', 'lit', 'm1', 'm2', 'end', 'zero') for groups in (1, 2, 3, 6, 12) for bias in (0.0, 0.3, 0.8, 1.0)]
+
+
+def gen_41b6e2(rng, n):
+    (cut, groups, bias), variant = prof(n, profiles_41b6e2())
+    toks = lz_tokens(rng, groups, bias)
+    stream = bytearray((value + index) & 0xff for index, (kind, value) in enumerate(toks))      # byte i is the token plus the running key (the key is the index modulo 256)
+    if cut == 'end':
+        srclen = len(stream)
+    elif cut == 'zero':
+        srclen = 0
+    else:
+        cands = [i for i, (kind, _) in enumerate(toks) if kind == cut]
+        srclen = rng.choice(cands) if cands else len(stream)
+    src = bytearray(rng.randbytes(len(stream) + 8))
+    src[:len(stream)] = stream
+    dst = bytearray(rng.randbytes(0x2400))
+    ring = bytearray(rng.randbytes(0x1000))
+    areas = [Area('src', od.region_va(1), src, image=False, compare=False), Area('dst', od.region_va(2), dst, image=False), Area('ring', RING_VA, ring, image=True)]
+    junk = rng.randrange(1 << 32)
+    return make('41b6e2', areas, {}, {}, [od.region_va(1), od.region_va(2), srclen, junk], (od.region_va(1), od.region_va(2), srclen, junk), (cut, groups, bias, srclen),
+                pointers={'ring_56f354': ('ring', 0)})
+
+
 SPECS = {
     '4fcb5c': dict(id=1, va=0x4fcb5c, size=406, gen=gen_4fcb5c, cleanup=4, fpcw=0x27f, n=len(profiles_4fcb5c()) * 6),
     '43d7f0': dict(id=2, va=0x43d7f0, size=675, gen=gen_43d7f0, cleanup=0, n=len(profiles_43d7f0()) * 2),
     '434025': dict(id=3, va=0x434025, size=536, gen=gen_434025, cleanup=0, n=len(profiles_434025()) * 3),
+    '41b6e2': dict(id=4, va=0x41b6e2, size=579, gen=gen_41b6e2, cleanup=16, n=len(profiles_41b6e2()) * 3),
 }
 KEYS = list(SPECS)
 UNTAKEN_ALLOWED['434025'] = {(0x4340e3, 'taken'): 'je after `mov eax, 1; test eax, eax` guards the endless entry loop: the guard is always true, so the jump to 0x434233 is never taken from here '
                                                     '(0x434233 itself is reached by the jumps at 0x43416e and 0x43422c, and every instruction of the function is executed)'}
-NAMES = {'4fcb5c': 'set_category_master', '43d7f0': 'init_scenes', '434025': 'scan_entries'}
+NAMES = {'4fcb5c': 'set_category_master', '43d7f0': 'init_scenes', '434025': 'scan_entries', '41b6e2': 'lz_decode'}
 
 
 def build(key, rng, n):

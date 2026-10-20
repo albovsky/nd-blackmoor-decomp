@@ -25,6 +25,7 @@ typedef struct Fl30cWorld {
     uint32_t value_5d15a5, value_5bb1d2, value_5bb1ce, value_5b15d6, value_5bb1da, value_5bb1d6, value_5b1606;       /* 0x43d7f0 */
     uint8_t byte_5b5158, byte_5b51ab, byte_5b51c6, byte_5b615e, byte_5b61af, byte_5b51f6;
     uint32_t value_5d1a8f, value_5d1ad9, value_5d1b23, value_5d1bb7, value_5d1c01, value_5d1b6d;
+    uint8_t *ring_56f354;      /* 0x41b6e2: host memory of the 0x1000-byte ring buffer at 0x56f354 */
 } Fl30cWorld;
 
 /* 0x4fcb5c, thiscall (`self` = ecx), `ret 4`, the stack argument `idx` is a signed dword: the float table at self + 0xb764 (indexed by idx) holds a master volume per category.
@@ -55,6 +56,15 @@ void m43d7f0_init_scenes(Fl30cWorld *world, const Fl18Host *host);
  * p += m; q += m; q > n (unsigned) leaves the loop, otherwise it goes on. Not bounds checked, as in the original: the entries from index 0x3e8 on overwrite the dwords from self+0x3084 (the table that the
  * loop above reads), and the count is not limited at all; the caller guarantees an object big enough. */
 void m434025_scan_entries(uint8_t *self, const Fl18Host *host);
+
+/* 0x41b6e2, thiscall (ecx is stored and never read), `ret 0x10`, four stack dwords: `src` and `dst` are host pointers, `srclen` the length of the source in bytes, and a fourth dword that the function
+ * overwrites with its own output counter (so it is not an input). No result is defined (eax is left over). The LZ decoder with a 0x1000-byte ring buffer at 0x56f354: bytes 0 .. 0xfed of the ring are set to
+ * 0x20 (the remaining 18 bytes keep their contents), r = 0xfee, key = 0 (a byte), flags = 0, si = -1, out = 0. Loop: flags >>= 1 (logical); when bit 8 of flags is clear: si += 1, and si == srclen ends the
+ * function; c = byte (src[si] - key), key += 1 (bytes), flags = c | 0xff00. Then when bit 0 of flags is set: si += 1 (si == srclen ends), c = byte (src[si] - key), key += 1; dst[out++] = c; ring[r] = c; r = (r + 1) & 0xfff.
+ * Otherwise: si += 1 (ends), lo = byte (src[si] - key), key += 1; si += 1 (ends), hi = byte (src[si] - key), key += 1; pos = lo | ((hi & 0xf0) << 4), len = (hi & 0xf) + 2; for k = 0 while k <= len (unsigned): b =
+ * ring[(pos + k) & 0xfff]; dst[out++] = b; ring[r] = b; r = (r + 1) & 0xfff. Not bounds checked, as in the original: `dst` must hold the whole output (up to 18 bytes per two source bytes) and `src` srclen bytes; a
+ * srclen the source never reaches (the test is an equality) reads on; the caller validates. */
+void m41b6e2_lz_decode(const uint8_t *src, uint8_t *dst, uint32_t srclen, uint32_t unused, const Fl30cWorld *world);
 
 #ifdef __cplusplus
 }

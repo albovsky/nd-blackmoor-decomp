@@ -337,6 +337,46 @@ static void test_m434025_scan_entries(void)
     }
 }
 
+/* ---- 0x41b6e2 ---- */
+static void test_m41b6e2_lz_decode(void)
+{
+    static uint8_t ring[0x1000], dst[0x100];
+    int k;
+    /* flags 0x03 (bits 0 and 1 literals, bit 2 a match), literals A and B, match lo 0xee hi 0x01 -> pos 0xee, len 1 + 2 = 3: four bytes of the ring (0x20 each); the stream ends (srclen 5) at the next match
+     * token. The bytes are the tokens plus the running key (their index): 03 42 44 f1 05 */
+    static const uint8_t s1[] = {0x03, 0x42, 0x44, 0xf1, 0x05};
+    static const uint8_t s2[] = {0x03, 0x42, 0x44, 0xf1, 0xf4};      /* the same with lo 0xee, hi 0xf0: pos 0xfee, len 2: the copy reads the byte that it has just written */
+    static const uint8_t s3[] = {0xff, 0x42, 0x44, 0x46, 0x48, 0x4a, 0x4c, 0x4e, 0x50, 0x0a, 0x53};      /* eight literals A..H, a new flag byte 01, literal I */
+    memset(ring, 0x5a, sizeof ring);
+    memset(dst, 0x77, sizeof dst);
+    g_w.ring_56f354 = ring;
+    m41b6e2_lz_decode(s1, dst, 5, 0x1234, &g_w);
+    CK(memcmp(dst, "AB    ", 6) == 0 && dst[6] == 0x77);
+    for (k = 0; k < 0xfee; k++) CK(ring[k] == 0x20);
+    CK(ring[0xfee] == 'A' && ring[0xfef] == 'B' && ring[0xff0] == 0x20 && ring[0xff3] == 0x20 && ring[0xff4] == 0x5a && ring[0xfff] == 0x5a);
+    memset(ring, 0x5a, sizeof ring);
+    memset(dst, 0x77, sizeof dst);
+    m41b6e2_lz_decode(s2, dst, 5, 0, &g_w);
+    CK(memcmp(dst, "ABABA", 5) == 0 && dst[5] == 0x77);
+    CK(ring[0xfee] == 'A' && ring[0xfef] == 'B' && ring[0xff0] == 'A' && ring[0xff1] == 'B' && ring[0xff2] == 'A' && ring[0xff3] == 0x5a);
+    memset(ring, 0x5a, sizeof ring);
+    memset(dst, 0x77, sizeof dst);
+    m41b6e2_lz_decode(s3, dst, 11, 0, &g_w);
+    CK(memcmp(dst, "ABCDEFGHI", 9) == 0 && dst[9] == 0x77);
+    CK(ring[0xfee] == 'A' && ring[0xff5] == 'H' && ring[0xff6] == 'I' && ring[0xff7] == 0x5a);
+    /* a source length of 0 ends at once; the ring is still cleared */
+    memset(ring, 0x5a, sizeof ring);
+    memset(dst, 0x77, sizeof dst);
+    m41b6e2_lz_decode(s1, dst, 0, 0, &g_w);
+    CK(dst[0] == 0x77 && ring[0] == 0x20 && ring[0xfed] == 0x20 && ring[0xfee] == 0x5a);
+    /* cut after the flag byte (srclen 1): the first literal token ends it; cut inside a match (srclen 4): the second token ends it */
+    m41b6e2_lz_decode(s1, dst, 1, 0, &g_w);
+    CK(dst[0] == 0x77);
+    memset(ring, 0x5a, sizeof ring);
+    m41b6e2_lz_decode(s1, dst, 4, 0, &g_w);
+    CK(memcmp(dst, "AB", 2) == 0 && dst[2] == 0x77 && ring[0xff0] == 0x5a);
+}
+
 /* TESTS-END */
 
 /* ---- the bounded sweep: every port on random in-bounds buffers (meant for the sanitiser builds) ---- */
@@ -372,6 +412,13 @@ static void test_sweep_bounded(void)
             for (k = 0; k < 5; k++) { set32(so, 0x1144 + 4 * k, rnd()); set32(so, 0x3084 + 4 * k, rnd() % 20); }
             m434025_scan_entries(so, &g_host);
         }
+        /* 0x41b6e2 */
+        {
+            static uint8_t lsrc[64], ldst[0x800], lring[0x1000];
+            for (k = 0; k < (int)sizeof lsrc; k++) lsrc[k] = (uint8_t)rnd();
+            g_w.ring_56f354 = lring;
+            m41b6e2_lz_decode(lsrc, ldst, rnd() % 40, 0, &g_w);
+        }
         /* SWEEP-END */
     }
 }
@@ -395,6 +442,7 @@ int main(void)
     RUN(test_m4fcb5c_set_category_master);
     RUN(test_m43d7f0_init_scenes);
     RUN(test_m434025_scan_entries);
+    RUN(test_m41b6e2_lz_decode);
     /* RUN-END */
     RUN(test_sweep_bounded);
     return failures;

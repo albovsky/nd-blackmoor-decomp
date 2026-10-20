@@ -242,3 +242,58 @@ void m434025_scan_entries(uint8_t *self, const Fl18Host *host)
         }
     }
 }
+
+/* ---- 0x41b6e2 ------------------------------------------------------------------------------------------------------------------ */
+
+/* 0x41b6e2, thiscall (ecx unused): see the header. [ebp+8] src, [ebp+0xc] dst, [ebp+0x10] srclen, [ebp+0x14] out, [ebp-0x1c] si, [ebp-0x10] key, [ebp-8] r, [ebp-4] flags. */
+void m41b6e2_lz_decode(const uint8_t *src, uint8_t *dst, uint32_t srclen, uint32_t unused, const Fl30cWorld *world)
+{
+    uint8_t *ring = world->ring_56f354;
+    uint8_t key = 0;
+    uint32_t out = 0, si = 0xffffffffu, r, flags = 0;
+    (void)unused;
+    memset(ring, 0x20, 0x1000 - 0x12);
+    r = 0x1000 - 0x12;
+    for (;;) {
+        flags >>= 1;
+        if ((flags & 0x100) == 0) {
+            uint8_t c;
+            si += 1;
+            if (si == srclen) return;
+            c = (uint8_t)(src[si] - key);
+            key = (uint8_t)(key + 1);
+            flags = (uint32_t)c | 0xff00u;
+        }
+        if ((flags & 1) != 0) {
+            uint8_t c;
+            si += 1;
+            if (si == srclen) return;
+            c = (uint8_t)(src[si] - key);
+            key = (uint8_t)(key + 1);
+            dst[out] = c;
+            out += 1;
+            ring[r] = c;
+            r = (r + 1) & 0xfff;
+        } else {
+            uint8_t lo, hi;
+            uint32_t pos, len, k;
+            si += 1;
+            if (si == srclen) return;
+            lo = (uint8_t)(src[si] - key);
+            key = (uint8_t)(key + 1);
+            si += 1;
+            if (si == srclen) return;
+            hi = (uint8_t)(src[si] - key);
+            key = (uint8_t)(key + 1);
+            pos = (uint32_t)lo | (((uint32_t)hi & 0xf0u) << 4);
+            len = ((uint32_t)hi & 0xfu) + 2;
+            for (k = 0; k <= len; k++) {
+                uint8_t b = ring[(pos + k) & 0xfff];
+                dst[out] = b;
+                out += 1;
+                ring[r] = b;
+                r = (r + 1) & 0xfff;
+            }
+        }
+    }
+}
