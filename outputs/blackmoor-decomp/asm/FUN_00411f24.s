@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_00411f24
+# name:         m411f24_replace_record
+# naming:       native port src/original_methods_fl30b.c:m411f24_replace_record (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port
+# name-note:    Record replacement: free, reallocate, built text, copy; both allocation-failure branches are native rejections; all instructions run. See fl30b-handoff.md.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       9 ebp-relative slot(s): local_4, local_8, local_c, local_14, local_18, local_1c, local_20, local_24, local_28
 # fields:       [eax + n] field_4, field_8, field_c, field_23, field_27; [ecx + n] field_4, field_8, field_c; [edx + n] field_2
 # callees:      calls FUN_00413187, FUN_0042ba3a, FUN_0051dc43, FUN_0050ca3e, FUN_0042639d, FUN_004c97b4, FUN_0048945b, FUN_005193ca, FUN_0051dc6c
-# track-n:      outputs/blackmoor-decomp/src/session_bindings_a36.c:is_served_raw_type (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 191 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl30b.c:m411f24_replace_record (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 191 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

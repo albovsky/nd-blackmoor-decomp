@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004d214b
+# name:         m4d214b_lookup_word
+# naming:       native port src/original_methods_fl30b.c:m4d214b_lookup_word (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port
+# name-note:    Byte-to-word lookup (jmp-table switch, 53 mapped values, default 0); all 256 byte values run through the original; window covers the jump and index tables. See fl30b-handoff.md.
 # arguments:    3 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       2 ebp-relative slot(s): local_4, local_8
 # fields:       [eax + n] field_5b, field_61, field_67, field_6d, field_73, field_79, field_7f, field_85, field_8b, field_91, field_97, field_9d and 6 more; [ecx + n] field_59, field_5f, field_65, field_6b, field_71, field_77, field_7d, field_83, field_89, field_8f, field_95, field_9b and 6 more; [edx + n] field_5d, field_63, field_69, field_6f, field_75, field_7b, field_81, field_87, field_8d, field_93, field_99, field_9f and 5 more
 # callees:      none: no call or outward jump
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 235 instruction(s), 1 conditional branch(es) and 2 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl30b.c:m4d214b_lookup_word (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 235 instruction(s), 1 conditional branch(es) and 2 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

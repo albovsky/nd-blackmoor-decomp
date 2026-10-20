@@ -1,0 +1,103 @@
+#ifndef BLACKMOOR_ORIGINAL_METHODS_FL30C_H
+#define BLACKMOOR_ORIGINAL_METHODS_FL30C_H
+
+#include <stddef.h>
+#include <stdint.h>
+
+#include "original_methods_fl18.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* FL-30 (batch c): methods of GAME.EXE (SHA-256 afd337a2...5c45) ported one to one, in the style of FL-29 batch c (see original_methods_fl29c.h, whose conventions apply
+ * unchanged, and the Fl18Host of original_methods_fl18.h): each is its own symbol `m<va>_<name>` that cites the original address in its leading comment, nothing is bounds
+ * checked, and the effects keep the order of the original. The names are descriptive hints, not recovered source names.
+ *
+ * Calls into original code and into the imports go through Fl18Host.call (callee address, ecx value, stack arguments with args[0] the LAST one pushed = the first argument of a C
+ * prototype); a host that binds them to other m<va>_* symbols says so itself. Host contract: the Fl30cWorld scalars are a snapshot; a host that backs a callee with real original
+ * code must flush the world to the original's memory BEFORE each Fl18Host.call and resync it AFTER the call. A callee that changes `self` or a global that the function reads again
+ * afterwards is not exercised (tasks/fl30c-handoff.md). Pointer-valued stack arguments are host pointers to the memory they name; 32-bit values stored in objects, cells and tables
+ * are original addresses that Fl18Host.resolve turns into memory. Nothing here claims original source structure. */
+
+typedef struct Fl30cWorld {
+    int16_t word_63a4cd;       /* the debug flag: a non-zero word turns on the trace calls */
+    uint32_t value_5d15a5, value_5bb1d2, value_5bb1ce, value_5b15d6, value_5bb1da, value_5bb1d6, value_5b1606;       /* 0x43d7f0 */
+    uint8_t byte_5b5158, byte_5b51ab, byte_5b51c6, byte_5b615e, byte_5b61af, byte_5b51f6;
+    uint32_t value_5d1a8f, value_5d1ad9, value_5d1b23, value_5d1bb7, value_5d1c01, value_5d1b6d;
+    uint8_t *ring_56f354;      /* 0x41b6e2: host memory of the 0x1000-byte ring buffer at 0x56f354 */
+    uint8_t *records_5bb5e5;   /* 0x4763b3: host memory of the records of stride 0x8d at 0x5bb5e5 (the dword at +0 is the address of the object of record n) */
+} Fl30cWorld;
+
+/* 0x4fcb5c, thiscall (`self` = ecx), `ret 4`, the stack argument `idx` is a signed dword: the float table at self + 0xb764 (indexed by idx) holds a master volume per category.
+ * v = the float at self + 0xb764 + idx*4. v is first clamped from below (x87 compare with 0.0f, constant at 0x52db78): when !(v >= 0.0f), which includes a NaN, the dword becomes 0;
+ * otherwise it is rewritten with its own bits. The value just stored is then clamped from above (compare with 1.0f, constant at 0x52cbf4): when !(v > 1.0f) it is rewritten with its own
+ * bits, otherwise it becomes 0x3f800000. Then for every channel c = 0 .. 0x1f (a word) at self + c*0x5bb: when the signed word [ch+0x10c] equals idx (sign-extended against the dword) and
+ * the unsigned word [ch+0x132] is 1: dword [ch+0x140] = ftol(float [ch+0x138] * v * 2857.142822265625f + (-2857.142857142857)) and dword [ch+0x144] = ftol(float [ch+0x13c] * v * the same
+ * constants), where v is read again from the table for every product (x87 with the 53-bit precision control word 0x27f, so each step is one rounding to double: the port uses doubles),
+ * constants at 0x52e4e0 (float) and 0x52e4d8 (double), and ftol is the CRT helper 0x50ce04 (fistp with truncation: the low dword of the 64-bit result, 0 for NaN or a value out of the
+ * 64-bit range; the helper is original library code that the oracle runs as it is, the port reproduces it with ftol_low32). Then 0x4f684a(this 0x5cf1eb, c sign-extended) (thiscall, one
+ * argument) per matching channel; the loop goes on. */
+void m4fcb5c_set_category_master(uint8_t *self, int32_t idx, const Fl18Host *host);
+
+/* 0x43d7f0, plain `ret` (no arguments; ecx is not read): the start-of-scene initialiser. dword [0x5d15a5] = 1; then 0x4d3ced(this 0x61c387) (thiscall, no arguments); when dword [0x5bb1d2] is
+ * not zero: dword [0x5b15d6] = dword [0x5bb1ce] and [0x5bb1d2] = 0; when dword [0x5bb1da] is not zero: dword [0x5b1606] = dword [0x5bb1d6] and [0x5bb1da] = 0; each of the six bytes
+ * 0x5b5158, 0x5b51ab, 0x5b51c6, 0x5b615e, 0x5b61af, 0x5b51f6 that is not zero sets its flag dword to 1 (0x5d1a8f, 0x5d1ad9, 0x5d1b23, 0x5d1bb7, 0x5d1c01, 0x5d1b6d in that order). Then the 46
+ * initialisers of the other scene objects, each a thiscall with no arguments on its object address, in the order of the table kInitCalls in the source (the first call above is entry 0 of it). The
+ * results are ignored, a callee that changes one of the globals above is not exercised. */
+void m43d7f0_init_scenes(Fl30cWorld *world, const Fl18Host *host);
+
+/* 0x434025, thiscall (`self` = ecx), plain `ret` (no arguments, no result): builds the table of record offsets of the object. dword [self+0x5f68] = 0; sel = 0 (a local that keeps its value over the
+ * whole function); for i = 0 while i < (signed dword [self+0x5f64]) (read again every pass): p = dword [self + 0x1144 + i*4] + 4 (4 = the length of the constant string "DATA" at 0x545e7c, measured by
+ * `repne scasb`); n = 0x4347b8(this self, p) (thiscall, one argument); n <= 8 (unsigned): the report 0x42639d(this 0x583979, 0x545e98, 0x545e84) (thiscall, two arguments) and 0x4c97b4(this 0x5cf659),
+ * and the function goes on. p += 8; q = 5. Then the loop (the original's `mov eax, 1; test eax, eax; je` guard is always true): when 0x434773(this self, p) (thiscall, one argument) returns 1: for j = 0 while
+ * j < (signed dword [self+0x5f64]) (read again): j == i is skipped, and the first j with dword [self + 0x1144 + j*4] == p sets sel = j and ends the scan; then p += dword [self + 0x3084 + sel*4],
+ * q += the same dword, and q >= n (unsigned) leaves the loop. Then (also when the call did not return 1): a signed dword [self+0x5f68] > 0x3e6: the report 0x42639d(this 0x583979, 0x545ed0, 0x545ebc)
+ * and 0x4c97b4(this 0x5cf659) (the original goes on); dword [self + 0x20e4 + [self+0x5f68]*4] = p; [self+0x5f68] += 1; p += 4; q += 4; m = 0x4347b8(this self, p); an odd m is made even (+1); p += 4; q += 4;
+ * p += m; q += m; q > n (unsigned) leaves the loop, otherwise it goes on. Not bounds checked, as in the original: the entries from index 0x3e8 on overwrite the dwords from self+0x3084 (the table that the
+ * loop above reads), and the count is not limited at all; the caller guarantees an object big enough. */
+void m434025_scan_entries(uint8_t *self, const Fl18Host *host);
+
+/* 0x41b6e2, thiscall (ecx is stored and never read), `ret 0x10`, four stack dwords: `src` and `dst` are host pointers, `srclen` the length of the source in bytes, and a fourth dword that the function
+ * overwrites with its own output counter (so it is not an input). No result is defined (eax is left over). The LZ decoder with a 0x1000-byte ring buffer at 0x56f354: bytes 0 .. 0xfed of the ring are set to
+ * 0x20 (the remaining 18 bytes keep their contents), r = 0xfee, key = 0 (a byte), flags = 0, si = -1, out = 0. Loop: flags >>= 1 (logical); when bit 8 of flags is clear: si += 1, and si == srclen ends the
+ * function; c = byte (src[si] - key), key += 1 (bytes), flags = c | 0xff00. Then when bit 0 of flags is set: si += 1 (si == srclen ends), c = byte (src[si] - key), key += 1; dst[out++] = c; ring[r] = c; r = (r + 1) & 0xfff.
+ * Otherwise: si += 1 (ends), lo = byte (src[si] - key), key += 1; si += 1 (ends), hi = byte (src[si] - key), key += 1; pos = lo | ((hi & 0xf0) << 4), len = (hi & 0xf) + 2; for k = 0 while k <= len (unsigned): b =
+ * ring[(pos + k) & 0xfff]; dst[out++] = b; ring[r] = b; r = (r + 1) & 0xfff. Not bounds checked, as in the original: `dst` must hold the whole output (up to 18 bytes per two source bytes) and `src` srclen bytes; a
+ * srclen the source never reaches (the test is an equality) reads on; the caller validates. */
+void m41b6e2_lz_decode(const uint8_t *src, uint8_t *dst, uint32_t srclen, uint32_t unused, const Fl30cWorld *world);
+
+/* 0x4763b3, thiscall (`self` = ecx), `ret 8`, two stack dwords: `x` (column) then `y` (row) of a cell (the first and the second argument of the prototype: [ebp+8] and [ebp+0xc]). Marks the run of equal
+ * cells through (x, y) of the grid at self + 0x30 (rows of 0xc8 bytes, cells of 0x14 bytes; the word at cell+2 is the value, the byte at cell+1 the mark). rec = dword [0x5bb5e5 + (signed word [self+0x22]) * 0x8d] (an
+ * original address; its dword is resolved by Fl18Host.resolve); rows = signed word [rec+0x42], columns = signed word [rec+0x44]. A non-zero debug word 0x63a4cd: 0x50ca3e(0x63888b, 0x54c868, y, x) (cdecl,
+ * four arguments) and 0x44a2b7(0x63888b) (cdecl, one). Then: bytes [self+0x8d6] = [self+0x8d7] = 0; ref = the word at cell (x, y) + 2; four scans over the words of self (each flag loop is the
+ * original's `byte flag = 1; while (flag)`): word [self+0x8ce] = y, then while the word is not 0: it is decremented and, when the value of cell (x, that row) differs from ref, incremented back and the scan ends (the top
+ * of the vertical run); word [self+0x8d0] = y, then while the word != rows - 1 (signed): incremented, and when the cell differs decremented back and the scan ends (the bottom); [self+0x8d2] = x, then while != 0:
+ * decremented, back on a mismatch (the left end, cells (column, y)); [self+0x8d4] = x, then while != columns - 1: incremented, back on a mismatch (the right end). Vertical length v = [8d0] - [8ce] (signed
+ * words), horizontal length h = [8d4] - [8d2]. v >= 2: byte [self+0x8d6] = 1; for k = [8ce] while (signed word) k <= [8d0]: byte [cell (x, k) + 1] = 1 and dword [self+0x8c2] += signed word [rec+0x644]; then
+ * (the original tests the HORIZONTAL length here, as written) h == 2: dword [self+0x8c6] += signed word [rec+0x656] * 1000; otherwise v == 3: [8c2] += word [rec+0x658], [8c6] += word [rec+0x65a] * 1000; otherwise
+ * v == 4: [8c2] += word [rec+0x65c], [8c6] += word [rec+0x65e] * 1000. Then 0x50ca3e(self + 0x835, 0x54c898, dword [self+0x8c2]) (cdecl, three arguments) and byte [self+0x801] = 1. Independently h >= 2: byte
+ * [self+0x8d7] = 1; for k = [8d2] while k <= [8d4]: byte [cell (k, y) + 1] = 1 and [8c2] += word [rec+0x644]; h == 2: [8c6] += word [rec+0x656] * 1000; h == 3: [8c2] += word [rec+0x658], [8c6] += word
+ * [rec+0x65a] * 1000; h == 4: [8c2] += word [rec+0x65c], [8c6] += word [rec+0x65e] * 1000; 0x50ca3e(self + 0x835, 0x54c89c, [8c2]); byte [self+0x801] = 1. Not bounds checked, as in the original: the scans
+ * end only on the conditions above (a start outside the grid runs on until a word wraps); the caller passes a cell inside the grid. NATIVE REJECTION (not original behaviour): when Fl18Host.resolve gives NULL
+ * for the record the function returns at once without any effect. */
+void m4763b3_mark_runs(uint8_t *self, uint32_t x, uint32_t y, const Fl30cWorld *world, const Fl18Host *host);
+
+/* 0x423876, thiscall (`self` = ecx), `ret 8`, two stack dwords: `cell` (a host pointer to a dword cell that holds the address of a node; the first argument) and `flag` (the second). Releases a chain of nodes.
+ * The cell holds 0: 0x50ca3e(0x63888b, 0x544730) (cdecl, two arguments) and the report below, return. node = 0x423aae(this self, dword [cell]) (thiscall, one argument; a node address) and 0 returns. Then a loop
+ * until `done` (a local that starts at 0), on the node: the dword type [node+0] == 2, or type 1 with the dword [node+0x44] == 0: cur = node; node = dword [cur+0x34]; when that is 0: done = 1 and
+ * c = dword [cur+0x48]; c != 0: dword [c+4] = 0; then 0x423a30(this self, &cur) (thiscall, one argument: the address of the local holding cur, whose bytes the callee may read). Type 1 with [node+0x44] != 0:
+ * 0x4234dd(this self, cell, node) (thiscall, two arguments); this function again for the cell node+0x44 with the flag 1 (recursion); t = 0x4235fd(this self) (thiscall, no arguments); t == 0:
+ * 0x50ca3e(0x63888b, 0x5447e0) and the report, return. Otherwise node = dword [t+8], cell = dword [t+4] (the cell of the caller is replaced), done = 0, and when dword [node+0x44] != 0:
+ * 0x50ca3e(0x63888b, 0x544770, dword [node+0xc]) (cdecl, three arguments) and the report, return. A node of another type: the original loops forever (see the rejection below). After the loop: flag != 0:
+ * 0x51dc6c(dword [cell]) (cdecl, one argument) and dword [cell] = 0 (the possibly replaced cell). The report: 0x52139c(0x63888b, 0, 0) (stdcall, three arguments), a non-zero debug word
+ * 0x63a4cd: 0x44a2b7(0x63888b) (cdecl, one), then 0x4c97b4(this 0x5cf659) (thiscall, no arguments); the function then returns. Addresses stored in the nodes are original addresses that Fl18Host.resolve
+ * turns into memory. NATIVE REJECTIONS (not original behaviour): a node whose type is neither 1 nor 2 makes the original loop forever (the oracle runs it and shows that it does not return), the port returns at
+ * once; the port also returns when an address it must dereference does not resolve. */
+void m423876_unwind_chain(uint8_t *self, uint8_t *cell, uint32_t flag, const Fl30cWorld *world, const Fl18Host *host);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
