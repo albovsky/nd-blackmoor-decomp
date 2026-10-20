@@ -182,8 +182,11 @@ def gen_4e2e05(rng, n):
     zbytes(rng, s, 0x139d, LEN1[(variant + count) % len(LEN1)])
     zbytes(rng, s, 0x13be, rng.choice([0, 1, 5, 0x1f, 0x20]))
     zbytes(rng, s, 0x13e3, rng.choice([0, 1, 2, 0x1c, 0x20]))
-    g1 = s[0x139d] if d1 == 0 else (s[0x139d] ^ rng.randrange(1, 256))
-    g2 = s[0x13e3] if d2 == 0 else (s[0x13e3] ^ rng.randrange(1, 256))
+    # a differing first byte: a random xor, but every fourth pass exactly 0x01 (g1) / 0x80 (g2) so that a compare on fewer than 8 bits is seen
+    x1 = [rng.randrange(1, 256), 0x01, 0x80, 0xff][variant % 4]
+    x2 = [rng.randrange(1, 256), 0x80, 0x01, 0xff][variant % 4]
+    g1 = s[0x139d] if d1 == 0 else (s[0x139d] ^ x1)
+    g2 = s[0x13e3] if d2 == 0 else (s[0x13e3] ^ x2)
     blk = Area('blk', BLK_VA, bytearray(rng.randbytes(BLK_SIZE)), image=True)
     stubs = {0x4e3ade: stub(0x4e3ade, THISCALL(0), probe=[('blk', 0, 0x600), ('blk', 0x810, 0x50)])}
     return make('4e2e05', [self_area(s), blk], stubs, {'byte_63a9e4': g1 & 0xff, 'byte_63a9e8': g2 & 0xff}, [], (), (count, d1, d2), {'block_5a1e54': ('blk', 0)})
