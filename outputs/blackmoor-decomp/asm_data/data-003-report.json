@@ -1,0 +1,68 @@
+{
+ "schema": "blackmoor-data-asm/1/report",
+ "batch": "003",
+ "class_requested": "tool_assisted_reconstructed_data",
+ "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+ "manifest_sha256": "b2974570c1e0e1d7596d1d33bd6a7043d8432c149a0a9b765ca6faaea7612589",
+ "source": {
+  "path": "data-003.s",
+  "sha256": "788b2e692afb38857181a0cc1fc10b5fae28a2fb4852373ca7185c4de690ba3e"
+ },
+ "layout": {
+  "path": "data-003.layout",
+  "sha256": "4e8bfc6cfb2527a157f4af0525b8f1d6e9a17c30ae6f30d1c354cdcbfe418353"
+ },
+ "assembler": {
+  "path": "work/tools/s08-binutils-2.43.1/prefix/bin/i686-w64-mingw32-as",
+  "version_line": "GNU assembler (GNU Binutils) 2.43.1",
+  "sha256": "e098415986a220be7e4b2d14f3b0894cf065a8f21d6aaf117140d2966039e5c4",
+  "self_test": "passed",
+  "binutils_archive_sha512": "20977ad17729141a2c26d358628f44a0944b84dcfefdec2ba029c2d02f40dfc41cc91c0631044560d2bd6f9a51e1f15846b4b311befbe14f1239f14ff7d57824"
+ },
+ "ranges": [
+  {
+   "offset": "0x0",
+   "length": 4096,
+   "va": "0x00400000",
+   "section": "<headers>",
+   "sha256": "d20dbf017f452b2f753ef19b0e45b59fee5dc8e5c96fe9c6e2be7f7a732d87cc"
+  },
+  {
+   "offset": "0x12925a",
+   "length": 3494,
+   "va": "0x0052925a",
+   "section": ".text",
+   "sha256": "47674d477d507a99c28d9929f44a409a0c9d9707083d8d6b3cada5acff9d0ddd"
+  },
+  {
+   "offset": "0x12a000",
+   "length": 1356,
+   "va": "0x0052a000",
+   "section": ".rdata",
+   "sha256": "b5502bcfa2e13e6f78894802753c5f8ff10a2ecd48c4f0346c588c2f17ebf9ee"
+  },
+  {
+   "offset": "0x134910",
+   "length": 9968,
+   "va": "0x00534910",
+   "section": ".rdata",
+   "sha256": "5d81b4cb5794fcc56c67c956803287afa963bd3c8974c72d6766c62745980f82"
+  }
+ ],
+ "bytes_total": 18914,
+ "compared_bytes": 18914,
+ "relocations": 0,
+ "labels_checked": 680,
+ "directives": {
+  "strings": 341,
+  "pointers": 0,
+  "external_pointers": 0,
+  "zero_runs": 254,
+  "numeric_dwords": 927,
+  "byte_lines": 176,
+  "labels": 680,
+  "constants": 0
+ },
+ "errors": [],
+ "all_accepted": true
+}

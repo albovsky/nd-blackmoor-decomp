@@ -28,8 +28,9 @@ local ``GAME.EXE`` into ``work/asm_data/`` whenever it is audited or composed, a
 generator, the manifest (ranges, hashes) and the layout.  The layout (``asm_data/data-NNN.layout``) is that source
 with every string, numeric dword and byte list masked as ``[length]``: labels, offsets, zero runs, pointer
 expressions and the named address constants of pointer targets remain (structure, not a string or number value).  The manifest pins the SHA-256 of the full source and of the
-layout, so a build from any other bytes is refused.  Nothing here claims original C provenance, and the PE headers,
-import tables and the resource directory tree are not part of this source.
+layout, so a build from any other bytes is refused.  Nothing here claims original C provenance.  Batches 001 and 002 (profile ``payloads``) hold payloads; batches 003 and
+004 (profile ``structures``, ``gen --structures pe|resource``) hold the PE headers, import tables, resource directory tree and
+section zero fill, which the composer's structured groups also generate.
 """
 
 from __future__ import annotations
@@ -108,6 +109,30 @@ def load_sections(image_dir: Path = IMAGE_DIR) -> list[Section]:
         Section(s["name"], IMAGE_BASE + int(s["virtual_address"], 16), int(s["virtual_size"], 16), int(s["raw_pointer"], 16), int(s["raw_size"], 16))
         for s in layout["sections"]
     ]
+
+
+HEADERS = "<headers>"
+PROFILE_PAYLOADS = "payloads"  # .rdata / .data / resource payloads (the default; manifests of batches 001 and 002 carry no profile)
+PROFILE_STRUCTURES = "structures"  # PE headers, import tables, resource directory tree and section padding
+
+
+def containing_section(sections: list[Section], lo: int, hi: int) -> Optional[Section]:
+    """The section whose raw data holds ``[lo, hi)``; the file headers (before the first section) are the pseudo-section
+    ``<headers>`` at the image base."""
+    for s in sections:
+        if s.raw_off <= lo and hi <= s.raw_off + s.raw_size:
+            return s
+    if not sections:
+        return None
+    first = min(s.raw_off for s in sections)
+    if lo >= 0 and hi <= first:
+        return Section(HEADERS, IMAGE_BASE, first, 0, first)
+    return None
+
+
+def section_name_at(sections: list[Section], offset: int) -> str:
+    sec = containing_section(sections, offset, offset + 1)
+    return sec.name if sec is not None else "?"
 
 
 def load_function_starts(path: Path = PROJECT / "function-index.json") -> set[int]:
@@ -324,11 +349,28 @@ def escape_string(raw: bytes) -> str:
     return "".join(out)
 
 
-def header_lines(ranges: tuple[tuple[int, int], ...], sections: list[Section], origin_va: int, bias: int, pointers: bool) -> list[str]:
+def _not_claimed_lines(profile: Optional[str]) -> list[str]:
+    if profile == PROFILE_STRUCTURES:
+        return [
+            "# Not claimed: original C provenance, that any value is a pointer or a string in the original program, that any field is",
+            "# meaningful, or an x86 match of the whole file (code and the other data sources are separate batches).",
+        ]
+    return [
+        "# Not claimed: original C provenance, that any value is a pointer or a string in the original program, or an x86",
+        "# match of the PE headers, import tables and resources (they are not in this source).",
+    ]
+
+
+def pointer_note(pointers: bool, profile: Optional[str]) -> str:
+    if pointers:
+        return "detected"
+    return "not detected (PE structures)" if profile == PROFILE_STRUCTURES else "not detected (resource payloads)"
+
+
+def header_lines(ranges: tuple[tuple[int, int], ...], sections: list[Section], origin_va: int, bias: int, pointers: bool, profile: Optional[str] = None) -> list[str]:
     parts = []
     for lo, hi in ranges:
-        name = next((s.name for s in sections if s.raw_off <= lo < s.raw_off + s.raw_size), "?")
-        parts.append(f"{hx8(bias + lo)}-{hx8(bias + hi)} ({name})")
+        parts.append(f"{hx8(bias + lo)}-{hx8(bias + hi)} ({section_name_at(sections, lo)})")
     return [
         MACHINE_HEADER,
         "# Machine-generated data source of GAME.EXE (Track M, packet M-C), emitted from the owner's local original by",
@@ -337,18 +379,17 @@ def header_lines(ranges: tuple[tuple[int, int], ...], sections: list[Section], o
         "# kind found by the generator (STR_ string, WSTR_ UTF-16 string, DAT_ data, FUN_/CODE_/BSS_/IAT_/RSRC_/OUT_ pointer targets) and the VA.",
         f"# original-sha256: {ORIGINAL_SHA256}",
         f"# image-base: {hx8(IMAGE_BASE)}",
-        f"# pointers: {'detected' if pointers else 'not detected (resource payloads)'}",
+        f"# pointers: {pointer_note(pointers, profile)}",
         f"# origin-va: {hx8(origin_va)}",
         f"# ranges: {' '.join(parts)}",
         "# classification: strings are printable ASCII runs of 4 or more bytes ended by a NUL (wide strings: the same in UTF-16LE); pointers are aligned dwords",
         "# that point into a mapped section (a target in these ranges is resolved from its label, any other target is a named",
         "# absolute constant); aligned zero runs are .fill; every other aligned dword is numeric; leftovers are bytes.",
-        "# Not claimed: original C provenance, that any value is a pointer or a string in the original program, or an x86",
-        "# match of the PE headers, import tables and resources (they are not in this source).",
+        *_not_claimed_lines(profile),
     ]
 
 
-def render(analysis: Analysis, origin_va: int, sections: list[Section]) -> str:
+def render(analysis: Analysis, origin_va: int, sections: list[Section], profile: Optional[str] = None) -> str:
     original = analysis.original
     labels = set(analysis.labels)
     externals: dict[str, int] = {}
@@ -393,7 +434,7 @@ def render(analysis: Analysis, origin_va: int, sections: list[Section]) -> str:
             merged[-1] += ", " + line[len(".long "):]
         else:
             merged.append(line)
-    head = header_lines(analysis.ranges, sections, origin_va, analysis.bias, analysis.pointers)
+    head = header_lines(analysis.ranges, sections, origin_va, analysis.bias, analysis.pointers, profile)
     lines = head + [".intel_syntax noprefix", ".data"]
     lines += [f".set {name}, 0x{va:x}" for name, va in sorted(externals.items())]
     lines += ["IMG:"] + merged
@@ -404,7 +445,7 @@ def bias_of(sections: list[Section], ranges: tuple[tuple[int, int], ...]) -> int
     """VA minus file offset shared by every range (the ranges must lie in sections with the same bias)."""
     biases = set()
     for lo, hi in ranges:
-        sec = next((s for s in sections if s.raw_off <= lo and hi <= s.raw_off + s.raw_size), None)
+        sec = containing_section(sections, lo, hi)
         if sec is None:
             raise DataAsmError(f"range {hx8(lo)}-{hx8(hi)} is not inside one section's raw data")
         biases.add(sec.va - sec.raw_off)
@@ -413,7 +454,9 @@ def bias_of(sections: list[Section], ranges: tuple[tuple[int, int], ...]) -> int
     return biases.pop()
 
 
-def generate(original: bytes, ranges: tuple[tuple[int, int], ...] = DEFAULT_RANGES, image_dir: Path = IMAGE_DIR, pointers: bool = True) -> tuple[str, Analysis, int]:
+def generate(
+    original: bytes, ranges: tuple[tuple[int, int], ...] = DEFAULT_RANGES, image_dir: Path = IMAGE_DIR, pointers: bool = True, profile: Optional[str] = None
+) -> tuple[str, Analysis, int]:
     if sha256(original) != ORIGINAL_SHA256:
         raise DataAsmError("not the pinned GAME.EXE")
     sections = load_sections(image_dir)
@@ -421,7 +464,7 @@ def generate(original: bytes, ranges: tuple[tuple[int, int], ...] = DEFAULT_RANG
     bias = bias_of(sections, tuple(ranges))
     origin_va = (bias + ranges[0][0]) & ~0xFFF
     analysis = Analysis(original, tuple(ranges), sections, function_starts, bias, pointers)
-    return render(analysis, origin_va, sections), analysis, origin_va
+    return render(analysis, origin_va, sections, profile), analysis, origin_va
 
 
 # --------------------------------------------------------------------------
@@ -451,9 +494,9 @@ _LAYOUT_LINES = tuple(
         r"^\.(?:asciz|string16|long|byte) \[[0-9]+\]$",
         r"^# original-sha256: [0-9a-f]{64}$",
         r"^# image-base: 0x[0-9a-f]{8}$",
-        r"^# pointers: (?:detected|not detected \(resource payloads\))$",
+        r"^# pointers: (?:detected|not detected \((?:resource payloads|PE structures)\))$",
         r"^# origin-va: 0x[0-9a-f]{8}$",
-        r"^# ranges: (?:0x[0-9a-f]{8}-0x[0-9a-f]{8} \((?:\.[a-z]+|\?)\)(?: |$))+$",
+        r"^# ranges: (?:0x[0-9a-f]{8}-0x[0-9a-f]{8} \((?:\.[a-z]+|<headers>|\?)\)(?: |$))+$",
     )
 )
 
@@ -481,7 +524,10 @@ def layout_of(text: str) -> str:
 
 def _fixed_comments() -> frozenset[str]:
     """The constant prose lines of the layout and source headers (the variable header lines have their own patterns)."""
-    return frozenset(LAYOUT_HEADER) | frozenset(l for l in header_lines(((0, 0),), [], 0, 0, True) if not re.match(r"# (?:original-sha256|image-base|pointers|origin-va|ranges):", l))
+    variable = r"# (?:original-sha256|image-base|pointers|origin-va|ranges):"
+    return frozenset(LAYOUT_HEADER) | frozenset(
+        l for profile in (None, PROFILE_STRUCTURES) for l in header_lines(((0, 0),), [], 0, 0, True, profile) if not re.match(variable, l)
+    )
 
 
 def audit_layout(text: str) -> list[str]:
@@ -590,7 +636,7 @@ def audit_source(text: str, expect: dict[str, Any]) -> tuple[list[str], dict[str
     problems: list[str] = []
     counts = {"strings": 0, "pointers": 0, "external_pointers": 0, "zero_runs": 0, "numeric_dwords": 0, "byte_lines": 0, "labels": 0, "constants": 0}
     lines = text.splitlines()
-    want = header_lines(tuple(expect["ranges"]), expect["sections"], expect["origin_va"], expect["bias"], expect["pointers"])
+    want = header_lines(tuple(expect["ranges"]), expect["sections"], expect["origin_va"], expect["bias"], expect["pointers"], expect.get("profile"))
     if [line for line in lines if line.startswith("#")][: len(want)] != want:
         problems.append("the machine header does not match the manifest ranges")
     seen_img = False
@@ -651,22 +697,39 @@ def audit_source(text: str, expect: dict[str, Any]) -> tuple[list[str], dict[str
 # --------------------------------------------------------------------------
 
 
-def build_manifest(source_name: str, source_text: str, layout_name: str, layout_text: str, original: bytes, ranges: tuple[tuple[int, int], ...], origin_va: int, sections: list[Section], batch: str, pointers: bool) -> dict[str, Any]:
+def build_manifest(
+    source_name: str,
+    source_text: str,
+    layout_name: str,
+    layout_text: str,
+    original: bytes,
+    ranges: tuple[tuple[int, int], ...],
+    origin_va: int,
+    sections: list[Section],
+    batch: str,
+    pointers: bool,
+    profile: Optional[str] = None,
+) -> dict[str, Any]:
     bias = bias_of(sections, ranges)
     entries = []
     for lo, hi in ranges:
-        sec = next((s for s in sections if s.raw_off <= lo < s.raw_off + s.raw_size), None)
-        if sec is None or hi > sec.raw_off + sec.raw_size:
+        sec = containing_section(sections, lo, hi)
+        if sec is None:
             raise DataAsmError(f"range {hx8(lo)}-{hx8(hi)} is not inside one section's raw data")
         entries.append(
             {"offset": f"0x{lo:x}", "length": hi - lo, "va": hx8(bias + lo), "section": sec.name, "sha256": sha256(original[lo:hi])}
         )
-    return {
+    description = (
+        "PE headers, import tables, resource directory tree and section padding as labeled data directives, regenerated from the local original at build time (owner ruling of 2026-10-19)"
+        if profile == PROFILE_STRUCTURES
+        else "initialized data or resource payloads as labeled data directives, regenerated from the local original at build time (owner ruling of 2026-10-19)"
+    )
+    manifest = {
         "schema": SCHEMA,
         "batch": batch,
         "class": DATA_CLASS,
         "original_sha256": ORIGINAL_SHA256,
-        "description": "initialized data or resource payloads as labeled data directives, regenerated from the local original at build time (owner ruling of 2026-10-19)",
+        "description": description,
         "image_base": hx8(IMAGE_BASE),
         "va_bias": hx8(bias),
         "pointers": pointers,
@@ -677,6 +740,9 @@ def build_manifest(source_name: str, source_text: str, layout_name: str, layout_
         "layout_sha256": sha256(layout_text.encode("utf-8")),
         "ranges": entries,
     }
+    if profile is not None:
+        manifest["profile"] = profile
+    return manifest
 
 
 def manifest_ranges(manifest: dict[str, Any]) -> tuple[tuple[int, int], ...]:
@@ -691,13 +757,14 @@ def source_expectation(manifest: dict[str, Any], sections: list[Section]) -> dic
         "origin_va": int(manifest["origin_va"], 16),
         "bias": int(manifest["va_bias"], 16),
         "pointers": bool(manifest["pointers"]),
+        "profile": manifest.get("profile"),
         "max_fill": max(hi - lo for lo, hi in ranges),
     }
 
 
 def regenerate_source(manifest: dict[str, Any], original: bytes, image_dir: Path = IMAGE_DIR) -> str:
     """The full source of a manifest, regenerated from the local original (the committed layout and hashes pin it)."""
-    text, _analysis, _origin = generate(original, manifest_ranges(manifest), image_dir, pointers=bool(manifest["pointers"]))
+    text, _analysis, _origin = generate(original, manifest_ranges(manifest), image_dir, pointers=bool(manifest["pointers"]), profile=manifest.get("profile"))
     return text
 
 
@@ -819,19 +886,55 @@ def resource_ranges(image_dir: Path = IMAGE_DIR) -> tuple[tuple[int, int], ...]:
     return tuple((a, b) for a, b in merged)
 
 
+def structure_ranges(kind: str, image_dir: Path = IMAGE_DIR) -> tuple[tuple[int, int], ...]:
+    """File-offset ranges of the bytes the composer's structured groups generate (batches 003 and 004).
+
+    ``pe``: the file headers up to the first section, the zero fill after the end of ``.text``, and ``.rdata`` outside the
+    ranges of the payload batch (the import address table at its start; the import directory, hint/name entries and zero fill
+    at its end).  ``resource``: the resource directory tree and the zero fill between the resource payloads.
+    """
+    sections = {s.name: s for s in load_sections(image_dir)}
+    if kind == "resource":
+        section = sections[".rsrc"]
+        out: list[tuple[int, int]] = []
+        cursor = section.raw_off
+        for lo, hi in resource_ranges(image_dir):
+            if lo > cursor:
+                out.append((cursor, lo))
+            cursor = hi
+        if cursor < section.raw_off + section.raw_size:
+            out.append((cursor, section.raw_off + section.raw_size))
+        return tuple(out)
+    if kind != "pe":
+        raise DataAsmError(f"unknown structure kind {kind!r}")
+    text, rdata = sections[".text"], sections[".rdata"]
+    payload_lo, payload_hi = DEFAULT_RANGES[0]
+    return (
+        (0, min(s.raw_off for s in sections.values())),
+        (text.raw_off + text.virtual_size, text.raw_off + text.raw_size),
+        (rdata.raw_off, payload_lo),
+        (payload_hi, rdata.raw_off + rdata.raw_size),
+    )
+
+
 def cmd_gen(args: argparse.Namespace) -> int:
     original = args.original.read_bytes()
-    ranges = resource_ranges() if args.resources else tuple(args.range) if args.range else DEFAULT_RANGES
+    profile = PROFILE_STRUCTURES if args.structures else None
+    if args.structures:
+        ranges = structure_ranges(args.structures)
+        args.no_pointers = True
+    else:
+        ranges = resource_ranges() if args.resources else tuple(args.range) if args.range else DEFAULT_RANGES
     if args.resources:
         args.no_pointers = True
-    text, analysis, origin_va = generate(original, ranges, pointers=not args.no_pointers)
+    text, analysis, origin_va = generate(original, ranges, pointers=not args.no_pointers, profile=profile)
     args.out.mkdir(parents=True, exist_ok=True)
     args.build_dir.mkdir(parents=True, exist_ok=True)
     name = f"data-{args.batch}"
     (args.build_dir / f"{name}.s").write_text(text, encoding="utf-8")
     layout_text = layout_of(text)
     (args.out / f"{name}.layout").write_text(layout_text, encoding="utf-8")
-    manifest = build_manifest(f"{name}.s", text, f"{name}.layout", layout_text, original, ranges, origin_va, load_sections(), args.batch, not args.no_pointers)
+    manifest = build_manifest(f"{name}.s", text, f"{name}.layout", layout_text, original, ranges, origin_va, load_sections(), args.batch, not args.no_pointers, profile)
     (args.out / f"{name}.json").write_text(json.dumps(manifest, indent=1) + "\n", encoding="utf-8")
     kinds: dict[str, int] = {}
     for atom in analysis.atoms:
@@ -874,6 +977,7 @@ def make_parser() -> argparse.ArgumentParser:
     g.add_argument("--batch", default="001")
     g.add_argument("--no-pointers", action="store_true", help="resource payloads: do not detect pointers")
     g.add_argument("--resources", action="store_true", help="the resource leaf payloads of image/resources.json (implies --no-pointers)")
+    g.add_argument("--structures", choices=("pe", "resource"), help="the bytes the composer's structured groups generate: PE headers, import tables and padding (pe), or the resource directory tree and padding (resource)")
     g.add_argument("--range", type=lambda s: tuple(int(x, 16) for x in s.split(":")), action="append", help="LO:HI file offsets in hex (default: the .rdata and .data ranges)")
     g.set_defaults(func=cmd_gen)
     a = sub.add_parser("audit")

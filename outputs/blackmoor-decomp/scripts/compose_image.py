@@ -184,6 +184,7 @@ class Item:
     sha256: str = ""  # expected SHA-256 for referenced ranges
     stage_referenced: bool = False  # structured item served from the original in a staged build
     provenance: str = ""  # reconstructed items: the provenance class of the source that produced the bytes
+    replaces_structured: bool = False  # data batch of the "structures" profile: the structured items inside it are not placed
 
     @property
     def end(self) -> int:
@@ -782,7 +783,18 @@ def bind_data_batches(
             name = f"{manifest['source']}:{entry['va']}"
             taken.append((offset, offset + length, name))
             items.append(
-                Item(offset, length, CLS_RECONSTRUCTED, "reconstructed", name, entry["section"], "data", data=data, provenance=DATA_ASM_CLASS)
+                Item(
+                    offset,
+                    length,
+                    CLS_RECONSTRUCTED,
+                    "reconstructed",
+                    name,
+                    entry["section"],
+                    "data",
+                    data=data,
+                    provenance=DATA_ASM_CLASS,
+                    replaces_structured=manifest.get("profile") == data_asm.PROFILE_STRUCTURES,
+                )
             )
             bound_bytes += length
             range_hashes.append(sha256(data))
@@ -797,6 +809,7 @@ def bind_data_batches(
                 "provenance_class": DATA_ASM_CLASS,
                 "status": "bound",
                 "data_ranges": len(manifest["ranges"]),
+                "profile": manifest.get("profile", data_asm.PROFILE_PAYLOADS),
                 "manifest_sha256": file_sha256(manifest_path),
                 "report_sha256": file_sha256(report_path),
                 "source_sha256": manifest["source_sha256"],
@@ -1059,6 +1072,7 @@ class Composition:
     layout: Layout
     ranges_meta: dict[str, Any]
     descriptions: dict[str, str]  # file name -> sha256
+    structured_replaced: Optional[dict[str, int]] = None  # structured items taken from a bound structures data batch instead
 
 
 def load_descriptions(image_dir: Path) -> dict[str, Any]:
@@ -1081,6 +1095,29 @@ def structured_items(layout: Layout, desc: dict[str, Any]) -> dict[str, list[Ite
     by_group["int3_padding"] = gen_int3_padding(layout, desc["text_data"])
     by_group["section_padding"] = gen_section_padding(layout, desc["layout"]["section_padding"]) + gen_resource_padding(layout, desc["resources"])
     return by_group
+
+
+def supersede_structured(items: list[Item], bound: list[Item]) -> tuple[list[Item], dict[str, int]]:
+    """Drop the structured items that a bound ``structures`` data batch rebuilds as audited assembler data.
+
+    The structured groups still generate their bytes first and are compared with the original (so
+    ``structured_mismatches`` keeps checking the committed descriptions); an item that lies wholly inside a bound
+    structures range is then taken from the batch instead, and an item that straddles its edge is an error.
+    """
+    spans = sorted((b.offset, b.end) for b in bound if b.replaces_structured)
+    kept: list[Item] = []
+    count = total = 0
+    for item in items:
+        inside = any(lo <= item.offset and item.end <= hi for lo, hi in spans)
+        straddle = any(item.offset < hi and lo < item.end for lo, hi in spans) and not inside
+        if straddle:
+            raise ComposeError(f"{item.group}/{item.name} at {hx(item.offset)}+{item.length} straddles the edge of a bound structures range")
+        if inside:
+            count += 1
+            total += item.length
+        else:
+            kept.append(item)
+    return kept, {"items": count, "bytes": total}
 
 
 def referenced_items(layout: Layout, ranges: dict[str, Any], original: bytes) -> list[Item]:
@@ -1182,6 +1219,7 @@ def compose(
     reconstructed_items, records = bind_reconstructed(
         layout, desc["reconstructed"], original_path, build_dir, assembler, [(i.offset, i.length) for i in items]
     )
+    items, replaced = supersede_structured(items, reconstructed_items)
     items += reconstructed_items
     items += referenced_items(layout, desc["ranges"], original)
 
@@ -1210,6 +1248,7 @@ def compose(
         layout=layout,
         ranges_meta=meta,
         descriptions=hashes,
+        structured_replaced=replaced,
     )
 
 
@@ -1315,6 +1354,7 @@ def coverage_report(comp: Composition) -> dict[str, Any]:
         },
         "reconstructed": comp.reconstructed_records,
         "structured_mismatches": comp.structured_mismatches,
+        "structured_replaced_by_data_batches": comp.structured_replaced or {"items": 0, "bytes": 0},
         "description_sha256": comp.descriptions,
     }
 
@@ -1950,6 +1990,10 @@ def cmd_build(args: argparse.Namespace) -> int:
             print(f"  {item['group']}: {item['name']} at {hx(item['offset'])} first difference {item['first_difference']}", file=sys.stderr)
     if args.require_match and not comp.hash_match:
         print("compose_image: whole-file SHA-256 does not match the original", file=sys.stderr)
+        return 1
+    if args.require_match and comp.structured_mismatches:
+        # a structured group the data batches replace no longer reaches the hash, but a description that disagrees with the original is still a failed build
+        print("compose_image: a structured description does not reproduce the original bytes", file=sys.stderr)
         return 1
     return 0
 

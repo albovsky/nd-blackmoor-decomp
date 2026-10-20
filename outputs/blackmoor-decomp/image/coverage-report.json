@@ -32,16 +32,16 @@
   "reconstructed_functions": 4786,
   "reconstructed_index_table_bytes": 1934,
   "reconstructed_padding_bytes": 1526,
-  "reconstructed_data_bytes": 274976
+  "reconstructed_data_bytes": 298406
  },
  "by_class": {
   "structured": {
-   "bytes": 31500,
-   "ranges": 560
+   "bytes": 8070,
+   "ranges": 528
   },
   "reconstructed": {
-   "bytes": 1479924,
-   "ranges": 1010
+   "bytes": 1503354,
+   "ranges": 991
   },
   "referenced": {
    "bytes": 0,
@@ -53,6 +53,10 @@
   }
  },
  "reconstructed_by_provenance": {
+  "tool_assisted_reconstructed_data": {
+   "ranges": 51,
+   "bytes": 298406
+  },
   "tool_assisted_reconstructed_assembly": {
    "ranges": 4773,
    "bytes": 1201090
@@ -72,28 +76,24 @@
   "incomplete_byte_range_not_a_complete_function": {
    "ranges": 2,
    "bytes": 14
-  },
-  "tool_assisted_reconstructed_data": {
-   "ranges": 24,
-   "bytes": 274976
   }
  },
  "by_section": {
   "<headers>": {
-   "structured": 4096,
-   "reconstructed": 0,
+   "structured": 0,
+   "reconstructed": 4096,
    "referenced": 0,
    "missing": 0
   },
   ".text": {
-   "structured": 11564,
-   "reconstructed": 1204948,
+   "structured": 8070,
+   "reconstructed": 1208442,
    "referenced": 0,
    "missing": 0
   },
   ".rdata": {
-   "structured": 11324,
-   "reconstructed": 41924,
+   "structured": 0,
+   "reconstructed": 53248,
    "referenced": 0,
    "missing": 0
   },
@@ -104,8 +104,8 @@
    "missing": 0
   },
   ".rsrc": {
-   "structured": 4516,
-   "reconstructed": 24156,
+   "structured": 0,
+   "reconstructed": 28672,
    "referenced": 0,
    "missing": 0
   }
@@ -131,29 +131,9 @@
   }
  },
  "by_group": {
-  "dos_header": {
-   "bytes": 128,
-   "items": 1
-  },
-  "rich_header": {
-   "bytes": 144,
-   "items": 1
-  },
-  "pe_headers": {
-   "bytes": 248,
-   "items": 1
-  },
-  "section_table": {
-   "bytes": 160,
-   "items": 1
-  },
-  "header_padding": {
-   "bytes": 3416,
-   "items": 1
-  },
   "reconstructed": {
-   "bytes": 1479924,
-   "items": 5064
+   "bytes": 1503354,
+   "items": 5091
   },
   "int3_padding": {
    "bytes": 2214,
@@ -162,22 +142,6 @@
   "jump_tables": {
    "bytes": 5856,
    "items": 172
-  },
-  "section_padding": {
-   "bytes": 8502,
-   "items": 24
-  },
-  "iat": {
-   "bytes": 1356,
-   "items": 13
-  },
-  "import_directory": {
-   "bytes": 7396,
-   "items": 357
-  },
-  "resource_tree": {
-   "bytes": 2080,
-   "items": 87
   }
  },
  "stage_referenced_bytes": 0,
@@ -339,7 +303,7 @@
    "source_kind": "c_incomplete_byte_range",
    "provenance_class": "incomplete_byte_range_not_a_complete_function",
    "source_sha256": "6505a0b14d4406347739a2b869e804f8c46ac5bc5e7adb3b26d4b8bf4831127f",
-   "object_sha256": "d9ec3e2c6ee1c3a7dcf670de3884b9b5baf6730e6342940162124a7e9dc8788b",
+   "object_sha256": "d3e86d072e88756d76897e318c850768e5e8475bd000e9b7fd18a94c41310680",
    "range_sha256": "619829cd4f296ce81e5275137505e34628c8e741d1c31c498d2c26ceec0f3241",
    "status": "bound"
   },
@@ -352,7 +316,7 @@
    "source_kind": "c_incomplete_byte_range",
    "provenance_class": "incomplete_byte_range_not_a_complete_function",
    "source_sha256": "6505a0b14d4406347739a2b869e804f8c46ac5bc5e7adb3b26d4b8bf4831127f",
-   "object_sha256": "d9ec3e2c6ee1c3a7dcf670de3884b9b5baf6730e6342940162124a7e9dc8788b",
+   "object_sha256": "d3e86d072e88756d76897e318c850768e5e8475bd000e9b7fd18a94c41310680",
    "range_sha256": "84358b64bfaccfd336ed4b2ce706f45729f875f610a80f96346cc982b5cad304",
    "status": "bound"
   },
@@ -621,9 +585,11 @@
    "provenance_class": "tool_assisted_reconstructed_data",
    "status": "bound",
    "data_ranges": 2,
-   "manifest_sha256": "cac2ac0f6b05a4c15014cf86dacddcf232b4aefdb7957baa9e9ea91bf2e919c6",
-   "report_sha256": "e532c9f2998662cee2826363358d9b9e125a78689e2c163cefa51da41782531e",
+   "profile": "payloads",
+   "manifest_sha256": "efa4e43a2cd9eae0cd17446d29d1d79a388ff9015592bb9aa7000bf5d84ac1cf",
+   "report_sha256": "226a08a453d5f51d973428b07679fcb01443cb0faca19448f54d436de4830bac",
    "source_sha256": "74048dd7a288c2b8d5e337ffab81381f30693c25155db716fac3f5b447b5cca4",
+   "layout_sha256": "2920ba2b8b21b6cabb922faa7fa148fedaed6b41a74cb583976d4dde9cc1fa98",
    "range_sha256": "fe2d856c29ae7e8220a087185fa5043795c9ca3c6a64fd54b3a23468a9314b9f",
    "assembler_version_line": "GNU assembler (GNU Binutils) 2.43.1"
   },
@@ -637,20 +603,62 @@
    "provenance_class": "tool_assisted_reconstructed_data",
    "status": "bound",
    "data_ranges": 22,
-   "manifest_sha256": "c91b795e46db628d344732bd14477707db46eb47707ba3ee723e62a1393aaca4",
-   "report_sha256": "a28179ba7f24e530a133c158781d3a70e5466ae7691e7b14d0bb4b75d2838519",
+   "profile": "payloads",
+   "manifest_sha256": "4849eba40dbcd6d573050a39f8a1d57ab0763758f99d899e5720f217d2622907",
+   "report_sha256": "675eaefeab4128a9219feb8900e67848f4dcb6e397c245941b5ec3b5127ed6a9",
    "source_sha256": "5733dd411b19ed6c22cecdf157107127992290bd681032f936596b0aee9224a0",
+   "layout_sha256": "aa5aeef1ac94f53ff304327049ba569d148d777a3d1819f5fb60e00ab9f541a4",
    "range_sha256": "8b85bc153015e008fc60b29c960f711636ee69112a696987c47125293f64af8d",
+   "assembler_version_line": "GNU assembler (GNU Binutils) 2.43.1"
+  },
+  {
+   "manifest": "asm_data/data-003.json",
+   "symbol": "asm_data/data-003.json",
+   "batch": "003",
+   "offset": 0,
+   "length": 18914,
+   "source_kind": "tool_assisted_data_directives",
+   "provenance_class": "tool_assisted_reconstructed_data",
+   "status": "bound",
+   "data_ranges": 4,
+   "profile": "structures",
+   "manifest_sha256": "b2974570c1e0e1d7596d1d33bd6a7043d8432c149a0a9b765ca6faaea7612589",
+   "report_sha256": "f0161221ee2cf77b06b7da50fb9cc96f715c248ebd88d7bdf689a91954a98b56",
+   "source_sha256": "788b2e692afb38857181a0cc1fc10b5fae28a2fb4852373ca7185c4de690ba3e",
+   "layout_sha256": "4e8bfc6cfb2527a157f4af0525b8f1d6e9a17c30ae6f30d1c354cdcbfe418353",
+   "range_sha256": "ffb35f72a982a3f61651099e6163dcf6a747ef104289fc8300ee36de750764f2",
+   "assembler_version_line": "GNU assembler (GNU Binutils) 2.43.1"
+  },
+  {
+   "manifest": "asm_data/data-004.json",
+   "symbol": "asm_data/data-004.json",
+   "batch": "004",
+   "offset": 1482752,
+   "length": 4516,
+   "source_kind": "tool_assisted_data_directives",
+   "provenance_class": "tool_assisted_reconstructed_data",
+   "status": "bound",
+   "data_ranges": 23,
+   "profile": "structures",
+   "manifest_sha256": "759d00a54fd2c2790132c59927013343d6aa3df484da551f11a25b7b62e66681",
+   "report_sha256": "14dc590054b931d0bb4a308338a97810c66795ea6d0cc6caf44b5774f13a1083",
+   "source_sha256": "c3d18ea34e8d78750146d8c5582db0e2f5dc868b3cf00b80e94ed517b47a78e0",
+   "layout_sha256": "71a65e869994bee1adfe73bfbd65d33da0fb8350a90d953f5f9742bc4d4888bc",
+   "range_sha256": "0c3f951e6e218b86896c53ed25031568256764611499254ae9a6fa98531a977f",
    "assembler_version_line": "GNU assembler (GNU Binutils) 2.43.1"
   }
  ],
  "structured_mismatches": [],
+ "structured_replaced_by_data_batches": {
+  "items": 486,
+  "bytes": 23430
+ },
  "description_sha256": {
   "layout.json": "9311d87d8bfa5707e3b2e429f4cc183672d23056eb82bfdefd5200cc5674d733",
   "imports.json": "d8554106d841d0b26f0f501e753a3ad4e40ac487da3ab4e766a978e0e1200a7e",
   "resources.json": "c91a1c319ad94d3ed264d6aca44f893ba831ddfbbd4ff0625e94943a57d4f991",
   "text_data.json": "82b1cc313361bd8341508f2a67b2962eef5203b87cd7398fcc9f2d15efdf2328",
   "ranges.json": "ca7c7004a7212e651230ae664b1a0fea0226b16b9a5dd1ace42eedea8499b27c",
-  "reconstructed.json": "ccdc337f1c80ae9229aafa733232cf2019f8cdbb612c19b1704cd0331d3d85e7"
+  "reconstructed.json": "ab57b83fa0ff41df3186161f2c7eeecc3d4c850e39d7dfb2323801e45e4de8cb"
  }
 }

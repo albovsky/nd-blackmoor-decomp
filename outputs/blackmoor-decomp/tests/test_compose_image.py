@@ -194,7 +194,7 @@ class RangeDescriptionTests(unittest.TestCase):
         ]
         self.assertGreaterEqual(len(desc["reconstructed"]["bindings"]), 4)
         self.assertEqual(len(desc["reconstructed"]["asm_batches"]), 10)
-        self.assertEqual(len(desc["reconstructed"]["data_batches"]), 2)
+        self.assertEqual(len(desc["reconstructed"]["data_batches"]), 4)
         # only the reconstructed bytes (baseline plus audited asm batches) may be absent; any overlap would raise "overlap" first
         with self.assertRaises(compose_image.ComposeError) as ctx:
             compose_image.check_coverage(structured + referenced, compose_image.ORIGINAL_SIZE)
@@ -216,6 +216,33 @@ class RangeDescriptionTests(unittest.TestCase):
         raw = load_descriptions()["ranges"]
         self.assertEqual(raw["original_sha256"], compose_image.ORIGINAL_SHA256)
         self.assertEqual(raw["columns"], ["offset", "length", "sha256", "kind", "region", "name"])
+
+
+class SupersedeStructuredTests(unittest.TestCase):
+    """A bound ``structures`` data range replaces the structured items inside it (and only whole items)."""
+
+    def item(self, offset, length, group="iat", **extra):
+        return compose_image.Item(offset, length, "structured", group, data=bytes(length), **extra)
+
+    def bound(self, offset, length, replaces=True):
+        return compose_image.Item(offset, length, "reconstructed", "reconstructed", data=bytes(length), replaces_structured=replaces)
+
+    def test_items_inside_a_structures_range_are_dropped_and_counted(self):
+        items = [self.item(0, 8), self.item(8, 8), self.item(40, 8, "jump_tables")]
+        kept, replaced = compose_image.supersede_structured(items, [self.bound(0, 16)])
+        self.assertEqual([i.group for i in kept], ["jump_tables"])
+        self.assertEqual(replaced, {"items": 2, "bytes": 16})
+
+    def test_an_item_straddling_the_edge_of_a_structures_range_is_an_error(self):
+        with self.assertRaises(compose_image.ComposeError) as ctx:
+            compose_image.supersede_structured([self.item(8, 16)], [self.bound(0, 16)])
+        self.assertIn("straddles", str(ctx.exception))
+
+    def test_a_payload_batch_replaces_nothing(self):
+        items = [self.item(0, 8)]
+        kept, replaced = compose_image.supersede_structured(items, [self.bound(0, 16, replaces=False)])
+        self.assertEqual(kept, items)
+        self.assertEqual(replaced, {"items": 0, "bytes": 0})
 
 
 class CoverageRejectionTests(unittest.TestCase):
@@ -426,7 +453,9 @@ class WholeFileCompositionTests(OriginalMixin, unittest.TestCase):
         report = compose_image.coverage_report(comp)
         self.assertEqual(report["stage_referenced_bytes"], 0)
         generated_groups = {i.group for i in comp.items if i.cls == "structured"}
-        self.assertEqual(generated_groups, set(compose_image.GROUPS))
+        # the other groups are generated and checked too, but their items are taken from the audited batches 003 and 004
+        self.assertEqual(generated_groups, {"jump_tables", "int3_padding"})
+        self.assertEqual(report["structured_replaced_by_data_batches"]["bytes"], 23430)
         for item in comp.items:
             if item.cls == "referenced":
                 self.assertEqual(item.group, "referenced")
@@ -455,11 +484,14 @@ class WholeFileCompositionTests(OriginalMixin, unittest.TestCase):
         self.assertEqual(by_provenance["tool_assisted_reconstructed_index_table"], {"ranges": 19, "bytes": 1934})
         self.assertEqual(by_provenance["tool_assisted_reconstructed_padding"], {"ranges": 235, "bytes": 1526})
         # .rdata, .data and the resource payloads (274,976 bytes) are bound as labeled data directives (owner ruling of
-        # 2026-10-19), a class of their own: no function and no code byte
-        self.assertEqual(by_provenance["tool_assisted_reconstructed_data"], {"ranges": 24, "bytes": 274976})
-        self.assertEqual(sum(entry["bytes"] for entry in by_provenance.values()), 1479924)
-        self.assertEqual(report["by_class"]["reconstructed"]["bytes"], 1479924)
-        self.assertEqual(progress["reconstructed_data_bytes"], 274976)
+        # 2026-10-19), a class of their own: no function and no code byte; batches 003 and 004 add the 23,430 bytes of
+        # PE headers, import tables, resource directory tree and section fill (27 ranges)
+        self.assertEqual(by_provenance["tool_assisted_reconstructed_data"], {"ranges": 51, "bytes": 298406})
+        self.assertEqual(sum(entry["bytes"] for entry in by_provenance.values()), 1503354)
+        self.assertEqual(report["by_class"]["reconstructed"]["bytes"], 1503354)
+        self.assertEqual(report["by_class"]["structured"]["bytes"], 8070)  # jump tables and int 3 padding
+        self.assertEqual(report["structured_replaced_by_data_batches"]["bytes"], 23430)
+        self.assertEqual(progress["reconstructed_data_bytes"], 298406)
         self.assertEqual(progress["referenced_bytes"], 0)
         self.assertEqual(progress["code_bytes_reconstructed"], 1201488)
         self.assertEqual(progress["reconstructed_functions"], 4786)
@@ -484,8 +516,9 @@ class WholeFileCompositionTests(OriginalMixin, unittest.TestCase):
             if "functions" not in r and r["status"] == "bound" and r["provenance_class"] != "tool_assisted_reconstructed_data"
         ]
         data_batches = [r for r in comp.reconstructed_records if r["provenance_class"] == "tool_assisted_reconstructed_data"]
-        self.assertEqual([r["batch"] for r in data_batches], ["001", "002"])
-        self.assertEqual(sum(r["length"] for r in data_batches), 274976)
+        self.assertEqual([r["batch"] for r in data_batches], ["001", "002", "003", "004"])
+        self.assertEqual([r["profile"] for r in data_batches], ["payloads", "payloads", "structures", "structures"])
+        self.assertEqual(sum(r["length"] for r in data_batches), 298406)
         self.assertEqual(sum(r["length"] for r in baseline), 398)
         assembly = [r for r in baseline if r["provenance_class"] == "explicit_reconstructed_assembly_source"]
         self.assertEqual(sum(r["length"] for r in assembly), 384)
@@ -535,7 +568,8 @@ class MutantTests(OriginalMixin, unittest.TestCase):
 
         def prepare(directory):
             recon = json.loads((directory / "reconstructed.json").read_text())
-            batch = recon["data_batches"].pop()
+            index = next(i for i, b in enumerate(recon["data_batches"]) if b["manifest"].endswith("data-002.json"))
+            batch = recon["data_batches"].pop(index)
             manifest = json.loads((PROJECT / batch["manifest"]).read_text())
             rows = [[int(e["offset"], 16), e["length"], e["sha256"], "data", "", f"resource {e['va']}"] for e in manifest["ranges"]]
             (directory / "reconstructed.json").write_text(json.dumps(recon))
@@ -546,11 +580,18 @@ class MutantTests(OriginalMixin, unittest.TestCase):
 
         return self.mutated_dir(prepare)
 
+    # groups whose bytes the audited ``structures`` data batches (003, 004) supply: a mutated description no longer
+    # reaches the composed hash, but it is still reported as a mismatch and the CLI still fails
+    REPLACED_GROUPS = {"dos_header", "rich_header", "pe_headers", "section_table", "header_padding", "iat", "import_directory", "resource_tree", "section_padding"}
+
     def assert_mutant_fails(self, edit, group=None):
         directory = self.mutated_dir(edit)
         comp = compose_image.compose(directory, ORIGINAL, self.build_dir)
-        self.assertFalse(comp.hash_match)
-        self.assertNotEqual(comp.sha256, compose_image.ORIGINAL_SHA256)
+        if group in self.REPLACED_GROUPS:
+            self.assertTrue(comp.hash_match)
+        else:
+            self.assertFalse(comp.hash_match)
+            self.assertNotEqual(comp.sha256, compose_image.ORIGINAL_SHA256)
         self.assertTrue(comp.structured_mismatches, "the diagnostic must name the differing structured item")
         if group:
             self.assertEqual(comp.structured_mismatches[0]["group"], group)
@@ -611,7 +652,7 @@ class MutantTests(OriginalMixin, unittest.TestCase):
 
         directory = self.mutated_dir(self.edit_json("layout", change))
         comp = compose_image.compose(directory, ORIGINAL, self.build_dir)
-        self.assertFalse(comp.hash_match)
+        self.assertTrue(comp.hash_match)  # the PE headers come from the audited batch data-003
         groups = {m["group"] for m in comp.structured_mismatches}
         self.assertIn("pe_headers", groups)
 

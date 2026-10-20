@@ -730,6 +730,29 @@ class AuditedBatchTests(unittest.TestCase):
         with self.assertRaisesRegex(GEN.ProgressError, "outside its section"):
             self.model()
 
+    def create_text_fill_batch(self, offset):
+        """A data batch whose one range is declared in ``.text`` at ``offset`` (0x140 is where the code ends)."""
+        self.create_data_batch(ranges=((offset, 0x20),))
+        manifest_path = self.dir / "asm_data" / "data-001.json"
+        manifest = GEN.load_json(manifest_path)
+        manifest["ranges"][0]["section"] = ".text"
+        write(manifest_path, manifest)
+        report_path = self.dir / "asm_data" / "data-001-report.json"
+        report = GEN.load_json(report_path)
+        report["ranges"] = manifest["ranges"]
+        report["manifest_sha256"] = GEN.sha256_file(manifest_path)
+        write(report_path, report)
+
+    def test_data_in_the_zero_fill_past_text_is_counted_but_data_over_text_code_is_not(self):
+        # the .text section holds code up to its virtual size (0x140 here); only the zero fill after it may be data
+        self.create_text_fill_batch(0x140)
+        self.assertEqual(self.model()["totals"]["matched_data"], 0x20)
+        self.tearDown()
+        self.setUp()
+        self.create_text_fill_batch(0x120)
+        with self.assertRaisesRegex(GEN.ProgressError, "outside its section"):
+            self.model()
+
     def mutate_report(self, change):
         path = self.asm / "batch-001-report.json"
         report = GEN.load_json(path)

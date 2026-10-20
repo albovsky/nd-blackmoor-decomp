@@ -1,0 +1,1840 @@
+# Layout of a generated GAME.EXE data source (Track M, packet M-C): labels, offsets, zero runs, pointer expressions and named
+# constants only.  Every string, numeric dword and byte list is masked as [length]; scripts/data_asm.py regenerates the full source from the owner's local original.
+# annotation:  machine
+# Machine-generated data source of GAME.EXE (Track M, packet M-C), emitted from the owner's local original by
+# scripts/data_asm.py and audited byte for byte with the pinned i686-w64-mingw32-as 2.43.1.  Owner ruling of
+# 2026-10-19: rebuilt data with machine-named labels counts as matched.  No datum is interpreted: names state the
+# kind found by the generator (STR_ string, WSTR_ UTF-16 string, DAT_ data, FUN_/CODE_/BSS_/IAT_/RSRC_/OUT_ pointer targets) and the VA.
+# original-sha256: afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45
+# image-base: 0x00400000
+# pointers: not detected (PE structures)
+# origin-va: 0x00400000
+# ranges: 0x00400000-0x00401000 (<headers>) 0x0052925a-0x0052a000 (.text) 0x0052a000-0x0052a54c (.rdata) 0x00534910-0x00537000 (.rdata)
+# classification: strings are printable ASCII runs of 4 or more bytes ended by a NUL (wide strings: the same in UTF-16LE); pointers are aligned dwords
+# that point into a mapped section (a target in these ranges is resolved from its label, any other target is a named
+# absolute constant); aligned zero runs are .fill; every other aligned dword is numeric; leftovers are bytes.
+# Not claimed: original C provenance, that any value is a pointer or a string in the original program, that any field is
+# meaningful, or an x86 match of the whole file (code and the other data sources are separate batches).
+.intel_syntax noprefix
+.data
+IMG:
+.org 0x0
+DAT_00400000:
+.long [4]
+.long [1]
+.fill 4, 1, 0
+.long [1]
+.fill 32, 1, 0
+.long [4]
+.long [1]
+STR_00400050:
+.asciz [41]
+DAT_0040007a:
+.fill 2, 1, 0
+.fill 4, 1, 0
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [2]
+.fill 24, 1, 0
+.long [3]
+.fill 8, 1, 0
+.long [4]
+.fill 4, 1, 0
+.long [4]
+.long [3]
+.fill 4, 1, 0
+.long [1]
+.fill 4, 1, 0
+.long [2]
+.fill 4, 1, 0
+.long [4]
+.long [1]
+.fill 4, 1, 0
+.long [1]
+.fill 8, 1, 0
+.long [4]
+.fill 72, 1, 0
+.long [2]
+.fill 24, 1, 0
+STR_00400208:
+.asciz [5]
+DAT_0040020e:
+.fill 2, 1, 0
+.long [4]
+.fill 12, 1, 0
+.long [1]
+STR_00400230:
+.asciz [6]
+DAT_00400237:
+.fill 1, 1, 0
+.long [4]
+.fill 12, 1, 0
+.long [1]
+STR_00400258:
+.asciz [5]
+DAT_0040025e:
+.fill 2, 1, 0
+.long [4]
+.fill 12, 1, 0
+.long [1]
+STR_00400280:
+.asciz [5]
+DAT_00400286:
+.fill 2, 1, 0
+.long [4]
+.fill 12, 1, 0
+.long [1]
+.fill 3416, 1, 0
+.org 0x12925a
+DAT_0052925a:
+.fill 2, 1, 0
+.fill 3492, 1, 0
+DAT_0052a000:
+.long [4]
+.long [3]
+.fill 4, 1, 0
+.long [4]
+.fill 4, 1, 0
+.long [2]
+.fill 4, 1, 0
+.long [2]
+.fill 4, 1, 0
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [1]
+.fill 4, 1, 0
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [2]
+.fill 4, 1, 0
+.long [3]
+.fill 4, 1, 0
+.long [1]
+.fill 4, 1, 0
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [2]
+.fill 4, 1, 0
+.long [3]
+.fill 4, 1, 0
+.long [3]
+.fill 4, 1, 0
+.long [4]
+.long [4]
+.long [4]
+.long [1]
+.fill 4, 1, 0
+.long [3]
+.fill 4, 1, 0
+.org 0x134910
+DAT_00534910:
+.long [1]
+.fill 8, 1, 0
+.long [3]
+.fill 8, 1, 0
+.long [3]
+.fill 8, 1, 0
+.long [3]
+.fill 8, 1, 0
+.long [3]
+.fill 8, 1, 0
+.long [3]
+.fill 8, 1, 0
+.long [3]
+.fill 8, 1, 0
+.long [3]
+.fill 8, 1, 0
+.long [3]
+.fill 8, 1, 0
+.long [3]
+.fill 8, 1, 0
+.long [3]
+.fill 8, 1, 0
+.long [3]
+.fill 8, 1, 0
+.long [3]
+.fill 8, 1, 0
+.long [2]
+.fill 20, 1, 0
+.long [4]
+.long [3]
+.fill 4, 1, 0
+.long [4]
+.fill 4, 1, 0
+.long [2]
+.fill 4, 1, 0
+.long [2]
+.fill 4, 1, 0
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [1]
+.fill 4, 1, 0
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [2]
+.fill 4, 1, 0
+.long [3]
+.fill 4, 1, 0
+.long [1]
+.fill 4, 1, 0
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [4]
+.long [2]
+.fill 4, 1, 0
+.long [3]
+.fill 4, 1, 0
+.long [3]
+.fill 4, 1, 0
+.long [4]
+.long [4]
+.long [4]
+.long [1]
+.fill 4, 1, 0
+.long [3]
+.fill 4, 1, 0
+.long [1]
+STR_00534f78:
+.asciz [16]
+DAT_00534f89:
+.fill 1, 1, 0
+.byte [2]
+STR_00534f8c:
+.asciz [22]
+DAT_00534fa3:
+.fill 1, 1, 0
+STR_00534fa4:
+.asciz [9]
+STR_00534fae:
+.asciz [10]
+DAT_00534fb9:
+.fill 1, 1, 0
+.byte [2]
+STR_00534fbc:
+.asciz [14]
+DAT_00534fcb:
+.fill 3, 1, 0
+STR_00534fce:
+.asciz [19]
+DAT_00534fe2:
+.byte [2]
+STR_00534fe4:
+.asciz [23]
+STR_00534ffc:
+.asciz [11]
+DAT_00535008:
+.long [1]
+STR_0053500c:
+.asciz [10]
+DAT_00535017:
+.fill 1, 1, 0
+.long [1]
+STR_0053501c:
+.asciz [15]
+DAT_0053502c:
+.long [1]
+STR_00535030:
+.asciz [17]
+DAT_00535042:
+.byte [2]
+STR_00535044:
+.asciz [12]
+DAT_00535051:
+.fill 1, 1, 0
+.byte [2]
+STR_00535054:
+.asciz [11]
+DAT_00535060:
+.long [1]
+STR_00535064:
+.asciz [12]
+DAT_00535071:
+.fill 1, 1, 0
+.byte [2]
+STR_00535074:
+.asciz [20]
+DAT_00535089:
+.fill 1, 1, 0
+.byte [2]
+STR_0053508c:
+.asciz [16]
+DAT_0053509d:
+.fill 1, 1, 0
+.byte [2]
+STR_005350a0:
+.asciz [20]
+DAT_005350b5:
+.fill 1, 1, 0
+.byte [2]
+STR_005350b8:
+.asciz [11]
+DAT_005350c4:
+.long [1]
+STR_005350c8:
+.asciz [13]
+DAT_005350d6:
+.byte [2]
+STR_005350d8:
+.asciz [21]
+DAT_005350ee:
+.byte [2]
+STR_005350f0:
+.asciz [22]
+DAT_00535107:
+.fill 1, 1, 0
+STR_00535108:
+.asciz [11]
+DAT_00535114:
+.long [1]
+STR_00535118:
+.asciz [9]
+STR_00535122:
+.asciz [11]
+DAT_0053512e:
+.byte [2]
+STR_00535130:
+.asciz [12]
+DAT_0053513d:
+.fill 1, 1, 0
+.byte [2]
+STR_00535140:
+.asciz [13]
+DAT_0053514e:
+.byte [2]
+STR_00535150:
+.asciz [18]
+DAT_00535163:
+.fill 1, 1, 0
+.long [1]
+STR_00535168:
+.asciz [9]
+DAT_00535172:
+.byte [2]
+STR_00535174:
+.asciz [11]
+DAT_00535180:
+.long [1]
+STR_00535184:
+.asciz [13]
+DAT_00535192:
+.byte [2]
+STR_00535194:
+.asciz [5]
+DAT_0053519a:
+.byte [2]
+STR_0053519c:
+.asciz [17]
+DAT_005351ae:
+.byte [2]
+STR_005351b0:
+.asciz [14]
+DAT_005351bf:
+.fill 1, 1, 0
+.long [1]
+STR_005351c4:
+.asciz [10]
+DAT_005351cf:
+.fill 1, 1, 0
+.long [1]
+STR_005351d4:
+.asciz [16]
+DAT_005351e5:
+.fill 1, 1, 0
+.byte [2]
+STR_005351e8:
+.asciz [21]
+DAT_005351fe:
+.byte [2]
+STR_00535200:
+.asciz [24]
+DAT_00535219:
+.fill 1, 1, 0
+.byte [2]
+STR_0053521c:
+.asciz [9]
+DAT_00535226:
+.byte [2]
+STR_00535228:
+.asciz [16]
+DAT_00535239:
+.fill 1, 1, 0
+.byte [2]
+STR_0053523c:
+.asciz [18]
+DAT_0053524f:
+.fill 1, 1, 0
+.long [1]
+STR_00535254:
+.asciz [16]
+DAT_00535265:
+.fill 1, 1, 0
+.byte [2]
+STR_00535268:
+.asciz [12]
+DAT_00535275:
+.fill 1, 1, 0
+.byte [2]
+STR_00535278:
+.asciz [17]
+DAT_0053528a:
+.byte [2]
+STR_0053528c:
+.asciz [13]
+DAT_0053529a:
+.byte [2]
+STR_0053529c:
+.asciz [17]
+DAT_005352ae:
+.byte [2]
+STR_005352b0:
+.asciz [16]
+DAT_005352c1:
+.fill 1, 1, 0
+.byte [2]
+STR_005352c4:
+.asciz [13]
+DAT_005352d2:
+.byte [2]
+STR_005352d4:
+.asciz [26]
+DAT_005352ef:
+.fill 1, 1, 0
+.long [1]
+STR_005352f4:
+.asciz [11]
+DAT_00535300:
+.long [1]
+STR_00535304:
+.asciz [14]
+DAT_00535313:
+.fill 1, 1, 0
+.long [1]
+STR_00535318:
+.asciz [19]
+DAT_0053532c:
+.long [1]
+STR_00535330:
+.asciz [21]
+DAT_00535346:
+.byte [2]
+STR_00535348:
+.asciz [11]
+DAT_00535354:
+.long [1]
+STR_00535358:
+.asciz [10]
+DAT_00535363:
+.fill 1, 1, 0
+.long [1]
+STR_00535368:
+.asciz [20]
+DAT_0053537d:
+.fill 1, 1, 0
+.byte [2]
+STR_00535380:
+.asciz [14]
+DAT_0053538f:
+.fill 1, 1, 0
+.long [1]
+STR_00535394:
+.asciz [14]
+DAT_005353a3:
+.fill 1, 1, 0
+.long [1]
+STR_005353a8:
+.asciz [6]
+DAT_005353af:
+.fill 1, 1, 0
+.long [1]
+STR_005353b4:
+.asciz [14]
+DAT_005353c3:
+.fill 1, 1, 0
+.long [1]
+STR_005353c8:
+.asciz [13]
+DAT_005353d6:
+.byte [2]
+STR_005353d8:
+.asciz [14]
+DAT_005353e7:
+.fill 1, 1, 0
+.long [1]
+STR_005353ec:
+.asciz [7]
+DAT_005353f4:
+.long [1]
+STR_005353f8:
+.asciz [16]
+DAT_00535409:
+.fill 1, 1, 0
+.byte [2]
+STR_0053540c:
+.asciz [8]
+DAT_00535415:
+.fill 1, 1, 0
+.byte [2]
+STR_00535418:
+.asciz [10]
+DAT_00535423:
+.fill 1, 1, 0
+.long [1]
+STR_00535428:
+.asciz [10]
+DAT_00535433:
+.fill 1, 1, 0
+.long [1]
+STR_00535438:
+.asciz [10]
+DAT_00535443:
+.fill 1, 1, 0
+.long [1]
+STR_00535448:
+.asciz [11]
+DAT_00535454:
+.long [1]
+STR_00535458:
+.asciz [9]
+DAT_00535462:
+.byte [2]
+STR_00535464:
+.asciz [12]
+DAT_00535471:
+.fill 1, 1, 0
+.byte [2]
+STR_00535474:
+.asciz [10]
+DAT_0053547f:
+.fill 1, 1, 0
+.long [1]
+STR_00535484:
+.asciz [10]
+DAT_0053548f:
+.fill 1, 1, 0
+.long [1]
+STR_00535494:
+.asciz [8]
+DAT_0053549d:
+.fill 1, 1, 0
+.byte [2]
+STR_005354a0:
+.asciz [20]
+DAT_005354b5:
+.fill 1, 1, 0
+.byte [2]
+STR_005354b8:
+.asciz [20]
+DAT_005354cd:
+.fill 1, 1, 0
+.byte [2]
+STR_005354d0:
+.asciz [8]
+DAT_005354d9:
+.fill 1, 1, 0
+.byte [2]
+STR_005354dc:
+.asciz [19]
+DAT_005354f0:
+.long [1]
+STR_005354f4:
+.asciz [17]
+DAT_00535506:
+.byte [2]
+STR_00535508:
+.asciz [19]
+DAT_0053551c:
+.long [1]
+STR_00535520:
+.asciz [6]
+DAT_00535527:
+.fill 1, 1, 0
+.long [1]
+STR_0053552c:
+.asciz [6]
+DAT_00535533:
+.fill 1, 1, 0
+.long [1]
+STR_00535538:
+.asciz [14]
+DAT_00535547:
+.fill 1, 1, 0
+.long [1]
+STR_0053554c:
+.asciz [9]
+DAT_00535556:
+.byte [2]
+STR_00535558:
+.asciz [9]
+DAT_00535562:
+.byte [2]
+STR_00535564:
+.asciz [9]
+DAT_0053556e:
+.byte [2]
+STR_00535570:
+.asciz [12]
+DAT_0053557d:
+.fill 1, 1, 0
+.byte [2]
+STR_00535580:
+.asciz [6]
+DAT_00535587:
+.fill 1, 1, 0
+.long [1]
+STR_0053558c:
+.asciz [8]
+DAT_00535595:
+.fill 1, 1, 0
+.byte [2]
+STR_00535598:
+.asciz [25]
+DAT_005355b2:
+.byte [2]
+STR_005355b4:
+.asciz [8]
+DAT_005355bd:
+.fill 1, 1, 0
+.byte [2]
+STR_005355c0:
+.asciz [21]
+DAT_005355d6:
+.byte [2]
+STR_005355d8:
+.asciz [12]
+DAT_005355e5:
+.fill 1, 1, 0
+.byte [2]
+STR_005355e8:
+.asciz [7]
+DAT_005355f0:
+.long [1]
+STR_005355f4:
+.asciz [18]
+DAT_00535607:
+.fill 1, 1, 0
+.long [1]
+STR_0053560c:
+.asciz [11]
+DAT_00535618:
+.long [1]
+STR_0053561c:
+.asciz [18]
+DAT_0053562f:
+.fill 1, 1, 0
+.long [1]
+STR_00535634:
+.asciz [9]
+DAT_0053563e:
+.byte [2]
+STR_00535640:
+.asciz [12]
+DAT_0053564d:
+.fill 1, 1, 0
+.byte [2]
+STR_00535650:
+.asciz [11]
+DAT_0053565c:
+.long [1]
+STR_00535660:
+.asciz [9]
+DAT_0053566a:
+.byte [2]
+STR_0053566c:
+.asciz [17]
+DAT_0053567e:
+.byte [2]
+STR_00535680:
+.asciz [9]
+DAT_0053568a:
+.byte [2]
+STR_0053568c:
+.asciz [8]
+DAT_00535695:
+.fill 1, 1, 0
+.byte [2]
+STR_00535698:
+.asciz [20]
+DAT_005356ad:
+.fill 1, 1, 0
+.byte [2]
+STR_005356b0:
+.asciz [12]
+DAT_005356bd:
+.fill 1, 1, 0
+.byte [2]
+STR_005356c0:
+.asciz [17]
+DAT_005356d2:
+.byte [2]
+STR_005356d4:
+.asciz [8]
+DAT_005356dd:
+.fill 1, 1, 0
+.byte [2]
+STR_005356e0:
+.asciz [9]
+DAT_005356ea:
+.byte [2]
+STR_005356ec:
+.asciz [14]
+DAT_005356fb:
+.fill 1, 1, 0
+.long [1]
+STR_00535700:
+.asciz [14]
+DAT_0053570f:
+.fill 1, 1, 0
+.long [1]
+STR_00535714:
+.asciz [10]
+DAT_0053571f:
+.fill 1, 1, 0
+.long [1]
+STR_00535724:
+.asciz [7]
+DAT_0053572c:
+.long [1]
+STR_00535730:
+.asciz [12]
+DAT_0053573d:
+.fill 1, 1, 0
+.byte [2]
+STR_00535740:
+.asciz [21]
+DAT_00535756:
+.byte [2]
+STR_00535758:
+.asciz [16]
+DAT_00535769:
+.fill 1, 1, 0
+.byte [2]
+STR_0053576c:
+.asciz [16]
+DAT_0053577d:
+.fill 1, 1, 0
+.byte [2]
+STR_00535780:
+.asciz [15]
+DAT_00535790:
+.long [1]
+STR_00535794:
+.asciz [18]
+DAT_005357a7:
+.fill 1, 1, 0
+.long [1]
+STR_005357ac:
+.asciz [7]
+DAT_005357b4:
+.long [1]
+STR_005357b8:
+.asciz [9]
+DAT_005357c2:
+.byte [2]
+STR_005357c4:
+.asciz [16]
+DAT_005357d5:
+.fill 1, 1, 0
+.byte [2]
+STR_005357d8:
+.asciz [22]
+DAT_005357ef:
+.fill 1, 1, 0
+.long [1]
+STR_005357f4:
+.asciz [10]
+DAT_005357ff:
+.fill 1, 1, 0
+.long [1]
+STR_00535804:
+.asciz [11]
+DAT_00535810:
+.long [1]
+STR_00535814:
+.asciz [13]
+DAT_00535822:
+.byte [2]
+STR_00535824:
+.asciz [15]
+DAT_00535834:
+.long [1]
+STR_00535838:
+.asciz [6]
+DAT_0053583f:
+.fill 1, 1, 0
+.long [1]
+STR_00535844:
+.asciz [7]
+DAT_0053584c:
+.long [1]
+STR_00535850:
+.asciz [9]
+DAT_0053585a:
+.byte [2]
+STR_0053585c:
+.asciz [14]
+DAT_0053586b:
+.fill 1, 1, 0
+.long [1]
+STR_00535870:
+.asciz [10]
+DAT_0053587b:
+.fill 1, 1, 0
+.long [1]
+STR_00535880:
+.asciz [8]
+DAT_00535889:
+.fill 1, 1, 0
+.byte [2]
+STR_0053588c:
+.asciz [8]
+DAT_00535895:
+.fill 1, 1, 0
+.byte [2]
+STR_00535898:
+.asciz [6]
+DAT_0053589f:
+.fill 1, 1, 0
+.long [1]
+STR_005358a4:
+.asciz [10]
+DAT_005358af:
+.fill 1, 1, 0
+.long [1]
+STR_005358b4:
+.asciz [10]
+DAT_005358bf:
+.fill 1, 1, 0
+.long [1]
+STR_005358c4:
+.asciz [12]
+DAT_005358d1:
+.fill 1, 1, 0
+.byte [2]
+STR_005358d4:
+.asciz [12]
+DAT_005358e1:
+.fill 1, 1, 0
+.byte [2]
+STR_005358e4:
+.asciz [11]
+DAT_005358f0:
+.long [1]
+STR_005358f4:
+.asciz [22]
+DAT_0053590b:
+.fill 1, 1, 0
+.long [1]
+STR_00535910:
+.asciz [21]
+DAT_00535926:
+.byte [2]
+STR_00535928:
+.asciz [23]
+DAT_00535940:
+.long [1]
+STR_00535944:
+.asciz [19]
+DAT_00535958:
+.long [1]
+STR_0053595c:
+.asciz [20]
+DAT_00535971:
+.fill 1, 1, 0
+.byte [2]
+STR_00535974:
+.asciz [11]
+DAT_00535980:
+.long [1]
+STR_00535984:
+.asciz [8]
+DAT_0053598d:
+.fill 1, 1, 0
+.byte [2]
+STR_00535990:
+.asciz [11]
+DAT_0053599c:
+.long [1]
+STR_005359a0:
+.asciz [10]
+DAT_005359ab:
+.fill 1, 1, 0
+.long [1]
+STR_005359b0:
+.asciz [11]
+DAT_005359bc:
+.long [1]
+STR_005359c0:
+.asciz [25]
+DAT_005359da:
+.byte [2]
+STR_005359dc:
+.asciz [14]
+DAT_005359eb:
+.fill 1, 1, 0
+.long [1]
+STR_005359f0:
+.asciz [12]
+DAT_005359fd:
+.fill 1, 1, 0
+.byte [2]
+STR_00535a00:
+.asciz [12]
+DAT_00535a0d:
+.fill 1, 1, 0
+.byte [2]
+STR_00535a10:
+.asciz [12]
+DAT_00535a1d:
+.fill 1, 1, 0
+.byte [2]
+STR_00535a20:
+.asciz [12]
+DAT_00535a2d:
+.fill 1, 1, 0
+.byte [2]
+STR_00535a30:
+.asciz [14]
+DAT_00535a3f:
+.fill 1, 1, 0
+.long [1]
+STR_00535a44:
+.asciz [12]
+DAT_00535a51:
+.fill 1, 1, 0
+.byte [2]
+STR_00535a54:
+.asciz [23]
+STR_00535a6c:
+.asciz [12]
+DAT_00535a79:
+.fill 1, 1, 0
+.byte [2]
+STR_00535a7c:
+.asciz [12]
+DAT_00535a89:
+.fill 1, 1, 0
+.byte [2]
+STR_00535a8c:
+.asciz [10]
+DAT_00535a97:
+.fill 1, 1, 0
+.long [1]
+STR_00535a9c:
+.asciz [10]
+DAT_00535aa7:
+.fill 1, 1, 0
+.long [1]
+STR_00535aac:
+.asciz [15]
+DAT_00535abc:
+.long [1]
+STR_00535ac0:
+.asciz [10]
+DAT_00535acb:
+.fill 1, 1, 0
+.long [1]
+STR_00535ad0:
+.asciz [19]
+DAT_00535ae4:
+.long [1]
+STR_00535ae8:
+.asciz [9]
+DAT_00535af2:
+.byte [2]
+STR_00535af4:
+.asciz [16]
+DAT_00535b05:
+.fill 1, 1, 0
+.byte [2]
+STR_00535b08:
+.asciz [9]
+DAT_00535b12:
+.byte [2]
+STR_00535b14:
+.asciz [8]
+DAT_00535b1d:
+.fill 1, 1, 0
+.byte [2]
+STR_00535b20:
+.asciz [11]
+DAT_00535b2c:
+.long [1]
+STR_00535b30:
+.asciz [9]
+DAT_00535b3a:
+.byte [2]
+STR_00535b3c:
+.asciz [9]
+DAT_00535b46:
+.byte [2]
+STR_00535b48:
+.asciz [12]
+DAT_00535b55:
+.fill 1, 1, 0
+.byte [2]
+STR_00535b58:
+.asciz [16]
+DAT_00535b69:
+.fill 1, 1, 0
+.byte [2]
+STR_00535b6c:
+.asciz [11]
+DAT_00535b78:
+.long [1]
+STR_00535b7c:
+.asciz [9]
+DAT_00535b86:
+.byte [2]
+STR_00535b88:
+.asciz [15]
+DAT_00535b98:
+.long [1]
+STR_00535b9c:
+.asciz [10]
+DAT_00535ba7:
+.fill 1, 1, 0
+.long [1]
+STR_00535bac:
+.asciz [10]
+DAT_00535bb7:
+.fill 1, 1, 0
+.long [1]
+STR_00535bbc:
+.asciz [8]
+DAT_00535bc5:
+.fill 1, 1, 0
+.byte [2]
+STR_00535bc8:
+.asciz [13]
+DAT_00535bd6:
+.byte [2]
+STR_00535bd8:
+.asciz [14]
+DAT_00535be7:
+.fill 1, 1, 0
+.long [1]
+STR_00535bec:
+.asciz [12]
+DAT_00535bf9:
+.fill 1, 1, 0
+.byte [2]
+STR_00535bfc:
+.asciz [9]
+DAT_00535c06:
+.byte [2]
+STR_00535c08:
+.asciz [13]
+DAT_00535c16:
+.byte [2]
+STR_00535c18:
+.asciz [13]
+DAT_00535c26:
+.byte [2]
+STR_00535c28:
+.asciz [18]
+DAT_00535c3b:
+.fill 1, 1, 0
+.long [1]
+STR_00535c40:
+.asciz [6]
+DAT_00535c47:
+.fill 1, 1, 0
+.long [1]
+STR_00535c4c:
+.asciz [20]
+DAT_00535c61:
+.fill 1, 1, 0
+.byte [2]
+STR_00535c64:
+.asciz [12]
+DAT_00535c71:
+.fill 1, 1, 0
+.byte [2]
+STR_00535c74:
+.asciz [14]
+DAT_00535c83:
+.fill 1, 1, 0
+.long [1]
+STR_00535c88:
+.asciz [12]
+DAT_00535c95:
+.fill 1, 1, 0
+.byte [2]
+STR_00535c98:
+.asciz [9]
+DAT_00535ca2:
+.byte [2]
+STR_00535ca4:
+.asciz [19]
+DAT_00535cb8:
+.long [1]
+STR_00535cbc:
+.asciz [17]
+DAT_00535cce:
+.byte [2]
+STR_00535cd0:
+.asciz [18]
+DAT_00535ce3:
+.fill 1, 1, 0
+.long [1]
+STR_00535ce8:
+.asciz [11]
+DAT_00535cf4:
+.long [1]
+STR_00535cf8:
+.asciz [12]
+DAT_00535d05:
+.fill 1, 1, 0
+.byte [2]
+STR_00535d08:
+.asciz [11]
+DAT_00535d14:
+.long [1]
+STR_00535d18:
+.asciz [13]
+DAT_00535d26:
+.byte [2]
+STR_00535d28:
+.asciz [8]
+DAT_00535d31:
+.fill 1, 1, 0
+.byte [2]
+STR_00535d34:
+.asciz [19]
+DAT_00535d48:
+.long [1]
+STR_00535d4c:
+.asciz [6]
+DAT_00535d53:
+.fill 1, 1, 0
+.long [1]
+STR_00535d58:
+.asciz [11]
+DAT_00535d64:
+.long [1]
+STR_00535d68:
+.asciz [12]
+DAT_00535d75:
+.fill 1, 1, 0
+.byte [2]
+STR_00535d78:
+.asciz [17]
+DAT_00535d8a:
+.byte [2]
+STR_00535d8c:
+.asciz [15]
+DAT_00535d9c:
+.long [1]
+STR_00535da0:
+.asciz [11]
+DAT_00535dac:
+.long [1]
+STR_00535db0:
+.asciz [12]
+DAT_00535dbd:
+.fill 1, 1, 0
+.byte [2]
+STR_00535dc0:
+.asciz [12]
+DAT_00535dcd:
+.fill 1, 1, 0
+.byte [2]
+STR_00535dd0:
+.asciz [14]
+DAT_00535ddf:
+.fill 1, 1, 0
+.long [1]
+STR_00535de4:
+.asciz [8]
+DAT_00535ded:
+.fill 1, 1, 0
+.byte [2]
+STR_00535df0:
+.asciz [13]
+DAT_00535dfe:
+.byte [2]
+STR_00535e00:
+.asciz [10]
+DAT_00535e0b:
+.fill 1, 1, 0
+.long [1]
+STR_00535e10:
+.asciz [14]
+DAT_00535e1f:
+.fill 1, 1, 0
+.long [1]
+STR_00535e24:
+.asciz [5]
+DAT_00535e2a:
+.byte [2]
+STR_00535e2c:
+.asciz [14]
+DAT_00535e3b:
+.fill 1, 1, 0
+.long [1]
+STR_00535e40:
+.asciz [11]
+DAT_00535e4c:
+.long [1]
+STR_00535e50:
+.asciz [7]
+DAT_00535e58:
+.long [1]
+STR_00535e5c:
+.asciz [6]
+DAT_00535e63:
+.fill 1, 1, 0
+.long [1]
+STR_00535e68:
+.asciz [8]
+DAT_00535e71:
+.fill 1, 1, 0
+.byte [2]
+STR_00535e74:
+.asciz [9]
+DAT_00535e7e:
+.byte [2]
+STR_00535e80:
+.asciz [11]
+DAT_00535e8c:
+.long [1]
+STR_00535e90:
+.asciz [10]
+DAT_00535e9b:
+.fill 1, 1, 0
+.long [1]
+STR_00535ea0:
+.asciz [13]
+DAT_00535eae:
+.byte [2]
+STR_00535eb0:
+.asciz [17]
+DAT_00535ec2:
+.byte [2]
+STR_00535ec4:
+.asciz [19]
+DAT_00535ed8:
+.long [1]
+STR_00535edc:
+.asciz [12]
+DAT_00535ee9:
+.fill 1, 1, 0
+.byte [2]
+STR_00535eec:
+.asciz [18]
+DAT_00535eff:
+.fill 1, 1, 0
+.long [1]
+STR_00535f04:
+.asciz [6]
+DAT_00535f0b:
+.fill 1, 1, 0
+.long [1]
+STR_00535f10:
+.asciz [6]
+DAT_00535f17:
+.fill 1, 1, 0
+.long [1]
+STR_00535f1c:
+.asciz [13]
+DAT_00535f2a:
+.byte [2]
+STR_00535f2c:
+.asciz [8]
+DAT_00535f35:
+.fill 1, 1, 0
+.byte [2]
+STR_00535f38:
+.asciz [16]
+DAT_00535f49:
+.fill 1, 1, 0
+.byte [2]
+STR_00535f4c:
+.asciz [11]
+DAT_00535f58:
+.long [1]
+STR_00535f5c:
+.asciz [13]
+DAT_00535f6a:
+.byte [2]
+STR_00535f6c:
+.asciz [19]
+DAT_00535f80:
+.long [1]
+STR_00535f84:
+.asciz [10]
+DAT_00535f8f:
+.fill 1, 1, 0
+.long [1]
+STR_00535f94:
+.asciz [13]
+DAT_00535fa2:
+.byte [2]
+STR_00535fa4:
+.asciz [16]
+DAT_00535fb5:
+.fill 1, 1, 0
+.byte [2]
+STR_00535fb8:
+.asciz [14]
+DAT_00535fc7:
+.fill 1, 1, 0
+.long [1]
+STR_00535fcc:
+.asciz [8]
+DAT_00535fd5:
+.fill 1, 1, 0
+.byte [2]
+STR_00535fd8:
+.asciz [15]
+DAT_00535fe8:
+.long [1]
+STR_00535fec:
+.asciz [15]
+DAT_00535ffc:
+.long [1]
+STR_00536000:
+.asciz [12]
+DAT_0053600d:
+.fill 1, 1, 0
+.byte [2]
+STR_00536010:
+.asciz [13]
+DAT_0053601e:
+.byte [2]
+STR_00536020:
+.asciz [18]
+DAT_00536033:
+.fill 1, 1, 0
+.long [1]
+STR_00536038:
+.asciz [9]
+DAT_00536042:
+.byte [2]
+STR_00536044:
+.asciz [12]
+DAT_00536051:
+.fill 1, 1, 0
+.byte [2]
+STR_00536054:
+.asciz [11]
+DAT_00536060:
+.long [1]
+STR_00536064:
+.asciz [24]
+DAT_0053607d:
+.fill 1, 1, 0
+.byte [2]
+STR_00536080:
+.asciz [15]
+DAT_00536090:
+.long [1]
+STR_00536094:
+.asciz [11]
+DAT_005360a0:
+.long [1]
+STR_005360a4:
+.asciz [24]
+DAT_005360bd:
+.fill 1, 1, 0
+.byte [2]
+STR_005360c0:
+.asciz [9]
+DAT_005360ca:
+.byte [2]
+STR_005360cc:
+.asciz [12]
+DAT_005360d9:
+.fill 1, 1, 0
+.byte [2]
+STR_005360dc:
+.asciz [16]
+DAT_005360ed:
+.fill 1, 1, 0
+.byte [2]
+STR_005360f0:
+.asciz [11]
+DAT_005360fc:
+.long [1]
+STR_00536100:
+.asciz [13]
+DAT_0053610e:
+.byte [2]
+STR_00536110:
+.asciz [12]
+DAT_0053611d:
+.fill 1, 1, 0
+.byte [2]
+STR_00536120:
+.asciz [17]
+DAT_00536132:
+.byte [2]
+STR_00536134:
+.asciz [21]
+DAT_0053614a:
+.byte [2]
+STR_0053614c:
+.asciz [14]
+DAT_0053615b:
+.fill 1, 1, 0
+.long [1]
+STR_00536160:
+.asciz [14]
+DAT_0053616f:
+.fill 1, 1, 0
+.long [1]
+STR_00536174:
+.asciz [9]
+DAT_0053617e:
+.byte [2]
+STR_00536180:
+.asciz [9]
+DAT_0053618a:
+.byte [2]
+STR_0053618c:
+.asciz [7]
+DAT_00536194:
+.long [1]
+STR_00536198:
+.asciz [12]
+DAT_005361a5:
+.fill 1, 1, 0
+.byte [2]
+STR_005361a8:
+.asciz [15]
+DAT_005361b8:
+.long [1]
+STR_005361bc:
+.asciz [12]
+DAT_005361c9:
+.fill 1, 1, 0
+.byte [2]
+STR_005361cc:
+.asciz [16]
+DAT_005361dd:
+.fill 1, 1, 0
+.byte [2]
+STR_005361e0:
+.asciz [5]
+DAT_005361e6:
+.byte [2]
+STR_005361e8:
+.asciz [9]
+DAT_005361f2:
+.byte [2]
+STR_005361f4:
+.asciz [14]
+DAT_00536203:
+.fill 1, 1, 0
+.long [1]
+STR_00536208:
+.asciz [7]
+DAT_00536210:
+.long [1]
+STR_00536214:
+.asciz [9]
+DAT_0053621e:
+.byte [2]
+STR_00536220:
+.asciz [13]
+DAT_0053622e:
+.byte [2]
+STR_00536230:
+.asciz [8]
+DAT_00536239:
+.fill 1, 1, 0
+.byte [2]
+STR_0053623c:
+.asciz [16]
+DAT_0053624d:
+.fill 1, 1, 0
+.byte [2]
+STR_00536250:
+.asciz [11]
+DAT_0053625c:
+.long [1]
+STR_00536260:
+.asciz [9]
+DAT_0053626a:
+.byte [2]
+STR_0053626c:
+.asciz [10]
+DAT_00536277:
+.fill 1, 1, 0
+.long [1]
+STR_0053627c:
+.asciz [12]
+DAT_00536289:
+.fill 1, 1, 0
+.byte [2]
+STR_0053628c:
+.asciz [10]
+DAT_00536297:
+.fill 1, 1, 0
+STR_00536298:
+.asciz [10]
+DAT_005362a3:
+.fill 1, 1, 0
+.long [1]
+STR_005362a8:
+.asciz [12]
+DAT_005362b5:
+.fill 1, 1, 0
+.byte [2]
+STR_005362b8:
+.asciz [10]
+DAT_005362c3:
+.fill 1, 1, 0
+.long [1]
+STR_005362c8:
+.asciz [10]
+DAT_005362d3:
+.fill 1, 1, 0
+.long [1]
+STR_005362d8:
+.asciz [8]
+DAT_005362e1:
+.fill 1, 1, 0
+.byte [2]
+STR_005362e4:
+.asciz [10]
+DAT_005362ef:
+.fill 1, 1, 0
+.long [1]
+STR_005362f4:
+.asciz [10]
+DAT_005362ff:
+.fill 1, 1, 0
+.long [1]
+STR_00536304:
+.asciz [14]
+DAT_00536313:
+.fill 1, 1, 0
+.long [1]
+STR_00536318:
+.asciz [6]
+DAT_0053631f:
+.fill 1, 1, 0
+.long [1]
+STR_00536324:
+.asciz [4]
+DAT_00536329:
+.fill 1, 1, 0
+.byte [2]
+STR_0053632c:
+.asciz [9]
+DAT_00536336:
+.byte [2]
+STR_00536338:
+.asciz [12]
+DAT_00536345:
+.fill 1, 1, 0
+.byte [2]
+STR_00536348:
+.asciz [10]
+DAT_00536353:
+.fill 1, 1, 0
+.long [1]
+STR_00536358:
+.asciz [14]
+DAT_00536367:
+.fill 1, 1, 0
+.long [1]
+STR_0053636c:
+.asciz [17]
+DAT_0053637e:
+.byte [2]
+STR_00536380:
+.asciz [16]
+DAT_00536391:
+.fill 1, 1, 0
+.byte [2]
+STR_00536394:
+.asciz [18]
+DAT_005363a7:
+.fill 1, 1, 0
+.long [1]
+STR_005363ac:
+.asciz [12]
+DAT_005363b9:
+.fill 1, 1, 0
+.byte [2]
+STR_005363bc:
+.asciz [16]
+DAT_005363cd:
+.fill 1, 1, 0
+.byte [2]
+STR_005363d0:
+.asciz [12]
+DAT_005363dd:
+.fill 1, 1, 0
+.byte [2]
+STR_005363e0:
+.asciz [13]
+DAT_005363ee:
+.byte [2]
+STR_005363f0:
+.asciz [9]
+DAT_005363fa:
+.byte [2]
+STR_005363fc:
+.asciz [11]
+DAT_00536408:
+.long [1]
+STR_0053640c:
+.asciz [6]
+DAT_00536413:
+.fill 1, 1, 0
+.long [1]
+STR_00536418:
+.asciz [9]
+DAT_00536422:
+.byte [2]
+STR_00536424:
+.asciz [6]
+DAT_0053642b:
+.fill 1, 1, 0
+STR_0053642c:
+.asciz [9]
+DAT_00536436:
+.byte [2]
+STR_00536438:
+.asciz [20]
+DAT_0053644d:
+.fill 1, 1, 0
+.byte [2]
+STR_00536450:
+.asciz [9]
+DAT_0053645a:
+.byte [2]
+STR_0053645c:
+.asciz [13]
+STR_0053646a:
+.asciz [12]
+DAT_00536477:
+.fill 1, 1, 0
+.long [1]
+STR_0053647c:
+.asciz [10]
+DAT_00536487:
+.fill 1, 1, 0
+.long [1]
+STR_0053648c:
+.asciz [17]
+DAT_0053649e:
+.byte [2]
+STR_005364a0:
+.asciz [12]
+DAT_005364ad:
+.fill 1, 1, 0
+STR_005364ae:
+.asciz [12]
+DAT_005364bb:
+.fill 1, 1, 0
+.long [1]
+STR_005364c0:
+.asciz [9]
+DAT_005364ca:
+.byte [2]
+STR_005364cc:
+.asciz [15]
+DAT_005364dc:
+.long [1]
+STR_005364e0:
+.asciz [11]
+DAT_005364ec:
+.long [1]
+STR_005364f0:
+.asciz [14]
+DAT_005364ff:
+.fill 1, 1, 0
+.long [1]
+STR_00536504:
+.asciz [12]
+DAT_00536511:
+.fill 1, 1, 0
+.byte [2]
+STR_00536514:
+.asciz [15]
+DAT_00536524:
+.long [1]
+STR_00536528:
+.asciz [11]
+STR_00536534:
+.asciz [12]
+DAT_00536541:
+.fill 1, 1, 0
+.byte [2]
+STR_00536544:
+.asciz [23]
+DAT_0053655c:
+.long [1]
+STR_00536560:
+.asciz [8]
+DAT_00536569:
+.fill 1, 1, 0
+.byte [2]
+STR_0053656c:
+.asciz [14]
+DAT_0053657b:
+.fill 1, 1, 0
+STR_0053657c:
+.asciz [11]
+DAT_00536588:
+.long [1]
+STR_0053658c:
+.asciz [12]
+DAT_00536599:
+.fill 1, 1, 0
+.byte [2]
+STR_0053659c:
+.asciz [24]
+DAT_005365b5:
+.fill 1, 1, 0
+.byte [2]
+STR_005365b8:
+.asciz [24]
+DAT_005365d1:
+.fill 1, 1, 0
+STR_005365d2:
+.asciz [12]
+DAT_005365df:
+.fill 1, 1, 0
+.long [1]
+STR_005365e4:
+.asciz [14]
+DAT_005365f3:
+.fill 1, 1, 0
+.fill 2572, 1, 0
