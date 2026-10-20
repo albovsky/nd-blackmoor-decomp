@@ -449,6 +449,15 @@ static void test_m47c049_pick_slot(void)
     script(0x50cd50, 1, 0x7fff, 0, 0, 0);                             /* 0x7fff % 2 == 1 */
     CK(m47c049_pick_slot(SELF, &g_host) == 1);
     CK(L.n == 1 && get32(g_r[1], 4) == 1 && get32(g_r[1], 0) == 0x10000u && get32(g_r[1], 8) == 0x1234);
+    pick_setup(3);                                                    /* a count above 16 bits: the modulus is the full dword (6 % 0x10005 == 6, but 6 % 5 == 1) */
+    set32(SELF, 0x2a4, 0x10005u);
+    set32(g_r[1], 4, 0);
+    set32(g_r[1], 24, 0);
+    L.n = 0;
+    g_nscript = 0;
+    script(0x50cd50, 1, 6, 0, 0, 0);
+    CK(m47c049_pick_slot(SELF, &g_host) == 6);
+    CK(L.n == 1 && get32(g_r[1], 24) == 1 && get32(g_r[1], 4) == 0);
     pick_setup(0);                                                    /* n == 0: the original divides by zero; native rejection after one draw */
     L.n = 0;
     g_nscript = 0;

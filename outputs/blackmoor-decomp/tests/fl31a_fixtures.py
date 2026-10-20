@@ -246,16 +246,17 @@ def gen_47ba79(rng, n):
     (kind, *rest), variant = prof(n, profiles)
     a_va, b_va = od.region_va(1), od.region_va(2)
     s = bytearray(rng.randbytes(0x400))
-    put32(s, 0x1c, a_va)
-    put32(s, 0x20, a_va if variant % 3 == 2 else b_va)       # one pass with both pointers to the same object
+    a_at, b_at = a_va + 0x11, b_va + 0x23                    # non-zero low bytes: a store of the cleared pointers one byte off is visible
+    put32(s, 0x1c, a_at)
+    put32(s, 0x20, a_at if variant % 3 == 2 else b_at)       # one pass with both pointers to the same object
     put32(s, 0x34, 0 if kind == 'gate0' else NONZERO[variant % len(NONZERO)])
     now, deadline = (rng.choice([0, 3, 0xffffffff, rng.randrange(1 << 32)]), rng.randrange(1 << 32)) if kind == 'gate0' else rest
     if kind == 'gate0' and variant % 2:
         now, deadline = 0xffffffff, 0                         # a gate that was skipped would expire the links
     put32(s, 0x38, deadline)
-    a, b = bytearray(rng.randbytes(0x40)), bytearray(rng.randbytes(0x40))
-    for obj in (a, b):
-        put32(obj, 4, rng.choice([0, 1, 0xdeadbeef, 0xffffffff]))
+    a, b = bytearray(rng.randbytes(0x80)), bytearray(rng.randbytes(0x80))
+    put32(a, 0x11 + 4, rng.choice([0, 1, 0xdeadbeef, 0xffffffff]))
+    put32(b, 0x23 + 4, rng.choice([0, 1, 0xdeadbeef, 0xffffffff]))
     return make('47ba79', [self_area(s), Area('a', a_va, a, image=False), Area('b', b_va, b, image=False)], {}, {}, [], (), (kind, *rest), iat=tick_iat(now))
 
 
@@ -316,7 +317,7 @@ def pick_profiles():
             for seq in ('direct', 'retry1', 'retry3'):
                 if n > 1 or seq == 'direct':
                     out.append(('free', n, k, seq))
-    return out + [('div0', 0, 5), ('overflow', -1, 0x80000000)]
+    return out + [('bign', 0x10005), ('div0', 0, 5), ('overflow', -1, 0x80000000)]
 
 
 def gen_47c049(rng, n):
@@ -336,6 +337,12 @@ def gen_47c049(rng, n):
         rs = [rest[1]]
     elif kind in ('div0', 'overflow'):
         rs = [rest[1]]
+    elif kind == 'bign':      # a count above 16 bits: slot 1 is free (the scan stops there), the draw 6 names the free slot 6 only with the full 32-bit modulus
+        for i in range(0x40):
+            put32(slots, 4 * i, NONZERO[(variant + i) % len(NONZERO)])
+        put32(slots, 4, 0)
+        put32(slots, 24, 0)
+        rs = [6]
     else:
         k, seq = rest[1], rest[2]
         for i in range(count):
