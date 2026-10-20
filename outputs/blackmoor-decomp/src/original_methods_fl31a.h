@@ -48,6 +48,22 @@ void m47ba79_expire_links(uint8_t *self, const Fl18Host *host);
  * when a >= b and c <= d: dword [self+0x28] = 1 and nothing else. Otherwise, when a < b and c >= d: dword [self+0x2c] = 1. (All comparisons are signed; every field is read again at each use.) */
 void m47badf_check_range(uint8_t *self, const Fl18Host *host);
 
+/* 0x47b321, thiscall, plain `ret`: when dword [self+8] != 0: 0x4c2dfb(this 0x5cf659, self + 8) (thiscall, 1 argument: the ADDRESS of the field, a host pointer here). When p = dword [self+0x14] != 0:
+ * 0x51dc6c(p) (cdecl, 1 argument), then dword [self+0x14] = 0; the same for dword [self+0x18]. When the signed word [self+4] != -1: 0x4d3992(i) (cdecl, 1 argument; the original pushes eax whose upper half
+ * is left over from `this`, the callee reads a word, so only the low 16 bits are the argument and the port passes the zero-extended word). Finally 0x47b23b(this self) (thiscall, no arguments). */
+void m47b321_release(uint8_t *self, const Fl18Host *host);
+
+/* 0x47c049, thiscall, plain `ret`, returns eax. n = signed dword [self+0x2a4] (read again at every use), slots = dword [self+0x18] (an original address, read again at every use). Scan: i = 0 while i < n: when
+ * dword [slots + i*4] == 0 the scan stops with "a free slot exists". When none (including n <= 0): r = 0x50cd50() (cdecl, no arguments, the CRT rand), the result is r % n (signed idiv; the slot is NOT marked).
+ * When one exists: repeat: r = 0x50cd50(); k = r % n (signed); when dword [slots + k*4] == 0: it is set to 1 and k is the result; otherwise draw again. The loop is unbounded, as in the original (it ends when
+ * the host's rand names a free slot). NATIVE REJECTION (not original behaviour): n == 0, or r == INT32_MIN with n == -1, makes the original fault (#DE) at the idiv; this port returns INT32_MIN there (it can
+ * never be a remainder) after the one rand call. */
+int32_t m47c049_pick_slot(const uint8_t *self, const Fl18Host *host);
+
+/* 0x47b23b, thiscall, plain `ret`: words [self+6] and [self+4] = 0xffff; then dwords at self + 0xc, 0x24, 0x28, 0x2c, 0x30, 0x34, 0x2a8, 8, 0x14, 0x18, 0x1c, 0x20, 0x280, 0x29c, 0x288, 0x2a0, 0x28c, 0x2a4 = 0
+ * (in this order). No calls. */
+void m47b23b_reset_fields(uint8_t *self);
+
 /* FNS-END */
 
 #ifdef __cplusplus

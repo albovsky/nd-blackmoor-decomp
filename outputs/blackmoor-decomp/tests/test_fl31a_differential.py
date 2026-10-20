@@ -114,7 +114,9 @@ class Fl31aDifferential(DiffBase):
             self.assertEqual(result.value, 0, 'the constructor must return self')
         if fx.SPECS[sc.key].get('ret16'):
             self.assertEqual(result.value & 0xffff, orig.eax & 0xffff, 'return value (ax)')
-        if fx.SPECS[sc.key].get('ret'):
+        if sc.fault is not None:
+            self.assertEqual(result.value, -0x80000000, 'native rejection of an input that makes the original fault')
+        elif fx.SPECS[sc.key].get('ret'):
             self.assertEqual(result.value & 0xffffffff, orig.eax & 0xffffffff, 'return value')
         if sc.partial is None:
             for a, arr in arrays:
@@ -180,6 +182,18 @@ class Fl31aDifferential(DiffBase):
     def test_47badf_check_range(self):
         """FL-31a: differential test of m47badf_check_range (original 0x47badf)"""
         self.run_key('47badf')
+
+    def test_47b321_release(self):
+        """FL-31a: differential test of m47b321_release (original 0x47b321)"""
+        self.run_key('47b321')
+
+    def test_47c049_pick_slot(self):
+        """FL-31a: differential test of m47c049_pick_slot (original 0x47c049), including the two scenarios in which the original faults (#DE) and the port rejects"""
+        self.run_key('47c049')
+
+    def test_47b23b_reset_fields(self):
+        """FL-31a: differential test of m47b23b_reset_fields (original 0x47b23b)"""
+        self.run_key('47b23b')
 
     # CASES-END
 

@@ -1,5 +1,6 @@
 #include "original_methods_fl31a.h"
 
+#include <limits.h>
 #include <string.h>
 
 #if defined(__GNUC__)
@@ -123,6 +124,80 @@ void m47badf_check_range(uint8_t *self, const Fl18Host *host)
     if ((int32_t)rd32(self, 0x290) < (int32_t)rd32(self, 0x2a0)) {
         if ((int32_t)rd32(self, 0x294) >= (int32_t)rd32(res(host, rd32(self, 0xc)), 0x341)) wr32(self, 0x2c, 1);
     }
+}
+
+/* ---- 0x47b321 release ------------------------------------------------------------------------------------------------------------ */
+void m47b321_release(uint8_t *self, const Fl18Host *host)
+{
+    uint32_t p, q;
+    if (rd32(self, 8) != 0) call1(host, 0x4c2dfb, 0x5cf659, (uintptr_t)(self + 8));
+    if (rd32(self, 0x14) != 0) {
+        p = rd32(self, 0x14);
+        call1(host, 0x51dc6c, 0, p);
+        wr32(self, 0x14, 0);
+    }
+    if (rd32(self, 0x18) != 0) {
+        q = rd32(self, 0x18);
+        call1(host, 0x51dc6c, 0, q);
+        wr32(self, 0x18, 0);
+    }
+    if (rds16(self, 4) != -1) call1(host, 0x4d3992, 0, rd16(self, 4));
+    call0(host, 0x47b23b, (uintptr_t)self);
+}
+
+/* ---- 0x47c049 pick_slot ------------------------------------------------------------------------------------------------------------ */
+int32_t m47c049_pick_slot(const uint8_t *self, const Fl18Host *host)
+{
+    int32_t free_exists = 1, i, r, n, k;
+    uint8_t *slots;
+    for (i = 0; i < (int32_t)rd32(self, 0x2a4); i++) {
+        if (rd32(res(host, rd32(self, 0x18)), (ptrdiff_t)i * 4) == 0) {
+            free_exists = 0;
+            break;
+        }
+    }
+    if (free_exists) {
+        r = (int32_t)call0(host, 0x50cd50, 0);
+        n = (int32_t)rd32(self, 0x2a4);
+        if (n == 0 || (n == -1 && r == INT32_MIN)) return INT32_MIN;         /* the original faults (#DE) here */
+        return r % n;
+    }
+    for (;;) {
+        r = (int32_t)call0(host, 0x50cd50, 0);
+        n = (int32_t)rd32(self, 0x2a4);
+        if (n == 0 || (n == -1 && r == INT32_MIN)) return INT32_MIN;         /* the original faults (#DE) here */
+        k = r % n;
+        slots = res(host, rd32(self, 0x18));
+        if (rd32(slots, (ptrdiff_t)k * 4) == 0) {
+            wr32(slots, (ptrdiff_t)k * 4, 1);
+            return k;
+        }
+    }
+}
+
+/* ---- 0x47b23b reset_fields ----------------------------------------------------------------------------------------------------- */
+void m47b23b_reset_fields(uint8_t *self)
+{
+    wr16(self, 6, 0xffff);
+    wr16(self, 4, 0xffff);
+    wr32(self, 0xc, 0);
+    wr32(self, 0x24, 0);
+    wr32(self, 0x28, 0);
+    wr32(self, 0x2c, 0);
+    wr32(self, 0x30, 0);
+    wr32(self, 0x34, 0);
+    wr32(self, 0x2a8, 0);
+    wr32(self, 8, 0);
+    wr32(self, 0x14, 0);
+    wr32(self, 0x18, 0);
+    wr32(self, 0x1c, 0);
+    wr32(self, 0x20, 0);
+    wr32(self, 0x280, 0);
+    wr32(self, 0x29c, 0);
+    wr32(self, 0x288, 0);
+    wr32(self, 0x2a0, 0);
+    wr32(self, 0x28c, 0);
+    wr32(self, 0x2a4, 0);
 }
 
 /* FNS-END */

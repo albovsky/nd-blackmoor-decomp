@@ -90,6 +90,18 @@ class Fl31aDirect(unittest.TestCase):
         """FL-31a: direct test of m47badf_check_range (original 0x47badf)"""
         self.check('test_m47badf_check_range')
 
+    def test_47b321_release(self):
+        """FL-31a: direct test of m47b321_release (original 0x47b321)"""
+        self.check('test_m47b321_release')
+
+    def test_47c049_pick_slot(self):
+        """FL-31a: direct test of m47c049_pick_slot (original 0x47c049)"""
+        self.check('test_m47c049_pick_slot')
+
+    def test_47b23b_reset_fields(self):
+        """FL-31a: direct test of m47b23b_reset_fields (original 0x47b23b)"""
+        self.check('test_m47b23b_reset_fields')
+
     # CASES-END
 
     def test_sweep_bounded(self):

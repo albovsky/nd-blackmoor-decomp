@@ -40,7 +40,7 @@ static struct {
         int nargs;
         uintptr_t a[6];
         uint8_t probe[16];       /* the first 16 bytes of region 4 at the call */
-        uint8_t sp[16];          /* the first 16 bytes of self (region 0) at the call */
+        uint8_t sp[32];          /* the first 32 bytes of self (region 0) at the call */
     } c[MAXCALL];
 } L;
 static struct {
@@ -71,7 +71,7 @@ static uint32_t host_call(void *ctx, uint32_t callee, uintptr_t this_ptr, const 
         L.c[i].nargs = nargs;
         for (k = 0; k < nargs && k < 6; k++) L.c[i].a[k] = args[k];
         memcpy(L.c[i].probe, g_r[4], 16);
-        memcpy(L.c[i].sp, g_r[0], 16);
+        memcpy(L.c[i].sp, g_r[0], 32);
     }
     L.n++;
     for (k = 0; k < g_nscript; k++)
@@ -366,6 +366,137 @@ static void test_m47badf_check_range(void)
     CK(L.n == 0);
 }
 
+/* ---- 0x47b321 ------------------------------------------------------------------------------------------------------------------ */
+static void test_m47b321_release(void)
+{
+    setup();
+    memset(SELF, 0x33, 0x100);
+    set32(SELF, 8, 0);
+    set32(SELF, 0x14, 0);
+    set32(SELF, 0x18, 0);
+    set16(SELF, 4, 0xffff);
+    m47b321_release(SELF, &g_host);                                 /* nothing to release, word -1: only the reset */
+    CK(L.n == 1);
+    CKC0(0, 0x47b23b, SELFP);
+    L.n = 0;
+    set32(SELF, 8, 0x10000u);                                       /* a non-zero dword with a zero low word counts */
+    set32(SELF, 0x14, 0x20001234u);
+    set32(SELF, 0x18, 0x80000000u);
+    set16(SELF, 4, 0x8000);
+    set16(SELF, 6, 0xffff);
+    m47b321_release(SELF, &g_host);
+    CK(L.n == 5);
+    CKC(0, 0x4c2dfb, 0x5cf659, 1, SELFP + 8);                       /* the address of the field */
+    CKC(1, 0x51dc6c, 0, 1, 0x20001234u);
+    CK(get32(L.c[1].sp, 0x14) == 0x20001234u && get32(L.c[1].sp, 0x18) == 0x80000000u);     /* nothing is cleared before the first free */
+    CKC(2, 0x51dc6c, 0, 1, 0x80000000u);
+    CK(get32(L.c[2].sp, 0x14) == 0 && get32(L.c[2].sp, 0x18) == 0x80000000u);               /* [0x14] is cleared before the second free */
+    CKC(3, 0x4d3992, 0, 1, 0x8000u);                                 /* the word, zero-extended (0x8000 is not the sentinel -1) */
+    CK(get32(L.c[3].sp, 0x18) == 0);
+    CKC0(4, 0x47b23b, SELFP);
+    CK(get32(SELF, 0x14) == 0 && get32(SELF, 0x18) == 0 && get32(SELF, 8) == 0x10000u);     /* the callee (host) resets the rest */
+    L.n = 0;
+    set32(SELF, 8, 0);
+    set32(SELF, 0x14, 0);
+    set32(SELF, 0x18, 7);
+    set16(SELF, 4, 0xfffe);                                          /* -2 is not the sentinel */
+    m47b321_release(SELF, &g_host);
+    CK(L.n == 3);
+    CKC(0, 0x51dc6c, 0, 1, 7);
+    CKC(1, 0x4d3992, 0, 1, 0xfffeu);
+    CKC0(2, 0x47b23b, SELFP);
+}
+
+/* ---- 0x47c049 ------------------------------------------------------------------------------------------------------------------ */
+static void pick_setup(int32_t n)
+{
+    int i;
+    setup();
+    memset(SELF, 0x33, 0x400);
+    set32(SELF, 0x18, RVA(1));
+    set32(SELF, 0x2a4, (uint32_t)n);
+    for (i = 0; i < 16; i++) set32(g_r[1], (size_t)i * 4, i % 3 == 0 ? 0x10000u : (i % 3 == 1 ? 0x100u : 0x80000000u));
+    set32(g_r[1], 4 * (n > 0 ? (size_t)n : 0), 0);                    /* the slot behind the counted ones is free and must not be looked at */
+}
+static int slots_are(const uint32_t *want, int count)
+{
+    int i;
+    for (i = 0; i < count; i++)
+        if (get32(g_r[1], (size_t)i * 4) != want[i]) return 0;
+    return 1;
+}
+static void test_m47c049_pick_slot(void)
+{
+    uint32_t keep[4] = {0x10000u, 0x100u, 0x80000000u, 0};
+    uint32_t after[4] = {0x10000u, 1, 0x80000000u, 0};
+    pick_setup(3);                                                    /* no free slot: r % n, the slots are not marked */
+    script(0x50cd50, 1, 7, 0, 0, 0);
+    CK(m47c049_pick_slot(SELF, &g_host) == 1);
+    CK(L.n == 1 && slots_are(keep, 4));
+    CKC0(0, 0x50cd50, 0);
+    pick_setup(3);
+    L.n = 0;
+    set32(g_r[1], 4, 0);                                              /* slot 1 is free: draws 0 (taken), 2 (taken), 4 % 3 == 1 (free) */
+    g_nscript = 0;
+    script(0x50cd50, 3, 0, 2, 4, 0);
+    CK(m47c049_pick_slot(SELF, &g_host) == 1);
+    CK(L.n == 3 && slots_are(after, 4));
+    pick_setup(2);                                                    /* the free slot is the last counted one */
+    set32(g_r[1], 4, 0);
+    set32(g_r[1], 8, 0x1234);
+    L.n = 0;
+    g_nscript = 0;
+    script(0x50cd50, 1, 0x7fff, 0, 0, 0);                             /* 0x7fff % 2 == 1 */
+    CK(m47c049_pick_slot(SELF, &g_host) == 1);
+    CK(L.n == 1 && get32(g_r[1], 4) == 1 && get32(g_r[1], 0) == 0x10000u && get32(g_r[1], 8) == 0x1234);
+    pick_setup(0);                                                    /* n == 0: the original divides by zero; native rejection after one draw */
+    L.n = 0;
+    g_nscript = 0;
+    script(0x50cd50, 1, 5, 0, 0, 0);
+    CK(m47c049_pick_slot(SELF, &g_host) == INT32_MIN);
+    CK(L.n == 1);
+    pick_setup(-1);                                                   /* n == -1: INT_MIN / -1 overflows (#DE); every other value is x % -1 == 0 */
+    L.n = 0;
+    g_nscript = 0;
+    script(0x50cd50, 1, 0x80000000u, 0, 0, 0);
+    CK(m47c049_pick_slot(SELF, &g_host) == INT32_MIN);
+    g_nscript = 0;
+    script(0x50cd50, 1, 7, 0, 0, 0);
+    CK(m47c049_pick_slot(SELF, &g_host) == 0);
+    pick_setup(-3);                                                   /* the remainder takes the sign of the dividend (idiv) */
+    g_nscript = 0;
+    script(0x50cd50, 1, 7, 0, 0, 0);
+    CK(m47c049_pick_slot(SELF, &g_host) == 1);
+    g_nscript = 0;
+    script(0x50cd50, 1, 0xfffffff9u, 0, 0, 0);
+    CK(m47c049_pick_slot(SELF, &g_host) == -1);
+    pick_setup(5);                                                    /* a negative draw with every counted slot taken */
+    g_nscript = 0;
+    script(0x50cd50, 1, 0x80000000u, 0, 0, 0);
+    CK(m47c049_pick_slot(SELF, &g_host) == -3);                       /* INT_MIN % 5 */
+}
+
+/* ---- 0x47b23b ------------------------------------------------------------------------------------------------------------------ */
+static void test_m47b23b_reset_fields(void)
+{
+    static const unsigned dwords[] = {0xc, 0x24, 0x28, 0x2c, 0x30, 0x34, 0x2a8, 8, 0x14, 0x18, 0x1c, 0x20, 0x280, 0x29c, 0x288, 0x2a0, 0x28c, 0x2a4};
+    uint8_t want[0x300];
+    size_t i;
+    setup();
+    memset(SELF, 0xcc, 0x300);
+    memset(want, 0xcc, sizeof want);
+    for (i = 0; i < sizeof dwords / sizeof dwords[0]; i++) set32(want, dwords[i], 0);
+    set16(want, 4, 0xffff);
+    set16(want, 6, 0xffff);
+    m47b23b_reset_fields(SELF);
+    CK(memcmp(SELF, want, sizeof want) == 0);                         /* exactly these 18 dwords and 2 words change */
+    CK(memcmp(SELF + 0x300, g_r[0] + 0x300, 0x10) == 0);
+    CK(L.n == 0);
+    memset(SELF, 0, 0x300);
+    m47b23b_reset_fields(SELF);
+    CK(get16(SELF, 4) == 0xffff && get16(SELF, 6) == 0xffff);
+}
+
 /* CASES-END */
 
 /* ---- bounded sweep ------------------------------------------------------------------------------------------------------------- */
@@ -398,6 +529,26 @@ static void test_sweep_bounded(void)
         m47ba79_expire_links(SELF, &g_host);
         m47badf_check_range(SELF, &g_host);
         L.n = 0;
+        set32(SELF, 0x18, RVA(1));
+        set32(SELF, 0x2a4, seed % 5);
+        set32(SELF, 8, seed);
+        set32(SELF, 0x14, seed >> 2);
+        set32(SELF, 0x18, RVA(1));
+        for (i = 0; i < 8; i++) set32(g_r[1], (size_t)i * 4, (seed >> i) & 1);
+        set32(g_r[1], 4 * (seed % 5), 0);
+        g_nscript = 0;
+        script(0x50cd50, 1, seed >> 4, 0, 0, 0);
+        m47b321_release(SELF, &g_host);
+        set32(SELF, 0x18, RVA(1));
+        set32(SELF, 0x2a4, 3);
+        set32(g_r[1], 0, 0);
+        set32(g_r[1], 4, 0);
+        set32(g_r[1], 8, 0);
+        g_nscript = 0;
+        script(0x50cd50, 1, seed >> 4, 0, 0, 0);
+        m47c049_pick_slot(SELF, &g_host);
+        m47b23b_reset_fields(SELF);
+        L.n = 0;
         /* SWEEP-END */
     }
 }
@@ -424,6 +575,9 @@ int main(void)
     RUN(test_m47b709_set_selector);
     RUN(test_m47ba79_expire_links);
     RUN(test_m47badf_check_range);
+    RUN(test_m47b321_release);
+    RUN(test_m47c049_pick_slot);
+    RUN(test_m47b23b_reset_fields);
     /* RUN-END */
     RUN(test_sweep_bounded);
     return failures;

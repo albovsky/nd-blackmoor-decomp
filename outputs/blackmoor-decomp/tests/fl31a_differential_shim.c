@@ -194,7 +194,7 @@ static uint32_t host_tick(void *context)
     return host_call(context, 0x52a23c, 0, NULL, 0);
 }
 
-enum { F31A_47B200 = 1, F31A_47B3BC, F31A_47D640, F31A_47B709, F31A_47BA79, F31A_47BADF /*ENUM*/ };
+enum { F31A_47B200 = 1, F31A_47B3BC, F31A_47D640, F31A_47B709, F31A_47BA79, F31A_47BADF, F31A_47B321, F31A_47C049, F31A_47B23B /*ENUM*/ };
 
 /* Runs one port on `self` (this); `a` holds the stack arguments of the function as 64-bit values. `result` is the return value of the ports that have one (a constructor:
  * 0 when it returned self, 1 otherwise; 0x47c049: the index or the native rejection INT32_MIN). The world is the host context, so that each logged call keeps a snapshot of it. */
@@ -215,6 +215,9 @@ void shim_fl31a(int fn, uint8_t *self, const uintptr_t *a, Fl31aWorld *w, int32_
     case F31A_47B709: m47b709_set_selector((uint32_t)a[0], w); break;
     case F31A_47BA79: m47ba79_expire_links(self, &host); break;
     case F31A_47BADF: m47badf_check_range(self, &host); break;
+    case F31A_47B321: m47b321_release(self, &host); break;
+    case F31A_47C049: *result = m47c049_pick_slot(self, &host); break;
+    case F31A_47B23B: m47b23b_reset_fields(self); break;
     /*CASES*/
     default: break;
     }

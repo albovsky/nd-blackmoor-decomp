@@ -59,10 +59,10 @@ WORD_ARGS = {0x4d3992: (0,)}       # 0x47b321 pushes eax whose upper half is the
 NONZERO = [1, 0x80000000, 0x10000, 0xff000000, 0x00ff0000, 0xdeadbeef, 0xffffffff, 0x100]    # non-zero dwords, some with a zero low word / byte
 
 
-def make(key, areas, stubs, g, stack, args, profile, pointers=None, iat=None):
+def make(key, areas, stubs, g, stack, args, profile, pointers=None, iat=None, fault=None):
     sp = SPECS[key]
     return SimpleNamespace(key=key, fn=sp['id'], va=sp['va'], size=sp['size'], code=sp.get('code', sp['size']), areas=areas, stubs=stubs, iat=iat or {}, g=g,
-                           ecx=od.region_va(0), pointers=pointers or {}, word_args=WORD_ARGS, profile=profile, stack=stack, args=args, seh=None, partial=None)
+                           ecx=od.region_va(0), pointers=pointers or {}, word_args=WORD_ARGS, profile=profile, stack=stack, args=args, seh=None, partial=None, fault=fault)
 
 
 def run_original(sc):
@@ -78,8 +78,24 @@ def run_original(sc):
     for x in [*sc.stubs.values(), *sc.iat.values()]:
         x.probe_addr = [(next(a.va for a in sc.areas if a.name == name) + off, ln) for name, off, ln in (x.probe or ())]
     runner = Original27(image_patches, regions, sc.stubs, sc.iat)
-    orig = runner.run(sc.va, sc.size, ecx=sc.ecx, stack_args=sc.stack, read=read)
-    orig.edges = getattr(runner, 'edges', set())      # (address, next address) of the instructions executed in a row
+    if sc.fault is not None:
+        # the original faults here (a division error in the CPU): the run must stop exactly at the faulting instruction, the memory is read back as it is
+        # and the native port is compared on the calls made before and on its documented rejection (tests/test_fl31a_differential.py)
+        import unicorn
+        from unicorn import x86_const as X
+        try:
+            runner.run(sc.va, sc.size, ecx=sc.ecx, stack_args=sc.stack, read=read)
+        except unicorn.UcError:
+            pass
+        else:
+            raise AssertionError('the original did not fault')
+        if runner.uc.reg_read(X.UC_X86_REG_EIP) != sc.fault:
+            raise AssertionError('the original faulted at 0x%x, not at 0x%x' % (runner.uc.reg_read(X.UC_X86_REG_EIP), sc.fault))
+        orig = SimpleNamespace(eax=None, cleanup=0, executed=runner.executed, edges=getattr(runner, 'edges', set()), calls=runner.calls,
+                               memory={name: bytes(runner.uc.mem_read(a, n)) for name, (a, n) in read.items()})
+    else:
+        orig = runner.run(sc.va, sc.size, ecx=sc.ecx, stack_args=sc.stack, read=read)
+        orig.edges = getattr(runner, 'edges', set())      # (address, next address) of the instructions executed in a row
     if orig.cleanup != SPECS[sc.key].get('cleanup', 0):
         raise AssertionError('the function popped %d bytes' % orig.cleanup)
     if SPECS[sc.key].get('retself') and orig.eax != sc.ecx:
@@ -87,7 +103,7 @@ def run_original(sc):
     calls = normalize(orig.calls, sc.stubs, sc.iat, sc.word_args)
     h = hashlib.sha256()
     h.update(repr(calls).encode())
-    if SPECS[sc.key].get('ret'):
+    if SPECS[sc.key].get('ret') and sc.fault is None:
         h.update(struct.pack('<I', orig.eax))
     for name in sorted(orig.memory):
         h.update(name.encode() + orig.memory[name])
@@ -265,6 +281,93 @@ def gen_47badf(rng, n):
     return make('47badf', [self_area(s), Area('obj', obj_va, obj, image=False)], {}, {}, [], (), (ab, cd))
 
 
+# ---- 0x47b321 ---------------------------------------------------------------------------------------------------------------------
+
+REL_WORDS = [0xffff, 0, 1, 0x7fff, 0x8000, 0xfffe]
+
+
+def gen_47b321(rng, n):
+    profiles = [(g8, g14, g18, w) for g8 in (0, 1) for g14 in (0, 1) for g18 in (0, 1) for w in (0xffff, 5)] + [(1, 1, 1, w) for w in REL_WORDS[1:]]
+    (g8, g14, g18, w), variant = prof(n, profiles)
+    s = bytearray(rng.randbytes(0x400))
+    put32(s, 8, rng.choice(NONZERO) if g8 else 0)
+    put32(s, 0x14, rng.choice([0x5e0000, 0x20001234, 0xdeadbeef, 0xffffffff]) if g14 else 0)
+    put32(s, 0x18, rng.choice([0x5e0100, 0x20005678, 0x80000000, 0x10000]) if g18 else 0)
+    put16(s, 4, w)
+    if variant % 2:
+        put16(s, 6, rng.choice([0xffff, 0, 0x1234]))      # the neighbour of the word: only the word at +4 counts
+        put16(s, 2, rng.choice([0xffff, 0, 0x1234]))
+    stubs = {0x4c2dfb: stub(0x4c2dfb, THISCALL(1), probe=[('self', 0, 0x30)]), 0x51dc6c: stub(0x51dc6c, CDECL(1), probe=[('self', 0x10, 0x10)]),
+             0x4d3992: stub(0x4d3992, CDECL(1), probe=[('self', 0, 0x30)]), 0x47b23b: stub(0x47b23b, THISCALL(0), probe=[('self', 0, 0x30)])}
+    return make('47b321', [self_area(s)], stubs, {}, [], (), (g8, g14, g18, w))
+
+
+# ---- 0x47c049 ---------------------------------------------------------------------------------------------------------------------
+
+SLOTS_VA = od.region_va(1)
+PICK_R = [0, 7, 0x7fff, 0x12345, 0x7fffffff, -7, -1, 0x80000000]
+DIV0_EIP = 0x47c0a9
+
+
+def pick_profiles():
+    out = [('full', n, r) for n in (1, 2, 5) for r in PICK_R] + [('negn', n, r) for n in (-1, -3) for r in (7, -7, 0x7fffffff)]
+    for n in (1, 4, 7):
+        for k in sorted({0, n // 2, n - 1}):
+            for seq in ('direct', 'retry1', 'retry3'):
+                if n > 1 or seq == 'direct':
+                    out.append(('free', n, k, seq))
+    return out + [('div0', 0, 5), ('overflow', -1, 0x80000000)]
+
+
+def gen_47c049(rng, n):
+    (kind, *rest), variant = prof(n, pick_profiles())
+    count = rest[0]
+    s = bytearray(rng.randbytes(0x400))
+    put32(s, 0x2a4, count)
+    put32(s, 0x18, SLOTS_VA)
+    slots = bytearray(rng.randbytes(0x100))
+    for i in range(0x40):
+        put32(slots, 4 * i, NONZERO[(variant + i) % len(NONZERO)])
+    for i in {max(count, 0), 0x3f}:                 # the slot after the last counted one is free but not looked at; likewise for non-positive counts
+        if kind in ('full', 'negn', 'div0', 'overflow'):
+            put32(slots, 4 * i, 0)
+    rs = []
+    if kind in ('full', 'negn'):
+        rs = [rest[1]]
+    elif kind in ('div0', 'overflow'):
+        rs = [rest[1]]
+    else:
+        k, seq = rest[1], rest[2]
+        for i in range(count):
+            put32(slots, 4 * i, NONZERO[(variant + i) % len(NONZERO)])
+        put32(slots, 4 * k, 0)
+        if variant % 2 and k + 1 < count:                 # a second free slot behind the first: the scan stops at the first, the random draw may pick either
+            put32(slots, 4 * (k + 1), 0)
+        used = [i for i in range(count) if i != k and not (variant % 2 and i == k + 1)]
+        misses = {'direct': 0, 'retry1': 1, 'retry3': 3}[seq]
+        for m in range(misses):
+            rs.append(used[m % len(used)] + count * rng.choice([0, 1, 100]))
+        rs.append(k + count * rng.choice([0, 1, 0x1000]))
+    stubs = {0x50cd50: stub(0x50cd50, CDECL(0), results=[r & 0xffffffff for r in rs], probe=[('slots', 0, 0x40)])}
+    return make('47c049', [self_area(s), Area('slots', SLOTS_VA, slots, image=False)], stubs, {}, [], (), (kind, *rest),
+                fault=DIV0_EIP if kind in ('div0', 'overflow') else None)
+
+
+# ---- 0x47b23b ---------------------------------------------------------------------------------------------------------------------
+
+RESET_OFFSETS = [0xc, 0x24, 0x28, 0x2c, 0x30, 0x34, 0x2a8, 8, 0x14, 0x18, 0x1c, 0x20, 0x280, 0x29c, 0x288, 0x2a0, 0x28c, 0x2a4]
+
+
+def gen_47b23b(rng, n):
+    (kind,), variant = prof(n, [('random',)] * 4)
+    s = bytearray(rng.randbytes(0x400))
+    for off in RESET_OFFSETS:
+        put32(s, off, rng.choice(NONZERO))
+    put16(s, 4, rng.choice([0, 1, 0x1234, 0x8000]))
+    put16(s, 6, rng.choice([0, 1, 0x1234, 0x8000]))
+    return make('47b23b', [self_area(s)], {}, {}, [], (), (kind, variant))
+
+
 # GEN-END
 
 SPECS = {
@@ -274,11 +377,15 @@ SPECS = {
     '47b709': dict(id=4, va=0x47b709, size=94, gen=gen_47b709, cleanup=4, n=8 * 6),
     '47ba79': dict(id=5, va=0x47ba79, size=102, gen=gen_47ba79, cleanup=0, n=10 * 6),
     '47badf': dict(id=6, va=0x47badf, size=119, gen=gen_47badf, cleanup=0, n=81 * 2),
+    '47b321': dict(id=7, va=0x47b321, size=155, gen=gen_47b321, cleanup=0, n=(8 + 5) * 4),
+    '47c049': dict(id=8, va=0x47c049, size=167, gen=gen_47c049, cleanup=0, ret=True, n=len(pick_profiles()) * 3),
+    '47b23b': dict(id=9, va=0x47b23b, size=230, gen=gen_47b23b, cleanup=0, n=8),
     # SPECS-END
 }
 KEYS = list(SPECS)
 NAMES = {'47b200': 'construct', '47b3bc': 'mark_entry', '47d640': 'mark_entry',
          '47b709': 'set_selector', '47ba79': 'expire_links', '47badf': 'check_range',
+         '47b321': 'release', '47c049': 'pick_slot', '47b23b': 'reset_fields',
          # NAMES-END
          }
 
