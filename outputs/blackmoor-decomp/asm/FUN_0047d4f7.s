@@ -8,15 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_d9_puzzle_object_reset
-# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_d9_runtime.c:229 says "0x47d4f7 resets the cursor, window and buffers"
-# name-note:    Reset of the raw 0xd9 puzzle object: resets cursor, window and buffers.
+# name:         m47d4f7_reset_fields
+# naming:       native port src/original_methods_fl31b.c:m47d4f7_reset_fields (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port
+# name-note:    Resets the word, byte and dword fields of the object (0xffff, 0xfe0c, zeros) in the original order; 39/39 instructions, no jump. See tasks/fl31b-handoff.md.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_1d, field_25, field_2d, field_3d, field_41, field_51; [ecx + n] field_23, field_31, field_45, field_49, field_57; [edx + n] field_27, field_29, field_35, field_39, field_4d
 # callees:      none: no call or outward jump
-# track-n:      outputs/blackmoor-decomp/src/action_family_d9_runtime.c:d9_cleanup (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 39 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl31b.c:m47d4f7_reset_fields (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 39 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

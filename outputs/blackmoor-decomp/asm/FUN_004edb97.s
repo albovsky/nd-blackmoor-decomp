@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004edb97
+# name:         m4edb97_release_members
+# naming:       native port src/original_methods_fl31c.c:m4edb97_release_members (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port
+# name-note:    Releases the members in order (0x4e1d34, 0x4eead0, 0x4c2dfb, four 0x4fba69 calls each followed by clearing its dword), then 0x4edae5; 69/69 instructions, 14/14 jump directions.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_15f, field_675, field_679, field_67d, field_681; [ecx + n] field_252, field_675, field_679, field_67d, field_681; [edx + n] field_4ab
 # callees:      calls FUN_004e1d34, FUN_004eead0, FUN_004c2dfb, FUN_004fba69, FUN_004edae5
-# track-n:      outputs/blackmoor-decomp/src/caption_lifecycle.c:popup_init (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 69 instruction(s), 7 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl31c.c:m4edb97_release_members (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 69 instruction(s), 7 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

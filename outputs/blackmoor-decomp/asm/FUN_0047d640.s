@@ -8,15 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_d9_puzzle_slot_invalidate
-# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_d9_runtime.h:118 says "0x47d640: entry +0x14 := 1 (redraw request)."
-# name-note:    Slot invalidate: sets entry +0x14 := 1 as a redraw request.
+# name:         m47d640_mark_entry
+# naming:       native port src/original_methods_fl31a.c:m47d640_mark_entry (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port
+# name-note:    Sets the dword of record [word self+0x23] at 0x5d15a5 (stride 0x4a) to 1 when byte [self+0x57] is non-zero and the signed word is not -1; every instruction and jump direction executed.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_57; [ecx + n] field_23; [edx + n] field_23
 # callees:      none: no call or outward jump
-# track-n:      outputs/blackmoor-decomp/src/action_family_d9_runtime.h:d9_invalidate (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 20 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl31a.c:m47d640_mark_entry (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 20 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text
