@@ -308,6 +308,31 @@ static void test_m434025_scan_entries(void)
     script(0x434773, 1, r2);
     m434025_scan_entries(self, &g_host);
     CK(get32(self, 0x5f68) == 0 && get32(self, 0x20e4) == 0 && L.n == 2);
+    /* n = 0x80000009 is above 8 for the unsigned compare (negative as a signed dword): no report; C[0] = 0x7ffffff0 with the answer 1: p = 0x1004 + 8 + 0x7ffffff0 wraps, q = 0x7ffffff5 < n:
+     * stored 0x80000ffc, m = 0, q = 0x7ffffffd (not above n); second pass q = 0xfffffffd >= n leaves; four calls */
+    reset();
+    memset(self, 0, sizeof self);
+    set32(self, 0x5f64, 1);
+    set32(self, 0x1144, 0x1000);
+    set32(self, 0x3084, 0x7ffffff0u);
+    r1[0] = 0x80000009u; r1[1] = 0;
+    r2[0] = 1;
+    script(0x4347b8, 2, r1);
+    script(0x434773, 1, r2);
+    m434025_scan_entries(self, &g_host);
+    CK(get32(self, 0x5f68) == 1 && get32(self, 0x20e4) == 0x80000ffcu && L.n == 4);
+    CK(L.c[0].a[0] == 0x1004 && L.c[1].callee == 0x434773 && L.c[1].a[0] == 0x100c && L.c[2].callee == 0x4347b8 && L.c[2].a[0] == 0x80001000u && L.c[3].callee == 0x434773 && L.c[3].a[0] == 0x80001004u);
+    /* n = 0x20, answer 0, m = 0x80000000: q = 13 + 0x80000000 = 0x8000000d is above n unsigned (negative as a signed dword): the entry loop ends after one store; three calls */
+    reset();
+    memset(self, 0, sizeof self);
+    set32(self, 0x5f64, 1);
+    set32(self, 0x1144, 0x2000);
+    r1[0] = 0x20; r1[1] = 0x80000000u; r1[2] = 0x40;
+    r2[0] = 0;
+    script(0x4347b8, 3, r1);
+    script(0x434773, 1, r2);
+    m434025_scan_entries(self, &g_host);
+    CK(get32(self, 0x5f68) == 1 && get32(self, 0x20e4) == 0x200c && L.n == 3 && L.c[2].callee == 0x4347b8 && L.c[2].a[0] == 0x2010);
     /* a count of 0 or a negative count: nothing but [self+0x5f68] = 0 */
     reset();
     memset(self, 0, sizeof self);

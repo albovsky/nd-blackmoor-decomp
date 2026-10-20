@@ -11,13 +11,13 @@ All in `src/original_methods_fl30c.c` / `.h` (symbols `m<va>_*`, world struct `F
 | va | span | symbol | instructions | branch directions | scenarios | oracle digest (sha256) | window sha256 (original bytes, va..va+span) |
 |---|---|---|---|---|---|---|---|
 | 0x4fcb5c | 406 | m4fcb5c_set_category_master | 97/97 | 10/10 | 528 | 1f5329377b87211f51a68e00510241c345350bf0ee303ed4c7163d337c7b6960 | 4feec6951a00a65465aeec5c128621ed090e4dd8030f71e0ef2aadf212257cc5 |
-| 0x423876 | 442 | m423876_unwind_chain | 132/132 | 27/28 (1 allowlisted) + 1 cut-off run | 358 | 3f77be8cebb681aa7e4f8c46fb11b0916ab566498243e4dbf02361f16e896e63 | 68ca5942ca89ab5f3a641c4d6fa7bde6c54a50b9ae8ae518b9af4ced25969e3e |
-| 0x434025 | 536 | m434025_scan_entries | 154/154 | 21/22 (1 allowlisted) | 492 | d51d02a3b9109663d826d1fe5c92bfb7b6652ed97085819e8aeb59567cb3c688 | 1c8b47dd0818cbee7e5cf51258be5e791f8dcf6f991b0dc31cec6646c63067e1 |
+| 0x423876 | 442 | m423876_unwind_chain | 132/132 | 27/28 (1 allowlisted) + 1 cut-off run | 358 | d8b2a528ab6603c8ed725ed58908822da45aa095402a5d243f27782cf37a2ed1 | 68ca5942ca89ab5f3a641c4d6fa7bde6c54a50b9ae8ae518b9af4ced25969e3e |
+| 0x434025 | 536 | m434025_scan_entries | 154/154 | 21/22 (1 allowlisted) | 498 | 3c944db76367170d2b7d535f2c6963557e2bb335877c4177a2aa1b241f9afd38 | 1c8b47dd0818cbee7e5cf51258be5e791f8dcf6f991b0dc31cec6646c63067e1 |
 | 0x41b6e2 | 579 | m41b6e2_lz_decode | 186/186 | 14/14 | 360 | 45ca46428759bb57d9cb262da259918a45fb944f527a65dde8dceb1789ab442c | 8bbf62784b5ec05fb5d4fb11ea2b1170aa6f7777124604f1b9d03c0f7b87b079 |
 | 0x43d7f0 | 675 | m43d7f0_init_scenes | 139/139 | 16/16 | 512 | 859e65001112682f7a208b979a9e1411364f5f2a7f02b838b4bfe4a691e9948b | 07b1d252f1508c06d118b6aa71b6cbbb012853271bc96afadd9a468135e36fe8 |
 | 0x4763b3 | 1650 | m4763b3_mark_runs | 408/408 | 46/46 | 648 | b957d4279a7d9e0b3cdc793bbe82ea6e8e6c543d36877ddcfa95524158ef4dee | 435160cbfa29318b25157a320bab8b028604360d76dcc24e3ac8a61ec90439dc |
 
-Commits (in order): `45846748` 0x4fcb5c, `dab1287c` 0x43d7f0, `e1cf8a94` 0x434025, `6cd1d420` 0x41b6e2, `ced550b7` 0x4763b3, `1d3c83de` 0x423876; the handoff, acceptances and the hand-mutant script are in the commit after them (hash in the report).
+Commits (in order): `45846748` 0x4fcb5c, `dab1287c` 0x43d7f0, `e1cf8a94` 0x434025, `6cd1d420` 0x41b6e2, `ced550b7` 0x4763b3, `1d3c83de` 0x423876; f8ec24b7 adds the handoff, acceptances and the hand-mutant script; the reviewer-round fixes are in the commit after it (hash in the report).
 
 Notes per function (the header `original_methods_fl30c.h` gives the byte-level contract of each):
 
@@ -68,27 +68,31 @@ All callees are recording stubs entered by address (the callee is not run): they
 - Not exercised: a callee that changes `self`, a node, a cell or a global that the function reads again afterwards (for example 0x4d3ced changing `0x5bb1d2` before 0x43d7f0 tests it; 0x4347b8 changing the table that 0x434025 scans; 0x423a30 changing the node chain). The ports re-read like the original, but the stubs never change the data.
 - The names of the functions and of the fields are descriptions of what the code does, not recovered source names. 0x4763b3's first-block quirk (horizontal length tested for the case 2) is reproduced as it is, not interpreted.
 - 0x4fcb5c: signalling-NaN payload propagation of the x87 is not modelled beyond what the clamp needs (a NaN never reaches a copied value: the first compare sends it to 0).
-- No independent review; no claim that any family or pool is complete.
+- The x87 control word 0x27f (53-bit precision, all exceptions masked) that the oracle sets for 0x4fcb5c is an assumption about the running game: the image has 65 `fldcw`-class instructions, mostly in the CRT, and none was shown to leave 0x27f in force when 0x4fcb5c runs. The port uses doubles (one rounding per step), which matches only that control word.
+- 0x423876: the taken directions of `0x4238d9 jne` and `0x423930 jne` (the endless-loop path) are credited only by the cut-off hang run (`hang_run_423876`), not by a run that returns.
+- 0x423876: the `cell` argument and the pointer `node + 0x44` that the recursion passes are HOST pointers in the port (the original passes original addresses); the host must translate them (the cell it hands in, and the node memory that `Fl18Host.resolve` returns) and keep `[t+4]` resolvable.
+- Reviewer round (Sonnet slice-reviewer diff review, no P1): signed-compare mutants of 0x434025 (`(int32_t)n <= 8`, `(int32_t)q > (int32_t)n`, `(int32_t)q < (int32_t)n`) and of 0x423876 (signed `[node+0x44]` test) are now killed: profiles 'signn' / 'signq' (n = 0x80000009; m = 0x80000000) in `gen_434025`, matching direct-test cases, high-bit `[node+0x44]` values in the 0x423876 fixtures, and four more hand mutants (12 of 12 caught). `#pragma STDC FP_CONTRACT OFF` (clang) / `#pragma GCC optimize("fp-contract=off")` (gcc) were added to the source so ARM64 compilers do not fuse the 0x4fcb5c arithmetic.
+- No independent review beyond the diff review above; no claim that any family or pool is complete.
 
 ## Mutation check
 
-`python3 tests/fl30c_mutation_check.py --only <key>` per function (single textual edits: hex literal +1, `==`/`!=`, `<`/`<=` boundary, one-line `if (...) return;` guard deleted, `rd16`/`rd32`/`rds16` width swap):
+`python3 tests/fl30c_mutation_check.py --only <key>` per function (re-run after the reviewer round) (single textual edits: hex literal +1, `==`/`!=`, `<`/`<=` boundary, one-line `if (...) return;` guard deleted, `rd16`/`rd32`/`rds16` width swap):
 
 | function | mutants | caught by the direct test | by the differential only | survivors |
 |---|---|---|---|---|
 | 0x4fcb5c | 21 | 17 | 3 | 1 |
 | 0x43d7f0 | 103 | 19 | 84 | 0 |
-| 0x434025 | 47 | 37 | 6 | 4 |
+| 0x434025 | 47 | 40 | 3 | 4 |
 | 0x41b6e2 | 24 | 22 | 2 | 0 |
 | 0x4763b3 | 164 | 109 | 31 | 24 |
-| 0x423876 | 56 | 42 | 7 | 7 |
+| 0x423876 | 56 | 42 | 8 | 6 |
 
-All 36 survivors were read and are equivalent on every input the original can take (or are the native rejections):
+All 35 survivors were read and are equivalent on every input the original can take (or are the native rejections):
 
 - 0x4fcb5c: `> 1.0f` -> `>= 1.0f`: at exactly 1.0 both write the same bits (0x3f800000).
 - 0x434025: the four `rd32` -> `rd16` swaps on the counts `[+0x5f64]` / `[+0x5f68]` (one in the inner scan bound, three in the store index and the report test): the counts stay below 0x10000 for any object that fits memory (the loop would read 65536 entries), so the high half is always 0 in a valid run.
 - 0x4763b3: all 24 are signed-versus-unsigned or word-versus-dword swaps on grid positions (`rds16` -> `rd16`, `rd16` -> `rd32`): the positions, the scan words and the run lengths are non-negative and below 0x8000 for any cell inside the grid, which the caller guarantees (a start outside the grid is the uncontrolled case above).
-- 0x423876: five `guard deleted` mutants remove the NATIVE REJECTION returns (`node == NULL`, `cp == NULL`, `tp == NULL`, `node == NULL || cell == NULL`); the fixtures never feed an unresolvable address (the original would fault), and the direct test covers the endless-loop rejection separately (the `else { return; }` of the endless-loop case is not a one-line guard and the tool does not mutate it; it was not mutated by hand either, the direct test case with the type 0 node checks the return). Two `rd32` -> `rd16` swaps on the node type / the next link (type 1 or 2 are the only legal types, so the high half is 0; a type with a non-zero high half is the endless-loop case).
+- 0x423876: five `guard deleted` mutants remove the NATIVE REJECTION returns (`node == NULL`, `cp == NULL`, `tp == NULL`, `node == NULL || cell == NULL`); the fixtures never feed an unresolvable address (the original would fault), and the direct test covers the endless-loop rejection separately (the `else { return; }` of the endless-loop case is not a one-line guard and the tool does not mutate it; it was not mutated by hand either, the direct test case with the type 0 node checks the return). One `rd32` -> `rd16` swap on the node type / the next link (type 1 or 2 are the only legal types, so the high half is 0; a type with a non-zero high half is the endless-loop case).
 
 Mutants applied by hand with `tests/fl30c_hand_mutants.py` (single multi-line edits that the tool cannot model; all CAUGHT by the differential test): 0x423876 recursion with flag 0, 0x4234dd arguments swapped, cell not replaced by `[t+4]`; 0x4763b3 vertical length tested for the case 2 in the first block; 0x41b6e2 key not advanced in the literal branch; 0x43d7f0 flag store moved after the first call; 0x434025 `sel` reset for every entry; 0x4fcb5c second clamp writing 0x3f800001.
 
@@ -98,21 +102,22 @@ Mutants applied by hand with `tests/fl30c_hand_mutants.py` (single multi-line ed
 - `m423876_unwind_chain` and `m4763b3_mark_runs` resolve original addresses through `Fl18Host.resolve`; the host must answer for every node, record, `t` structure and `c` object the game can hold, or the ports return silently (marked NATIVE REJECTION). The `cell` argument of 0x423876 is a host pointer to a dword cell (the original passes its address).
 - `m4fcb5c_set_category_master` needs a build with `-ffp-contract=off` and IEEE doubles (no x87 extended precision, no fast-math) to be bit-identical to the original's 53-bit x87 sequence.
 - The ports are standalone; no shared parser, dispatcher or app file was edited.
+- Before the ledger validates `tasks/fl30c-acceptances.json`, regenerate `function-evidence.json` (the acceptances name oracle windows and tests that its current content does not list).
 
 ## Source and test hashes (sha256, at the commit that adds this file)
 
 | file | sha256 |
 |---|---|
-| src/original_methods_fl30c.c | a60441e0d3aa473cbdb780857c1dd6b423e5a143e20ab575a578f3bf23cb2d9c |
+| src/original_methods_fl30c.c | 1bbde32cb07169e742ee74909a5edb82734bbacf050f864817e7355ddfd44a4b |
 | src/original_methods_fl30c.h | 281be7a605380da6e9deb42c2c76dba06aa82ec4376ead0ebec541d764bd5b9b |
 | tests/fl30c_original_oracle.py | fbe461e57387aac219b5354144db90d64eb10993394378d445140a979f1db7fc |
-| tests/fl30c_fixtures.py | 50b9af6800e5ee654f3ddf6e64f06c7eeef0701c46c3691439c4eb56e60bc9fa |
-| tests/fl30c_direct_test.c | 25d3eef64c97427c4342c72176bc92e7b74b394be5b946d1c882b2cc1aaee6ec |
+| tests/fl30c_fixtures.py | dbbfe62bbdad3b1a8903ec64b0d8da504ff0f3404fee0f3e1b0029b4b4f7fa70 |
+| tests/fl30c_direct_test.c | 7b1a3a04536a00ee5915d8673bc8795ebeb81dd85add8a4942dfcc4331563d5c |
 | tests/fl30c_differential_shim.c | 27f0837933fcd6cd9eb90f68c5a13022e8e686757d279716b79ca39ae4599314 |
 | tests/test_fl30c_differential.py | f558aa7408fc7eb7a7816dbd9ec28f6314d12b1c27663638940fd256a26297ab |
 | tests/test_fl30c_direct.py | 8fcd6a6c5151cd1e951823547258e2aa0d1f4cb0ba4df79e9ab17037ba99b4a2 |
 | tests/fl30c_mutation_check.py | fb869c9844bbd1924984cb74e4a3a6d1ae30c1989b41d0832aeab26a1d35cbd1 |
-| tests/fl30c_hand_mutants.py | 239d2805d9dacbfd8ff146f47ed93979a4a5eff47f2251d78deff8d18aef4fb3 |
-| tasks/fl30c-acceptances.json | 88dc17f959fc803558fa3258a7003743fd57f046c28f1e5bdb5c78bb1883ea5c |
+| tests/fl30c_hand_mutants.py | 434906c9d6cd0841712e175c4bff4cc2e8e115a0a07a009ef9eef23c2d18f20b |
+| tasks/fl30c-acceptances.json | 1533a25a36cdf6b1b9c12e58b80a132fd58c31c0b448ff7838b3ec587fd021be |
 
 Native library: the differential builds `tests/fl30c_differential_shim.c` + `src/original_methods_fl30c.c` into a throwaway shared object per run (no committed binary).

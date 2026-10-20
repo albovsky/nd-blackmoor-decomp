@@ -4,6 +4,14 @@
 
 #define FL30_UNUSED __attribute__((unused))
 
+/* 0x4fcb5c is a chain of x87 steps, each rounded once to double (control word 0x27f): the port must not be compiled with fused multiply-add (ARM64 compilers contract
+ * `a * b + c` by default). Contraction is switched off for the whole file; the builds also pass -ffp-contract=off. */
+#if defined(__clang__)
+#pragma STDC FP_CONTRACT OFF
+#elif defined(__GNUC__)
+#pragma GCC optimize("fp-contract=off")
+#endif
+
 static uint32_t rd32(const uint8_t *base, ptrdiff_t off)
 {
     uint32_t v;

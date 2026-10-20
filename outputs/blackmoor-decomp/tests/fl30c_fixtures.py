@@ -410,7 +410,7 @@ SELF_434025 = 0x6000
 
 
 def profiles_434025():
-    return [('empty', 0), ('empty', -1), ('empty', 0x80000000)] + [('norm', k) for k in range(160)] + [('big', 0)]
+    return [('empty', 0), ('empty', -1), ('empty', 0x80000000)] + [('norm', k) for k in range(160)] + [('big', 0), ('signn', 0), ('signq', 0)]
 
 
 def gen_434025(rng, n):
@@ -420,6 +420,12 @@ def gen_434025(rng, n):
         put32(s, 0x5f64, k)
         put32(s, 0x5f68, rng.randrange(1 << 32))
         pool_n, pool_r = [20], [1]
+    elif kind in ('signn', 'signq'):
+        # n or q above 0x7fffffff: the compares at 0x4340a3 (ja) and 0x43422a (jbe) are unsigned
+        put32(s, 0x5f64, 1)
+        put32(s, 0x1144, 0x1000 if kind == 'signn' else 0x2000)
+        put32(s, 0x3084, 0x7ffffff0)
+        pool_n, pool_r = ([0x80000009, 0], [1]) if kind == 'signn' else ([0x20, 0x80000000, 0x40], [0])
     elif kind == 'big':
         count = 500
         put32(s, 0x5f64, count)
@@ -592,7 +598,7 @@ def gen_423876(rng, n):
         put32(b, 0, real)
         put32(b, 0x34, next_va)
         put32(b, 0x48, c_va)
-        put32(b, 0x44, (0 if real == 1 or rng.random() < 0.5 else rng.choice([rand32(rng), 0x10000, 0x20000])) if f44 is None else f44)
+        put32(b, 0x44, (0 if real == 1 or rng.random() < 0.5 else rng.choice([rand32(rng), 0x10000, 0x20000, 0x80000000, 0xffff0000])) if f44 is None else f44)
         va = od.region_va(4 + len(nodes))
         areas.append(Area('node%d' % len(nodes), va, b, image=False))
         nodes.append(va)
@@ -626,7 +632,7 @@ def gen_423876(rng, n):
         r423aae = [first]
     else:
         prefix, inner, tmode, outer, cinner, couter, f, dbg = rest
-        q = rand32(rng)
+        q = rng.choice([rand32(rng), rand32(rng), 0x80000000, 0x10000])
         # the nodes in the order of the plan: [prefix simple node] -> R (type 1, [0x44] = q); the inner chain; the nodes after the call of 0x4235fd
         first_va = od.region_va(4)
         r_index = 1 if prefix else 0
@@ -642,7 +648,7 @@ def gen_423876(rng, n):
             put32(tstruct, 4, od.region_va(2))
             second = od.region_va(4 + len(nodes))
             if tmode == 'bad':
-                node(rng.choice([0, 1, 2]), 0, 0, f44=rand32(rng) | 1)
+                node(rng.choice([0, 1, 2]), 0, 0, f44=rng.choice([rand32(rng) | 1, 0x80000000, 0x10000, 0xffff0000]))
                 put32(tstruct, 8, second)
             else:
                 chain_first, _ = simple_chain(outer, [rng.choice([0, 1, 2]), 2], couter)
