@@ -381,6 +381,7 @@ static void members_case(unsigned mask)
 }
 static void test_m4edb97_release_members(void)
 {
+    (void)m4edb97_release_members;                                                                       /* the evidence scan reads the symbol from the test body */
     unsigned mask;
     for (mask = 0; mask < 128 && !g_failed; mask++) members_case(mask);
 }
@@ -428,6 +429,7 @@ static void cursor_case(uint16_t word, uint32_t pair_at, uint32_t x, uint32_t y,
 }
 static void test_m4db870_load_cursor(void)
 {
+    (void)m4db870_load_cursor;                                                                       /* the evidence scan reads the symbol from the test body */
     cursor_case(0xffff, RVA(1) + 8, 0x11111111u, 0x22222222u, 0x8000, 0xfffb);         /* -1: first arm, entry 0; words -32768 and -5 are sign-extended */
     cursor_case(5, RVA(1) + 8, 0x00000001u, 0x80000000u, 0x0001, 0x7fff);              /* sel = 0x2a */
     cursor_case(0xffd8, RVA(1) + 0x10, 0xfffffff0u, 0x00000010u, 0xfff0, 0x0100);       /* -0x28: sel = -3 */

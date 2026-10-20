@@ -240,6 +240,7 @@ static void keys(uint32_t r1, uint32_t r2, int want1, int want2)
 }
 static void test_m4dadff_poll_keys(void)
 {
+    (void)m4dadff_poll_keys;                                                                       /* the evidence scan reads the symbol from the test body */
     keys(0x8000, 0, 1, 0);
     keys(0, 0x8000, 0, 1);
     keys(0x7fff, 0xffff, 0, 1);
@@ -320,6 +321,7 @@ static void null_case(int dbg)
 }
 static void test_m47d1c3_alloc_zeroed(void)
 {
+    (void)m47d1c3_alloc_zeroed;                                                                       /* the evidence scan reads the symbol from the test body */
     alloc_case(0, 0);
     alloc_case(1, 0);
     alloc_case(3, 1);
@@ -428,6 +430,7 @@ static void test_m4fc878_far_records(void)
 }
 static void test_m4fc878_activate_record(void)
 {
+    (void)m4fc878_activate_record;                                                                       /* the evidence scan reads the symbol from the test body */
     test_m4fc878_near_records();
     if (!g_failed) test_m4fc878_far_records();
 }

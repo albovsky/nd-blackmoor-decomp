@@ -100,7 +100,7 @@ Known gap of the tool: mutants are single textual edits; multi-line guards, `if 
 | src/original_methods_fl31b.h | d101bad1f3c9190b275fab8bf4e0aea69d8afdca7a14f261714bc149b886af44 |
 | tests/fl31b_original_oracle.py | 870b30d98aff6968db009246ccff7ec5f360d4085b4317d8a335c634c871b6d4 |
 | tests/fl31b_fixtures.py | 2b560b191b3c28b545829dd4801ec335935e9e3d34d847e196eb931cb417880e |
-| tests/fl31b_direct_test.c | ac47a7391152f7f9c9b2d9c8e5d20f6df14b1b3b7400888abf1458005ae46f4d |
+| tests/fl31b_direct_test.c | f74687fc204f0692adb932d46d8b00be2f0099c0ff28b8a16a79eb81b5c32930 |
 | tests/fl31b_differential_shim.c | 31d8fd4cd3eb2a64f932f0dc5baffb8c504f1600baadf7c9dd0d713f77ca24b0 |
 | tests/test_fl31b_differential.py | 0b9d21136d948ac7e629259d413fcd78074dbbcf6998b46167bb666de7a04628 |
 | tests/test_fl31b_direct.py | 9c20ed846482b9fad16faef934ed817b5d17c6d11d39a5da1a3d8e165de801f7 |

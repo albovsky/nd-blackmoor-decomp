@@ -88,7 +88,7 @@ Mutants applied by hand to copies (the direct test run on each; all CAUGHT excep
 | src/original_methods_fl31c.h | 73a5b436220f1484b5a9f0ca75327dc00bdeea05f6ac7be2cd6fe6bf42a11847 |
 | tests/fl31c_original_oracle.py | d61165a8e646e7feda3cc358a7aafc0b803b421f44ccfefaba87ed3232b43fd7 |
 | tests/fl31c_fixtures.py | c193103cade92fdaa57e8857cc12ae5ea1695413316152e979958c1f06a6da9f |
-| tests/fl31c_direct_test.c | 2dad6e00ff6fd1eefcd72be03dc5a074be5a1d6983441f84f15516d49024d860 |
+| tests/fl31c_direct_test.c | f0db5c7cb848ee15a47d903c62a422fb9073d2a66f4728aaf5b5a71b32cb4503 |
 | tests/fl31c_differential_shim.c | 8ca20c5ccba865f4625476e935ea34edb64b519d38765cdca372e4b22fffe18e |
 | tests/test_fl31c_differential.py | bd5e241d79a651c704e249ef5193e09720d91e6fee9a7638af2dc1334ce0e506 |
 | tests/test_fl31c_direct.py | 7084e73f2f614b4d7ed98cac0ec335d3feeed7d3fbecfb722eb2c0f5264cf982 |
