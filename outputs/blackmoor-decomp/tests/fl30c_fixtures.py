@@ -592,7 +592,7 @@ def gen_423876(rng, n):
         put32(b, 0, real)
         put32(b, 0x34, next_va)
         put32(b, 0x48, c_va)
-        put32(b, 0x44, (0 if real == 1 or rng.random() < 0.5 else rand32(rng)) if f44 is None else f44)
+        put32(b, 0x44, (0 if real == 1 or rng.random() < 0.5 else rng.choice([rand32(rng), 0x10000, 0x20000])) if f44 is None else f44)
         va = od.region_va(4 + len(nodes))
         areas.append(Area('node%d' % len(nodes), va, b, image=False))
         nodes.append(va)
@@ -612,7 +612,7 @@ def gen_423876(rng, n):
     cobjs = [bytearray(rng.randbytes(16)) for _ in range(4)]
     r423aae, r4235fd = [], []
     f, dbg = 0, 0
-    p0 = rand32(rng)
+    p0 = rng.choice([rand32(rng), rand32(rng), 0x10000, 0x30000])
     put32(cell, 0, p0)
     if kind == 'nullcell':
         dbg, f = rest

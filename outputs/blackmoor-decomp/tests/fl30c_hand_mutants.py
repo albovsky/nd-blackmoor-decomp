@@ -14,12 +14,16 @@ sys.dont_write_bytecode = True
 import fl30c_mutation_check as mc
 
 src = (ROOT / 'src/original_methods_fl30c.c').read_text()
-FLAG = "            wr32(self, 0x4fc4 + (ptrdiff_t)i * 4, 1);\n            p += 4;\n            wr32(self, 0x112c, call1(host, 0x4347b8, (uintptr_t)self, p));\n"
 MUTS = [
-    ('43423d', 'hoisted bound', "    for (i = 0; i < (int32_t)rd32(self, 0x5f64); i++) {", "    int32_t bound = (int32_t)rd32(self, 0x5f64);\n    for (i = 0; i < bound; i++) {"),
-    ('4344bf', 'hoisted bound', "    for (i = 0; i < (int32_t)rd32(self, 0x5f68); i++) {", "    int32_t bound = (int32_t)rd32(self, 0x5f68);\n    for (i = 0; i < bound; i++) {"),
-    ('4344bf', 'flag store after the 0x112c store', FLAG, "            p += 4;\n            wr32(self, 0x112c, call1(host, 0x4347b8, (uintptr_t)self, p));\n            wr32(self, 0x4fc4 + (ptrdiff_t)i * 4, 1);\n"),
-    ('4bf19a', 'result of BinkGoto returned', "    call3(host, 0x52a530, 0, (uintptr_t)handle, frame, 0);\n    return 1;", "    return call3(host, 0x52a530, 0, (uintptr_t)handle, frame, 0) ? 1 : 0;"),
+    ('423876', 'recursion with the flag 0', "m423876_unwind_chain(self, node + 0x44, 1, world, host);", "m423876_unwind_chain(self, node + 0x44, 0, world, host);"),
+    ('423876', 'arguments of 0x4234dd swapped', "call2(host, 0x4234dd, (uintptr_t)self, (uintptr_t)cell, node_va);", "call2(host, 0x4234dd, (uintptr_t)self, node_va, (uintptr_t)cell);"),
+    ('423876', 'cell not replaced by [t+4]', "cell = object_at(host, rd32(tp, 4));", "(void)rd32(tp, 4);"),
+    ('4763b3', 'first block tests the vertical length for the 2 case', "        if (rds16(self, 0x8d4) - rds16(self, 0x8d2) == 2) {\n            wr32(self, 0x8c6, rd32(self, 0x8c6) + (uint32_t)(rds16(rec, 0x656) * 1000));\n        } else if (rds16(self, 0x8d0)",
+     "        if (rds16(self, 0x8d0) - rds16(self, 0x8ce) == 2) {\n            wr32(self, 0x8c6, rd32(self, 0x8c6) + (uint32_t)(rds16(rec, 0x656) * 1000));\n        } else if (rds16(self, 0x8d0)"),
+    ('41b6e2', 'key not advanced in the literal branch', "            c = (uint8_t)(src[si] - key);\n            key = (uint8_t)(key + 1);\n            dst[out] = c;", "            c = (uint8_t)(src[si] - key);\n            dst[out] = c;"),
+    ('43d7f0', 'flag store after the first call', "    world->value_5d15a5 = 1;\n    call0(host, kInitCalls[0].callee, kInitCalls[0].object);", "    call0(host, kInitCalls[0].callee, kInitCalls[0].object);\n    world->value_5d15a5 = 1;"),
+    ('434025', 'sel reset for every entry', "        uint32_t q = 5;\n        if (n <= 8) {", "        uint32_t q = 5;\n        sel = 0;\n        if (n <= 8) {"),
+    ('4fcb5c', 'second clamp uses the unclamped bits', "    else wr32(self, vol, 0x3f800000u);", "    else wr32(self, vol, 0x3f800001u);"),
 ]
 for key, what, old, new in MUTS:
     assert src.count(old) == 1, what
