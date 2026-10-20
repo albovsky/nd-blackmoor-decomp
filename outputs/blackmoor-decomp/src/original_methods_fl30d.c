@@ -165,3 +165,48 @@ uint32_t m4c2a8d_make_record(uint8_t *self, uint32_t w, uint32_t h, uint32_t tag
     memset(rec + 0x45, 0, 16);
     return rec_va;
 }
+
+/* ---- 0x48d3cb select_entry ------------------------------------------------------------------------------------------------------- */
+static int32_t box_field(const uint8_t *p, int32_t k, ptrdiff_t a)
+{
+    return (int32_t)rd32(p, (ptrdiff_t)(int32_t)((uint32_t)k << 4) + a);
+}
+
+void m48d3cb_select_entry(uint8_t *self, uint32_t sel, uint32_t k_arg, Fl30dWorld *world, const Fl18Host *host)
+{
+    int32_t index = rds16(self, 0x1e);
+    uint8_t *p = res(host, rd32(world->table_5bb5e5, (ptrdiff_t)(index * 0x8d)));
+    int32_t s = (int16_t)sel, k = (int16_t)k_arg;
+    if (s == 0x2766) {
+        world->dword_5b44f0 = 9;
+        world->dword_5b44f4 = 1;
+        world->dword_5d162d = world->dword_5d0377;
+        world->dword_5d1631 = 0x5b160cu + (world->dword_5b44f0 << 5) + (world->dword_5b44f4 << 4);
+        world->dword_5d1639 = 1;
+        world->dword_5c39e5 = 0x2766;
+        self[0x24] = 1;
+        wr16(self, 0x27, 0xffff);
+        return;
+    }
+    if (s != 0x2765) {
+        wr16(self, 0x27, 0xffff);
+        return;
+    }
+    world->dword_5b44f4 = 1;
+    world->dword_5d162d = world->dword_5d0377;
+    if (box_field(p, k, 0x207) >= (int32_t)rd32(p, 0x2f9) && box_field(p, k, 0x20f) <= (int32_t)rd32(p, 0x301) &&
+        box_field(p, k, 0x203) >= (int32_t)rd32(p, 0x2f5) && box_field(p, k, 0x20b) <= (int32_t)rd32(p, 0x2fd)) {
+        world->dword_5b44f0 = (uint32_t)rds16(p, 0x2f3);
+    } else if (box_field(p, k, 0x207) >= (int32_t)rd32(p, 0x30b) && box_field(p, k, 0x20f) <= (int32_t)rd32(p, 0x313) &&
+               box_field(p, k, 0x203) >= (int32_t)rd32(p, 0x307) && box_field(p, k, 0x20b) <= (int32_t)rd32(p, 0x30f)) {
+        world->dword_5b44f0 = (uint32_t)rds16(p, 0x305);
+    } else {
+        world->dword_5b44f0 = 0;
+    }
+    world->dword_5d1631 = 0x5b160cu + (world->dword_5b44f0 << 5) + (world->dword_5b44f4 << 4);
+    world->dword_5d1639 = 1;
+    world->dword_5c39e5 = 0x2765;
+    self[0x24] = 1;
+    if (self[0x26] == 0) wr16(self, 0x27, (uint16_t)k_arg);
+    (void)host;
+}

@@ -28,6 +28,14 @@ typedef struct Fl30dWorld {
     uint8_t byte_63a9e8;       /* 0x4e2e05: first byte compared with the first byte of the string at self + 0x13e3 */
     int16_t word_639895;       /* 0x4c2a8d: bytes per pixel (a signed word) */
     uint16_t word_639893;      /* 0x4c2a8d: the word stored at +0x33 of the new record */
+    uint8_t *table_5bb5e5;     /* 0x48d3cb: records of stride 0x8d at the original address 0x5bb5e5 (the dword at +0 is read); the caller leaves slack for a negative index */
+    uint32_t dword_5b44f0;     /* 0x48d3cb: written and read again */
+    uint32_t dword_5b44f4;     /* 0x48d3cb: written and read again */
+    uint32_t dword_5d0377;     /* 0x48d3cb: read */
+    uint32_t dword_5d162d;     /* 0x48d3cb: written */
+    uint32_t dword_5d1631;     /* 0x48d3cb: written */
+    uint32_t dword_5d1639;     /* 0x48d3cb: written */
+    uint32_t dword_5c39e5;     /* 0x48d3cb: written */
 } Fl30dWorld;
 
 /* 0x4e2e05, thiscall, plain `ret`, no result. Native rejection (NOT original behaviour): when the signed word [self+0x1471] is negative, or its product with 0x29 does not fit
@@ -48,6 +56,14 @@ int32_t m4e2e05_copy_state(uint8_t *self, const Fl30dWorld *world, const Fl18Hos
  * dword [rec+0x23] = size; dword [rec+0x27] = size + 0x59; word [rec+0x2b] = w; word [rec+0x2d] = h; word [rec+0x2f] = w * bpp (16 bits); word [rec+0x31] = h; word [rec+0x33] = word
  * 0x639893; dword [rec+0x55] = [rec+0x35] = [rec+0x39] = 0; dword [rec+0x3d] = w - 1; dword [rec+0x41] = h - 1; the four dwords at rec + 0x45 = 0; the result is rec. */
 uint32_t m4c2a8d_make_record(uint8_t *self, uint32_t w, uint32_t h, uint32_t tag, uint32_t name, const Fl30dWorld *world, const Fl18Host *host);
+
+/* 0x48d3cb, thiscall, `ret 8`, no result; stack arguments: the words `sel` and `k` (low 16 bits of the stack dwords, signed). p = dword [0x5bb5e5 + signed word [self+0x1e] * 0x8d] (an original
+ * address). sel == 0x2766: [0x5b44f0] = 9, [0x5b44f4] = 1, [0x5d162d] = [0x5d0377], [0x5d1631] = 0x5b160c + 9 * 32 + 1 * 16, [0x5d1639] = 1, [0x5c39e5] = 0x2766, byte [self+0x24] = 1, word [self+0x27]
+ * = 0xffff. sel == 0x2765: [0x5b44f4] = 1, [0x5d162d] = [0x5d0377]; e(a) = dword [p + k * 16 + a] (signed 32-bit, k signed); the first box passes when e(0x207) >= [p+0x2f9] and e(0x20f) <= [p+0x301]
+ * and e(0x203) >= [p+0x2f5] and e(0x20b) <= [p+0x2fd] (tested in this order, the first failing test ends the box): then [0x5b44f0] = signed word [p+0x2f3]; otherwise the same four tests against
+ * [p+0x30b], [p+0x313], [p+0x307], [p+0x30f]: when they all pass [0x5b44f0] = signed word [p+0x305], else 0. Then [0x5d1631] = 0x5b160c + [0x5b44f0] * 32 + [0x5b44f4] * 16 (32-bit), [0x5d1639] = 1,
+ * [0x5c39e5] = 0x2765, byte [self+0x24] = 1 and, when byte [self+0x26] == 0, word [self+0x27] = k. Any other sel: word [self+0x27] = 0xffff. */
+void m48d3cb_select_entry(uint8_t *self, uint32_t sel, uint32_t k, Fl30dWorld *world, const Fl18Host *host);
 
 #ifdef __cplusplus
 }

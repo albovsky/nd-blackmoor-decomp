@@ -74,10 +74,14 @@ class Fl30dDirect(unittest.TestCase):
         """FL-30d: direct test of m4c2a8d_make_record (original 0x4c2a8d)"""
         self.check('test_m4c2a8d_make_record')
 
+    def test_48d3cb_select_entry(self):
+        """FL-30d: direct test of m48d3cb_select_entry (original 0x48d3cb)"""
+        self.check('test_m48d3cb_select_entry')
+
     # CASES-END
 
     def test_sweep_bounded(self):
-        """FL-30a: bounded random sweep over every port (meant for the sanitiser builds; checks that it runs)"""
+        """FL-30d: bounded random sweep over every port (meant for the sanitiser builds; checks that it runs)"""
         self.check('test_sweep_bounded')
 
 

@@ -203,14 +203,78 @@ def gen_4c2a8d(rng, n):
                 stubs, g, stack, tuple(stack), (kind, *rest, w, h, bpp))
 
 
+# ---- 0x48d3cb ---------------------------------------------------------------------------------------------------------------------
+
+PREC_VA = od.region_va(1)
+BOX1 = (0x2f9, 0x301, 0x2f5, 0x2fd)       # the bounds of the first box: e(0x207) >= , e(0x20f) <= , e(0x203) >= , e(0x20b) <=
+BOX2 = (0x30b, 0x313, 0x307, 0x30f)
+ENTRY = (0x207, 0x20f, 0x203, 0x20b)
+SELS = [0x2766, 0x2765, 0x2764, 0x2767, 0, 0xffff, 0x12765, 0xd89a]      # the last is sign-extended -0x2766; 0x12765 is 0x2765 as a word
+
+
+def box_values(rng, p, bounds, fail_at, k):
+    """Writes the bound dwords of one box and the entry dwords of entry k so that the test `fail_at` (0..3, None = none) is the first to fail."""
+    for i, (bo, eo) in enumerate(zip(bounds, ENTRY)):
+        b = rng.choice([0, 5, -7, 0x40000000, -0x40000000, rng.randrange(-1000, 1000)])
+        pos = eo + 16 * k
+        if i == 0 or i == 2:       # entry >= bound passes
+            e = b + rng.choice([0, 0, 1, 100]) if (fail_at is None or i < fail_at) else b - rng.choice([1, 1, 100])
+            if fail_at is not None and i > fail_at:
+                e = rng.randrange(-1000, 1000)
+        else:                      # entry <= bound passes
+            e = b - rng.choice([0, 0, 1, 100]) if (fail_at is None or i < fail_at) else b + rng.choice([1, 1, 100])
+            if fail_at is not None and i > fail_at:
+                e = rng.randrange(-1000, 1000)
+        put32(p, bo, b)
+        put32(p, pos, e)
+
+
+def gen_48d3cb(rng, n):
+    paths = [('b1pass',)] + [('b1fail', i, j) for i in range(4) for j in range(5)]      # j = 4: the second box passes, else the test j fails
+    (sel, k, path, zero26), variant = prof(n, [(s, k, pth, z) for s in SELS[:2] for k in (0, 3, -1) for pth in paths for z in (0, 1)] + [(s, 0, ('b1pass',), 0) for s in SELS[2:]])
+    idx = [0, 1, -1, 2, -2][n % 5]
+    s = bytearray(rng.randbytes(0x100))
+    put16(s, 0x1e, idx)
+    s[0x26] = 0 if zero26 else rng.randrange(1, 256)
+    # table of records of stride 0x8d for the indices -2..3 (patched into the image); the dword at +0 is the original address of the entry object
+    area = Area('tbl', 0x5bb5e5 - 2 * 0x8d, bytearray(rng.randbytes(6 * 0x8d)), image=True)
+    for i in range(-2, 4):
+        put32(area.data, (i + 2) * 0x8d, PREC_VA if i == idx else rng.randrange(1 << 32))
+    p = bytearray(rng.randbytes(0x500))
+    put16(p, 0x2f3, rng.choice([0, 1, 0x7fff, 0x8000, 0xffff, 7]))
+    put16(p, 0x305, rng.choice([0, 1, 0x7fff, 0x8000, 0xffff, 9]))
+    kk = k
+    if path[0] == 'b1pass':
+        box_values(rng, p, BOX1, None, kk)         # box 2 keeps random bounds: it is not looked at
+    else:
+        box_values(rng, p, BOX1, path[1], kk)
+    if path[0] == 'b1fail':
+        # the entry values were chosen for box 1; box 2 reads the same entry fields, so its bounds are chosen against them
+        e = [struct.unpack_from('<i', p, eo + 16 * kk)[0] for eo in ENTRY]
+        fail = None if path[2] == 4 else path[2]
+        for i, bo in enumerate(BOX2):
+            if i in (0, 2):        # entry >= bound passes
+                b = e[i] - rng.choice([0, 1, 100]) if (fail is None or i < fail) else e[i] + rng.choice([1, 1, 100])
+            else:
+                b = e[i] + rng.choice([0, 1, 100]) if (fail is None or i < fail) else e[i] - rng.choice([1, 1, 100])
+            if fail is not None and i > fail:
+                b = rng.randrange(-1000, 1000)
+            put32(p, bo, b)
+    g = {'dword_5b44f0': rng.randrange(1 << 32), 'dword_5b44f4': rng.randrange(1 << 32), 'dword_5d0377': rng.randrange(1 << 32), 'dword_5d162d': rng.randrange(1 << 32),
+         'dword_5d1631': rng.randrange(1 << 32), 'dword_5d1639': rng.randrange(1 << 32), 'dword_5c39e5': rng.randrange(1 << 32)}
+    a0, a1 = word_arg(rng, sel), word_arg(rng, k)
+    return make('48d3cb', [self_area(s), area, Area('p', PREC_VA, p, image=False)], {}, g, [a0, a1], (a0, a1), (sel, k, path, zero26, idx), {'table_5bb5e5': ('tbl', 2 * 0x8d)})
+
+
 # @@GENERATORS@@
 
 SPECS = {
     '4e2e05': dict(id=1, va=0x4e2e05, size=421, gen=gen_4e2e05, cleanup=0, n=28 * 4),
+    '48d3cb': dict(id=3, va=0x48d3cb, size=553, gen=gen_48d3cb, cleanup=8, n=2 * 3 * 21 * 2 + 6),
     '4c2a8d': dict(id=2, va=0x4c2a8d, size=429, gen=gen_4c2a8d, cleanup=16, ret=True, n=74 * 2),
 }
 KEYS = list(SPECS)
-NAMES = {'4e2e05': 'copy_state', '4c2a8d': 'make_record'}
+NAMES = {'4e2e05': 'copy_state', '4c2a8d': 'make_record', '48d3cb': 'select_entry'}
 
 
 def build(key, rng, n):

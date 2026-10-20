@@ -165,6 +165,10 @@ class Fl30dDifferential(DiffBase):
         """FL-30d: differential test of m4c2a8d_make_record (original 0x4c2a8d)"""
         self.run_key('4c2a8d')
 
+    def test_48d3cb_select_entry(self):
+        """FL-30d: differential test of m48d3cb_select_entry (original 0x48d3cb)"""
+        self.run_key('48d3cb')
+
     # CASES-END
 
 

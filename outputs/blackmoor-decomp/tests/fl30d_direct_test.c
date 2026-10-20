@@ -22,6 +22,7 @@ static char g_msg[256];
 #define RSZ 0x7000
 static uint8_t g_r[8][RSZ];
 static uint8_t g_blk[FL30D_BLOCK_5A1E54_SIZE];
+static uint8_t g_tbl[0x8d * 8];
 static Fl30dWorld g_w;
 static Fl18Host g_host;
 #define SELF g_r[0]
@@ -258,6 +259,97 @@ static void test_m4c2a8d_make_record(void)
     CK(get32(rec, 0) == 0 && rec[0x58] == 0 && get32(rec, 0x59) == 0x77777777u);
 }
 
+/* ---- 0x48d3cb ------------------------------------------------------------------------------------------------------------------ */
+static void ent_setup(int index)
+{
+    int i;
+    setup();
+    memset(g_r[1], 0, RSZ);
+    memset(SELF, 0, 0x100);
+    g_tbl[0] = 0;                                        /* g_tbl: records of stride 0x8d, record 0 at g_tbl + 3 * 0x8d */
+    for (i = 0; i < 8; i++) set32(g_tbl, (size_t)i * 0x8d, 0);
+    set32(g_tbl, (size_t)(3 + index) * 0x8d, RVA(1));
+    g_w.table_5bb5e5 = g_tbl + 3 * 0x8d;
+    set16(SELF, 0x1e, (uint16_t)index);
+    g_w.dword_5d0377 = 0x11223344u;
+    g_w.dword_5b44f0 = 0x77;
+    g_w.dword_5b44f4 = 0x78;
+}
+static void box(uint8_t *p, int k, int a, int b, int c, int d, int bounds_at, int ba, int bb, int bc, int bd)
+{
+    set32(p, (size_t)(0x207 + 16 * k), (uint32_t)a);       /* e(0x207), e(0x20f), e(0x203), e(0x20b) */
+    set32(p, (size_t)(0x20f + 16 * k), (uint32_t)b);
+    set32(p, (size_t)(0x203 + 16 * k), (uint32_t)c);
+    set32(p, (size_t)(0x20b + 16 * k), (uint32_t)d);
+    set32(p, (size_t)bounds_at, (uint32_t)ba);               /* >= , <= , >= , <= bounds at +0, +8, -4, +4 relative to bounds_at */
+    set32(p, (size_t)bounds_at + 8, (uint32_t)bb);
+    set32(p, (size_t)bounds_at - 4, (uint32_t)bc);
+    set32(p, (size_t)bounds_at + 4, (uint32_t)bd);
+}
+static void test_m48d3cb_select_entry(void)
+{
+    uint8_t *p = g_r[1];
+    ent_setup(2);
+    m48d3cb_select_entry(SELF, 0x2766, 5, &g_w, &g_host);               /* the fixed selection */
+    CK(g_w.dword_5b44f0 == 9 && g_w.dword_5b44f4 == 1 && g_w.dword_5d162d == 0x11223344u);
+    CK(g_w.dword_5d1631 == 0x5b160cu + 9 * 32 + 16 && g_w.dword_5d1639 == 1 && g_w.dword_5c39e5 == 0x2766);
+    CK(SELF[0x24] == 1 && get16(SELF, 0x27) == 0xffff);
+    ent_setup(0);
+    m48d3cb_select_entry(SELF, 0x2764, 5, &g_w, &g_host);               /* any other selection */
+    CK(get16(SELF, 0x27) == 0xffff && SELF[0x24] == 0 && g_w.dword_5b44f0 == 0x77 && g_w.dword_5d1639 == 0);
+    ent_setup(0);
+    m48d3cb_select_entry(SELF, 0xd89a, 5, &g_w, &g_host);               /* -0x2766 is not 0x2766 */
+    CK(get16(SELF, 0x27) == 0xffff && g_w.dword_5d1639 == 0);
+    /* sel 0x2765, k = 2: box 1 passes (equal bounds: >= and <= are inclusive, signed values) */
+    ent_setup(1);
+    set16(p, 0x2f3, 0x8001);
+    set16(p, 0x305, 0x1234);
+    box(p, 2, -5, -3, -9, -4, 0x2f9, -5, -3, -9, -4);                   /* e(0x207) >= [0x2f9], e(0x20f) <= [0x301], e(0x203) >= [0x2f5], e(0x20b) <= [0x2fd] */
+    set32(p, 0x2fd, (uint32_t)-4);
+    m48d3cb_select_entry(SELF, 0x12765, 0xabcd0002u, &g_w, &g_host);
+    CK(g_w.dword_5b44f0 == 0xffff8001u);                                /* the signed word [p+0x2f3] */
+    CK(g_w.dword_5b44f4 == 1 && g_w.dword_5d162d == 0x11223344u);
+    CK(g_w.dword_5d1631 == 0x5b160cu + (0xffff8001u << 5) + 16 && g_w.dword_5d1639 == 1 && g_w.dword_5c39e5 == 0x2765);
+    CK(SELF[0x24] == 1 && get16(SELF, 0x27) == 2);                      /* byte [self+0x26] is 0: word [self+0x27] = k */
+    /* each test of box 1 failing in turn falls to box 2, which passes: [p+0x305]; byte [self+0x26] non-zero leaves word [self+0x27] */
+    {
+        int fail;
+        for (fail = 0; fail < 4; fail++) {
+            int e[4] = {-5, -3, -9, -4};
+            ent_setup(1);
+            SELF[0x26] = 7;
+            set16(SELF, 0x27, 0x4321);
+            set16(p, 0x2f3, 1);
+            set16(p, 0x305, 0x8002);
+            box(p, 1, e[0], e[1], e[2], e[3], 0x2f9, -5, -3, -9, -4);
+            if (fail == 0) set32(p, 0x2f9, (uint32_t)-4);              /* e(0x207) = -5 < -4 */
+            if (fail == 1) set32(p, 0x301, (uint32_t)-4);              /* e(0x20f) = -3 > -4 */
+            if (fail == 2) set32(p, 0x2f5, (uint32_t)-8);              /* e(0x203) = -9 < -8 */
+            if (fail == 3) set32(p, 0x2fd, (uint32_t)-5);              /* e(0x20b) = -4 > -5 */
+            box(p, 1, e[0], e[1], e[2], e[3], 0x30b, -5, -3, -9, -4);
+            m48d3cb_select_entry(SELF, 0x2765, 1, &g_w, &g_host);
+            CK(g_w.dword_5b44f0 == 0xffff8002u);
+            CK(SELF[0x24] == 1 && get16(SELF, 0x27) == 0x4321);
+        }
+        for (fail = 0; fail < 4; fail++) {                              /* box 2 failing in turn: [0x5b44f0] = 0 */
+            int e[4] = {-5, -3, -9, -4};
+            ent_setup(1);
+            set16(p, 0x2f3, 1);
+            set16(p, 0x305, 0x8002);
+            box(p, -1, e[0], e[1], e[2], e[3], 0x2f9, 100, 100, 100, 100);       /* box 1 fails at its first test */
+            box(p, -1, e[0], e[1], e[2], e[3], 0x30b, -5, -3, -9, -4);
+            if (fail == 0) set32(p, 0x30b, (uint32_t)-4);
+            if (fail == 1) set32(p, 0x313, (uint32_t)-4);
+            if (fail == 2) set32(p, 0x307, (uint32_t)-8);
+            if (fail == 3) set32(p, 0x30f, (uint32_t)-5);
+            set32(p, 0x2f9, (uint32_t)0x7fffffff);
+            m48d3cb_select_entry(SELF, 0x2765, 0xffff, &g_w, &g_host);       /* k = -1 */
+            CK(g_w.dword_5b44f0 == 0);
+            CK(g_w.dword_5d1631 == 0x5b160cu + 16 && get16(SELF, 0x27) == 0xffff);
+        }
+    }
+}
+
 /*TESTS*/
 
 /* ---- bounded sweep ------------------------------------------------------------------------------------------------------------- */
@@ -284,6 +376,13 @@ static void test_sweep_bounded(void)
         g_w.word_639895 = (int16_t)(1 + seed % 3);
         m4c2a8d_make_record(SELF, (seed >> 2) % 9, (seed >> 6) % 9, seed, RVA(3), &g_w, &g_host);
         L.n = 0;
+        memset(g_tbl, 0, sizeof g_tbl);
+        set32(g_tbl, 3 * 0x8d, RVA(1));
+        g_w.table_5bb5e5 = g_tbl + 3 * 0x8d;
+        set16(SELF, 0x1e, 0);
+        set32(g_r[1], 0x2f9, seed);
+        m48d3cb_select_entry(SELF, 0x2765 + (seed & 1), (seed >> 4) % 8, &g_w, &g_host);
+        L.n = 0;
         /*SWEEPBODY*/
     }
 }
@@ -305,6 +404,7 @@ int main(void)
 {
     int failures = 0;
     RUN(test_m4e2e05_copy_state);
+    RUN(test_m48d3cb_select_entry);
     RUN(test_m4c2a8d_make_record);
     /*RUNS*/
     RUN(test_sweep_bounded);
