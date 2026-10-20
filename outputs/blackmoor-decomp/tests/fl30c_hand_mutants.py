@@ -23,6 +23,10 @@ MUTS = [
     ('41b6e2', 'key not advanced in the literal branch', "            c = (uint8_t)(src[si] - key);\n            key = (uint8_t)(key + 1);\n            dst[out] = c;", "            c = (uint8_t)(src[si] - key);\n            dst[out] = c;"),
     ('43d7f0', 'flag store after the first call', "    world->value_5d15a5 = 1;\n    call0(host, kInitCalls[0].callee, kInitCalls[0].object);", "    call0(host, kInitCalls[0].callee, kInitCalls[0].object);\n    world->value_5d15a5 = 1;"),
     ('434025', 'sel reset for every entry', "        uint32_t q = 5;\n        if (n <= 8) {", "        uint32_t q = 5;\n        sel = 0;\n        if (n <= 8) {"),
+    ('434025', 'signed n <= 8', "        if (n <= 8) {", "        if ((int32_t)n <= 8) {"),
+    ('434025', 'signed q > n', "            if (q > n) break;", "            if ((int32_t)q > (int32_t)n) break;"),
+    ('434025', 'signed q < n', "                if (!(q < n)) break;", "                if (!((int32_t)q < (int32_t)n)) break;"),
+    ('423876', 'signed [node+0x44] test', "            if (rd32(node, 0x44) != 0) {\n                call3", "            if ((int32_t)rd32(node, 0x44) > 0) {\n                call3"),
     ('4fcb5c', 'second clamp uses the unclamped bits', "    else wr32(self, vol, 0x3f800000u);", "    else wr32(self, vol, 0x3f800001u);"),
 ]
 for key, what, old, new in MUTS:
