@@ -1,0 +1,332 @@
+[
+  {
+    "va": "0x4d39f9",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-29a implementer; no independent review yet (slice-reviewer pending)",
+    "date": "2026-10-20",
+    "native_source": {
+      "path": "src/original_methods_fl29a.c",
+      "symbol": "m4d39f9_find_free_entry"
+    },
+    "tests": [
+      {
+        "path": "tests/fl29a_direct_test.c",
+        "test_id": "test_m4d39f9_find_free_entry"
+      },
+      {
+        "path": "tests/test_fl29a_direct.py",
+        "test_id": "Fl29aDirect.test_4d39f9_find_free_entry"
+      },
+      {
+        "path": "tests/test_fl29a_differential.py",
+        "test_id": "Fl29aDifferential.test_4d39f9_find_free_entry"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl29a_original_oracle.py",
+      "window": [
+        "0x4d39f9",
+        "0x4d3a52"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "The first free entry (dword at +4 of stride-0x4a records, indices 0x18 to 0x3f) or the report and ax = 0xffff; every instruction and both directions of every jump executed. See tasks/fl29a-handoff.md."
+  },
+  {
+    "va": "0x4c4202",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-29a implementer; no independent review yet (slice-reviewer pending)",
+    "date": "2026-10-20",
+    "native_source": {
+      "path": "src/original_methods_fl29a.c",
+      "symbol": "m4c4202_check_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl29a_direct_test.c",
+        "test_id": "test_m4c4202_check_vtable_call"
+      },
+      {
+        "path": "tests/test_fl29a_direct.py",
+        "test_id": "Fl29aDirect.test_4c4202_check_vtable_call"
+      },
+      {
+        "path": "tests/test_fl29a_differential.py",
+        "test_id": "Fl29aDifferential.test_4c4202_check_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl29a_original_oracle.py",
+      "window": [
+        "0x4c4202",
+        "0x4c425e"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Compares the object with the stored one, calls the vtable entry at +0x80 and reports a non-zero result through 0x4c88c7, 0x42639d and 0x4c97b4; every instruction and both jump directions executed. See tasks/fl29a-handoff.md."
+  },
+  {
+    "va": "0x4c948f",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-29a implementer; no independent review yet (slice-reviewer pending)",
+    "date": "2026-10-20",
+    "native_source": {
+      "path": "src/original_methods_fl29a.c",
+      "symbol": "m4c948f_find_free_slot"
+    },
+    "tests": [
+      {
+        "path": "tests/fl29a_direct_test.c",
+        "test_id": "test_m4c948f_find_free_slot"
+      },
+      {
+        "path": "tests/test_fl29a_direct.py",
+        "test_id": "Fl29aDirect.test_4c948f_find_free_slot"
+      },
+      {
+        "path": "tests/test_fl29a_differential.py",
+        "test_id": "Fl29aDifferential.test_4c948f_find_free_slot"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl29a_original_oracle.py",
+      "window": [
+        "0x4c948f",
+        "0x4c94ec"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "The first zero dword of the 0x18 slots at self+0xc72 or the report and ax = 0xffff; every instruction and both directions of every jump executed. See tasks/fl29a-handoff.md."
+  },
+  {
+    "va": "0x4d3992",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-29a implementer; no independent review yet (slice-reviewer pending)",
+    "date": "2026-10-20",
+    "native_source": {
+      "path": "src/original_methods_fl29a.c",
+      "symbol": "m4d3992_clear_entry"
+    },
+    "tests": [
+      {
+        "path": "tests/fl29a_direct_test.c",
+        "test_id": "test_m4d3992_clear_entry"
+      },
+      {
+        "path": "tests/test_fl29a_direct.py",
+        "test_id": "Fl29aDirect.test_4d3992_clear_entry"
+      },
+      {
+        "path": "tests/test_fl29a_differential.py",
+        "test_id": "Fl29aDifferential.test_4d3992_clear_entry"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl29a_original_oracle.py",
+      "window": [
+        "0x4d3992",
+        "0x4d39f9"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Range check of the signed word index (0 to 0x57) with the three reporting calls, then the two dword clears of the record, also after a report; every instruction and jump direction executed. See tasks/fl29a-handoff.md."
+  },
+  {
+    "va": "0x4c92c5",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-29a implementer; no independent review yet (slice-reviewer pending)",
+    "date": "2026-10-20",
+    "native_source": {
+      "path": "src/original_methods_fl29a.c",
+      "symbol": "m4c92c5_count_down"
+    },
+    "tests": [
+      {
+        "path": "tests/fl29a_direct_test.c",
+        "test_id": "test_m4c92c5_count_down"
+      },
+      {
+        "path": "tests/test_fl29a_direct.py",
+        "test_id": "Fl29aDirect.test_4c92c5_count_down"
+      },
+      {
+        "path": "tests/test_fl29a_differential.py",
+        "test_id": "Fl29aDifferential.test_4c92c5_count_down"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl29a_original_oracle.py",
+      "window": [
+        "0x4c92c5",
+        "0x4c9340"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Decrements the word counter of a non-zero entry, calls 0x4c2dfb with the original address of the dword when it reaches zero, and floors a negative word at 0; every instruction and jump direction executed. See tasks/fl29a-handoff.md."
+  },
+  {
+    "va": "0x4c9340",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-29a implementer; no independent review yet (slice-reviewer pending)",
+    "date": "2026-10-20",
+    "native_source": {
+      "path": "src/original_methods_fl29a.c",
+      "symbol": "m4c9340_scan_surface"
+    },
+    "tests": [
+      {
+        "path": "tests/fl29a_direct_test.c",
+        "test_id": "test_m4c9340_scan_surface"
+      },
+      {
+        "path": "tests/test_fl29a_direct.py",
+        "test_id": "Fl29aDirect.test_4c9340_scan_surface"
+      },
+      {
+        "path": "tests/test_fl29a_differential.py",
+        "test_id": "Fl29aDifferential.test_4c9340_scan_surface"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl29a_original_oracle.py",
+      "window": [
+        "0x4c9340",
+        "0x4c9428"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Scans the rectangle of a surface word by word (pitch, bytes per pixel, odd widths, negative pitch) for the first word that differs from the key at self+0x38d0; every instruction and jump direction executed. See tasks/fl29a-handoff.md."
+  },
+  {
+    "va": "0x4c46d1",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-29a implementer; no independent review yet (slice-reviewer pending)",
+    "date": "2026-10-20",
+    "native_source": {
+      "path": "src/original_methods_fl29a.c",
+      "symbol": "m4c46d1_fill_surface"
+    },
+    "tests": [
+      {
+        "path": "tests/fl29a_direct_test.c",
+        "test_id": "test_m4c46d1_fill_surface"
+      },
+      {
+        "path": "tests/test_fl29a_direct.py",
+        "test_id": "Fl29aDirect.test_4c46d1_fill_surface"
+      },
+      {
+        "path": "tests/test_fl29a_differential.py",
+        "test_id": "Fl29aDifferential.test_4c46d1_fill_surface"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl29a_original_oracle.py",
+      "window": [
+        "0x4c46d1",
+        "0x4c47e6"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Builds the 16-bit colour from three masked, optionally byte-shifted components with 32-bit shifts modulo 32 and fills w*h words of the surface buffer; every instruction and jump direction executed. See tasks/fl29a-handoff.md."
+  },
+  {
+    "va": "0x4cb9d1",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-29a implementer; no independent review yet (slice-reviewer pending)",
+    "date": "2026-10-20",
+    "native_source": {
+      "path": "src/original_methods_fl29a.c",
+      "symbol": "m4cb9d1_relocate_entries"
+    },
+    "tests": [
+      {
+        "path": "tests/fl29a_direct_test.c",
+        "test_id": "test_m4cb9d1_relocate_entries"
+      },
+      {
+        "path": "tests/test_fl29a_direct.py",
+        "test_id": "Fl29aDirect.test_4cb9d1_relocate_entries"
+      },
+      {
+        "path": "tests/test_fl29a_differential.py",
+        "test_id": "Fl29aDifferential.test_4cb9d1_relocate_entries"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl29a_original_oracle.py",
+      "window": [
+        "0x4cb9d1",
+        "0x4cbb00"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fetches the object through 0x4c0c69 and adds its two offsets to the four fields of every 0x18-byte entry, re-reading the stored pointers, with the null guards; every instruction and jump direction executed. See tasks/fl29a-handoff.md."
+  },
+  {
+    "va": "0x4895cc",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-29a implementer; no independent review yet (slice-reviewer pending)",
+    "date": "2026-10-20",
+    "native_source": {
+      "path": "src/original_methods_fl29a.c",
+      "symbol": "m4895cc_init_buffer"
+    },
+    "tests": [
+      {
+        "path": "tests/fl29a_direct_test.c",
+        "test_id": "test_m4895cc_init_buffer"
+      },
+      {
+        "path": "tests/test_fl29a_direct.py",
+        "test_id": "Fl29aDirect.test_4895cc_init_buffer"
+      },
+      {
+        "path": "tests/test_fl29a_differential.py",
+        "test_id": "Fl29aDifferential.test_4895cc_init_buffer"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl29a_original_oracle.py",
+      "window": [
+        "0x4895cc",
+        "0x489722"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Allocates and clears the 0xaba-byte buffer, copies the string and the fields, bumps two caller dwords and traces; the allocation-failure block is executed by the oracle on a mapped zero page and the native port rejects there. Every instruction and jump direction executed. See tasks/fl29a-handoff.md."
+  },
+  {
+    "va": "0x4c3efb",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-29a implementer; no independent review yet (slice-reviewer pending)",
+    "date": "2026-10-20",
+    "native_source": {
+      "path": "src/original_methods_fl29a.c",
+      "symbol": "m4c3efb_lock_surface"
+    },
+    "tests": [
+      {
+        "path": "tests/fl29a_direct_test.c",
+        "test_id": "test_m4c3efb_lock_surface"
+      },
+      {
+        "path": "tests/test_fl29a_direct.py",
+        "test_id": "Fl29aDirect.test_4c3efb_lock_surface"
+      },
+      {
+        "path": "tests/test_fl29a_differential.py",
+        "test_id": "Fl29aDifferential.test_4c3efb_lock_surface"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl29a_original_oracle.py",
+      "window": [
+        "0x4c3efb",
+        "0x4c4067"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills the surface description from the stored rectangle (fast path) or runs the retry loop around the vtable entry at +0x64 with the lost and busy codes and the error report. Every instruction executed; two jump directions that the function itself makes impossible are allowlisted. See tasks/fl29a-handoff.md."
+  }
+]
