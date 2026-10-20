@@ -1,0 +1,332 @@
+[
+  {
+    "va": "0x4bf19a",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-29c implementer; no independent review yet (slice-reviewer pending)",
+    "date": "2026-10-20",
+    "native_source": {
+      "path": "src/original_methods_fl29c.c",
+      "symbol": "m4bf19a_bink_goto"
+    },
+    "tests": [
+      {
+        "path": "tests/fl29c_direct_test.c",
+        "test_id": "test_m4bf19a_bink_goto"
+      },
+      {
+        "path": "tests/test_fl29c_direct.py",
+        "test_id": "Fl29cDirect.test_4bf19a_bink_goto"
+      },
+      {
+        "path": "tests/test_fl29c_differential.py",
+        "test_id": "Fl29cDifferential.test_4bf19a_bink_goto"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl29c_original_oracle.py",
+      "window": [
+        "0x4bf19a",
+        "0x4bf1f0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Seeks a Bink movie: the thiscall 0x4bf38c, the null-handle report word (-3), the signed frame < 1 and unsigned frame > count rejections, otherwise the _BinkGoto import (handle, frame, 0) through slot 0x52a530 and 1; the oracle executes every instruction and both directions of every jump. See tasks/fl29c-handoff.md."
+  },
+  {
+    "va": "0x434814",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-29c implementer; no independent review yet (slice-reviewer pending)",
+    "date": "2026-10-20",
+    "native_source": {
+      "path": "src/original_methods_fl29c.c",
+      "symbol": "m434814_copy_name"
+    },
+    "tests": [
+      {
+        "path": "tests/fl29c_direct_test.c",
+        "test_id": "test_m434814_copy_name"
+      },
+      {
+        "path": "tests/test_fl29c_direct.py",
+        "test_id": "Fl29cDirect.test_434814_copy_name"
+      },
+      {
+        "path": "tests/test_fl29c_differential.py",
+        "test_id": "Fl29cDifferential.test_434814_copy_name"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl29c_original_oracle.py",
+      "window": [
+        "0x434814",
+        "0x434880"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Copies at most four non-zero bytes (sign-extended byte test, word counter) of a string to the global buffer 0x63a590 and terminates it, returns the buffer address; 101 code bytes executed, the remaining 7 bytes of the span are int3 padding. See tasks/fl29c-handoff.md."
+  },
+  {
+    "va": "0x4471ca",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-29c implementer; no independent review yet (slice-reviewer pending)",
+    "date": "2026-10-20",
+    "native_source": {
+      "path": "src/original_methods_fl29c.c",
+      "symbol": "m4471ca_copy_record15"
+    },
+    "tests": [
+      {
+        "path": "tests/fl29c_direct_test.c",
+        "test_id": "test_m4471ca_copy_record15"
+      },
+      {
+        "path": "tests/test_fl29c_direct.py",
+        "test_id": "Fl29cDirect.test_4471ca_copy_record15"
+      },
+      {
+        "path": "tests/test_fl29c_differential.py",
+        "test_id": "Fl29cDifferential.test_4471ca_copy_record15"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl29c_original_oracle.py",
+      "window": [
+        "0x4471ca",
+        "0x44727a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Allocates 0x15 bytes through 0x51dc43, stores the pointer in the first cell, reports the failure (0x50ca3e, 0x42639d, 0x4c97b4, then goes on), copies 5 dwords and a byte forward, advances the third then the second cell by 0x15, optional trace 0x44a2b7; the logic sits in the copy_record helper called by this symbol. See tasks/fl29c-handoff.md."
+  },
+  {
+    "va": "0x45b4ae",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-29c implementer; no independent review yet (slice-reviewer pending)",
+    "date": "2026-10-20",
+    "native_source": {
+      "path": "src/original_methods_fl29c.c",
+      "symbol": "m45b4ae_copy_record_b8e"
+    },
+    "tests": [
+      {
+        "path": "tests/fl29c_direct_test.c",
+        "test_id": "test_m45b4ae_copy_record_b8e"
+      },
+      {
+        "path": "tests/test_fl29c_direct.py",
+        "test_id": "Fl29cDirect.test_45b4ae_copy_record_b8e"
+      },
+      {
+        "path": "tests/test_fl29c_differential.py",
+        "test_id": "Fl29cDifferential.test_45b4ae_copy_record_b8e"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl29c_original_oracle.py",
+      "window": [
+        "0x45b4ae",
+        "0x45b568"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Allocates 0xb8e bytes through 0x51dc43, stores the pointer, reports the failure, copies 0x2e3 dwords and a word forward, advances the third then the second cell by 0xb8e, optional trace; the logic sits in the copy_record helper called by this symbol. See tasks/fl29c-handoff.md."
+  },
+  {
+    "va": "0x461903",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-29c implementer; no independent review yet (slice-reviewer pending)",
+    "date": "2026-10-20",
+    "native_source": {
+      "path": "src/original_methods_fl29c.c",
+      "symbol": "m461903_copy_record_357"
+    },
+    "tests": [
+      {
+        "path": "tests/fl29c_direct_test.c",
+        "test_id": "test_m461903_copy_record_357"
+      },
+      {
+        "path": "tests/test_fl29c_direct.py",
+        "test_id": "Fl29cDirect.test_461903_copy_record_357"
+      },
+      {
+        "path": "tests/test_fl29c_differential.py",
+        "test_id": "Fl29cDifferential.test_461903_copy_record_357"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl29c_original_oracle.py",
+      "window": [
+        "0x461903",
+        "0x4619be"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Allocates 0x357 bytes through 0x51dc43, stores the pointer, reports the failure, copies 0xd5 dwords, a word and a byte forward, advances the third then the second cell by 0x357, optional trace; the logic sits in the copy_record helper called by this symbol. See tasks/fl29c-handoff.md."
+  },
+  {
+    "va": "0x4b5c5c",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-29c implementer; no independent review yet (slice-reviewer pending)",
+    "date": "2026-10-20",
+    "native_source": {
+      "path": "src/original_methods_fl29c.c",
+      "symbol": "m4b5c5c_copy_record_39f"
+    },
+    "tests": [
+      {
+        "path": "tests/fl29c_direct_test.c",
+        "test_id": "test_m4b5c5c_copy_record_39f"
+      },
+      {
+        "path": "tests/test_fl29c_direct.py",
+        "test_id": "Fl29cDirect.test_4b5c5c_copy_record_39f"
+      },
+      {
+        "path": "tests/test_fl29c_differential.py",
+        "test_id": "Fl29cDifferential.test_4b5c5c_copy_record_39f"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl29c_original_oracle.py",
+      "window": [
+        "0x4b5c5c",
+        "0x4b5d17"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Allocates 0x39f bytes through 0x51dc43, stores the pointer, reports the failure, copies 0xe7 dwords, a word and a byte forward, advances the third then the second cell by 0x39f, optional trace; the logic sits in the copy_record helper called by this symbol. See tasks/fl29c-handoff.md."
+  },
+  {
+    "va": "0x45bbd8",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-29c implementer; no independent review yet (slice-reviewer pending)",
+    "date": "2026-10-20",
+    "native_source": {
+      "path": "src/original_methods_fl29c.c",
+      "symbol": "m45bbd8_roll_rects"
+    },
+    "tests": [
+      {
+        "path": "tests/fl29c_direct_test.c",
+        "test_id": "test_m45bbd8_roll_rects"
+      },
+      {
+        "path": "tests/test_fl29c_direct.py",
+        "test_id": "Fl29cDirect.test_45bbd8_roll_rects"
+      },
+      {
+        "path": "tests/test_fl29c_differential.py",
+        "test_id": "Fl29cDifferential.test_45bbd8_roll_rects"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl29c_original_oracle.py",
+      "window": [
+        "0x45bbd8",
+        "0x45bcc1"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Four passes of two 0x50cd50 calls with the signed-remainder idioms (the negative-value fixups run only with a stubbed callee result of bit 31 set: the real 0x50cd50 returns at most 0x7fff, see tasks/fl29c-handoff.md), 16-byte copies from the record to the object, the count of ones with the 5 default; returns ax. See tasks/fl29c-handoff.md."
+  },
+  {
+    "va": "0x4630a3",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-29c implementer; no independent review yet (slice-reviewer pending)",
+    "date": "2026-10-20",
+    "native_source": {
+      "path": "src/original_methods_fl29c.c",
+      "symbol": "m4630a3_select_action"
+    },
+    "tests": [
+      {
+        "path": "tests/fl29c_direct_test.c",
+        "test_id": "test_m4630a3_select_action"
+      },
+      {
+        "path": "tests/test_fl29c_direct.py",
+        "test_id": "Fl29cDirect.test_4630a3_select_action"
+      },
+      {
+        "path": "tests/test_fl29c_differential.py",
+        "test_id": "Fl29cDifferential.test_4630a3_select_action"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl29c_original_oracle.py",
+      "window": [
+        "0x4630a3",
+        "0x4631d1"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Sets the selection globals: the 0x277f case, the [self+0x57] word set when zero, the four-arm jump table 0x2780..0x2783 and the default arm; 286 code bytes executed, the 16-byte jump table after the code is data. See tasks/fl29c-handoff.md."
+  },
+  {
+    "va": "0x43423d",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-29c implementer; no independent review yet (slice-reviewer pending)",
+    "date": "2026-10-20",
+    "native_source": {
+      "path": "src/original_methods_fl29c.c",
+      "symbol": "m43423d_find_name_a"
+    },
+    "tests": [
+      {
+        "path": "tests/fl29c_direct_test.c",
+        "test_id": "test_m43423d_find_name_a"
+      },
+      {
+        "path": "tests/test_fl29c_direct.py",
+        "test_id": "Fl29cDirect.test_43423d_find_name_a"
+      },
+      {
+        "path": "tests/test_fl29c_differential.py",
+        "test_id": "Fl29cDifferential.test_43423d_find_name_a"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl29c_original_oracle.py",
+      "window": [
+        "0x43423d",
+        "0x4343a2"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Linear search of the name table at +0x1144: 0x4347b8 length report, 0x434814 lookup, the inlined byte-pair strcmp, the stores at +0x111c / +0x1128 and the string copy to +0x1136; returns 1 or 0; every instruction and both directions of every jump executed. See tasks/fl29c-handoff.md."
+  },
+  {
+    "va": "0x4344bf",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-29c implementer; no independent review yet (slice-reviewer pending)",
+    "date": "2026-10-20",
+    "native_source": {
+      "path": "src/original_methods_fl29c.c",
+      "symbol": "m4344bf_find_name_b"
+    },
+    "tests": [
+      {
+        "path": "tests/fl29c_direct_test.c",
+        "test_id": "test_m4344bf_find_name_b"
+      },
+      {
+        "path": "tests/test_fl29c_direct.py",
+        "test_id": "Fl29cDirect.test_4344bf_find_name_b"
+      },
+      {
+        "path": "tests/test_fl29c_differential.py",
+        "test_id": "Fl29cDifferential.test_4344bf_find_name_b"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl29c_original_oracle.py",
+      "window": [
+        "0x4344bf",
+        "0x434630"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Clears the 1000 flag dwords at +0x4fc4, then searches the table at +0x20e4: 0x434814 lookup, the inlined strcmp, the flag test (dword != 1, reached through the aliasing of the flag array end with +0x5f64 and the count), stores at +0x112c / +0x1120 and the string copy to +0x1130; returns 1 or 0. See tasks/fl29c-handoff.md."
+  }
+]
