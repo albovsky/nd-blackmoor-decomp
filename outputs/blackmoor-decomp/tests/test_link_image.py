@@ -170,7 +170,7 @@ class BuildTests(unittest.TestCase):
         cls.tmp = tempfile.TemporaryDirectory()
         cls.out = Path(cls.tmp.name) / "game"
         cls.build = subprocess.run(
-            [str(SCRIPTS / "build_game_exe.sh"), "--out", str(cls.out)], capture_output=True, text=True, check=False
+            [str(SCRIPTS / "build_game_exe.sh"), "--out", str(cls.out), "--data-build", str(Path(cls.tmp.name) / "asm_data")], capture_output=True, text=True, check=False
         )
         cls.original = link_image.DEFAULT_ORIGINAL.read_bytes()
 
@@ -234,6 +234,31 @@ class BuildTests(unittest.TestCase):
         self.assertEqual(len(mutant), link_image.ORIGINAL_SIZE)
         differing = [i for i, (a, b) in enumerate(zip(mutant, self.original)) if a != b]
         self.assertEqual(differing, [offset])  # the offset in the first output section is the file offset  # push ebp -> push ebx, nothing else moves
+
+    def test_a_source_smaller_than_its_slot_breaks_the_image(self):
+        # a trailing zero fill removed from a data source must not read as linker zero fill
+        prefix = link_image.DEFAULT_PREFIX
+        work = Path(self.tmp.name) / "short"
+        shutil.copytree(self.out, work)
+        source = work / "src" / "data-004.s"
+        lines = source.read_text().splitlines()
+        last = max(i for i, l in enumerate(lines) if re.fullmatch(r"\.fill \d+, 1, 0", l))
+        del lines[last]
+        source.write_text("\n".join(lines) + "\n")
+        run = lambda command: subprocess.run(command, cwd=work, capture_output=True, text=True, check=True)
+        run([str(link_image.tool_path(prefix, "as")), "--32", "-o", "obj/data-004.o", "src/data-004.s"])
+        run([str(link_image.tool_path(prefix, "ld")), "@link.rsp"])
+        run([str(link_image.tool_path(prefix, "objcopy")), "@objcopy.rsp"])
+        mutant = (work / "GAME.linked.exe").read_bytes()
+        self.assertNotEqual(mutant, self.original)
+        self.assertIn(0xDB, mutant[0x16A000:])
+
+    def test_verify_fails_on_a_different_file(self):
+        other = Path(self.tmp.name) / "other.exe"
+        other.write_bytes(self.original[:-1] + b"\x00" if self.original[-1] else self.original[:-1] + b"\x01")
+        result = subprocess.run([sys.executable, str(SCRIPTS / "link_image.py"), "verify", str(other)], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("False", result.stdout)
 
     def _relink(self, name, old, new):
         prefix = link_image.DEFAULT_PREFIX

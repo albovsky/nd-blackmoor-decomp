@@ -3,8 +3,8 @@
 
 ``scripts/build_game_exe.sh`` is the build: it assembles every committed source with the pinned
 ``i686-w64-mingw32-as`` 2.43.1, links the objects with the same binutils' ``ld`` and writes the image with its
-``objcopy``.  Every output byte comes from ``as``, ``ld`` and ``objcopy``.  This module writes only *text* inputs for
-them, and checks tools and result:
+``objcopy``.  Every output byte is assembler or linker output of text inputs.  This module writes only those *text* inputs
+(the data text is generated from the owner's own GAME.EXE by ``data_asm.py``) and checks tools and result:
 
     link_image.py prepare   pin the tools, extract the data sources from the owner's local GAME.EXE (the one step that
                             reads the original: ``data_asm.py`` regenerates each ``data-NNN.s`` and the committed hash
@@ -26,7 +26,7 @@ objects, so ``prepare`` rewrites exactly these forms, and nothing else, in a cop
 
 Any other form containing ``.text`` or ``IMG`` is an error.  The linker script places each section at its virtual
 address inside the output section of its PE section; the placements must tile every PE section's raw data exactly
-(no gap, no overlap), and the script asserts that every function symbol ends up at the address in its name.  Nothing
+(no gap, no overlap), and the script asserts that every function symbol ends up at the address in its name, and the gaps ld would fill use a byte (0xdb) no source writes.  Nothing
 here claims original source or compiler provenance, and the result is not a claim of a whole-file x86 match.
 """
 
@@ -445,7 +445,7 @@ def cmd_prepare(args: argparse.Namespace) -> int:
         lines.append("  {")
         for p in sorted((p for p in placements if p["section"] is o), key=lambda p: p["offset"]):
             lines.append(f"    . = {p['offset'] - o['offset']:#x}; {p['pattern']}")
-        lines.append("  } =0")
+        lines.append("  } =0xdb")  # a byte no source writes: a section that is smaller than its slot breaks the hash instead of reading as zero fill
     lines.append("}")
     defined_by_object = {p["symbol"] for p in placements if p["kind"] == "function"}
     for key in sorted(externals):
@@ -494,7 +494,7 @@ def cmd_verify(args: argparse.Namespace) -> int:
     digest = sha256(data)
     ok = digest == ORIGINAL_SHA256 and len(data) == ORIGINAL_SIZE
     print(f"linked {len(data):,} bytes; sha256 {digest}")
-    print(f"whole-file hash match: {ok}")
+    print(f"output hash equals the original (build evidence, not an x86 match claim): {ok}")
     if args.compare is not None:
         other = args.compare.read_bytes()
         same = other == data
