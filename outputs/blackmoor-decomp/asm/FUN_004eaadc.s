@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004eaadc
+# name:         action78_visit
+# naming:       native port src/action_family_78_runtime.c:action78_visit (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-16); the note is the acceptance note, a statement about the native port
+# name-note:    Native is action78_visit; every branch matches. RT-19 oracle compares effect log and model per case, 0 mismatches. The named test covers null arguments only; behaviour evidence is the oracle.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [ecx + n] field_2; [edx + n] field_4
 # callees:      calls FUN_004e8d96, FUN_004ea06c, FUN_004e9e84
 # track-n:      outputs/blackmoor-decomp/src/action_family_78_runtime.c:action78_visit (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 90 instruction(s), 6 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 90 instruction(s), 6 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

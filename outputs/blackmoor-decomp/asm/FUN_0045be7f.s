@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0045be7f
+# name:         caption_pick
+# naming:       native port src/action_family_da_runtime.c:caption_pick (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-17); the note is the acceptance note, a statement about the native port
+# name-note:    1:1 with caption_pick (draw until real name). Native-only guards: entry 0..1, count<=10, text 201..0x9c40 -> BUL_ERR_BOUNDS, stuck draw -> BUL_ERR_STUCK.
 # arguments:    3 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10; ret 0xc (callee pops 12 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       10 ebp-relative slot(s): local_4, local_8, local_2c, local_54, local_58, local_5c, local_60, local_12c, local_130, local_134
 # fields:       [eax + n] field_1e, field_24, field_1ab, field_1b1; [ecx + n] field_1a5, field_1a7, field_1ad, field_1b3, field_593; [edi + n] field_minus_1; [edx + n] field_1a5, field_1a9, field_591, field_595
 # callees:      calls FUN_0050cd50, FUN_0045be3f, FUN_004fb77a, FUN_004fb2e3, FUN_00423259, FUN_00448d11
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 205 instruction(s), 10 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/action_family_da_runtime.c:caption_pick (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 205 instruction(s), 10 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

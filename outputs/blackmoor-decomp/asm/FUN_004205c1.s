@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004205c1
+# name:         m4205c1_run_entries
+# naming:       native port src/original_methods_fl28b.c:m4205c1_run_entries (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port
+# name-note:    Runs the record entries: the word loop with the 0x420737 gate (low word of the result), the kind byte arms 0/1/2/other, and the two indirect calls through the table in self; every instruction and jump covered. See tasks/fl28b-handoff.md.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       4 ebp-relative slot(s): local_4, local_8, local_c, local_10
 # fields:       [eax + n] field_1b7, field_77a, field_795, field_f23; [ecx + n] field_2, field_779, field_77a, field_793; [edx + n] field_779, field_795, field_f4b
 # callees:      calls FUN_00420737, FUN_0041fa11, FUN_0041fd08, FUN_0042028e; plus 2 indirect transfer(s) whose target is not resolved
-# track-n:      outputs/blackmoor-decomp/src/action_family_3f_runtime.c:phase0 (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 101 instruction(s), 7 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; indirect transfers are not followed
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl28b.c:m4205c1_run_entries (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 101 instruction(s), 7 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code; indirect transfers are not followed
 .intel_syntax noprefix
 .code32
 .text

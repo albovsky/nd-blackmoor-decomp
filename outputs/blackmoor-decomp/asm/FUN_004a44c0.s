@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004a44c0
+# name:         m4a44c0_click_274c_274f
+# naming:       native port src/original_methods_fl25c.c:m4a44c0_click_274c_274f (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port
+# name-note:    Matches arm by arm except one rejection: a zero divisor r[+0x21] in the split (0x274c/0x274d) returns (original divide error). Direct, differential, oracle: 1800 fixtures, 412/412, both jcc ways. See handoff.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       8 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c, local_20
 # fields:       [eax + n] field_1e, field_210, field_214, field_216, field_258, field_260, field_264, field_26a, field_26c, field_26e, field_276, field_278 and 3 more; [ecx + n] field_1e, field_21, field_210, field_216, field_25c, field_260, field_264, field_272, field_276, field_278, field_27a, field_27f and 2 more; [edx + n] field_1e, field_21, field_212, field_214, field_258, field_260, field_264, field_266, field_276, field_278, field_413
 # callees:      calls FUN_004f6334, FUN_004fb2e3, FUN_004a4d55
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 412 instruction(s), 28 conditional branch(es) and 1 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl25c.c:m4a44c0_click_274c_274f (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 412 instruction(s), 28 conditional branch(es) and 1 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

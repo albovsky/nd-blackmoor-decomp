@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0047f421
+# name:         m47f421_pointer_hit
+# naming:       native port src/original_methods_fl21b.c:m47f421_pointer_hit (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port
+# name-note:    1:1 with m47f421_pointer_hit. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 1520 bytes.
 # arguments:    3 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10; ret 0xc (callee pops 12 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       8 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c, local_20
 # fields:       [eax + n] field_2, field_4, field_8, field_c, field_24, field_48, field_5f, field_7b4, field_7b6, field_7c2, field_a18, field_a1c and 10 more; [ecx + n] field_6, field_e, field_1e, field_4a, field_4e, field_52, field_56, field_5a, field_5e, field_e9, field_7b4, field_7b6 and 11 more; [edx + n] field_2, field_6, field_a, field_23, field_49, field_4c, field_5e, field_7a0, field_7ba, field_7be, field_a20, field_a28 and 13 more; [esi + n] field_7b6, field_7ba
 # callees:      calls FUN_0047f275, FUN_0047ec06, FUN_0047fd65
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 409 instruction(s), 50 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl21b.c:m47f421_pointer_hit (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 409 instruction(s), 50 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

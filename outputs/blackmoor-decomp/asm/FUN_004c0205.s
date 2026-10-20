@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004c0205
+# name:         movie_step
+# naming:       native port src/avf_player.c:movie_step (port_acceptances, ledger class native_tests_only, reviewed 2026-10-16); the note is the acceptance note, a statement about the native port
+# name-note:    States 0 and 4 match in order. Seams: 0x4c0ab1 and 0x4c08d3 are host events, surface select is the host present call, debug logs omitted, slot store 2 is p->finished.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       2 ebp-relative slot(s): local_4, local_8
 # fields:       [eax + n] field_29, field_17a, field_182, field_1d4, field_1da, field_216, field_21a, field_21e, field_222, field_244; [ecx + n] field_24, field_17a, field_182, field_192, field_1ca, field_216, field_222, field_22a, field_240, field_244; [edx + n] field_2b, field_2d, field_192, field_1c6, field_1ca, field_1d4, field_21e, field_22a, field_240, field_244
 # callees:      calls FUN_0050ca3e, FUN_0044a2b7, FUN_004c0ab1, FUN_004c08d3, FUN_004c09fe, KERNEL32.dll!GetTickCount
-# track-n:      outputs/blackmoor-decomp/src/avf_player.c:movie_step (function ledger class native_tests_only; also movie_step_index; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 169 instruction(s), 18 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/avf_player.c:movie_step (function ledger class native_tests_only; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 169 instruction(s), 18 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

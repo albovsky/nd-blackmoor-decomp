@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_00461d82
+# name:         m461d82_move_step
+# naming:       native port src/original_methods_fl22a.c:m461d82_move_step (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port
+# name-note:    1:1 with m461d82_move_step. idiv faults return 0 natively (direct test only). Direct: objects, ordered calls. Unicorn differential: 600 fixtures, 504/504 instructions. Window covers all 2021 bytes. See tasks/fl22a-handoff.md.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       4 ebp-relative slot(s): local_4, local_8, local_c, local_10
 # fields:       [eax + n] field_1e, field_59, field_5b, field_5d, field_24a; [ecx + n] field_4, field_8, field_c, field_59, field_5b, field_5d; [edx + n] field_4, field_8, field_c, field_39, field_3b, field_4f, field_53, field_57, field_5b, field_5d
 # callees:      calls FUN_00462b84
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 504 instruction(s), 9 conditional branch(es) and 1 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl22a.c:m461d82_move_step (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 504 instruction(s), 9 conditional branch(es) and 1 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0044c4c1
+# name:         m44c4c1_open_video
+# naming:       native port src/original_methods_fl27c.c:m44c4c1_open_video (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port
+# name-note:    1:1 with m44c4c1_open_video: the oracle runs every instruction and both directions of every conditional jump (untaken edges only as listed in the handoff). See tasks/fl27c-handoff.md.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       12 ebp-relative slot(s): local_104, local_204, local_308, local_30c, local_310, local_314, local_318, local_31c, local_320, local_324, local_328, local_32c
 # fields:       [eax + n] field_4, field_10, field_176, field_186, field_18c, field_18e, field_194, field_196, field_198, field_19a, field_19e, field_1a2 and 7 more; [ecx + n] field_4, field_c, field_17, field_19, field_176, field_186, field_18c, field_18e, field_190, field_194, field_196, field_198 and 7 more; [edx + n] field_15, field_17, field_19, field_1b, field_1c, field_20, field_186, field_18c, field_198, field_19a, field_19e, field_1a2 and 3 more
 # callees:      calls FUN_0050cd72, FUN_00449d90, FUN_00414ceb, FUN_004bf315, FUN_004bf3b8, FUN_0044a2b7, FUN_004264e8, FUN_004c97b4, FUN_004bee5f, FUN_0050ca3e, FUN_0050ce04
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 329 instruction(s), 8 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl27c.c:m44c4c1_open_video (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 329 instruction(s), 8 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

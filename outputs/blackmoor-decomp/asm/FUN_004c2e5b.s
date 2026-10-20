@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004c2e5b
+# name:         cel_free_layer_header
+# naming:       native port src/action_family_3f_runtime.c:cel_free_layer_header (port_acceptances, ledger class native_tests_only, reviewed 2026-10-16); the note is the acceptance note, a statement about the native port
+# name-note:    Extracted from cel_free_slot_layers (no behaviour change): non-null header freed via host callback (original 0x51dc6c, a seam) and cleared. Tests-only: no oracle executes it whole; t_reader_rules checks the frees.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       2 ebp-relative slot(s): local_4, local_8
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      calls FUN_0051dc6c
-# track-n:      outputs/blackmoor-decomp/src/action_family_3f_runtime.c:cel_free_layer_header (function ledger class native_tests_only; also cel_free_slot_layers; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 22 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/action_family_3f_runtime.c:cel_free_layer_header (function ledger class native_tests_only; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 22 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

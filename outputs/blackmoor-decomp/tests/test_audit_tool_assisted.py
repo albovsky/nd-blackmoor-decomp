@@ -172,10 +172,10 @@ class AuditorMutants(unittest.TestCase):
 
     # ------------------------------------------------------------------ machine annotation
 
-    def machine_batch(self, mutate=None):
+    def machine_batch(self, mutate=None, names=None, audit_names=None):
         """Annotate the fixture functions with ``annotate_machine`` (no ledger, no imports) and audit them."""
 
-        annotator = machine.Annotator(self.image, ledger={}, imports={})
+        annotator = machine.Annotator(self.image, ledger={}, imports={}, names=names or {})
         work = Path(tempfile.mkdtemp(dir=self.tmp.name))
         vas = [BASE + off for off in FUNCTIONS]
         for va in vas:
@@ -185,7 +185,9 @@ class AuditorMutants(unittest.TestCase):
         manifest = gen.build_manifest(self.image, self.layouts, vas, work, "test", "fixture", original_sha256=self.pe_sha)
         path = work / "batch.json"
         path.write_text(json.dumps(manifest), encoding="utf-8")
-        return audit.audit_manifest(path, self.config()), work
+        config = self.config()
+        config.names = audit_names if audit_names is not None else names
+        return audit.audit_manifest(path, config), work
 
     def test_machine_annotated_batch_is_accepted_and_reported_as_machine(self) -> None:
         report, work = self.machine_batch()
@@ -195,6 +197,68 @@ class AuditorMutants(unittest.TestCase):
         self.assertIn("# annotation:  machine", text)
         self.assertIn("[ebp - local_4]", text)  # the generator's default names stay
         self.assertRegex(text, r"# arguments:    1 ebp-relative stack slot\(s\) referenced: arg_8; ret 0x4 \(callee pops 4 bytes\)")
+
+    # ------------------------------------------------------------------ named machine annotation
+
+    def named_entry(self, va: int) -> dict:
+        return {"va": f"0x{va:08x}", "name": "fixture_frame_entry", "basis": "native_port",
+                "summary": "Sets up a frame and returns the first stack argument.",
+                "source": "native port src/fixture.c:fixture_frame_entry (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the summary is the acceptance note"}
+
+    def test_a_name_from_the_names_table_is_written_and_audited(self) -> None:
+        va = BASE + fixture.F_FRAME
+        entry = self.named_entry(va)
+        report, work = self.machine_batch(names={va: entry})
+        self.assertEqual([f["reasons"] for f in report["functions"]], [[], [], []])
+        text = (work / f"FUN_{va:08x}.s").read_text(encoding="utf-8")
+        self.assertRegex(text, r"(?m)^# name:\s+fixture_frame_entry$")
+        self.assertIn(f"# naming:       {entry['source']}", text)
+        self.assertIn(f"# name-note:    {entry['summary']}", text)
+        self.assertIn("copied from the evidence in the naming line, not read from this code", text)
+        by_name = {f["function"]: f for f in report["functions"]}
+        self.assertEqual(by_name[f"FUN_{va:08x}"]["naming"], "native_port")
+        self.assertNotIn("naming", by_name[f"FUN_{BASE + fixture.F_LEAF:08x}"])  # the others keep fn_<va>
+        self.assertEqual(report["named_functions"], 1)
+
+    def test_a_named_source_is_rejected_when_the_names_table_does_not_know_it(self) -> None:
+        va = BASE + fixture.F_FRAME
+        report, _w = self.machine_batch(names={va: self.named_entry(va)}, audit_names={})
+        self.rejected(report, va, "is not fn_<va>")
+
+    def test_a_different_name_naming_or_summary_is_rejected(self) -> None:
+        va = BASE + fixture.F_FRAME
+        entry = self.named_entry(va)
+        for old, new, needle in (
+            ("fixture_frame_entry", "better_name", "is not the name"),
+            (entry["source"], "native port src/other.c:other (port_acceptances)", "'naming' differs"),
+            (entry["summary"], "Does something else entirely.", "'name-note' differs"),
+        ):
+            with self.subTest(old=old[:20]):
+                report, _w = self.machine_batch(lambda w: self.edit(w, va, old, new), names={va: entry})
+                self.rejected(report, va, needle)
+
+    def test_naming_lines_without_a_table_entry_are_rejected(self) -> None:
+        va = BASE + fixture.F_FRAME
+        entry = self.named_entry(va)
+
+        def add(work: Path) -> None:
+            self.edit(work, va, f"# name:         fn_{va:08x}\n", f"# name:         fn_{va:08x}\n# name-note:    {entry['summary']}\n")
+
+        report, _w = self.machine_batch(add)
+        self.rejected(report, va, "header 'name-note' present but")
+
+    def test_a_named_source_must_keep_the_not_read_from_this_code_caveat(self) -> None:
+        va = BASE + fixture.F_FRAME
+        entry = self.named_entry(va)
+        report, _w = self.machine_batch(
+            lambda w: self.edit(w, va, "the function name and note are copied from the evidence in the naming line, not read from this code", "the name is probably right"),
+            names={va: entry})
+        self.rejected(report, va, "must say that the function name and note are copied")
+
+    def test_naming_and_note_lines_are_rejected_in_a_hand_annotated_source(self) -> None:
+        va = BASE + fixture.F_FRAME
+        report, _work, _manifest = self.batch(lambda w: self.edit(w, va, "# name:", "# naming:       native port x.c:y (verified)\n# name:"))
+        self.rejected(report, va, "only valid in a machine-annotated source")
 
     def test_machine_header_needs_the_function_own_address_in_the_name(self) -> None:
         va = BASE + fixture.F_FRAME

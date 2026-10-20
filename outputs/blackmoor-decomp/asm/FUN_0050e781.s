@@ -8,13 +8,15 @@
 # region:       crt_mfc
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0050e781
+# name:         ___timet_from_ft
+# naming:       Ghidra name from function-index.json (not re-derived here)
+# name-note:    Statically linked library routine named by Ghidra; the body was not read for intent here
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       7 ebp-relative slot(s): local_8, local_c, local_e, local_10, local_12, local_16, local_18
 # fields:       [eax + n] field_4
 # callees:      calls KERNEL32.dll!FileTimeToLocalFileTime, KERNEL32.dll!FileTimeToSystemTime, FUN_00513174
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 41 instruction(s), 4 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 41 instruction(s), 4 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

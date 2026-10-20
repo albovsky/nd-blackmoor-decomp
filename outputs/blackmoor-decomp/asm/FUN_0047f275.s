@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0047f275
+# name:         follow_pointer
+# naming:       native port src/action_family_eb_runtime.c:follow_pointer (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-17); the note is the acceptance note, a statement about the native port
+# name-note:    1:1 with follow_pointer (prev copy, centre by half hand size, clamp). Native: host view seam can fail (EB_ERR_HOST); oracle is aggregate.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [eax + n] field_4, field_8, field_c, field_136a, field_13d7, field_13db, field_13e3, field_13e5; [ecx + n] field_4, field_8, field_c, field_1356, field_1362, field_136e, field_13cf, field_13d3; [edx + n] field_4, field_8, field_c, field_135e, field_1362, field_1366, field_13cf, field_13d3, field_13e3, field_13e5
 # callees:      calls FUN_0047f19d, FUN_0047e52f
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 126 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/action_family_eb_runtime.c:follow_pointer (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 126 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

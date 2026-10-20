@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0044eab1
+# name:         m44eab1_hit_test
+# naming:       native port src/original_methods_fl24a.c:m44eab1_hit_test (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port
+# name-note:    1:1 with m44eab1_hit_test (item loop and four fixed rectangles, calls 44ecaf, ret 8). Unicorn differential and oracle: every instruction reached. See tasks/fl24a-handoff.md.
 # arguments:    2 ebp-relative stack slot(s) referenced: arg_8, arg_c; ret 0x8 (callee pops 8 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [eax + n] field_25, field_2d, field_69, field_6b, field_71, field_75, field_265; [ecx + n] field_1e, field_39, field_61, field_65, field_6d, field_ed, field_f1, field_f5, field_f9, field_25d, field_261; [edx + n] field_31, field_35, field_5d, field_79, field_259
 # callees:      calls FUN_0044ecaf
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 146 instruction(s), 22 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl24a.c:m44eab1_hit_test (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 146 instruction(s), 22 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

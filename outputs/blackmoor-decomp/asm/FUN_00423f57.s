@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_00423f57
+# name:         m423f57_load_entry
+# naming:       native port src/original_methods_fl19a.c:m423f57_load_entry (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-18); the note is the acceptance note, a statement about the native port
+# name-note:    1:1 with m423f57_load_entry (100 bytes, checked against the disassembly in FL-21). Direct and Unicorn differential tests; oracle window runs all 100 bytes. The RT-5 divergence is not a blocker here.
 # arguments:    2 ebp-relative stack slot(s) referenced: arg_8, arg_c; ret 0x8 (callee pops 8 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_614; [edx + n] field_4
 # callees:      calls FUN_004234c8, FUN_00424201
-# track-n:      outputs/blackmoor-decomp/src/scene_conditions.h:scene_conditions_evaluate_ex (function ledger class candidate_port; also scene_conditions_gate_mode_for_type; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 33 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl19a.c:m423f57_load_entry (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 33 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

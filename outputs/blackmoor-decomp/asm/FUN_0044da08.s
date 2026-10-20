@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0044da08
+# name:         m44da08_run_state
+# naming:       native port src/original_methods_fl21b.c:m44da08_run_state (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the note is the acceptance note, a statement about the native port
+# name-note:    1:1 with m44da08_run_state. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 1565 bytes.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       5 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14
 # fields:       [eax + n] field_1c, field_24, field_25, field_2d, field_31, field_49, field_4a, field_298, field_29e, field_2aa, field_2ac, field_2e2 and 3 more; [ecx + n] field_1c, field_1e, field_20, field_24, field_29, field_2d, field_49, field_4b, field_296, field_29c, field_2a6, field_2ae and 5 more; [edx + n] field_1c, field_1e, field_2d, field_45, field_4a, field_4f, field_296, field_29a, field_2a2, field_2ac, field_2af, field_2d2 and 4 more
 # callees:      calls FUN_0044d711, FUN_004d39f9, FUN_004c2790, FUN_004fb77a, KERNEL32.dll!GetTickCount, FUN_0044d8ad, FUN_004fb2e3, FUN_004f6334, FUN_004fba69, FUN_0044d946, FUN_0042ba3a, FUN_0044d154
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 357 instruction(s), 19 conditional branch(es) and 1 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class static_navigation_only is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl21b.c:m44da08_run_state (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 357 instruction(s), 19 conditional branch(es) and 1 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text
