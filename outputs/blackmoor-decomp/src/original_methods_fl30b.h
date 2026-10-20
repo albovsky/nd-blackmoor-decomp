@@ -29,6 +29,9 @@ typedef struct Fl30bWorld {
     uint32_t value_5bb57b;      /* 0x488e9c: the dword in the allocation-failure report */
     int16_t word_5c39e3;        /* 0x488e9c: the word in the allocation-failure report (sign-extended) */
     int16_t word_639895;        /* 0x4c5b3a: bytes per pixel (a signed word) */
+    uint8_t *dwords_585801;     /* 0x42e844: dwords indexed by a signed word (the pointer names the original address 0x585801; the caller leaves slack on both sides) */
+    uint32_t value_5bb1ca;      /* 0x42e844: set to 1 when a record leaves state 0 */
+    int16_t word_5bb50b;        /* 0x42e844: the key word compared with the entries */
     /*WORLD-NEXT*/
 } Fl30bWorld;
 
@@ -56,6 +59,13 @@ int32_t m488e9c_init_record(uint8_t *self, uint32_t p0, uint32_t p1, uint32_t p2
  * bytes = (fr.x1 - fr.x0 + 1) * bpp (32-bit); for each of `rows` (signed) rows: for j = 0, 2, 4 ... while j < bytes (signed): v = word [p + j]; when v != word [self + 0x38d0]: word [q + j] = v; then p += pitch(from),
  * q += pitch(to). Returns 0. NATIVE REJECTION (returns 1, nothing done): from or to is 0 on the copy path (the original reads the descriptor at address 0x2f and faults). */
 int32_t m4c5b3a_copy_keyed(const uint8_t *self, uint32_t from, uint32_t to, uint32_t fr, uint32_t tr, uint32_t tag, const Fl30bWorld *world, const Fl18Host *host);
+
+/* 0x42e844, cdecl, plain `ret`, the stack argument is the word `index` (signed): record r = 0x5bb5e5 + index*0x8d (the dword at r+0 is the original address P of the item list), state = dword [r+0x4d]
+ * (0x5bb632). State 0: dword 0x5bb1ca = 1 and state = 1, then as state 1. State 1: dword [r+0x41] = 0; for i = 0 .. (while signed word i < signed word [P+0x28]): the entry at P + i*0x12 whose signed
+ * word [+0x2a] equals the signed word 0x5bb50b stops the loop after dword [r+0x41] = 1 and the words [r+0x45], [r+0x47], [r+0x49], [r+0x4b] = the words at entry +0x2c, +0x30, +0x34, +0x38. State 2:
+ * byte [r+0x40] = 1, dword [r+0x41] = 0, then for k = 0 .. 9: a = signed word [P + k*4], when a != -1: dword [0x585801 + a*4] = signed word [P + k*4 + 2] (sign-extended); then 0x42ba3a(index) (cdecl, 1
+ * argument, the low 16 bits). Any other state: nothing. P is read again at every use. The count [P+0x28] is caller-validated (nothing is bounds checked, as in the original). */
+void m42e844_step_record(uint32_t index, Fl30bWorld *world, const Fl18Host *host);
 
 /* NEXT-DECL */
 

@@ -74,7 +74,7 @@ def run_original(sc):
     for field in sc.g:
         read['g:' + field] = GLOBALS[field]
     for x in sc.stubs.values():
-        x.probe_addr = [(next(a.va for a in sc.areas if a.name == name) + off, ln) for name, off, ln in (x.probe or ())]
+        x.probe_addr = [((GLOBALS[name[2:]][0] if name.startswith('g:') else next(a.va for a in sc.areas if a.name == name)) + off, ln) for name, off, ln in (x.probe or ())]
     runner = Original27(image_patches, regions, sc.stubs, {}, fpcw=SPECS[sc.key].get('fpcw'))
     orig = runner.run(sc.va, sc.size, ecx=sc.ecx, stack_args=sc.stack, read=read)
     orig.edges = getattr(runner, 'edges', set())      # (address, next address) of the instructions executed in a row
@@ -306,13 +306,55 @@ def gen_4c5b3a(rng, n):
     return make('4c5b3a', areas, stubs, {'word_639895': bpp, 'word_63a4cd': dbg}, stack, tuple(stack), (mode, shape, bpp, (x0, y0, x1, y1), (xb0, yb0, xb1, yb1)))
 
 
+# ---- 0x42e844 ---------------------------------------------------------------------------------------------------------------------
+
+WORD_ARGS[0x42ba3a] = (0,)
+
+
+def gen_42e844(rng, n):
+    profiles = [('s01', st, c, m) for st in (0, 1) for c in (-1, 0, 1, 3, 5) for m in range(-1, c)] + [('s2', pat) for pat in range(6)]
+    profiles += [('other', st) for st in (3, 0x100, 0xffffffff, 0x80000000)]
+    (kind, *rest), variant = prof(n, profiles)
+    slot = (0, 2, -1, 1)[(n + variant) % 4]
+    key = rng.choice([0, 5, -1, 0x7fff, -0x8000, 0x1234])
+    state = {'s01': rest[0] if kind == 's01' else 0, 's2': 2, 'other': rest[0] if kind == 'other' else 0}[kind]
+    p_va = od.region_va(1)
+    items = bytearray(rng.randbytes(0x400))
+    if kind == 's01':
+        c, m = rest[1], rest[2]
+        put16(items, 0x28, c)
+        for i in range(0, max(c, 0)):
+            put16(items, i * 0x12 + 0x2a, (key if i == m else key ^ rng.choice([1, 0x8000, 0xffff, 0x100, 0x7fff])) if True else 0)
+        if m < 0:                         # the entry just behind the count carries the key too: the loop must stop at the count
+            put16(items, max(c, 0) * 0x12 + 0x2a, key)
+        if variant % 2 and m >= 0:        # later matching entries must not matter
+            for i in range(m + 1, max(c, 0), 2):
+                put16(items, i * 0x12 + 0x2a, key)
+    elif kind == 's2':
+        sets = [[], [0], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], [-1, 3, -1, 5], [-2, 0, 7, -3], [0x7, 9, 4, 0]]
+        for k in range(10):
+            a = rng.choice([-1, -1, 1]) if rest[0] == 0 else (sets[rest[0]][k % len(sets[rest[0]])] if rest[0] != 1 else -1)
+            put16(items, k * 4, a if rest[0] != 0 else rng.choice([-1, -1, 1, 2]))
+            put16(items, k * 4 + 2, rng.choice([0, 1, 0x7fff, 0x8000, 0xffff, 0x1234, rng.randrange(0x10000)]))
+    recs, pointers = records_area(rng, slot, p_va)
+    put32(recs.data, (slot + 1) * REC_STRIDE + 0x4d, state)
+    dtab = Area('dtab', 0x585801 - 32, bytearray(rng.randbytes(80)), image=True)
+    pointers['dwords_585801'] = ('dtab', 32)
+    g = {'value_5bb1ca': rng.choice([0, 1, 0xdeadbeef]), 'word_5bb50b': key}
+    probe = [('records', 0, 5 * REC_STRIDE), ('dtab', 0, 80), ('g:value_5bb1ca', 0, 4)]
+    stubs = {0x42ba3a: stub(0x42ba3a, CDECL(1), probe)}
+    a = word_arg(rng, slot)
+    return make('42e844', [Area('items', p_va, items, image=False), recs, dtab], stubs, g, [a], (a,), (kind, *rest, slot, hex(state)), pointers)
+
+
 SPECS = {
     '44b26a': dict(id=1, va=0x44b26a, size=350, gen=gen_44b26a, cleanup=4, fpcw=0x27f, n=(16 + 4 * 3 * len(WORDS) + 4 * 3 * len(FLOATS)) * 2),
     '488e9c': dict(id=2, va=0x488e9c, size=447, gen=gen_488e9c, cleanup=12, n=61 * 10),
+    '42e844': dict(id=4, va=0x42e844, size=579, gen=gen_42e844, cleanup=0, n=60 * 3),
     '4c5b3a': dict(id=3, va=0x4c5b3a, size=529, gen=gen_4c5b3a, cleanup=20, n=26 * 16),
 }
 KEYS = list(SPECS)
-NAMES = {'44b26a': 'apply_delta', '488e9c': 'init_record', '4c5b3a': 'copy_keyed'}
+NAMES = {'44b26a': 'apply_delta', '488e9c': 'init_record', '4c5b3a': 'copy_keyed', '42e844': 'step_record'}
 
 
 def build(key, rng, n):

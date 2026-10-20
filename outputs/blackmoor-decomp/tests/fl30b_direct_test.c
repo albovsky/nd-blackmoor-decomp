@@ -372,6 +372,73 @@ static void test_m4c5b3a_copy_keyed(void)
     }
 }
 
+/* ---- 0x42e844 ------------------------------------------------------------------------------------------------------------------ */
+static uint8_t g_dt[80];
+static void step42(int slot, uint32_t state)
+{
+    size_t i;
+    setup();
+    for (i = 0; i < sizeof g_dt; i++) g_dt[i] = (uint8_t)(i + 1);
+    g_w.dwords_585801 = g_dt + 32;
+    rec44(slot, RVA(1));
+    set32(g_w.records_5bb5e5 + (ptrdiff_t)slot * 0x8d, 0x4d, state);
+    memset(g_r[1], 0, 0x100);
+}
+static void test_m42e844_step_record(void)
+{
+    uint8_t *r, *p = g_r[1];
+    int i;
+    /* state 0: the global is set, the state becomes 1, the second entry matches the key 0x1234 */
+    step42(2, 0);
+    g_w.word_5bb50b = 0x1234;
+    set16(p, 0x28, 3);
+    set16(p, 0x2a, 0x1233);
+    set16(p, 0x12 + 0x2a, 0x1234);
+    set16(p, 0x12 + 0x2c, 0x1111);
+    set16(p, 0x12 + 0x30, 0x2222);
+    set16(p, 0x12 + 0x34, 0x3333);
+    set16(p, 0x12 + 0x38, 0x4444);
+    set16(p, 0x24 + 0x2a, 0x1234);
+    r = g_w.records_5bb5e5 + 2 * 0x8d;
+    set32(r, 0x41, 0x77777777u);
+    m42e844_step_record(2, &g_w, &g_host);
+    CK(g_w.value_5bb1ca == 1 && get32(r, 0x4d) == 1 && get32(r, 0x41) == 1);
+    CK(get16(r, 0x45) == 0x1111 && get16(r, 0x47) == 0x2222 && get16(r, 0x49) == 0x3333 && get16(r, 0x4b) == 0x4444);
+    CK(L.n == 0);
+    /* state 1, no match: found flag 0 and the words untouched; a count of 0 or a negative count does not loop */
+    step42(-1, 1);
+    g_w.word_5bb50b = 7;
+    set16(p, 0x28, 2);
+    r = g_w.records_5bb5e5 - 0x8d;
+    set32(r, 0x41, 0x77777777u);
+    set16(r, 0x45, 0x5555);
+    m42e844_step_record(0xffffu, &g_w, &g_host);
+    CK(g_w.value_5bb1ca == 0 && get32(r, 0x41) == 0 && get16(r, 0x45) == 0x5555 && get32(r, 0x4d) == 1);
+    set16(p, 0x28, 0xffff);
+    set16(p, 0x2a, 7);
+    set32(r, 0x41, 9);
+    m42e844_step_record(0xffffu, &g_w, &g_host);
+    CK(get32(r, 0x41) == 0 && get16(r, 0x45) == 0x5555);
+    /* state 2: byte flag, dword 0, the pairs (a, v) with a != -1 go to the dword table, the sign extended; then the final call */
+    step42(1, 2);
+    r = g_w.records_5bb5e5 + 0x8d;
+    set32(r, 0x41, 5);
+    for (i = 0; i < 10; i++) {
+        set16(p, (size_t)i * 4, (uint16_t)(i == 3 ? -1 : i % 4 - 2));
+        set16(p, (size_t)i * 4 + 2, (uint16_t)(0x8000 + i));
+    }
+    m42e844_step_record(0x10001u, &g_w, &g_host);
+    CK(r[0x40] == 1 && get32(r, 0x41) == 0);
+    /* a = -2, -1 (skipped), 0, -1, -2, -1, 0, 1, -2, -1 for k = 0 .. 9: the last store to each index wins */
+    CK(get32(g_dt, 24) == 0xffff8008u && get32(g_dt, 32) == 0xffff8006u && get32(g_dt, 36) == 0xffff8007u && get32(g_dt, 28) == 0x201f1e1du);
+    CK(L.n == 1);
+    CKC(0, 0x42ba3a, 0, 1, 1);
+    /* any other state: nothing */
+    step42(0, 3);
+    m42e844_step_record(0, &g_w, &g_host);
+    CK(g_w.value_5bb1ca == 0 && get32(g_w.records_5bb5e5, 0x4d) == 3 && L.n == 0);
+}
+
 /* CASES-NEXT */
 
 /* ---- bounded sweep ------------------------------------------------------------------------------------------------------------- */
@@ -401,6 +468,12 @@ static void test_sweep_bounded(void)
             copy5b(1 + (int)(seed % 3), (int)((seed >> 3) & 1), sf, st);
             m4c5b3a_copy_keyed(SELF, RVA(1), RVA(2), RVA(3), RVA(4), seed, &g_w, &g_host);
         }
+        step42(((int)(seed >> 3) % 3) - 1, (uint32_t)(seed >> 9) % 4);
+        for (i = 0; i < 0x40; i++) g_r[1][i] = (uint8_t)(seed >> (i & 15));
+        set16(g_r[1], 0x28, (uint16_t)(seed % 4));
+        for (i = 0; i < 10; i++) set16(g_r[1], (size_t)i * 4, (uint16_t)((seed >> i) % 11 - 6));
+        g_w.word_5bb50b = (int16_t)(seed >> 5);
+        m42e844_step_record((uint32_t)(((int)(seed >> 3) % 3) - 1), &g_w, &g_host);
         /*SWEEP*/
         L.n = 0;
     }
@@ -425,6 +498,7 @@ int main(void)
     RUN(test_m44b26a_apply_delta);
     RUN(test_m488e9c_init_record);
     RUN(test_m4c5b3a_copy_keyed);
+    RUN(test_m42e844_step_record);
     /*RUNS*/
     RUN(test_sweep_bounded);
     return failures;

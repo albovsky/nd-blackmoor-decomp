@@ -78,6 +78,10 @@ class Fl30bDirect(unittest.TestCase):
         """FL-30b: direct test of m4c5b3a_copy_keyed (original 0x4c5b3a)"""
         self.check('test_m4c5b3a_copy_keyed')
 
+    def test_42e844_step_record(self):
+        """FL-30b: direct test of m42e844_step_record (original 0x42e844)"""
+        self.check('test_m42e844_step_record')
+
     # CASES-END
 
     def test_sweep_bounded(self):

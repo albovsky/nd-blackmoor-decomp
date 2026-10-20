@@ -199,3 +199,40 @@ int32_t m4c5b3a_copy_keyed(const uint8_t *self, uint32_t from, uint32_t to, uint
     }
     return 0;
 }
+
+/* ---- 0x42e844 step_record -------------------------------------------------------------------------------------------------------- */
+void m42e844_step_record(uint32_t index, Fl30bWorld *world, const Fl18Host *host)
+{
+    uint8_t *r = world->records_5bb5e5 + (ptrdiff_t)(int16_t)index * 0x8d;
+    uint32_t state = rd32(r, 0x4d);
+    if (state == 0 || state == 1) {
+        uint16_t i;
+        if (state == 0) {
+            world->value_5bb1ca = 1;
+            wr32(r, 0x4d, 1);
+        }
+        wr32(r, 0x41, 0);
+        for (i = 0; (int16_t)i < (int16_t)rd16(res(host, rd32(r, 0)), 0x28); i++) {
+            const uint8_t *e = res(host, rd32(r, 0)) + (ptrdiff_t)(int16_t)i * 0x12;
+            if (rds16(e, 0x2a) != (int32_t)world->word_5bb50b) continue;
+            wr32(r, 0x41, 1);
+            wr16(r, 0x45, rd16(e, 0x2c));
+            wr16(r, 0x47, rd16(e, 0x30));
+            wr16(r, 0x49, rd16(e, 0x34));
+            wr16(r, 0x4b, rd16(e, 0x38));
+            return;
+        }
+        return;
+    }
+    if (state == 2) {
+        int k;
+        r[0x40] = 1;
+        wr32(r, 0x41, 0);
+        for (k = 0; k < 10; k++) {
+            const uint8_t *p = res(host, rd32(r, 0));
+            int32_t a = rds16(p, k * 4);
+            if (a != -1) wr32(world->dwords_585801, (ptrdiff_t)a * 4, (uint32_t)rds16(res(host, rd32(r, 0)), k * 4 + 2));
+        }
+        call1(host, 0x42ba3a, 0, (uint16_t)index);
+    }
+}
