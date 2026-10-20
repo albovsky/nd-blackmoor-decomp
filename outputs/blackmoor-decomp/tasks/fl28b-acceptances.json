@@ -1,0 +1,398 @@
+[
+  {
+    "va": "0x41e043",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-28b implementer; Sonnet slice-reviewer diff review done",
+    "date": "2026-10-19",
+    "native_source": {
+      "path": "src/original_methods_fl28b.c",
+      "symbol": "m41e043_find_free_slot"
+    },
+    "tests": [
+      {
+        "path": "tests/fl28b_direct_test.c",
+        "test_id": "test_m41e043_find_free_slot"
+      },
+      {
+        "path": "tests/test_fl28b_direct.py",
+        "test_id": "Fl28bDirect.test_41e043_find_free_slot"
+      },
+      {
+        "path": "tests/test_fl28b_differential.py",
+        "test_id": "Fl28bDifferential.test_41e043_find_free_slot"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl28b_original_oracle.py",
+      "window": [
+        "0x41e043",
+        "0x41e0b4"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "The first free slot of the 0x4b-entry table: signed word compares, the word counter, ax result (0xffff); the oracle executes every instruction and both directions of every jump. See tasks/fl28b-handoff.md."
+  },
+  {
+    "va": "0x42e493",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-28b implementer; Sonnet slice-reviewer diff review done",
+    "date": "2026-10-19",
+    "native_source": {
+      "path": "src/original_methods_fl28b.c",
+      "symbol": "m42e493_take_pending"
+    },
+    "tests": [
+      {
+        "path": "tests/fl28b_direct_test.c",
+        "test_id": "test_m42e493_take_pending"
+      },
+      {
+        "path": "tests/test_fl28b_direct.py",
+        "test_id": "Fl28bDirect.test_42e493_take_pending"
+      },
+      {
+        "path": "tests/test_fl28b_differential.py",
+        "test_id": "Fl28bDifferential.test_42e493_take_pending"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl28b_original_oracle.py",
+      "window": [
+        "0x42e493",
+        "0x42e560"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Takes the pending state: the 0x270f sentinel branch with its two calls, and the latch of nine globals with the sign-extended word compare; every instruction and both directions of every jump executed. See tasks/fl28b-handoff.md."
+  },
+  {
+    "va": "0x41de29",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-28b implementer; Sonnet slice-reviewer diff review done",
+    "date": "2026-10-19",
+    "native_source": {
+      "path": "src/original_methods_fl28b.c",
+      "symbol": "m41de29_clear_slots"
+    },
+    "tests": [
+      {
+        "path": "tests/fl28b_direct_test.c",
+        "test_id": "test_m41de29_clear_slots"
+      },
+      {
+        "path": "tests/test_fl28b_direct.py",
+        "test_id": "Fl28bDirect.test_41de29_clear_slots"
+      },
+      {
+        "path": "tests/test_fl28b_differential.py",
+        "test_id": "Fl28bDifferential.test_41de29_clear_slots"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl28b_original_oracle.py",
+      "window": [
+        "0x41de29",
+        "0x41df05"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Empties the 0x4b-entry slot table: per entry the free of a non-zero owned pointer then four dword calls; all 75 entries and both pointer cases executed, every instruction and jump direction covered. See tasks/fl28b-handoff.md."
+  },
+  {
+    "va": "0x41e250",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-28b implementer; Sonnet slice-reviewer diff review done",
+    "date": "2026-10-19",
+    "native_source": {
+      "path": "src/original_methods_fl28b.c",
+      "symbol": "m41e250_release_slot"
+    },
+    "tests": [
+      {
+        "path": "tests/fl28b_direct_test.c",
+        "test_id": "test_m41e250_release_slot"
+      },
+      {
+        "path": "tests/test_fl28b_direct.py",
+        "test_id": "Fl28bDirect.test_41e250_release_slot"
+      },
+      {
+        "path": "tests/test_fl28b_differential.py",
+        "test_id": "Fl28bDifferential.test_41e250_release_slot"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl28b_original_oracle.py",
+      "window": [
+        "0x41e250",
+        "0x41e33b"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Releases one slot: free slot early return, the pointer free, four dword calls and the word count decrement with the signed floor at 0; every instruction and both directions of every jump executed. See tasks/fl28b-handoff.md."
+  },
+  {
+    "va": "0x4edfaf",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-28b implementer; Sonnet slice-reviewer diff review done",
+    "date": "2026-10-19",
+    "native_source": {
+      "path": "src/original_methods_fl28b.c",
+      "symbol": "m4edfaf_centre_rect"
+    },
+    "tests": [
+      {
+        "path": "tests/fl28b_direct_test.c",
+        "test_id": "test_m4edfaf_centre_rect"
+      },
+      {
+        "path": "tests/test_fl28b_direct.py",
+        "test_id": "Fl28bDirect.test_4edfaf_centre_rect"
+      },
+      {
+        "path": "tests/test_fl28b_differential.py",
+        "test_id": "Fl28bDifferential.test_4edfaf_centre_rect"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl28b_original_oracle.py",
+      "window": [
+        "0x4edfaf",
+        "0x4ee0d4"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Centres a rectangle: the kind == 3 test of the whole dword, four truncating halvings (cdq/sub/sar) with wrapping sums, then the 0x4db993 call; every instruction and jump direction executed. See tasks/fl28b-handoff.md."
+  },
+  {
+    "va": "0x41e0b4",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-28b implementer; Sonnet slice-reviewer diff review done",
+    "date": "2026-10-19",
+    "native_source": {
+      "path": "src/original_methods_fl28b.c",
+      "symbol": "m41e0b4_add_slot"
+    },
+    "tests": [
+      {
+        "path": "tests/fl28b_direct_test.c",
+        "test_id": "test_m41e0b4_add_slot"
+      },
+      {
+        "path": "tests/test_fl28b_direct.py",
+        "test_id": "Fl28bDirect.test_41e0b4_add_slot"
+      },
+      {
+        "path": "tests/test_fl28b_differential.py",
+        "test_id": "Fl28bDifferential.test_41e0b4_add_slot"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl28b_original_oracle.py",
+      "window": [
+        "0x41e0b4",
+        "0x41e1e4"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Adds an entry at a slot: the two guards (full, occupied) that report and go on, the kind byte switch (0x39 0x3b 0x3e), the per-count loop with the word argument, the stores; all instructions and jumps covered. See tasks/fl28b-handoff.md."
+  },
+  {
+    "va": "0x4205c1",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-28b implementer; Sonnet slice-reviewer diff review done",
+    "date": "2026-10-19",
+    "native_source": {
+      "path": "src/original_methods_fl28b.c",
+      "symbol": "m4205c1_run_entries"
+    },
+    "tests": [
+      {
+        "path": "tests/fl28b_direct_test.c",
+        "test_id": "test_m4205c1_run_entries"
+      },
+      {
+        "path": "tests/test_fl28b_direct.py",
+        "test_id": "Fl28bDirect.test_4205c1_run_entries"
+      },
+      {
+        "path": "tests/test_fl28b_differential.py",
+        "test_id": "Fl28bDifferential.test_4205c1_run_entries"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl28b_original_oracle.py",
+      "window": [
+        "0x4205c1",
+        "0x420737"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Runs the record entries: the word loop with the 0x420737 gate (low word of the result), the kind byte arms 0/1/2/other, and the two indirect calls through the table in self; every instruction and jump covered. See tasks/fl28b-handoff.md."
+  },
+  {
+    "va": "0x4209e8",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-28b implementer; Sonnet slice-reviewer diff review done",
+    "date": "2026-10-19",
+    "native_source": {
+      "path": "src/original_methods_fl28b.c",
+      "symbol": "m4209e8_run_small_entries"
+    },
+    "tests": [
+      {
+        "path": "tests/fl28b_direct_test.c",
+        "test_id": "test_m4209e8_run_small_entries"
+      },
+      {
+        "path": "tests/test_fl28b_direct.py",
+        "test_id": "Fl28bDirect.test_4209e8_run_small_entries"
+      },
+      {
+        "path": "tests/test_fl28b_differential.py",
+        "test_id": "Fl28bDifferential.test_4209e8_run_small_entries"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl28b_original_oracle.py",
+      "window": [
+        "0x4209e8",
+        "0x420b9e"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Runs the 10-byte entries of a record: the 0x420737 gate, kind 1 (debug trace and the dword table store) and kind 2 (two callees by the byte), kind other; every instruction and jump direction covered. See tasks/fl28b-handoff.md."
+  },
+  {
+    "va": "0x4f6ef4",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-28b implementer; Sonnet slice-reviewer diff review done",
+    "date": "2026-10-19",
+    "native_source": {
+      "path": "src/original_methods_fl28b.c",
+      "symbol": "m4f6ef4_advance_record"
+    },
+    "tests": [
+      {
+        "path": "tests/fl28b_direct_test.c",
+        "test_id": "test_m4f6ef4_advance_record"
+      },
+      {
+        "path": "tests/test_fl28b_direct.py",
+        "test_id": "Fl28bDirect.test_4f6ef4_advance_record"
+      },
+      {
+        "path": "tests/test_fl28b_differential.py",
+        "test_id": "Fl28bDifferential.test_4f6ef4_advance_record"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl28b_original_oracle.py",
+      "window": [
+        "0x4f6ef4",
+        "0x4f709c"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Advances a record: the guard chain with its three store/return arms, the n == -1 trace arm and the single-precision x87 quotient through the real __ftol with two signed clamps; fully executed. See tasks/fl28b-handoff.md."
+  },
+  {
+    "va": "0x41c544",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-28b implementer; Sonnet slice-reviewer diff review done",
+    "date": "2026-10-19",
+    "native_source": {
+      "path": "src/original_methods_fl28b.c",
+      "symbol": "m41c544_init_record"
+    },
+    "tests": [
+      {
+        "path": "tests/fl28b_direct_test.c",
+        "test_id": "test_m41c544_init_record"
+      },
+      {
+        "path": "tests/test_fl28b_direct.py",
+        "test_id": "Fl28bDirect.test_41c544_init_record"
+      },
+      {
+        "path": "tests/test_fl28b_differential.py",
+        "test_id": "Fl28bDifferential.test_41c544_init_record"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl28b_original_oracle.py",
+      "window": [
+        "0x41c544",
+        "0x41c770"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Initialises a record: the constant string copies, the field stores from the source, the 0x423259 text pointer with its debug-report arm and the missing-text fallback; fully executed. See tasks/fl28b-handoff.md."
+  },
+  {
+    "va": "0x41fa11",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-28b implementer; Sonnet slice-reviewer diff review done",
+    "date": "2026-10-19",
+    "native_source": {
+      "path": "src/original_methods_fl28b.c",
+      "symbol": "m41fa11_add_entry"
+    },
+    "tests": [
+      {
+        "path": "tests/fl28b_direct_test.c",
+        "test_id": "test_m41fa11_add_entry"
+      },
+      {
+        "path": "tests/test_fl28b_direct.py",
+        "test_id": "Fl28bDirect.test_41fa11_add_entry"
+      },
+      {
+        "path": "tests/test_fl28b_differential.py",
+        "test_id": "Fl28bDifferential.test_41fa11_add_entry"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl28b_original_oracle.py",
+      "window": [
+        "0x41fa11",
+        "0x41fd08"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Adds an entry to the 0x1e-slot table unless an equal block exists: the debug trace, the limit, the dedupe loop with release, the 400-byte copy and the field and string stores; all instructions and jumps covered. See tasks/fl28b-handoff.md."
+  },
+  {
+    "va": "0x422a0a",
+    "class": "native_oracle_verified",
+    "reviewer": "Claude Sonnet FL-28b implementer; Sonnet slice-reviewer diff review done",
+    "date": "2026-10-19",
+    "native_source": {
+      "path": "src/original_methods_fl28b.c",
+      "symbol": "m422a0a_draw_marked"
+    },
+    "tests": [
+      {
+        "path": "tests/fl28b_direct_test.c",
+        "test_id": "test_m422a0a_draw_marked"
+      },
+      {
+        "path": "tests/test_fl28b_direct.py",
+        "test_id": "Fl28bDirect.test_422a0a_draw_marked"
+      },
+      {
+        "path": "tests/test_fl28b_differential.py",
+        "test_id": "Fl28bDifferential.test_422a0a_draw_marked"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl28b_original_oracle.py",
+      "window": [
+        "0x422a0a",
+        "0x422e4a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Draws the marked entries: kind gate, two nested word loops with first-match break, jump-table switch (arms 0/1/3 and 2), second-selector calls; code bytes 0x422a0a..0x422e39 executed, the table is data. See tasks/fl28b-handoff.md."
+  }
+]
