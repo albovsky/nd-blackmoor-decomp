@@ -364,15 +364,62 @@ def gen_416af3(rng, n):
     return make('416af3', areas, stubs, {}, args, tuple(args), (kind, opsname, countmode, variant), endless=cycle)
 
 
+# ---- 0x4db38a ---------------------------------------------------------------------------------------------------------------------
+
+UC_MOVES = [(0, 0, 10, 10), (5, -5, 10, 10), (10, -10, 10, 10), (11, -11, 10, 10), (-12, 12, 10, 10), (3, 3, 0, 0), (0, 0, -5, -5), (-1, 1, -5, 7), (0x7fffffff, 0x80000000, 0x7fff, -0x8000),
+            (0x80000000, 0x7fffffff, 3, 3), (50, -50, -0x8000, 0x7fff), (0x10000, -0x20005, 10, 10), (3, 20, 10, 5), (-30, -20, 7, 5)]
+# (dword 0x583204, result of 0x4d57e8, of 0x4d5834, of 0x4d5316, debug word on)
+UC_ARMS = [(2, 1, 1, 1, 1), (3, 0, 0, 0, 0), (4, 1, 0, 1, 0), (5, 0, 1, 0, 1), (0, 1, 0, 0, 0), (1, 0, 1, 0, 0), (6, 0, 0, 1, 0), (0x80000002, 0, 0, 0, 1), (0xffffffff, 0, 0, 0, 0), (0, 0, 0, 1, 1)]
+UC_INDEXES = [(0, 0), (1, 0), (2, 1), (4, 3), (3, 0xffffffff), (1, 2)]
+UC_SLACK = 0x40
+PT_VA = od.region_va(1)
+
+
+def gen_4db38a(rng, n):
+    (mi, ai), variant = prof(n, [(m, a) for m in range(len(UC_MOVES)) for a in range(len(UC_ARMS))])
+    dx, dy, w1, w2 = UC_MOVES[mi]
+    v, r57, r58, r53, dbg = UC_ARMS[ai]
+    b0, b4 = UC_INDEXES[(variant + n) % len(UC_INDEXES)]
+    x0, y0 = rng.randrange(-100, 100), rng.randrange(-100, 100)
+    px, py = (x0 + dx) & 0xffffffff, (y0 + dy) & 0xffffffff
+    s = bytearray(rng.randbytes(0x100))
+    put32(s, 0x34, x0)
+    put32(s, 0x38, y0)
+    pt = bytearray(rng.randbytes(0x40))
+    put32(pt, 0x11, px)
+    put32(pt, 0x15, py)
+    wtbl = Area('wtbl', 0x5b3790 - UC_SLACK, bytearray(rng.randbytes(0x80)), image=True, compare=False)
+    dtbl = Area('dtbl', 0x5b30cc - UC_SLACK, bytearray(rng.randbytes(0x100)), image=True, compare=False)
+    nz = [1, 0x100, 0x80000000, 0xdeadbeef]
+    g = {'value_5d16cd': rnd32(rng), 'value_5d1683': rnd32(rng), 'value_583204': v, 'value_583186': rnd32(rng), 'value_58318a': rnd32(rng), 'value_58318e': rnd32(rng), 'value_583192': rnd32(rng),
+         'value_5b44f0': b0, 'value_5b44f4': b4, 'value_583106': rnd32(rng), 'value_583102': rnd32(rng), 'value_5c3a53': rnd32(rng), 'value_5c3a57': rnd32(rng), 'word_5d2f0d': w1, 'word_5d2f0f': w2,
+         'word_63a4cd': [1, 0x100, 0x8000, 0xffff][variant % 4] if dbg else 0}
+    pre = [('g:value_5d16cd', 0, 4), ('g:value_5d1683', 0, 4)]
+    probe = [('self', 0, 0xb0), ('g:value_5d16cd', 0, 4), ('g:value_5d1683', 0, 4), ('g:value_5c3a53', 0, 4)]
+    if variant % 2:         # the game's callee: stores the pair through its argument (the function's local) and returns that same pointer
+        s5 = stub(0x4daeb5, THISCALL(1), probe=pre, writes=[(0, 0, 0, 4, px), (0, 0, 4, 4, py)])
+        s5.ret_arg = 0
+    else:
+        s5 = stub(0x4daeb5, THISCALL(1), probe=pre, results=[PT_VA + 0x11])
+    stubs = {0x4dadff: stub(0x4dadff, THISCALL(0), probe=pre), 0x4daeb5: s5, 0x4dbb13: stub(0x4dbb13, THISCALL(0), probe=probe),
+             0x4d57e8: stub(0x4d57e8, THISCALL(2), probe=probe, results=[rng.choice(nz) if r57 else 0]), 0x4db780: stub(0x4db780, THISCALL(0), probe=probe),
+             0x4d5834: stub(0x4d5834, THISCALL(2), probe=probe, results=[rng.choice(nz) if r58 else 0]), 0x4db817: stub(0x4db817, THISCALL(0), probe=probe),
+             0x4d5316: stub(0x4d5316, THISCALL(2), probe=probe, results=[rng.choice(nz) if r53 else 0]), 0x4d56e2: stub(0x4d56e2, THISCALL(3), probe=probe),
+             0x50ca3e: stub(0x50ca3e, CDECL(10), probe=probe), 0x44a2b7: stub(0x44a2b7, CDECL(1), probe=probe), 0x4dae88: stub(0x4dae88, THISCALL(2), probe=probe)}
+    areas = [self_area(s), Area('pt', PT_VA, pt, image=False), wtbl, dtbl]
+    return make('4db38a', areas, stubs, g, [], (), (mi, ai, b0, b4, variant % 2), pointers={'table_5b3790': ('wtbl', UC_SLACK), 'table_5b30cc': ('dtbl', UC_SLACK)})
+
+
 # GEN-END
 
 SPECS = {
     '4c6929': dict(id=1, va=0x4c6929, size=769, gen=gen_4c6929, cleanup=0x1c, status=True, n=len(CM_PROFILES) * 2),
     '416af3': dict(id=2, va=0x416af3, size=870, gen=gen_416af3, cleanup=0x18, status=True, n=len(PA_PROFILES) * 2),
+    '4db38a': dict(id=3, va=0x4db38a, size=998, gen=gen_4db38a, cleanup=0, n=len(UC_MOVES) * len(UC_ARMS) * 2),
     # SPECS-END
 }
 KEYS = list(SPECS)
-NAMES = {'4c6929': 'copy_masked', '416af3': 'apply_patches'}
+NAMES = {'4c6929': 'copy_masked', '416af3': 'apply_patches', '4db38a': 'update_cursor'}
 
 
 def build(key, rng, n):

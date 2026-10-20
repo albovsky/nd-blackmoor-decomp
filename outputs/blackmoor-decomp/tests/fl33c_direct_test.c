@@ -59,6 +59,7 @@ static struct {
     uint32_t value;
 } W[16];
 static int g_nwrites;
+static uint32_t g_retarg_callee;      /* a callee that returns the LOW 32 BITS of its argument 0 (a host pointer), as the game's 0x4daeb5 does */
 
 UNUSED static void script(uint32_t callee, uint32_t r0)
 {
@@ -113,6 +114,7 @@ static uint32_t host_call(void *ctx, uint32_t callee, uintptr_t this_ptr, const 
             result = S[k].results[S[k].used < S[k].n ? S[k].used : S[k].n - 1];
             S[k].used++;
         }
+    if (callee == g_retarg_callee && nargs > 0) result = (uint32_t)args[0];
     return result;
 }
 
@@ -140,6 +142,7 @@ static void setup(void)
     L.n = 0;
     g_nscript = 0;
     g_nwrites = 0;
+    g_retarg_callee = 0;
 }
 
 static void ck_call(int line, int idx, uint32_t callee, uintptr_t this_ptr, int nargs, const uintptr_t *want)
@@ -420,6 +423,125 @@ static void test_m416af3_apply_patches(void)
     }
 }
 
+/* ---- 0x4db38a ------------------------------------------------------------------------------------------------------------------ */
+/* tables: the word pairs at 0x5b3790 in g_r[6], the dwords at 0x5b30cc in g_r[7]; indexes b44f0 = 1, b44f4 = 2 -> e = 16, f = 32 */
+static void uc_setup(uint32_t px, uint32_t py)
+{
+    setup();
+    memset(SELF, 0x11, 0x100);
+    g_w.table_5b3790 = g_r[6];
+    g_w.table_5b30cc = g_r[7];
+    g_w.word_5d2f0d = 10;
+    g_w.word_5d2f0f = 10;
+    g_w.value_583204 = 2;                       /* 0..3 after the subtraction: skip the default block */
+    g_w.value_5b44f0 = 1;
+    g_w.value_5b44f4 = 2;
+    g_w.value_583106 = 1000;
+    g_w.value_583102 = 2000;
+    g_w.value_5d16cd = 0x77;
+    g_w.value_5d1683 = 0x78;
+    set16(g_r[6], 16, 3);                      /* x extent  (0x5b3790 + e) */
+    set16(g_r[6], 18, 5);                      /* y extent  (0x5b3792 + e) */
+    set32(g_r[7], 32, 0x100);                  /* 0x5b30cc + f */
+    set32(g_r[7], 36, 0x200);                  /* 0x5b30d0 + f */
+    set32(SELF, 0x34, 100);
+    set32(SELF, 0x38, 200);
+    set32(SELF, 0x3c, 300);
+    set32(SELF, 0x40, 400);
+    g_retarg_callee = 0x4daeb5;
+    script_write(0x4daeb5, 0, 0, 0, 4, px);
+    script_write(0x4daeb5, 0, 0, 4, 4, py);
+}
+static void test_m4db38a_update_cursor(void)
+{
+    uintptr_t pair;
+    uc_setup(104, 195);                         /* dx = 4, dy = -5: inside the limits */
+    m4db38a_update_cursor(SELF, &g_w, &g_host);
+    CK(get32(SELF, 0x14) == 104 && get32(SELF, 0x18) == 195 && get32(SELF, 0x94) == 4 && get32(SELF, 0x98) == 5);
+    CK(get32(SELF, 0x38) == 195 && get32(SELF, 0x40) == 195 + 5 - 1 && get32(SELF, 0x34) == 104 && get32(SELF, 0x3c) == 104 + 3 - 1);
+    CK(get32(SELF, 0x1c) == 104 && get32(SELF, 0x20) == 195 && get32(SELF, 0x9c) == 1000 + 0x200 && get32(SELF, 0xa0) == 2000 + 0x100);
+    CK(g_w.value_5c3a53 == 2000 + 0x100 && g_w.value_5c3a57 == 1000 + 0x200 && g_w.value_5d16cd == 0 && g_w.value_5d1683 == 0);
+    CK(L.n == 5);
+    pair = L.c[1].a[0];
+    CKC0(0, 0x4dadff, 0x5830a6);
+    CKC(1, 0x4daeb5, 0x5830a6, 1, pair);
+    CKC0(2, 0x4dbb13, SELFP);
+    CKC0(3, 0x4dbb13, SELFP);
+    CKC(4, 0x4dae88, 0x5830a6, 2, 104, 195);
+    CK(get32(L.c[2].sp, 0x14) == 104 && get32(L.c[2].sp, 0x34) == 100);        /* the first 0x4dbb13 sees the new position and the old one */
+    /* clamps: dx = 30 > 10 (positive) -> x0 + 10; dy = -50 (|dy| = 50 > 10, not positive) -> y0 - 10 */
+    uc_setup(130, 150);
+    m4db38a_update_cursor(SELF, &g_w, &g_host);
+    CK(get32(SELF, 0x14) == 110 && get32(SELF, 0x18) == 190 && get32(SELF, 0x94) == 30 && get32(SELF, 0x98) == 50);
+    CKC(4, 0x4dae88, 0x5830a6, 2, 110, 190);
+    CK(get32(L.c[3].sp, 0x14) == 110);                                       /* clamped before the second 0x4dbb13 */
+    /* the limit itself (|dx| == 10) does not clamp; a negative limit clamps even for dx == 0 and then goes to x0 - limit */
+    uc_setup(110, 190);
+    m4db38a_update_cursor(SELF, &g_w, &g_host);
+    CK(get32(SELF, 0x14) == 110 && get32(SELF, 0x18) == 190);
+    uc_setup(100, 200);
+    g_w.word_5d2f0d = -5;
+    g_w.word_5d2f0f = (int16_t)0x8000;
+    m4db38a_update_cursor(SELF, &g_w, &g_host);
+    CK(get32(SELF, 0x14) == 105 && get32(SELF, 0x18) == 200u + 0x8000u);
+    /* |0x80000000| stays negative: no clamp (the compare is signed) */
+    uc_setup(100u + 0x80000000u, 200);
+    m4db38a_update_cursor(SELF, &g_w, &g_host);
+    CK(get32(SELF, 0x14) == 100u + 0x80000000u && get32(SELF, 0x94) == 0x80000000u);
+    /* the default block (0x583204 - 2 > 3 unsigned): 0x4d57e8 != 0 -> 0x4db780 only */
+    uc_setup(104, 195);
+    g_w.value_583204 = 0;
+    script(0x4d57e8, 1);
+    m4db38a_update_cursor(SELF, &g_w, &g_host);
+    CK(L.n == 7);
+    CKC(4, 0x4d57e8, 0x570450, 2, (uintptr_t)(SELF + 0x34), 0x583186);
+    CKC0(5, 0x4db780, SELFP);
+    CKC(6, 0x4dae88, 0x5830a6, 2, 104, 195);
+    /* ... 0x4d5834 != 0 -> 0x4db817 */
+    uc_setup(104, 195);
+    g_w.value_583204 = 6;
+    script(0x4d5834, 1);
+    m4db38a_update_cursor(SELF, &g_w, &g_host);
+    CK(L.n == 8);
+    CKC(5, 0x4d5834, 0x570450, 2, (uintptr_t)(SELF + 0x34), 0x583186);
+    CKC0(6, 0x4db817, SELFP);
+    /* ... both zero, 0x4d5316 = 7: the record copy, the four differences, 0x4d56e2, the flag */
+    uc_setup(104, 195);
+    g_w.value_583204 = 1;
+    g_w.value_583186 = 50;
+    g_w.value_58318a = 60;
+    script(0x4d5316, 7);
+    m4db38a_update_cursor(SELF, &g_w, &g_host);
+    CK(g_w.value_5d16cd == 1 && g_w.value_5d1683 == 1);
+    CK(get32(SELF, 0x24) == 100 && get32(SELF, 0x28) == 200 && get32(SELF, 0x2c) == 300 && get32(SELF, 0x30) == 400);
+    CK(get32(SELF, 0x54) == 100 && get32(SELF, 0x58) == 200 && get32(SELF, 0x5c) == 300 && get32(SELF, 0x60) == 400);
+    CK(get32(SELF, 0x44) == 100 - 50 && get32(SELF, 0x4c) == 300 - 50 && get32(SELF, 0x48) == 200 - 60 && get32(SELF, 0x50) == 400 - 60);
+    CKC(7, 0x4d56e2, 0x570450, 3, (uintptr_t)(SELF + 0x44), (uintptr_t)(SELF + 0x54), 7);
+    CK(L.n == 9);
+    /* ... r == 0 with the debug word (a WORD test: 0x100 is on): the report and 0x44a2b7 */
+    uc_setup(104, 195);
+    g_w.value_583204 = 0xffffffffu;
+    g_w.value_583186 = 11; g_w.value_58318a = 12; g_w.value_58318e = 13; g_w.value_583192 = 14;
+    g_w.word_63a4cd = 0x100;
+    m4db38a_update_cursor(SELF, &g_w, &g_host);
+    CK(L.n == 10 && g_w.value_5d1683 == 1 && g_w.value_5d16cd == 0);
+    CKC(7, 0x50ca3e, 0, 10, 0x63888b, 0x55af64, 100, 200, 300, 400, 11, 12, 13, 14);
+    CKC(8, 0x44a2b7, 0, 1, 0x63888b);
+    /* ... r == 0, debug word zero: nothing more */
+    uc_setup(104, 195);
+    g_w.value_583204 = 0xffffffffu;
+    m4db38a_update_cursor(SELF, &g_w, &g_host);
+    CK(L.n == 8 && g_w.value_5d1683 == 1);
+    /* 0x4daeb5 returns an original address (not the local): the pair is read there */
+    uc_setup(0, 0);
+    g_retarg_callee = 0;
+    set32(g_r[2], 0x11, 104);
+    set32(g_r[2], 0x15, 195);
+    script(0x4daeb5, RVA(2) + 0x11);
+    m4db38a_update_cursor(SELF, &g_w, &g_host);
+    CK(get32(SELF, 0x14) == 104 && get32(SELF, 0x18) == 195);
+}
+
 /* TESTS-END */
 
 /* ---- bounded sweep ------------------------------------------------------------------------------------------------------------- */
@@ -451,6 +573,18 @@ static void test_sweep_bounded(void)
         pa_count((uint32_t)pa_cur);
         pa_call(seed % 40, seed >> 9 & 1);
         L.n = 0;
+        /* 0x4db38a: tables inside g_r[6] / g_r[7], random positions */
+        uc_setup(seed >> 3, seed >> 11);
+        g_w.value_583204 = seed % 7;
+        g_w.value_5b44f0 = seed % 5;
+        g_w.value_5b44f4 = seed % 4;
+        g_w.word_63a4cd = (int16_t)(seed & 3);
+        g_w.word_5d2f0d = (int16_t)(seed >> 5);
+        script(0x4d57e8, seed & 1);
+        script(0x4d5834, seed >> 1 & 1);
+        script(0x4d5316, seed >> 2 & 1);
+        m4db38a_update_cursor(SELF, &g_w, &g_host);
+        L.n = 0;
         /* SWEEP-END */
         L.n = 0;
     }
@@ -474,6 +608,7 @@ int main(void)
     int failures = 0;
     RUN(test_m4c6929_copy_masked);
     RUN(test_m416af3_apply_patches);
+    RUN(test_m4db38a_update_cursor);
     /* RUN-END */
     RUN(test_sweep_bounded);
     return failures;

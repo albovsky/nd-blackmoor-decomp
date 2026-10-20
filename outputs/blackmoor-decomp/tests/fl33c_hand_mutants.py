@@ -46,6 +46,20 @@ HAND = [
     ('416af3', 'for (k = 0; (int32_t)k < (int32_t)rdd(host, p + 2); k++) {\n                    off = rdd(host, stream + idx);\n                    rep_movs(host, out + off * 2u, data, rdb(host, p + 1) * 2u);',
      'for (k = 0; k < rdd(host, p + 2); k++) {\n                    off = rdd(host, stream + idx);\n                    rep_movs(host, out + off * 2u, data, rdb(host, p + 1) * 2u);'),
     ('416af3', 'rep_movs(host, out + off * 2u, data, m * 2u);', 'rep_movs(host, out + off * 2u, data, (uint32_t)(int8_t)m * 2u);'),
+    ('4db38a', 'if ((int32_t)rd32(self, 0x94) > (int32_t)world->word_5d2f0d) {', 'if (rd32(self, 0x94) > (uint32_t)(int32_t)world->word_5d2f0d) {'),
+    ('4db38a', 'if ((int32_t)(rd32(self, 0x14) - rd32(self, 0x34)) > 0) wr32', 'if ((int32_t)(rd32(self, 0x14) - rd32(self, 0x34)) >= 0) wr32'),
+    ('4db38a', 'else wr32(self, 0x14, rd32(self, 0x34) - (uint32_t)(int32_t)world->word_5d2f0d);', 'else wr32(self, 0x14, rd32(self, 0x34) + (uint32_t)(int32_t)world->word_5d2f0d);'),
+    ('4db38a', 'wr32(self, 0x18, rd32(self, 0x38) + (uint32_t)(int32_t)world->word_5d2f0f);', 'wr32(self, 0x18, rd32(self, 0x38) + (uint32_t)(int32_t)world->word_5d2f0d);'),
+    ('4db38a', '    if (v > 3) {', '    if ((int32_t)v > 3) {'),
+    ('4db38a', '            world->value_5d1683 = 1;\n', ''),
+    ('4db38a', 'e = (world->value_5b44f4 << 2) + world->value_5b44f0 * 8u;\n    wr32(self, 0x40', 'e = (world->value_5b44f4 << 3) + world->value_5b44f0 * 8u;\n    wr32(self, 0x40'),
+    ('4db38a', 'f = (world->value_5b44f0 << 4) + world->value_5b44f4 * 8u;\n    wr32(self, 0x9c', 'f = (world->value_5b44f0 << 3) + world->value_5b44f4 * 8u;\n    wr32(self, 0x9c'),
+    ('4db38a', 'wr32(self, 0x48, rd32(self, 0x38) - world->value_58318a);', 'wr32(self, 0x48, rd32(self, 0x38) - world->value_583186);'),
+    ('4db38a', '} else if (world->word_63a4cd != 0) {', '} else if ((uint8_t)world->word_63a4cd != 0) {'),
+    ('4db38a', 'p = rp == (uint32_t)(uintptr_t)pair ? (const uint8_t *)pair : res(host, rp);\n    x = rd32(p, 0);\n    y = rd32(p, 4);\n    wr32(self, 0x14', 'p = res(host, rp);\n    x = rd32(p, 0);\n    y = rd32(p, 4);\n    wr32(self, 0x14'),
+    ('4db38a', '    call0(host, 0x4dbb13, (uintptr_t)self);\n    v = world->value_583204 - 2u;', '    v = world->value_583204 - 2u;'),
+    ('4db38a', '    wr32(self, 0x1c, rd32(self, 0x14));\n    wr32(self, 0x20, rd32(self, 0x18));', '    wr32(self, 0x20, rd32(self, 0x18));\n    wr32(self, 0x1c, rd32(self, 0x14));\n    wr32(self, 0x1c, rd32(self, 0x1c) ^ 1u);'),
+    # EQUIVALENT (not a mutant): in 0x4db38a `>` -> `>=` of |dx| against the word: when they are equal the clamped coordinate equals x0 + dx
     # EQUIVALENT (not a mutant): the 0x120-byte message local and the 0x80-byte descriptor local are only sizes of host scratch; rd16 -> rd32 of the copied word is truncated by wr16
     # HAND-END
 ]

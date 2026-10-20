@@ -224,3 +224,87 @@ int m416af3_apply_patches(uint32_t hdr, uint32_t out, uint32_t size, uint32_t st
     }
     return 0;
 }
+
+/* ---- 0x4db38a update_cursor ---------------------------------------------------------------------------------------------------- */
+static uint32_t abs_cdq(uint32_t v)
+{
+    uint32_t s = (int32_t)v < 0 ? 0xffffffffu : 0u;
+    return (v ^ s) - s;
+}
+
+void m4db38a_update_cursor(uint8_t *self, Fl33cWorld *world, const Fl18Host *host)
+{
+    uint32_t pair[2] = {0, 0};                   /* the local that 0x4daeb5 is given the address of */
+    const uint8_t *p;
+    uint32_t x, y, rp, v, e, f;
+    call0(host, 0x4dadff, 0x5830a6);
+    world->value_5d16cd = 0;
+    world->value_5d1683 = 0;
+    rp = call1(host, 0x4daeb5, 0x5830a6, (uintptr_t)pair);
+    p = rp == (uint32_t)(uintptr_t)pair ? (const uint8_t *)pair : res(host, rp);
+    x = rd32(p, 0);
+    y = rd32(p, 4);
+    wr32(self, 0x14, x);
+    wr32(self, 0x18, y);
+    call0(host, 0x4dbb13, (uintptr_t)self);
+    wr32(self, 0x94, abs_cdq(rd32(self, 0x14) - rd32(self, 0x34)));
+    wr32(self, 0x98, abs_cdq(rd32(self, 0x18) - rd32(self, 0x38)));
+    if ((int32_t)rd32(self, 0x94) > (int32_t)world->word_5d2f0d) {
+        if ((int32_t)(rd32(self, 0x14) - rd32(self, 0x34)) > 0) wr32(self, 0x14, rd32(self, 0x34) + (uint32_t)(int32_t)world->word_5d2f0d);
+        else wr32(self, 0x14, rd32(self, 0x34) - (uint32_t)(int32_t)world->word_5d2f0d);
+    }
+    if ((int32_t)rd32(self, 0x98) > (int32_t)world->word_5d2f0f) {
+        if ((int32_t)(rd32(self, 0x18) - rd32(self, 0x38)) > 0) wr32(self, 0x18, rd32(self, 0x38) + (uint32_t)(int32_t)world->word_5d2f0f);
+        else wr32(self, 0x18, rd32(self, 0x38) - (uint32_t)(int32_t)world->word_5d2f0f);
+    }
+    call0(host, 0x4dbb13, (uintptr_t)self);
+    v = world->value_583204 - 2u;
+    if (v > 3) {
+        if (call2(host, 0x4d57e8, 0x570450, (uintptr_t)(self + 0x34), 0x583186) != 0) {
+            call0(host, 0x4db780, (uintptr_t)self);
+        } else if (call2(host, 0x4d5834, 0x570450, (uintptr_t)(self + 0x34), 0x583186) != 0) {
+            call0(host, 0x4db817, (uintptr_t)self);
+        } else {
+            uint32_t r;
+            wr32(self, 0x28, rd32(self, 0x38));
+            wr32(self, 0x30, rd32(self, 0x40));
+            wr32(self, 0x24, rd32(self, 0x34));
+            wr32(self, 0x2c, rd32(self, 0x3c));
+            world->value_5d1683 = 1;
+            r = call2(host, 0x4d5316, 0x570450, (uintptr_t)(self + 0x34), 0x583186);
+            if (r != 0) {
+                wr32(self, 0x54, rd32(self, 0x34));
+                wr32(self, 0x58, rd32(self, 0x38));
+                wr32(self, 0x5c, rd32(self, 0x3c));
+                wr32(self, 0x60, rd32(self, 0x40));
+                wr32(self, 0x44, rd32(self, 0x34) - world->value_583186);
+                wr32(self, 0x4c, rd32(self, 0x3c) - world->value_583186);
+                wr32(self, 0x48, rd32(self, 0x38) - world->value_58318a);
+                wr32(self, 0x50, rd32(self, 0x40) - world->value_58318a);
+                call3(host, 0x4d56e2, 0x570450, (uintptr_t)(self + 0x44), (uintptr_t)(self + 0x54), r);
+                world->value_5d16cd = 1;
+            } else if (world->word_63a4cd != 0) {
+                uintptr_t a[10];
+                a[0] = 0x63888b; a[1] = 0x55af64; a[2] = rd32(self, 0x24); a[3] = rd32(self, 0x28); a[4] = rd32(self, 0x2c); a[5] = rd32(self, 0x30);
+                a[6] = world->value_583186; a[7] = world->value_58318a; a[8] = world->value_58318e; a[9] = world->value_583192;
+                callv(host, 0x50ca3e, 0, a, 10);
+                call1(host, 0x44a2b7, 0, 0x63888b);
+            }
+        }
+    }
+    wr32(self, 0x38, rd32(self, 0x18));
+    e = (world->value_5b44f4 << 2) + world->value_5b44f0 * 8u;
+    wr32(self, 0x40, rd32(self, 0x38) + (uint32_t)rds16(world->table_5b3790, (ptrdiff_t)(int32_t)e + 2) - 1u);
+    wr32(self, 0x34, rd32(self, 0x14));
+    e = (world->value_5b44f4 << 2) + world->value_5b44f0 * 8u;
+    wr32(self, 0x3c, rd32(self, 0x34) + (uint32_t)rds16(world->table_5b3790, (ptrdiff_t)(int32_t)e) - 1u);
+    call2(host, 0x4dae88, 0x5830a6, rd32(self, 0x14), rd32(self, 0x18));
+    wr32(self, 0x1c, rd32(self, 0x14));
+    wr32(self, 0x20, rd32(self, 0x18));
+    f = (world->value_5b44f0 << 4) + world->value_5b44f4 * 8u;
+    wr32(self, 0x9c, world->value_583106 + rd32(world->table_5b30cc, (ptrdiff_t)(int32_t)f + 4));
+    f = (world->value_5b44f0 << 4) + world->value_5b44f4 * 8u;
+    wr32(self, 0xa0, world->value_583102 + rd32(world->table_5b30cc, (ptrdiff_t)(int32_t)f));
+    world->value_5c3a53 = rd32(self, 0xa0);
+    world->value_5c3a57 = rd32(self, 0x9c);
+}

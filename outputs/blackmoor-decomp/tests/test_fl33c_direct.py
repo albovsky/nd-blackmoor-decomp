@@ -74,6 +74,10 @@ class Fl33cDirect(unittest.TestCase):
         """FL-33c: direct test of m416af3_apply_patches (original 0x416af3)"""
         self.check('test_m416af3_apply_patches')
 
+    def test_4db38a_update_cursor(self):
+        """FL-33c: direct test of m4db38a_update_cursor (original 0x4db38a)"""
+        self.check('test_m4db38a_update_cursor')
+
     # TESTS-END
 
     def test_sweep_bounded(self):

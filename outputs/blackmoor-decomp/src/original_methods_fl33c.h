@@ -23,6 +23,11 @@ extern "C" {
 
 typedef struct Fl33cWorld {
     int16_t word_63a4cd, word_639895;     /* 0x4c6929 (both), 0x4d2c20 .. */
+    uint32_t value_5d16cd, value_5d1683, value_583204, value_583186, value_58318a, value_58318e, value_583192;    /* 0x4db38a */
+    uint32_t value_5b44f0, value_5b44f4, value_583106, value_583102, value_5c3a53, value_5c3a57;                /* 0x4db38a */
+    int16_t word_5d2f0d, word_5d2f0f;                                                                           /* 0x4db38a */
+    const uint8_t *table_5b3790;     /* 0x4db38a: pairs of signed words (x extent at +0, y extent at +2) at 0x5b3790, indexed by (value_5b44f4 << 2) + value_5b44f0 * 8 (32-bit; slack below it) */
+    const uint8_t *table_5b30cc;     /* 0x4db38a: dwords at 0x5b30cc (+0) and 0x5b30d0 (+4), indexed by (value_5b44f0 << 4) + value_5b44f4 * 8 (32-bit; slack below it) */
     /* WORLD-END */
 } Fl33cWorld;
 
@@ -53,6 +58,22 @@ int m4c6929_copy_masked(uint8_t *self, uint32_t a, uint32_t b, uint32_t c, uint3
  * (without the final call). Any other kind: nothing. Any other opcode byte: the original jumps back to the loop head without moving idx and NEVER finishes: the port returns 1 there (everything the ops before it
  * did has happened, the final call has not), otherwise 0. */
 int m416af3_apply_patches(uint32_t hdr, uint32_t out, uint32_t size, uint32_t stream, uint32_t base, uint32_t flag, const Fl18Host *host);
+
+/* 0x4db38a, thiscall, plain `ret`, no stack arguments. 0x4dadff(this 0x5830a6) (thiscall, 0 arguments); dwords 0x5d16cd = 0 and 0x5d1683 = 0; p = 0x4daeb5(this 0x5830a6, the address of a local pair of
+ * dwords) (thiscall, 1 argument, a host pointer; in the game the callee returns its argument, so Fl18Host.call returns the LOW 32 BITS of the local's address and a result equal to them means the local pair; any
+ * other result is an original address of two dwords, read through Fl18Host.resolve); dword [self+0x14] = [p], dword [self+0x18] = [p+4]; 0x4dbb13(this self) (thiscall, 0 arguments). dx = [self+0x14] - [self+0x34],
+ * dy = [self+0x18] - [self+0x38] (32-bit); dword [self+0x94] = |dx| and [self+0x98] = |dy| (abs by cdq/xor/sub: |0x80000000| stays 0x80000000). When [self+0x94] > signed word 0x5d2f0d (SIGNED compare, the word
+ * sign-extended): [self+0x14] = [self+0x34] + word when dx > 0 (signed), else [self+0x34] - word; likewise for y with [self+0x98], the word 0x5d2f0f and the fields +0x18 / +0x38. 0x4dbb13(this self) again.
+ * v = dword 0x583204 - 2; when v > 3 (UNSIGNED; the four cases 0..3 all go straight to the common tail): if 0x4d57e8(this 0x570450, self + 0x34, 0x583186) (thiscall, 2 arguments) != 0: 0x4db780(this self);
+ * else if 0x4d5834(this 0x570450, self + 0x34, 0x583186) != 0: 0x4db817(this self); else [self+0x28] = [self+0x38], [self+0x30] = [self+0x40], [self+0x24] = [self+0x34], [self+0x2c] = [self+0x3c], dword 0x5d1683 = 1,
+ * r = 0x4d5316(this 0x570450, self + 0x34, 0x583186) (thiscall, 2 arguments); when r != 0: the four dwords at self + 0x34 are copied to self + 0x54, [self+0x44] = [self+0x34] - dword 0x583186, [self+0x4c] =
+ * [self+0x3c] - dword 0x583186, [self+0x48] = [self+0x38] - dword 0x58318a, [self+0x50] = [self+0x40] - dword 0x58318a, 0x4d56e2(this 0x570450, self + 0x44, self + 0x54, r) (thiscall, 3 arguments), dword 0x5d16cd = 1;
+ * else when the signed word 0x63a4cd != 0: 0x50ca3e(0x63888b, 0x55af64, [self+0x24], [self+0x28], [self+0x2c], [self+0x30], dword 0x583186, 0x58318a, 0x58318e, 0x583192) (cdecl, 10 arguments) and 0x44a2b7(0x63888b) (cdecl, 1 argument).
+ * Common tail, in this order: [self+0x38] = [self+0x18]; e = (dword 0x5b44f4 << 2) + dword 0x5b44f0 * 8 (32-bit, read from the globals); [self+0x40] = [self+0x38] + signed word at 0x5b3792 + e - 1; [self+0x34] = [self+0x14];
+ * [self+0x3c] = [self+0x34] + signed word at 0x5b3790 + e - 1 (e recomputed); 0x4dae88(this 0x5830a6, [self+0x14], [self+0x18]) (thiscall, 2 arguments); [self+0x1c] = [self+0x14]; [self+0x20] = [self+0x18]; with f = (dword 0x5b44f0 << 4) +
+ * dword 0x5b44f4 * 8: [self+0x9c] = dword 0x583106 + dword at 0x5b30d0 + f; [self+0xa0] = dword 0x583102 + dword at 0x5b30cc + f (f recomputed); dwords 0x5c3a53 = [self+0xa0] and 0x5c3a57 = [self+0x9c].
+ * The callees 0x4dbb13, 0x4db780 and 0x4db817 are given self and may change it; that is not exercised (tasks/fl33c-handoff.md). */
+void m4db38a_update_cursor(uint8_t *self, Fl33cWorld *world, const Fl18Host *host);
 
 /* FNS-END */
 
