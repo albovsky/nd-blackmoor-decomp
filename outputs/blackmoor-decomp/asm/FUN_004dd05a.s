@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004dd05a
+# name:         inferred_partner_logo_movie_sequence
+# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/4dd05a.c.txt, not original source) refers to the data labelled s_CPartnerLogo__ProcessSequence_____0055b604, s_ProcessSecondaryMovieSequence_____0055b5c0
+# name-note:    State machine playing the secondary partner-logo movie (ProcessSecondaryMovieSequence): starts it, per-frame copy, finishes and ends the sequence.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [eax + n] field_1c, field_4a, field_de, field_106; [ecx + n] field_2d, field_2f, field_102, field_106; [edx + n] field_de, field_102, field_106
 # callees:      calls FUN_0050ca3e, FUN_0044a2b7, FUN_004bef85, FUN_004befc8, FUN_004bf098, FUN_004bf10f, FUN_004fb2e3, FUN_004f6334, FUN_004dad60
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 149 instruction(s), 14 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 149 instruction(s), 14 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

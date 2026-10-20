@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004c2a8d
+# name:         inferred_surface_create
+# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_2d_runtime.h:165 says "0x4c2a8d(w, h, 8, label): a = w, b = h, c = 8"; src/blackmoor_app.mm:9577 says "create_surface = native_aea_create_surface; / * 0x4c2a8d"
+# name-note:    Surface create: allocates a surface from width, height, depth and label, returning a handle.
 # arguments:    4 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10, arg_14; ret 0x10 (callee pops 16 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       5 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14
 # fields:       [eax + n] field_4, field_8, field_c, field_18, field_21, field_31, field_39; [ecx + n] field_4, field_23, field_27, field_2d, field_41, field_55; [edx + n] field_2b, field_2f, field_33, field_35, field_3d
 # callees:      calls FUN_0051dc43, FUN_0042639d, FUN_004c97b4
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 136 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/blackmoor_app.mm:create_native_session_bindings (function ledger class candidate_port; also native_aea_create_surface, native_aea_image; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 136 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

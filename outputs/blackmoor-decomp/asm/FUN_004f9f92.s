@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004f9f92
+# name:         inferred_sound_fade_stage
+# naming:       INFERRED (lower confidence, not verified): the repository text src/live_audio.c:729 says "Fade stages 0x4f9f92/0x4f8f94/0x4f9040 are unrecovered"
+# name-note:    One of three ordered fade stage routines called under sound flag 0x20.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       21 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c, local_24, local_28, local_30, local_34, local_3c and 9 more
 # fields:       [eax + n] field_14, field_1c, field_24, field_2a3, field_2a7; [ecx + n] field_14, field_24, field_162, field_2a7, field_2ab, field_3ce; [edx + n] field_14, field_18, field_1c, field_20, field_28, field_2a3, field_2ab
 # callees:      calls FUN_004f709c, FUN_0050ce04, FUN_0050cd50
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 120 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# unverified:   machine annotation only: the 120 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

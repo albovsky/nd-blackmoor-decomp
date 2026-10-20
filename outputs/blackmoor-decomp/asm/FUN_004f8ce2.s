@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004f8ce2
+# name:         inferred_direct_sound_apply_3d_sound_mode
+# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/4f8ce2.c.txt, not original source) refers to the data labelled s_CDirectSound__Set3DSoundMode_____0055f0e8, s_DS3DMODE_HEADRELATIVE_0055f0bc, s_DS3DMODE_NORMAL_0055f0ac
+# name-note:    Re-applies the channel stored 3D mode; logs CDirectSound::Set3DSoundMode with DS3DMODE_NORMAL, HEADRELATIVE or DISABLE.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [eax + n] field_29b, field_2db, field_3ca, field_3d2; [ecx + n] field_29b, field_2db, field_3ca, field_3ce; [edx + n] field_48, field_29b, field_2db, field_3ca
 # callees:      calls FUN_0050ca3e, FUN_0044a2b7; plus 1 indirect transfer(s) whose target is not resolved
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 73 instruction(s), 7 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; indirect transfers are not followed
+# unverified:   machine annotation only: the 73 instruction(s), 7 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; indirect transfers are not followed
 .intel_syntax noprefix
 .code32
 .text

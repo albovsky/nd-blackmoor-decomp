@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0041db40
+# name:         inferred_conversation_object_release
+# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_3f_runtime.h:402 says "0x41db40: the object image must not be used again"
+# name-note:    Releases the conversation object image after it finishes.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       10 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c, local_20, local_24, local_28
 # fields:       [eax + n] field_2, field_793, field_795, field_799, field_79b, field_7a1; [ecx + n] field_2, field_793, field_795, field_79b, field_79f, field_7a1; [edx + n] field_2, field_795, field_799, field_79b, field_79f, field_7a1
 # callees:      calls FUN_0044a2b7, FUN_0051dc6c
 # track-n:      outputs/blackmoor-decomp/src/action_family_3f_runtime.c:phase2 (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 189 instruction(s), 18 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 189 instruction(s), 18 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

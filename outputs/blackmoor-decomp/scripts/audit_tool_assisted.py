@@ -277,8 +277,8 @@ def audit_source(text: str, header_expect: dict[str, Any], code_symbol: str, all
                 reasons.append("header 'naming' differs from asm/function-names.json")
             if header.get("name-note") != fnames.summary_text(named):
                 reasons.append("header 'name-note' differs from asm/function-names.json")
-            if fnames.NAMED_CLAUSE not in header.get("unverified", ""):
-                reasons.append("header 'unverified' must say that the function name and note are copied from the evidence, not read from the code")
+            if fnames.unverified_clause(named) not in header.get("unverified", ""):
+                reasons.append("header 'unverified' must carry the clause of the name's tier (copied from evidence; structural role; or lower-confidence inference), not a claim of reading the code")
         else:
             if name != "fn_" + code_symbol[4:]:
                 reasons.append(f"machine-annotated function name {name!r} is not fn_<va> of {code_symbol}")

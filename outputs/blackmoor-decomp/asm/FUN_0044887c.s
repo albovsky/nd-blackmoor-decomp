@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0044887c
+# name:         inferred_caption_line_layout
+# naming:       INFERRED (lower confidence, not verified): the repository text src/caption_layout.h:7 says "Line layout: 0x44887c."
+# name-note:    Line layout routine of the caption text layout.
 # arguments:    12 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10, arg_14, arg_18, arg_1c, arg_20, arg_24, arg_28, arg_2c, arg_30, arg_34; ret 0x30 (callee pops 48 bytes); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       5 ebp-relative slot(s): local_4, local_138c, local_1390, local_1394, local_1398
 # fields:       [eax + n] field_10; [ecx + n] field_10, field_2c, field_2e, field_38; [edx + n] field_10, field_32, field_34
 # callees:      calls FUN_0050c920, FUN_0050ca3e, FUN_0044a2b7, FUN_004d3836, FUN_004d270b
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 297 instruction(s), 24 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# unverified:   machine annotation only: the 297 instruction(s), 24 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

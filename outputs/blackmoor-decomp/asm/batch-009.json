@@ -9,7 +9,7 @@
       "function": "FUN_004fcebe",
       "va": "0x004fcebe",
       "source": "FUN_004fcebe.s",
-      "source_sha256": "67adb6f57a669fe2423673b27287ccce019804a17de4ed213dfd8539563d3688",
+      "source_sha256": "c432321ae7e45e0c4291129184bc360c8810dd52901323fb879b9ce95f4869bd",
       "region": "game",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_004fce90 (+0x2e)",
       "code": {
@@ -24,7 +24,7 @@
       "function": "FUN_004fcec4",
       "va": "0x004fcec4",
       "source": "FUN_004fcec4.s",
-      "source_sha256": "64b10318f8a5401c6562111fc7cc89ab55653bbf9ddf3b68bc5728660d873c18",
+      "source_sha256": "4765f6766b57ff1c08478293075d3a7ff7b7b598bd70a9bd7d5a3da0f8a249fb",
       "region": "game",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_004fce90 (+0x34)",
       "code": {
@@ -39,7 +39,7 @@
       "function": "FUN_004fceca",
       "va": "0x004fceca",
       "source": "FUN_004fceca.s",
-      "source_sha256": "d6a414e908d551cabd39ab1f76f470e4035c74b1583ece0065b11a709e36d6c7",
+      "source_sha256": "d2b6265088184a1bc6880ca089fc1a8a73a1b73d72fc6966b24e75fd7c23f3af",
       "region": "game",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_004fce90 (+0x3a)",
       "code": {
@@ -54,7 +54,7 @@
       "function": "FUN_004fced0",
       "va": "0x004fced0",
       "source": "FUN_004fced0.s",
-      "source_sha256": "110bb400bef9b8bb341f352c90c69643d0e682c7fcc189b9fd7dd5aaae316bb3",
+      "source_sha256": "0c6f363f2de9939e02190e5b36081651cfd7ac080ace5bb31c0e863efa47a58a",
       "region": "game",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_004fce90 (+0x40)",
       "code": {
@@ -69,7 +69,7 @@
       "function": "FUN_004fced6",
       "va": "0x004fced6",
       "source": "FUN_004fced6.s",
-      "source_sha256": "a2be7985d0d29dbf28ce716bb2ba8dd36734d878fe55a4793f860c47fba7fc78",
+      "source_sha256": "fdcde498672bfd98f0e021c6ea4b84e4b2aa5d2397a15e12873ba5736a3e6a56",
       "region": "game",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_004fce90 (+0x46)",
       "code": {
@@ -84,7 +84,7 @@
       "function": "FUN_004fcedc",
       "va": "0x004fcedc",
       "source": "FUN_004fcedc.s",
-      "source_sha256": "ae7bd01af38d6a8e37863e4209c0679f7cc4b33e0c6e827529ee4fd2cc30bb0d",
+      "source_sha256": "f1ed295ecd2b3d3f24432476f3633a27ab045c56865d9bd826c27506e29a87b3",
       "region": "game",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_004fce90 (+0x4c)",
       "code": {
@@ -99,7 +99,7 @@
       "function": "FUN_004fcee2",
       "va": "0x004fcee2",
       "source": "FUN_004fcee2.s",
-      "source_sha256": "c2b9b47875e10d0c464fef181f889199bd4036a05a4f1671cb9874278f9d2597",
+      "source_sha256": "7b998f7b72433df4e951bac0aaf24e4651bab897544e4475ae0e7104f8f72585",
       "region": "game",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_004fce90 (+0x52)",
       "code": {
@@ -796,7 +796,7 @@
       "function": "FUN_0050c630",
       "va": "0x0050c630",
       "source": "FUN_0050c630.s",
-      "source_sha256": "43e80a702e3760b55f5c27014f381c63044a10d7c027be9b027eab79901893b2",
+      "source_sha256": "2b2094b1881be6487e032f07474ff3d7522a573bd9234732db029e108cd3dfaa",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_0050c604 (+0x2c)",
       "code": {
@@ -1903,7 +1903,7 @@
       "function": "FUN_00519a24",
       "va": "0x00519a24",
       "source": "FUN_00519a24.s",
-      "source_sha256": "c6424bbcc501250f7de3280338e7f0aaaf68fd8c36c3ec9e70415473f19f1249",
+      "source_sha256": "97ea2d2db80327636bf60899ff2a2e228c0ef4cdb0cff0451720cc4d7bf587de",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005199bd (+0x67)",
       "code": {
@@ -1918,7 +1918,7 @@
       "function": "FUN_00519a2a",
       "va": "0x00519a2a",
       "source": "FUN_00519a2a.s",
-      "source_sha256": "e4846026b5e6ac43bec5c04f713f042059f1f4f6ae55ba9886631b09cdfbaf1d",
+      "source_sha256": "35c6c9d0c747fd6fbe73d99e9524dc3a0c077ffe44c3f296351533d4e1713b67",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005199bd (+0x6d)",
       "code": {
@@ -1933,7 +1933,7 @@
       "function": "FUN_00519a30",
       "va": "0x00519a30",
       "source": "FUN_00519a30.s",
-      "source_sha256": "a467eb41a5e6413cf837cf7656aee93585b111171cb9fc2e0c83d9b84583d033",
+      "source_sha256": "07d89edd668d4b573a7c13a993638e3a374bf573cfac45fa50056f536271bc7e",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005199bd (+0x73)",
       "code": {
@@ -1948,7 +1948,7 @@
       "function": "FUN_00519a36",
       "va": "0x00519a36",
       "source": "FUN_00519a36.s",
-      "source_sha256": "ed0f9175d45deaf2b804fb2f65fd4ad348c5abe35152256d5bbbad73440a0707",
+      "source_sha256": "de4a18152f26042b9c38b70f424a2db6b3dae3f99db738c94146192b24e5ae08",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005199bd (+0x79)",
       "code": {
@@ -1963,7 +1963,7 @@
       "function": "FUN_00519a3c",
       "va": "0x00519a3c",
       "source": "FUN_00519a3c.s",
-      "source_sha256": "b56d4e47434eed42828ed915a0bfd9ce8c6a9fa2ca794fb30556b4b641c745e9",
+      "source_sha256": "c14c9c2e6b0ad608fb863901740c7870fdc0293d15bb62d50e06af1a72a49b2d",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005199bd (+0x7f)",
       "code": {
@@ -1978,7 +1978,7 @@
       "function": "FUN_00519a42",
       "va": "0x00519a42",
       "source": "FUN_00519a42.s",
-      "source_sha256": "ee6611c30346d05ad86b82d4f0ae7483fca483cb62b43964cda6dbc7eed466ec",
+      "source_sha256": "0eeb36bd57f20e6f532d93b7d1d018cf7cc9556760ed9995c67a5ae3f8bb9775",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005199bd (+0x85)",
       "code": {
@@ -1993,7 +1993,7 @@
       "function": "FUN_00519a48",
       "va": "0x00519a48",
       "source": "FUN_00519a48.s",
-      "source_sha256": "64cb5e78e04c3d494d75cb63995c96c899e52cf3c1ff8218858b40590806f5a6",
+      "source_sha256": "fe76a26f2eebec8bf09a046d2e03d7c6f96abf1b3eb254a7586d7871950f5357",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005199bd (+0x8b)",
       "code": {
@@ -2008,7 +2008,7 @@
       "function": "FUN_00519a4e",
       "va": "0x00519a4e",
       "source": "FUN_00519a4e.s",
-      "source_sha256": "23e3b47b5944709292d90404e28dbb71e289068c8b966a670f9f71eccfc5d5c4",
+      "source_sha256": "1379c6d6bf4fc979c7faa5021b7b047602878946762d23e45e0d878796d876a2",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005199bd (+0x91)",
       "code": {
@@ -2023,7 +2023,7 @@
       "function": "FUN_00519a54",
       "va": "0x00519a54",
       "source": "FUN_00519a54.s",
-      "source_sha256": "9ee8ef74d8b9fd30e2bf0b442990cf0de4762bcb0f4e3d78acf9a58694286fd4",
+      "source_sha256": "6c2ad07cffd5d2e1dcbfe7eec98c97a610d8914f10769876ba5826d0675eea2f",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005199bd (+0x97)",
       "code": {
@@ -2090,7 +2090,7 @@
       "function": "FUN_0051a0e1",
       "va": "0x0051a0e1",
       "source": "FUN_0051a0e1.s",
-      "source_sha256": "c667cd1956f38f1999f17245d1fdca94a39ceaea1e3b3e7b3eee7b1939ae00db",
+      "source_sha256": "fcbc5fabf84c344bd0ec6a8d144569d83738c6df2d403e7a7331726eb217fc99",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_0051a0ca (+0x17)",
       "code": {
@@ -3905,7 +3905,7 @@
       "function": "FUN_00524921",
       "va": "0x00524921",
       "source": "FUN_00524921.s",
-      "source_sha256": "f75310c7fb100d272357f3c00ed5988c992acae06603093bb88d226dd8679287",
+      "source_sha256": "bc9140dfd0efb669529f51e8b90bcc14dbdfaf439a75164a4e69e3db93226927",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00524901 (+0x20)",
       "code": {
@@ -4235,7 +4235,7 @@
       "function": "FUN_00525263",
       "va": "0x00525263",
       "source": "FUN_00525263.s",
-      "source_sha256": "bc441ec3c938b84943527abbe28fde0db3042cd7ce73cfded93d3d54b3a6b7a6",
+      "source_sha256": "addad0298f0c356675f9c761948f2da444a4796f305f148df24a63d91db84d1d",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005251ee (+0x75)",
       "code": {
@@ -4295,7 +4295,7 @@
       "function": "FUN_00525426",
       "va": "0x00525426",
       "source": "FUN_00525426.s",
-      "source_sha256": "895659a6be6b39ab98cae5e0a3d6e79b2f0286dc9294cf7275670f84aeaa9a0b",
+      "source_sha256": "aebd4a612387c33fa4e4c4eaee6f18eb78294395d248ec6abcc457ee2fae3344",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_0052540b (+0x1b)",
       "code": {
@@ -4475,7 +4475,7 @@
       "function": "FUN_0052551e",
       "va": "0x0052551e",
       "source": "FUN_0052551e.s",
-      "source_sha256": "3618462dc157643d23e91ae6e847d59165c7de42d5ccd0446f68c0c4cef3b024",
+      "source_sha256": "f1705889e36167fe45813eee810a3e321c82649a56d29e7ae0b280516a0e944d",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005254fe (+0x20)",
       "code": {
@@ -5000,7 +5000,7 @@
       "function": "FUN_005267ed",
       "va": "0x005267ed",
       "source": "FUN_005267ed.s",
-      "source_sha256": "6b997e78e8cbc02da52d11eb537dd54368c5d81f5bfcbbb73223730d03cd19ec",
+      "source_sha256": "aaf94f08c8a442765702b3d5d9a845cfd60cf24678987edd0c9e5d42eae64efd",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005265e4 (+0x209)",
       "code": {
@@ -5030,7 +5030,7 @@
       "function": "FUN_00526aa8",
       "va": "0x00526aa8",
       "source": "FUN_00526aa8.s",
-      "source_sha256": "6f7e053aa40ca3ac9d035c955920f9da4847bb76cfe3058b50ed38a87ccaed19",
+      "source_sha256": "622e7afcd6b19350efe806dc55566511b5e6d312b41e3ff0414c3be5afd07233",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00526a9c (+0xc)",
       "code": {
@@ -5052,7 +5052,7 @@
       "function": "FUN_00526aca",
       "va": "0x00526aca",
       "source": "FUN_00526aca.s",
-      "source_sha256": "397fcca05b387500b36eb1127b5279ce7bb4108c2b38f945e543b5cb0ef4a8b7",
+      "source_sha256": "8b286faca8fd52c5c0797cb7fe68251ea58e090c55ce44858f234bd20a58ab01",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00526ac0 (+0xa)",
       "code": {
@@ -5067,7 +5067,7 @@
       "function": "FUN_00526add",
       "va": "0x00526add",
       "source": "FUN_00526add.s",
-      "source_sha256": "50e47136d793f5b5a6601b0f9a103688384fb2f04c12d86395aced322ee8beb3",
+      "source_sha256": "0b373d2aaa154971d8e0cbdff9d086385249e7a28641c1f4f0cb7af00c8c311a",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00526ad4 (+0x9)",
       "code": {
@@ -5082,7 +5082,7 @@
       "function": "FUN_00526af3",
       "va": "0x00526af3",
       "source": "FUN_00526af3.s",
-      "source_sha256": "b8fbb89a6278e8125f050328c138012c051f9afc415381c66d5ad0657efc63cd",
+      "source_sha256": "abbc5d5d9b3fc332ff8fce7f87f3d4fb443d68846dce3782b258102c83f2ac02",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00526ae7 (+0xc)",
       "code": {
@@ -5097,7 +5097,7 @@
       "function": "FUN_00526b09",
       "va": "0x00526b09",
       "source": "FUN_00526b09.s",
-      "source_sha256": "595ed5d27fff323c67c9aa0a4768675bc6aeb9e55816bec446f84569ef3b2544",
+      "source_sha256": "3ca5ec0c386d963bb828a1cc26c482698d87e61f7b96c4a7cac0902d91167408",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00526afd (+0xc)",
       "code": {
@@ -5119,7 +5119,7 @@
       "function": "FUN_00526b2a",
       "va": "0x00526b2a",
       "source": "FUN_00526b2a.s",
-      "source_sha256": "c7c38298a4eb3b9afecba3c5b2713276ffc0643e59445e428ed2d0a0112f4b4d",
+      "source_sha256": "809b087255eff80bf1c2b46092e1a91c8480dec4e41fa3bf1e407e4564b61869",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00526b20 (+0xa)",
       "code": {
@@ -5134,7 +5134,7 @@
       "function": "FUN_00526c1e",
       "va": "0x00526c1e",
       "source": "FUN_00526c1e.s",
-      "source_sha256": "cb53d73febd477f416f4f25583e2d4f23b2066ee209e3b8fdfda3315074b3388",
+      "source_sha256": "75548e4374b25add1a9e0bf6ed916a2a63627c72d300463b4f6adbdf880cc658",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00526c0f (+0xf)",
       "code": {
@@ -5149,7 +5149,7 @@
       "function": "FUN_00526d12",
       "va": "0x00526d12",
       "source": "FUN_00526d12.s",
-      "source_sha256": "2a195e5e3d07a7348ca550d72b8facbca1fea4c8785f11a5936332821c841cb6",
+      "source_sha256": "0e0fb5cb7f88e24a6ebbb92f2c0b19ab9e06b38361733947e95b2a4683b52846",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00526d03 (+0xf)",
       "code": {
@@ -5171,7 +5171,7 @@
       "function": "FUN_00526d2a",
       "va": "0x00526d2a",
       "source": "FUN_00526d2a.s",
-      "source_sha256": "19c8bd83f1c2102ff2c550624fbe46a15734b7c1ea7b602630d28fc5fa62b0a7",
+      "source_sha256": "d5ce5d10689c4686bb7247ebd01702438d5cf67f9df443e6836ea82a6b3278bb",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00526d20 (+0xa)",
       "code": {
@@ -5193,7 +5193,7 @@
       "function": "FUN_00526d4a",
       "va": "0x00526d4a",
       "source": "FUN_00526d4a.s",
-      "source_sha256": "2483e69a6ed1480e4daf0740b46672b046b574c6c43b7899cec4ec8e24806bb5",
+      "source_sha256": "75818ac384faba8f9b23e4455775342294e74680c8d20eabdba598f88cbb90d1",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00526d40 (+0xa)",
       "code": {
@@ -5208,7 +5208,7 @@
       "function": "FUN_00526d5d",
       "va": "0x00526d5d",
       "source": "FUN_00526d5d.s",
-      "source_sha256": "9898214cd2604b6e2d0b1710c60ce2d4db5af11c344371148ca83de9ff29c215",
+      "source_sha256": "8f5d00d8e22810acfe440fbc4a15837a4a7c43b8bfb1d54cb1f1f1198dcba3bf",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00526d54 (+0x9)",
       "code": {
@@ -5223,7 +5223,7 @@
       "function": "FUN_00526d70",
       "va": "0x00526d70",
       "source": "FUN_00526d70.s",
-      "source_sha256": "38c56852bd619c905b3493666d9e29fb57ef524fb49e4a299411731bdb81a590",
+      "source_sha256": "5c2d0565ca8efed34eed8b5a724f8dcf2ad79190bb9c10d8da2c0de1884e7a99",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00526d67 (+0x9)",
       "code": {
@@ -5245,7 +5245,7 @@
       "function": "FUN_00526d8a",
       "va": "0x00526d8a",
       "source": "FUN_00526d8a.s",
-      "source_sha256": "302409125ede56049f9ecbc42d1a06b54fae483cc64efff2e53ae8c455239a2f",
+      "source_sha256": "3b6b0b08c606d944a7e9a2c2ed7625f35966b5185a937196196f06cac8d2ad3b",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00526d80 (+0xa)",
       "code": {
@@ -5260,7 +5260,7 @@
       "function": "FUN_00526fe6",
       "va": "0x00526fe6",
       "source": "FUN_00526fe6.s",
-      "source_sha256": "ecf535177c53fb2430c0b0742f7ff79265ff725ac8377bdf06a939c199a709ea",
+      "source_sha256": "004c092ec99aec59eb997ce38c29f0fd8dfb687fe0545e216906c35849fc247c",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00526fd7 (+0xf)",
       "code": {
@@ -5275,7 +5275,7 @@
       "function": "FUN_00527242",
       "va": "0x00527242",
       "source": "FUN_00527242.s",
-      "source_sha256": "19c8c243a41858df0bf79c11c8ce3540e73118657eccb68a4b578d04462f7f89",
+      "source_sha256": "25e0ee5a3e397931120a154631fc0994f6b145529232a139606dae493139888c",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00527233 (+0xf)",
       "code": {
@@ -5297,7 +5297,7 @@
       "function": "FUN_0052725c",
       "va": "0x0052725c",
       "source": "FUN_0052725c.s",
-      "source_sha256": "e9f6a015ed5dd15dce75c6282b568a39272610af756ec0e8804c0e65b3a8a38f",
+      "source_sha256": "d272f442246e7ba2511135373b09330e6dc9a25054907df2caa24cf5016f5b0c",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00527250 (+0xc)",
       "code": {
@@ -5312,7 +5312,7 @@
       "function": "FUN_00527272",
       "va": "0x00527272",
       "source": "FUN_00527272.s",
-      "source_sha256": "ca2f41eb8a777d67d549912062be8acd5ba28865cd4e33112f3c69a9d208303d",
+      "source_sha256": "06542b878f59eb3d42f3f636d800906c548ddd7b5473488c210c989231f4ce69",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00527266 (+0xc)",
       "code": {
@@ -5334,7 +5334,7 @@
       "function": "FUN_0052728a",
       "va": "0x0052728a",
       "source": "FUN_0052728a.s",
-      "source_sha256": "a3af9a73de5253d5e8de1fab766d12b022b9a79158e42708b9d230d456321919",
+      "source_sha256": "d84922846e2c8ff5a5922bbedf82e1f543cf988aab429bcde246d87b57b402f6",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00527280 (+0xa)",
       "code": {
@@ -5349,7 +5349,7 @@
       "function": "FUN_0052729d",
       "va": "0x0052729d",
       "source": "FUN_0052729d.s",
-      "source_sha256": "8b79401e15841e06791a04cfde64a6c77c5a7e007306efebf4e7a27cd44a9dc7",
+      "source_sha256": "34b12bfa4506c9cd65a4bf523907451a4a9f08326f0fd6c36e5dcfab8a997e3b",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00527294 (+0x9)",
       "code": {
@@ -5371,7 +5371,7 @@
       "function": "FUN_005272b9",
       "va": "0x005272b9",
       "source": "FUN_005272b9.s",
-      "source_sha256": "6c3e59688d06d7b123ee541afb5e328f4aa5755143c8a58bc281f2eddd4f3f7e",
+      "source_sha256": "ace1fa830323350fc075828c98a59b425d13c17efbaa189b1dd45b4ca997c071",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005272b0 (+0x9)",
       "code": {
@@ -5386,7 +5386,7 @@
       "function": "FUN_005272db",
       "va": "0x005272db",
       "source": "FUN_005272db.s",
-      "source_sha256": "8e494e50c6f0967c4299a8a3a41d140be2609618c9c02753547e978600d3e716",
+      "source_sha256": "73c80330ae2643feae146822bf4dc42b8a2ff6ae5ae2b4565d408f23610350bd",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005272cc (+0xf)",
       "code": {
@@ -5408,7 +5408,7 @@
       "function": "FUN_005272fa",
       "va": "0x005272fa",
       "source": "FUN_005272fa.s",
-      "source_sha256": "1c67b61fbbfdd892394e821596448cb8ac23d2a80cd77397a2cfb9d82c88de52",
+      "source_sha256": "4a78fff8010943dff7b5f5d4437edfb972b3152566be2c84592a4a538befcb8f",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005272f0 (+0xa)",
       "code": {
@@ -5423,7 +5423,7 @@
       "function": "FUN_00527343",
       "va": "0x00527343",
       "source": "FUN_00527343.s",
-      "source_sha256": "0fe4f82c6ef7ae10f62845bf993a6fc5c51291acdaf18c125be66d4876825048",
+      "source_sha256": "15b7304160ead79c046e5849822f29fdb8ed37accb362db38b910ecf8a487eac",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00527334 (+0xf)",
       "code": {
@@ -5438,7 +5438,7 @@
       "function": "FUN_0052738c",
       "va": "0x0052738c",
       "source": "FUN_0052738c.s",
-      "source_sha256": "4dd552ac767c95e356f803bed796fc3ba34f1ef69f454a35786c1343b2188759",
+      "source_sha256": "7ddf9500617a75ed95389943d61f27e13eccba40fa2e7a4f473e79c988090126",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_0052737d (+0xf)",
       "code": {
@@ -5453,7 +5453,7 @@
       "function": "FUN_005273a2",
       "va": "0x005273a2",
       "source": "FUN_005273a2.s",
-      "source_sha256": "797cae49ac46b1012e0242ec3cc27c26363183952806ed2f43d45e13875f426a",
+      "source_sha256": "51dfa0067315051d737b350119911bd9eddd0a02bb1f6627a48645214995f537",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00527396 (+0xc)",
       "code": {
@@ -5468,7 +5468,7 @@
       "function": "FUN_005273b7",
       "va": "0x005273b7",
       "source": "FUN_005273b7.s",
-      "source_sha256": "b38e85e706362686bdb6d6c59c807226cdc42e50ce1fbb58d2446786382ec134",
+      "source_sha256": "2db6948d5dc240dad51f1b6ef9bbe0a33976f062b3b7df684aaa9ff108923afa",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005273ac (+0xb)",
       "code": {
@@ -5490,7 +5490,7 @@
       "function": "FUN_005273db",
       "va": "0x005273db",
       "source": "FUN_005273db.s",
-      "source_sha256": "6ee1b758f6ab90892a2e59de15ef5e0b072ffdb5495c8d29eab8b91ba6aef0ba",
+      "source_sha256": "8bc5561ded2736f68d19b8536552e408ae67aeb5d1289f01b84f8ad5c73b95dc",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005273d0 (+0xb)",
       "code": {
@@ -5512,7 +5512,7 @@
       "function": "FUN_005273f9",
       "va": "0x005273f9",
       "source": "FUN_005273f9.s",
-      "source_sha256": "78a80c6e44dacafb6f469450a9139776f5796597f9ff03074655ef28621d6f15",
+      "source_sha256": "f1b5166f602e0bf23bfc8e2404b83f7ef81530c1e8143b865ab79fe7939833e4",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005273f0 (+0x9)",
       "code": {
@@ -5534,7 +5534,7 @@
       "function": "FUN_005278e7",
       "va": "0x005278e7",
       "source": "FUN_005278e7.s",
-      "source_sha256": "716f72e4d41077777de787606c8e6dbd39e5d353771b4dcbd5b5732b32999431",
+      "source_sha256": "d8fddd1aaa8876b28fcb127eec363ee4f2f59810cf7a6af8295a3e575b634fbb",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005278d8 (+0xf)",
       "code": {
@@ -5556,7 +5556,7 @@
       "function": "FUN_00527dd7",
       "va": "0x00527dd7",
       "source": "FUN_00527dd7.s",
-      "source_sha256": "13660e59d670cb2ceeae32504a17f16cbc340e5548211891dad882f54d7ba152",
+      "source_sha256": "3f222392516fa6df0d9b9054785f63d621d0dab5178537eeecf5b1bd3f7bf5b0",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00527dc8 (+0xf)",
       "code": {
@@ -5578,7 +5578,7 @@
       "function": "FUN_00527dfb",
       "va": "0x00527dfb",
       "source": "FUN_00527dfb.s",
-      "source_sha256": "60f2c13d3ba5a1e8b1a602821961fe178f852b776f4980cc1a12ed99ae7381c1",
+      "source_sha256": "c189365b76e8049923ddd972ae265311c7b2cd6a7de0c97a9dff5094098dac02",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00527df0 (+0xb)",
       "code": {
@@ -5593,7 +5593,7 @@
       "function": "FUN_00527e10",
       "va": "0x00527e10",
       "source": "FUN_00527e10.s",
-      "source_sha256": "22e4b89baf4e1f12936e94db40e811d59620b6519ad0564eec8b05c98faba886",
+      "source_sha256": "b941ae35e8cb93432e199fe1fa1a67acfcd92b168d617b59cd2ac069069be445",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00527e05 (+0xb)",
       "code": {
@@ -5615,7 +5615,7 @@
       "function": "FUN_00527e44",
       "va": "0x00527e44",
       "source": "FUN_00527e44.s",
-      "source_sha256": "ddb1e249e6b5a3afec299e9d3771c6702f2547b45a265aeef655dd046966b755",
+      "source_sha256": "1662a0b21314643f572ef15a1557bc6dce06efffca5fd9270e8c5529d6ca7fc9",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00527e3b (+0x9)",
       "code": {
@@ -5630,7 +5630,7 @@
       "function": "FUN_00527e66",
       "va": "0x00527e66",
       "source": "FUN_00527e66.s",
-      "source_sha256": "dedf060303eb289e24f11fe5f12c367815f204448a94a7906936492d1858b321",
+      "source_sha256": "bb2115674f61335bdedbf7227d653d3b89427cb99ab7e706cbeeb5bd22e98371",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00527e5a (+0xc)",
       "code": {
@@ -5645,7 +5645,7 @@
       "function": "FUN_00527e7c",
       "va": "0x00527e7c",
       "source": "FUN_00527e7c.s",
-      "source_sha256": "5dac9c740a349daa5b5a82fdc4d192240f042837f2949b7a906534d8a228a6f3",
+      "source_sha256": "b3b8901579c313c6386bc63bc2390cb2c398d475cad684e298b8a8825d32fbf6",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00527e70 (+0xc)",
       "code": {
@@ -5660,7 +5660,7 @@
       "function": "FUN_00527e92",
       "va": "0x00527e92",
       "source": "FUN_00527e92.s",
-      "source_sha256": "670d88c10b56b12238cd83b46a397663c3f5137a449503ebb1024f5e1ce3a21d",
+      "source_sha256": "f8c367a877132ac4f2a9c136bf1f22f5456da6d2d14de357fe93d62c0992fc43",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00527e86 (+0xc)",
       "code": {
@@ -5682,7 +5682,7 @@
       "function": "FUN_00527eaa",
       "va": "0x00527eaa",
       "source": "FUN_00527eaa.s",
-      "source_sha256": "6b742e05d9ce2479a4826352a37e0ecdde6c626b4cfa8f5d3e145d000ee2e196",
+      "source_sha256": "6c6e960d41d7ed56d6ae4e8ae23fcb9586c4793475e3508357e88f137a8bbe6e",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00527ea0 (+0xa)",
       "code": {
@@ -5704,7 +5704,7 @@
       "function": "FUN_00527eca",
       "va": "0x00527eca",
       "source": "FUN_00527eca.s",
-      "source_sha256": "9014a37733f2b4bd997e8e51b240b329474d46525599848e3551f38238a6ea54",
+      "source_sha256": "d6f08a7757ca40b3bbb8ac48bd11f403207b57fdf49f198c28cdd051a0b4fee9",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00527ec0 (+0xa)",
       "code": {
@@ -5719,7 +5719,7 @@
       "function": "FUN_00527edd",
       "va": "0x00527edd",
       "source": "FUN_00527edd.s",
-      "source_sha256": "e209c380e2fba9428d9b259b70741a45e577742ede2b712eddf3e6162ed6dc64",
+      "source_sha256": "5e89a4d9eaf342602fe7b87a0c561fd4e39b4820e4a0973745ef389d3fa0b914",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00527ed4 (+0x9)",
       "code": {
@@ -5741,7 +5741,7 @@
       "function": "FUN_00527efa",
       "va": "0x00527efa",
       "source": "FUN_00527efa.s",
-      "source_sha256": "94a4b7abc9571c8ae148bfafd3158770fc480113d660eba27c332231c9397d57",
+      "source_sha256": "08d46693586b3add846e7f7cc11cc6556bced516d871cf3482a4fc750671202c",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00527ef0 (+0xa)",
       "code": {
@@ -5763,7 +5763,7 @@
       "function": "FUN_00527f1a",
       "va": "0x00527f1a",
       "source": "FUN_00527f1a.s",
-      "source_sha256": "cf65ddfa794a8c3f587cf3a41529e770a0be979850e4dcc459b9c4906729f3b2",
+      "source_sha256": "af97e02a7e47fbe6287f9d1e6b858754f478cae6a6cd2dcb1a7e63d72e00df86",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00527f10 (+0xa)",
       "code": {
@@ -5785,7 +5785,7 @@
       "function": "FUN_00527f39",
       "va": "0x00527f39",
       "source": "FUN_00527f39.s",
-      "source_sha256": "25002bce272dd37364ec1f61bd1200651b6b5e3988dcc335ea9adb6b024a389a",
+      "source_sha256": "f448c1b904e1e3fc1dad3ce191870a599cdf21380579ed08408e0577e74f8b57",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00527f30 (+0x9)",
       "code": {
@@ -5800,7 +5800,7 @@
       "function": "FUN_00527f4c",
       "va": "0x00527f4c",
       "source": "FUN_00527f4c.s",
-      "source_sha256": "82835f22a41dd25dd4e5271073e7b316bf2637feaa4a0f5b14f6bbd9a7921763",
+      "source_sha256": "e18e64307d1242cb5d92ce6bedeb0a4659c55db9e9693881a7b66c8f3f834856",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00527f43 (+0x9)",
       "code": {
@@ -5815,7 +5815,7 @@
       "function": "FUN_00527f5f",
       "va": "0x00527f5f",
       "source": "FUN_00527f5f.s",
-      "source_sha256": "6f3e6ac5c37ffe3058ffa10fdbca0cbc34073a6d74b4a7a52a17af76015f3ba8",
+      "source_sha256": "6b2422a37f8fdc88c2d9128c47d6e07ab4679bc3ab31d14d0238dc837bd967fd",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00527f56 (+0x9)",
       "code": {
@@ -5837,7 +5837,7 @@
       "function": "FUN_00527f7a",
       "va": "0x00527f7a",
       "source": "FUN_00527f7a.s",
-      "source_sha256": "6c2e2fb43960e8588ef08aed43ef65c120f25bff7f8e15de7a73410136f4662b",
+      "source_sha256": "3cbb19a1ecc4e50db504a9bbccbc5fd5004415bf35167f0f4da355cf79cab7e1",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00527f70 (+0xa)",
       "code": {
@@ -5859,7 +5859,7 @@
       "function": "FUN_00527f9a",
       "va": "0x00527f9a",
       "source": "FUN_00527f9a.s",
-      "source_sha256": "fd6a4abd6f6af8fba899060ee0ff32ee37a6281a75046d1226c8a13093e16440",
+      "source_sha256": "7568487e1aa7baecc042bcfca81a5a81f797360ae34a54ee09f16d266a5e8fd8",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00527f90 (+0xa)",
       "code": {
@@ -5874,7 +5874,7 @@
       "function": "FUN_00527fad",
       "va": "0x00527fad",
       "source": "FUN_00527fad.s",
-      "source_sha256": "2f13d1558fd8a82713d46c02b3bcb638be607ba203b69f31c8b86417d948731a",
+      "source_sha256": "cbb466818f320ac8355e201cb940ec5b5a82f03791ca08520bd34c402ce652d5",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00527fa4 (+0x9)",
       "code": {
@@ -5896,7 +5896,7 @@
       "function": "FUN_00527fca",
       "va": "0x00527fca",
       "source": "FUN_00527fca.s",
-      "source_sha256": "89509fa74d85791973c4fbbc370b8562cccb5326a23122d8bc0abb12cd0bc0e8",
+      "source_sha256": "bc8cced7faec6b17f8f07ff5ac605ac4d35c1c91baf5e4018257d71adb032c06",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00527fc0 (+0xa)",
       "code": {
@@ -5911,7 +5911,7 @@
       "function": "FUN_00527fdd",
       "va": "0x00527fdd",
       "source": "FUN_00527fdd.s",
-      "source_sha256": "b4dabbd98fcc0e83c0d99b8056a4c663bf2ffa8f6cf3b429614de3c4d32363ea",
+      "source_sha256": "22bc266aa5236aaf271834efb460f9690b00243221c6781e79b1c00908448d64",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00527fd4 (+0x9)",
       "code": {
@@ -5933,7 +5933,7 @@
       "function": "FUN_00527ffa",
       "va": "0x00527ffa",
       "source": "FUN_00527ffa.s",
-      "source_sha256": "582e4456422afc1a6cbb419eecec664a0a2907fa732cbc8bd56c917b48f6c1f4",
+      "source_sha256": "d79b7168cc59e65a9c9b7757261e1fe3b4075c8549da3d54883811d8719381b6",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00527ff0 (+0xa)",
       "code": {
@@ -5948,7 +5948,7 @@
       "function": "FUN_0052800d",
       "va": "0x0052800d",
       "source": "FUN_0052800d.s",
-      "source_sha256": "b90d6733d0706eebc633a018098661da0d7b8ba018a62f172e58a4a02635c8e9",
+      "source_sha256": "9a27688949545158aa71b9684ad6d8ef1af2bcb3ce6f78a2bfab7ea6f414bcbd",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528004 (+0x9)",
       "code": {
@@ -5970,7 +5970,7 @@
       "function": "FUN_0052802a",
       "va": "0x0052802a",
       "source": "FUN_0052802a.s",
-      "source_sha256": "9d5b0601e2f47ec8e4171a5dd1f5275e46b1c2dccb1afe64439bcb85db4b1aa3",
+      "source_sha256": "dedfa2ab5cc9630d554b53551b0ad1a357023009f5d0fb5afa656244ae3a11f7",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528020 (+0xa)",
       "code": {
@@ -5985,7 +5985,7 @@
       "function": "FUN_0052803d",
       "va": "0x0052803d",
       "source": "FUN_0052803d.s",
-      "source_sha256": "9d57498b8fca2f2702d09d1f848f1a5c8c05ac9252139d1e1c19b42e2d35100b",
+      "source_sha256": "d998cb004f5eb83ee9b197322b0fccb504561811d3ae5d4523a3e57594b01a19",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528034 (+0x9)",
       "code": {
@@ -6007,7 +6007,7 @@
       "function": "FUN_0052805a",
       "va": "0x0052805a",
       "source": "FUN_0052805a.s",
-      "source_sha256": "1b539d90642bae6420bc38e33edcb08e9210c4f4595fe16228e9ab730a97e653",
+      "source_sha256": "dc113f93a9a014bbb47409ffad3cd3b6221b70e6f922bda814a0cfc6fa9d2242",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528050 (+0xa)",
       "code": {
@@ -6022,7 +6022,7 @@
       "function": "FUN_0052806d",
       "va": "0x0052806d",
       "source": "FUN_0052806d.s",
-      "source_sha256": "42469e56ea5b34314c6af04e266616ce82303d5057ee54fc4bb7e6279c9129e3",
+      "source_sha256": "7004a8f7d6cf6f1f98c4e67b9c6abdc7a798e462c5ef6995408e291a83a0d20a",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528064 (+0x9)",
       "code": {
@@ -6044,7 +6044,7 @@
       "function": "FUN_0052808a",
       "va": "0x0052808a",
       "source": "FUN_0052808a.s",
-      "source_sha256": "e68d8024c807af33a96a6c19ad73c19d0adccd5aad095f2a15ec0c2e9e96d0ff",
+      "source_sha256": "a633aa49e5b85285236fd46c0ea0ec5c624087f64840f41fc6af6753dd55ef81",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528080 (+0xa)",
       "code": {
@@ -6059,7 +6059,7 @@
       "function": "FUN_0052809d",
       "va": "0x0052809d",
       "source": "FUN_0052809d.s",
-      "source_sha256": "7f4b6976da7117a2b69bdc71ae539393e0b976223c0f938a53b09e6dc88d53d8",
+      "source_sha256": "2e892f42f4070cb5e3aea0ce18e05718efc8e5e98d9b77bf94d99297e7476b95",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528094 (+0x9)",
       "code": {
@@ -6081,7 +6081,7 @@
       "function": "FUN_005280ba",
       "va": "0x005280ba",
       "source": "FUN_005280ba.s",
-      "source_sha256": "bf7b9ed49a75b9257a9080aed768e8fddf30047abf85313683bc3c88576e10ac",
+      "source_sha256": "d982d8028ee7c47d07aa938b15dcdd765ef8215e99de845af314d1a0ebe973e5",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005280b0 (+0xa)",
       "code": {
@@ -6096,7 +6096,7 @@
       "function": "FUN_005280cd",
       "va": "0x005280cd",
       "source": "FUN_005280cd.s",
-      "source_sha256": "13180bfa8f875bf7af4bc624b491b5277e1be6bf2af083273fc063bdfce44faa",
+      "source_sha256": "0f866b26e80cf83f01d377a62dad912cc57f5a5333561dcef873a5369da66b92",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005280c4 (+0x9)",
       "code": {
@@ -6118,7 +6118,7 @@
       "function": "FUN_005280ea",
       "va": "0x005280ea",
       "source": "FUN_005280ea.s",
-      "source_sha256": "5145b7d8093b76004f29ee1e027b5095471b9511b3dc7af89127eba6c4b28db4",
+      "source_sha256": "2dcbc60d96bf604ac8ee24679ab3688cadafdf1be5b833b59056c82ea1168e43",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005280e0 (+0xa)",
       "code": {
@@ -6133,7 +6133,7 @@
       "function": "FUN_005280fd",
       "va": "0x005280fd",
       "source": "FUN_005280fd.s",
-      "source_sha256": "7e6025afc30e26a6f69986a04712d7589cb63fa0ea69592588ceea53152d2895",
+      "source_sha256": "18f909f42416fb07a7300f5f13aa7b65045be75575529420071a4a2c96cc5381",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005280f4 (+0x9)",
       "code": {
@@ -6155,7 +6155,7 @@
       "function": "FUN_0052811a",
       "va": "0x0052811a",
       "source": "FUN_0052811a.s",
-      "source_sha256": "68b2aa3590de4163a44d551fd0a98403e19c7d90560c62b5b27173b1fccd1dab",
+      "source_sha256": "02625d50c5321b9fb5bc8cea9daf325bf9f4a0548b77c282b9aa3a1ac3d912f8",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528110 (+0xa)",
       "code": {
@@ -6170,7 +6170,7 @@
       "function": "FUN_0052812d",
       "va": "0x0052812d",
       "source": "FUN_0052812d.s",
-      "source_sha256": "cc3a67d83be8d78dde7547cf019f76baee5f2d03741de1113bf7a30f7c4d39d3",
+      "source_sha256": "68619c95c8f56bec3e33d3bef6941d6678b3e3fe051c09bf4b3026f5327209b1",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528124 (+0x9)",
       "code": {
@@ -6192,7 +6192,7 @@
       "function": "FUN_0052814a",
       "va": "0x0052814a",
       "source": "FUN_0052814a.s",
-      "source_sha256": "a91ae067ef7beab3bf4f7b190bcce52814a74d7368f760063e890612574da3dc",
+      "source_sha256": "2945fbd8abb7a67904bb587fe0545fff8f743ed5e71bf234365b59f49bebafc4",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528140 (+0xa)",
       "code": {
@@ -6207,7 +6207,7 @@
       "function": "FUN_0052815d",
       "va": "0x0052815d",
       "source": "FUN_0052815d.s",
-      "source_sha256": "0553e28d07bb937d4e62a2977691e0937c03e212498733777ab4ef43070e412f",
+      "source_sha256": "3ba3f6754aee8987913c79010572abeff787d2334122716ad7f16196f91e976b",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528154 (+0x9)",
       "code": {
@@ -6229,7 +6229,7 @@
       "function": "FUN_0052817a",
       "va": "0x0052817a",
       "source": "FUN_0052817a.s",
-      "source_sha256": "e788ada55127fb3ad0e3fa0b46d81886d5c7452f4d3dc86b0c08724ab09187da",
+      "source_sha256": "dfcf0378a08f46928e53e7a0b6ff414396f935eefa3bf81506f40b542379590c",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528170 (+0xa)",
       "code": {
@@ -6244,7 +6244,7 @@
       "function": "FUN_0052818d",
       "va": "0x0052818d",
       "source": "FUN_0052818d.s",
-      "source_sha256": "a39b28861e587d81aa2751facbcfbe2d9e8430e9b47d0d7fa11fc62e4a32340d",
+      "source_sha256": "3d4ed9bd87cf40321d1f91a12e6206fe555cc613458a5ccb8f694e3ae6f3d891",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528184 (+0x9)",
       "code": {
@@ -6266,7 +6266,7 @@
       "function": "FUN_005281aa",
       "va": "0x005281aa",
       "source": "FUN_005281aa.s",
-      "source_sha256": "509fb6c3da4ec51768ef6e8def264cf7d6deda6e91e69d3827689fd178be2ca1",
+      "source_sha256": "a0b49a6c6b6d85fb97e7b8eb9449bdd663b7f5bfdca737fdc9a65136e6035532",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005281a0 (+0xa)",
       "code": {
@@ -6281,7 +6281,7 @@
       "function": "FUN_005281bd",
       "va": "0x005281bd",
       "source": "FUN_005281bd.s",
-      "source_sha256": "e4ee3ae4a7fa9d268051853552f3f2c0e46f71f563022858e5cdf00882fb01d1",
+      "source_sha256": "d39cb152b68deb6ba65fb4d8ec5555c5a44317923734b9be871032de364b9765",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005281b4 (+0x9)",
       "code": {
@@ -6303,7 +6303,7 @@
       "function": "FUN_005281da",
       "va": "0x005281da",
       "source": "FUN_005281da.s",
-      "source_sha256": "c831e635cb5d34aab9952047aef4b031272e795d55938b78ab077ecb69d4b726",
+      "source_sha256": "a7c5bf91d4020ecce1756345559e53e6669a8bded75dd0e3e05003b41dcec683",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005281d0 (+0xa)",
       "code": {
@@ -6318,7 +6318,7 @@
       "function": "FUN_005281ed",
       "va": "0x005281ed",
       "source": "FUN_005281ed.s",
-      "source_sha256": "b6ffc33e682af1292c89e7aee606a4486854313fb6d8757f60d3359ff4795c09",
+      "source_sha256": "e70104e1ea5ef2c5a5843ecf683d574fdb1b38eea291d3826640c19e2b2c49c9",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005281e4 (+0x9)",
       "code": {
@@ -6340,7 +6340,7 @@
       "function": "FUN_0052820a",
       "va": "0x0052820a",
       "source": "FUN_0052820a.s",
-      "source_sha256": "fadf83280b366f4ff6ee44f0f3a1d31ba50dfe7a8c89bf5ab6502ced9d8d5a56",
+      "source_sha256": "e5a7c6ecb1c0b0311d77be2297a618e902eb3fa6e001031d378d8bc841d0af9a",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528200 (+0xa)",
       "code": {
@@ -6355,7 +6355,7 @@
       "function": "FUN_0052822c",
       "va": "0x0052822c",
       "source": "FUN_0052822c.s",
-      "source_sha256": "60b4b973a752a7bd05898e1ec8fd7bfff96dd94b77551355f8e7b38ce272ce0f",
+      "source_sha256": "bbb25b92a93d769411b3214e1f2fd827af2d937fe199148e73b5d8f6f32134e8",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_0052821d (+0xf)",
       "code": {
@@ -6370,7 +6370,7 @@
       "function": "FUN_0052823f",
       "va": "0x0052823f",
       "source": "FUN_0052823f.s",
-      "source_sha256": "3a5bfa42abd47228983c18524547a111fbaf49a7be3d3620ad1c6fdd0ea94009",
+      "source_sha256": "1c6378dab59b34e5bcbc8ad9f71272e4043bfbeb79d5cdd026e50a82aff0479c",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528236 (+0x9)",
       "code": {
@@ -6385,7 +6385,7 @@
       "function": "FUN_00528252",
       "va": "0x00528252",
       "source": "FUN_00528252.s",
-      "source_sha256": "144ab18e98733bf8b51b7ec4acaf244c30f3878576d4d0ddf3a079e134042e4a",
+      "source_sha256": "8e7bb66a3853d4a87f815079ce61b5b46f1205eb42fe219232d743592b66519f",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528249 (+0x9)",
       "code": {
@@ -6400,7 +6400,7 @@
       "function": "FUN_00528265",
       "va": "0x00528265",
       "source": "FUN_00528265.s",
-      "source_sha256": "519b639625193f5917b6179265343e9a40076915347b36d278a42dec4589a285",
+      "source_sha256": "479ecfdafb9207fcb9c3157aad83d7e7dfb4904e47b46699ef159126c2188c5d",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_0052825c (+0x9)",
       "code": {
@@ -6422,7 +6422,7 @@
       "function": "FUN_0052827a",
       "va": "0x0052827a",
       "source": "FUN_0052827a.s",
-      "source_sha256": "3ce79ceac6289d97eece1e068c05036da45b6d8579b2f153ff4b9420c98e1418",
+      "source_sha256": "a736ff28677ab67c9b242f7a35face92c3f8465ed166c159fc8f7caef92b69e5",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528270 (+0xa)",
       "code": {
@@ -6437,7 +6437,7 @@
       "function": "FUN_0052828d",
       "va": "0x0052828d",
       "source": "FUN_0052828d.s",
-      "source_sha256": "d28ab8493acd65e1eb1042b59a12fe3a46acc1b7e5c78026a9becc3b44506912",
+      "source_sha256": "e9ad57abb8b1b3a4b05cd59f098202310b7c917061cab0894d2f1b3ff4672654",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528284 (+0x9)",
       "code": {
@@ -6459,7 +6459,7 @@
       "function": "FUN_005282af",
       "va": "0x005282af",
       "source": "FUN_005282af.s",
-      "source_sha256": "d83c4db7e9056d3a399476f3540e76de9619b66fecf9e0d766fcdf74eeb9b913",
+      "source_sha256": "419013ee303eae7abbb2e68c46851b2f44dcf46e4254a80a1069b2b37087d9fa",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005282a0 (+0xf)",
       "code": {
@@ -6481,7 +6481,7 @@
       "function": "FUN_005282ca",
       "va": "0x005282ca",
       "source": "FUN_005282ca.s",
-      "source_sha256": "8501452441b85b9c70694db8c672408bfa75b465e7679d0c2c483151cea9bd75",
+      "source_sha256": "af859a6d74580dd96ac82b221e7cc92150142ab1e2fb92c0f7578e4dd1baf1a3",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005282c0 (+0xa)",
       "code": {
@@ -6496,7 +6496,7 @@
       "function": "FUN_005282dd",
       "va": "0x005282dd",
       "source": "FUN_005282dd.s",
-      "source_sha256": "515faf22a34a014c8d9abe511703c529c05f23102c420b530f358185cad5f127",
+      "source_sha256": "5d955c523a37e94b517fe46152ddb567b4e4bf745c70be3eef0e86e1a331c9b7",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005282d4 (+0x9)",
       "code": {
@@ -6518,7 +6518,7 @@
       "function": "FUN_005282fa",
       "va": "0x005282fa",
       "source": "FUN_005282fa.s",
-      "source_sha256": "1c1114e6340944bdd7bc2a4c34844e62e3032bb57fe74c26162ecf30cd4ec8f1",
+      "source_sha256": "f6bdea9a52164795002ef20d9c93e2fb5b7fd34452e359cc0b016290e9598337",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005282f0 (+0xa)",
       "code": {
@@ -6533,7 +6533,7 @@
       "function": "FUN_0052830d",
       "va": "0x0052830d",
       "source": "FUN_0052830d.s",
-      "source_sha256": "2089f0ac59ae6b92d76500ffe9b74530fe61e4750ab320f5746bae5c917c52ec",
+      "source_sha256": "31198c0d8e8991b95bd2e2df800d363450ea32862dacd2d4f615f52ae81d9819",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528304 (+0x9)",
       "code": {
@@ -6555,7 +6555,7 @@
       "function": "FUN_0052832a",
       "va": "0x0052832a",
       "source": "FUN_0052832a.s",
-      "source_sha256": "13b1be7e2c72c200c43e9d4ae65532b6a3fd2afa7da72855fc89e54331a19961",
+      "source_sha256": "794cf8774077313404be831ae9b1f3f1434ca0df382651effdab4c04cc48e000",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528320 (+0xa)",
       "code": {
@@ -6570,7 +6570,7 @@
       "function": "FUN_0052833d",
       "va": "0x0052833d",
       "source": "FUN_0052833d.s",
-      "source_sha256": "24860aae877b74c0f3c80b9237afff7441a7bc1d76e66e91468a304ac0b23ccc",
+      "source_sha256": "2242721d2bb93055f73ba36f28d668e1c2cd8faa524f8c9824a4cebb1fd13e2c",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528334 (+0x9)",
       "code": {
@@ -6585,7 +6585,7 @@
       "function": "FUN_00528359",
       "va": "0x00528359",
       "source": "FUN_00528359.s",
-      "source_sha256": "c1b03d934009762b7f8f1d14c11f748cfe60334784b2a0455367a9b9e9d0febb",
+      "source_sha256": "978a69b5b23a3c2170c9f6af90eb58c4c588b4374b286c1a2e04708467ec05f2",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528350 (+0x9)",
       "code": {
@@ -6607,7 +6607,7 @@
       "function": "FUN_0052837a",
       "va": "0x0052837a",
       "source": "FUN_0052837a.s",
-      "source_sha256": "c2e9364e6bc14032a6641c8f83841bf0351f9d769730e735070c70588aea1f49",
+      "source_sha256": "1af1bbf9256bc19a25b653c1fd6f4df1f71ccbe25ec99d7c49724ba2644bf64e",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528370 (+0xa)",
       "code": {
@@ -6622,7 +6622,7 @@
       "function": "FUN_0052838d",
       "va": "0x0052838d",
       "source": "FUN_0052838d.s",
-      "source_sha256": "b7af067b6abf42c790d492c4054b951905ef4302489ee9f3fdcd75447d3a82cb",
+      "source_sha256": "2b6c0a41172ac81bc6da0fe6c52014bcaaf08061d74ea0973cb2f0c17d3b3592",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528384 (+0x9)",
       "code": {
@@ -6644,7 +6644,7 @@
       "function": "FUN_005283aa",
       "va": "0x005283aa",
       "source": "FUN_005283aa.s",
-      "source_sha256": "ef7c9b3842a9072180873d8e0cde0530b199a47bee094a38a80cfcbe2f601ef0",
+      "source_sha256": "d30f795df485d8a2b03b4630eb7102e2e2df554bc9036d5794786e02bd9f4903",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005283a0 (+0xa)",
       "code": {
@@ -6659,7 +6659,7 @@
       "function": "FUN_005283bd",
       "va": "0x005283bd",
       "source": "FUN_005283bd.s",
-      "source_sha256": "11528c78075071ea06eae76b0219075e3a8890ef20f25da4be25820a10ece485",
+      "source_sha256": "6ec7dd28dc03125f0c6cbb4303defd4b8465306390e51c8be2a7f5376b3a4cf5",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005283b4 (+0x9)",
       "code": {
@@ -6681,7 +6681,7 @@
       "function": "FUN_005283da",
       "va": "0x005283da",
       "source": "FUN_005283da.s",
-      "source_sha256": "a372dfbacd8f19455cba872748bc22cce632bd48e0170f21aa33951bb6874bce",
+      "source_sha256": "d40fd3714f7b58c6091fa031a4031c96bec959b96c90dc5306427ffec9217fe6",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005283d0 (+0xa)",
       "code": {
@@ -6696,7 +6696,7 @@
       "function": "FUN_005283ed",
       "va": "0x005283ed",
       "source": "FUN_005283ed.s",
-      "source_sha256": "38d3cb5ceababa405164da4d3722286cce33f7438167cafa9904f6333a02c30d",
+      "source_sha256": "58683d89d2a5d75603c7f2028863f1b99036172a2053bab7fd5df6167bd4a7e8",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005283e4 (+0x9)",
       "code": {
@@ -6718,7 +6718,7 @@
       "function": "FUN_0052840a",
       "va": "0x0052840a",
       "source": "FUN_0052840a.s",
-      "source_sha256": "ac3c736d85db09f14dd4cfeee5b8c7f70feb2a9d22a95647e898245465c9a401",
+      "source_sha256": "e67546de7ab09f2d7a421da047e694166ff13c47cf7e482c22c7bfd447eaeacc",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528400 (+0xa)",
       "code": {
@@ -6733,7 +6733,7 @@
       "function": "FUN_0052841d",
       "va": "0x0052841d",
       "source": "FUN_0052841d.s",
-      "source_sha256": "87e93189fc3f3f0c19a2dbc3edfcc754ff40521bacb3a1800e52cd89a490072a",
+      "source_sha256": "863e7d494b06d248655a9a5ee24bba274350d21e7788ec875e3b3fa9b415d9ff",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528414 (+0x9)",
       "code": {
@@ -6755,7 +6755,7 @@
       "function": "FUN_0052843a",
       "va": "0x0052843a",
       "source": "FUN_0052843a.s",
-      "source_sha256": "01b7606881fbe68afef01c21e67e22330829e0c4ce954114094e2ae7bd43f7c0",
+      "source_sha256": "b67a5b25517c01a4232c63be93ec10ad2e9ed39a7a230f3aa05de6b5e0a594bd",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528430 (+0xa)",
       "code": {
@@ -6777,7 +6777,7 @@
       "function": "FUN_0052845a",
       "va": "0x0052845a",
       "source": "FUN_0052845a.s",
-      "source_sha256": "b0e34e69df5f58db600f731c57bb408e9ffb75790c32f2a9ecfebb5eb871fef8",
+      "source_sha256": "d07d43415169ca2de883c4e89fb7beaf46646c7395a0f0b6d6d7dab09f38cd9d",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528450 (+0xa)",
       "code": {
@@ -6792,7 +6792,7 @@
       "function": "FUN_0052846d",
       "va": "0x0052846d",
       "source": "FUN_0052846d.s",
-      "source_sha256": "a932e4615b48027786137937856f5be97c3d8f4178fb39643ef24ed5b8e003a9",
+      "source_sha256": "6bd8ff0b2feed35a19e746314c2aa83cbd9ebc9c51c7a4f46e1dacb2231a7c84",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528464 (+0x9)",
       "code": {
@@ -6814,7 +6814,7 @@
       "function": "FUN_0052848a",
       "va": "0x0052848a",
       "source": "FUN_0052848a.s",
-      "source_sha256": "2954693c1de52b997d5ba1fec192af384b8a1849d2fe27e6b036812ecfbea8ed",
+      "source_sha256": "a8744cd21b4297e19eaa7b27fcc1212e3cfdd91dc137acdbf646312568bd55c4",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528480 (+0xa)",
       "code": {
@@ -6829,7 +6829,7 @@
       "function": "FUN_0052849d",
       "va": "0x0052849d",
       "source": "FUN_0052849d.s",
-      "source_sha256": "97598b88416c4b975a35adf1472fa7d8f07d09c126314bd5af70370d8e18bbc1",
+      "source_sha256": "80960113e8084eb3499a6b07178985af5c361258b3e9bf2f3505c1a281fa8927",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528494 (+0x9)",
       "code": {
@@ -6851,7 +6851,7 @@
       "function": "FUN_005284ba",
       "va": "0x005284ba",
       "source": "FUN_005284ba.s",
-      "source_sha256": "0258af67bd1b5ac279c1645ca32fb2fccd7214a23f9df997ba2cc86b6f6f97c8",
+      "source_sha256": "86675691d26c81cb5916b5f17bce83d5d2ede2ae02929bf57e242e7258d292e7",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005284b0 (+0xa)",
       "code": {
@@ -6866,7 +6866,7 @@
       "function": "FUN_005284cd",
       "va": "0x005284cd",
       "source": "FUN_005284cd.s",
-      "source_sha256": "6fca46430b69bedff45d93148ece7864679de980bf00c78f799544df1956a369",
+      "source_sha256": "a11bffb308a4eb431f1fc0375db152d39172647b6b69e1920ffadd2d9b46e65f",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005284c4 (+0x9)",
       "code": {
@@ -6888,7 +6888,7 @@
       "function": "FUN_005284ea",
       "va": "0x005284ea",
       "source": "FUN_005284ea.s",
-      "source_sha256": "281b42f449f885e86d22d66cc595533dd0b5e217698e00115b310be1e72044e9",
+      "source_sha256": "94da763e16c72f78e260f33cf73b5070596f41ed1a1a0a77f045cdc36caffdd6",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005284e0 (+0xa)",
       "code": {
@@ -6903,7 +6903,7 @@
       "function": "FUN_005284fd",
       "va": "0x005284fd",
       "source": "FUN_005284fd.s",
-      "source_sha256": "982b348ae9a7241531c2ca1a3244c712b99eefcb6f42c0a6a9de48ca1b714c83",
+      "source_sha256": "cc1fd8140ee066251879971d3a43c22ab8fda8506fb553e2a3a72b11bdb9bf81",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005284f4 (+0x9)",
       "code": {
@@ -6925,7 +6925,7 @@
       "function": "FUN_0052851a",
       "va": "0x0052851a",
       "source": "FUN_0052851a.s",
-      "source_sha256": "6aa456021cf1bc7f9b2899953b3a39f6755ef5a4765d71c098e4b6158b8f2ec0",
+      "source_sha256": "62dce5006e52b8deada6ee205ef518380b4c711175969c240cfa2e060d3af304",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528510 (+0xa)",
       "code": {
@@ -6940,7 +6940,7 @@
       "function": "FUN_0052852d",
       "va": "0x0052852d",
       "source": "FUN_0052852d.s",
-      "source_sha256": "8066b1d5e4671d395c7fecada5a52d749a310f0c8e666430751f22a3a9828d8d",
+      "source_sha256": "a72d943bf798abe674a1c22b7c681491e2f867388e028c2afbab9081a4e5366e",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528524 (+0x9)",
       "code": {
@@ -6962,7 +6962,7 @@
       "function": "FUN_0052854a",
       "va": "0x0052854a",
       "source": "FUN_0052854a.s",
-      "source_sha256": "2710b91d9de2123856fe9de61cbb64db050baa4c7229f2fcd5553e00e80f1dc2",
+      "source_sha256": "3c6efcd26b93cabdfef7488ed89b63ca49ea3486ebea53c8ba008949ba0de78f",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528540 (+0xa)",
       "code": {
@@ -6977,7 +6977,7 @@
       "function": "FUN_0052855d",
       "va": "0x0052855d",
       "source": "FUN_0052855d.s",
-      "source_sha256": "bb4431c4a50adbd5e9ce988d76b51e50c33b5f69ed6747a5a6b2ff9a468b60a7",
+      "source_sha256": "08af3bd57f0d0ffe12e19a10b6cb797728c4bd9e2c8447cb7547f3055386409e",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528554 (+0x9)",
       "code": {
@@ -6992,7 +6992,7 @@
       "function": "FUN_00528570",
       "va": "0x00528570",
       "source": "FUN_00528570.s",
-      "source_sha256": "9de49f7ce1eb694f2ef94c858bea66bd17eddfcba0d10ee7386df22eceb4fca4",
+      "source_sha256": "a97b5d4a09a707d32a1caec33a6ddaa74dbe732e9570c1d6a82dc6d63a736384",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528567 (+0x9)",
       "code": {
@@ -7014,7 +7014,7 @@
       "function": "FUN_0052858a",
       "va": "0x0052858a",
       "source": "FUN_0052858a.s",
-      "source_sha256": "c20af3f100161265f2e83536957c0627f64d7ebd7a3e4c09bb75b14bddf593ec",
+      "source_sha256": "3b5605fa8a60c011c9d50ba93122138a100fadc307e25ee876a6591a9963b999",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528580 (+0xa)",
       "code": {
@@ -7029,7 +7029,7 @@
       "function": "FUN_0052859d",
       "va": "0x0052859d",
       "source": "FUN_0052859d.s",
-      "source_sha256": "b9206b67b5ed92dc965c7f99ffea0c0fdf792b8807dd262a1c42b0af06bf192b",
+      "source_sha256": "d2dfe8912c4a6998eee1b478a805091f5fe2276fe329053f024e34333f0777f3",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528594 (+0x9)",
       "code": {
@@ -7051,7 +7051,7 @@
       "function": "FUN_005285ba",
       "va": "0x005285ba",
       "source": "FUN_005285ba.s",
-      "source_sha256": "52325e8794a82be31a6f7480e04bed987dcf3bb0b4e251783cb3e06fe848b834",
+      "source_sha256": "ef9ba44c73bd65e400ee1f6b6818a4f97cc99446785309376c9ed1145aeb0c01",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005285b0 (+0xa)",
       "code": {
@@ -7066,7 +7066,7 @@
       "function": "FUN_005285cd",
       "va": "0x005285cd",
       "source": "FUN_005285cd.s",
-      "source_sha256": "4b4e8bd248f7998ec89041f51134288de42a165d7d28fbc2ffab3151cba7baea",
+      "source_sha256": "08e39ac8d553b81ce4ff0e970388fd197c25d2ed2103c35f3ac342373af1a554",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005285c4 (+0x9)",
       "code": {
@@ -7088,7 +7088,7 @@
       "function": "FUN_005285ea",
       "va": "0x005285ea",
       "source": "FUN_005285ea.s",
-      "source_sha256": "d491a0bd48d97f47bb9529563a83e96f93f5b37911d1c6530abb13ba545f65d4",
+      "source_sha256": "c9e72c4e06e3f8735f05079cf3ecf0b7704b89336750356754201c33a05fd67d",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005285e0 (+0xa)",
       "code": {
@@ -7103,7 +7103,7 @@
       "function": "FUN_005285fd",
       "va": "0x005285fd",
       "source": "FUN_005285fd.s",
-      "source_sha256": "9829c15b8756529ab39a2a7b2f260479089d15b5949419ae2219b2116e7c1c69",
+      "source_sha256": "1e3d4ab989a51487c3ca634e25fbf6e46ab58c1d627f9917a0956e0a6307e55e",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005285f4 (+0x9)",
       "code": {
@@ -7125,7 +7125,7 @@
       "function": "FUN_0052861a",
       "va": "0x0052861a",
       "source": "FUN_0052861a.s",
-      "source_sha256": "fd6b65991ce01c683cde2a1a0336c25fce1eb07f9962a75140f5086742f3659a",
+      "source_sha256": "3c3349279fceba0598b481a5caf102ebc51de3add9c40b8bab759825577ab420",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528610 (+0xa)",
       "code": {
@@ -7140,7 +7140,7 @@
       "function": "FUN_0052862d",
       "va": "0x0052862d",
       "source": "FUN_0052862d.s",
-      "source_sha256": "a9822826cc96d4b8d1c3e1eca46143206a6b971663c70d7a0a69e9b47c02a12a",
+      "source_sha256": "8351928f67a94b237239acb0323a34505ec279d2b7028895518030773a163d20",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528624 (+0x9)",
       "code": {
@@ -7162,7 +7162,7 @@
       "function": "FUN_0052864a",
       "va": "0x0052864a",
       "source": "FUN_0052864a.s",
-      "source_sha256": "e260ff7d91e8c3a2b78c9700b57f060eac6077b6e0076a32edd1ae5f163c6677",
+      "source_sha256": "12f118cdb9b6c53ee37c2187b7e1f6d5bb17b42b8c4729129762650b470bebed",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528640 (+0xa)",
       "code": {
@@ -7177,7 +7177,7 @@
       "function": "FUN_0052865d",
       "va": "0x0052865d",
       "source": "FUN_0052865d.s",
-      "source_sha256": "76dcfda8b941f0b7e1c9d21e0b1c8c71ee30e21f4da9d9b71425556aced24045",
+      "source_sha256": "7cc4dbd7a115d040b9db3e08152dccc0721aee5dbb0bc4efc6d9f2bc2ca2e216",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528654 (+0x9)",
       "code": {
@@ -7199,7 +7199,7 @@
       "function": "FUN_0052867a",
       "va": "0x0052867a",
       "source": "FUN_0052867a.s",
-      "source_sha256": "aec6965727b2d21c45b0393d79c30d26449c1da4b88a32b7d8f4498d66dfff81",
+      "source_sha256": "cd737cd10bb7d8ae0088310d809d611141ced8f93892888e56f2d496779c0553",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528670 (+0xa)",
       "code": {
@@ -7214,7 +7214,7 @@
       "function": "FUN_0052868d",
       "va": "0x0052868d",
       "source": "FUN_0052868d.s",
-      "source_sha256": "823abb2be694995d4acd33addcaff989e82dd30d5ffc87e99ee42e581dcc6818",
+      "source_sha256": "38e0e98b44fecc30e61cbda0fa6b08a10af1458dbbeb4d512c281221c8932292",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528684 (+0x9)",
       "code": {
@@ -7236,7 +7236,7 @@
       "function": "FUN_005286aa",
       "va": "0x005286aa",
       "source": "FUN_005286aa.s",
-      "source_sha256": "c938557b0f014fe892f24189d20d2aaf6c4005f83031c1c9de0c163385ae3137",
+      "source_sha256": "3416170c480637ea2e0f7af3932f263cf9f782d970869efabbb294aeefa94427",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005286a0 (+0xa)",
       "code": {
@@ -7251,7 +7251,7 @@
       "function": "FUN_005286bd",
       "va": "0x005286bd",
       "source": "FUN_005286bd.s",
-      "source_sha256": "3ef28c5fb7d6a7b1f8d0e27d10353edbd352b534b4a59e553d9be79f87d4f77e",
+      "source_sha256": "a38553f085ef852f8d32d20703a85371f36d44eb9058da1f77a9f35735fca4e9",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005286b4 (+0x9)",
       "code": {
@@ -7273,7 +7273,7 @@
       "function": "FUN_005286da",
       "va": "0x005286da",
       "source": "FUN_005286da.s",
-      "source_sha256": "1dd203f87c7cb681431180df6b9aabc9bcdabcd3fafd6433cd1f3d29708484be",
+      "source_sha256": "04c24a752671b5bb610a2aa9255c95ef913854a36f253c450b40c3e9ea770d0f",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005286d0 (+0xa)",
       "code": {
@@ -7288,7 +7288,7 @@
       "function": "FUN_005286ed",
       "va": "0x005286ed",
       "source": "FUN_005286ed.s",
-      "source_sha256": "758d88aac2e07638a2983937682e83379991e3b8b2281f98c818f31e8c8c6fef",
+      "source_sha256": "67a09bbbc5ac82d4e9b91b649812279b27123a6faedca94f90e97730695fbb96",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005286e4 (+0x9)",
       "code": {
@@ -7310,7 +7310,7 @@
       "function": "FUN_0052870a",
       "va": "0x0052870a",
       "source": "FUN_0052870a.s",
-      "source_sha256": "635a77fa0d1e58908ef55ae8e69fbe588ed91982fe9284a76f8b4f24b80bf480",
+      "source_sha256": "c23aa2c06f8a07c8c9823e71c15359b89e271a865536c1eb7fb6c4cf795bbaae",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528700 (+0xa)",
       "code": {
@@ -7325,7 +7325,7 @@
       "function": "FUN_0052871d",
       "va": "0x0052871d",
       "source": "FUN_0052871d.s",
-      "source_sha256": "f380868393db853bc9bfc0dbb8d504327f8785e9a47ccfc1fd93dc7a0226dc80",
+      "source_sha256": "83dcc20d2b16f94d4a2651067d764f54cb77fb49cf6faa24fd6e03f49e4428ab",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528714 (+0x9)",
       "code": {
@@ -7347,7 +7347,7 @@
       "function": "FUN_0052873a",
       "va": "0x0052873a",
       "source": "FUN_0052873a.s",
-      "source_sha256": "2fcad0d50115eef8cdd0c3b18bdd697efbfd6af75b9af27d2a84a62d79d37c1a",
+      "source_sha256": "3cf57b8ddf0631185b348734a0667fe30ef1b33bf03d553edf4172ccd1f07b66",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528730 (+0xa)",
       "code": {
@@ -7362,7 +7362,7 @@
       "function": "FUN_0052874d",
       "va": "0x0052874d",
       "source": "FUN_0052874d.s",
-      "source_sha256": "cd216d552c16fc6312a8f6272eb46694f7e25231a9a65e6c6866576411bcd551",
+      "source_sha256": "31083d62ad5ba01e8bbb970a306e16ee1912e78ec60ceefcf894d0fce416267b",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528744 (+0x9)",
       "code": {
@@ -7384,7 +7384,7 @@
       "function": "FUN_0052876a",
       "va": "0x0052876a",
       "source": "FUN_0052876a.s",
-      "source_sha256": "553c88228a1bf888c7109a481c7aaf858b5c2e849f90a572fe0d3516e8ffe306",
+      "source_sha256": "d453c4e56ce442e8e98e1736410fb482610c82194aaee0fc351e05760520e446",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528760 (+0xa)",
       "code": {
@@ -7399,7 +7399,7 @@
       "function": "FUN_0052877d",
       "va": "0x0052877d",
       "source": "FUN_0052877d.s",
-      "source_sha256": "6f95409b31afed96f5351cc1ba37fd2d051c9482416d983ed36a88616745cb17",
+      "source_sha256": "e0677aa746abea4b40c60717132b0b0ebcbb89e1ee70aa7517fc30cd99a6362f",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528774 (+0x9)",
       "code": {
@@ -7421,7 +7421,7 @@
       "function": "FUN_0052879b",
       "va": "0x0052879b",
       "source": "FUN_0052879b.s",
-      "source_sha256": "9ebcc6c08821dafc66eeced469b02cbdc7afa819ceb9f02c44bfff1233d20d5a",
+      "source_sha256": "cab25e5b321230ddc7b59177f4088fd98f7a27f794b35e4205b6c486be0d2abf",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528790 (+0xb)",
       "code": {
@@ -7443,7 +7443,7 @@
       "function": "FUN_005287c8",
       "va": "0x005287c8",
       "source": "FUN_005287c8.s",
-      "source_sha256": "c21f53ad0d7bb71cc467d9e1ead2207d4b2024fe5556fab7659dcb0a6d583430",
+      "source_sha256": "a9f3b4a13dda15c29f6391a319753b0462e9c947cd0c8049ea0b8ae2b0d39aa2",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005287b9 (+0xf)",
       "code": {
@@ -7458,7 +7458,7 @@
       "function": "FUN_005287ea",
       "va": "0x005287ea",
       "source": "FUN_005287ea.s",
-      "source_sha256": "608a6063505be0dd80cedd372f8d29ff2d7f2a5e03459f48081e97774d679dfa",
+      "source_sha256": "451e62d67cec0e3512171ca44163e1ab5d5837692c1e594f670a0d67a97c72a6",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005287db (+0xf)",
       "code": {
@@ -7473,7 +7473,7 @@
       "function": "FUN_005287fe",
       "va": "0x005287fe",
       "source": "FUN_005287fe.s",
-      "source_sha256": "25cd3dbe87244c8982efc2e08c782c9938ffaba7404c5c4513011b89454cb876",
+      "source_sha256": "740df2b548593c9ca73169e7c26f33fd97e3543992971310fc5b9bdef8a33300",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005287f4 (+0xa)",
       "code": {
@@ -7495,7 +7495,7 @@
       "function": "FUN_0052881a",
       "va": "0x0052881a",
       "source": "FUN_0052881a.s",
-      "source_sha256": "5c4fd678236d9d6229860163b5da896f2a65a7720cebcb74039e22a329011ba1",
+      "source_sha256": "90508ce7545dfeaffd4e9df1a9b0639e76ac8914902c29db6bf650160665cb75",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528810 (+0xa)",
       "code": {
@@ -7517,7 +7517,7 @@
       "function": "FUN_0052883e",
       "va": "0x0052883e",
       "source": "FUN_0052883e.s",
-      "source_sha256": "2d9e68d3590e96d51d60216623933b0cda70b681a4ed8a04330522fb9814d8d2",
+      "source_sha256": "a72eb51e7b9fbae5cd3ad6df33341d02b1763829e8b05a1e24c679907a5c6efc",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528830 (+0xe)",
       "code": {
@@ -7539,7 +7539,7 @@
       "function": "FUN_0052885a",
       "va": "0x0052885a",
       "source": "FUN_0052885a.s",
-      "source_sha256": "93240e4223d087b193e6cc70ba9050188aa7ee2b71c9eb730ae223903aab6c4a",
+      "source_sha256": "b2d21bb307196a3dbfb76e925407004e4f602d0b816f7db4fb0390edeedc5c84",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528850 (+0xa)",
       "code": {
@@ -7554,7 +7554,7 @@
       "function": "FUN_0052886d",
       "va": "0x0052886d",
       "source": "FUN_0052886d.s",
-      "source_sha256": "9df22319ed74acf59905b070dc4930b2da18a0e0d258200bad662f242c7e1186",
+      "source_sha256": "83fa1293a401d135c208e8954721ec796c4dba503fe83b1bcf9454231bd96bc3",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528864 (+0x9)",
       "code": {
@@ -7576,7 +7576,7 @@
       "function": "FUN_0052888a",
       "va": "0x0052888a",
       "source": "FUN_0052888a.s",
-      "source_sha256": "d048cd3f646a84c183d7bb788a99bc1ab574eb0df79d505dd1fd48e2b167b579",
+      "source_sha256": "a19269578b14d1c9c56a4fd54c952984c6c395248d0996a3af3ca0cf9a957638",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528880 (+0xa)",
       "code": {
@@ -7591,7 +7591,7 @@
       "function": "FUN_0052889d",
       "va": "0x0052889d",
       "source": "FUN_0052889d.s",
-      "source_sha256": "37fb25990f9397bf0f4c6a0145f86e9d4fc49d3ac7e42a0ec83f2d9d11fc8a0a",
+      "source_sha256": "f050577bd997738c9c9adea20a471074cdcd7863f1b11f4097b31857bad591ae",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528894 (+0x9)",
       "code": {
@@ -7606,7 +7606,7 @@
       "function": "FUN_005288b0",
       "va": "0x005288b0",
       "source": "FUN_005288b0.s",
-      "source_sha256": "63564b058676d63e1412abe67917b12b30f117b4947b54e21496d1ac18dd5b40",
+      "source_sha256": "6275a7f57c9b2f32735923965329a6fef4a2c52ba469e8fe4065bc28b1ab3447",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005288a7 (+0x9)",
       "code": {
@@ -7621,7 +7621,7 @@
       "function": "FUN_005288c5",
       "va": "0x005288c5",
       "source": "FUN_005288c5.s",
-      "source_sha256": "0c17b4fb2b6b3a15035cce9c359981a26be1cd8cb2cea03237262804f53156f9",
+      "source_sha256": "fa342f0c806a1fb15ac121f72fd65c9a7156318da017be9edc3bb2cca7a2df88",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005288ba (+0xb)",
       "code": {
@@ -7643,7 +7643,7 @@
       "function": "FUN_005288d9",
       "va": "0x005288d9",
       "source": "FUN_005288d9.s",
-      "source_sha256": "f0f3d1d16942fad067a37b9fbf63ec77310a571e30e99987d73d5c84ae3ae12a",
+      "source_sha256": "f7859acea606301012f59e81ec05d0c3bf4a08a50802c0f4f2eb28ccde74fa44",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005288d0 (+0x9)",
       "code": {
@@ -7658,7 +7658,7 @@
       "function": "FUN_005288ec",
       "va": "0x005288ec",
       "source": "FUN_005288ec.s",
-      "source_sha256": "f84e6763033f231ca1c0034155e488f8d5ab8d36e47d2df07c44737b1a80f230",
+      "source_sha256": "b911bd96b78bc1784200f1e63d8efa146a2d2b9db82b32e0e196c13984a21605",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005288e3 (+0x9)",
       "code": {
@@ -7680,7 +7680,7 @@
       "function": "FUN_0052891e",
       "va": "0x0052891e",
       "source": "FUN_0052891e.s",
-      "source_sha256": "703ee190b2b9c53869f29ea9e0ff6bd1177d3251c32c9d5d7230ef4adeea7c22",
+      "source_sha256": "a34dfbf2cbfd666c40b9eedf1724ba6e64270b974f39725e17b3119f1154b038",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_0052890f (+0xf)",
       "code": {
@@ -7695,7 +7695,7 @@
       "function": "FUN_00528946",
       "va": "0x00528946",
       "source": "FUN_00528946.s",
-      "source_sha256": "82c976bd4ac71ffdc9523cdcb4b389187acda9f5f9cea966e5e73eb674e9ac17",
+      "source_sha256": "00ba201d4ec92ed808f66d593d3e08a24c6a20e94cb0fd25e5b4ef25c7431d03",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528937 (+0xf)",
       "code": {
@@ -7710,7 +7710,7 @@
       "function": "FUN_0052896b",
       "va": "0x0052896b",
       "source": "FUN_0052896b.s",
-      "source_sha256": "673c78eba5e517edbd03e841ef275ad70b8540e315b6d6830fdbf8f7b561772d",
+      "source_sha256": "fe4a85a1235f4bc4bc658856810b77fe6bef5bf1cd3feeb4a3302c0e66228919",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528950 (+0x1b)",
       "code": {
@@ -7725,7 +7725,7 @@
       "function": "FUN_00528990",
       "va": "0x00528990",
       "source": "FUN_00528990.s",
-      "source_sha256": "52cac89c593b3e053dad673370fd4e7256450004868603d95fadcc1da4be8dd8",
+      "source_sha256": "765da03a661e40685765689e9a6cfb4ae8bc19970242b5fa88791644fee54f53",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528975 (+0x1b)",
       "code": {
@@ -7747,7 +7747,7 @@
       "function": "FUN_005289c4",
       "va": "0x005289c4",
       "source": "FUN_005289c4.s",
-      "source_sha256": "9800589c5599f6e9f3bd1c05e624abcad9c463f816d0f783514730a53da2b67f",
+      "source_sha256": "b93b7c0c054241ddd9f7e6863ecd613853e8dbeab24e3b8d7b12cd098926ba62",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005289a9 (+0x1b)",
       "code": {
@@ -7762,7 +7762,7 @@
       "function": "FUN_005289f2",
       "va": "0x005289f2",
       "source": "FUN_005289f2.s",
-      "source_sha256": "59a063522e871b486063962cf9486258ed9879d7152f7576fa6af66882369c95",
+      "source_sha256": "93b3cc086afebfe0f034149658056de90caf44ee027e67194280ef04a35967bd",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005289d7 (+0x1b)",
       "code": {
@@ -7784,7 +7784,7 @@
       "function": "FUN_00528a09",
       "va": "0x00528a09",
       "source": "FUN_00528a09.s",
-      "source_sha256": "119387e0a41dd739a842b9f708f61e966ee7163e1fa69ce5b1bfcb552c90ed49",
+      "source_sha256": "e0e936f0cdea2036130039d92c89047083e933afe0cbcd9a7c5fd58ba0db356b",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528a00 (+0x9)",
       "code": {
@@ -7799,7 +7799,7 @@
       "function": "FUN_00528a1c",
       "va": "0x00528a1c",
       "source": "FUN_00528a1c.s",
-      "source_sha256": "4fbb3047dac0c8727c651c9d16387bc977d787718cbf796af92d9b7639c88f92",
+      "source_sha256": "6f6cbf2a5b7163047fea76a75dea2170cf37196019910b5078df1a722bc51ff0",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528a13 (+0x9)",
       "code": {
@@ -7821,7 +7821,7 @@
       "function": "FUN_00528a54",
       "va": "0x00528a54",
       "source": "FUN_00528a54.s",
-      "source_sha256": "105abd4dff7db4e0cf578297494f1f48af6cdcdfbc60fe4f6693bf982194b763",
+      "source_sha256": "eb4a524b9eedba3ba5cbd92041b645f293d999468f71246786748fe61fcbf009",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528a39 (+0x1b)",
       "code": {
@@ -7836,7 +7836,7 @@
       "function": "FUN_00528a82",
       "va": "0x00528a82",
       "source": "FUN_00528a82.s",
-      "source_sha256": "886b4a1a0b8cd7d9d086e189b4cde8bd2878278d87ced4a8b68f8676d15b943e",
+      "source_sha256": "47674fee8845ce2bfe1757456c026a7f04f14b82c652a71b689e5375eafff775",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528a67 (+0x1b)",
       "code": {
@@ -7858,7 +7858,7 @@
       "function": "FUN_00528ab4",
       "va": "0x00528ab4",
       "source": "FUN_00528ab4.s",
-      "source_sha256": "bbf34a3ce99a523eb994cb0c8f08df0d8705abe08bad69f121a5768ea8445eb1",
+      "source_sha256": "cb56f960772196e81e2f15cb5b82e6fa1cc7bdb7c5b175bafe35e23421138a20",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528a99 (+0x1b)",
       "code": {
@@ -7873,7 +7873,7 @@
       "function": "FUN_00528ae2",
       "va": "0x00528ae2",
       "source": "FUN_00528ae2.s",
-      "source_sha256": "5eeeb8ce998eec0a0c19664d5da2cfeab4644cb0a46b322cc1c2b8b9de60f509",
+      "source_sha256": "f757c244d33ef6dcfa71a249b55be98aa83561c3a4c1ac3578baa4038609325f",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528ac7 (+0x1b)",
       "code": {
@@ -7895,7 +7895,7 @@
       "function": "FUN_00528b0e",
       "va": "0x00528b0e",
       "source": "FUN_00528b0e.s",
-      "source_sha256": "fb749cab0bd0ffe32d587733ca0a59b38d78a445e60dd82e5a24de1ed4991148",
+      "source_sha256": "5b090c22a6f843c21feac3356f0d6bcd4df3d4a6b696799ffb51c70d2a463ac6",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528aff (+0xf)",
       "code": {
@@ -7910,7 +7910,7 @@
       "function": "FUN_00528b36",
       "va": "0x00528b36",
       "source": "FUN_00528b36.s",
-      "source_sha256": "ddee0a165eda3a9b48c9626b09ab40e50bf90b292651b3f8a9a50deea23a0e25",
+      "source_sha256": "665a43d8ca591674f3de13ac17f032b008f19e1865ec2b6167935084e106a7ed",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528b27 (+0xf)",
       "code": {
@@ -7925,7 +7925,7 @@
       "function": "FUN_00528b40",
       "va": "0x00528b40",
       "source": "FUN_00528b40.s",
-      "source_sha256": "c3c2d6275c159935494500a7b0af5357020f3ad32a2375570ebbb15b0e0f5028",
+      "source_sha256": "6c08f7da5d4972ece01549227176909df5ac4e81eb82125d6014c36e30076044",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528b27 (+0x19)",
       "code": {
@@ -7947,7 +7947,7 @@
       "function": "FUN_00528b56",
       "va": "0x00528b56",
       "source": "FUN_00528b56.s",
-      "source_sha256": "57333bb58f5e02b5f38dd429812ccc59bbef5505e40b2ef7c96364af724e5ab9",
+      "source_sha256": "089565165b3cbd4a914c56ceb618445af28eb1bdbea06266eeede68f4f85c4ae",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528b4c (+0xa)",
       "code": {
@@ -7962,7 +7962,7 @@
       "function": "FUN_00528b60",
       "va": "0x00528b60",
       "source": "FUN_00528b60.s",
-      "source_sha256": "a97f5b1275d21e195f5a2e4cfbcc745ff382693081f5f99d66ea1c593d41f474",
+      "source_sha256": "c21b98a9f8ad914795737c50ac5a9e4de8845e50f660c202356377c99db8d97a",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528b4c (+0x14)",
       "code": {
@@ -7984,7 +7984,7 @@
       "function": "FUN_00528b74",
       "va": "0x00528b74",
       "source": "FUN_00528b74.s",
-      "source_sha256": "17a50ac4dcff93773cdbf6062cc4a380715ccf53d381d639ba7f889f25e3b96c",
+      "source_sha256": "2ba45c749959e3d044b8f6cd625f52c552a2e1814f7fd46ab0a9444dc994e7a5",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528b6c (+0x8)",
       "code": {
@@ -8006,7 +8006,7 @@
       "function": "FUN_00528b80",
       "va": "0x00528b80",
       "source": "FUN_00528b80.s",
-      "source_sha256": "3cbce7d0bf1b657570e61de6e0bdcc0c76038b1446a3b372f432057f7a2802be",
+      "source_sha256": "c2cd4b5ec09bc86f3ac45c099778fed3d3961e0b5e8c8771eef19e33988bfce9",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528b6c (+0x14)",
       "code": {
@@ -8028,7 +8028,7 @@
       "function": "FUN_00528b94",
       "va": "0x00528b94",
       "source": "FUN_00528b94.s",
-      "source_sha256": "444a74916d85b2ad522a208b76c5bd39856112e268a2363f256c565459407d52",
+      "source_sha256": "6e6ccf91a0ea5711012ef9b181721cbed82743486ed51247e58617ce87a39127",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528b8c (+0x8)",
       "code": {
@@ -8050,7 +8050,7 @@
       "function": "FUN_00528bb8",
       "va": "0x00528bb8",
       "source": "FUN_00528bb8.s",
-      "source_sha256": "a2a80e4efe8cf3e8b74f788529bc043de56762cf317e9c5b74d6208accd460ac",
+      "source_sha256": "368d059641a10003a4a316249fbd53148e295302ae89c9ed62cc593c52ffc05e",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528bb0 (+0x8)",
       "code": {
@@ -8072,7 +8072,7 @@
       "function": "FUN_00528bcc",
       "va": "0x00528bcc",
       "source": "FUN_00528bcc.s",
-      "source_sha256": "55e84f1ec33e5c27695a71d5815c6c4a1cc778eaa8b1a7a7e072dbc949d2414e",
+      "source_sha256": "a4762c8e6c6b6a51179a6aff5c2c629550b8dfd6c5e85824f4931a75ef741975",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528bc4 (+0x8)",
       "code": {
@@ -8094,7 +8094,7 @@
       "function": "FUN_00528bd8",
       "va": "0x00528bd8",
       "source": "FUN_00528bd8.s",
-      "source_sha256": "8bc820e94c1337b0157bd7e49671ca931ba21e4ec32dcb5800efb45692f633bb",
+      "source_sha256": "adcb28a079f1db8c1e19f9b8c354f8ca527540c9504f7c5bb4186c6329c7b387",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528bc4 (+0x14)",
       "code": {
@@ -8116,7 +8116,7 @@
       "function": "FUN_00528bed",
       "va": "0x00528bed",
       "source": "FUN_00528bed.s",
-      "source_sha256": "a5c332b7183aec51885aeca6ecc9930ad42a97451b219fa2f163270925b162d5",
+      "source_sha256": "0ca59f16bef3a18fdd64d612d5bbd54b6015bf0775f34b62759f9fe5f9273642",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528be4 (+0x9)",
       "code": {
@@ -8138,7 +8138,7 @@
       "function": "FUN_00528c02",
       "va": "0x00528c02",
       "source": "FUN_00528c02.s",
-      "source_sha256": "3fae884573ffc6138363ffdcf1b366965e5dbf8780095d16a2abfdd22702384a",
+      "source_sha256": "e752682688a596bdd5b4c9db3346e4a1005cc9bf66508cde758f27b10fae440c",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528bf8 (+0xa)",
       "code": {
@@ -8153,7 +8153,7 @@
       "function": "FUN_00528c15",
       "va": "0x00528c15",
       "source": "FUN_00528c15.s",
-      "source_sha256": "ec3f1a5e37ef7979cd012e12ccc72a3dc62d998f105dab713027bb1b1aaa3745",
+      "source_sha256": "03b6b0a59c36e9e1716003ab03fad92be8308e87b6cde97d47157230f40953f5",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528c0c (+0x9)",
       "code": {
@@ -8175,7 +8175,7 @@
       "function": "FUN_00528c29",
       "va": "0x00528c29",
       "source": "FUN_00528c29.s",
-      "source_sha256": "55a15de5033ad7b599c91cafcaa5302a44e17cfe998b0218e9513693ef85b348",
+      "source_sha256": "c7e4f1fe8c1e359dbca58121a2600b31019bc7f416f3ed425a2341edbd1bef0d",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528c20 (+0x9)",
       "code": {
@@ -8197,7 +8197,7 @@
       "function": "FUN_00528c3c",
       "va": "0x00528c3c",
       "source": "FUN_00528c3c.s",
-      "source_sha256": "104903043fa806c44beacafd329c3942970302aa0d0f82970279f5143eb858db",
+      "source_sha256": "e1dd0b00a480bd949f5aba63793b325424d81f294af21b611b2629920ed29ec6",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528c34 (+0x8)",
       "code": {
@@ -8219,7 +8219,7 @@
       "function": "FUN_00528c50",
       "va": "0x00528c50",
       "source": "FUN_00528c50.s",
-      "source_sha256": "8b7c467be6f96bd83c409d3a72824e32e2c3135175e968683b7367d97e931020",
+      "source_sha256": "82049c27e0d124d997b871e8291ad3c39ce563476dd57b6165f94903013da3be",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528c48 (+0x8)",
       "code": {
@@ -8241,7 +8241,7 @@
       "function": "FUN_00528c5c",
       "va": "0x00528c5c",
       "source": "FUN_00528c5c.s",
-      "source_sha256": "98cc4ccbb19d7695ea66654a8c2b581c16193aad188b2dbda8b7f9eb4c4df012",
+      "source_sha256": "dd8d80eabca0faa7d7448d005721d3faebf08ba0dd78ed97c66877f069e612fe",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528c48 (+0x14)",
       "code": {
@@ -8263,7 +8263,7 @@
       "function": "FUN_00528c7e",
       "va": "0x00528c7e",
       "source": "FUN_00528c7e.s",
-      "source_sha256": "72dd58eb28fff6d0d8a90123af32d522295ebb81ac6924fb56c8d443048401f9",
+      "source_sha256": "5fcf5e5f159ff5a9e39540f7acf7e05c035e7fd794e31782d6c30e577886302d",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528c70 (+0xe)",
       "code": {
@@ -8278,7 +8278,7 @@
       "function": "FUN_00528c9e",
       "va": "0x00528c9e",
       "source": "FUN_00528c9e.s",
-      "source_sha256": "e6ad43a2794639debcd33f668590187232fd4018cfbc97692f57304ce977b7a7",
+      "source_sha256": "4c4f019600a9008bed5dfc14d61ccda602cba3de069cebc550b8a774059d7937",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528c90 (+0xe)",
       "code": {
@@ -8293,7 +8293,7 @@
       "function": "FUN_00528cc0",
       "va": "0x00528cc0",
       "source": "FUN_00528cc0.s",
-      "source_sha256": "bc6e47b0613aa090cf5a2d0754584e5c29707bbb73619d92b4851de9437992f2",
+      "source_sha256": "762c481150d903ff62b48162f15c4f60a218aa56b1e87cd90f4fc36cc1f31022",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528cb8 (+0x8)",
       "code": {
@@ -8315,7 +8315,7 @@
       "function": "FUN_00528cea",
       "va": "0x00528cea",
       "source": "FUN_00528cea.s",
-      "source_sha256": "867ba22af0d99101d0311bdb34a4494fd65258da2d513d30d2844ba30ecdd1f1",
+      "source_sha256": "090c2a4bd8ce124a05404d7d9e324b91fd7fb53d070ca1c5787be2e210388703",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528cdf (+0xb)",
       "code": {
@@ -8330,7 +8330,7 @@
       "function": "FUN_00528d12",
       "va": "0x00528d12",
       "source": "FUN_00528d12.s",
-      "source_sha256": "2d5d295fc0743962a97b951ffc93fc6efdb6713d1c457af8468f0a06eb9d28c8",
+      "source_sha256": "a0b43fb9a93a1865a47a68b50f4111bdfddc39bdad6f7a21e090074c8d59b61b",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528d07 (+0xb)",
       "code": {
@@ -8345,7 +8345,7 @@
       "function": "FUN_00528d24",
       "va": "0x00528d24",
       "source": "FUN_00528d24.s",
-      "source_sha256": "704fc66343fd05f81f4d40c10384ad1e939818dfe2c8512a87d1997e82074e3f",
+      "source_sha256": "32fce992a92f06f24a07ffdc3ce9568367abe0323d4ac166474d3c9200083f70",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528d1c (+0x8)",
       "code": {
@@ -8367,7 +8367,7 @@
       "function": "FUN_00528d40",
       "va": "0x00528d40",
       "source": "FUN_00528d40.s",
-      "source_sha256": "a268d411e9eb89e37a0d58d0eaa558637d53b106941c89b6d5d110b6ae82f6d3",
+      "source_sha256": "2837fce2289b397262f940fe1c902384613ef24481aef9b0cb3e6d71fbf63397",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528d38 (+0x8)",
       "code": {
@@ -8389,7 +8389,7 @@
       "function": "FUN_00528d4c",
       "va": "0x00528d4c",
       "source": "FUN_00528d4c.s",
-      "source_sha256": "e9ee485b3fce25e775d5ed3e90d727906bc8c238454e747a6e9e78b286f5fae2",
+      "source_sha256": "92644462e7daea7928ae1570b2508e290980b40d4df0716b3ed6e5f8cf6b3aae",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528d38 (+0x14)",
       "code": {
@@ -8411,7 +8411,7 @@
       "function": "FUN_00528d60",
       "va": "0x00528d60",
       "source": "FUN_00528d60.s",
-      "source_sha256": "95c72f42d1d5fd427913334311d8c80f07c065d0b7b9660a615f9b57b4c5a164",
+      "source_sha256": "3b99d997b26d00ce4300bfb70a999778a389729c2fa5794b77eee227287cab0f",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528d58 (+0x8)",
       "code": {
@@ -8433,7 +8433,7 @@
       "function": "FUN_00528d8b",
       "va": "0x00528d8b",
       "source": "FUN_00528d8b.s",
-      "source_sha256": "3580dea8dc0dcec9685be37e19e4813b62c28defbe3540ed849f6a1d4e8c94f7",
+      "source_sha256": "d59d85aa7a8fe12e37c95eb7d1442a5a1162dbb3c02dd5066f13c90ac916a4c7",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528d74 (+0x17)",
       "code": {
@@ -8455,7 +8455,7 @@
       "function": "FUN_00528da0",
       "va": "0x00528da0",
       "source": "FUN_00528da0.s",
-      "source_sha256": "6a9446500fd06ae30d09aa13966685443977593b4aac2217b4df821b347051cf",
+      "source_sha256": "c0c42ca3113f862ecb6d5e0410f924c1fe56ad7a91553cd3c155942051d69fde",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528d98 (+0x8)",
       "code": {
@@ -8477,7 +8477,7 @@
       "function": "FUN_00528db4",
       "va": "0x00528db4",
       "source": "FUN_00528db4.s",
-      "source_sha256": "9f35da81c716e8e2687f91caa5038f4a3b4ea0e90ff8e2cef5f04f5cc3450c97",
+      "source_sha256": "a08c0f92687fdd85558a15e1cb8200f1c0daefc1f0d2419dccc37fd0267828dc",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528dac (+0x8)",
       "code": {
@@ -8499,7 +8499,7 @@
       "function": "FUN_00528dc8",
       "va": "0x00528dc8",
       "source": "FUN_00528dc8.s",
-      "source_sha256": "db773201b113ec8600578062fc6e65afd177540eab19d2e8cdcf528da4fb1345",
+      "source_sha256": "fd90261feec15d6c1a0ecfcdd80888aa46c79bae6a7206a47b90fb60bd23fb38",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528dc0 (+0x8)",
       "code": {
@@ -8521,7 +8521,7 @@
       "function": "FUN_00528ddc",
       "va": "0x00528ddc",
       "source": "FUN_00528ddc.s",
-      "source_sha256": "1ac2a62b81c343fba738a9b5b708b9a09a660466da2a8e7ae722affd7cb8eb1f",
+      "source_sha256": "f99cc5ddc667c873061666033780fe40efc872e2aaf60b9b6efff56145f46982",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528dd4 (+0x8)",
       "code": {
@@ -8543,7 +8543,7 @@
       "function": "FUN_00528df1",
       "va": "0x00528df1",
       "source": "FUN_00528df1.s",
-      "source_sha256": "b82b95bceafa02a9d95cc3eb315ee525c5dd32f45ac38943267143699ee9b177",
+      "source_sha256": "9c34ebcd1d2d2346f4bcf33bd30fe49f74f2b0503996c04225ac1dd60464ced6",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528de8 (+0x9)",
       "code": {
@@ -8565,7 +8565,7 @@
       "function": "FUN_00528e1a",
       "va": "0x00528e1a",
       "source": "FUN_00528e1a.s",
-      "source_sha256": "5edd2be2515c8f884d1d9455b2f19b302da921aaa9505b7a9fb6d8e92bf5ec0b",
+      "source_sha256": "9491cef9f2b1dc5138862d8866eea2102302c956f356dc986a6c349d9561aea6",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528e0f (+0xb)",
       "code": {
@@ -8580,7 +8580,7 @@
       "function": "FUN_00528e2f",
       "va": "0x00528e2f",
       "source": "FUN_00528e2f.s",
-      "source_sha256": "9441c48c0dc9037cecbe545c2ea377a5e2233fa3872226b76edbcfc9309cd0f6",
+      "source_sha256": "cde6a7f12237ad73b50c5ef78e080d3e1e8c9a3029a738438877f285055ae521",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528e24 (+0xb)",
       "code": {
@@ -8602,7 +8602,7 @@
       "function": "FUN_00528e44",
       "va": "0x00528e44",
       "source": "FUN_00528e44.s",
-      "source_sha256": "1f34c4140b4174198175af6378d4b373ee16406afe11ef2ccdc1f993bfa819e8",
+      "source_sha256": "a0122ffdde6d8b3b11d6c6803384338074e40404178e4ce55e5283c068cd19e6",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528e3c (+0x8)",
       "code": {
@@ -8624,7 +8624,7 @@
       "function": "FUN_00528e58",
       "va": "0x00528e58",
       "source": "FUN_00528e58.s",
-      "source_sha256": "42eaa5976378a3a13355bde2034341739825c9d1a32de2390c08e02fbc2a7ff0",
+      "source_sha256": "50b42b9868bbc379c398ebf25dcfc617dbec935b8e74f77e7250060ce2727a94",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528e50 (+0x8)",
       "code": {
@@ -8646,7 +8646,7 @@
       "function": "FUN_00528e6e",
       "va": "0x00528e6e",
       "source": "FUN_00528e6e.s",
-      "source_sha256": "229c83c0bdaf8e2795a59ae868e9f6aa6b45634f6c0413500db4d242db75e9c6",
+      "source_sha256": "c6c06e71c1eb13f632d3df59a50a538b8cadc607bdb315a1b5bffd0391e672ee",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528e64 (+0xa)",
       "code": {
@@ -8661,7 +8661,7 @@
       "function": "FUN_00528e80",
       "va": "0x00528e80",
       "source": "FUN_00528e80.s",
-      "source_sha256": "a64b4e70ed23a89561c70ab055648882c42c1df4c8d6c714034688317cb625ac",
+      "source_sha256": "4ab237cc148947ff09b793fc7752a361a039bcf1863332db964a65e175e17e73",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528e78 (+0x8)",
       "code": {
@@ -8683,7 +8683,7 @@
       "function": "FUN_00528eab",
       "va": "0x00528eab",
       "source": "FUN_00528eab.s",
-      "source_sha256": "ffd941c90e34fd5829e5be23356b9d07c93384918de9f6f56b2bdc21969f4156",
+      "source_sha256": "b26d37904a73de4f5ed4516a871fe7a9acc63b01a774c46f49549b978dfe43b7",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528ea3 (+0x8)",
       "code": {
@@ -8705,7 +8705,7 @@
       "function": "FUN_00528ed7",
       "va": "0x00528ed7",
       "source": "FUN_00528ed7.s",
-      "source_sha256": "968594e55c7f11bf49f362e09326294feb7599d14509b0abb851bf0681249c0e",
+      "source_sha256": "5bafa0489a393c7d8a25e3065036a1982dbf8f52a1e605cf40133a695dc30b04",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528ecf (+0x8)",
       "code": {
@@ -8727,7 +8727,7 @@
       "function": "FUN_00528f05",
       "va": "0x00528f05",
       "source": "FUN_00528f05.s",
-      "source_sha256": "267afe30f8a1ee0516fcaee1785d015831ee5789c2584cf340a6956d6b920f62",
+      "source_sha256": "fb1b054b6ae62034b9027f5e1e25e6f3c140641b43ab7206e01192164be88d32",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528ef7 (+0xe)",
       "code": {
@@ -8749,7 +8749,7 @@
       "function": "FUN_00528f31",
       "va": "0x00528f31",
       "source": "FUN_00528f31.s",
-      "source_sha256": "912705b08aaca9a41236614c26b108521683a5c23dbca81501ec12312124cded",
+      "source_sha256": "ff4afa3e42e5e1ca5c988f81d394ed88f66ad0814539de5e44d7698b051baffc",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528f23 (+0xe)",
       "code": {
@@ -8771,7 +8771,7 @@
       "function": "FUN_00528f44",
       "va": "0x00528f44",
       "source": "FUN_00528f44.s",
-      "source_sha256": "fa41579784bd0f7a19d48076a4e1dde7fde40280bd01783338a610d98d92d428",
+      "source_sha256": "4ae07d315615afaae6a625d797cf9d71b634ae53b7e7ac568d9c5ee215fdf374",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528f3c (+0x8)",
       "code": {
@@ -8793,7 +8793,7 @@
       "function": "FUN_00528f58",
       "va": "0x00528f58",
       "source": "FUN_00528f58.s",
-      "source_sha256": "848d0e297fb20945f69cc1c374314b4a6ccbafb4a467d38e521b462cf61e3494",
+      "source_sha256": "170b5416922210207316f20ccbe26706a0c83dbb09d02403b91930b7ab2f68c7",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528f50 (+0x8)",
       "code": {
@@ -8815,7 +8815,7 @@
       "function": "FUN_00528f6c",
       "va": "0x00528f6c",
       "source": "FUN_00528f6c.s",
-      "source_sha256": "86e30ef972e50c06934db3c0f0df231a29d03cf739e358234ef4e4fcc4378764",
+      "source_sha256": "7a36f8ef89a7353f2846d3cc660d4fa4ca19584773481557c810ed4c7f8277ab",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528f64 (+0x8)",
       "code": {
@@ -8837,7 +8837,7 @@
       "function": "FUN_00528f80",
       "va": "0x00528f80",
       "source": "FUN_00528f80.s",
-      "source_sha256": "c405cd75fa6bcfa2501e0fc6f057d935153f0cc2d24c63d67c8ac9215f1d8169",
+      "source_sha256": "2b805a10a6af780e6fc9548ee55f631d061aead813104788428fb07a88cbad26",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528f78 (+0x8)",
       "code": {
@@ -8859,7 +8859,7 @@
       "function": "FUN_00528f94",
       "va": "0x00528f94",
       "source": "FUN_00528f94.s",
-      "source_sha256": "01b1068bf35e16d361b2ea388d79b038db390b2746482a8afee5163fcf2d77fb",
+      "source_sha256": "9b20864dd6ee57a7e4ff3ebb1fe63aaf64bd336499c2a02e10417819dade987a",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528f8c (+0x8)",
       "code": {
@@ -8881,7 +8881,7 @@
       "function": "FUN_00528fa9",
       "va": "0x00528fa9",
       "source": "FUN_00528fa9.s",
-      "source_sha256": "c296a2a73e067cde53bad1ec57abcbcb4d36525c7c554cb78025db4fb269d98f",
+      "source_sha256": "f3468e450ca69453c075c273f7f82d3129a0adbb2343fb3ea21d952f1ed29632",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528fa0 (+0x9)",
       "code": {
@@ -8903,7 +8903,7 @@
       "function": "FUN_00528fb4",
       "va": "0x00528fb4",
       "source": "FUN_00528fb4.s",
-      "source_sha256": "7d566d50a388a16431c037e024f639122aa51ded49839bbe36e6325bd668d8bf",
+      "source_sha256": "c1c8757f94f139ec53ea858814d928015ec4e096bbcca2ac3053f05369499b35",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528fa0 (+0x14)",
       "code": {
@@ -8925,7 +8925,7 @@
       "function": "FUN_00528fc8",
       "va": "0x00528fc8",
       "source": "FUN_00528fc8.s",
-      "source_sha256": "447a3be8f85b7a425cc48f2fab8915b12a683f556dba3cf0520f2afbf80b40ef",
+      "source_sha256": "55ce69cce31a79251a4518db0cc470374474931ea6d33642f1a91d37e7abe738",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528fc0 (+0x8)",
       "code": {
@@ -8947,7 +8947,7 @@
       "function": "FUN_00528fea",
       "va": "0x00528fea",
       "source": "FUN_00528fea.s",
-      "source_sha256": "ff4fd2c6382d2340d0b3709f7ea186757a99e07e381c4d39f9c330263cd0d970",
+      "source_sha256": "5b6b857b52c085ed68af35ea1b544afb016b8589efe3c230131568b9778d90f1",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528fdc (+0xe)",
       "code": {
@@ -8962,7 +8962,7 @@
       "function": "FUN_00528ffc",
       "va": "0x00528ffc",
       "source": "FUN_00528ffc.s",
-      "source_sha256": "a13a227dbddd07df8c56650aff1bb58b6b05e32277a2749a284a87e1b10e4acd",
+      "source_sha256": "dbb32860f2a0e645678c3f3d10e82d64e8f381b5920c1323e303a1ad5161e306",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00528ff4 (+0x8)",
       "code": {
@@ -8984,7 +8984,7 @@
       "function": "FUN_00529012",
       "va": "0x00529012",
       "source": "FUN_00529012.s",
-      "source_sha256": "e9a9d99b0281182c6cfb78290e03b1a021e1f1f35f277ca0b1ef13adc74d95be",
+      "source_sha256": "9c3d53fd63c68f35566f285048d682d4f1d7e9c90c42162ad3ceba7714bc3d23",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00529008 (+0xa)",
       "code": {
@@ -8999,7 +8999,7 @@
       "function": "FUN_00529024",
       "va": "0x00529024",
       "source": "FUN_00529024.s",
-      "source_sha256": "4e4cd436477e5e821799f29a643397c0089e8492c567f7fbbb15b21f947da39c",
+      "source_sha256": "8b30a95e647a4f03ddbc14a5fd6b7614b30e77c5f2c2062c172284f77c999ddc",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_0052901c (+0x8)",
       "code": {
@@ -9021,7 +9021,7 @@
       "function": "FUN_0052903a",
       "va": "0x0052903a",
       "source": "FUN_0052903a.s",
-      "source_sha256": "80d1887efa4a82c23b129ec97e878f13189621e754bc73a0112d2be6dd73a4e9",
+      "source_sha256": "ed3525ee38b65281c05d064dd49d92942de2af4109ad230cd147ea3a7d1cf8cd",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00529030 (+0xa)",
       "code": {
@@ -9036,7 +9036,7 @@
       "function": "FUN_0052904c",
       "va": "0x0052904c",
       "source": "FUN_0052904c.s",
-      "source_sha256": "f8bb9aa646368436275ef815763a93ab9e80a4ac39bf17f1f99c8b41102828f9",
+      "source_sha256": "d325d5e30bb21927d781f3f491802b11c38cf74630916877b5b4f6cdc5c2d41c",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00529044 (+0x8)",
       "code": {
@@ -9058,7 +9058,7 @@
       "function": "FUN_00529060",
       "va": "0x00529060",
       "source": "FUN_00529060.s",
-      "source_sha256": "b56ba83403f0536dde406ed1421ea0e8b2f63166fd549f49f9dbed73778b9c17",
+      "source_sha256": "10752545e92bc4838ff9917137d0805457f77d8cab6115e6c4d5ac4153474f68",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00529058 (+0x8)",
       "code": {
@@ -9080,7 +9080,7 @@
       "function": "FUN_0052906c",
       "va": "0x0052906c",
       "source": "FUN_0052906c.s",
-      "source_sha256": "2831142a04e3f85e671608929b0d72cbc54c5071f2d56c114969e10067545ef4",
+      "source_sha256": "0ae16bd85763c782a8f144386af5a676a860fa2bfd1b2833684cf94398d03cc1",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00529058 (+0x14)",
       "code": {
@@ -9102,7 +9102,7 @@
       "function": "FUN_0052908e",
       "va": "0x0052908e",
       "source": "FUN_0052908e.s",
-      "source_sha256": "504e77906991e98c1769a307679f087fb190119d14d963d5d5f5a60f51f00f90",
+      "source_sha256": "9764c3b56cf34e1bb4440d2bac24624a7d1b40f1d1a81ede5c864cb2b948455e",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00529083 (+0xb)",
       "code": {
@@ -9117,7 +9117,7 @@
       "function": "FUN_00529098",
       "va": "0x00529098",
       "source": "FUN_00529098.s",
-      "source_sha256": "769f9fd685e12b6035e509651c65c6607f537bf8c4dbaade3189f04936feb012",
+      "source_sha256": "2bbca5ce70ed6b0a8b9f5a84953811f1f1af4e50f0cf6f81e6e14b0eb9453905",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00529083 (+0x15)",
       "code": {
@@ -9139,7 +9139,7 @@
       "function": "FUN_005290ba",
       "va": "0x005290ba",
       "source": "FUN_005290ba.s",
-      "source_sha256": "41568842aab847f397d22221eed927abb866db307a5c2a385cae020da121d50d",
+      "source_sha256": "75036a47733ce3d5672767c1e18464cf797ab983b90f9644834a4679672ae3fb",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005290af (+0xb)",
       "code": {
@@ -9154,7 +9154,7 @@
       "function": "FUN_005290cc",
       "va": "0x005290cc",
       "source": "FUN_005290cc.s",
-      "source_sha256": "52ff658f7130892b0aa49e830c370d3df4c525e411133a24338fac193c276b1e",
+      "source_sha256": "c95847dcc5c88fcce03c0b3583fa64b9e31c121b3efd7e3c94e9dfd13b4a874d",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005290c4 (+0x8)",
       "code": {
@@ -9176,7 +9176,7 @@
       "function": "FUN_005290e0",
       "va": "0x005290e0",
       "source": "FUN_005290e0.s",
-      "source_sha256": "9ea805915dd6ba63734f1345e2747b9e98568d98e0fba9b418afb6d41fe2c9e2",
+      "source_sha256": "ce1671f41102301100d6c8c7d7376dc852c43f4e5778f3b1fbdaf504f63c403c",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005290d8 (+0x8)",
       "code": {
@@ -9198,7 +9198,7 @@
       "function": "FUN_005290f4",
       "va": "0x005290f4",
       "source": "FUN_005290f4.s",
-      "source_sha256": "9dea1b9ede172bd80e174f2faba33cd56488af6c2eb1f1303c901e490120a991",
+      "source_sha256": "07c85a809d0d4ed54b32014194ed2b5cc41bc0672f3c18a27825201996c4df2a",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005290ec (+0x8)",
       "code": {
@@ -9220,7 +9220,7 @@
       "function": "FUN_0052910a",
       "va": "0x0052910a",
       "source": "FUN_0052910a.s",
-      "source_sha256": "f057a3417816b5e5d5cf23cfce1498934c3ed017f4629171bcd249e740914ed8",
+      "source_sha256": "04423257ab5f164addac7274479dfd8f1b3655ef2e10a6cc6cd0cb0c0c26d531",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00529100 (+0xa)",
       "code": {
@@ -9235,7 +9235,7 @@
       "function": "FUN_0052911c",
       "va": "0x0052911c",
       "source": "FUN_0052911c.s",
-      "source_sha256": "3271c013e5b9e139d905008216c81a86d14f9d0b614e17301d95d4df2acad6a2",
+      "source_sha256": "e3f6d0fe1420f9ab183fb147bb86ddbe9df75fbc75d5963568d0d18eb0ca3dcf",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00529114 (+0x8)",
       "code": {
@@ -9257,7 +9257,7 @@
       "function": "FUN_00529130",
       "va": "0x00529130",
       "source": "FUN_00529130.s",
-      "source_sha256": "ac8fdcbce1e2a387fb3903908573993c616fd39440da84a4b5d53bd6f665ab9b",
+      "source_sha256": "fbfa84d8fcdeab56e2252a2d80b44fb3fbc30572376ed731f537b5e73a36f549",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00529128 (+0x8)",
       "code": {
@@ -9279,7 +9279,7 @@
       "function": "FUN_0052913c",
       "va": "0x0052913c",
       "source": "FUN_0052913c.s",
-      "source_sha256": "5941ab0ac333d23e82334a3fa67152c95165ec94850ce6b68bc21edf669fe6d2",
+      "source_sha256": "3cac9c1da5d87f542b6927be0e455e902db34e892dbedc5c89ac279d3a63e1d6",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00529128 (+0x14)",
       "code": {
@@ -9301,7 +9301,7 @@
       "function": "FUN_00529150",
       "va": "0x00529150",
       "source": "FUN_00529150.s",
-      "source_sha256": "ff0a8c13ec2c07eebb650b3168791cac05ccb2996a239cc63a28debad2b18d78",
+      "source_sha256": "a7735fad7163811243b760cb0576e6a2b27ae21a21ca5e8efbebe3b4608972d4",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00529148 (+0x8)",
       "code": {
@@ -9323,7 +9323,7 @@
       "function": "FUN_00529164",
       "va": "0x00529164",
       "source": "FUN_00529164.s",
-      "source_sha256": "e79882330ad74b645a8a939da705cd422b63cf743839c3d3af04418d5545f492",
+      "source_sha256": "672b77e8a147a48fba329a6fc312ab9dc75eb5938e7338ad0800e1717f6f2c60",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_0052915c (+0x8)",
       "code": {
@@ -9345,7 +9345,7 @@
       "function": "FUN_00529179",
       "va": "0x00529179",
       "source": "FUN_00529179.s",
-      "source_sha256": "71ccf74f55721724163611935187e61d1898286c5b6ed1951dcf1d1bf33a6263",
+      "source_sha256": "f06d272e18064f1d8d4c6e35af292cd8cebbd8f945bde81a47afd0991c8b579c",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00529170 (+0x9)",
       "code": {
@@ -9367,7 +9367,7 @@
       "function": "FUN_0052918c",
       "va": "0x0052918c",
       "source": "FUN_0052918c.s",
-      "source_sha256": "e508a9eaf6603ab878bd27cfe04861558edac01a3eb23b96b3dcc68ffc80b3c0",
+      "source_sha256": "6e6d17b401768fdfefb8ea1fdcf79b57b9576cbb833f8e79723321543aa27ff4",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00529184 (+0x8)",
       "code": {
@@ -9389,7 +9389,7 @@
       "function": "FUN_005291c3",
       "va": "0x005291c3",
       "source": "FUN_005291c3.s",
-      "source_sha256": "802d67447fbb433e50f9d8ceb6d8f672e43f583e38c7001542d3582ad200d416",
+      "source_sha256": "c0785e83ac0bc99cf43191e22e8371beae8acc037701c8f434fa6fc2dc23da78",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005291b9 (+0xa)",
       "code": {
@@ -9411,7 +9411,7 @@
       "function": "FUN_005291f1",
       "va": "0x005291f1",
       "source": "FUN_005291f1.s",
-      "source_sha256": "b6831582d95d53f08273128135e75fd9a0e1d5c8e1e53dae9e11799c874646fb",
+      "source_sha256": "dfa270a07875343ac84c3caff400daf8c1b2f5fe8e9e864c6d1f5a12a4b57d77",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_005291e6 (+0xb)",
       "code": {
@@ -9433,7 +9433,7 @@
       "function": "FUN_00529214",
       "va": "0x00529214",
       "source": "FUN_00529214.s",
-      "source_sha256": "3fce67f20f0113a465bc0a39bdf10152c11fb9f6f4c270ae2aac41a14f5ecc85",
+      "source_sha256": "80ac33932a6838de9bd3d22935d815287f438f7e49dc66dcef13bd0e5cd77dd7",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_0052920c (+0x8)",
       "code": {
@@ -9455,7 +9455,7 @@
       "function": "FUN_00529228",
       "va": "0x00529228",
       "source": "FUN_00529228.s",
-      "source_sha256": "3df4f8ea54742b4dbe4011bb1451755de54a136dbcc70587cb7666109c0aef12",
+      "source_sha256": "98426478bfcbfbf82db0129085bb58c9d01d3657c34ede6142a0b0077a565fc5",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00529220 (+0x8)",
       "code": {
@@ -9477,7 +9477,7 @@
       "function": "FUN_0052923c",
       "va": "0x0052923c",
       "source": "FUN_0052923c.s",
-      "source_sha256": "96caf7624d1af4683c05a27cb3d3f3069c2bdcbe72c07771cbebeab50cdae948",
+      "source_sha256": "cf4cb947d7790c460a8a9042958ad6feb41c7aa8351d1f84c5b81759f38e3ba9",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00529234 (+0x8)",
       "code": {
@@ -9499,7 +9499,7 @@
       "function": "FUN_00529250",
       "va": "0x00529250",
       "source": "FUN_00529250.s",
-      "source_sha256": "ea1daab9bcf84a93d01e7a68f8cddfa894ba08fde28bd0f96f9edf43459947c8",
+      "source_sha256": "9ef3b7c98f0b5d81269869c982c78ce43f7cee4194a02bc4e899302f06fd6711",
       "region": "crt_mfc",
       "evidence_id": "derived-entry: found by the span split, not in function-index.json; inside the span of FUN_00529248 (+0x8)",
       "code": {

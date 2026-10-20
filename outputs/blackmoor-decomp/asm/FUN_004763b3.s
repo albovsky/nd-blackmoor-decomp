@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004763b3
+# name:         inferred_match_puzzle_check_for_match
+# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_e4_runtime.c:268 says "0x4763b3: the runs through the piece at (col, row)."
+# name-note:    CheckForMatch(col, row): finds the runs through the piece at a cell in the Match puzzle.
 # arguments:    2 ebp-relative stack slot(s) referenced: arg_8, arg_c; ret 0x8 (callee pops 8 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       5 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14
 # fields:       [eax + n] field_1, field_2, field_22, field_30, field_644, field_656, field_658, field_65e, field_801, field_8c2, field_8c6, field_8ce and 4 more; [ecx + n] field_1, field_2, field_30, field_44, field_65a, field_65c, field_65e, field_8c2, field_8c6, field_8ce, field_8d0, field_8d2 and 2 more; [edx + n] field_2, field_30, field_42, field_644, field_656, field_658, field_65a, field_65c, field_801, field_8c2, field_8c6, field_8ce and 3 more
 # callees:      calls FUN_0050ca3e, FUN_0044a2b7
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 408 instruction(s), 23 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 408 instruction(s), 23 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

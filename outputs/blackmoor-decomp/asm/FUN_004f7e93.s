@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004f7e93
+# name:         inferred_direct_sound_update_3d_sound
+# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/4f7e93.c.txt, not original source) refers to the data labelled s_CDirectSound__Update3DSound_____c_0055ed4c
+# name-note:    Updates a channel 3D position, min and max distance when given values are not the 10000 sentinel; logs CDirectSound::Update3DSound.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       5 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14
 # fields:       [eax + n] field_2, field_e, field_12, field_162, field_28b, field_2a7, field_2ab, field_3c2, field_3ce; [ecx + n] field_6, field_a, field_12, field_12c, field_28f, field_2a3, field_2a7; [edx + n] field_6, field_a, field_e, field_29b, field_2a3, field_2ab
 # callees:      calls FUN_004f709c, FUN_004f8f94, FUN_004f9040, FUN_0050ca3e, FUN_0044a2b7, FUN_004f9234, FUN_004f93ec
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 159 instruction(s), 14 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 159 instruction(s), 14 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

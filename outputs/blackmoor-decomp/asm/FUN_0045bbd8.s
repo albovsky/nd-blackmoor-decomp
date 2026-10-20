@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0045bbd8
+# name:         inferred_bul_random_rectangle_picker
+# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_da_runtime.h:33 says "0x45bbd8 random pick of four rectangles"
+# name-note:    Random pick of four rectangles (_rand) into a working set; returns the number of moves.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       6 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18
 # fields:       [eax + n] field_4, field_8, field_c, field_1e; [ecx + n] field_36; [edx + n] field_4, field_8, field_c, field_36d
 # callees:      calls FUN_0050cd50
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 69 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/action_family_da_runtime.c:pick_moves (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 69 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

@@ -44,6 +44,21 @@ Next: (1) raw 0xd1 Turning Puzzle (11 scenes, object `0x61d449`, handler `0x4b64
 
 For a future raw 0x2d / mode-0 owner: `0x4ceb3b` also sets the completion byte of the row in obj+0x23e (`0x4ceb75..0x4ceb7f`), and the movie state in `SessionA2EMovie` needs a reset hook once 0x2d lands.
 
+## Handoff: Track M names slice 2, structural and inferred name tiers (2026-10-20 PDT, cloud thread)
+
+Result: the machine-only count falls from **3,647 to 2,843** (of 4,786 assembly sources). **804 sources gained a name in two new tiers that are counted apart from "Named"**: **258 structural** (import thunks, jump thunks and exception handler stubs, named by the role `function-xrefs.json` records about the bytes) and **546 inferred** (a LOWER-CONFIDENCE `inferred_<role>` name tied to cited evidence: 237 from repository text that states what the function does, 290 from Ghidra string labels in the committed pseudocode, 19 from a leaf-import rule). Unchanged: 483 named (399 native port, 1 Vorbis parity, 83 Ghidra), 570 funclet, 86 hand. No instruction byte changed: all ten batches re-audited (accepted, 0 mismatching bytes, 0 relocations), `scripts/build_game_exe.sh` and `compose_image.py build` still produce SHA-256 `afd337a2...5c45`. Build evidence only; no whole-file x86 match is claimed and the game is not complete.
+
+What changed (details in `asm/README.md`, "Lower name tiers"):
+- `scripts/function_names.py`: new bases `structural`, `inferred_import` (both rebuilt by `check`), `inferred_prose` and `inferred_strings` (curated; `add-inferred` validates proposals, `write` keeps the ones that still validate). Every inferred entry has `confidence: low`, the name prefix `inferred_`, and evidence the check re-reads: a prose quote must still occur in its file and contain the function's address, string labels must occur in `unverified-pseudocode/<va>.c.txt`. A lower tier never replaces a stronger name or a hand-annotated source.
+- Headers: the `unverified` line carries a tier-specific clause (`function_names.unverified_clause`); the auditor requires exactly it, so an inferred name cannot claim to be copied from evidence or read from the code. `annotate_machine.py annotate --derived --named` now names derived entries too. Header comments may not contain C comment delimiters (quotes are defanged).
+- Map and `REPORT.md` show Hand, Named, Funclet, Structural, Inferred and Machine only.
+- How the inferred names were produced: four Sonnet readers worked from digests of the repository's own prose mentions (413 candidate functions, 237 accepted) and of small pseudocode with string labels (305 candidates, 290 accepted); the rest were skipped because the evidence did not state a job. I spot-checked samples; nobody has read the assembly, and the pseudocode is Ghidra's, not original source.
+- Not touched: hash-pinned kernel files, `matches.json` label, the pending headers and strings/resources cards. There is no owner ruling for the inferred tier; to drop it, remove the `inferred_*` entries from `asm/function-names.json`, rerun `annotate_machine.py annotate --named` (and `--derived --named`), `refresh` and a re-audit.
+
+Next steps if wanted: the remaining 2,843 have no evidence naming them (1,573 game functions are mentioned only in objdiff/tests); a human or independent review of the assembly could promote an inferred name to a hand-annotated source; new ports still add names through `function_names.py write`.
+
+Verification: see the PR description.
+
 ## Handoff: Track M names slice, evidence-backed function names in the assembly (2026-10-20 PDT, cloud thread)
 
 Result: **483 of the 4,786 assembly sources now carry the name of a recovered function** (399 from a reviewed native port, 1 from the Vorbis parity rule, 83 Ghidra MFC/CRT names), **570 more carry only Ghidra's `Unwind@`/`Catch@` funclet label** (counted as their own tier, not as names), **86 are hand-annotated**, and **3,647 stay machine-only** (`fn_<va>`; the earlier handoff's "4,090" counted only indexed functions, the other 610 machine sources are derived entries and fragments). No instruction byte changed: `scripts/build_game_exe.sh` and `compose_image.py build` still reproduce the original SHA-256 (`afd337a2...5c45`). Build evidence only; no whole-file x86 match is claimed and the game is not complete.

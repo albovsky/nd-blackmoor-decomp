@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004f0059
+# name:         inferred_session_input_dispatcher
+# naming:       INFERRED (lower confidence, not verified): the repository text src/original_methods_fl23a.h:13 says "the session input dispatcher 0x4f0059"
+# name-note:    Session input dispatcher that cascades pointer events to the per-action hit-test handlers.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       4 ebp-relative slot(s): local_4, local_8, local_c, local_10
 # fields:       [eax + n] field_4, field_6, field_8, field_c, field_10, field_21, field_28, field_34, field_38, field_3c, field_40, field_4a and 32 more; [ecx + n] field_4, field_8, field_c, field_10, field_28, field_2f, field_34, field_38, field_3c, field_40, field_48, field_4a and 22 more; [edx + n] field_4, field_8, field_c, field_10, field_21, field_23, field_28, field_2d, field_34, field_38, field_40, field_48 and 25 more
 # callees:      calls FUN_00469057, FUN_004b42d3, FUN_00459cc9, FUN_004a3f40, FUN_004acf45, FUN_0048a920, FUN_004a1e16, FUN_0048e628, FUN_0048d1e8, FUN_004a6574, FUN_004b5d17, FUN_004ab528, FUN_00465c99, FUN_00462c39, FUN_00487c92, FUN_004b2250 and 29 more
-# track-n:      outputs/blackmoor-decomp/src/blackmoor_app.mm:native_pointer_consume (function ledger class candidate_port; also native_pointer_scan; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 2237 instruction(s), 255 conditional branch(es) and 2 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/blackmoor_app.mm:native_aea_image (function ledger class candidate_port; also native_pointer_consume, native_pointer_scan; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 2237 instruction(s), 255 conditional branch(es) and 2 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

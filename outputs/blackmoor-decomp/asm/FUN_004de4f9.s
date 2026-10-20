@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004de4f9
+# name:         inferred_caption_text_box_poll
+# naming:       INFERRED (lower confidence, not verified): the repository text src/caption_lifecycle.h:253 says "0x4de4f9: 0x4ee6c7(0) in modes 2..3, close on 0, then 0x4de440."; tasks/S05-2-framed-text-box-lifecycle.md:16 says "calls `0x4de4f9` while `0x5a161f` is set"
+# name-note:    Per-frame poll of the caption text box: closes it when 0x4ee6c7(0) returns 0, then runs 0x4de440.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       2 ebp-relative slot(s): local_4, local_8
 # fields:       [eax + n] field_991
 # callees:      calls FUN_004ee6c7, FUN_004de2d8, FUN_004de440
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 24 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# unverified:   machine annotation only: the 24 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

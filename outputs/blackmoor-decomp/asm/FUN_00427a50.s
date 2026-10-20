@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_00427a50
+# name:         inferred_scene_row_dispatcher
+# naming:       INFERRED (lower confidence, not verified): the repository text tasks/A-0C.1-body-boundary-and-decoder.md:16 says "normalised dispatch is `0x427a50`"
+# name-note:    Normalised per-row dispatcher with arms per runtime type.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       52 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_118, local_11c, local_120, local_124, local_128, local_12c, local_130 and 40 more
 # fields:       [eax + n] field_2, field_4, field_6, field_8, field_c, field_10, field_24, field_2f; [ecx + n] field_2, field_4, field_6, field_8, field_c, field_10, field_25, field_2b, field_2d, field_31, field_35, field_39; [edx + n] field_2, field_4, field_8, field_c, field_10, field_14, field_18, field_1c, field_20, field_21, field_23, field_24 and 3 more
 # callees:      calls FUN_00423f57, FUN_0042ae73, FUN_0042b07e, FUN_0042b2e4, FUN_00414947, FUN_004cb586, FUN_0042b510, FUN_0042ba3a, FUN_0044727a, FUN_004cd6ff, FUN_004ced84, FUN_00420c17, FUN_0042c221, FUN_0042d35a, FUN_004bf9bb, FUN_004899ca and 106 more
 # track-n:      outputs/blackmoor-decomp/src/action_family_3f_runtime.h:convo3f_step (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 2703 instruction(s), 177 conditional branch(es) and 3 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 2703 instruction(s), 177 conditional branch(es) and 3 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

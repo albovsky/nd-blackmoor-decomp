@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004cf687
+# name:         inferred_avf_decode_thread_proc
+# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_2d_runtime.h:47 says "The AVF decode thread (0x4cf687) is host behaviour"
+# name-note:    Thread procedure of the AVF decode thread.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; no ret instruction in the code part; ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [eax + n] field_172, field_1cc; [ecx + n] field_1cc
 # callees:      calls FUN_0044c479, FUN_0041546f, FUN_004156ea, FUN_0044c4ab, KERNEL32.dll!Sleep, FUN_0051ec84
 # track-n:      outputs/blackmoor-decomp/src/avf_player.c:avf_player_worker_poll (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 55 instruction(s), 6 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 55 instruction(s), 6 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

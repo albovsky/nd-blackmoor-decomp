@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004657e7
+# name:         inferred_cube_puzzle_scene_renderer
+# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/4657e7.c.txt, not original source) refers to the data labelled s_CUBE_Puzzle___drawing_moving_pie_0054b49c, s_Cube_Puzzle_RES_area_piece_setup_0054b418
+# name-note:    Redraws the Cube Puzzle: restores areas under moving or setup pieces, draws pieces in initial positions and the moving piece.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       6 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18
 # fields:       [ecx + n] field_51, field_61; [edx + n] field_51
 # callees:      calls FUN_004c5377, FUN_0046453b, FUN_00454f29, FUN_004c5d4b
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 136 instruction(s), 8 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 136 instruction(s), 8 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

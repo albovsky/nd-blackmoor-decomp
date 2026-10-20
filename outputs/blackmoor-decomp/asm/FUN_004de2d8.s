@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004de2d8
+# name:         inferred_frame_text_box_close
+# naming:       INFERRED (lower confidence, not verified): the repository text src/caption_lifecycle.h:9 says "open / close 0x4de24f / 0x4de2d8"; tasks/S05-2-framed-text-box-lifecycle.md:14 says "**Close** `0x4de2d8`: `+0x991 = 1`, `0x4e053f(1)`, `0x4e1113`"
+# name-note:    Closes the frame text box: sets mode 1, restores the task bar and clears the text flags.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_991
 # callees:      calls FUN_004e053f, FUN_004e1113, FUN_004de214
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 18 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/caption_lifecycle.h:caption_ctb_close (function ledger class candidate_port; also caption_scene_reset; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 18 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

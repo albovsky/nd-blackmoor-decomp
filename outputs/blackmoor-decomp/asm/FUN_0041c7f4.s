@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0041c7f4
+# name:         inferred_raw_3f_conversation_constructor
+# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_3f_runtime.h:70 says "A-3F.1 constructor 0x41c7f4 model"
+# name-note:    Constructor of the raw 0x3f/0x3e conversation row object (A-3F.1).
 # arguments:    4 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10, arg_14; ret 0x10 (callee pops 16 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       31 ebp-relative slot(s): local_4, local_6, local_27, local_29, local_4a, local_6b, local_8c, local_90, local_94, local_98, local_9c, local_a0 and 19 more
 # fields:       [eax + n] field_2, field_4, field_6, field_2f, field_169, field_1b8, field_793, field_795, field_799, field_79b, field_79f, field_7a1; [ecx + n] field_2, field_4, field_6, field_21, field_2d, field_aa, field_167, field_196, field_776, field_793, field_795, field_799 and 3 more; [edx + n] field_2, field_4, field_6, field_196, field_774, field_793, field_795, field_799, field_79b, field_79f, field_7a1
 # callees:      calls FUN_0051dc43, FUN_0050ca3e, FUN_0042639d, FUN_004c97b4, FUN_00423259, FUN_0052139c, FUN_0041c3ba, FUN_0041c544, FUN_0041c509, FUN_0041c770, FUN_0044a2b7
 # track-n:      outputs/blackmoor-decomp/src/action_sound.c:present_caption (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 1117 instruction(s), 34 conditional branch(es) and 2 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 1117 instruction(s), 34 conditional branch(es) and 2 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

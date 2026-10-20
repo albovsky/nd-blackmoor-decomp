@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0047c0f0
+# name:         inferred_memory_puzzle_handler
+# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_ee_runtime.h:19 says "0x47c0f0 the handler: a switch on the row phase dword"
+# name-note:    Handler of the raw 0xee Memory puzzle: a switch on the row phase dword.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       5 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14
 # fields:       [eax + n] field_4, field_6, field_8, field_c, field_10, field_28, field_2c, field_40, field_119, field_1c0, field_1cc, field_26c and 16 more; [ecx + n] field_4, field_6, field_8, field_c, field_10, field_24, field_2c, field_3c, field_48, field_115, field_1c4, field_1cc and 22 more; [edx + n] field_4, field_6, field_8, field_c, field_24, field_2c, field_30, field_44, field_111, field_11d, field_1bc, field_1c8 and 28 more
 # callees:      calls FUN_004e8d96, FUN_004db870, FUN_0050ca3e, FUN_004264e8, FUN_0044a2b7, FUN_004c97b4, FUN_004d39f9, FUN_004c2790, FUN_0047bb56, FUN_0047ba79, FUN_0047cf4e, FUN_004f6334, FUN_0047ce6f, FUN_0042ba3a, FUN_0047b321
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 758 instruction(s), 37 conditional branch(es) and 1 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class static_navigation_only is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/action_family_ee_runtime.h:mp_step (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 758 instruction(s), 37 conditional branch(es) and 1 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

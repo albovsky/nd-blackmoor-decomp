@@ -253,7 +253,27 @@ class AuditorMutants(unittest.TestCase):
         report, _w = self.machine_batch(
             lambda w: self.edit(w, va, "the function name and note are copied from the evidence in the naming line, not read from this code", "the name is probably right"),
             names={va: entry})
-        self.rejected(report, va, "must say that the function name and note are copied")
+        self.rejected(report, va, "must carry the clause of the name's tier")
+
+    def inferred_entry(self, va: int) -> dict:
+        return {"va": f"0x{va:08x}", "name": "inferred_fixture_frame_entry", "basis": "inferred_prose", "confidence": "low",
+                "summary": "Sets up a frame, according to a fixture note.",
+                "source": "INFERRED (lower confidence, not verified): the repository text fixture.md:1 says \"sets up a frame\""}
+
+    def test_an_inferred_name_carries_its_own_lower_confidence_clause(self) -> None:
+        va = BASE + fixture.F_FRAME
+        entry = self.inferred_entry(va)
+        report, work = self.machine_batch(names={va: entry})
+        self.assertEqual([f["reasons"] for f in report["functions"]], [[], [], []])
+        text = (work / f"FUN_{va:08x}.s").read_text(encoding="utf-8")
+        self.assertIn("LOWER-CONFIDENCE inference", text)
+        self.assertNotIn("copied from the evidence in the naming line", text)
+        self.assertEqual({f["function"]: f for f in report["functions"]}[f"FUN_{va:08x}"]["naming"], "inferred_prose")
+        # the copied-from-evidence clause of the stronger tiers does not satisfy an inferred name
+        report, _w = self.machine_batch(
+            lambda w: self.edit(w, va, "the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name", "the function name and note are copied from the evidence in the naming line, not read from this code"),
+            names={va: entry})
+        self.rejected(report, va, "must carry the clause of the name's tier")
 
     def test_naming_and_note_lines_are_rejected_in_a_hand_annotated_source(self) -> None:
         va = BASE + fixture.F_FRAME

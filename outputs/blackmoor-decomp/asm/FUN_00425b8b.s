@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_00425b8b
+# name:         inferred_dependency_debug_printer
+# naming:       INFERRED (lower confidence, not verified): the repository text conditions-nested-validation.md:26 says "debug printer `0x425b8b`"
+# name-note:    Debug printer skipped in the dependency-loader oracle.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       6 ebp-relative slot(s): local_4, local_104, local_108, local_10c, local_18c, local_190
 # fields:       [eax + n] field_c, field_16, field_44, field_610; [ecx + n] field_4, field_8, field_c, field_16, field_38, field_44; [edx + n] field_8
 # callees:      calls FUN_0050ca3e, FUN_0044a2b7, FUN_00425f25, FUN_0042356d, FUN_00425b8b, FUN_004235fd, FUN_0052139c, FUN_004c97b4
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 246 instruction(s), 8 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class static_navigation_only is a native-touch record, not a counterpart claim
+# unverified:   machine annotation only: the 246 instruction(s), 8 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class static_navigation_only is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

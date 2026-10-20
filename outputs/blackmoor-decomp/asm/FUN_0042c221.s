@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0042c221
+# name:         inferred_secondary_video_hotspots_handler
+# naming:       INFERRED (lower confidence, not verified): the repository text src/session_bindings_a33.h:17 says "Raw 0x33 "secondary video with hotspots" (RT-46; dispatcher arm of 0x427a50, gate mode 1, handler 0x42c221)"
+# name-note:    Handler for raw 0x33 secondary video with hotspots.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       19 ebp-relative slot(s): local_4, local_c, local_10, local_14, local_18, local_1c, local_20, local_24, local_28, local_2c, local_30, local_34 and 7 more
 # fields:       [eax + n] field_44, field_54, field_58, field_5e, field_68, field_6f, field_71; [ecx + n] field_42, field_4a, field_4c, field_5c, field_64, field_6c, field_6d, field_6f; [edx + n] field_46, field_48, field_5a, field_60, field_6d
 # callees:      calls FUN_0050ca3e, FUN_0052139c, FUN_004c97b4, FUN_0044c479, FUN_00449a94, FUN_0044c4ab, FUN_0051dc6c, FUN_00415011, FUN_004c2dfb, FUN_0044c4c1, FUN_0044c2e0, FUN_004c2c3a, FUN_0051dc43, FUN_004497a0, FUN_0042639d, FUN_00449bff and 7 more; plus 1 indirect transfer(s) whose target is not resolved
-# track-n:      outputs/blackmoor-decomp/src/avf_player.c:avf_player_start (function ledger class candidate_port; also avf_player_stop, check_config, secondary_swap; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 470 instruction(s), 32 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; indirect transfers are not followed
+# track-n:      outputs/blackmoor-decomp/src/action_family_33_runtime.h:a33_step (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 470 instruction(s), 32 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; indirect transfers are not followed
 .intel_syntax noprefix
 .code32
 .text

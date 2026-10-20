@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0047cf4e
+# name:         inferred_random_sound_record_player_alt
+# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_ee_runtime.c:316 says "0x47cd90 / 0x47ce6f / 0x47cf4e: pick a sound record other than "NO SOUND" at random and play it."
+# name-note:    Picks a sound record other than NO SOUND at random and plays it.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [eax + n] field_c, field_2c0, field_f72; [ecx + n] field_c, field_f72; [edx + n] field_c, field_2c0, field_f72
 # callees:      calls FUN_00516530, FUN_0050cd50, FUN_0047d02d
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 62 instruction(s), 4 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/action_family_ee_runtime.c:pick_and_play (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 62 instruction(s), 4 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004c3c5d
+# name:         inferred_direct_draw_print_screen
+# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/4c3c5d.c.txt, not original source) refers to the data labelled s_ERROR___CDirectDraw__PrintScreen_00554274, s_PIC_d_00554320, s_Unable_to_create_file___it_may_e_00554334
+# name-note:    Captures the screen into memory and writes a PIC<number> TGA file with an 18-byte header; error strings name CDirectDraw::PrintScreen and file creation failure.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       21 ebp-relative slot(s): local_58, local_6c, local_7c, local_a0, local_a3, local_a4, local_a6, local_a8, local_aa, local_ac, local_ad, local_af and 9 more
 # fields:       [ecx + n] field_8; [edx + n] field_8
 # callees:      calls FUN_0051dc43, FUN_004264e8, FUN_004c97b4, FUN_004c4067, FUN_0043f04b, FUN_004c4202, FUN_0050ca3e, FUN_0050cd72, FUN_0050d0a9, FUN_0042639d, FUN_0050e493, FUN_004c7481, FUN_0050cee4, FUN_0051dc6c, USER32.dll!MessageBeep
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 149 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 149 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

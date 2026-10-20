@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004c46d1
+# name:         inferred_surface_clear_fill
+# naming:       INFERRED (lower confidence, not verified): the repository text src/caption_layout_internal.h:44 says "0x4c46d1: fills surface->width * surface->height words (pitch ignored) with"; src/caption_layout.h:8 says "Clear: 0x4c46d1."
+# name-note:    Surface clear: fills width*height words of a surface with the packed colour, pitch ignored.
 # arguments:    4 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10, arg_14; ret 0x10 (callee pops 16 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [eax + n] field_2b, field_38c6, field_38c8, field_38c9, field_38ca; [ecx + n] field_38c0, field_38c1, field_38c2, field_38c4; [edx + n] field_2d, field_38c5
 # callees:      none: no call or outward jump
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 88 instruction(s), 4 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# unverified:   machine annotation only: the 88 instruction(s), 4 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_00422e4a
+# name:         inferred_cel_frame_reader_thread_loop
+# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_3f_runtime.h:453 says "One pass of the reader thread loop 0x422e4a"
+# name-note:    Reader thread loop of the cel conversation: evicts cache, loads one frame, advances.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; no ret instruction in the code part; ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       2 ebp-relative slot(s): local_4, local_8
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      calls FUN_0044c479, FUN_0041dfd2, FUN_0041e1e4, FUN_0041e043, FUN_0041e0b4, FUN_0044c4ab, KERNEL32.dll!Sleep, FUN_0051ec84
 # track-n:      outputs/blackmoor-decomp/src/action_family_3f_runtime.h:convo3f_cel_reader_iteration (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 84 instruction(s), 9 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 84 instruction(s), 9 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

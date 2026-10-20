@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004c5770
+# name:         inferred_opaque_layer_blit
+# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_3f_runtime.h:422 says "CONVO3F_BLIT_OPAQUE = 3 / * 0x4c5770: opaque layer * /"
+# name-note:    Opaque layer blit variant used by the 0x3f conversation renderer.
 # arguments:    6 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10, arg_14, arg_18, arg_1c; ret 0x18 (callee pops 24 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       14 ebp-relative slot(s): local_4, local_8, local_c, local_64, local_78, local_88, local_8c, local_90, local_94, local_190, local_194, local_198 and 2 more
 # fields:       [eax + n] field_4, field_c; [ecx + n] field_4, field_8, field_c; [edx + n] field_4, field_8, field_c
 # callees:      calls FUN_0050ca3e, FUN_0052139c, FUN_004c97b4, FUN_004c4067, FUN_004c4202, FUN_004c952f
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 160 instruction(s), 7 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# unverified:   machine annotation only: the 160 instruction(s), 7 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

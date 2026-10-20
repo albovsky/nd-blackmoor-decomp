@@ -165,6 +165,21 @@ cd outputs/blackmoor-decomp/tests && python3 -m unittest test_data_asm
 
 **Not claimed.** An x86 match of the whole file (this slice does not make that claim; the composer's hash equality is the evidence it produces), that any name or classification is meaningful (a value classified as a pointer or a string may be neither in the original program), original C provenance, and the uninitialized tail of `.data` (virtual size 0x10713c, raw size 0x33000: the part from 0x56a000 to 0x63e13c is not in the file). The full sources contain the program's strings and tables in textual form; they are regenerated at build time and never committed (the committed layouts carry no value). Resource payloads are numeric runs and wide strings, not decoded dialogs or bitmaps, and the generator does not detect pointers in them.
 
+## Lower name tiers: structural roles and inferred names (Track M names slice 2, 2026-10-20)
+
+`asm/function-names.json` now has two tiers below the evidence-copied names above. They are counted and shown apart (map facts line and `REPORT.md`: **Structural** and **Inferred**) and are never added to **Named**.
+
+| Tier (`basis`) | Name form | What supports it | Confidence |
+|---|---|---|---|
+| `structural` | `import_thunk_<DLL>_<API>`, `jump_thunk_to_<va>`, `eh_handler_stub_of_<owner va>` | a fact about the bytes that `function-xrefs.json` records (`thunks`, `eh_stubs`); `function_names.py check` rebuilds it | high for what it says (a role), no claim of intent |
+| `inferred_import` | `inferred_only_call_<API>` | rule: no direct or tail callee, one import, no indirect call, at most 48 bytes (`function-xrefs.json`); rebuilt by `check` | low |
+| `inferred_prose` | `inferred_<role>` | a repository text (source comment, task note) that states what the function at that address does: path, line and verbatim quote are in the table; `check` requires the quote to still occur in the file and to contain the function's address | low |
+| `inferred_strings` | `inferred_<role>` | Ghidra string labels (`s_..._<va>`) cited from the function's committed pseudocode `unverified-pseudocode/<va>.c.txt`; `check` requires every label to occur in that file | low |
+
+Every `inferred_*` entry says `confidence: low`, carries its evidence in the table and in the header's `# naming:` line (it starts with `INFERRED (lower confidence, not verified)`), and its `unverified` line says the name is a lower-confidence inference that is not verified, not read from the code and not a recovered name. A reader (a Sonnet subagent) proposed the roles from the digests of that evidence and declined the functions whose evidence did not state a job (206 + 207 prose candidates and 305 string candidates were offered); `function_names.py add-inferred --basis inferred_prose|inferred_strings FILE...` validates proposals mechanically and adds the sound ones. A lower tier never replaces a stronger name (`check` rejects an inferred entry for a function that a stronger tier names, and for a hand-annotated source). `function_names.py write` rebuilds the evidence-derived entries and keeps the curated inferred ones that still validate. Nothing here proves the role is true: a human or an independent review would have to read the assembly, and a name that a review confirms should move to a hand-annotated source.
+
+Not changed: instruction bytes (batches 003 to 010 re-audited, `scripts/build_game_exe.sh` and `compose_image.py build` reproduce the original SHA-256), hash-pinned kernel files, `matches.json`, the pending cards.
+
 ## Function names from committed evidence (Track M names slice, 2026-10-20)
 
 A machine-annotated source used to name every function `fn_<va>`. `asm/function-names.json` (written and checked by `scripts/function_names.py`) now records the name that the repository's own evidence already states for **1,053** of the 4,700 machine-annotated sources; the other 3,647 keep `fn_<va>`, and the 86 hand-annotated sources keep the names an implementer chose. Of the 1,053, only **483 are names of a recovered function** (399 + 1 + 83); **570 are compiler funclets** whose only name is Ghidra's `Unwind@<va>`/`Catch@<va>` label, which is the address again, so they are counted as their own tier (`funclet`) and not as names. The bases, strongest first:

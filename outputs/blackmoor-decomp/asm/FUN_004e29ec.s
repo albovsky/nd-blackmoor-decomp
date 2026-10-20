@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004e29ec
+# name:         inferred_taskbar_button_timer_step
+# naming:       INFERRED (lower confidence, not verified): the repository text src/inventory_button_runtime.h:47 says "state 1 runs the button timers (0x4e29ec: stage 0 -> 1 on the"; src/inventory_button_runtime.c:203 says "0x4e29ec, mode 0."
+# name-note:    Runs the task bar button timers and animation (stage 0 to 1 on the first call).
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       5 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14
 # fields:       [eax + n] field_14, field_20, field_28, field_30, field_17b, field_17f, field_187, field_18b; [ecx + n] field_14, field_18, field_1c, field_24, field_2c, field_30, field_117; [edx + n] field_20, field_24, field_28, field_17b, field_17f
 # callees:      calls FUN_004c2790, KERNEL32.dll!GetTickCount, FUN_004f6334
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 118 instruction(s), 18 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# unverified:   machine annotation only: the 118 instruction(s), 18 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

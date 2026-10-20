@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004bf19a
+# name:         inferred_bink_goto_range_check
+# naming:       INFERRED (lower confidence, not verified): the repository text src/bink_player.h:90 says "Matches FUN_004bf19a's one-based BinkGoto range check (1..total_frames)."; src/action_family_2d_runtime.h:170 says "0x4bf19a(id, frames + 1): a = id, b = count -> nonzero = ok"
+# name-note:    Bink prepare/seek helper that matches a one-based BinkGoto range check (1..total_frames).
 # arguments:    2 ebp-relative stack slot(s) referenced: arg_8, arg_c; ret 0x8 (callee pops 8 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_2c0; [ecx + n] field_8
 # callees:      calls FUN_004bf38c, binkw32.dll!_BinkGoto@12
 # track-n:      outputs/blackmoor-decomp/src/bink_player.h:bink_player_seek (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 30 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 30 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0049173f
+# name:         inferred_raycast_byte_table_builder
+# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/49173f.c.txt, not original source) refers to the data labelled s_CRayCast__CRayCast___constructor_0054ee24
+# name-note:    CRayCast constructor part: reallocates a byte table, fills it with 7 and then with runs of values 0-7; failure message names the CRayCast constructor.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       8 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c, local_20
 # fields:       [eax + n] field_2095, field_20b5, field_20bd; [ecx + n] field_20b5, field_20bd; [edx + n] field_20b5, field_20bd
 # callees:      calls FUN_0051dc6c, FUN_0051dc43, FUN_0052139c, FUN_004c97b4, FUN_0050ce04
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 92 instruction(s), 6 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 92 instruction(s), 6 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

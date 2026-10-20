@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0044f4fa
+# name:         inferred_angletoss_indicator_renderer
+# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/44f4fa.c.txt, not original source) refers to the data labelled s_AngleToss___Throw_position_00549900, s_AngleToss___current_angle_positi_005498dc, s_AngleToss___current_power_positi_005498b8
+# name-note:    Draws the AngleToss current power position, current angle position and throw position sprites onto the display via FUN_004c5377.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       2 ebp-relative slot(s): local_10, local_14
 # fields:       [eax + n] field_8d, field_13d
 # callees:      calls FUN_0044e95b, FUN_004c5377
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 79 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 79 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

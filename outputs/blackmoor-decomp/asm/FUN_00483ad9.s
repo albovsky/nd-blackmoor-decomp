@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_00483ad9
+# name:         inferred_new_phone_puzzle_renderer
+# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/483ad9.c.txt, not original source) refers to the data labelled s_Cell_Phone_dialing_message_0054d990, s_NEW_PHONE_redraw_buttons_0054d9f4
+# name-note:    Redraws the cell phone puzzle: dialing message, init animation, dial digits and button redraws through FUN_004c5377.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       13 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c, local_20, local_24, local_26, local_28, local_2c and 1 more
 # fields:       [eax + n] field_22, field_4b, field_fc, field_23e, field_242, field_246, field_24a; [ecx + n] field_22, field_23e, field_88b; [edx + n] field_21, field_22, field_fe, field_3a4
 # callees:      calls FUN_004c5377, FUN_005193ca, FUN_004d2c20
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 235 instruction(s), 13 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 235 instruction(s), 13 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

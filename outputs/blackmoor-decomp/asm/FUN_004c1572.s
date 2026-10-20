@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004c1572
+# name:         inferred_main_window_creator
+# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/4c1572.c.txt, not original source) refers to the data labelled s_Nancy_Drew__The_Curse_of_Blackmo_00552d64
+# name-note:    Registers the window class, allocates a helper object, and creates the Nancy Drew Curse of Blackmoor Manor main window unless one already exists (FindWindow).
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       8 ebp-relative slot(s): local_4, local_c, local_10, local_14, local_18, local_1c, local_20, local_24
 # fields:       [eax + n] field_38ac; [ecx + n] field_1c
 # callees:      calls FUN_004c1451, FUN_0051dc43, FUN_0043eb3a, USER32.dll!FindWindowA, FUN_0051abe4, FUN_0051b125, USER32.dll!GetSystemMetrics, FUN_0051d699, FUN_0051d630, USER32.dll!UpdateWindow
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 112 instruction(s), 6 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 112 instruction(s), 6 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

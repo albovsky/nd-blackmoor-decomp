@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004ee86f
+# name:         inferred_popup_frame_draw
+# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/4ee86f.c.txt, not original source) refers to the data labelled s_CUIPopup_maximized_object_0055cdf8, s_CUIPopup_normal_size_object_0055cddc
+# name-note:    Draws the CUIPopup frame in normal-size or maximized form and invokes two content redraw helpers when set.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_252, field_4ab, field_4af; [ecx + n] field_4af; [edx + n] field_15f, field_4af
 # callees:      calls FUN_004c5377, FUN_004e2b99, FUN_004eff03
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 61 instruction(s), 6 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 61 instruction(s), 6 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

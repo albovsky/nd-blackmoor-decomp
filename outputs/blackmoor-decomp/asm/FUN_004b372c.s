@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004b372c
+# name:         inferred_tile_move_puzzle_redraw
+# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/4b372c.c.txt, not original source) refers to the data labelled s_TileMove_Puzzle_Overlays_00551840, s_TileMove_Puzzle_quit_button_0055185c, s_TileMove_Puzzle_timer_overlay_005518b0
+# name-note:    Redraws the TileMove puzzle: restores background, draws grid tile overlays, the quit button and timer overlay, with TileMove_Puzzle blit tags.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       11 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c, local_20, local_24, local_28, local_2c
 # fields:       [eax + n] field_21, field_18e, field_19a, field_1aa, field_268, field_26c; [ecx + n] field_23, field_192, field_196, field_19a, field_1aa, field_1b0, field_264; [edx + n] field_11d, field_18e, field_192, field_196, field_270
 # callees:      calls FUN_004c5377
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 247 instruction(s), 15 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 247 instruction(s), 15 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

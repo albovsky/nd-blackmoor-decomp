@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004754d2
+# name:         inferred_magnetmaze_puzzle_renderer
+# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/4754d2.c.txt, not original source) refers to the data labelled s_MAGNETMAZEPUZZLE___non_transpare_0054c790, s_MAGNETMAZEPUZZLE___refresh_entir_0054c6d8
+# name-note:    Redraws the MagnetMaze puzzle: refreshes the entire area, then draws transparent and non-transparent pieces depending on flags.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [eax + n] field_102, field_103, field_107; [ecx + n] field_42, field_107; [edx + n] field_42
 # callees:      calls FUN_004c5377, FUN_004c5d4b, FUN_004e2b99
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 130 instruction(s), 8 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 130 instruction(s), 8 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

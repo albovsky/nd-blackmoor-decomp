@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_00413187
+# name:         inferred_text_writer_renderer
+# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_44_runtime.h:21 says "The renderer 0x413187 itself is not part of this module (it belongs to the text writer port)"
+# name-note:    The text writer/renderer that renders the AUTOTEXT text into surfaces.
 # arguments:    4 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10, arg_14; ret 0x10 (callee pops 16 bytes); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       44 ebp-relative slot(s): local_4, local_8, local_c, local_e, local_10, local_14, local_18, local_1c, local_20, local_24, local_40, local_44 and 32 more
 # fields:       [eax + n] field_4, field_6, field_8, field_a, field_c, field_31, field_33, field_35, field_39, field_3d, field_41, field_292e and 3 more; [ecx + n] field_2, field_4, field_6, field_8, field_a, field_c, field_e, field_12, field_31, field_33, field_35, field_39 and 5 more; [edx + n] field_4, field_6, field_a, field_31, field_3d, field_102e, field_1032, field_1036, field_103a, field_292e, field_2930, field_2938 and 2 more
 # callees:      calls FUN_0050c920, FUN_004d3836, FUN_004c2a8d, FUN_004c2dfb, FUN_0052139c, FUN_004c97b4, FUN_004c2790, FUN_004c46d1, FUN_004c924d, FUN_004c5b3a, FUN_00412db8, FUN_004c9340, FUN_0050cb1b, FUN_004c92c5
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 1123 instruction(s), 49 conditional branch(es) and 2 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/autotext_writer.h:autotext_write (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 1123 instruction(s), 49 conditional branch(es) and 2 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

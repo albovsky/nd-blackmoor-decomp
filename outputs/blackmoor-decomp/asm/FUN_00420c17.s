@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_00420c17
+# name:         inferred_conversation_3f_3e_handler
+# naming:       INFERRED (lower confidence, not verified): the repository text src/blackmoor_app.mm:267 says "raw 0x3f sound conversation (dispatcher arm 0x427a50 -> handler 0x420c17)"
+# name-note:    Dispatcher-arm handler for raw 0x3f sound and 0x3e cel conversations.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       24 ebp-relative slot(s): local_4, local_c, local_10, local_14, local_18, local_1c, local_20, local_24, local_28, local_2c, local_30, local_34 and 12 more
 # fields:       [eax + n] field_2, field_6, field_c, field_16, field_a8, field_68e, field_692, field_694, field_696, field_698, field_69c, field_6a2 and 28 more; [ecx + n] field_4, field_8, field_a, field_c, field_12, field_a8, field_aa, field_690, field_692, field_694, field_696, field_69c and 47 more; [edx + n] field_4, field_8, field_c, field_e, field_21, field_aa, field_ac, field_68e, field_690, field_692, field_694, field_696 and 32 more; [esi + n] field_75d
 # callees:      calls FUN_0050ca3e, FUN_0044a2b7, FUN_004eb96e, FUN_004e7d04, FUN_004e7728, FUN_004e7786, FUN_004db993, FUN_0041f986, FUN_004e8d96, FUN_0044c479, FUN_00449a94, FUN_0044c4ab, FUN_004c948f, FUN_004c2898, FUN_0041de29, FUN_004205c1 and 33 more; plus 2 indirect transfer(s) whose target is not resolved
 # track-n:      outputs/blackmoor-decomp/src/action_family_3f_runtime.c:cel_sync_frame (function ledger class candidate_port; also phase0, phase0_cel, phase2; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 1764 instruction(s), 114 conditional branch(es) and 3 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; indirect transfers are not followed
+# unverified:   machine annotation only: the 1764 instruction(s), 114 conditional branch(es) and 3 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; indirect transfers are not followed
 .intel_syntax noprefix
 .code32
 .text

@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_00401249
+# name:         inferred_cheat_sheet_property_sheet_runner
+# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/401249.c.txt, not original source) refers to the data labelled s_Nancy_Drew_Mystery___Cheat_Sheet_005370b0
+# name-note:    Builds a property sheet captioned with the Nancy Drew Mystery Cheat Sheet string from five page objects, runs it and acts when the result equals 1.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       9 ebp-relative slot(s): local_4, local_c, local_998, local_e4c, local_e50, local_ed8, local_1964, local_2744, local_27d0
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      calls FUN_0050c920, FUN_00521ef1, FUN_00407bba, FUN_00404aca, FUN_004030ba, FUN_0040149a, FUN_00408a2a, FUN_0052233d, FUN_00522135, FUN_004d940a, FUN_00408d49, FUN_004014f5, FUN_00403229, FUN_00404af0, FUN_00407c29, FUN_00521fa5
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 85 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 85 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004cb9d1
+# name:         inferred_hotspot_origin_adjuster
+# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_1c_runtime.h:31 says "0x4cb9d1 adds the player's origin"
+# name-note:    Adds the player origin to the x/y fields of every 24-byte hotspot rectangle of the 0x1c object.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_4, field_9, field_c, field_10, field_12, field_126, field_132, field_15c; [ecx + n] field_8, field_c, field_12, field_16, field_126, field_132, field_15c; [edx + n] field_2, field_4, field_8, field_10, field_12, field_16, field_126, field_15c
 # callees:      calls FUN_004c0c69
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 79 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/action_family_1c_runtime.c:c1c_visit (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 79 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text

@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0041166e
+# name:         inferred_raw_44_object_loader
+# naming:       INFERRED (lower confidence, not verified): the repository text src/blackmoor_app.mm:10468 says "build the raw 0x44 objects (loader 0x41166e)"
+# name-note:    Loader/constructor that builds the raw 0x44 objects.
 # arguments:    3 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10; ret 0xc (callee pops 12 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       6 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18
 # fields:       [eax + n] field_2, field_20e; [ecx + n] field_2, field_20e; [edx + n] field_1ec, field_20e
 # callees:      calls FUN_0050ca3e, FUN_0052139c, FUN_004c97b4, FUN_0051dc43, FUN_0042639d, FUN_0044a2b7, FUN_00423259
-# track-n:      outputs/blackmoor-decomp/src/scene_resource.c:known_body_length (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 223 instruction(s), 8 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/blackmoor_app.mm:begin_native_session_bindings_scene (function ledger class candidate_port; also native_a44_resolve_text; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 223 instruction(s), 8 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
 .text
