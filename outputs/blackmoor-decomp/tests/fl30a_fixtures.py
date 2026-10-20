@@ -96,7 +96,11 @@ def run_original(sc):
 
 
 # the conditional-jump directions that no scenario takes, with the reason (anything else untaken fails the tests)
-UNTAKEN_ALLOWED = {}
+UNTAKEN_ALLOWED = {
+    '44b3c8': {
+        (0x44b492, 'taken'): '`xor eax, eax; mov al, byte ptr [..]; test eax, eax; jl`: eax is the zero-extended byte, so it is never negative and the jl is never taken (its target 0x44b5a3 is reached through the jg at 0x44b4ab, and executed)',
+    },
+}
 
 
 def untaken_edges(key, edges):
@@ -282,13 +286,67 @@ def gen_484ac0(rng, n):
     return gen_hit('484ac0', rng, n, paths)
 
 
+# ---- 0x44b3c8 ---------------------------------------------------------------------------------------------------------------------
+
+WORD_ARGS[0x42ba3a] = (0,)
+FLOATS = [0.0, 9999.0, 1.5, -2.25, 0.1, 123456.789, -9999.0, 1e-40, 3.4e38, 100.0, 0.33333334, 9998.999, 9999.001, float('inf'), float('-inf'), -0.0]
+NAN_BITS = [0x7fc00000, 0xffc00001, 0x7f800001]
+WORD_TABLE = [0x270f, 0, 1, -1, 100, 0x7fff, -0x8000, 3, 0x270e, 0x2710]
+VALUES = [0, 1, -1, 7, 100, -100, 12345, -32768, 32767, 3, 255, 1000]
+E_PATTERNS = ['skip', 'w270f', 'word', 'f9999', 'float', 'fnan', 'plain', 'report', 'mix', 'mix', 'mix']
+
+
+def gen_44b3c8(rng, n):
+    import struct as st
+    profiles = [('kind', k, pat) for k in range(0x1e, 0x28) for pat in E_PATTERNS] + [('bad', k, 'x') for k in (0, 0x1d, 0x28, 0x63, 0x80, 0xff)] * 2
+    (cls, kind, pat), variant = prof(n, profiles)
+    rec_va, rec2_va = od.region_va(1), od.region_va(2)
+    w = rng.choice([-2, -1, 0, 1, 2, 3])
+    rec = bytearray(rng.randbytes(0x40))
+    rec[0] = kind
+    all_e = list(range(0x1e)) + list(range(0x1e, 0x28)) + [0x28, 0x64, 0x65, 0x80, 0xff, 0x63]
+    for i in range(10):
+        e = {'skip': 0x63, 'w270f': 0x00, 'word': rng.randrange(0x1e), 'f9999': rng.randrange(0x1e, 0x28), 'float': rng.randrange(0x1e, 0x28), 'fnan': rng.randrange(0x1e, 0x28),
+             'plain': 0x64, 'report': rng.choice([0x28, 0x65, 0x80, 0xff, 0x7f]), 'mix': rng.choice(all_e), 'x': rng.choice(all_e)}[pat]
+        if pat == 'w270f':
+            e = rng.choice([k for k in range(0x1e) if True][:3])
+        rec[1 + 3 * i] = e
+        put16(rec, 2 + 3 * i, rng.choice(VALUES) if i % 2 else rng.randrange(0x10000))
+    tab = bytearray(0xa0)
+    for k in range(0x1e):                            # the word table at +0x3c
+        put16(tab, 0x3c + 2 * k, (WORD_TABLE[(k + variant) % len(WORD_TABLE)] if pat in ('w270f', 'word', 'mix') else rng.choice(WORD_TABLE)) & 0xffff)
+    if pat == 'w270f':
+        for k in range(3):
+            put16(tab, 0x3c + 2 * k, 0x270f if variant % 2 == 0 or k != 1 else 0x270e)
+    for k in range(0x28):                            # the float cells (0x1e..0x27 are the ones looked at; the others overlap the word table)
+        if 0x1e <= k:
+            if pat == 'f9999':
+                bits = st.unpack('<I', st.pack('<f', 9999.0))[0] if (k + variant) % 3 else st.unpack('<I', st.pack('<f', rng.choice(FLOATS)))[0]
+            elif pat == 'fnan':
+                bits = rng.choice(NAN_BITS) if (k + variant) % 2 else st.unpack('<I', st.pack('<f', rng.choice(FLOATS)))[0]
+            else:
+                bits = st.unpack('<I', st.pack('<f', rng.choice(FLOATS) if rng.random() < 0.7 else rng.uniform(-500, 20000)))[0]
+            put32(tab, 4 * k, bits)
+    for k in range(0x0f):
+        put32(tab, 4 * k, rng.randrange(1 << 32))
+    area, ptrs = hit_table(rng, w, rec_va, rec2_va, 1)
+    ptrs['tab_58c91d'] = ('tab', 0)
+    probe = [('tab', 0, 0xa0)]
+    stubs = {0x50ca3e: stub(0x50ca3e, CDECL(3), probe=probe), 0x52139c: stub(0x52139c, STDCALL(3), probe=probe), 0x42ba3a: stub(0x42ba3a, CDECL(1), probe=probe)}
+    g = {'word_63a4cd': 0 if (variant % 2 == 0 and cls == 'bad') else DBG_VALUES[1:][variant % 4]}
+    a = word_arg(rng, w)
+    return make('44b3c8', [Area('self', od.region_va(0), bytearray(rng.randbytes(0x40)), image=False, compare=False), Area('rec', rec_va, rec, image=False), Area('rec2', rec2_va, bytearray(rng.randbytes(0x40)), image=False),
+                           area, Area('tab', 0x58c91d, tab, image=True)], stubs, g, [a], (a,), (cls, kind, pat, variant), ptrs)
+
+
 SPECS = {
     '4f61e7': dict(id=1, va=0x4f61e7, size=333, gen=gen_4f61e7, cleanup=4, ret=True, n=24 * 8),
     '484ac0': dict(id=3, va=0x484ac0, size=495, gen=gen_484ac0, cleanup=0, n=(7 * 2 + 12) * 12),
+    '44b3c8': dict(id=4, va=0x44b3c8, size=633, gen=gen_44b3c8, cleanup=4, fpcw=0x27f, n=(10 * 11 + 12) * 6),
     '484762': dict(id=2, va=0x484762, size=467, gen=gen_484762, cleanup=8, ret=True, n=2 * 625 + 600),
 }
 KEYS = list(SPECS)
-NAMES = {'4f61e7': 'start_record', '484762': 'intersect_rects', '484ac0': 'latch_hit'}
+NAMES = {'4f61e7': 'start_record', '484762': 'intersect_rects', '484ac0': 'latch_hit', '44b3c8': 'sum_kinds'}
 
 
 def build(key, rng, n):

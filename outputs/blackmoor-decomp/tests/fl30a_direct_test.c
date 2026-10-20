@@ -21,7 +21,7 @@ static char g_msg[256];
 #define RVA(i) (0x20000000u + 0x10000u * (uint32_t)(i))
 #define RSZ 0x4000
 static uint8_t g_r[8][RSZ];
-static uint8_t g_tbl[0x8d * 0x20];
+static uint8_t g_tbl[0x8d * 0x20], g_tab[0xa0];
 static Fl30aWorld g_w;
 static Fl18Host g_host;
 #define SELF g_r[0]
@@ -98,6 +98,8 @@ static void setup(void)
     memset(g_tbl, 0, sizeof g_tbl);
     memset(&g_w, 0, sizeof g_w);
     g_w.table_5bb5e5 = g_tbl + 4 * 0x8d;
+    memset(g_tab, 0, sizeof g_tab);
+    g_w.tab_58c91d = g_tab;
     memset(&g_host, 0, sizeof g_host);
     g_host.call = host_call;
     g_host.resolve = host_resolve;
@@ -358,8 +360,84 @@ static void test_m484ac0_latch_hit(void)
     CK(L.n == 1 && get32(SELF, 0xa92) == 0 && get16(SELF, 0xbc5) == 0x1111);
 }
 
+/* ---- 0x44b3c8 sum_kinds ------------------------------------------------------------------------------------------------------ */
+static float getf(const uint8_t *b, size_t off) { float v; memcpy(&v, b + off, 4); return v; }
+static void setf(uint8_t *b, size_t off, float v) { memcpy(b + off, &v, 4); }
+static void trip(int i, uint8_t e, int16_t value)
+{
+    g_r[1][1 + 3 * i] = e;
+    set16(g_r[1], 2 + 3 * i, (uint16_t)value);
+}
+static void kinds_setup(uint8_t kind)
+{
+    int i;
+    setup();
+    set32(g_w.table_5bb5e5, 1 * 0x8d, RVA(1));
+    g_r[1][0] = kind;
+    for (i = 0; i < 10; i++) trip(i, 0x63, 0x1234);
+}
+static void test_m44b3c8_sum_kinds(void)
+{
+    kinds_setup(0x1e);
+    setf(g_tab, 4 * 0x1e, 55.0f);
+    set16(g_tab, 0x3c + 2 * 5, 0x270f);
+    set16(g_tab, 0x3c + 2 * 7, 40);
+    setf(g_tab, 4 * 0x1f, 9999.0f);
+    setf(g_tab, 4 * 0x20, 2.5f);
+    trip(1, 5, 250);          /* word table entry 0x270f: nothing */
+    trip(2, 7, 300);          /* 300 / 100 * 40 = 120 */
+    trip(3, 0x1f, 1000);      /* float cell equal to 9999.0: nothing */
+    trip(4, 0x20, 50);        /* 50 / 100 * 2.5 = 1.25 */
+    trip(5, 0x64, -7);        /* plain value */
+    trip(6, 0x28, 5);         /* report */
+    m44b3c8_sum_kinds(0x12340001u, &g_w, &g_host);       /* the upper half of the stack dword is garbage */
+    CK(getf(g_tab, 4 * 0x1e) == 114.25f);
+    CK(L.n == 3);
+    CKC(0, 0x50ca3e, 0, 3, 0x63888b, 0x549088, 0x28);
+    CKC(1, 0x52139c, 0, 3, 0x63888b, 0, 0);
+    CKC(2, 0x42ba3a, 0, 1, 1);
+    /* the kind cell is cleared first; a float cell holding NaN counts as 9999.0 (unordered), and the rounding is single precision of a double quotient and product */
+    kinds_setup(0x22);
+    setf(g_tab, 4 * 0x22, 77.0f);
+    set32(g_tab, 4 * 0x23, 0x7fc00000u);
+    trip(0, 0x23, 1000);
+    trip(1, 3, 1);
+    set16(g_tab, 0x3c + 2 * 3, 3);                       /* 1 / 100 * 3 = 0.03 as a float */
+    m44b3c8_sum_kinds(1, &g_w, &g_host);
+    CK(get32(g_tab, 4 * 0x22) == 0x3cf5c28fu);
+    CK(L.n == 1);
+    /* the word table is signed, a value of -32768 and the negative table word -1 */
+    kinds_setup(0x27);
+    set16(g_tab, 0x3c + 2 * 0x1d, 0xffff);
+    trip(9, 0x1d, -32768);                               /* -32768 / 100 * -1 = 327.68 */
+    m44b3c8_sum_kinds(1, &g_w, &g_host);
+    CK(get32(g_tab, 4 * 0x27) == 0x43a3d70au);
+    /* kinds outside 0x1e..0x27: only the debug report (any non-zero word, also a negative one) and the final call; no cell is changed */
+    kinds_setup(0x1d);
+    setf(g_tab, 4 * 0x1d, 5.0f);
+    m44b3c8_sum_kinds(1, &g_w, &g_host);
+    CK(L.n == 1 && getf(g_tab, 4 * 0x1d) == 5.0f);
+    kinds_setup(0x28);
+    g_w.word_63a4cd = (int16_t)0x8000;
+    m44b3c8_sum_kinds(1, &g_w, &g_host);
+    CK(L.n == 3);
+    CKC(0, 0x50ca3e, 0, 3, 0x63888b, 0x549054, 0x28);
+    CKC(1, 0x52139c, 0, 3, 0x63888b, 0, 0);
+    CKC(2, 0x42ba3a, 0, 1, 1);
+    /* 0x28 + kind 0x1e: a report for every pass that has such a byte; e = 0x63 passes are skipped without a call */
+    kinds_setup(0x1e);
+    trip(0, 0xff, 1);
+    trip(9, 0x65, 1);
+    m44b3c8_sum_kinds(1, &g_w, &g_host);
+    CK(L.n == 5);
+    CKC(0, 0x50ca3e, 0, 3, 0x63888b, 0x549088, 0xff);
+    CKC(2, 0x50ca3e, 0, 3, 0x63888b, 0x549088, 0x65);
+}
+
 /* CASES-END */
 
+static void kinds_setup(uint8_t kind);
+static void trip(int i, uint8_t e, int16_t value);
 /* ---- bounded sweep ------------------------------------------------------------------------------------------------------------- */
 static void test_sweep_bounded(void)
 {
@@ -386,6 +464,10 @@ static void test_sweep_bounded(void)
         g_nscript = 0;
         script(0x4846c2, 1, (seed >> 4) % 6, 0, 0, 0);
         m484ac0_latch_hit(SELF, &g_w, &g_host);
+        kinds_setup((uint8_t)(0x1c + seed % 14));
+        for (i = 0; i < 10; i++) trip(i, (uint8_t)(seed >> (i + 3)), (int16_t)(seed >> i));
+        for (i = 0; i < (int)sizeof g_tab; i++) g_tab[i] = (uint8_t)(seed >> (i & 7));
+        m44b3c8_sum_kinds(1, &g_w, &g_host);
         set32(SELF, 0x3ce, RVA(1));
         set32(g_r[1], 0x162, seed | 1);
         set32(g_r[1], 0x28f, RVA(2));
@@ -418,6 +500,7 @@ int main(void)
     RUN(test_m4f61e7_start_record);
     RUN(test_m484762_intersect_rects);
     RUN(test_m484ac0_latch_hit);
+    RUN(test_m44b3c8_sum_kinds);
     /* RUNS */
     RUN(test_sweep_bounded);
     return failures;

@@ -66,6 +66,39 @@
   "note": "Selects the record for the object and latches the hit index (either the stored word at +0xa9e or the answer of 0x4846c2), stores the two word offsets at +0xbc5/+0xbc7 and calls 0x485f12 and 0x484935; every instruction and both directions of every jump executed. See tasks/fl30a-handoff.md."
  },
  {
+  "va": "0x44b3c8",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-30a implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl30a.c",
+   "symbol": "m44b3c8_sum_kinds"
+  },
+  "tests": [
+   {
+    "path": "tests/fl30a_direct_test.c",
+    "test_id": "test_m44b3c8_sum_kinds"
+   },
+   {
+    "path": "tests/test_fl30a_direct.py",
+    "test_id": "Fl30aDirect.test_44b3c8_sum_kinds"
+   },
+   {
+    "path": "tests/test_fl30a_differential.py",
+    "test_id": "Fl30aDifferential.test_44b3c8_sum_kinds"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl30a_original_oracle.py",
+   "window": [
+    "0x44b3c8",
+    "0x44b641"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Accumulates the ten (kind, value) triples of a record into the float table at 0x58c91d (word table, float table, plain value and the two reports), in 53-bit x87 precision, then calls 0x42ba3a; every instruction executed, one jump direction allowlisted (see the handoff). See tasks/fl30a-handoff.md."
+ },
+ {
   "va": "0x484762",
   "class": "native_oracle_verified",
   "reviewer": "Claude Sonnet FL-30a implementer; no independent review yet (slice-reviewer pending)",

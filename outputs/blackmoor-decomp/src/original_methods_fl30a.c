@@ -176,3 +176,66 @@ void m484ac0_latch_hit(uint8_t *self, const Fl30aWorld *world, const Fl18Host *h
     call0(host, 0x485f12, (uintptr_t)self);
     call1(host, 0x484935, (uintptr_t)self, (uint16_t)h);
 }
+
+/* ---- 0x44b3c8 sum_kinds ------------------------------------------------------------------------------------------------------ */
+static float rdf32(const uint8_t *base, ptrdiff_t off)
+{
+    float v;
+    memcpy(&v, base + off, sizeof v);
+    return v;
+}
+
+static void wrf32(uint8_t *base, ptrdiff_t off, float v)
+{
+    memcpy(base + off, &v, sizeof v);
+}
+
+void m44b3c8_sum_kinds(uint32_t index, const Fl30aWorld *world, const Fl18Host *host)
+{
+    uint32_t rec = rd32(world->table_5bb5e5, (ptrdiff_t)(int32_t)((uint32_t)(int32_t)(int16_t)index * 0x8du));
+    uint8_t kind = res(host, rec)[0];
+    int16_t i;
+    if (kind < 0x1e || kind > 0x27) {
+        if (world->word_63a4cd != 0) {
+            call3(host, 0x50ca3e, 0, 0x63888b, 0x549054, kind);
+            call3(host, 0x52139c, 0, 0x63888b, 0, 0);
+        }
+    } else {
+        wrf32(world->tab_58c91d, (ptrdiff_t)kind * 4, 0.0f);
+        for (i = 0; i < 10; i++) {
+            const uint8_t *r = res(host, rec);
+            uint8_t e = r[1 + i * 3];
+            int32_t value = (int16_t)rd16(r, 2 + i * 3);
+            float v;
+            if (e == 0x63) continue;
+            if (e > 0x27) {
+                if (e == 0x64) {
+                    v = (float)value;
+                } else {
+                    call3(host, 0x50ca3e, 0, 0x63888b, 0x549088, e);
+                    call3(host, 0x52139c, 0, 0x63888b, 0, 0);
+                    v = 0.0f;
+                }
+            } else if (e <= 0x1d) {
+                int32_t t = (int16_t)rd16(world->tab_58c91d, 0x3c + (ptrdiff_t)e * 2);
+                if (t == 0x270f) {
+                    v = 0.0f;
+                } else {
+                    float count = (float)value;
+                    float scale = (float)t;
+                    v = (float)(((double)count / 100.0) * (double)scale);
+                }
+            } else {
+                float f = rdf32(world->tab_58c91d, (ptrdiff_t)e * 4);
+                if (!(f < 9999.0f) && !(f > 9999.0f)) {
+                    v = 0.0f;
+                } else {
+                    float count = (float)value;
+                    v = (float)(((double)count / 100.0) * (double)f);
+                }
+            }
+            wrf32(world->tab_58c91d, (ptrdiff_t)kind * 4, (float)((double)v + (double)rdf32(world->tab_58c91d, (ptrdiff_t)kind * 4)));
+        }
+    }
+    call1(host, 0x42ba3a, 0, index & 0xffffu);
+}

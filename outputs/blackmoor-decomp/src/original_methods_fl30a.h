@@ -23,6 +23,7 @@ extern "C" {
 
 typedef struct Fl30aWorld {
     uint8_t *table_5bb5e5;     /* 0x484ac0, 0x47ef0f, 0x44b3c8, 0x4c36b2: records of stride 0x8d at the original address 0x5bb5e5: dword at +0 (an original address of a record), dword at +0x4d (state); slack for a negative index */
+    uint8_t *tab_58c91d;       /* 0x44b3c8: the 0xa0 bytes at the original address 0x58c91d: float (dword) cells at 0x58c91d + 4*k, and, from 0x58c959 (= +0x3c), the word table indexed by a byte */
     int16_t word_63a4cd;       /* the debug flag: a non-zero word turns on the trace output */
 } Fl30aWorld;
 
@@ -32,6 +33,15 @@ typedef struct Fl30aWorld {
  * stack argument obj, stdcall: pops 4 bytes) is stored to dword [self+0x3ca]. When r == 0: when the signed word 0x63a4cd is non-zero 0x50ca3e(0x63888b, 0x55e7bc, index, rec + 4) (cdecl, 4 arguments)
  * and 0x44a2b7(0x63888b) (cdecl, 1 argument); returns 1. Otherwise dword [self+0x3c2] = 0x40b, dword [self+0x3be] = 0, returns dword [self+0x3be] (0). */
 uint32_t m4f61e7_start_record(uint8_t *self, uint32_t index, const Fl30aWorld *world, const Fl18Host *host);
+
+/* 0x44b3c8, thiscall (ecx is stored and not used), `ret 4`, no result, x87 code at 53-bit precision (control word 0x27f): the stack argument is the word `index` (signed). rec = dword [0x5bb5e5 + index*0x8d]
+ * (an original address) and kind = byte [rec]. When kind < 0x1e or kind > 0x27: when the signed word 0x63a4cd is non-zero 0x50ca3e(0x63888b, 0x549054, kind) (cdecl, 3 arguments) and 0x52139c(0x63888b, 0, 0)
+ * (stdcall, 3 arguments). Otherwise float [0x58c91d + kind*4] = 0 and, for i = 0 .. 9 (signed word counter): e = byte [rec + 1 + 3i] (e == 0x63: next i); value = signed word [rec + 2 + 3i]; v = by e (a byte, so the
+ * `jl` after the 0x63 test is never taken): e > 0x27: e == 0x64 gives v = (float)value, any other e reports (0x50ca3e(0x63888b, 0x549088, e) and 0x52139c(0x63888b, 0, 0)) and gives v = 0; e <= 0x1d: t = signed word
+ * [0x58c959 + e*2], t == 0x270f gives v = 0, else v = (float)(((double)(float)value / 100.0) * (double)(float)t); 0x1e <= e <= 0x27: f = float [0x58c91d + e*4], f equal to 9999.0 or unordered (NaN) gives v = 0, else
+ * v = (float)(((double)(float)value / 100.0) * (double)f). Then float [0x58c91d + kind*4] = (float)((double)v + (double)float [0x58c91d + kind*4]) (read again at each pass). At the end in every case
+ * 0x42ba3a(index) (cdecl, 1 word argument). The two constants 100.0 and 9999.0 are the floats at 0x52cbec and 0x52cbe8 of the original. */
+void m44b3c8_sum_kinds(uint32_t index, const Fl30aWorld *world, const Fl18Host *host);
 
 /* 0x484ac0, thiscall, plain `ret`, no result: w = signed word [self+0x26]; rec = dword [0x5bb5e5 + w*0x8d] (an original address; the table is the Fl30aWorld pointer) and the state dword [0x5bb632 + w*0x8d]
  * (the same table, +0x4d). Returns at once (nothing else happens) unless dword [self+0xba7] != 0, byte [rec+0x24] != 0, byte [rec+0x25] == 0, byte [self+0xbb0] == 0, dword [self+0xbac] == 0, the state == 1 and the

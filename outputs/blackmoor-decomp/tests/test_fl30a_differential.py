@@ -166,6 +166,9 @@ class Fl30aDifferential(DiffBase):
     def test_484ac0_latch_hit(self):
         """FL-30a: differential test of m484ac0_latch_hit (original 0x484ac0)"""
         self.run_key('484ac0')
+    def test_44b3c8_sum_kinds(self):
+        """FL-30a: differential test of m44b3c8_sum_kinds (original 0x44b3c8)"""
+        self.run_key('44b3c8')
     # CASES-END
 
 if __name__ == '__main__':
