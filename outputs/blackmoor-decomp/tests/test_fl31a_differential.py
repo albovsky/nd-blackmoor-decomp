@@ -169,6 +169,18 @@ class Fl31aDifferential(DiffBase):
         """FL-31a: differential test of m47d640_mark_entry (original 0x47d640)"""
         self.run_key('47d640')
 
+    def test_47b709_set_selector(self):
+        """FL-31a: differential test of m47b709_set_selector (original 0x47b709)"""
+        self.run_key('47b709')
+
+    def test_47ba79_expire_links(self):
+        """FL-31a: differential test of m47ba79_expire_links (original 0x47ba79)"""
+        self.run_key('47ba79')
+
+    def test_47badf_check_range(self):
+        """FL-31a: differential test of m47badf_check_range (original 0x47badf)"""
+        self.run_key('47badf')
+
     # CASES-END
 
 

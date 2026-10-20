@@ -35,6 +35,19 @@ void m47b3bc_mark_entry(const uint8_t *self, const Fl31aWorld *world);
 /* 0x47d640, thiscall, plain `ret`: when byte [self+0x57] == 0 nothing. Otherwise i = signed word [self+0x23] (unaligned); when i == -1 nothing, else dword [0x5d15a5 + i*0x4a] = 1. */
 void m47d640_mark_entry(const uint8_t *self, const Fl31aWorld *world);
 
+/* 0x47b709, thiscall (ecx is stored and not used), `ret 4`, the stack argument is the word `sel` (signed): dword [0x5c39e5] = the sign-extended word; dword [0x5b44f0] = 0; dword [0x5b44f4] = 1;
+ * dword [0x5d162d] = dword [0x5d0377]; dword [0x5d1631] = 0x5b160c + (dword [0x5b44f0] << 5) + (dword [0x5b44f4] << 4) (read back after the stores: 0x5b161c); dword [0x5d1639] = 1. */
+void m47b709_set_selector(uint32_t sel, Fl31aWorld *world);
+
+/* 0x47ba79, thiscall, plain `ret`: when dword [self+0x34] == 0 nothing. Otherwise now = GetTickCount() (import 0x52a23c); when now <= dword [self+0x38] (UNSIGNED) nothing. Otherwise (in this order):
+ * dword [ [self+0x1c] + 4 ] = 0, dword [ [self+0x20] + 4 ] = 0 (both pointers are original addresses, resolved through Fl18Host, the second one read after the first store), then
+ * dwords [self+0x1c], [self+0x20], [self+0x34], [self+0x38] = 0. */
+void m47ba79_expire_links(uint8_t *self, const Fl18Host *host);
+
+/* 0x47badf, thiscall, plain `ret`: with a = signed dword [self+0x290], b = [self+0x2a0], c = [self+0x294], d = signed dword [ [self+0xc] + 0x341 ] (an unaligned dword behind an original address):
+ * when a >= b and c <= d: dword [self+0x28] = 1 and nothing else. Otherwise, when a < b and c >= d: dword [self+0x2c] = 1. (All comparisons are signed; every field is read again at each use.) */
+void m47badf_check_range(uint8_t *self, const Fl18Host *host);
+
 /* FNS-END */
 
 #ifdef __cplusplus

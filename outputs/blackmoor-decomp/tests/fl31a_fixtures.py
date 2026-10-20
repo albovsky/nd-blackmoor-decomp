@@ -202,16 +202,83 @@ def gen_47d640(rng, n):
     return gen_mark('47d640', rng, n, 0x57, 0x23, 1)
 
 
+# ---- 0x47b709 ---------------------------------------------------------------------------------------------------------------------
+
+SEL_VALUES = [0, 1, 0x7fff, 0x8000, 0xffff, 0x1234, 0xfffe, 0x80]
+
+
+def gen_47b709(rng, n):
+    (sel,), variant = prof(n, [(v,) for v in SEL_VALUES])
+    g = {name: rng.choice([0, 0xffffffff, 0x80000000, rng.randrange(1 << 32), rng.randrange(1 << 32)]) for name, _ in ((f, 0) for f in GLOBALS)}
+    if variant % 2:
+        g['value_5b44f0'], g['value_5b44f4'] = 1, 0     # the stores of 0 and 1 are visible
+    a = word_arg(rng, sel)
+    return make('47b709', [self_area(bytearray(rng.randbytes(0x100)))], {}, g, [a], (a,), (sel, variant))
+
+
+# ---- 0x47ba79 ---------------------------------------------------------------------------------------------------------------------
+
+TICK_PAIRS = [(5, 10), (10, 10), (11, 10), (0x80000000, 0x7fffffff), (0x7fffffff, 0x80000000), (0xffffffff, 0), (0, 0xffffffff), (1, 0), (0, 0)]
+
+
+def tick_iat(now):
+    return {TICK_SLOT: stub(TICK_SLOT, (0, False, 0), results=[now])}
+
+
+def gen_47ba79(rng, n):
+    profiles = [('gate0',)] + [('tick', now, deadline) for now, deadline in TICK_PAIRS]
+    (kind, *rest), variant = prof(n, profiles)
+    a_va, b_va = od.region_va(1), od.region_va(2)
+    s = bytearray(rng.randbytes(0x400))
+    put32(s, 0x1c, a_va)
+    put32(s, 0x20, a_va if variant % 3 == 2 else b_va)       # one pass with both pointers to the same object
+    put32(s, 0x34, 0 if kind == 'gate0' else NONZERO[variant % len(NONZERO)])
+    now, deadline = (rng.choice([0, 3, 0xffffffff, rng.randrange(1 << 32)]), rng.randrange(1 << 32)) if kind == 'gate0' else rest
+    if kind == 'gate0' and variant % 2:
+        now, deadline = 0xffffffff, 0                         # a gate that was skipped would expire the links
+    put32(s, 0x38, deadline)
+    a, b = bytearray(rng.randbytes(0x40)), bytearray(rng.randbytes(0x40))
+    for obj in (a, b):
+        put32(obj, 4, rng.choice([0, 1, 0xdeadbeef, 0xffffffff]))
+    return make('47ba79', [self_area(s), Area('a', a_va, a, image=False), Area('b', b_va, b, image=False)], {}, {}, [], (), (kind, *rest), iat=tick_iat(now))
+
+
+# ---- 0x47badf ---------------------------------------------------------------------------------------------------------------------
+
+ORDERED = [(0, 1), (1, 1), (2, 1), (-1, 0), (0, -1), (0x7fffffff, 0x80000000), (0x80000000, 0x7fffffff), (5, 5), (-5, -2)]
+
+
+def gen_47badf(rng, n):
+    (ab, cd), variant = prof(n, [(ab, cd) for ab in ORDERED for cd in ORDERED])
+    obj_va = od.region_va(1)
+    s = bytearray(rng.randbytes(0x400))
+    a, b = ab
+    c, d = cd
+    put32(s, 0x290, a)
+    put32(s, 0x2a0, b)
+    put32(s, 0x294, c)
+    put32(s, 0xc, obj_va)
+    put32(s, 0x28, rng.choice([0, 2, 0xffffffff, 1]))
+    put32(s, 0x2c, rng.choice([0, 2, 0xffffffff, 1]) if variant % 2 else 0)
+    obj = bytearray(rng.randbytes(0x400))
+    put32(obj, 0x341, d)
+    return make('47badf', [self_area(s), Area('obj', obj_va, obj, image=False)], {}, {}, [], (), (ab, cd))
+
+
 # GEN-END
 
 SPECS = {
     '47b200': dict(id=1, va=0x47b200, size=31, gen=gen_47b200, cleanup=0, retself=True, n=8),
     '47b3bc': dict(id=2, va=0x47b3bc, size=52, gen=gen_47b3bc, cleanup=0, n=8 * 6),
     '47d640': dict(id=3, va=0x47d640, size=55, gen=gen_47d640, cleanup=0, n=8 * 6),
+    '47b709': dict(id=4, va=0x47b709, size=94, gen=gen_47b709, cleanup=4, n=8 * 6),
+    '47ba79': dict(id=5, va=0x47ba79, size=102, gen=gen_47ba79, cleanup=0, n=10 * 6),
+    '47badf': dict(id=6, va=0x47badf, size=119, gen=gen_47badf, cleanup=0, n=81 * 2),
     # SPECS-END
 }
 KEYS = list(SPECS)
 NAMES = {'47b200': 'construct', '47b3bc': 'mark_entry', '47d640': 'mark_entry',
+         '47b709': 'set_selector', '47ba79': 'expire_links', '47badf': 'check_range',
          # NAMES-END
          }
 

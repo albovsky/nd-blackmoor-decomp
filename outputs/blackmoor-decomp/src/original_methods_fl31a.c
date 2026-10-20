@@ -87,4 +87,42 @@ void m47d640_mark_entry(const uint8_t *self, const Fl31aWorld *world)
     wr32(world->table_5d15a5, (ptrdiff_t)i * 0x4a, 1);
 }
 
+/* ---- 0x47b709 set_selector ----------------------------------------------------------------------------------------------------- */
+void m47b709_set_selector(uint32_t sel, Fl31aWorld *world)
+{
+    world->value_5c39e5 = (uint32_t)(int32_t)(int16_t)sel;
+    world->value_5b44f0 = 0;
+    world->value_5b44f4 = 1;
+    world->value_5d162d = world->value_5d0377;
+    world->value_5d1631 = (world->value_5b44f0 << 5) + (world->value_5b44f4 << 4) + 0x5b160c;
+    world->value_5d1639 = 1;
+}
+
+/* ---- 0x47ba79 expire_links ------------------------------------------------------------------------------------------------------ */
+void m47ba79_expire_links(uint8_t *self, const Fl18Host *host)
+{
+    if (rd32(self, 0x34) == 0) return;
+    if (host->tick(host->context) <= rd32(self, 0x38)) return;
+    wr32(res(host, rd32(self, 0x1c)), 4, 0);
+    wr32(res(host, rd32(self, 0x20)), 4, 0);
+    wr32(self, 0x1c, 0);
+    wr32(self, 0x20, 0);
+    wr32(self, 0x34, 0);
+    wr32(self, 0x38, 0);
+}
+
+/* ---- 0x47badf check_range ------------------------------------------------------------------------------------------------------- */
+void m47badf_check_range(uint8_t *self, const Fl18Host *host)
+{
+    if ((int32_t)rd32(self, 0x290) >= (int32_t)rd32(self, 0x2a0)) {
+        if ((int32_t)rd32(self, 0x294) <= (int32_t)rd32(res(host, rd32(self, 0xc)), 0x341)) {
+            wr32(self, 0x28, 1);
+            return;
+        }
+    }
+    if ((int32_t)rd32(self, 0x290) < (int32_t)rd32(self, 0x2a0)) {
+        if ((int32_t)rd32(self, 0x294) >= (int32_t)rd32(res(host, rd32(self, 0xc)), 0x341)) wr32(self, 0x2c, 1);
+    }
+}
+
 /* FNS-END */

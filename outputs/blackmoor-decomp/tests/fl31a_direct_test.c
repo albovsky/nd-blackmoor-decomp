@@ -82,6 +82,15 @@ static uint32_t host_call(void *ctx, uint32_t callee, uintptr_t this_ptr, const 
     return result;
 }
 
+static uint32_t g_tick;
+static int g_ticks;
+static uint32_t host_tick(void *ctx)
+{
+    (void)ctx;
+    g_ticks++;
+    return g_tick;
+}
+
 __attribute__((unused)) static const uint8_t *host_resolve(void *ctx, uint32_t a)
 {
     (void)ctx;
@@ -103,6 +112,8 @@ static void setup(void)
     memset(&g_host, 0, sizeof g_host);
     g_host.call = host_call;
     g_host.resolve = host_resolve;
+    g_host.tick = host_tick;
+    g_ticks = 0;
     L.n = 0;
     g_nscript = 0;
 }
@@ -224,6 +235,137 @@ static void test_m47d640_mark_entry(void)
     CK(L.n == 0);
 }
 
+/* ---- 0x47b709 ------------------------------------------------------------------------------------------------------------------ */
+static void test_m47b709_set_selector(void)
+{
+    setup();
+    g_w.value_5b44f0 = 0x11111111u;
+    g_w.value_5b44f4 = 0x22222222u;
+    g_w.value_5d0377 = 0xcafebabeu;
+    g_w.value_5d162d = g_w.value_5d1631 = g_w.value_5d1639 = g_w.value_5c39e5 = 0x33333333u;
+    m47b709_set_selector(0xfff08000u, &g_w);                  /* the word is 0x8000: sign-extended */
+    CK(g_w.value_5c39e5 == 0xffff8000u);
+    CK(g_w.value_5b44f0 == 0 && g_w.value_5b44f4 == 1);
+    CK(g_w.value_5d162d == 0xcafebabeu);
+    CK(g_w.value_5d1631 == 0x5b161cu);                         /* 0x5b160c + (0 << 5) + (1 << 4) */
+    CK(g_w.value_5d1639 == 1);
+    CK(g_w.value_5d0377 == 0xcafebabeu);                       /* the source is not changed */
+    m47b709_set_selector(0x7fff, &g_w);
+    CK(g_w.value_5c39e5 == 0x7fffu);
+    m47b709_set_selector(0xabcd0000u, &g_w);
+    CK(g_w.value_5c39e5 == 0);
+    m47b709_set_selector(0xffff, &g_w);
+    CK(g_w.value_5c39e5 == 0xffffffffu);
+    CK(L.n == 0);
+}
+
+/* ---- 0x47ba79 ------------------------------------------------------------------------------------------------------------------ */
+static void expire_setup(uint32_t gate, uint32_t deadline)
+{
+    setup();
+    memset(SELF, 0x44, 0x100);
+    set32(SELF, 0x1c, RVA(1));
+    set32(SELF, 0x20, RVA(2));
+    set32(SELF, 0x34, gate);
+    set32(SELF, 0x38, deadline);
+    memset(g_r[1], 0x66, 0x40);
+    memset(g_r[2], 0x77, 0x40);
+}
+static int expired(void)
+{
+    return get32(SELF, 0x1c) == 0 && get32(SELF, 0x20) == 0 && get32(SELF, 0x34) == 0 && get32(SELF, 0x38) == 0 && get32(g_r[1], 4) == 0 && get32(g_r[2], 4) == 0;
+}
+static int untouched(void)
+{
+    return get32(SELF, 0x1c) == RVA(1) && get32(SELF, 0x20) == RVA(2) && get32(g_r[1], 4) == 0x66666666u && get32(g_r[2], 4) == 0x77777777u;
+}
+static void test_m47ba79_expire_links(void)
+{
+    expire_setup(0, 10);
+    g_tick = 0xffffffffu;
+    m47ba79_expire_links(SELF, &g_host);
+    CK(untouched() && g_ticks == 0);                          /* gate 0: the clock is not even read */
+    expire_setup(0x10000u, 10);                                /* non-zero with a zero low word is still a gate */
+    g_tick = 10;
+    m47ba79_expire_links(SELF, &g_host);
+    CK(untouched() && g_ticks == 1);                          /* now == deadline: not expired (jbe) */
+    g_tick = 9;
+    m47ba79_expire_links(SELF, &g_host);
+    CK(untouched());
+    g_tick = 11;
+    m47ba79_expire_links(SELF, &g_host);
+    CK(expired());
+    CK(get32(g_r[1], 8) == 0x66666666u && get32(g_r[2], 0) == 0x77777777u && get32(SELF, 0x40) == 0x44444444u);     /* only the named dwords */
+    expire_setup(1, 0x7fffffffu);
+    g_tick = 0x80000000u;                                      /* unsigned compare: above */
+    m47ba79_expire_links(SELF, &g_host);
+    CK(expired());
+    expire_setup(1, 0x80000000u);
+    g_tick = 0x7fffffffu;                                      /* unsigned compare: below */
+    m47ba79_expire_links(SELF, &g_host);
+    CK(untouched());
+    expire_setup(1, 0);
+    g_tick = 0xffffffffu;
+    set32(SELF, 0x20, RVA(1));                                 /* both pointers to one object */
+    m47ba79_expire_links(SELF, &g_host);
+    CK(get32(SELF, 0x1c) == 0 && get32(SELF, 0x20) == 0 && get32(SELF, 0x34) == 0 && get32(SELF, 0x38) == 0 && get32(g_r[1], 4) == 0 && get32(g_r[2], 4) == 0x77777777u);
+}
+
+/* ---- 0x47badf ------------------------------------------------------------------------------------------------------------------ */
+static void range_setup(int32_t a, int32_t b, int32_t c, int32_t d)
+{
+    setup();
+    memset(SELF, 0x99, 0x400);
+    set32(SELF, 0xc, RVA(1));
+    set32(SELF, 0x28, 2);
+    set32(SELF, 0x2c, 2);
+    set32(SELF, 0x290, (uint32_t)a);
+    set32(SELF, 0x2a0, (uint32_t)b);
+    set32(SELF, 0x294, (uint32_t)c);
+    memset(g_r[1], 0x12, 0x400);
+    set32(g_r[1], 0x341, (uint32_t)d);
+}
+/* which flag was set: 1 = [self+0x28] only, 2 = [self+0x2c] only, 0 = none (the other bytes of self are unchanged) */
+static int flags(void)
+{
+    uint32_t f28 = get32(SELF, 0x28), f2c = get32(SELF, 0x2c);
+    if (f28 == 1 && f2c == 2) return 1;
+    if (f28 == 2 && f2c == 1) return 2;
+    if (f28 == 2 && f2c == 2) return 0;
+    return -1;
+}
+static void test_m47badf_check_range(void)
+{
+    range_setup(5, 5, 7, 7);                 /* a >= b, c <= d (equal) */
+    m47badf_check_range(SELF, &g_host);
+    CK(flags() == 1);
+    range_setup(6, 5, 6, 7);                 /* a > b, c < d */
+    m47badf_check_range(SELF, &g_host);
+    CK(flags() == 1);
+    range_setup(6, 5, 8, 7);                 /* a > b, c > d: nothing (the second test is a < b) */
+    m47badf_check_range(SELF, &g_host);
+    CK(flags() == 0);
+    range_setup(4, 5, 7, 7);                 /* a < b, c == d */
+    m47badf_check_range(SELF, &g_host);
+    CK(flags() == 2);
+    range_setup(4, 5, 8, 7);                 /* a < b, c > d */
+    m47badf_check_range(SELF, &g_host);
+    CK(flags() == 2);
+    range_setup(4, 5, 6, 7);                 /* a < b, c < d: nothing */
+    m47badf_check_range(SELF, &g_host);
+    CK(flags() == 0);
+    range_setup((int32_t)0x80000000u, 0x7fffffff, 0, 0);       /* signed: INT_MIN < INT_MAX */
+    m47badf_check_range(SELF, &g_host);
+    CK(flags() == 2);
+    range_setup(0x7fffffff, (int32_t)0x80000000u, (int32_t)0x80000000u, 0x7fffffff);       /* a > b (signed), c < d (signed) */
+    m47badf_check_range(SELF, &g_host);
+    CK(flags() == 1);
+    range_setup(-1, 0, 0x7fffffff, (int32_t)0x80000000u);      /* a < b, c > d (signed): the second flag */
+    m47badf_check_range(SELF, &g_host);
+    CK(flags() == 2);
+    CK(L.n == 0);
+}
+
 /* CASES-END */
 
 /* ---- bounded sweep ------------------------------------------------------------------------------------------------------------- */
@@ -245,6 +387,16 @@ static void test_sweep_bounded(void)
         m47b3bc_mark_entry(SELF, &g_w);
         m47d640_mark_entry(SELF, &g_w);
         m47b200_construct(SELF, &g_host);
+        L.n = 0;
+        set32(SELF, 0x34, seed);
+        set32(SELF, 0x38, seed >> 3);
+        set32(SELF, 0x1c, RVA(1));
+        set32(SELF, 0x20, RVA(2));
+        set32(SELF, 0xc, RVA(3));
+        g_tick = seed >> 5;
+        m47b709_set_selector(seed, &g_w);
+        m47ba79_expire_links(SELF, &g_host);
+        m47badf_check_range(SELF, &g_host);
         L.n = 0;
         /* SWEEP-END */
     }
@@ -269,6 +421,9 @@ int main(void)
     RUN(test_m47b200_construct);
     RUN(test_m47b3bc_mark_entry);
     RUN(test_m47d640_mark_entry);
+    RUN(test_m47b709_set_selector);
+    RUN(test_m47ba79_expire_links);
+    RUN(test_m47badf_check_range);
     /* RUN-END */
     RUN(test_sweep_bounded);
     return failures;

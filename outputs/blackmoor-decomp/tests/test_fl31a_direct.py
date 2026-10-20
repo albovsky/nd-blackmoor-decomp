@@ -78,6 +78,18 @@ class Fl31aDirect(unittest.TestCase):
         """FL-31a: direct test of m47d640_mark_entry (original 0x47d640)"""
         self.check('test_m47d640_mark_entry')
 
+    def test_47b709_set_selector(self):
+        """FL-31a: direct test of m47b709_set_selector (original 0x47b709)"""
+        self.check('test_m47b709_set_selector')
+
+    def test_47ba79_expire_links(self):
+        """FL-31a: direct test of m47ba79_expire_links (original 0x47ba79)"""
+        self.check('test_m47ba79_expire_links')
+
+    def test_47badf_check_range(self):
+        """FL-31a: direct test of m47badf_check_range (original 0x47badf)"""
+        self.check('test_m47badf_check_range')
+
     # CASES-END
 
     def test_sweep_bounded(self):
