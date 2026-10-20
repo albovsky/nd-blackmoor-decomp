@@ -497,7 +497,14 @@ def gen_41b6e2(rng, n):
 
 # 0x50ca3e is called with four stack arguments (the debug trace) and with three (the text of a score); the stub logs four dwords, the fourth of the three-argument call is the
 # caller's own local (`self`), not an argument: it is dropped here from the log of the original
-TRIM[0x50ca3e] = lambda rest: rest if rest[0] == 0x63888b else rest[:3]
+def _trim_50ca3e(rest):
+    """0x50ca3e takes four dwords from 0x4763b3's debug trace (second dword 0x54c868), two from the messages of 0x423876 (0x544730, 0x5447e0), three from the other messages and the texts."""
+    if rest[1] == 0x54c868:
+        return rest
+    return rest[:2] if rest[1] in (0x544730, 0x5447e0) else rest[:3]
+
+
+TRIM[0x50ca3e] = _trim_50ca3e
 CELL_VALUES = [0, 1, 2, 3, 0xffff, 0x8000, 0x7fff]
 REC_WORDS = [0, 1, 2, 5, 0x7fff, 0x8000, 0xffff, 0xfffe, 0x100, 10, 0x3e8, 7, 0xfff0]
 
@@ -560,17 +567,130 @@ def gen_4763b3(rng, n):
                 pointers=pointers)
 
 
+# ---- 0x423876 ------------------------------------------------------------------------------------------------------------------------------
+
+NODE_SIZE = 0x60
+
+
+def profiles_423876():
+    p = [('nullcell', dbg, f) for dbg in (0, 1) for f in (0, 1)]
+    p += [('nonode', f) for f in (0, 1)]
+    p += [('chain', length, typ, c, f, dbg) for length in (1, 2, 3) for typ in (0, 1, 2, 3) for c in (0, 1) for f in (0, 1) for dbg in (0, 1)]
+    p += [('rec', prefix, inner, tmode, outer, cinner, couter, f, dbg) for prefix in (0, 1) for inner in (1, 2) for tmode in ('zero', 'bad', 'ok') for outer in (1, 2)
+          for cinner in (0, 1) for couter in (0, 1) for f in (0, 1) for dbg in (0, 1)][::5]
+    return p
+
+
+def gen_423876(rng, n):
+    (kind, *rest), variant = prof(n, profiles_423876())
+    areas, nodes = [], []
+
+    def node(typ, next_va, c_va, f44=None):
+        """A node object; returns its address. type 3 stands for a type that is neither 1 nor 2."""
+        b = bytearray(rng.randbytes(NODE_SIZE))
+        real = {0: 2, 1: 1, 2: 2, 3: 1}[typ]
+        put32(b, 0, real)
+        put32(b, 0x34, next_va)
+        put32(b, 0x48, c_va)
+        put32(b, 0x44, (0 if real == 1 or rng.random() < 0.5 else rand32(rng)) if f44 is None else f44)
+        va = od.region_va(4 + len(nodes))
+        areas.append(Area('node%d' % len(nodes), va, b, image=False))
+        nodes.append(va)
+        return va
+
+    def simple_chain(length, typ_choices, c_last):
+        """`length` simple nodes (types 2, or 1 with [0x44] = 0) linked by +0x34, the last next 0; returns the address of the first and the list of the node addresses."""
+        vas = [od.region_va(4 + len(nodes) + i) for i in range(length)]
+        c_vas = [od.region_va(12 + c_last)] if c_last else [0]
+        for i in range(length):
+            node(typ_choices[i % len(typ_choices)], vas[i + 1] if i + 1 < length else 0, c_vas[0] if i + 1 == length else rand32(rng) & 0x7fffffff | 1)
+        return vas[0], vas
+
+    cell = bytearray(rng.randbytes(16))
+    cell2 = bytearray(rng.randbytes(16))
+    tstruct = bytearray(rng.randbytes(16))
+    cobjs = [bytearray(rng.randbytes(16)) for _ in range(4)]
+    r423aae, r4235fd = [], []
+    f, dbg = 0, 0
+    p0 = rand32(rng)
+    put32(cell, 0, p0)
+    if kind == 'nullcell':
+        dbg, f = rest
+        put32(cell, 0, 0)
+    elif kind == 'nonode':
+        f = rest[0]
+        r423aae = [0]
+    elif kind == 'chain':
+        length, typ, c, f, dbg = rest
+        first, _ = simple_chain(length, [typ, (typ + 1) % 3, 2], c)
+        r423aae = [first]
+    else:
+        prefix, inner, tmode, outer, cinner, couter, f, dbg = rest
+        q = rand32(rng)
+        # the nodes in the order of the plan: [prefix simple node] -> R (type 1, [0x44] = q); the inner chain; the nodes after the call of 0x4235fd
+        first_va = od.region_va(4)
+        r_index = 1 if prefix else 0
+        if prefix:
+            node(rng.choice([0, 1, 2]), od.region_va(4 + r_index), rand32(rng) | 1)
+        node(1, rng.choice([0, od.region_va(11)]), rand32(rng) | 1, f44=q)
+        inner_first, _ = simple_chain(inner, [rng.choice([0, 1, 2]), 2], cinner)
+        r423aae = [first_va, inner_first]
+        if tmode == 'zero':
+            r4235fd = [0]
+        else:
+            t_va = od.region_va(3)
+            put32(tstruct, 4, od.region_va(2))
+            second = od.region_va(4 + len(nodes))
+            if tmode == 'bad':
+                node(rng.choice([0, 1, 2]), 0, 0, f44=rand32(rng) | 1)
+                put32(tstruct, 8, second)
+            else:
+                chain_first, _ = simple_chain(outer, [rng.choice([0, 1, 2]), 2], couter)
+                put32(tstruct, 8, chain_first)
+            r4235fd = [t_va]
+    areas = [self_area(bytearray(rng.randbytes(0x100))), Area('cell', od.region_va(1), cell, image=False), Area('cell2', od.region_va(2), cell2, image=False),
+             Area('tstruct', od.region_va(3), tstruct, image=False), *areas, *[Area('cobj%d' % i, od.region_va(12 + i), cobjs[i], image=False) for i in range(4)]]
+    probe = [('cobj0', 0, 16), ('cobj1', 0, 16), ('cell', 0, 4), ('cell2', 0, 4), ('node0', 0x30, 0x20)] if nodes else [('cell', 0, 4)]
+    probe = [x for x in probe if x[0] == 'cell' or x[0] != 'node0' or nodes]
+    g, nbr = debug_areas(rng, (0, rng.choice([1, 0x100, 0x8000]))[dbg])
+    stubs = {0x423aae: stub(0x423aae, THISCALL(1), probe, results=r423aae or [0]), 0x4234dd: stub(0x4234dd, THISCALL(2), probe), 0x423a30: stub(0x423a30, THISCALL(1), probe, derefs=[(0, 4)]),
+             0x4235fd: stub(0x4235fd, THISCALL(0), probe, results=r4235fd or [0]), 0x50ca3e: stub(0x50ca3e, CDECL(4), probe), 0x51dc6c: stub(0x51dc6c, CDECL(1), probe),
+             0x52139c: stub(0x52139c, STDCALL(3), probe), 0x44a2b7: stub(0x44a2b7, CDECL(1), probe), 0x4c97b4: stub(0x4c97b4, THISCALL(0), probe)}
+    return make('423876', [*areas, *nbr], stubs, g, [od.region_va(1), f], (od.region_va(1), f), (kind, *rest))
+
+
 SPECS = {
     '4fcb5c': dict(id=1, va=0x4fcb5c, size=406, gen=gen_4fcb5c, cleanup=4, fpcw=0x27f, n=len(profiles_4fcb5c()) * 6),
     '43d7f0': dict(id=2, va=0x43d7f0, size=675, gen=gen_43d7f0, cleanup=0, n=len(profiles_43d7f0()) * 2),
     '434025': dict(id=3, va=0x434025, size=536, gen=gen_434025, cleanup=0, n=len(profiles_434025()) * 3),
     '41b6e2': dict(id=4, va=0x41b6e2, size=579, gen=gen_41b6e2, cleanup=16, n=len(profiles_41b6e2()) * 3),
     '4763b3': dict(id=5, va=0x4763b3, size=1650, gen=gen_4763b3, cleanup=8, n=len(profiles_4763b3()) * 2),
+    '423876': dict(id=6, va=0x423876, size=442, gen=gen_423876, cleanup=8, n=len(profiles_423876()) * 2),
 }
 KEYS = list(SPECS)
+
+
+def hang_run_423876():
+    """The original on a node whose type is neither 1 nor 2 (0x423876): it does not return (the run is cut after 20000 instructions, which raises). Returns (executed instructions,
+    (instruction, next instruction) pairs) of that run: the evidence for the jumps 0x4238d9 and 0x423930 whose taken direction leads into the endless loop at 0x4239c8."""
+    node = bytearray(NODE_SIZE)
+    put32(node, 0, 3)
+    areas = [Area('self', od.region_va(0), bytearray(0x100), image=False), Area('cell', od.region_va(1), bytearray(struct.pack('<I', 0x1234) + bytes(12)), image=False),
+             Area('node0', od.region_va(4), node, image=False)]
+    stubs = {0x423aae: stub(0x423aae, THISCALL(1), None, results=[od.region_va(4)])}
+    runner = Original30([], {a.name: (a.va, a.data) for a in areas}, stubs, {}, fpcw=None)
+    try:
+        runner.run(0x423876, 442, ecx=od.region_va(0), stack_args=[od.region_va(1), 0], limit=20000)
+    except RuntimeError:
+        return set(runner.executed), set(runner.edges)
+    raise AssertionError('the original returned on a node of type 3')
+
+
+EXTRA_RUNS = {'423876': hang_run_423876}
+UNTAKEN_ALLOWED['423876'] = {(0x42393d, 'taken'): 'je [node+0x44] == 0 at 0x42393d is reached only after 0x4238de..0x4238e2 found [node+0x44] != 0 for the same type 1 node: the jump is never taken'}
 UNTAKEN_ALLOWED['434025'] = {(0x4340e3, 'taken'): 'je after `mov eax, 1; test eax, eax` guards the endless entry loop: the guard is always true, so the jump to 0x434233 is never taken from here '
                                                     '(0x434233 itself is reached by the jumps at 0x43416e and 0x43422c, and every instruction of the function is executed)'}
-NAMES = {'4fcb5c': 'set_category_master', '43d7f0': 'init_scenes', '434025': 'scan_entries', '41b6e2': 'lz_decode', '4763b3': 'mark_runs'}
+NAMES = {'4fcb5c': 'set_category_master', '43d7f0': 'init_scenes', '434025': 'scan_entries', '41b6e2': 'lz_decode', '4763b3': 'mark_runs', '423876': 'unwind_chain'}
 
 
 def build(key, rng, n):

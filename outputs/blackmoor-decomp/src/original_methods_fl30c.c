@@ -410,3 +410,77 @@ void m4763b3_mark_runs(uint8_t *self, uint32_t x, uint32_t y, const Fl30cWorld *
         self[0x801] = 1;
     }
 }
+
+/* ---- 0x423876 ------------------------------------------------------------------------------------------------------------------ */
+
+/* the block at 0x4239f2 that every error path ends in */
+static void report_423876(const Fl30cWorld *world, const Fl18Host *host)
+{
+    call3(host, 0x52139c, 0, 0x63888b, 0, 0);
+    if (world->word_63a4cd != 0) call1(host, 0x44a2b7, 0, 0x63888b);
+    call0(host, 0x4c97b4, 0x5cf659);
+}
+
+/* 0x423876, thiscall: see the header. [ebp-0x1c] is `self`, [ebp+8] cell, [ebp+0xc] flag, [ebp-0x14] node, [ebp-0x10] cur, [ebp-8] done, [ebp-4] t. */
+void m423876_unwind_chain(uint8_t *self, uint8_t *cell, uint32_t flag, const Fl30cWorld *world, const Fl18Host *host)
+{
+    uint32_t node_va;
+    int done = 0;
+    if (rd32(cell, 0) == 0) {
+        call2(host, 0x50ca3e, 0, 0x63888b, 0x544730);
+        report_423876(world, host);
+        return;
+    }
+    node_va = call1(host, 0x423aae, (uintptr_t)self, rd32(cell, 0));
+    if (node_va == 0) return;
+    while (done == 0) {
+        uint8_t *node = object_at(host, node_va);
+        uint32_t type;
+        if (node == NULL) return;                                         /* NATIVE REJECTION */
+        type = rd32(node, 0);
+        if (type == 2 || (type == 1 && rd32(node, 0x44) == 0)) {
+            uint32_t cur = node_va;
+            node_va = rd32(node, 0x34);
+            if (node_va == 0) {
+                uint32_t c;
+                done = 1;
+                c = rd32(node, 0x48);
+                if (c != 0) {
+                    uint8_t *cp = object_at(host, c);
+                    if (cp == NULL) return;                               /* NATIVE REJECTION */
+                    wr32(cp, 4, 0);
+                }
+            }
+            call1(host, 0x423a30, (uintptr_t)self, (uintptr_t)&cur);
+        } else if (type == 1) {
+            uint32_t t_va;
+            uint8_t *tp;
+            call2(host, 0x4234dd, (uintptr_t)self, (uintptr_t)cell, node_va);
+            m423876_unwind_chain(self, node + 0x44, 1, world, host);
+            t_va = call0(host, 0x4235fd, (uintptr_t)self);
+            if (t_va == 0) {
+                call2(host, 0x50ca3e, 0, 0x63888b, 0x5447e0);
+                report_423876(world, host);
+                return;
+            }
+            tp = object_at(host, t_va);
+            if (tp == NULL) return;                                       /* NATIVE REJECTION */
+            node_va = rd32(tp, 8);
+            cell = object_at(host, rd32(tp, 4));
+            done = 0;
+            node = object_at(host, node_va);
+            if (node == NULL || cell == NULL) return;                     /* NATIVE REJECTION */
+            if (rd32(node, 0x44) != 0) {
+                call3(host, 0x50ca3e, 0, 0x63888b, 0x544770, rd32(node, 0xc));
+                report_423876(world, host);
+                return;
+            }
+        } else {
+            return;                                                       /* NATIVE REJECTION: the original loops forever */
+        }
+    }
+    if (flag != 0) {
+        call1(host, 0x51dc6c, 0, rd32(cell, 0));
+        wr32(cell, 0, 0);
+    }
+}

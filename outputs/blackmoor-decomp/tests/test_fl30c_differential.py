@@ -137,6 +137,10 @@ class Fl30cDifferential(DiffBase):
         va, size = fx.SPECS[key]['va'], fx.SPECS[key].get('code', fx.SPECS[key]['size'])
         for n in range(fx.scenarios(key)):
             self.pair(fx.build(key, rng, n), executed, edges)
+        if key in fx.EXTRA_RUNS:       # a run that is cut off: the original never returns (see fl30c_fixtures.hang_run_423876)
+            ex, ed = fx.EXTRA_RUNS[key]()
+            executed |= ex
+            edges |= ed
         missing = sorted(od.instruction_addresses(va, size) - executed)
         self.assertEqual(missing, [], 'scenarios never reached original instructions %s' % [hex(a) for a in missing])
         # both directions of every conditional jump of the original function (the next address after the jump, recorded by the code hook)
@@ -163,6 +167,10 @@ class Fl30cDifferential(DiffBase):
     def test_4763b3_mark_runs(self):
         """FL-30c: differential test of m4763b3_mark_runs (original 0x4763b3)"""
         self.run_key('4763b3')
+
+    def test_423876_unwind_chain(self):
+        """FL-30c: differential test of m423876_unwind_chain (original 0x423876)"""
+        self.run_key('423876')
 
     # TESTS-END
 

@@ -31,6 +31,7 @@ static struct {
         uintptr_t this_ptr;
         int nargs;
         uintptr_t a[6];
+        uint32_t d0;      /* the dword behind the first argument of 0x423a30 (a local of the function under test), read at the call */
     } c[MAXCALL];
 } L;
 static struct {
@@ -72,6 +73,7 @@ static uint32_t host_call(void *ctx, uint32_t callee, uintptr_t this_ptr, const 
         L.c[i].this_ptr = this_ptr;
         L.c[i].nargs = nargs;
         for (k = 0; k < nargs && k < 6; k++) L.c[i].a[k] = args[k];
+        if (callee == 0x423a30 && nargs == 1) memcpy(&L.c[i].d0, (const void *)args[0], 4);
         L.n++;
     }
     for (k = 0; k < g_nscript; k++)
@@ -470,6 +472,135 @@ static void test_m4763b3_mark_runs(void)
     CK(self[0x8d6] == 0x33 && self[0x801] == 0 && L.n == 0);
 }
 
+/* ---- 0x423876 ---- */
+static void node4(uint8_t *nd, uint32_t type, uint32_t next, uint32_t c, uint32_t f44)
+{
+    memset(nd, 0, 0x60);
+    set32(nd, 0, type);
+    set32(nd, 0x34, next);
+    set32(nd, 0x44, f44);
+    set32(nd, 0x48, c);
+}
+
+static void test_m423876_unwind_chain(void)
+{
+    static uint8_t self[0x100], cell[16], cell2[16], tstr[16], n0[0x60], n1[0x60], m0[0x60], cobj[16];
+    uint32_t r[2];
+    const uintptr_t S0 = (uintptr_t)self;
+    /* an empty cell: 0x50ca3e(0x63888b, 0x544730), then the report 0x52139c(0x63888b, 0, 0) and 0x4c97b4(this 0x5cf659); with the debug word 0x44a2b7(0x63888b) before the last */
+    reset();
+    memset(cell, 0, sizeof cell);
+    m423876_unwind_chain(self, cell, 1, &g_w, &g_host);
+    CK(L.n == 3 && L.c[0].callee == 0x50ca3e && L.c[0].nargs == 2 && L.c[0].a[0] == 0x63888b && L.c[0].a[1] == 0x544730);
+    CK(L.c[1].callee == 0x52139c && L.c[1].nargs == 3 && L.c[1].a[0] == 0x63888b && L.c[1].a[1] == 0 && L.c[1].a[2] == 0);
+    CK(L.c[2].callee == 0x4c97b4 && L.c[2].this_ptr == 0x5cf659 && L.c[2].nargs == 0);
+    reset();
+    g_w.word_63a4cd = -1;
+    m423876_unwind_chain(self, cell, 0, &g_w, &g_host);
+    CK(L.n == 4 && L.c[2].callee == 0x44a2b7 && L.c[2].nargs == 1 && L.c[2].a[0] == 0x63888b && L.c[3].callee == 0x4c97b4);
+    /* no node (0x423aae answers 0): only that call */
+    reset();
+    set32(cell, 0, 0xabc0);
+    r[0] = 0;
+    script(0x423aae, 1, r);
+    m423876_unwind_chain(self, cell, 1, &g_w, &g_host);
+    CK(L.n == 1 && L.c[0].callee == 0x423aae && L.c[0].this_ptr == S0 && L.c[0].nargs == 1 && L.c[0].a[0] == 0xabc0 && get32(cell, 0) == 0xabc0);
+    /* a type 2 node with no next and c: c+4 cleared, 0x423a30(&cur) sees the node, then the flag frees the cell: 0x51dc6c(0xabc0), cell = 0 */
+    reset();
+    set32(cell, 0, 0xabc0);
+    node4(n0, 2, 0, 0x20030000u, 0x77);
+    memset(cobj, 0xee, sizeof cobj);
+    region(0x20010000u, n0, sizeof n0);
+    region(0x20030000u, cobj, sizeof cobj);
+    r[0] = 0x20010000u;
+    script(0x423aae, 1, r);
+    m423876_unwind_chain(self, cell, 1, &g_w, &g_host);
+    CK(L.n == 3 && L.c[1].callee == 0x423a30 && L.c[1].this_ptr == S0 && L.c[1].d0 == 0x20010000u && L.c[2].callee == 0x51dc6c && L.c[2].this_ptr == 0 && L.c[2].a[0] == 0xabc0);
+    CK(get32(cobj, 4) == 0 && get32(cobj, 0) == 0xeeeeeeeeu && get32(cell, 0) == 0);
+    /* a type 1 node with [0x44] = 0 followed by a type 2 node; c = 0 on the last, flag 0: both nodes passed to 0x423a30, the cell stays */
+    reset();
+    set32(cell, 0, 0xabc0);
+    node4(n0, 1, 0x20020000u, 0x20030000u, 0);
+    node4(n1, 2, 0, 0, 0x55);
+    region(0x20010000u, n0, sizeof n0);
+    region(0x20020000u, n1, sizeof n1);
+    r[0] = 0x20010000u;
+    script(0x423aae, 1, r);
+    m423876_unwind_chain(self, cell, 0, &g_w, &g_host);
+    CK(L.n == 3 && L.c[1].callee == 0x423a30 && L.c[1].d0 == 0x20010000u && L.c[2].callee == 0x423a30 && L.c[2].d0 == 0x20020000u && get32(cell, 0) == 0xabc0);
+    /* a type 1 node with [0x44] = q: 0x4234dd(this, cell, node); recursion on node+0x44 with flag 1 (0x423aae(q) answers a type 2 node, 0x423a30, then 0x51dc6c(q) and [node+0x44] = 0);
+     * 0x4235fd answers t: [t+4] = cell2, [t+8] = a type 2 node: its 0x423a30; then flag 1 frees the REPLACED cell: 0x51dc6c(dword [cell2]) and cell2 = 0 */
+    reset();
+    set32(cell, 0, 0xabc0);
+    set32(cell2, 0, 0x5150);
+    node4(n0, 1, 0, 0, 0x6666);
+    node4(m0, 2, 0, 0, 0);
+    node4(n1, 2, 0, 0, 0);
+    set32(tstr, 4, 0x20040000u);
+    set32(tstr, 8, 0x20030000u);
+    region(0x20010000u, n0, sizeof n0);
+    region(0x20020000u, m0, sizeof m0);
+    region(0x20030000u, n1, sizeof n1);
+    region(0x20040000u, cell2, sizeof cell2);
+    region(0x20050000u, tstr, sizeof tstr);
+    r[0] = 0x20010000u; r[1] = 0x20020000u;
+    script(0x423aae, 2, r);
+    r[0] = 0x20050000u;
+    script(0x4235fd, 1, r);
+    m423876_unwind_chain(self, cell, 1, &g_w, &g_host);
+    CK(L.n == 8 && L.c[0].callee == 0x423aae && L.c[0].a[0] == 0xabc0);
+    CK(L.c[1].callee == 0x4234dd && L.c[1].this_ptr == S0 && L.c[1].nargs == 2 && L.c[1].a[0] == (uintptr_t)cell && L.c[1].a[1] == 0x20010000u);
+    CK(L.c[2].callee == 0x423aae && L.c[2].a[0] == 0x6666 && L.c[3].callee == 0x423a30 && L.c[3].d0 == 0x20020000u);
+    CK(L.c[4].callee == 0x51dc6c && L.c[4].a[0] == 0x6666 && get32(n0, 0x44) == 0);
+    CK(L.c[5].callee == 0x4235fd && L.c[5].nargs == 0 && L.c[5].this_ptr == S0);
+    CK(L.c[6].callee == 0x423a30 && L.c[6].d0 == 0x20030000u && L.c[7].callee == 0x51dc6c && L.c[7].a[0] == 0x5150);
+    CK(get32(cell2, 0) == 0 && get32(cell, 0) == 0xabc0);
+    /* 0x4235fd answers 0: the message 0x50ca3e(0x63888b, 0x5447e0) and the report */
+    reset();
+    set32(cell, 0, 0xabc0);
+    node4(n0, 1, 0, 0, 0x6666);
+    node4(m0, 2, 0, 0, 0);
+    region(0x20010000u, n0, sizeof n0);
+    region(0x20020000u, m0, sizeof m0);
+    r[0] = 0x20010000u; r[1] = 0x20020000u;
+    script(0x423aae, 2, r);
+    r[0] = 0;
+    script(0x4235fd, 1, r);
+    m423876_unwind_chain(self, cell, 0, &g_w, &g_host);
+    CK(L.n == 9 && L.c[5].callee == 0x4235fd && L.c[6].callee == 0x50ca3e && L.c[6].nargs == 2 && L.c[6].a[1] == 0x5447e0 && L.c[7].callee == 0x52139c);
+    /* 0x4235fd answers a t whose node has [0x44] != 0: 0x50ca3e(0x63888b, 0x544770, dword [node+0xc]) and the report; the flag 1 is not honoured (return) */
+    reset();
+    set32(cell, 0, 0xabc0);
+    node4(n0, 1, 0, 0, 0x6666);
+    node4(m0, 2, 0, 0, 0);
+    node4(n1, 2, 0, 0, 0x9);
+    set32(n1, 0xc, 0xfeedbeefu);
+    set32(tstr, 4, 0x20040000u);
+    set32(tstr, 8, 0x20030000u);
+    set32(cell2, 0, 0x5150);
+    region(0x20010000u, n0, sizeof n0);
+    region(0x20020000u, m0, sizeof m0);
+    region(0x20030000u, n1, sizeof n1);
+    region(0x20040000u, cell2, sizeof cell2);
+    region(0x20050000u, tstr, sizeof tstr);
+    r[0] = 0x20010000u; r[1] = 0x20020000u;
+    script(0x423aae, 2, r);
+    r[0] = 0x20050000u;
+    script(0x4235fd, 1, r);
+    m423876_unwind_chain(self, cell, 1, &g_w, &g_host);
+    CK(L.n == 9 && L.c[6].callee == 0x50ca3e && L.c[6].nargs == 3 && L.c[6].a[1] == 0x544770 && L.c[6].a[2] == 0xfeedbeefu && L.c[7].callee == 0x52139c);
+    CK(get32(cell2, 0) == 0x5150 && get32(cell, 0) == 0xabc0);
+    /* NATIVE REJECTION: a node of another type (the original loops forever): return after the first call, nothing written */
+    reset();
+    set32(cell, 0, 0xabc0);
+    node4(n0, 0, 0, 0, 0);
+    region(0x20010000u, n0, sizeof n0);
+    r[0] = 0x20010000u;
+    script(0x423aae, 1, r);
+    m423876_unwind_chain(self, cell, 1, &g_w, &g_host);
+    CK(L.n == 1 && get32(cell, 0) == 0xabc0);
+}
+
 /* TESTS-END */
 
 /* ---- the bounded sweep: every port on random in-bounds buffers (meant for the sanitiser builds) ---- */
@@ -526,6 +657,19 @@ static void test_sweep_bounded(void)
             g_w.records_5bb5e5 = sreg;
             m4763b3_mark_runs(sp, rnd() % 6, rnd() % 5, &g_w, &g_host);
         }
+        /* 0x423876 */
+        {
+            static uint8_t cellm[16], nd[0x60], cobj[16];
+            uint32_t rr[1] = {0x20010000u};
+            memset(nd, 0, sizeof nd);
+            set32(nd, 0, 1 + rnd() % 2);
+            set32(nd, 0x48, (rnd() & 1) ? 0x20020000u : 0);
+            region(0x20010000u, nd, sizeof nd);
+            region(0x20020000u, cobj, sizeof cobj);
+            set32(cellm, 0, rnd() & 1 ? 0x1234 : 0);
+            script(0x423aae, 1, rr);
+            m423876_unwind_chain(sv, cellm, rnd() & 1, &g_w, &g_host);
+        }
         /* SWEEP-END */
     }
 }
@@ -551,6 +695,7 @@ int main(void)
     RUN(test_m434025_scan_entries);
     RUN(test_m41b6e2_lz_decode);
     RUN(test_m4763b3_mark_runs);
+    RUN(test_m423876_unwind_chain);
     /* RUN-END */
     RUN(test_sweep_bounded);
     return failures;

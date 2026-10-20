@@ -86,6 +86,10 @@ class Fl30cDirect(unittest.TestCase):
         """FL-30c: direct test of m4763b3_mark_runs (original 0x4763b3)"""
         self.check('test_m4763b3_mark_runs')
 
+    def test_423876_unwind_chain(self):
+        """FL-30c: direct test of m423876_unwind_chain (original 0x423876)"""
+        self.check('test_m423876_unwind_chain')
+
     # CASES-END
 
     def test_sweep_bounded(self):

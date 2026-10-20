@@ -39,6 +39,10 @@ def main():
             executed |= orig.executed
             edges |= orig.edges
             chain.update(digest.encode())
+        if key in fx.EXTRA_RUNS:       # a run that is cut off: the original never returns (see fl30c_fixtures.hang_run_423876)
+            ex, ed = fx.EXTRA_RUNS[key]()
+            executed |= ex
+            edges |= ed
         total = od.instruction_addresses(spec['va'], spec.get('code', spec['size']))
         missing = sorted(total - executed)
         unexpected, stale, directions = fx.check_edges(key, edges)

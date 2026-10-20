@@ -83,6 +83,19 @@ void m41b6e2_lz_decode(const uint8_t *src, uint8_t *dst, uint32_t srclen, uint32
  * for the record the function returns at once without any effect. */
 void m4763b3_mark_runs(uint8_t *self, uint32_t x, uint32_t y, const Fl30cWorld *world, const Fl18Host *host);
 
+/* 0x423876, thiscall (`self` = ecx), `ret 8`, two stack dwords: `cell` (a host pointer to a dword cell that holds the address of a node; the first argument) and `flag` (the second). Releases a chain of nodes.
+ * The cell holds 0: 0x50ca3e(0x63888b, 0x544730) (cdecl, two arguments) and the report below, return. node = 0x423aae(this self, dword [cell]) (thiscall, one argument; a node address) and 0 returns. Then a loop
+ * until `done` (a local that starts at 0), on the node: the dword type [node+0] == 2, or type 1 with the dword [node+0x44] == 0: cur = node; node = dword [cur+0x34]; when that is 0: done = 1 and
+ * c = dword [cur+0x48]; c != 0: dword [c+4] = 0; then 0x423a30(this self, &cur) (thiscall, one argument: the address of the local holding cur, whose bytes the callee may read). Type 1 with [node+0x44] != 0:
+ * 0x4234dd(this self, cell, node) (thiscall, two arguments); this function again for the cell node+0x44 with the flag 1 (recursion); t = 0x4235fd(this self) (thiscall, no arguments); t == 0:
+ * 0x50ca3e(0x63888b, 0x5447e0) and the report, return. Otherwise node = dword [t+8], cell = dword [t+4] (the cell of the caller is replaced), done = 0, and when dword [node+0x44] != 0:
+ * 0x50ca3e(0x63888b, 0x544770, dword [node+0xc]) (cdecl, three arguments) and the report, return. A node of another type: the original loops forever (see the rejection below). After the loop: flag != 0:
+ * 0x51dc6c(dword [cell]) (cdecl, one argument) and dword [cell] = 0 (the possibly replaced cell). The report: 0x52139c(0x63888b, 0, 0) (stdcall, three arguments), a non-zero debug word
+ * 0x63a4cd: 0x44a2b7(0x63888b) (cdecl, one), then 0x4c97b4(this 0x5cf659) (thiscall, no arguments); the function then returns. Addresses stored in the nodes are original addresses that Fl18Host.resolve
+ * turns into memory. NATIVE REJECTIONS (not original behaviour): a node whose type is neither 1 nor 2 makes the original loop forever (the oracle runs it and shows that it does not return), the port returns at
+ * once; the port also returns when an address it must dereference does not resolve. */
+void m423876_unwind_chain(uint8_t *self, uint8_t *cell, uint32_t flag, const Fl30cWorld *world, const Fl18Host *host);
+
 #ifdef __cplusplus
 }
 #endif
