@@ -169,7 +169,8 @@ static int16_t signed_rem(uint32_t r, uint32_t mask, uint32_t low)
     return (int16_t)v;
 }
 
-/* 0x45bbd8, thiscall: see the header. [ebp-0x18] is `self`, [ebp-0x14] the word count, [ebp-4] rec, [ebp-8] the word i, [ebp-0x10] / [ebp-0xc] the words w2 / w4. */
+/* 0x45bbd8, thiscall: see the header. NOT CREDITED (root decision): the negative-value fix-ups of signed_rem cannot run with the real callee 0x50cd50 (`rand`, at most 0x7fff);
+ * the port and its oracle scenarios (stubbed rolls with bit 31 set) are kept, the row is not in the acceptances. [ebp-0x18] is `self`, [ebp-0x14] the word count, [ebp-4] rec, [ebp-8] the word i, [ebp-0x10] / [ebp-0xc] the words w2 / w4. */
 uint32_t m45bbd8_roll_rects(uint8_t *self, uint32_t arg, const Fl29cWorld *world, const Fl18Host *host)
 {
     int16_t count = 0, i, w2, w4;

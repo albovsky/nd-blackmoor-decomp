@@ -346,7 +346,7 @@ def gen_4bf19a(rng, n):
     h = 0 if kind == 'null' else od.region_va(1)
     probe = [('self', 0x2b0, 0x20)]
     stubs = {0x4bf38c: stub(0x4bf38c, THISCALL(0), probe)}
-    iat = {0x52a530: stub(0x52a530, STDCALL(3), [('hdl', 0, 0x20)], results=[rng.randrange(1 << 32)])}
+    iat = {0x52a530: stub(0x52a530, STDCALL(3), [('hdl', 0, 0x20)], results=[rng.randrange(1, 1 << 32) if variant != 1 else 0])}
     return make('4bf19a', [self_area(selfd), Area('hdl', od.region_va(1), handle, image=False)], stubs, {}, [h, frame & 0xffffffff], (h, frame & 0xffffffff),
                 (kind, frame, count), iat=iat)
 
@@ -485,6 +485,7 @@ def search_profiles(alias):
     p = [('none', c) for c in (0, -1)]
     p += [('miss', c, spec) for c in (1, 2, 3) for spec in MISS]
     p += [('hit', c, k, spec) for c in (1, 2, 3) for k in range(c) for spec in HITS]
+    p += [('shrink',), ('grow',)]       # a lookup callee rewrites the loop bound ([self+0x5f64] / [self+0x5f68]) mid-loop
     if alias:
         p += [('alias_hit', f) for f in (1, 0x10001, 0x100, 0)] + [('alias_miss', 1)]
     return p
@@ -501,6 +502,10 @@ def gen_search(key, rng, n):
         count, spec = rest
     elif kind == 'hit':
         count, k, spec = rest
+    elif kind == 'shrink':
+        count, spec = 3, (3, 'eq', 0)
+    elif kind == 'grow':
+        count, spec = 1, (3, 'eq', 0)
     else:       # alias_hit / alias_miss: the flag dwords of the entries 1000 and 1001 are [self+0x5f64] (set to 1) and the count itself
         count, spec = 1002, (3, 'eq', 0)
     name, cand = strings_for(rng, spec, high)
@@ -508,7 +513,8 @@ def gen_search(key, rng, n):
     selfd = bytearray(rng.randbytes(0x6100))
     put32(selfd, 0x5f68 if big else 0x5f64, count)
     table = 0x20e4 if big else 0x1144
-    iters = min(max(count, 0), 1002)
+    iters = 3 if kind in ('shrink', 'grow') else min(max(count, 0), 1002)
+    writes = []
     for i in range(iters):
         put32(selfd, table + 4 * i, rand32(rng))
     VA_A, VA_B = od.region_va(2), od.region_va(3)
@@ -518,12 +524,20 @@ def gen_search(key, rng, n):
     elif kind == 'alias_miss':
         put32(selfd, 0x5f64, 1)
         lookups = [VA_B] * 1000 + [VA_A, VA_B]
+    elif kind == 'shrink':      # the first lookup shrinks the bound to 1: the second entry (which would match) is never visited
+        lookups = [VA_B, VA_A, VA_A]
+        writes = [(0, -1, od.region_va(0) + (0x5f68 if big else 0x5f64), 4, 1)]
+    elif kind == 'grow':        # the first lookup grows the bound to 3: the third entry (the match) is visited
+        lookups = [VA_B, VA_B, VA_A]
+        writes = [(0, -1, od.region_va(0) + (0x5f68 if big else 0x5f64), 4, 3)]
     else:
         lookups = [VA_A if i == k else VA_B for i in range(iters)] or [VA_B]
-    probe = [('self', 0x1100, 0x40)]
-    stubs = {0x434814: stub(0x434814, THISCALL(1), probe, results=lookups)}
+    probe = [('self', 0x1100, 0x40), ('self', 0x5f64, 8)]
+    stubs = {0x434814: stub(0x434814, THISCALL(1), probe, results=lookups, writes=writes)}
     if big:
-        stubs[0x4347b8] = stub(0x4347b8, THISCALL(1), probe, results=[rng.choice([0, 0x77, 0xffffffff, 0x8000, rng.randrange(1 << 32)])])
+        # the flag dword of the entry that matches (alias entries: 1001 or 1000) is probed at the 0x4347b8 call, which sits between the flag store and the 0x112c store
+        hit = {'alias_hit': 1001 if kind == 'alias_hit' and rest[0] == 1 else 1000, 'alias_miss': 1001, 'grow': 2}.get(kind, k if k is not None else 0)
+        stubs[0x4347b8] = stub(0x4347b8, THISCALL(1), probe + [('self', 0x4fc4 + 4 * hit, 4)], results=[rng.choice([0, 0x77, 0xffffffff, 0x8000, rng.randrange(1 << 32)])])
     else:
         stubs[0x4347b8] = stub(0x4347b8, THISCALL(1), probe, results=[NVALS[(n + 3 * i + variant) % len(NVALS)] for i in range(iters)] or [0])
         stubs[0x42639d] = stub(0x42639d, THISCALL(2), probe)

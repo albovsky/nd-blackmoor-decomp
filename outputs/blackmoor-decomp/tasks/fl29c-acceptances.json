@@ -30,7 +30,7 @@
       ]
     },
     "parts_accounted": [],
-    "note": "Seeks a Bink movie: the thiscall 0x4bf38c, the null-handle report word (-3), the signed frame < 1 and unsigned frame > count rejections, otherwise the _BinkGoto import (handle, frame, 0) through slot 0x52a530 and 1; the oracle executes every instruction and both directions of every jump. See tasks/fl29c-handoff.md."
+    "note": "Bink seek: thiscall 0x4bf38c, null handle word -3, signed frame<1 / unsigned frame>count rejections, else _BinkGoto@12 via slot 0x52a530 (result ignored) and 1. See fl29c-handoff.md."
   },
   {
     "va": "0x434814",
@@ -63,7 +63,7 @@
       ]
     },
     "parts_accounted": [],
-    "note": "Copies at most four non-zero bytes (sign-extended byte test, word counter) of a string to the global buffer 0x63a590 and terminates it, returns the buffer address; 101 code bytes executed, the remaining 7 bytes of the span are int3 padding. See tasks/fl29c-handoff.md."
+    "note": "Copies up to four non-zero bytes (sign-extended test) to the global buffer 0x63a590, terminates it, returns its address; 101 code bytes executed, 7 int3 pad. See fl29c-handoff.md."
   },
   {
     "va": "0x4471ca",
@@ -96,7 +96,7 @@
       ]
     },
     "parts_accounted": [],
-    "note": "Allocates 0x15 bytes through 0x51dc43, stores the pointer in the first cell, reports the failure (0x50ca3e, 0x42639d, 0x4c97b4, then goes on), copies 5 dwords and a byte forward, advances the third then the second cell by 0x15, optional trace 0x44a2b7; the logic sits in the copy_record helper called by this symbol. See tasks/fl29c-handoff.md."
+    "note": "Allocates 0x15 bytes (0x51dc43), stores the pointer, reports a failure, copies 5 dwords + byte forward, advances cells C then B, trace; logic sits in the copy_record helper. See fl29c-handoff.md."
   },
   {
     "va": "0x45b4ae",
@@ -129,7 +129,7 @@
       ]
     },
     "parts_accounted": [],
-    "note": "Allocates 0xb8e bytes through 0x51dc43, stores the pointer, reports the failure, copies 0x2e3 dwords and a word forward, advances the third then the second cell by 0xb8e, optional trace; the logic sits in the copy_record helper called by this symbol. See tasks/fl29c-handoff.md."
+    "note": "Allocates 0xb8e bytes, stores the pointer, reports a failure, copies 0x2e3 dwords + word, advances cells C then B, trace; logic sits in the copy_record helper. See fl29c-handoff.md."
   },
   {
     "va": "0x461903",
@@ -162,7 +162,7 @@
       ]
     },
     "parts_accounted": [],
-    "note": "Allocates 0x357 bytes through 0x51dc43, stores the pointer, reports the failure, copies 0xd5 dwords, a word and a byte forward, advances the third then the second cell by 0x357, optional trace; the logic sits in the copy_record helper called by this symbol. See tasks/fl29c-handoff.md."
+    "note": "Allocates 0x357 bytes, stores the pointer, reports a failure, copies 0xd5 dwords + word + byte, advances cells C then B, trace; logic sits in the copy_record helper. See fl29c-handoff.md."
   },
   {
     "va": "0x4b5c5c",
@@ -195,40 +195,7 @@
       ]
     },
     "parts_accounted": [],
-    "note": "Allocates 0x39f bytes through 0x51dc43, stores the pointer, reports the failure, copies 0xe7 dwords, a word and a byte forward, advances the third then the second cell by 0x39f, optional trace; the logic sits in the copy_record helper called by this symbol. See tasks/fl29c-handoff.md."
-  },
-  {
-    "va": "0x45bbd8",
-    "class": "native_oracle_verified",
-    "reviewer": "Claude Sonnet FL-29c implementer; no independent review yet (slice-reviewer pending)",
-    "date": "2026-10-20",
-    "native_source": {
-      "path": "src/original_methods_fl29c.c",
-      "symbol": "m45bbd8_roll_rects"
-    },
-    "tests": [
-      {
-        "path": "tests/fl29c_direct_test.c",
-        "test_id": "test_m45bbd8_roll_rects"
-      },
-      {
-        "path": "tests/test_fl29c_direct.py",
-        "test_id": "Fl29cDirect.test_45bbd8_roll_rects"
-      },
-      {
-        "path": "tests/test_fl29c_differential.py",
-        "test_id": "Fl29cDifferential.test_45bbd8_roll_rects"
-      }
-    ],
-    "oracle": {
-      "path": "tests/fl29c_original_oracle.py",
-      "window": [
-        "0x45bbd8",
-        "0x45bcc1"
-      ]
-    },
-    "parts_accounted": [],
-    "note": "Four passes of two 0x50cd50 calls with the signed-remainder idioms (the negative-value fixups run only with a stubbed callee result of bit 31 set: the real 0x50cd50 returns at most 0x7fff, see tasks/fl29c-handoff.md), 16-byte copies from the record to the object, the count of ones with the 5 default; returns ax. See tasks/fl29c-handoff.md."
+    "note": "Allocates 0x39f bytes, stores the pointer, reports a failure, copies 0xe7 dwords + word + byte, advances cells C then B, trace; logic sits in the copy_record helper. See fl29c-handoff.md."
   },
   {
     "va": "0x4630a3",
@@ -261,7 +228,7 @@
       ]
     },
     "parts_accounted": [],
-    "note": "Sets the selection globals: the 0x277f case, the [self+0x57] word set when zero, the four-arm jump table 0x2780..0x2783 and the default arm; 286 code bytes executed, the 16-byte jump table after the code is data. See tasks/fl29c-handoff.md."
+    "note": "Selection globals: the 0x277f case, [self+0x57] set when zero, the 4-arm jump table 0x2780..0x2783 and the default arm; 286 code bytes executed, the table is data. See fl29c-handoff.md."
   },
   {
     "va": "0x43423d",
@@ -294,7 +261,7 @@
       ]
     },
     "parts_accounted": [],
-    "note": "Linear search of the name table at +0x1144: 0x4347b8 length report, 0x434814 lookup, the inlined byte-pair strcmp, the stores at +0x111c / +0x1128 and the string copy to +0x1136; returns 1 or 0; every instruction and both directions of every jump executed. See tasks/fl29c-handoff.md."
+    "note": "Name search at +0x1144: 0x4347b8 report, 0x434814 lookup, inlined byte-pair strcmp, stores +0x111c/+0x1128, string copy to +0x1136; loop bound re-read every pass. See fl29c-handoff.md."
   },
   {
     "va": "0x4344bf",
@@ -327,6 +294,6 @@
       ]
     },
     "parts_accounted": [],
-    "note": "Clears the 1000 flag dwords at +0x4fc4, then searches the table at +0x20e4: 0x434814 lookup, the inlined strcmp, the flag test (dword != 1, reached through the aliasing of the flag array end with +0x5f64 and the count), stores at +0x112c / +0x1120 and the string copy to +0x1130; returns 1 or 0. See tasks/fl29c-handoff.md."
+    "note": "Clears 1000 flags, searches +0x20e4; je at 0x4345aa (flag==1) is taken only via flag aliasing at count>1000 (synthetic, faithfully reproduced). resolve must be total. See fl29c-handoff.md."
   }
 ]
