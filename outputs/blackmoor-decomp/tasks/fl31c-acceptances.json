@@ -162,7 +162,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Calls 0x4dae88 and 0x4daeb5, copies the returned pair into the object and the globals around 0x583102..0x58310e with the word table at 0x5b3790; 73/73 instructions, 2/2 jump directions."
+  "note": "Calls 0x4dae88 and 0x4daeb5 (returns the local pair or an address), copies the pair into the object and the globals around 0x583102..0x58310e with the word table at 0x5b3790; 73/73 instructions, 2/2 jump directions."
  },
  {
   "va": "0x47cd90",
@@ -195,7 +195,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Scans 5 records with 0x516530, then draws 0x50cd50 % 5 until a record passes the second compare and calls 0x47d02d; selector at +0x2b8; 62/62 instructions, 8/8 jump directions."
+  "note": "Scans 5 records with 0x516530, then draws 0x50cd50 % 5 until a record passes the second compare, calls 0x47d02d; selector +0x2b8; shared static helper; 62/62 instr, 8/8 directions."
  },
  {
   "va": "0x47ce6f",
@@ -228,7 +228,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Same method over 10 records at +0x856 with selector +0x2bc and strings 0x54d11c / 0x54d128, then 0x47d02d; 62/62 instructions, 8/8 jump directions."
+  "note": "Same method via the shared static helper over 10 records at +0x856, selector +0x2bc, strings 0x54d11c / 0x54d128, then 0x47d02d; 62/62 instructions, 8/8 directions."
  },
  {
   "va": "0x47cf4e",
@@ -261,6 +261,6 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Same method over 10 records at +0xf72 with selector +0x2c0 and strings 0x54d134 / 0x54d140, then 0x47d02d; 62/62 instructions, 8/8 jump directions."
+  "note": "Same method via the shared static helper over 10 records at +0xf72, selector +0x2c0, strings 0x54d134 / 0x54d140, then 0x47d02d; 62/62 instructions, 8/8 directions."
  }
 ]

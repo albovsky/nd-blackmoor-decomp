@@ -18,7 +18,8 @@ extern "C" {
  * Calls into original code and the CRT go through Fl18Host.call (callee address, ecx value, stack arguments with args[0] the LAST one pushed = the first argument of a C prototype).
  * An argument that is an address of the original (a string, a record, a destination) is a 32-bit original address here, as in the original, and Fl18Host.resolve turns it into host
  * memory when the function reads or writes through it; an address inside `self` is a host pointer (as in FL-18). A callee that changes `self` or a global that the function reads
- * again afterwards is not exercised (tasks/fl31c-handoff.md). Word arguments are taken from the low 16 bits of the stack dword, as the callee reads them. */
+ * again afterwards is not exercised (tasks/fl31c-handoff.md). Fl18Host.resolve must not return NULL for any original address the functions read or write through (the record returned by 0x51dc43 and
+ * the string of 0x4c2790, writable; the pair returned by 0x4daeb5 when it is not the local pair; the tables of Fl31cWorld). Word arguments are taken from the low 16 bits of the stack dword, as the callee reads them. */
 
 typedef struct Fl31cWorld {
     uint8_t *words_59f27b;         /* 0x4eba54: the words at the original address 0x59f27b (indexed by a dword counter; row 0 only); host memory, writable */
@@ -64,7 +65,9 @@ void m4edb97_release_members(uint8_t *self, const Fl18Host *host);
 
 /* 0x4db870, thiscall, plain `ret`: 0x4dae88(this 0x5830a6, 0, 0) (thiscall, 2 arguments). When the signed word 0x583a29 == -1: dword 0x5b44f0 = 0 and dword 0x5d162d = dword 0x5d0377; otherwise
  * 0x5b44f0 = word 0x583a29 (sign-extended) + 0x25 and 0x5d162d = dword 0x571ad3. Then dword 0x5b44f4 = 0 and p = 0x4daeb5(this 0x5830a6, the address of a local pair of dwords) (thiscall, 1 argument,
- * a host pointer; the result is an original address of two dwords, which the original reads through, possibly inside self: both are read before anything is stored). Then dword [self+0x14] = [p],
+ * a host pointer; the callee stores the pair through it; the result is the pair's address: in the game the callee returns its own argument, i.e. the local pair, and Fl18Host.call returns 32 bits, so the host
+ * returns the LOW 32 BITS of that host pointer and the port, seeing a result equal to the low 32 bits of the local pair's address, reads x and y from the local pair; any other result is an original address of two
+ * dwords, read through Fl18Host.resolve (possibly inside self); both are read before anything is stored). Then dword [self+0x14] = [p],
  * dword [self+0x18] = [p+4], dword [self+0x1c] = [self+0x14], dword [self+0x20] = [self+0x18], dword 0x583106 = [self+0x18] and [self+0x28] = 0x583106, e = (0x5b44f4 << 2) + 0x5b44f0 * 8 (32-bit),
  * dword 0x58310e = [self+0x18] + signed word at 0x5b3792 + e - 1 and [self+0x30] = 0x58310e, dword 0x583102 = [self+0x14] and [self+0x24] = 0x583102, dword 0x58310a = [self+0x14] + signed
  * word at 0x5b3790 + e - 1 and [self+0x2c] = 0x58310a. The globals are stored in this order and read back from the globals where the original does. */
@@ -73,7 +76,7 @@ void m4db870_load_cursor(uint8_t *self, Fl31cWorld *world, const Fl18Host *host)
 /* 0x47cd90, 0x47ce6f and 0x47cf4e (three copies of one method, one static helper in the source, one symbol each): thiscall, plain `ret`; selector field S (+0x2b8, +0x2bc, +0x2c0), record base
  * offset B (0x4c8, 0x856, 0xf72), count N (5, 10, 10), strings s1 and s2 (0x54d104 / 0x54d110, 0x54d11c / 0x54d128, 0x54d134 / 0x54d140); the final callee is 0x47d02d in all three. The record `i`
  * is at the 32-bit address dword [self+0xc] + i * 0xb6 + B. dword [self+S] = 0xffffffff. found = 0. For i = 0 .. N-1 (signed dword counter): when 0x516530(record i, s1) (cdecl, 2 arguments)
- * returns non-zero: found = 1 and leave the loop. When found: repeat: r = 0x50cd50() (cdecl, 0 arguments); dword [self+S] = r % N (signed idiv, the remainder keeps the sign of r); when
+ * returns non-zero: found = 1 and leave the loop. When found: repeat: r = 0x50cd50() (cdecl, 0 arguments); dword [self+S] = r % N (signed idiv, the remainder keeps the sign of r; the game's 0x50cd50 is believed to return a non-negative value, so a negative remainder is an edge kept faithful, not known to be reachable); when
  * 0x516530(record [self+S], s2) returns non-zero: 0x47d02d(this self, record [self+S]) (thiscall, 1 argument) and stop; otherwise draw again. The loop has no bound in the original either (it
  * ends when the host's compare answers non-zero). */
 void m47cd90_pick_variant_a(uint8_t *self, const Fl18Host *host);

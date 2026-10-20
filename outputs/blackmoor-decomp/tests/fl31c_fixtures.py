@@ -58,6 +58,21 @@ NONZERO = [1, 0x80000000, 0x10000, 0xff000000, 0x00ff0000, 0xdeadbeef, 0xfffffff
 WORDS_OTHER = [0, 1, 0x7fff, 0x8000, 0xfffe, 0x1234, 0xff00, 0x00ff]
 
 
+class Original31c(Original27):
+    """Original27 whose stubs can also return one of their own stack arguments (stub.ret_arg = argument index): a callee that returns its pointer argument."""
+
+    def _stub_hook(self, uc, address, size, user):
+        stub = self.stubs[address]
+        ret_arg = getattr(stub, 'ret_arg', None)
+        value = None
+        if ret_arg is not None:
+            esp = uc.reg_read(self._r['ESP'])
+            value = struct.unpack('<I', uc.mem_read(esp + 4 + 4 * ret_arg, 4))[0]
+        super()._stub_hook(uc, address, size, user)
+        if value is not None:
+            uc.reg_write(self._r['EAX'], value)
+
+
 def make(key, areas, stubs, g, stack, args, profile, iat=None, pointers=None, self_off=0):
     sp = SPECS[key]
     return SimpleNamespace(key=key, fn=sp['id'], va=sp['va'], size=sp['size'], code=sp.get('code', sp['size']), areas=areas, stubs=stubs, iat=iat or {}, g=g,
@@ -77,7 +92,7 @@ def run_original(sc):
         read['g:' + field] = GLOBALS[field]
     for x in [*sc.stubs.values(), *sc.iat.values()]:
         x.probe_addr = [((GLOBALS[name[2:]][0] if name.startswith('g:') else next(a.va for a in sc.areas if a.name == name)) + off, ln) for name, off, ln in (x.probe or ())]
-    runner = Original27(image_patches, regions, sc.stubs, sc.iat)
+    runner = Original31c(image_patches, regions, sc.stubs, sc.iat)
     orig = runner.run(sc.va, sc.size, ecx=sc.ecx, stack_args=sc.stack, read=read)
     orig.edges = getattr(runner, 'edges', set())      # (address, next address) of the instructions executed in a row
     if orig.cleanup != SPECS[sc.key].get('cleanup', 0):
@@ -189,7 +204,9 @@ NOT8 = [0, 7, 9, 0x8008, 0xffff, 0x0800, 0x0080, 0xfff8, 0x8000, 0x0108]
 
 
 def gen_4eba54(rng, n):
-    (f0, f1, cnt), variant = prof(n, [(a, b, c) for a in (0, 1) for b in (0, 1) for c in COUNTS])
+    # (flag 0, flag 1, count, bump): bump is a value that the callee 0x4e1d34 stores in the counter [self+0xfc6] on its first call (None: it leaves it alone)
+    profiles = [(a, b, c, None) for a in (0, 1) for b in (0, 1) for c in COUNTS] + [(1, b, 2, v) for b in (0, 1) for v in (1, 0xfffffffe, 0xfffffffd)]
+    (f0, f1, cnt, bump), variant = prof(n, profiles)
     s = bytearray(rng.randbytes(0x3000))
     put32(s, 0x985, NONZERO[variant % 8] if f0 else 0)
     put32(s, 0x985 + 0xf7, NONZERO[(variant + 3) % 8] if f1 else 0)
@@ -211,8 +228,9 @@ def gen_4eba54(rng, n):
         put16(tbl, 2 * k, w)
     put16(s, 0xb85, rng.choice([8, 0, 0x1234, 0xffff, 0x8008, rng.randrange(0x10000)]))
     probe = [('self', 0xfc6, 4), ('tbl', 0, 0x40)]
-    stubs = {0x4e1d34: stub(0x4e1d34, THISCALL(0), probe=probe), 0x4eb9c8: stub(0x4eb9c8, THISCALL(0), probe=probe)}
-    return make('4eba54', [self_area(s), Area('tbl', 0x59f27b, tbl, image=True)], stubs, {}, [], (), (f0, f1, signed, variant % 3), pointers={'words_59f27b': ('tbl', 0)})
+    writes = [] if bump is None else [(0, -1, od.region_va(0) + 0xfc6, 4, bump)]
+    stubs = {0x4e1d34: stub(0x4e1d34, THISCALL(0), probe=probe, writes=writes), 0x4eb9c8: stub(0x4eb9c8, THISCALL(0), probe=probe)}
+    return make('4eba54', [self_area(s), Area('tbl', 0x59f27b, tbl, image=True)], stubs, {}, [], (), (f0, f1, signed, variant % 3, bump), pointers={'words_59f27b': ('tbl', 0)})
 
 
 # ---- 0x4edb97 ---------------------------------------------------------------------------------------------------------------------
@@ -239,18 +257,24 @@ CURSOR = [0, 1, 0x7fff, 0x80000000, 0xffffffff, 0x12345678, 0xfffffff0]
 
 
 def gen_4db870(rng, n):
-    (word, where), variant = prof(n, [(w, p) for w in SEL_WORDS for p in ('apart', 0x14, 0x10, 0x18, 0x1c, 0x28)])
+    (word, where), variant = prof(n, [(w, p) for w in SEL_WORDS for p in ('apart', 0x14, 0x10, 0x18, 0x1c, 0x28, 'local')])
     s = bytearray(rng.randbytes(0x100))
     pair = bytearray(rng.randbytes(0x20))
     put32(pair, 8, CURSOR[(variant + SEL_WORDS.index(word)) % len(CURSOR)])
     put32(pair, 12, CURSOR[(variant * 3 + 1) % len(CURSOR)])
     tbl = bytearray(rng.randbytes(TBL_SIZE))
-    ptr = PAIR_VA + 8 if where == 'apart' else od.region_va(0) + where
+    ptr = PAIR_VA + 8 if where == 'apart' else (0 if where == 'local' else od.region_va(0) + where)
+    px, py = struct.unpack('<II', pair[8:16])
     g = {'word_583a29': word, 'dword_5d0377': rng.randrange(1 << 32), 'dword_571ad3': rng.randrange(1 << 32), 'dword_5b44f0': rng.randrange(1 << 32),
          'dword_5d162d': rng.randrange(1 << 32), 'dword_5b44f4': rng.choice([1, 0xffffffff, 0x10, rng.randrange(1, 1 << 32)]), 'dword_583106': rng.randrange(1 << 32),
          'dword_58310e': rng.randrange(1 << 32), 'dword_583102': rng.randrange(1 << 32), 'dword_58310a': rng.randrange(1 << 32)}
     probe = [('g:dword_5b44f0', 0, 4), ('g:dword_5d162d', 0, 4), ('g:dword_5b44f4', 0, 4), ('self', 0x10, 0x30)]
-    stubs = {0x4dae88: stub(0x4dae88, THISCALL(2), probe=probe), 0x4daeb5: stub(0x4daeb5, THISCALL(1), probe=probe, results=[ptr])}
+    if where == 'local':        # the game's callee: stores the pair through its argument (the function's local) and returns that same pointer
+        s5 = stub(0x4daeb5, THISCALL(1), probe=probe, writes=[(0, 0, 0, 4, px), (0, 0, 4, 4, py)])
+        s5.ret_arg = 0
+    else:
+        s5 = stub(0x4daeb5, THISCALL(1), probe=probe, results=[ptr])
+    stubs = {0x4dae88: stub(0x4dae88, THISCALL(2), probe=probe), 0x4daeb5: s5}
     areas = [self_area(s), Area('pair', PAIR_VA, pair, image=False), Area('tbl', TBL_VA, tbl, image=True)]
     return make('4db870', areas, stubs, g, [], (), (hex(word), where), pointers={'table_5b3790': ('tbl', 0x100)})
 
@@ -284,9 +308,9 @@ def gen_pick(key):
 SPECS = {
     '4e2faa': dict(id=1, va=0x4e2faa, size=145, gen=gen_4e2faa, cleanup=0, n=9 * 8),
     '4c2790': dict(id=2, va=0x4c2790, size=264, gen=gen_4c2790, cleanup=16, ret=True, n=19 * 8),
-    '4eba54': dict(id=3, va=0x4eba54, size=263, gen=gen_4eba54, cleanup=0, n=28 * 6),
+    '4eba54': dict(id=3, va=0x4eba54, size=263, gen=gen_4eba54, cleanup=0, n=34 * 6),
     '4edb97': dict(id=4, va=0x4edb97, size=282, gen=gen_4edb97, cleanup=0, n=128 * 2),
-    '4db870': dict(id=5, va=0x4db870, size=291, gen=gen_4db870, cleanup=0, n=66 * 2),
+    '4db870': dict(id=5, va=0x4db870, size=291, gen=gen_4db870, cleanup=0, n=77 * 2),
     '47cd90': dict(id=6, va=0x47cd90, size=223, gen=gen_pick('47cd90'), cleanup=0, n=16 * 3),
     '47ce6f': dict(id=7, va=0x47ce6f, size=223, gen=gen_pick('47ce6f'), cleanup=0, n=31 * 3),
     '47cf4e': dict(id=8, va=0x47cf4e, size=223, gen=gen_pick('47cf4e'), cleanup=0, n=31 * 3),

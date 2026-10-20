@@ -32,6 +32,10 @@ static uint32_t get32(const uint8_t *b, size_t off) { uint32_t v; memcpy(&v, b +
 static uint16_t get16(const uint8_t *b, size_t off) { uint16_t v; memcpy(&v, b + off, 2); return v; }
 
 #define MAXCALL 64
+static int g_local_pair;                        /* 0x4daeb5 stores g_cx, g_cy through its argument and returns the low 32 bits of that pointer, as the game's callee does */
+static uint32_t g_cx, g_cy;
+static int g_bump_set, g_bump_done;             /* 0x4e1d34 stores g_bump in the dword [self+0xfc6] on its first call */
+static uint32_t g_bump;
 static uint32_t g_fill;                         /* what the callee 0x4181c6 stores in dword [buf] */
 static struct {
     int n;
@@ -87,6 +91,17 @@ static uint32_t host_call(void *ctx, uint32_t callee, uintptr_t this_ptr, const 
         uint32_t v = g_fill;
         memcpy((void *)host_resolve(NULL, (uint32_t)args[2]), &v, 4);
     }
+    if (callee == 0x4e1d34 && g_bump_set && !g_bump_done) {
+        set32(SELF, 0xfc6, g_bump);
+        g_bump_done = 1;
+    }
+    if (callee == 0x4daeb5 && g_local_pair && nargs == 1) {
+        uint32_t pair[2];
+        pair[0] = g_cx;
+        pair[1] = g_cy;
+        memcpy((void *)args[0], pair, 8);
+        return (uint32_t)args[0];
+    }
     for (k = 0; k < g_nscript; k++)
         if (S[k].callee == callee && S[k].n > 0) {
             result = S[k].results[S[k].used < S[k].n ? S[k].used : S[k].n - 1];
@@ -119,6 +134,7 @@ static void setup(void)
     L.n = 0;
     g_nscript = 0;
     g_fill = 0;
+    g_local_pair = g_bump_set = g_bump_done = 0;
 }
 
 static void ck_call(int line, int idx, uint32_t callee, uintptr_t this_ptr, int nargs, const uintptr_t *want)
@@ -287,6 +303,37 @@ static void retarget_case(uint32_t f0, uint32_t f1, uint16_t count, const uint16
 }
 static void test_m4eba54_retarget_words(void)
 {
+    {   /* the first call of 0x4e1d34 stores a new counter: the loop goes on from it (1: record 1 is skipped; negative: earlier records are visited) */
+        static const uint32_t bumps[3] = {1, 0xfffffffeu, 0xfffffffdu};
+        int b;
+        for (b = 0; b < 3 && !g_failed; b++) {
+            setup();
+            g_bump_set = 1;
+            g_bump = bumps[b];
+            set32(SELF, 0x985, 1);
+            set32(SELF, 0x985 + 0xf7, 1);
+            set32(SELF, 0x985 - 0xf7, 0);
+            set32(SELF, 0x985 - 2 * 0xf7, 1);
+            set16(SELF, 0x28da, 0);
+            m4eba54_retarget_words(SELF, &g_w, &g_host);
+            CKC0(0, 0x4e1d34, SELFP + 0xca8);
+            if (b == 0) {                                            /* counter 1, +1 = 2: the loop ends, record 1 is never visited */
+                CKC0(1, 0x4eb9c8, SELFP);
+                CK(L.n == 2);
+            } else if (b == 1) {                                     /* -2, +1 = -1: record -1 (flag 0), record 0 again (flag 1), record 1 */
+                CKC0(1, 0x4e1d34, SELFP + 0xca8);
+                CKC0(2, 0x4e1d34, SELFP + 0xca8 + 0x18f);
+                CKC0(3, 0x4eb9c8, SELFP);
+                CK(L.n == 4);
+            } else {                                                 /* -3, +1 = -2: record -2 (flag 1, address below the object's first record), then -1, 0, 1 */
+                CKC0(1, 0x4e1d34, SELFP + 0xca8 - 2 * 0x18f);
+                CKC0(2, 0x4e1d34, SELFP + 0xca8);
+                CKC0(3, 0x4e1d34, SELFP + 0xca8 + 0x18f);
+                CKC0(4, 0x4eb9c8, SELFP);
+                CK(L.n == 5);
+            }
+        }
+    }
     static const uint16_t mixed[6] = {8, 7, 8, 0x8008, 8, 0xfff8};
     static const uint16_t none[4] = {0, 9, 0x0800, 0x8000};
     retarget_case(0, 0, 0, mixed, 6, 0x1111);
@@ -353,7 +400,11 @@ static void cursor_case(uint16_t word, uint32_t pair_at, uint32_t x, uint32_t y,
     g_w.dword_5b44f4 = 0x66666666u;
     set16(g_r[5] + 0x800, (size_t)e, t0);
     set16(g_r[5] + 0x800, (size_t)e + 2, t1);
-    if (pair_at >= RVA(1)) {
+    if (pair_at == 0) {                                /* the game's callee: the pair is the function's own local */
+        g_local_pair = 1;
+        g_cx = x;
+        g_cy = y;
+    } else if (pair_at >= RVA(1)) {
         set32(g_r[1], pair_at - RVA(1), x);
         set32(g_r[1], pair_at - RVA(1) + 4, y);
     } else {                                           /* the pair lies inside self: the dwords there are x and y (both read before any store) */
@@ -361,7 +412,7 @@ static void cursor_case(uint16_t word, uint32_t pair_at, uint32_t x, uint32_t y,
         set32(SELF, pair_at - RVA(0) + 4, y);
     }
     memcpy(before, SELF, sizeof before);
-    script1(0x4daeb5, pair_at);
+    if (pair_at != 0) script1(0x4daeb5, pair_at);
     m4db870_load_cursor(SELF, &g_w, &g_host);
     CK(L.n == 2);
     CKC(0, 0x4dae88, 0x5830a6, 2, 0, 0);
@@ -384,6 +435,8 @@ static void test_m4db870_load_cursor(void)
     cursor_case(0xff, RVA(1) + 8, 0x12345678u, 0x9abcdef0u, 0x1234, 0x8001);           /* 0xff is not -1 */
     cursor_case(0xffdb, RVA(1) + 8, 5, 6, 7, 8);                                       /* -0x25: sel = 0 on the second arm */
     cursor_case(0xfffe, RVA(1) + 8, 0xffffffffu, 0xffffffffu, 0xffff, 0xffff);
+    cursor_case(0xffff, 0, 0x11223344u, 0x55667788u, 0x0001, 0x0002);                  /* the callee returns the local pair (low 32 bits of a host pointer) */
+    cursor_case(7, 0, 0xfffffff0u, 0x80000000u, 0x8000, 0xffff);
     cursor_case(1, RVA(0) + 0x10, 0xaaaa0001u, 0xbbbb0002u, 3, 4);                     /* the pair at +0x10: x = [self+0x10], y = [self+0x14] */
     cursor_case(0xffff, RVA(0) + 0x14, 0x01010101u, 0x02020202u, 5, 6);
     cursor_case(0xffff, RVA(0) + 0x18, 0x0badf00du, 0xdeadbeefu, 7, 8);

@@ -117,8 +117,9 @@ void m4eba54_retarget_words(uint8_t *self, const Fl31cWorld *world, const Fl18Ho
     wr32(self, 0xfc6, 0);
     while ((int32_t)rd32(self, 0xfc6) < 2) {
         uint32_t i = rd32(self, 0xfc6);
-        if (rd32(self, (ptrdiff_t)(uint32_t)(i * 0xf7u) + 0x985) != 0)
-            call0(host, 0x4e1d34, (uintptr_t)self + (uintptr_t)(uint32_t)(i * 0x18fu + 0xca8u));
+        /* the counter can be changed by the callee (a negative value is legal): the 32-bit offsets are signed */
+        if (rd32(self, (ptrdiff_t)(int32_t)(i * 0xf7u) + 0x985) != 0)
+            call0(host, 0x4e1d34, (uintptr_t)((intptr_t)self + (ptrdiff_t)(int32_t)(i * 0x18fu + 0xca8u)));
         wr32(self, 0xfc6, rd32(self, 0xfc6) + 1);
     }
     wr32(self, 0xfc6, 0);
@@ -155,7 +156,7 @@ void m4db870_load_cursor(uint8_t *self, Fl31cWorld *world, const Fl18Host *host)
 {
     uint32_t pair[2] = {0, 0};                   /* the local that 0x4daeb5 is given the address of */
     const uint8_t *p;
-    uint32_t x, y, e;
+    uint32_t x, y, e, rp;
     call2(host, 0x4dae88, 0x5830a6, 0, 0);
     if ((int32_t)world->word_583a29 == -1) {
         world->dword_5b44f0 = 0;
@@ -165,7 +166,10 @@ void m4db870_load_cursor(uint8_t *self, Fl31cWorld *world, const Fl18Host *host)
         world->dword_5d162d = world->dword_571ad3;
     }
     world->dword_5b44f4 = 0;
-    p = res(host, call1(host, 0x4daeb5, 0x5830a6, (uintptr_t)pair));
+    rp = call1(host, 0x4daeb5, 0x5830a6, (uintptr_t)pair);
+    /* in the game 0x4daeb5 returns its own argument, the address of the local pair; Fl18Host.call returns 32 bits, so a 64-bit host pointer comes back truncated:
+     * a result equal to the low 32 bits of the pair's address is the pair itself. Any other result is an original address. */
+    p = rp == (uint32_t)(uintptr_t)pair ? (const uint8_t *)pair : res(host, rp);
     x = rd32(p, 0);                              /* both are read before anything is stored (the pair may lie inside self) */
     y = rd32(p, 4);
     wr32(self, 0x14, x);
