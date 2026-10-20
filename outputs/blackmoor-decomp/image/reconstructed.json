@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "note": "Reviewed matching objects bound as reconstructed ranges, in precedence order. Each manifest is built from its committed source (pinned GNU as 2.43.1 for assembly, clang (Apple clang through xcrun on the Mac, any clang elsewhere; verify_matches decides) for the two incomplete C ranges), re-verified through verify_matches.py semantics against the local original, and its bytes are taken from the assembled object, never from the original. asm_batches binds the audited tool-assisted assembly batches of packet M03: every function's .s is reassembled with the pinned GNU as 2.43.1 at build time and must reproduce the SHA-256 of the original code part recorded in the batch manifest; bindings above take precedence on overlap.",
+ "note": "Reviewed matching objects bound as reconstructed ranges, in precedence order. Each manifest is built from its committed source (pinned GNU as 2.43.1), re-verified through verify_matches.py semantics against the local original, and its bytes are taken from the assembled object, never from the original. asm_batches binds the audited tool-assisted assembly batches of packet M03: every function's .s is reassembled with the pinned GNU as 2.43.1 at build time and must reproduce the SHA-256 of the original code part recorded in the batch manifest; bindings above take precedence on overlap.",
  "bindings": [
   {
    "manifest": "matches_s08_4_x86.json",
@@ -25,14 +25,6 @@
    "tool": "gnu-as",
    "source_kind": "assembly",
    "provenance_class": "explicit_reconstructed_assembly_source"
-  },
-  {
-   "manifest": "matches.json",
-   "source": "src/initial_functions.c",
-   "object": "initial_functions.obj",
-   "tool": "clang-c",
-   "source_kind": "c_incomplete_byte_range",
-   "provenance_class": "incomplete_byte_range_not_a_complete_function"
   }
  ],
  "asm_batches": [
@@ -122,6 +114,10 @@
   {
    "manifest": "matches_s08_2.json",
    "reason": "C++ O0 comparison of the same six RVAs; semantic evidence only, superseded by matches_s08_2_x86.json"
+  },
+  {
+   "manifest": "matches.json",
+   "reason": "two 7-byte ranges compiled from src/initial_functions.c with clang (0x51cfd1, 0x52398b); the same 14 bytes are bound from audited assembler (asm/batch-007.json, FUN_0051cfd1 and FUN_0052398b), so since packet M-D no byte of the image comes from a compiler. The manifest and its C source stay as the legacy baseline evidence of the progress model."
   }
  ]
 }
