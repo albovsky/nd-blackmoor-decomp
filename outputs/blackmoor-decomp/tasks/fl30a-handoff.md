@@ -1,6 +1,6 @@
 # FL-30 batch a (`fl30a`) handoff
 
-Branch `claude/fl-30a` (worktree `/home/user/wt-fl30a`), based on `da2ffc67` (the FL-30 packet commit). Implementer: Claude Sonnet. No independent review has been done: every acceptance entry says so in its `reviewer` field; root must have the `slice-reviewer` confirm before collection. Nothing in `function-ledger*.json`, `function-evidence.json` or `function-execution.json` was edited. `tasks/fl30a-acceptances.json` is the proposed `port_acceptances` content (class `native_oracle_verified`, 6 entries; none of the rows has a receipt blocker, so no `blockers_reviewed`). `function_ledger.test_area` was NOT run on the test ids in this container.
+Branch `claude/fl-30a` (worktree `/home/user/wt-fl30a`), based on `da2ffc67` (the FL-30 packet commit). Implementer: Claude Sonnet. A Sonnet slice-reviewer diff review was done (no P1); its findings are fixed in the commit after the handoff (see Review round). Nothing in `function-ledger*.json`, `function-evidence.json` or `function-execution.json` was edited. `tasks/fl30a-acceptances.json` is the proposed `port_acceptances` content (class `native_oracle_verified`, 6 entries; none of the rows has a receipt blocker, so no `blockers_reviewed`). `function_ledger.test_area` was NOT run on the test ids in this container.
 
 GAME.EXE SHA-256 `afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45` (read only, checked by the oracle's loader on every run).
 
@@ -13,9 +13,9 @@ All in `src/original_methods_fl30a.c` / `.h` (symbols `m<va>_*`, world struct `F
 | 0x4f61e7 | 333 | m4f61e7_start_record | 78/78 | 10/10 | 192 | 65ccd72e2219d267a62d1d9cd2188d017ff518e6408587b9e43edc28ac446179 | 91986ddd54f06b46da13ec5d43a81dbc2bda2cfc3f6816e543766d2635d664fc |
 | 0x484762 | 467 | m484762_intersect_rects | 163/163 | 28/28 | 1850 | ed6d502c0827f7e9dd46bff0270dd0200f8fee044c316907d02388df73ac5dee | 18857f1882b6325bbd9f20668785eb0a93c1edd406423aeb122c200b7f5a6fb5 |
 | 0x484ac0 | 495 | m484ac0_latch_hit | 121/121 | 18/18 | 312 | 1bac0abc366d9c13b3aa13172bf2ba2e7bf5a2e8260220eb53f5384cbac09d9b | d4cadc5e8a635142bbb45e5c8cf6b3d41e61b5bb3668796faec47b365653a004 |
-| 0x44b3c8 | 633 | m44b3c8_sum_kinds | 181/181 | 21/22 (1 allowlisted) | 732 | 38080acf35ffdf05aeecd54d1985fcd5db8707f3921c4cc43922bfa0f591a6e6 | bbb8faa8936805077289b618d4b353bc146088a9561d75b6a3dd45994f388152 |
+| 0x44b3c8 | 633 | m44b3c8_sum_kinds | 181/181 | 21/22 (1 allowlisted) | 1216 | af2bf68f9c73c51e853fb311dc6ba476bb20bc429b18c77bbdb7bb7405c86a5d | bbb8faa8936805077289b618d4b353bc146088a9561d75b6a3dd45994f388152 |
 | 0x47ef0f | 654 | m47ef0f_latch_hit_counter | 163/163 | 22/22 | 416 | c0f3ec42ac8bd34bc3c5e48ae0d6fd2cbbb012e679a7863a4af26a309f38db3d | 0c6c8d351a99931dc42e062ce0e8d723958f482c0cd44a7c0082360fdcbf7e6b |
-| 0x4d270b | 1301 | m4d270b_draw_text | 350/350 | 34/34 | 1500 | 52401572c6dbf5ff9183b0d8555da325815caa1571b91bbd2df9bdf58af2bc00 | 56eb3e1c05f2a110bc4915aaad0efbba56f38d9c2881de536a2d158312235d73 |
+| 0x4d270b | 1301 | m4d270b_draw_text | 350/350 | 34/34 | 1500 | d6b8b64e152570c23c49d411c6c761c2cbb06a2a93756ff42bb902d7f1ba654b | 56eb3e1c05f2a110bc4915aaad0efbba56f38d9c2881de536a2d158312235d73 |
 
 Notes per function (the header `original_methods_fl30a.h` gives the byte-level contract of each):
 
@@ -57,7 +57,7 @@ All callees are recording stubs entered by address (the callee is not run): they
 
 - Slice tests: `python3 -m unittest tests.test_fl30a_direct tests.test_fl30a_differential` -> 14 tests, OK (8 direct: 6 functions, the run-all check and the sweep; 6 differential).
 - Oracle: `python3 tests/fl30a_original_oracle.py` (6 lines as in the table, exit 0); also under `BLACKMOOR_EXEC_TRACE_DIR=<dir> PYTHONPATH=scripts/exec_trace` (same 6 lines, exit 0).
-- Sanitisers: `gcc -std=c11 -g -O1 -fsanitize=address,undefined -fno-sanitize-recover=undefined -Isrc tests/fl30a_direct_test.c src/original_methods_fl30a.c -lm` -> 8 PASS (6 functions + the bounded sweep of 300 random scenarios), no report. The sweep keeps indices, record numbers, glyph extents and pixel runs inside the fixture buffers.
+- Sanitisers: `gcc -std=c11 -g -O1 -fsanitize=address,undefined -fno-sanitize-recover=undefined -Isrc tests/fl30a_direct_test.c src/original_methods_fl30a.c -lm` -> 7 PASS (6 functions + the bounded sweep of 300 random scenarios), no report. The sweep keeps indices, record numbers, glyph extents and pixel runs inside the fixture buffers.
 - Mutation: `python3 tests/fl30a_mutation_check.py [--only <va key>]`.
 
 ## Mutation check
@@ -82,12 +82,18 @@ Per function (single textual edits: hex literal +1, `==`/`!=`, `<`/`<=` boundary
 
 Hand-applied mutants (all CAUGHT, restored afterwards): 0x44b3c8 quotient/product computed in `float` instead of double-then-float (caught by the differential only: the oracle detects the 53-bit precision rule); an added `+ 1e-9` term in the float-cell product (caught by the differential); the NaN-as-equal rule removed (`&& f == f`, caught by the direct and the differential tests).
 
+Review round (reviewer findings 1 to 5): these mutants are now covered, each by the direct test (and the fixtures of the differential where noted) and checked by hand-applied edits, all CAUGHT:
+
+- 0x4d270b: `0.9f` -> `0.9` (extents heights 10, 20, 30, 40 in the fixtures; direct cases with heights 10 and 30); unsigned-cast flips of `x`, `y`, `sel` (in `glyph_rect`), the pitch word at dest_b+0x2f, the layout advance words 0x4f (differential only) and 0x51, the extents height at idx*4+2 (negative x, y, sel, pitch, advance and extent words, negative glyph indices, all valid for the original: the layout and extents addresses point into the middle of their regions and the pixel base is in the middle of a 0x6000-byte region); the 32-bit arithmetic (`ofs*pitch`, `x0*bpp`, `fc - f4 + 1`, pen updates, run length) is done in `uint32_t` so it wraps like the original. The unsigned flips of the layout words 0x53 / 0x55 / 0x57 are equivalent (the sum is truncated to 16 bits into `idx` either way) and are not claimed.
+- 0x44b3c8: crafted (value, table entry) pairs where `(v / 100) * t` and `(v * t) / 100` give different floats (25647 with 17375 gives 4456166.5f; five more pairs found by search; table words and float cells, the profiles `craftw` / `craftf`), and the kind byte of the record read again after the report callee (profile `kindchg`: a scripted write by the first 0x50ca3e call changes `rec[0]`, the accumulation then goes to the new cell; direct case likewise). The port re-reads `res(rec)[0]` at each use as the original does at 0x44b434, 0x44b60a and 0x44b61b (and the report argument at 0x44b40c). Mutants `mul-then-div` (both arms) and `kind not re-read` are caught by the direct test.
+- The 0x4d270b native rejection (flag set, no drawn glyph: the original uses stack garbage) is unchanged and covered by the direct test.
+
 Known gap of the tool: mutants are single textual edits; multi-line guards, `if (1)`, a dropped `||` operand, loop-bound expressions and double edits are not modelled.
 
 ## Unverified
 
 - Callee calling conventions are read from the call sites only; the vtable entry of 0x4f61e7 is assumed stdcall (the original restores `esp` with `mov esp, ebp`, so its cleanup count is not proven by the bytes); the stub pops exactly 4 bytes and the oracle checks only the function's own `ret N`.
-- Not exercised: a callee that changes `self`, a record, an object or a global that the function reads again afterwards (for example 0x4853b0 / 0x47fa11 changing `self+0xa9e` or the difference operands, 0x4c5b3a changing the pen globals). The ports re-read like the original; the stubs never change them.
+- Not exercised (except the kind byte of 0x44b3c8, see below): a callee that changes `self`, a record, an object or a global that the function reads again afterwards (for example 0x4853b0 / 0x47fa11 changing `self+0xa9e` or the difference operands, 0x4c5b3a changing the pen globals). The ports re-read like the original; the stubs never change them.
 - 0x4d270b: the character-class routines (0x50d651 / 0x50d67f / 0x50d6a7 / 0x50d6cf) are stubbed with scripted answers, independent of the character, so the three lookup arms are exercised for every combination of answers and byte values but the real library semantics (isalpha / isupper / islower / isdigit) are a name hint only. 0x4c5b3a, 0x4d214b and the callee names are hints from the call shapes.
 - 0x44b3c8: the oracle ran under Unicorn's x87 emulation (53-bit precision from the control word 0x27f); a host x87 or a different emulator is not compared.
 - No independent review; no claim that any family or pool is complete.
@@ -103,11 +109,11 @@ Known gap of the tool: mutants are single textual edits; multi-line guards, `if 
 
 | file | sha256 |
 |---|---|
-| src/original_methods_fl30a.c | 0ed9ac7ad0b394d587e9e2e4f1e51ef30657a05e08a8ad3def93640a23578f18 |
+| src/original_methods_fl30a.c | f9a696c5d912c87f20c976745289334bc57f9b31eb9b00e622961920744273ae |
 | src/original_methods_fl30a.h | 23db69193ac75519d4213a43e8e8c2b9117a7ae1b45b68b8ead718ecca61d321 |
 | tests/fl30a_original_oracle.py | b6558cc0cec9954128077ba9a591055a2cb46af0790164d5ea51c0da25105223 |
-| tests/fl30a_fixtures.py | 3e75af930e25e223b703fa05763b315e5dbbe088e421e2e86c1b7e9a0d0eddd3 |
-| tests/fl30a_direct_test.c | a8ec2b6eacb61668cbeb0112134bdc3b22cf6d5ea410a058eb96e434d85fdeb6 |
+| tests/fl30a_fixtures.py | 436ca1d0712aaa2532efa8a93598692a7e68c2cdc61c604393be00fd3b9fc549 |
+| tests/fl30a_direct_test.c | 696c96d59806f994eebc56186d2cc920da27c60fd13a8344968cc7142257dbc9 |
 | tests/fl30a_differential_shim.c | 21f25178b295f4c6886e38786792988d7cd91d0728ac7f381ede1c5fe1086aea |
 | tests/test_fl30a_differential.py | 08088a7967be94a07372b8e7085457fa0a0247c4918bd4247cbfb7cce8261fc8 |
 | tests/test_fl30a_direct.py | 3288084e5e2c8aad6c056907e0efac6d15d86e4c2d51e409528a356c07414545 |
