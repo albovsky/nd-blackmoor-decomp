@@ -38,7 +38,7 @@ static struct {
         uint32_t callee;
         uintptr_t this_ptr;
         int nargs;
-        uintptr_t a[6];
+        uintptr_t a[12];
         uint8_t probe[16];       /* the first 16 bytes of region 4 at the call */
     } c[MAXCALL];
 } L;
@@ -68,7 +68,7 @@ static uint32_t host_call(void *ctx, uint32_t callee, uintptr_t this_ptr, const 
         L.c[i].callee = callee;
         L.c[i].this_ptr = this_ptr;
         L.c[i].nargs = nargs;
-        for (k = 0; k < nargs && k < 6; k++) L.c[i].a[k] = args[k];
+        for (k = 0; k < nargs && k < 12; k++) L.c[i].a[k] = args[k];
         memcpy(L.c[i].probe, g_r[4], 16);
     }
     L.n++;
@@ -298,6 +298,80 @@ static void test_m488e9c_init_record(void)
     CK(buf[0x6ec] == 0x5a);
 }
 
+/* ---- 0x4c5b3a ------------------------------------------------------------------------------------------------------------------ */
+/* surfaces: from = RVA(1) (pixels RVA(5) + 0x100, pitch 0x10), to = RVA(2) (pixels RVA(6) + 0x100, pitch 0x20), rectangles RVA(3), RVA(4) */
+static void copy5b(int bpp, int dbg, const uint32_t fr[4], const uint32_t tr[4])
+{
+    int i;
+    setup();
+    for (i = 0; i < 0x400; i++) {
+        g_r[5][i] = (uint8_t)(i * 3 + 1);
+        g_r[6][i] = 0xee;
+    }
+    set16(SELF, 0x38d0, 0x4444);
+    set32(g_r[1], 0, RVA(5) + 0x100);
+    set16(g_r[1], 0x2f, 0x10);
+    set32(g_r[2], 0, RVA(6) + 0x100);
+    set16(g_r[2], 0x2f, 0x20);
+    for (i = 0; i < 4; i++) {
+        set32(g_r[3], (size_t)i * 4, fr[i]);
+        set32(g_r[4], (size_t)i * 4, tr[i]);
+    }
+    g_w.word_639895 = (int16_t)bpp;
+    g_w.word_63a4cd = (int16_t)dbg;
+}
+static void test_m4c5b3a_copy_keyed(void)
+{
+    const uint32_t fr[4] = {1, 2, 3, 3}, tr[4] = {2, 1, 4, 2};      /* 3 words wide, 2 rows */
+    const uint32_t fr_bad[4] = {1, 2, 3, 3}, tr_bad[4] = {2, 1, 5, 2};
+    int row, k;
+    copy5b(2, 0, fr, tr);
+    set16(g_r[5], 0x100 + 2 * 0x10 + 2 + 2, 0x4444);                   /* the second word of the first row carries the key: not copied */
+    CK(m4c5b3a_copy_keyed(SELF, RVA(1), RVA(2), RVA(3), RVA(4), 7, &g_w, &g_host) == 0);
+    CK(L.n == 0);
+    for (row = 0; row < 2; row++)
+        for (k = 0; k < 3; k++) {
+            size_t src = 0x100 + (size_t)(2 + row) * 0x10 + (size_t)(1 + k) * 2, dst = 0x100 + (size_t)(1 + row) * 0x20 + (size_t)(2 + k) * 2;
+            if (row == 0 && k == 1) CK(get16(g_r[6], dst) == 0xeeee);
+            else CK(get16(g_r[6], dst) == get16(g_r[5], src));
+        }
+    CK(get16(g_r[6], 0x100) == 0xeeee && get16(g_r[6], 0x100 + 0x20 + 0xa) == 0xeeee && get16(g_r[6], 0x100 + 3 * 0x20) == 0xeeee);
+    /* debug flag on, equal sizes, both surfaces: the copy as before and no call */
+    copy5b(2, 1, fr, tr);
+    CK(m4c5b3a_copy_keyed(SELF, RVA(1), RVA(2), RVA(3), RVA(4), 7, &g_w, &g_host) == 0);
+    CK(L.n == 0 && get16(g_r[6], 0x124) == get16(g_r[5], 0x122));
+    /* debug flag on, sizes differ: the report with the 11 arguments, then 0x52139c and 0x4c97b4, and no copy */
+    copy5b(2, 0x100, fr_bad, tr_bad);
+    CK(m4c5b3a_copy_keyed(SELF, RVA(1), RVA(2), RVA(3), RVA(4), 0x99, &g_w, &g_host) == 0);
+    CK(L.n == 3);
+    CK(L.c[0].callee == 0x50ca3e && L.c[0].nargs == 11 && L.c[0].a[1] == 0x554be8 && L.c[0].a[2] == 0x99);
+    CK(L.c[0].a[3] == 1 && L.c[0].a[4] == 2 && L.c[0].a[5] == 3 && L.c[0].a[6] == 3 && L.c[0].a[7] == 2 && L.c[0].a[8] == 1 && L.c[0].a[9] == 5 && L.c[0].a[10] == 2);
+    CK(L.c[1].callee == 0x52139c && L.c[1].nargs == 3 && L.c[1].a[0] == L.c[0].a[0] && L.c[1].a[1] == 0 && L.c[1].a[2] == 0);
+    CKC0(2, 0x4c97b4, SELFP);
+    CK(get16(g_r[6], 0x100 + 0x20 + 4) == 0xeeee);
+    /* debug flag on and a null surface with equal sizes: the report, no copy (and no rejection) */
+    copy5b(2, 1, fr, tr);
+    CK(m4c5b3a_copy_keyed(SELF, 0, RVA(2), RVA(3), RVA(4), 1, &g_w, &g_host) == 0 && L.n == 3);
+    copy5b(2, 1, fr, tr);
+    CK(m4c5b3a_copy_keyed(SELF, RVA(1), 0, RVA(3), RVA(4), 1, &g_w, &g_host) == 0 && L.n == 3);
+    /* debug flag off and a null surface: the native rejection with nothing done */
+    copy5b(2, 0, fr, tr);
+    CK(m4c5b3a_copy_keyed(SELF, 0, RVA(2), RVA(3), RVA(4), 1, &g_w, &g_host) == 1 && L.n == 0 && get16(g_r[6], 0x100 + 0x20 + 4) == 0xeeee);
+    copy5b(2, 0, fr, tr);
+    CK(m4c5b3a_copy_keyed(SELF, RVA(1), 0, RVA(3), RVA(4), 1, &g_w, &g_host) == 1 && L.n == 0);
+    /* bpp 1, 3 words wide = 3 bytes: two word moves, the second one ends one byte behind the row; zero and negative sizes copy nothing */
+    {
+        const uint32_t fr1[4] = {0, 0, 2, 0}, tr1[4] = {0, 0, 2, 0}, none[4] = {2, 0, 1, 0}, neg[4] = {0, 3, 0, 1};
+        copy5b(1, 0, fr1, tr1);
+        CK(m4c5b3a_copy_keyed(SELF, RVA(1), RVA(2), RVA(3), RVA(4), 1, &g_w, &g_host) == 0);
+        CK(get16(g_r[6], 0x100) == get16(g_r[5], 0x100) && get16(g_r[6], 0x102) == get16(g_r[5], 0x102) && get16(g_r[6], 0x104) == 0xeeee);
+        copy5b(2, 0, none, tr1);
+        CK(m4c5b3a_copy_keyed(SELF, RVA(1), RVA(2), RVA(3), RVA(4), 1, &g_w, &g_host) == 0 && get16(g_r[6], 0x100) == 0xeeee);
+        copy5b(2, 0, neg, tr1);
+        CK(m4c5b3a_copy_keyed(SELF, RVA(1), RVA(2), RVA(3), RVA(4), 1, &g_w, &g_host) == 0 && get16(g_r[6], 0x100) == 0xeeee);
+    }
+}
+
 /* CASES-NEXT */
 
 /* ---- bounded sweep ------------------------------------------------------------------------------------------------------------- */
@@ -322,6 +396,11 @@ static void test_sweep_bounded(void)
         m44b26a_apply_delta((uint32_t)slot, &g_w, &g_host);
         init488(seed & 1, (int)((seed >> 4) % 8), (int)((seed >> 8) % 8), (int)(seed >> 12));
         run488();
+        {
+            const uint32_t sf[4] = {seed % 3, (seed >> 2) % 3, 3 + (seed >> 4) % 3, 3 + (seed >> 6) % 3}, st[4] = {(seed >> 8) % 3, (seed >> 10) % 3, 6, 6};
+            copy5b(1 + (int)(seed % 3), (int)((seed >> 3) & 1), sf, st);
+            m4c5b3a_copy_keyed(SELF, RVA(1), RVA(2), RVA(3), RVA(4), seed, &g_w, &g_host);
+        }
         /*SWEEP*/
         L.n = 0;
     }
@@ -345,6 +424,7 @@ int main(void)
     int failures = 0;
     RUN(test_m44b26a_apply_delta);
     RUN(test_m488e9c_init_record);
+    RUN(test_m4c5b3a_copy_keyed);
     /*RUNS*/
     RUN(test_sweep_bounded);
     return failures;

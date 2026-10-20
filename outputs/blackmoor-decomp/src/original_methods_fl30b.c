@@ -154,3 +154,48 @@ int32_t m488e9c_init_record(uint8_t *self, uint32_t p0, uint32_t p1, uint32_t p2
     if (world->word_63a4cd != 0) call1(host, 0x44a2b7, 0, 0x54dfa0);
     return 0;
 }
+
+/* ---- 0x4c5b3a copy_keyed --------------------------------------------------------------------------------------------------------- */
+int32_t m4c5b3a_copy_keyed(const uint8_t *self, uint32_t from, uint32_t to, uint32_t fr, uint32_t tr, uint32_t tag, const Fl30bWorld *world, const Fl18Host *host)
+{
+    const uint8_t *r1 = NULL, *r2 = NULL;
+    uint32_t pitch_from, pitch_to, bpp, p, q;
+    int32_t rows, bytes, i, j;
+    if (world->word_63a4cd != 0) {
+        uint32_t w1, h1, w2, h2;
+        r1 = res(host, fr);
+        r2 = res(host, tr);
+        w1 = rd32(r1, 8) - rd32(r1, 0);
+        h1 = rd32(r1, 0xc) - rd32(r1, 4);
+        w2 = rd32(r2, 8) - rd32(r2, 0);
+        h2 = rd32(r2, 0xc) - rd32(r2, 4);
+        if (!(w1 == w2 && h1 == h2 && from != 0 && to != 0)) {
+            uint8_t text[0x124];
+            const uintptr_t a[11] = {(uintptr_t)text, 0x554be8, tag, rd32(r1, 0), rd32(r1, 4), rd32(r1, 8), rd32(r1, 0xc), rd32(r2, 0), rd32(r2, 4), rd32(r2, 8), rd32(r2, 0xc)};
+            memset(text, 0, sizeof text);
+            callv(host, 0x50ca3e, 0, a, 11);
+            call3(host, 0x52139c, 0, (uintptr_t)text, 0, 0);
+            call0(host, 0x4c97b4, (uintptr_t)self);
+            return 0;
+        }
+    }
+    if (from == 0 || to == 0) return 1;      /* native rejection: the original reads the descriptor at 0x2f */
+    r1 = res(host, fr);
+    r2 = res(host, tr);
+    pitch_from = (uint32_t)rds16(res(host, from), 0x2f);
+    pitch_to = (uint32_t)rds16(res(host, to), 0x2f);
+    bpp = (uint32_t)(int32_t)world->word_639895;
+    p = rd32(res(host, from), 0) + rd32(r1, 4) * pitch_from + rd32(r1, 0) * bpp;
+    q = rd32(res(host, to), 0) + rd32(r2, 4) * pitch_to + rd32(r2, 0) * bpp;
+    rows = (int32_t)(rd32(r1, 0xc) - rd32(r1, 4) + 1);
+    bytes = (int32_t)((rd32(r1, 8) - rd32(r1, 0) + 1) * bpp);
+    for (i = 0; i < rows; i++) {
+        for (j = 0; j < bytes; j = (int32_t)((uint32_t)j + 2)) {
+            uint16_t v = rd16(res(host, p + (uint32_t)j), 0);
+            if (v != rd16(self, 0x38d0)) wr16(res(host, q + (uint32_t)j), 0, v);
+        }
+        p += pitch_from;
+        q += pitch_to;
+    }
+    return 0;
+}

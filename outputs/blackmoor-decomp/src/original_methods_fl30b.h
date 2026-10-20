@@ -28,6 +28,7 @@ typedef struct Fl30bWorld {
     int16_t word_63a4cd;        /* 0x44b26a, 0x488e9c: the debug flag: a non-zero word turns on the report / the trace output */
     uint32_t value_5bb57b;      /* 0x488e9c: the dword in the allocation-failure report */
     int16_t word_5c39e3;        /* 0x488e9c: the word in the allocation-failure report (sign-extended) */
+    int16_t word_639895;        /* 0x4c5b3a: bytes per pixel (a signed word) */
     /*WORLD-NEXT*/
 } Fl30bWorld;
 
@@ -47,6 +48,14 @@ void m44b26a_apply_delta(uint32_t index, const Fl30bWorld *world, const Fl18Host
  * argument). Returns 0. NATIVE REJECTIONS (return 1, the effects before the offending copy stay): n or m negative (the original's `shr ecx, 2` of a negative byte count copies about 4 GB), or a copy that
  * would end behind the 0xaba bytes of buf (the original overruns the allocation). Every pointer is an original address resolved through Fl18Host. */
 int32_t m488e9c_init_record(uint8_t *self, uint32_t p0, uint32_t p1, uint32_t p2, const Fl30bWorld *world, const Fl18Host *host);
+
+/* 0x4c5b3a, thiscall, `ret 0x14`, the stack arguments are the original addresses `from`, `to` (surface descriptors: dword [s] the pixel base, signed word [s + 0x2f] the pitch), `fr`, `tr` (rectangles of
+ * dwords x0, y0, x1, y1) and the value `tag`. When the signed word 0x63a4cd is non-zero and NOT (width and height of fr equal those of tr (x1 - x0, y1 - y0, 32-bit) and from != 0 and to != 0):
+ * 0x50ca3e(text, 0x554be8, tag, fr.x0, fr.y0, fr.x1, fr.y1, tr.x0, tr.y0, tr.x1, tr.y1) (cdecl, 11 arguments, text = a local buffer), 0x52139c(text, 0, 0) (stdcall, 3 arguments), 0x4c97b4(this self)
+ * and nothing else. Otherwise bpp = signed word 0x639895; p = dword [from] + fr.y0 * pitch(from) + fr.x0 * bpp, q = dword [to] + tr.y0 * pitch(to) + tr.x0 * bpp, rows = fr.y1 - fr.y0 + 1,
+ * bytes = (fr.x1 - fr.x0 + 1) * bpp (32-bit); for each of `rows` (signed) rows: for j = 0, 2, 4 ... while j < bytes (signed): v = word [p + j]; when v != word [self + 0x38d0]: word [q + j] = v; then p += pitch(from),
+ * q += pitch(to). Returns 0. NATIVE REJECTION (returns 1, nothing done): from or to is 0 on the copy path (the original reads the descriptor at address 0x2f and faults). */
+int32_t m4c5b3a_copy_keyed(const uint8_t *self, uint32_t from, uint32_t to, uint32_t fr, uint32_t tr, uint32_t tag, const Fl30bWorld *world, const Fl18Host *host);
 
 /* NEXT-DECL */
 

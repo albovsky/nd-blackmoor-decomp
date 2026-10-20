@@ -224,12 +224,95 @@ def gen_488e9c(rng, n):
     return make('488e9c', areas, stubs, g, stack, tuple(stack), (kind, *rest), partial=partial)
 
 
+# ---- 0x4c5b3a ---------------------------------------------------------------------------------------------------------------------
+
+PIX_BASE = 0x300
+
+
+def gen_4c5b3a(rng, n):
+    shapes = ['normal1', 'normal2', 'normal3', 'normal4', 'odd', 'rows0', 'rows_neg', 'cols0', 'cols_neg', 'negA', 'negB', 'bpp0', 'allkey', 'nokey', 'mixed']
+    profiles = [('off', s) for s in shapes] + [('on', s) for s in ('ok', 'w', 'h', 'wh', 'a0', 'b0', 'ok_neg', 'hi1x', 'hi1y', 'hi2x', 'hi2y')]
+    (mode, shape), variant = prof(n, profiles)
+    bpp = {'normal1': 1, 'odd': 1, 'normal3': 3, 'normal4': 4, 'bpp0': 0}.get(shape, 2)
+    pitch_a = {'negA': -0x20, 'ok_neg': -0x18}.get(shape, rng.choice([8, 0x10, 0x20, 0x14, 0x30]))
+    pitch_b = {'negB': -0x18, 'ok_neg': -0x28}.get(shape, rng.choice([8, 0x10, 0x20, 0x14, 0x30]))
+    x0, y0 = rng.randrange(0, 4), rng.randrange(0, 3)
+    wd, ht = rng.randrange(1, 5), rng.randrange(1, 4)
+    x1, y1 = x0 + wd - 1, y0 + ht - 1
+    if shape == 'odd':
+        x1 = x0 + 2
+    elif shape == 'rows0':
+        y1 = y0 - 1
+    elif shape == 'rows_neg':
+        y1 = y0 - 1 - rng.randrange(1, 3)
+    elif shape == 'cols0':
+        x1 = x0 - 1
+    elif shape == 'cols_neg':
+        x1 = x0 - 2 - rng.randrange(0, 2)
+    ya = 3 if pitch_a < 0 else y0
+    yb0 = 3 if pitch_b < 0 else rng.randrange(0, 3)
+    xb0 = rng.randrange(0, 4)
+    y1 += ya - y0
+    y0 = ya
+    xb1, yb1 = xb0 + (x1 - x0), yb0 + (y1 - y0)
+    if mode == 'on' and shape == 'w':
+        xb1 += rng.choice([1, -1])
+    elif mode == 'on' and shape == 'h':
+        yb1 += rng.choice([1, -1])
+    elif mode == 'on' and shape == 'wh':
+        xb1 += rng.choice([1, 2, -1]); yb1 += rng.choice([1, 3, -2])
+    elif mode == 'off':
+        xb1, yb1 = xb0 + rng.randrange(-2, 5), yb0 + rng.randrange(-2, 4)
+    key = rng.choice([0, 0x8000, 0xffff, 0x1234, 0x00ff, 0xff00])
+    s = bytearray(rng.randbytes(0x3a00))
+    put16(s, 0x38d0, key)
+    pix_a = bytearray(0x800)
+    for i in range(0, 0x800, 2):
+        if shape == 'allkey' or (shape != 'nokey' and shape != 'mixed' and rng.random() < 0.4) or (shape == 'mixed' and i % 4 == 0):
+            put16(pix_a, i, key)
+        else:
+            put16(pix_a, i, key ^ rng.choice([1, 0x8000, 0xffff, 0x100, 0x7fff]))
+    pix_b = bytearray(rng.randbytes(0x800))
+    a_va, b_va, r1_va, r2_va, pa_va, pb_va = [od.region_va(i) for i in range(1, 7)]
+    da, db = bytearray(rng.randbytes(0x100)), bytearray(rng.randbytes(0x100))
+    put32(da, 0, pa_va + PIX_BASE)
+    put16(da, 0x2f, pitch_a)
+    put32(db, 0, pb_va + PIX_BASE)
+    put16(db, 0x2f, pitch_b)
+    r1, r2 = bytearray(rng.randbytes(0x10)), bytearray(rng.randbytes(0x10))
+    r1v, r2v = [x0, y0, x1, y1], [xb0, yb0, xb1, yb1]
+    if mode == 'on':       # the report path does not dereference anything: coordinates with high bits (the sizes are compared as 32-bit values)
+        if shape == 'hi1x':
+            r1v[2] += 0x10000
+        elif shape == 'hi1y':
+            r1v[3] += 0x10000
+        elif shape == 'hi2x':
+            r2v[2] += 0x10000
+        elif shape == 'hi2y':
+            r2v[3] += 0x20000
+        elif shape in ('w', 'h', 'wh'):
+            for v in (r1v, r2v):
+                a, b = rng.choice([0, 0x10000, 0x7ffe0000, 0x80000000]), rng.choice([0, 0x30000, 0x7ffd0000])
+                v[0] += a; v[2] += a; v[1] += b; v[3] += b
+    for k, v in enumerate(r1v):
+        put32(r1, 4 * k, v)
+    for k, v in enumerate(r2v):
+        put32(r2, 4 * k, v)
+    dbg = [1, 0x100, 0x8000, 0xffff][variant % 4] if mode == 'on' else 0
+    stack = [0 if shape == 'a0' else a_va, 0 if shape == 'b0' else b_va, r1_va, r2_va, rng.randrange(1 << 32)]
+    stubs = {0x50ca3e: stub(0x50ca3e, CDECL(11)), 0x52139c: stub(0x52139c, STDCALL(3)), 0x4c97b4: stub(0x4c97b4, THISCALL(0))}
+    areas = [self_area(s), Area('da', a_va, da, image=False), Area('db', b_va, db, image=False), Area('r1', r1_va, r1, image=False), Area('r2', r2_va, r2, image=False),
+             Area('pa', pa_va, pix_a, image=False), Area('pb', pb_va, pix_b, image=False)]
+    return make('4c5b3a', areas, stubs, {'word_639895': bpp, 'word_63a4cd': dbg}, stack, tuple(stack), (mode, shape, bpp, (x0, y0, x1, y1), (xb0, yb0, xb1, yb1)))
+
+
 SPECS = {
     '44b26a': dict(id=1, va=0x44b26a, size=350, gen=gen_44b26a, cleanup=4, fpcw=0x27f, n=(16 + 4 * 3 * len(WORDS) + 4 * 3 * len(FLOATS)) * 2),
     '488e9c': dict(id=2, va=0x488e9c, size=447, gen=gen_488e9c, cleanup=12, n=61 * 10),
+    '4c5b3a': dict(id=3, va=0x4c5b3a, size=529, gen=gen_4c5b3a, cleanup=20, n=26 * 16),
 }
 KEYS = list(SPECS)
-NAMES = {'44b26a': 'apply_delta', '488e9c': 'init_record'}
+NAMES = {'44b26a': 'apply_delta', '488e9c': 'init_record', '4c5b3a': 'copy_keyed'}
 
 
 def build(key, rng, n):

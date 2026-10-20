@@ -165,6 +165,10 @@ class Fl30bDifferential(DiffBase):
         """FL-30b: differential test of m488e9c_init_record (original 0x488e9c)"""
         self.run_key('488e9c')
 
+    def test_4c5b3a_copy_keyed(self):
+        """FL-30b: differential test of m4c5b3a_copy_keyed (original 0x4c5b3a)"""
+        self.run_key('4c5b3a')
+
     # TESTS-END
 
 
