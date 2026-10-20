@@ -7,9 +7,9 @@ globals. The scenarios cycle through profiles (each guard failing in turn, then 
 parts vary from one pass of the cycle to the next; random bytes fill everything else.
 
 `run_original(sc)` runs ONLY the original bytes (Unicorn) on a scenario: the callees and the vtable entries are recording stubs (OS or host boundaries);
-nothing inside the function under test is patched. One scenario of 0x4895cc (the allocation returns 0) maps a zero page: the original then stores
-through the null pointer (it would fault on Windows), and the native port rejects there (`sc.partial`: the number of calls and the memory the native port
-is compared on).
+nothing inside the function under test is patched (0x4f684a runs the original 0x50ce04 truncating conversion as it is, with the x87 control word 0x27f). In the scenarios
+of 0x414692 where an allocation fails, the original goes on through a null pointer (it would fault on Windows) and the native port rejects there: the run is ended where
+the reporting call 0x4c97b4 returns (`sc.stop_after`, Original30), so that the state up to that point is compared with the port's.
 """
 import ctypes
 import hashlib
