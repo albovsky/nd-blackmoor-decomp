@@ -61,6 +61,7 @@ static void script(uint32_t callee, int n, uint32_t r0, uint32_t r1, uint32_t r2
     g_nscript++;
 }
 
+static int g_chg_kind = -1;      /* when >= 0: the first call of 0x50ca3e stores this byte to the first byte of region 1 (a report callee that changes the record) */
 static uint16_t g_idxw[8];
 static int g_idxw_n, g_idxw_used;
 
@@ -82,6 +83,10 @@ static uint32_t host_call(void *ctx, uint32_t callee, uintptr_t this_ptr, const 
         L.c[i].gl[3] = g_w.dword_63a8fc;
     }
     L.n++;
+    if (callee == 0x50ca3e && g_chg_kind >= 0) {
+        g_r[1][0] = (uint8_t)g_chg_kind;
+        g_chg_kind = -1;
+    }
     if (callee == 0x4d214b && nargs == 3 && g_idxw_used < g_idxw_n) {        /* the callee stores the glyph index through its third argument (a local word) */
         memcpy((void *)args[2], &g_idxw[g_idxw_used], 2);
         g_idxw_used++;
@@ -121,6 +126,7 @@ static void setup(void)
     g_nscript = 0;
     g_idxw_n = 0;
     g_idxw_used = 0;
+    g_chg_kind = -1;
 }
 
 static void ck_call(int line, int idx, uint32_t callee, uintptr_t this_ptr, int nargs, const uintptr_t *want)
@@ -440,6 +446,26 @@ static void test_m44b3c8_sum_kinds(void)
     CKC(0, 0x50ca3e, 0, 3, 0x63888b, 0x549054, 0x28);
     CKC(1, 0x52139c, 0, 3, 0x63888b, 0, 0);
     CKC(2, 0x42ba3a, 0, 1, 1);
+    /* the operation order of the original: (value / 100) * entry, not (value * entry) / 100: 25647 / 100.0 * 17375 gives 4456166.5f in single precision (the other order gives a neighbour) */
+    kinds_setup(0x1e);
+    set16(g_tab, 0x3c + 2 * 3, 17375);
+    trip(0, 3, 25647);
+    m44b3c8_sum_kinds(1, &g_w, &g_host);
+    CK(getf(g_tab, 4 * 0x1e) == 4456166.5f);
+    kinds_setup(0x1e);
+    setf(g_tab, 4 * 0x1f, 17375.0f);
+    trip(0, 0x1f, 25647);
+    m44b3c8_sum_kinds(1, &g_w, &g_host);
+    CK(getf(g_tab, 4 * 0x1e) == 4456166.5f);
+    /* the kind byte of the record is read again after the report callee: it changes to 0x20 during the report of e = 0x65, so the accumulation goes to the cell 0x20 */
+    kinds_setup(0x1e);
+    setf(g_tab, 4 * 0x1e, 55.0f);
+    setf(g_tab, 4 * 0x20, 3.0f);
+    trip(0, 0x65, 1);
+    trip(1, 0x64, 5);
+    g_chg_kind = 0x20;
+    m44b3c8_sum_kinds(1, &g_w, &g_host);
+    CK(getf(g_tab, 4 * 0x1e) == 0.0f && getf(g_tab, 4 * 0x20) == 8.0f);
     /* 0x28 + kind 0x1e: a report for every pass that has such a byte; e = 0x63 passes are skipped without a call */
     kinds_setup(0x1e);
     trip(0, 0xff, 1);
@@ -656,6 +682,89 @@ static void test_m4d270b_draw_text(void)
     CK(draw(1) == 0x63a8f0);
     for (k = 0; k < 64; k++) CK(g_r[6][k * 8] == 0);
     CK(g_w.dword_63a8f0 == 13);
+    /* heights 10 and 30: 0.9f * 10 = 8.99999976 truncates to 8 (not 9), 0.9f * 30 to 26: ofs = 8 + (20 - 10 + 1) = 19 and 26 + (20 - 30 + 1) = 17 */
+    draw_setup("!");
+    set16(g_r[3], 10, 10);
+    script(0x4d214b, 1, 1, 0, 0, 0);
+    g_idxw[0] = 2;
+    g_idxw_n = 1;
+    draw(1);
+    for (k = 0; k < 6; k++) CK(get16(g_r[6], 0x244 + 2 * (size_t)k) == 0xbeef);
+    CK(get16(g_r[6], 0x250) == 0 && get16(g_r[6], 0x242) == 0 && g_w.dword_63a8f4 == 11);
+    draw_setup("!");
+    set16(g_r[3], 10, 30);
+    script(0x4d214b, 1, 1, 0, 0, 0);
+    g_idxw[0] = 2;
+    g_idxw_n = 1;
+    draw(1);
+    for (k = 0; k < 6; k++) CK(get16(g_r[6], 0x224 + 2 * (size_t)k) == 0xbeef);
+    CK(get16(g_r[6], 0x230) == 0 && get16(g_r[6], 0x222) == 0 && (int32_t)g_w.dword_63a8f4 == -9);
+    /* negative x (-10): the pen, the run length 6 and the start address 0x100 + 20 * 0x10 - 10 * 2 */
+    draw_setup("!");
+    script(0x4d214b, 1, 1, 0, 0, 0);
+    g_idxw[0] = 2;
+    g_idxw_n = 1;
+    m4d270b_draw_text(RVA(1), RVA(2), RVA(3), 0x7000u | 0xfff6u, 0x40000u | 20u, 0x1111, RVA(5), 0x50001u, 1, 0x6beefu, &g_w, &g_host);
+    CK((int32_t)L.c[1].gl[0] == -10 && (int32_t)L.c[1].gl[2] == -5 && (int32_t)g_w.dword_63a8f0 == -3 && (int32_t)g_w.dword_63a8f8 == 2);
+    for (k = 0; k < 6; k++) CK(get16(g_r[6], 0x22c + 2 * (size_t)k) == 0xbeef);
+    CK(get16(g_r[6], 0x238) == 0 && get16(g_r[6], 0x22a) == 0);
+    /* negative y (-5): f4 = -8, ofs = 3 - 8 = -5, start 0x100 - 5 * 0x10 + 20 */
+    draw_setup("!");
+    script(0x4d214b, 1, 1, 0, 0, 0);
+    g_idxw[0] = 2;
+    g_idxw_n = 1;
+    m4d270b_draw_text(RVA(1), RVA(2), RVA(3), 0x30000u | 10u, 0x7000u | 0xfffbu, 0x1111, RVA(5), 0x50001u, 1, 0x6beefu, &g_w, &g_host);
+    CK((int32_t)g_w.dword_63a8fc == -5 && (int32_t)g_w.dword_63a8f4 == -8);
+    for (k = 0; k < 6; k++) CK(get16(g_r[6], 0xc4 + 2 * (size_t)k) == 0xbeef);
+    CK(get16(g_r[6], 0xd0) == 0 && get16(g_r[6], 0xc2) == 0);
+    /* negative pitch (-16): start 0x800 - 20 * 16 + 20 */
+    draw_setup("!");
+    set16(g_r[5], 0x2f, 0xfff0);
+    set32(g_r[5], 0, RVA(6) + 0x800u);
+    script(0x4d214b, 1, 1, 0, 0, 0);
+    g_idxw[0] = 2;
+    g_idxw_n = 1;
+    draw(1);
+    for (k = 0; k < 6; k++) CK(get16(g_r[6], 0x6d4 + 2 * (size_t)k) == 0xbeef);
+    CK(get16(g_r[6], 0x6e0) == 0 && get16(g_r[6], 0x6d2) == 0);
+    /* negative selector (-1): the rectangle uses the entries at layout + 0x37 / 0x3b */
+    draw_setup("!");
+    set32(g_r[2], 0x3b, 50);
+    set32(g_r[2], 0x37, 70);
+    script(0x4d214b, 1, 1, 0, 0, 0);
+    g_idxw[0] = 2;
+    g_idxw_n = 1;
+    m4d270b_draw_text(RVA(1), RVA(2), RVA(3), 0x30000u | 10u, 0x40000u | 20u, 0x1111, RVA(5), 0x7000u | 0xffffu, 0, 0x6beefu, &g_w, &g_host);
+    CK(L.c[1].rect[0] == 80 && L.c[1].rect[1] == 150 && L.c[1].rect[2] == 90 && L.c[1].rect[3] == 160);
+    /* negative advance word [layout+0x51] = -2 */
+    draw_setup("!");
+    set16(g_r[2], 0x51, 0xfffe);
+    script(0x4d214b, 1, 1, 0, 0, 0);
+    g_idxw[0] = 2;
+    g_idxw_n = 1;
+    draw(0);
+    CK((int32_t)g_w.dword_63a8f0 == 14 && (int32_t)g_w.dword_63a8f8 == 19);
+    /* negative extents: width -3 and height -3 (f4 = 20 + 3 + 1 = 24, count -3, -2.7 truncates to -2, ofs = 22; the fill run 6 - 10 + 1 is empty) */
+    draw_setup("!");
+    set16(g_r[3], 8, 0xfffd);
+    set16(g_r[3], 10, 0xfffd);
+    script(0x4d214b, 1, 1, 0, 0, 0);
+    g_idxw[0] = 2;
+    g_idxw_n = 1;
+    draw(1);
+    CK((int32_t)L.c[1].gl[1] == 24 && (int32_t)L.c[1].gl[2] == 6 && (int32_t)g_w.dword_63a8f0 == 8 && (int32_t)g_w.dword_63a8f8 == 4);
+    for (k = 0; k < 64; k++) CK(g_r[6][k * 8] == 0);
+    /* a negative glyph index from 0x4d214b (-1) reads the entries before the table start */
+    draw_setup("!");
+    set32(g_r[2], 0xc7 - 16, 1);
+    set32(g_r[2], 0xc3 - 16, 2);
+    set16(g_r[3], 0x100 - 4, 0xfffd);
+    set16(g_r[3], 0x100 - 2, 2);
+    script(0x4d214b, 1, 1, 0, 0, 0);
+    g_idxw[0] = 0xffff;
+    g_idxw_n = 1;
+    m4d270b_draw_text(RVA(1), RVA(2), RVA(3) + 0x100, 0x30000u | 10u, 0x40000u | 20u, 0x1111, RVA(5), 0x50001u, 0, 0x6beefu, &g_w, &g_host);
+    CK(L.c[1].rect[0] == 2 + 7 && L.c[1].rect[1] == 1 + 5 && L.c[1].gl[1] == 19 && L.c[1].gl[2] == 6 && (int32_t)g_w.dword_63a8f8 == 4);
     /* the debug report: only when the debug word is non-zero (a negative one counts) and a destination is 0 */
     draw_setup("");
     g_w.word_63a4cd = (int16_t)0x8000;

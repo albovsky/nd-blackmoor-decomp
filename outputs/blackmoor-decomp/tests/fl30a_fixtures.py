@@ -334,7 +334,24 @@ FLOATS = [0.0, 9999.0, 1.5, -2.25, 0.1, 123456.789, -9999.0, 1e-40, 3.4e38, 100.
 NAN_BITS = [0x7fc00000, 0xffc00001, 0x7f800001]
 WORD_TABLE = [0x270f, 0, 1, -1, 100, 0x7fff, -0x8000, 3, 0x270e, 0x2710]
 VALUES = [0, 1, -1, 7, 100, -100, 12345, -32768, 32767, 3, 255, 1000]
-E_PATTERNS = ['skip', 'w270f', 'word', 'f9999', 'float', 'fnan', 'plain', 'report', 'mix', 'mix', 'mix']
+E_PATTERNS = ['skip', 'w270f', 'word', 'f9999', 'float', 'fnan', 'plain', 'report', 'mix', 'mix', 'mix', 'craftw', 'craftf', 'kindchg']
+
+
+def _craft_pairs():
+    """(value, table entry) pairs for which (float)((v / 100.0) * t) differs from (float)((v * t) / 100.0): the original divides first, then multiplies."""
+    import random as _r
+    import struct as _s
+    f32 = lambda d: _s.unpack('<f', _s.pack('<f', d))[0]
+    pairs, r = [(25647, 17375)], _r.Random(44)
+    while len(pairs) < 6:
+        c, t = r.randrange(1, 32768), r.randrange(1, 32768)
+        if f32((c / 100.0) * t) != f32((c * t) / 100.0) and (c, t) not in pairs:
+            pairs.append((c, t))
+    assert f32((25647 / 100.0) * 17375) != f32((25647 * 17375) / 100.0)
+    return pairs
+
+
+CRAFT = _craft_pairs()
 
 
 def gen_44b3c8(rng, n):
@@ -348,11 +365,17 @@ def gen_44b3c8(rng, n):
     all_e = list(range(0x1e)) + list(range(0x1e, 0x28)) + [0x28, 0x64, 0x65, 0x80, 0xff, 0x63]
     for i in range(10):
         e = {'skip': 0x63, 'w270f': 0x00, 'word': rng.randrange(0x1e), 'f9999': rng.randrange(0x1e, 0x28), 'float': rng.randrange(0x1e, 0x28), 'fnan': rng.randrange(0x1e, 0x28),
-             'plain': 0x64, 'report': rng.choice([0x28, 0x65, 0x80, 0xff, 0x7f]), 'mix': rng.choice(all_e), 'x': rng.choice(all_e)}[pat]
+             'plain': 0x64, 'report': rng.choice([0x28, 0x65, 0x80, 0xff, 0x7f]), 'mix': rng.choice(all_e), 'x': rng.choice(all_e), 'craftw': 0x63, 'craftf': 0x63, 'kindchg': 0x63}[pat]
         if pat == 'w270f':
             e = rng.choice([k for k in range(0x1e) if True][:3])
+        if pat in ('craftw', 'craftf'):
+            e = (i if pat == 'craftw' else 0x1e + i) if i < 3 else 0x63
+        if pat == 'kindchg':
+            e = 0x65 if i == 0 else rng.choice(all_e)
         rec[1 + 3 * i] = e
         put16(rec, 2 + 3 * i, rng.choice(VALUES) if i % 2 else rng.randrange(0x10000))
+        if pat in ('craftw', 'craftf') and i < 3:
+            put16(rec, 2 + 3 * i, CRAFT[(i + variant) % len(CRAFT)][0])
     tab = bytearray(0xa0)
     for k in range(0x1e):                            # the word table at +0x3c
         put16(tab, 0x3c + 2 * k, (WORD_TABLE[(k + variant) % len(WORD_TABLE)] if pat in ('w270f', 'word', 'mix') else rng.choice(WORD_TABLE)) & 0xffff)
@@ -370,10 +393,18 @@ def gen_44b3c8(rng, n):
             put32(tab, 4 * k, bits)
     for k in range(0x0f):
         put32(tab, 4 * k, rng.randrange(1 << 32))
+    if pat in ('craftw', 'craftf'):
+        for i in range(3):
+            t = CRAFT[(i + variant) % len(CRAFT)][1]
+            if pat == 'craftw':
+                put16(tab, 0x3c + 2 * i, t)
+            else:
+                put32(tab, 4 * (0x1e + i), st.unpack('<I', st.pack('<f', float(t) + (0.25 if variant % 2 else 0.0)))[0])
     area, ptrs = hit_table(rng, w, rec_va, rec2_va, 1)
     ptrs['tab_58c91d'] = ('tab', 0)
     probe = [('tab', 0, 0xa0)]
-    stubs = {0x50ca3e: stub(0x50ca3e, CDECL(3), probe=probe), 0x52139c: stub(0x52139c, STDCALL(3), probe=probe), 0x42ba3a: stub(0x42ba3a, CDECL(1), probe=probe)}
+    chg = [(0, -1, rec_va, 1, bytes([0x1e + (kind - 0x1e + 1 + variant % 8) % 10]))] if pat == 'kindchg' else None
+    stubs = {0x50ca3e: stub(0x50ca3e, CDECL(3), probe=probe, writes=chg), 0x52139c: stub(0x52139c, STDCALL(3), probe=probe), 0x42ba3a: stub(0x42ba3a, CDECL(1), probe=probe)}
     g = {'word_63a4cd': 0 if (variant % 2 == 0 and cls == 'bad') else DBG_VALUES[1:][variant % 4]}
     a = word_arg(rng, w)
     return make('44b3c8', [Area('self', od.region_va(0), bytearray(rng.randbytes(0x40)), image=False, compare=False), Area('rec', rec_va, rec, image=False), Area('rec2', rec2_va, bytearray(rng.randbytes(0x40)), image=False),
@@ -404,7 +435,7 @@ def gen_4d270b(rng, n):
     for _ in range(length):
         cls = rng.choice(['found', 'found', 'upper', 'lower', 'digit', 'other', 'other'])
         if cls == 'found':
-            plan.append((cls, rng.choice(b'Aa5! \x80'), None, rng.randrange(0, 10)))
+            plan.append((cls, rng.choice(b'Aa5! \x80'), None, rng.randrange(-4, 10)))
         else:
             chain = rng.choice(CHAIN[cls])
             ch = rng.choice(CHARS[cls])
@@ -413,24 +444,27 @@ def gen_4d270b(rng, n):
             plan.append((cls, ch, chain, None))
     flag = rng.choice(FLAGS)
     if flag != 0 and not any(p[0] == 'found' for p in plan):       # without a drawn glyph the original writes through stack garbage: not a legal fixture (native rejection)
-        plan.insert(rng.randrange(len(plan) + 1), ('found', rng.choice(b'Aa5! '), None, rng.randrange(0, 10)))
+        plan.insert(rng.randrange(len(plan) + 1), ('found', rng.choice(b'Aa5! '), None, rng.randrange(-4, 10)))
         length = len(plan)
     text = bytearray(rng.randbytes(0x20))
     for k, (_, ch, _, _) in enumerate(plan):
         text[k] = ch
     text[len(plan)] = 0
-    lay = bytearray(rng.randbytes(0x400))
-    for off, lo, hi in ((0x4f, -2, 6), (0x51, 0, 4), (0x53, 0, 3), (0x55, 0, 3), (0x57, 0, 3)):
-        put16(lay, off, rng.randrange(lo, hi))
-    ext = bytearray(rng.randbytes(0x200))
-    for idx in range(20):
-        put16(ext, idx * 4, rng.randrange(-3, 10))
-        put16(ext, idx * 4 + 2, rng.randrange(1, 10))
+    # the layout and extents addresses point into the middle of their regions, so that negative glyph indices and selectors (valid for the original) stay inside memory
+    LB, EB = 0x400, 0x100
+    lay_va, ext_va = lay_va + LB, ext_va + EB
+    lay = bytearray(rng.randbytes(0x800))
+    for off, lo, hi in ((0x4f, -3, 6), (0x51, -3, 4), (0x53, -3, 3), (0x55, -3, 3), (0x57, -3, 3)):
+        put16(lay, LB + off, rng.randrange(lo, hi))
+    ext = bytearray(rng.randbytes(0x300))
+    for idx in range(-8, 24):
+        put16(ext, EB + idx * 4, rng.randrange(-3, 10))
+        put16(ext, EB + idx * 4 + 2, rng.choice([*range(1, 10), 10, 20, 30, 40, 10, 20, 30, 40, -3, -2, -1]))      # heights 10, 20, 30, 40 make 0.9f * h and 0.9 * h truncate differently
     dstb = bytearray(rng.randbytes(0x40))
-    base = pix_va + 0x800
+    base = pix_va + 0x3000
     put32(dstb, 0, base)
-    put16(dstb, 0x2f, rng.choice([0x10, 0x20, 0x30]))
-    pix = bytearray(rng.randbytes(0x2000))
+    put16(dstb, 0x2f, rng.choice([0x10, 0x20, 0x30, -0x10, -0x20, -0x30]) & 0xffff)
+    pix = bytearray(rng.randbytes(0x6000))
     dbg = DBG_VALUES[variant % 5] if n % 3 else 0
     dest_a = rng.choice([0, od.region_va(4) + 0x40, 0x12345678])
     dest_b = dst_va
@@ -438,7 +472,7 @@ def gen_4d270b(rng, n):
         dest_b = 0
     if dest_b == 0:
         flag = 0
-    x, y, sel, color = rng.randrange(0, 12), rng.randrange(10, 30), rng.randrange(0, 4), rng.randrange(0x10000)
+    x, y, sel, color = rng.randrange(-8, 12), rng.randrange(-12, 30), rng.randrange(-4, 4), rng.randrange(0x10000)
     found_idx = [p[3] for p in plan if p[0] == 'found']
     # scripted results: 0x4d214b per character, then the class routines in call order
     r4d214b, writes = [], []
@@ -446,7 +480,7 @@ def gen_4d270b(rng, n):
     for k, (cls, ch, chain, idx) in enumerate(plan):
         if cls == 'found':
             r4d214b.append(rng.choice(NONZERO))
-            writes.append((k, 2, 0, 2, idx))
+            writes.append((k, 2, 0, 2, idx & 0xffff))
         else:
             r4d214b.append(0)
             for callee, result in chain:
@@ -460,7 +494,7 @@ def gen_4d270b(rng, n):
          'dword_63a8f8': rng.randrange(1 << 32), 'dword_63a8fc': rng.randrange(1 << 32)}
     wx, wy, wsel, wcol = word_arg(rng, x), word_arg(rng, y), word_arg(rng, sel), word_arg(rng, color)
     stack = [str_va, lay_va, ext_va, wx, wy, dest_a, dest_b, wsel, flag, wcol]
-    areas = [Area('str', str_va, text, image=False), Area('lay', lay_va, lay, image=False, compare=False), Area('ext', ext_va, ext, image=False, compare=False),
+    areas = [Area('str', str_va, text, image=False), Area('lay', lay_va - LB, lay, image=False, compare=False), Area('ext', ext_va - EB, ext, image=False, compare=False),
              Area('dstb', dst_va, dstb, image=False, compare=False), Area('pix', pix_va, pix, image=False)]
     return make('4d270b', areas, stubs, g, stack, tuple(stack), (pat, length, flag != 0, dest_a == 0, dbg != 0, tuple(p[0] for p in plan)))
 
@@ -468,7 +502,7 @@ def gen_4d270b(rng, n):
 SPECS = {
     '4f61e7': dict(id=1, va=0x4f61e7, size=333, gen=gen_4f61e7, cleanup=4, ret=True, n=24 * 8),
     '484ac0': dict(id=3, va=0x484ac0, size=495, gen=gen_484ac0, cleanup=0, n=(7 * 2 + 12) * 12),
-    '44b3c8': dict(id=4, va=0x44b3c8, size=633, gen=gen_44b3c8, cleanup=4, fpcw=0x27f, n=(10 * 11 + 12) * 6),
+    '44b3c8': dict(id=4, va=0x44b3c8, size=633, gen=gen_44b3c8, cleanup=4, fpcw=0x27f, n=(10 * 14 + 12) * 8),
     '47ef0f': dict(id=5, va=0x47ef0f, size=654, gen=gen_47ef0f, cleanup=0, n=(7 * 2 + 12) * 16),
     '4d270b': dict(id=6, va=0x4d270b, size=1301, gen=gen_4d270b, cleanup=0, ret=True, n=1500),
     '484762': dict(id=2, va=0x484762, size=467, gen=gen_484762, cleanup=8, ret=True, n=2 * 625 + 600),
