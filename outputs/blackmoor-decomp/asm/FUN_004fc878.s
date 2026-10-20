@@ -8,15 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_scene_sound_channel_stop
-# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_9a_runtime.h:27 says "each stop is 0x4fc878 on the scene sound object 0x5c3a67"; src/action_family_9a_runtime.h:61 says "0x4fc878(channel) on 0x5c3a67"
-# name-note:    Stops one sound channel by index on the scene sound object 0x5c3a67.
+# name:         m4fc878_activate_record
+# naming:       native port src/original_methods_fl31b.c:m4fc878_activate_record (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port
+# name-note:    Optional trace calls, then when the state word of record index*0x5bb is 1 calls 0x4f61e7 and sets it to 2; 38/38 instructions, 4/4 directions. See tasks/fl31b-handoff.md.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_132; [ecx + n] field_132
 # callees:      calls FUN_0050ca3e, FUN_0044a2b7, FUN_004f61e7
-# track-n:      outputs/blackmoor-decomp/src/blackmoor_app.mm:native_a9a_stop_channel (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 38 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl31b.c:m4fc878_activate_record (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 38 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

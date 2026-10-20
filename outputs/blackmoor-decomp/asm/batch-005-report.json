@@ -11825,6 +11825,7 @@
       "contains_original_byte_values": false,
       "data_items": [],
       "function": "FUN_004c2790",
+      "naming": "native_port",
       "object": {
         "sha256": "5380151c92069b41adc11d0175cb579078dbff45f68324acdee9c06ec812f73d",
         "size": 793387
@@ -11834,7 +11835,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_004c2790.s",
-        "sha256": "19eba905c4ad2fd3abe0ad90fe0b445bcf66539b8aa9c91e06b74bf0b8b4e3a3"
+        "sha256": "d1adde8ccd5e99d212762b244c603ab07dc6d7403f70c4a815796b59bcc7eec8"
       },
       "status": "accepted",
       "va": 4990864
@@ -13353,7 +13354,7 @@
       "contains_original_byte_values": false,
       "data_items": [],
       "function": "FUN_004c946b",
-      "naming": "inferred_prose",
+      "naming": "native_port",
       "object": {
         "sha256": "dda2f43a29941112a314a9355aaeade9598ef361d17732b463350f4c1b9776e6",
         "size": 820782
@@ -13363,7 +13364,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_004c946b.s",
-        "sha256": "83554808053a5693c1db4eb0f38a30701222afa0cf133df8d804589c392c9dbc"
+        "sha256": "fa139a0a980b96429032fd7103659fa654f78c0b564163ed444b381c3c520fb2"
       },
       "status": "accepted",
       "va": 5018731
@@ -19169,7 +19170,7 @@
       "contains_original_byte_values": false,
       "data_items": [],
       "function": "FUN_004dadff",
-      "naming": "inferred_prose",
+      "naming": "native_port",
       "object": {
         "sha256": "b2b575c64d12f31ade20d31937df368fd4f3137b995e07ba528f6fa43398c1ec",
         "size": 892893
@@ -19179,7 +19180,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_004dadff.s",
-        "sha256": "f877d1ae35850853a015f810219d091e5d0fc6ffc439ab015d4bfd0c4e226936"
+        "sha256": "6e82ddc0737675706b3cf1cacbbe72bb4167cb91390cb9124180c37d8ac539d9"
       },
       "status": "accepted",
       "va": 5090815
@@ -19207,7 +19208,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_004dae88.s",
-        "sha256": "261800002c5d915dc152d58ca029787b850de0f49cf16fe125c7173e955383d1"
+        "sha256": "efd7ff4b4edd862adce892ed15fddc5ca30b6201116c7470758c5e24ca2bf5de"
       },
       "status": "accepted",
       "va": 5090952
@@ -19225,7 +19226,7 @@
       "contains_original_byte_values": false,
       "data_items": [],
       "function": "FUN_004daeb5",
-      "naming": "inferred_prose",
+      "naming": "native_port",
       "object": {
         "sha256": "c2e781403e4f9f78c5d816193e3f9894d39990abc5e5c560a308441fe1821a8a",
         "size": 893105
@@ -19235,7 +19236,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_004daeb5.s",
-        "sha256": "3523b1e54aba41b1e60b5622cca2a5dcc1551b8218ea205f7dc030baa05fdf76"
+        "sha256": "39e774c04f8cc8bafc3ac1d15bafe3f675420ce2b38f895ca6a3afeb1a7f10d9"
       },
       "status": "accepted",
       "va": 5090997
@@ -19729,7 +19730,7 @@
       "contains_original_byte_values": false,
       "data_items": [],
       "function": "FUN_004db870",
-      "naming": "inferred_prose",
+      "naming": "native_port",
       "object": {
         "sha256": "6edc4e4c0f297748bdc084f19a7a783962988dbc7010307acdef134273ec7276",
         "size": 895991
@@ -19739,7 +19740,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_004db870.s",
-        "sha256": "a87e8ff0a3678965d10fca7e9cd08c6e805357da897bbf0c860298eb06195e6d"
+        "sha256": "e9815c30bd98de4e27d5188ab8692ab77d373c1660f316d78549693fc52a289d"
       },
       "status": "accepted",
       "va": 5093488
@@ -21012,9 +21013,9 @@
       "va": 5105136
     }
   ],
-  "manifest_sha256": "03e189a658c6e05492c85428d2bf0b6025e5b960aaaa9be628d6d6eae5cbe53b",
-  "named_functions": 286,
-  "names_sha256": "391751490ef1156eebcbede2b23588387192543249f554b2d40a1e02228a12f8",
+  "manifest_sha256": "fcf6b5425ddca81a7643b84ff7e0fd5d1c8ca8d6c19f06312efccc754c49ddc7",
+  "named_functions": 287,
+  "names_sha256": "e1d73fac80161106b10ec80d43b51f7aece5aa89dd434b45df6c81f1f21a3efe",
   "note": "Accepted functions are candidates for the tool_assisted_reconstructed_assembly class; they count only after root accepts the independent review. No claim is made about original C++ or compiler provenance.",
   "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45"
 }
