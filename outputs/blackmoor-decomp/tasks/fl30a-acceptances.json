@@ -1,0 +1,35 @@
+[
+ {
+  "va": "0x4f61e7",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-30a implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl30a.c",
+   "symbol": "m4f61e7_start_record"
+  },
+  "tests": [
+   {
+    "path": "tests/fl30a_direct_test.c",
+    "test_id": "test_m4f61e7_start_record"
+   },
+   {
+    "path": "tests/test_fl30a_direct.py",
+    "test_id": "Fl30aDirect.test_4f61e7_start_record"
+   },
+   {
+    "path": "tests/test_fl30a_differential.py",
+    "test_id": "Fl30aDifferential.test_4f61e7_start_record"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl30a_original_oracle.py",
+   "window": [
+    "0x4f61e7",
+    "0x4f6334"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Starts a record: stores 0x3e8/0 to the object, calls 0x4f709c, checks the record fields at +0x162 and +0x28f, sets +0x287, calls the vtable entry at +0x48 of the record object and reports through 0x50ca3e/0x44a2b7 when it returns 0; every instruction and both directions of every jump executed. See tasks/fl30a-handoff.md."
+ }
+]
