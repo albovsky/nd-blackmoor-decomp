@@ -86,6 +86,10 @@ class Fl30aDirect(unittest.TestCase):
         """FL-30a: direct test of m47ef0f_latch_hit_counter (original 0x47ef0f)"""
         self.check('test_m47ef0f_latch_hit_counter')
 
+    def test_4d270b_draw_text(self):
+        """FL-30a: direct test of m4d270b_draw_text (original 0x4d270b)"""
+        self.check('test_m4d270b_draw_text')
+
     # CASES-END
 
     def test_sweep_bounded(self):

@@ -275,3 +275,83 @@ void m47ef0f_latch_hit_counter(uint8_t *self, const Fl30aWorld *world, const Fl1
     call0(host, 0x480abe, (uintptr_t)self);
     call1(host, 0x47ed96, (uintptr_t)self, (uint16_t)h);
 }
+
+/* ---- 0x4d270b draw_text -------------------------------------------------------------------------------------------------------- */
+/* The library routine __ftol at 0x50ce04 (the value on the x87 stack): truncation to a 64-bit integer, eax = its low dword; a NaN or a value outside the 64-bit range gives 0 (the integer indefinite's low dword). */
+static uint32_t ftol_low_dword(double value)
+{
+    if (value != value) return 0;
+    if (value >= 9223372036854775808.0 || value < -9223372036854775808.0) return 0;
+    return (uint32_t)(int64_t)value;
+}
+
+/* the four rectangle dwords of a glyph row: rect = { [ebp-0x28], [ebp-0x24], [ebp-0x20], [ebp-0x1c] } */
+static void glyph_rect(const uint8_t *layout, int16_t idx, uint16_t sel, uint32_t rect[4])
+{
+    ptrdiff_t row = (ptrdiff_t)(int32_t)((uint32_t)(int32_t)idx << 4);
+    ptrdiff_t s = (ptrdiff_t)(int16_t)sel * 8;
+    rect[1] = rd32(layout, row + 0xc7) + rd32(layout, s + 0x43);
+    rect[3] = rd32(layout, row + 0xcf) + rd32(layout, s + 0x43);
+    rect[0] = rd32(layout, row + 0xc3) + rd32(layout, s + 0x3f);
+    rect[2] = rd32(layout, row + 0xcb) + rd32(layout, s + 0x3f);
+}
+
+uint32_t m4d270b_draw_text(uint32_t str, uint32_t layout, uint32_t extents, uint32_t x, uint32_t y, uint32_t dest_a, uint32_t dest_b, uint32_t sel, uint32_t flag, uint32_t color,
+                           Fl30aWorld *world, const Fl18Host *host)
+{
+    uint32_t rect[4] = {0, 0, 0, 0};
+    uint16_t idx = 0;
+    int32_t x0, x1 = 0, ofs = 0;
+    int drawn = 0;
+    if (world->word_63a4cd != 0 && (dest_a == 0 || dest_b == 0)) {
+        call3(host, 0x52139c, 0, 0x55a2fc, 0, 0);
+        call0(host, 0x4c97b4, 0x5cf659);
+    }
+    world->dword_63a8fc = (int16_t)y;
+    world->dword_63a8f4 = 0;
+    world->dword_63a8f0 = (int16_t)x;
+    world->dword_63a8f8 = 0;
+    x0 = world->dword_63a8f0;
+    for (;; str++) {
+        int32_t c = (int8_t)res(host, str)[0];
+        int found;
+        if (c == 0) break;
+        found = call3(host, 0x4d214b, 0, (uint32_t)c & 0xffu, layout, (uintptr_t)&idx) != 0;
+        if (!found) {
+            const uint8_t *lay = res(host, layout);
+            if (call1(host, 0x50d651, 0, (uint32_t)c) != 0 && call1(host, 0x50d67f, 0, (uint32_t)c) != 0 && (uint8_t)c < 0x80) {
+                idx = (uint16_t)(c + (int16_t)rd16(lay, 0x53) - 0x41);
+            } else if (call1(host, 0x50d651, 0, (uint32_t)c) != 0 && call1(host, 0x50d6a7, 0, (uint32_t)c) != 0 && (uint8_t)c < 0x80) {
+                idx = (uint16_t)(c + (int16_t)rd16(lay, 0x55) - 0x61);
+            } else if (call1(host, 0x50d6cf, 0, (uint32_t)c) != 0 && (uint8_t)c < 0x80) {
+                idx = (uint16_t)(c + (int16_t)rd16(lay, 0x57) - 0x30);
+            } else {
+                world->dword_63a8f0 += (int16_t)rd16(lay, 0x4f);
+                world->dword_63a8f8 = world->dword_63a8f0 + (int16_t)rd16(lay, 0x4f) - 1;
+                x1 = world->dword_63a8f8;
+                continue;
+            }
+        }
+        glyph_rect(res(host, layout), (int16_t)idx, (uint16_t)sel, rect);
+        world->dword_63a8f4 = world->dword_63a8fc - (int16_t)rd16(res(host, extents), (ptrdiff_t)(int16_t)idx * 4 + 2) + 1;
+        world->dword_63a8f8 = world->dword_63a8f0 + (int16_t)rd16(res(host, extents), (ptrdiff_t)(int16_t)idx * 4) - 1;
+        x1 = world->dword_63a8f8;
+        call5(host, 0x4c5b3a, 0x5cf659, dest_a, dest_b, (uintptr_t)rect, 0x63a8f0, 0x55a338);
+        if (flag != 0 && !drawn) {
+            float count = (float)(int32_t)(world->dword_63a8fc - world->dword_63a8f4 + 1);
+            ofs = (int32_t)(ftol_low_dword((double)count * (double)0.9f) + (uint32_t)world->dword_63a8f4);     /* 0.9f: the float at 0x52e2d4 */
+            drawn = 1;
+        }
+        world->dword_63a8f0 = (int16_t)rd16(res(host, layout), 0x51) + world->dword_63a8f0 + (int16_t)rd16(res(host, extents), (ptrdiff_t)(int16_t)idx * 4);
+        world->dword_63a8f8 = world->dword_63a8f0 + (int16_t)rd16(res(host, extents), (ptrdiff_t)(int16_t)idx * 4) - 1;
+    }
+    if (flag != 0 && drawn) {      /* NATIVE REJECTION: without a drawn glyph the original uses the uninitialised locals ofs and (for an empty string) x1 and writes through an address made of stack garbage */
+        uint32_t p = rd32(res(host, dest_b), 0) + (uint32_t)(ofs * (int16_t)rd16(res(host, dest_b), 0x2f)) + (uint32_t)(x0 * (int32_t)world->word_639895);
+        int32_t k;
+        for (k = 0; k < x1 - x0 + 1; k++) {
+            wr16(res(host, p), 0, (uint16_t)color);
+            p += 2;
+        }
+    }
+    return 0x63a8f0;
+}

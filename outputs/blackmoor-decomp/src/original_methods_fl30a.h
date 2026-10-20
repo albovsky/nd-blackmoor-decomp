@@ -25,6 +25,11 @@ typedef struct Fl30aWorld {
     uint8_t *table_5bb5e5;     /* 0x484ac0, 0x47ef0f, 0x44b3c8, 0x4c36b2: records of stride 0x8d at the original address 0x5bb5e5: dword at +0 (an original address of a record), dword at +0x4d (state); slack for a negative index */
     uint8_t *tab_58c91d;       /* 0x44b3c8: the 0xa0 bytes at the original address 0x58c91d: float (dword) cells at 0x58c91d + 4*k, and, from 0x58c959 (= +0x3c), the word table indexed by a byte */
     int16_t word_63a4cd;       /* the debug flag: a non-zero word turns on the trace output */
+    int16_t word_639895;       /* 0x4d270b: bytes per pixel (a signed word) */
+    int32_t dword_63a8f0;      /* 0x4d270b: the pen x; written by the function, and read by the callee 0x4c5b3a through the address 0x63a8f0 */
+    int32_t dword_63a8f4;      /* 0x4d270b: the glyph top y (written) */
+    int32_t dword_63a8f8;      /* 0x4d270b: the glyph right x (written) */
+    int32_t dword_63a8fc;      /* 0x4d270b: the baseline y (written) */
 } Fl30aWorld;
 
 /* 0x4f61e7, thiscall, `ret 4`, the stack argument is the dword `index`, returns eax: dword [self+0x3c2] = 0x3e8, dword [self+0x3ca] = 0; rec = dword [self+0x3ce] + index*0x5bb (32 bits).
@@ -33,6 +38,24 @@ typedef struct Fl30aWorld {
  * stack argument obj, stdcall: pops 4 bytes) is stored to dword [self+0x3ca]. When r == 0: when the signed word 0x63a4cd is non-zero 0x50ca3e(0x63888b, 0x55e7bc, index, rec + 4) (cdecl, 4 arguments)
  * and 0x44a2b7(0x63888b) (cdecl, 1 argument); returns 1. Otherwise dword [self+0x3c2] = 0x40b, dword [self+0x3be] = 0, returns dword [self+0x3be] (0). */
 uint32_t m4f61e7_start_record(uint8_t *self, uint32_t index, const Fl30aWorld *world, const Fl18Host *host);
+
+/* 0x4d270b, cdecl (plain `ret`), returns eax = 0x63a8f0 (the address of the pen x). The stack arguments are, from [ebp+8] on: the original address `str` of a NUL-terminated string, `layout` (an original address of
+ * the glyph tables), `extents` (an original address of words: width at +idx*4, height at +idx*4+2), the words `x` and `y`, the dwords `dest_a` and `dest_b` (an original address of a surface: dword [dest_b] = the pixel
+ * base, signed word [dest_b+0x2f] = the pitch), the word `sel`, the dword `flag` and the word `color`. When the signed word 0x63a4cd is non-zero and (dest_a == 0 or dest_b == 0): 0x52139c(0x55a2fc, 0, 0) (stdcall,
+ * 3 arguments) and 0x4c97b4(this 0x5cf659). Then dword 0x63a8fc = signed word y, 0x63a8f4 = 0, 0x63a8f0 = signed word x, 0x63a8f8 = 0; x0 = 0x63a8f0. For each signed char c of the string up to the NUL: found = 0x4d214b(c, layout, &idx)
+ * (cdecl, 3 arguments; the char is a byte argument whose upper 24 bits are left-over; idx is a local word). When found == 0: c is looked up in four steps, each calling a character-class routine with the sign-extended
+ * c: 0x50d651(c) != 0 and 0x50d67f(c) != 0 and (unsigned byte) c < 0x80 gives idx = (signed word) (c + signed word [layout+0x53] - 0x41); else 0x50d651(c) (again) != 0 and 0x50d6a7(c) != 0 and c < 0x80 gives idx = c +
+ * word [layout+0x55] - 0x61; else 0x50d6cf(c) != 0 and c < 0x80 gives idx = c + word [layout+0x57] - 0x30; else (no glyph) 0x63a8f0 += signed word [layout+0x4f], 0x63a8f8 = 0x63a8f0 + word [layout+0x4f] - 1, x1 = 0x63a8f8 and the
+ * next char. With a glyph idx (from 0x4d214b or the lookup): row = idx << 4, s = signed word sel: the rectangle (x0, y0, x1, y1) = (dword [layout+row+0xc3] + dword [layout+s*8+0x3f], dword [layout+row+0xc7] + dword
+ * [layout+s*8+0x43], dword [layout+row+0xcb] + dword [layout+s*8+0x3f], dword [layout+row+0xcf] + dword [layout+s*8+0x43]) is built in a local; 0x63a8f4 = 0x63a8fc - signed word [extents+idx*4+2] + 1; 0x63a8f8 = 0x63a8f0 +
+ * signed word [extents+idx*4] - 1; x1 = 0x63a8f8; 0x4c5b3a(this 0x5cf659, dest_a, dest_b, &rect, 0x63a8f0, 0x55a338) (thiscall, 5 arguments; the callee sees the local rectangle and the four globals as they are at the call); then, when
+ * flag != 0 and no glyph was drawn before: ofs = __ftol((float)(0x63a8fc - 0x63a8f4 + 1) * 0.9f) + 0x63a8f4 (x87 at 53-bit precision; the truncation is the library routine __ftol at 0x50ce04, run as original code by the
+ * oracle and written natively here as in FL-28b); finally 0x63a8f0 += signed word [layout+0x51] + signed word [extents+idx*4] and 0x63a8f8 = 0x63a8f0 + word [extents+idx*4] - 1. After the string, when flag != 0:
+ * p = dword [dest_b] + ofs*pitch + x0*(signed word 0x639895), and for k = 0 while k < x1 - x0 + 1 (signed): word [p] = color, p += 2. NATIVE REJECTION (not original behaviour): ofs is a local of the original that is
+ * only set when a glyph was drawn (and x1 when any character was reached); with flag != 0 and no drawn glyph the original computes the address from stack garbage, so this port does not write then (the
+ * rest of the function, the globals and the calls are unchanged). */
+uint32_t m4d270b_draw_text(uint32_t str, uint32_t layout, uint32_t extents, uint32_t x, uint32_t y, uint32_t dest_a, uint32_t dest_b, uint32_t sel, uint32_t flag, uint32_t color,
+                           Fl30aWorld *world, const Fl18Host *host);
 
 /* 0x44b3c8, thiscall (ecx is stored and not used), `ret 4`, no result, x87 code at 53-bit precision (control word 0x27f): the stack argument is the word `index` (signed). rec = dword [0x5bb5e5 + index*0x8d]
  * (an original address) and kind = byte [rec]. When kind < 0x1e or kind > 0x27: when the signed word 0x63a4cd is non-zero 0x50ca3e(0x63888b, 0x549054, kind) (cdecl, 3 arguments) and 0x52139c(0x63888b, 0, 0)

@@ -108,7 +108,7 @@ class Fl30aDifferential(DiffBase):
                 deref_len.setdefault(s.name, []).append((arg, nbytes))
         result = ctypes.c_int32(0)
         self_ptr = ptr(by_name['self']) if 'self' in by_name else None
-        stack_args = (ctypes.c_uint64 * 8)(*[v & 0xffffffffffffffff for v in sc.args])
+        stack_args = (ctypes.c_uint64 * 16)(*[v & 0xffffffffffffffff for v in sc.args])
         self.lib.shim_fl30a(sc.fn, self_ptr, ctypes.byref(stack_args), ctypes.byref(sw), ctypes.byref(result))
         if fx.SPECS[sc.key].get('retself'):
             self.assertEqual(result.value, 0, 'the constructor must return self')
@@ -140,6 +140,8 @@ class Fl30aDifferential(DiffBase):
         for entry in actual:
             for index in sc.word_args.get(entry[0], ()):
                 entry[2 + index] &= 0xffff
+            for index in fx.BYTE_ARGS.get(entry[0], ()):
+                entry[2 + index] &= 0xff
         self.assertEqual(actual, expected, '%s scenario profile %s' % (sc.key, sc.profile))
         executed |= orig.executed
         edges |= orig.edges
@@ -172,6 +174,9 @@ class Fl30aDifferential(DiffBase):
     def test_47ef0f_latch_hit_counter(self):
         """FL-30a: differential test of m47ef0f_latch_hit_counter (original 0x47ef0f)"""
         self.run_key('47ef0f')
+    def test_4d270b_draw_text(self):
+        """FL-30a: differential test of m4d270b_draw_text (original 0x4d270b)"""
+        self.run_key('4d270b')
     # CASES-END
 
 if __name__ == '__main__':

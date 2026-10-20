@@ -77,13 +77,13 @@ def run_original(sc):
     for field in sc.g:
         read['g:' + field] = GLOBALS[field]
     for x in sc.stubs.values():
-        x.probe_addr = [(next(a.va for a in sc.areas if a.name == name) + off, ln) for name, off, ln in (x.probe or ())]
+        x.probe_addr = [((GLOBALS[name[2:]][0] if name.startswith('g:') else next(a.va for a in sc.areas if a.name == name)) + off, ln) for name, off, ln in (x.probe or ())]
     runner = Original27(image_patches, regions, sc.stubs, {}, fpcw=SPECS[sc.key].get('fpcw'))
     orig = runner.run(sc.va, sc.size, ecx=sc.ecx, stack_args=sc.stack, read=read)
     orig.edges = getattr(runner, 'edges', set())      # (address, next address) of the instructions executed in a row
     if orig.cleanup != SPECS[sc.key].get('cleanup', 0):
         raise AssertionError('the function popped %d bytes' % orig.cleanup)
-    calls = normalize(orig.calls, sc.stubs, {}, sc.word_args)
+    calls = normalize_calls(orig.calls, sc.stubs, {}, sc.word_args)
     h = hashlib.sha256()
     h.update(repr(calls).encode())
     if SPECS[sc.key].get('ret'):
@@ -123,6 +123,24 @@ def check_edges(key, edges):
     sp = SPECS[key]
     total = 2 * len(conditional_edges(sp['va'], sp.get('code', sp['size'])))
     return [e for e in untaken if e not in allowed], [e for e in allowed if e not in untaken], total
+
+
+# byte arguments of callees (the stack dword's upper 24 bits are left-over): callee -> argument positions compared by their low byte
+BYTE_ARGS = {0x4d214b: (0,)}
+
+
+def normalize_calls(calls, stubs, iat, word_args):
+    """fl28b_fixtures.normalize with the byte arguments of BYTE_ARGS masked to 8 bits before the local-pointer test."""
+    by_name = {s.name: s for s in [*stubs.values(), *iat.values()]}
+    patched = []
+    for call in calls:
+        s = by_name[call[0]]
+        call = list(call)
+        first = 2 if s.this else 1
+        for position in BYTE_ARGS.get(call[0], ()):
+            call[first + position] &= 0xff
+        patched.append(tuple(call))
+    return normalize(patched, stubs, iat, word_args)
 
 
 # ---- helpers ---------------------------------------------------------------------------------------------------------------------
@@ -362,15 +380,101 @@ def gen_44b3c8(rng, n):
                            area, Area('tab', 0x58c91d, tab, image=True)], stubs, g, [a], (a,), (cls, kind, pat, variant), ptrs)
 
 
+# ---- 0x4d270b ---------------------------------------------------------------------------------------------------------------------
+
+# the calls of the character-class routines per class of character, in the order of the original: (callee, result)
+CHAIN = {
+    'upper': [[(0x50d651, 1), (0x50d67f, 1)]],
+    'lower': [[(0x50d651, 0), (0x50d651, 1), (0x50d6a7, 1)], [(0x50d651, 1), (0x50d67f, 0), (0x50d651, 1), (0x50d6a7, 1)]],
+    'digit': [[(0x50d651, 0), (0x50d651, 0), (0x50d6cf, 1)], [(0x50d651, 1), (0x50d67f, 0), (0x50d651, 0), (0x50d6cf, 1)], [(0x50d651, 1), (0x50d67f, 0), (0x50d651, 1), (0x50d6a7, 0), (0x50d6cf, 1)]],
+    'other': [[(0x50d651, 0), (0x50d651, 0), (0x50d6cf, 0)], [(0x50d651, 1), (0x50d67f, 0), (0x50d651, 1), (0x50d6a7, 0), (0x50d6cf, 0)],
+              [(0x50d651, 1), (0x50d67f, 1), (0x50d651, 1), (0x50d6a7, 1), (0x50d6cf, 1)], [(0x50d651, 0), (0x50d651, 1), (0x50d6a7, 0), (0x50d6cf, 1)],
+              [(0x50d651, 1), (0x50d67f, 1), (0x50d651, 0), (0x50d6cf, 0)]],
+}
+CHARS = {'upper': b'ABCDEF', 'lower': b'abcdef', 'digit': b'012345', 'other': b' !\x80\xff\x7f' + b'Aa5'}
+HIGH_ONLY = [2, 2]     # the 'other' chains 2 (index) need a byte of 0x80 or more: see gen_4d270b
+FLAGS = [0, 1, 0x100, 0x80000000]
+
+
+def gen_4d270b(rng, n):
+    (pat,), variant = prof(n, [(k,) for k in ('mixed',) * 24])
+    str_va, lay_va, ext_va, dst_va, pix_va = od.region_va(1), od.region_va(2), od.region_va(3), od.region_va(5), od.region_va(6)
+    length = rng.choice([0, 1, 1, 2, 3, 4, 6])
+    plan = []
+    for _ in range(length):
+        cls = rng.choice(['found', 'found', 'upper', 'lower', 'digit', 'other', 'other'])
+        if cls == 'found':
+            plan.append((cls, rng.choice(b'Aa5! \x80'), None, rng.randrange(0, 10)))
+        else:
+            chain = rng.choice(CHAIN[cls])
+            ch = rng.choice(CHARS[cls])
+            if cls == 'other' and chain[2:3] and chain[2:] and chain in (CHAIN['other'][2], CHAIN['other'][3], CHAIN['other'][4]):
+                ch = rng.choice(b'\x80\xff')            # a byte >= 0x80 for the chains that pass the class routines
+            plan.append((cls, ch, chain, None))
+    flag = rng.choice(FLAGS)
+    if flag != 0 and not any(p[0] == 'found' for p in plan):       # without a drawn glyph the original writes through stack garbage: not a legal fixture (native rejection)
+        plan.insert(rng.randrange(len(plan) + 1), ('found', rng.choice(b'Aa5! '), None, rng.randrange(0, 10)))
+        length = len(plan)
+    text = bytearray(rng.randbytes(0x20))
+    for k, (_, ch, _, _) in enumerate(plan):
+        text[k] = ch
+    text[len(plan)] = 0
+    lay = bytearray(rng.randbytes(0x400))
+    for off, lo, hi in ((0x4f, -2, 6), (0x51, 0, 4), (0x53, 0, 3), (0x55, 0, 3), (0x57, 0, 3)):
+        put16(lay, off, rng.randrange(lo, hi))
+    ext = bytearray(rng.randbytes(0x200))
+    for idx in range(20):
+        put16(ext, idx * 4, rng.randrange(-3, 10))
+        put16(ext, idx * 4 + 2, rng.randrange(1, 10))
+    dstb = bytearray(rng.randbytes(0x40))
+    base = pix_va + 0x800
+    put32(dstb, 0, base)
+    put16(dstb, 0x2f, rng.choice([0x10, 0x20, 0x30]))
+    pix = bytearray(rng.randbytes(0x2000))
+    dbg = DBG_VALUES[variant % 5] if n % 3 else 0
+    dest_a = rng.choice([0, od.region_va(4) + 0x40, 0x12345678])
+    dest_b = dst_va
+    if dbg and rng.random() < 0.3:
+        dest_b = 0
+    if dest_b == 0:
+        flag = 0
+    x, y, sel, color = rng.randrange(0, 12), rng.randrange(10, 30), rng.randrange(0, 4), rng.randrange(0x10000)
+    found_idx = [p[3] for p in plan if p[0] == 'found']
+    # scripted results: 0x4d214b per character, then the class routines in call order
+    r4d214b, writes = [], []
+    lists = {c: [] for c in (0x50d651, 0x50d67f, 0x50d6a7, 0x50d6cf)}
+    for k, (cls, ch, chain, idx) in enumerate(plan):
+        if cls == 'found':
+            r4d214b.append(rng.choice(NONZERO))
+            writes.append((k, 2, 0, 2, idx))
+        else:
+            r4d214b.append(0)
+            for callee, result in chain:
+                lists[callee].append(result)
+    rect_probe = [('g:dword_63a8f0', 0, 4), ('g:dword_63a8f4', 0, 4), ('g:dword_63a8f8', 0, 4), ('g:dword_63a8fc', 0, 4)]
+    stubs = {0x4d214b: stub(0x4d214b, CDECL(3), results=r4d214b or [0], writes=writes), 0x52139c: stub(0x52139c, STDCALL(3)), 0x4c97b4: stub(0x4c97b4, THISCALL(0)),
+             0x4c5b3a: stub(0x4c5b3a, THISCALL(5), probe=rect_probe, derefs=[(2, 16)])}
+    for callee, results in lists.items():
+        stubs[callee] = stub(callee, CDECL(1), results=results or [0])
+    g = {'word_63a4cd': dbg, 'word_639895': rng.choice([1, 2, 2, 3, 4]), 'dword_63a8f0': rng.randrange(1 << 32), 'dword_63a8f4': rng.randrange(1 << 32),
+         'dword_63a8f8': rng.randrange(1 << 32), 'dword_63a8fc': rng.randrange(1 << 32)}
+    wx, wy, wsel, wcol = word_arg(rng, x), word_arg(rng, y), word_arg(rng, sel), word_arg(rng, color)
+    stack = [str_va, lay_va, ext_va, wx, wy, dest_a, dest_b, wsel, flag, wcol]
+    areas = [Area('str', str_va, text, image=False), Area('lay', lay_va, lay, image=False, compare=False), Area('ext', ext_va, ext, image=False, compare=False),
+             Area('dstb', dst_va, dstb, image=False, compare=False), Area('pix', pix_va, pix, image=False)]
+    return make('4d270b', areas, stubs, g, stack, tuple(stack), (pat, length, flag != 0, dest_a == 0, dbg != 0, tuple(p[0] for p in plan)))
+
+
 SPECS = {
     '4f61e7': dict(id=1, va=0x4f61e7, size=333, gen=gen_4f61e7, cleanup=4, ret=True, n=24 * 8),
     '484ac0': dict(id=3, va=0x484ac0, size=495, gen=gen_484ac0, cleanup=0, n=(7 * 2 + 12) * 12),
     '44b3c8': dict(id=4, va=0x44b3c8, size=633, gen=gen_44b3c8, cleanup=4, fpcw=0x27f, n=(10 * 11 + 12) * 6),
     '47ef0f': dict(id=5, va=0x47ef0f, size=654, gen=gen_47ef0f, cleanup=0, n=(7 * 2 + 12) * 16),
+    '4d270b': dict(id=6, va=0x4d270b, size=1301, gen=gen_4d270b, cleanup=0, ret=True, n=1500),
     '484762': dict(id=2, va=0x484762, size=467, gen=gen_484762, cleanup=8, ret=True, n=2 * 625 + 600),
 }
 KEYS = list(SPECS)
-NAMES = {'4f61e7': 'start_record', '484762': 'intersect_rects', '484ac0': 'latch_hit', '44b3c8': 'sum_kinds', '47ef0f': 'latch_hit_counter'}
+NAMES = {'4f61e7': 'start_record', '484762': 'intersect_rects', '484ac0': 'latch_hit', '44b3c8': 'sum_kinds', '47ef0f': 'latch_hit_counter', '4d270b': 'draw_text'}
 
 
 def build(key, rng, n):
