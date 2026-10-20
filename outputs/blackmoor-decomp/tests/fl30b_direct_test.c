@@ -213,6 +213,91 @@ static void test_m44b26a_apply_delta(void)
     CK(f == 7.0f);
 }
 
+/* ---- 0x488e9c ------------------------------------------------------------------------------------------------------------------ */
+static void init488(int mode_d2, int n, int m, int dbg)
+{
+    uint8_t *q = g_r[2];
+    size_t i;
+    setup();
+    for (i = 0; i < 0x1000; i++) q[i] = (uint8_t)(i * 5 + 1);
+    if (mode_d2) {
+        set16(q, 0x29, 2);
+        set16(q, 0x33, 3);
+        set16(q, 0x35, (uint16_t)(3 + n - 1));
+        set16(q, 0x2b, 0x7777);
+    } else {
+        set16(q, 0x29, 0x102);
+        set16(q, 0x2b, (uint16_t)n);
+        set16(q, 0x33, 3);
+        set16(q, 0x35, 0x40);
+    }
+    set16(q, 0xaa, (uint16_t)m);
+    set32(g_r[1], 4, RVA(2));
+    set32(g_r[1], 8, 0x1000);
+    set32(SELF, 0x1c, 0xaaaaaaaau);
+    set32(SELF, 0x20, 0xbbbbbbbbu);
+    g_w.word_63a4cd = (int16_t)dbg;
+    script(0x51dc43, 1, RVA(3), 0, 0, 0);
+}
+static int run488(void) { return m488e9c_init_record(SELF, RVA(1), RVA(1) + 4, RVA(1) + 8, &g_w, &g_host); }
+static void test_m488e9c_init_record(void)
+{
+    uint8_t *q = g_r[2], *buf = g_r[3];
+    /* d == 2: n = 6 - 3 + 1 = 4 (64 bytes), m = 2 (76 bytes) */
+    init488(1, 4, 2, 0);
+    CK(run488() == 0);
+    CK(get32(g_r[1], 0) == RVA(3) && get32(SELF, 0x1c) == RVA(3) && get32(SELF, 0x20) == RVA(3));
+    CK(memcmp(buf, q, 0xac) == 0);
+    CK(memcmp(buf + 0xac, q + 0xac, 64) == 0);
+    CK(memcmp(buf + 0x6ec, q + 0xac + 64, 76) == 0);
+    CK(get32(g_r[1], 4) == RVA(2) + 0xac + 64 + 76 && get32(g_r[1], 8) == 0x1000 + 0xac + 64 + 76);
+    CK(L.n == 1);
+    CKC(0, 0x51dc43, 0, 1, 0xaba);
+    /* d != 2 (0x102 has the low byte 2 only): n = word [+0x2b] = 3; the trace call follows when the debug word is set */
+    init488(0, 3, 1, 0x100);
+    CK(run488() == 0);
+    CK(memcmp(buf + 0xac, q + 0xac, 48) == 0);
+    CK(memcmp(buf + 0x6ec, q + 0xac + 48, 38) == 0);
+    CK(get32(g_r[1], 4) == RVA(2) + 0xac + 48 + 38 && get32(g_r[1], 8) == 0x1000 + 0xac + 48 + 38);
+    CK(L.n == 2);
+    CKC(1, 0x44a2b7, 0, 1, 0x54dfa0);
+    /* the largest accepted n and m */
+    init488(0, 0xa0, 25, 0);
+    CK(run488() == 0);
+    CK(memcmp(buf + 0xac, q + 0xac, 0x640) == 0);        /* the second copy overwrites the rest of the first one */
+    CK(memcmp(buf + 0x6ec, q + 0xac + 0xa00, 25 * 38) == 0);
+    /* allocation failure: the report, then the native rejection with nothing else touched */
+    init488(1, 4, 2, 0x100);
+    g_nscript = 0;
+    script(0x51dc43, 1, 0, 0, 0, 0);
+    g_w.value_5bb57b = 0x1234abcdu;
+    g_w.word_5c39e3 = -1;
+    CK(run488() == 1);
+    CK(L.n == 4);
+    CKC(0, 0x51dc43, 0, 1, 0xaba);
+    CKC(1, 0x50ca3e, 0, 4, 0x63888b, 0x54df58, 0x1234abcdu, 0xffffffffu);
+    CKC(2, 0x42639d, 0x583979, 2, 0x54df84, 0x63888b);
+    CKC0(3, 0x4c97b4, 0x5cf659);
+    CK(get32(g_r[1], 0) == 0 && get32(g_r[1], 4) == RVA(2) && get32(SELF, 0x1c) == 0xaaaaaaaau && get32(SELF, 0x20) == 0xbbbbbbbbu);
+    /* native rejections: a negative count, a count that overruns the 0xaba bytes (first copy: 0xa1 * 16; second copy: 26 * 0x26) */
+    init488(0, -2, 0, 0);
+    memset(buf, 0x5a, 0x400);
+    CK(run488() == 1);
+    CK(buf[0xac] == 0x5a && get32(g_r[1], 4) == RVA(2) + 0xac && L.n == 1);
+    init488(0, 0xa1, 0, 0);
+    memset(buf, 0x5a, 0x400);
+    CK(run488() == 1);
+    CK(buf[0xac] == 0x5a && get32(g_r[1], 4) == RVA(2) + 0xac);
+    init488(0, 2, -1, 0);
+    memset(buf + 0x6ec, 0x5a, 0x40);
+    CK(run488() == 1);
+    CK(buf[0x6ec] == 0x5a && get32(g_r[1], 4) == RVA(2) + 0xac + 32);
+    init488(0, 2, 26, 0);
+    memset(buf + 0x6ec, 0x5a, 0x40);
+    CK(run488() == 1);
+    CK(buf[0x6ec] == 0x5a);
+}
+
 /* CASES-NEXT */
 
 /* ---- bounded sweep ------------------------------------------------------------------------------------------------------------- */
@@ -235,6 +320,8 @@ static void test_sweep_bounded(void)
         g_r[1][1] = (uint8_t)(seed >> 9);
         g_w.word_63a4cd = (int16_t)(seed >> 7);
         m44b26a_apply_delta((uint32_t)slot, &g_w, &g_host);
+        init488(seed & 1, (int)((seed >> 4) % 8), (int)((seed >> 8) % 8), (int)(seed >> 12));
+        run488();
         /*SWEEP*/
         L.n = 0;
     }
@@ -257,6 +344,7 @@ int main(void)
 {
     int failures = 0;
     RUN(test_m44b26a_apply_delta);
+    RUN(test_m488e9c_init_record);
     /*RUNS*/
     RUN(test_sweep_bounded);
     return failures;

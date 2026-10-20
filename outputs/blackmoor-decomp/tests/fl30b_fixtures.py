@@ -183,11 +183,53 @@ def gen_44b26a(rng, n):
     return make('44b26a', [Area('tab', TAB_VA, tab, image=True), Area('item', od.region_va(1), item, image=False), recs, *nbr], stubs, g, [a], (a,), (kind, *rest, slot, hex(delta)), pointers)
 
 
+# ---- 0x488e9c ---------------------------------------------------------------------------------------------------------------------
+
+BUF_VA = od.region_va(4)
+
+
+def gen_488e9c(rng, n):
+    profiles = [('null',)] + [('ok', mode, cnt, m) for mode in ('d2', 'dother') for cnt in (0, 1, 2, 3, 5, 0x20) for m in (0, 1, 2, 3, 0x19)]
+    (kind, *rest), variant = prof(n, profiles)
+    me_va, cells_va, q_va = od.region_va(0), od.region_va(1), od.region_va(2)
+    me = bytearray(rng.randbytes(0x100))
+    cells = bytearray(rng.randbytes(0x20))
+    put32(cells, 4, q_va)
+    put32(cells, 8, rng.choice([0, 0xffffffbb, 0x7fffffff, 0xfffffff0, rng.randrange(1 << 32)]))
+    mode, cnt, m = (rest + [None, None, None])[:3] if kind == 'ok' else (rng.choice(['d2', 'dother']), rng.choice([0, 2, 5]), rng.choice([0, 1, 3]))
+    q = bytearray(rng.randbytes(0xc00))
+    if mode == 'd2':
+        put16(q, 0x29, 2)
+        a = rng.randrange(-300, 300)
+        put16(q, 0x33, a)
+        put16(q, 0x35, a + cnt - 1)
+        put16(q, 0x2b, rng.randrange(0x10000))
+    else:
+        put16(q, 0x29, [0, 1, 3, 0x102, 0xffff, 0x8002, 0x0200][(variant + n) % 7])
+        put16(q, 0x2b, cnt)
+        put16(q, 0x33, rng.randrange(0x10000))
+        put16(q, 0x35, rng.randrange(0x10000))
+    put16(q, 0xaa, m)
+    buf = bytearray(rng.randbytes(0xc00))
+    g = {'value_5bb57b': rng.randrange(1 << 32), 'word_5c39e3': rng.choice([0, 1, -1, 0x7fff, -0x8000, 0x1234]), 'word_63a4cd': [0, 1, 0x100, 0x8000, 0xffff][variant % 5]}
+    probe = [('self', 0, 0x30), ('cells', 0, 0x10)]
+    stubs = {0x51dc43: stub(0x51dc43, CDECL(1), probe, results=[0 if kind == 'null' else BUF_VA]), 0x50ca3e: stub(0x50ca3e, CDECL(4), probe),
+             0x42639d: stub(0x42639d, THISCALL(2), probe), 0x4c97b4: stub(0x4c97b4, THISCALL(0), probe), 0x44a2b7: stub(0x44a2b7, CDECL(1), probe)}
+    areas = [self_area(me), Area('cells', cells_va, cells, image=False), Area('q', q_va, q, image=False), Area('buf', BUF_VA, buf, image=False)]
+    partial = None
+    if kind == 'null':
+        areas.append(Area('zero', 0, bytearray(0x1000), image=False, compare=False))
+        partial = (4, {'cells': 4})
+    stack = [cells_va, cells_va + 4, cells_va + 8]
+    return make('488e9c', areas, stubs, g, stack, tuple(stack), (kind, *rest), partial=partial)
+
+
 SPECS = {
     '44b26a': dict(id=1, va=0x44b26a, size=350, gen=gen_44b26a, cleanup=4, fpcw=0x27f, n=(16 + 4 * 3 * len(WORDS) + 4 * 3 * len(FLOATS)) * 2),
+    '488e9c': dict(id=2, va=0x488e9c, size=447, gen=gen_488e9c, cleanup=12, n=61 * 10),
 }
 KEYS = list(SPECS)
-NAMES = {'44b26a': 'apply_delta'}
+NAMES = {'44b26a': 'apply_delta', '488e9c': 'init_record'}
 
 
 def build(key, rng, n):

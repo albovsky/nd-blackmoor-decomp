@@ -108,3 +108,49 @@ void m44b26a_apply_delta(uint32_t index, const Fl30bWorld *world, const Fl18Host
     }
     call1(host, 0x42ba3a, 0, (uint16_t)index);
 }
+
+/* ---- 0x488e9c init_record -------------------------------------------------------------------------------------------------------- */
+/* rep movsd (count / 4 dwords) then rep movsb (count % 4 bytes), forward, as the original does it */
+static void rep_copy(uint8_t *dst, const uint8_t *src, uint32_t count)
+{
+    uint32_t i;
+    for (i = 0; i < count / 4; i++) memmove(dst + 4 * i, src + 4 * i, 4);
+    for (i = 4 * (count / 4); i < count; i++) dst[i] = src[i];
+}
+
+int32_t m488e9c_init_record(uint8_t *self, uint32_t p0, uint32_t p1, uint32_t p2, const Fl30bWorld *world, const Fl18Host *host)
+{
+    uint32_t buf;
+    uint8_t *b;
+    int16_t n, m;
+    uint32_t bytes;
+    buf = call1(host, 0x51dc43, 0, 0xaba);
+    wr32(res(host, p0), 0, buf);
+    if (buf == 0) {
+        call4(host, 0x50ca3e, 0, 0x63888b, 0x54df58, world->value_5bb57b, (uint32_t)(int32_t)world->word_5c39e3);
+        call2(host, 0x42639d, 0x583979, 0x54df84, 0x63888b);
+        call0(host, 0x4c97b4, 0x5cf659);
+        return 1;          /* the original goes on and stores through the null pointer */
+    }
+    wr32(self, 0x1c, rd32(res(host, p0), 0));
+    wr32(self, 0x20, rd32(self, 0x1c));
+    b = res(host, rd32(self, 0x20));
+    rep_copy(b, res(host, rd32(res(host, p1), 0)), 0xac);
+    wr32(res(host, p1), 0, rd32(res(host, p1), 0) + 0xac);
+    wr32(res(host, p2), 0, rd32(res(host, p2), 0) + 0xac);
+    if (rds16(b, 0x29) == 2) n = (int16_t)(rds16(b, 0x35) - rds16(b, 0x33) + 1);
+    else n = (int16_t)rd16(b, 0x2b);
+    if (n < 0 || 0xacu + (uint32_t)n * 16u > 0xaba) return 1;      /* native rejection: the original copies 4 GB / overruns the buffer */
+    bytes = (uint32_t)n * 16u;
+    rep_copy(res(host, rd32(self, 0x1c)) + 0xac, res(host, rd32(res(host, p1), 0)), bytes);
+    wr32(res(host, p1), 0, rd32(res(host, p1), 0) + (uint32_t)n * 16u);
+    wr32(res(host, p2), 0, rd32(res(host, p2), 0) + (uint32_t)n * 16u);
+    m = (int16_t)rd16(res(host, rd32(self, 0x20)), 0xaa);
+    if (m < 0 || 0x6ecu + (uint32_t)m * 0x26u > 0xaba) return 1;   /* native rejection, as above */
+    bytes = (uint32_t)m * 0x26u;
+    rep_copy(res(host, rd32(self, 0x1c)) + 0x6ec, res(host, rd32(res(host, p1), 0)), bytes);
+    wr32(res(host, p1), 0, rd32(res(host, p1), 0) + bytes);
+    wr32(res(host, p2), 0, rd32(res(host, p2), 0) + bytes);
+    if (world->word_63a4cd != 0) call1(host, 0x44a2b7, 0, 0x54dfa0);
+    return 0;
+}

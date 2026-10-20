@@ -25,7 +25,10 @@ typedef struct Fl30bWorld {
     uint8_t *records_5bb5e5;    /* 0x44b26a: records of stride 0x8d, the dword at +0 is the original address of a 4 byte item (kind, flag, word) */
     uint8_t *words_58c959;      /* 0x44b26a: words indexed by the kind byte 0 .. 0x1d */
     uint8_t *floats_58c91d;     /* 0x44b26a: floats indexed by the kind byte 0x1e .. 0x27 (the pointer names the original address 0x58c91d) */
-    int16_t word_63a4cd;        /* 0x44b26a: the debug flag: a non-zero word turns on the report */
+    int16_t word_63a4cd;        /* 0x44b26a, 0x488e9c: the debug flag: a non-zero word turns on the report / the trace output */
+    uint32_t value_5bb57b;      /* 0x488e9c: the dword in the allocation-failure report */
+    int16_t word_5c39e3;        /* 0x488e9c: the word in the allocation-failure report (sign-extended) */
+    /*WORLD-NEXT*/
 } Fl30bWorld;
 
 /* 0x44b26a, ecx unused, `ret 4`, the stack argument is the word `index` (signed): item = dword [0x5bb5e5 + index*0x8d] (an original address), kind = byte [item], flag = byte [item+1],
@@ -34,6 +37,16 @@ typedef struct Fl30bWorld {
  * and f is not equal to 9999.0f (x87 fcomp: an equal or unordered result keeps the other branch): f = (float)(sum in 53-bit precision of (float)(signed delta) and f), otherwise f =
  * (float)(signed delta). In every case then 0x42ba3a(index) (cdecl, 1 argument, the low 16 bits). */
 void m44b26a_apply_delta(uint32_t index, const Fl30bWorld *world, const Fl18Host *host);
+
+/* 0x488e9c, thiscall, `ret 0xc`, the stack arguments are the original addresses p0, p1, p2 of three dwords: buf = 0x51dc43(0xaba) (cdecl, 1 argument) is stored to dword [p0]. When buf == 0:
+ * 0x50ca3e(0x63888b, 0x54df58, dword 0x5bb57b, sign-extended word 0x5c39e3) (cdecl, 4 arguments), 0x42639d(this 0x583979, 0x54df84, 0x63888b) (thiscall, 2 arguments) and 0x4c97b4(this 0x5cf659).
+ * THE ORIGINAL THEN GOES ON AND WRITES THROUGH THE NULL POINTER (rep movsd to address 0): this port returns 1 there (native rejection, not original behaviour). Otherwise: dword [self+0x1c] =
+ * dword [self+0x20] = dword [p0] (= buf); the 0xac bytes at q = dword [p1] are copied to buf (dwords, as rep movsd); dword [p1] += 0xac; dword [p2] += 0xac; d = signed word [buf+0x29]; n = (d == 2) ?
+ * (word [buf+0x35] - word [buf+0x33] + 1, signed 16-bit) : signed word [buf+0x2b]; n*16 bytes are copied from dword [p1] to buf+0xac (dwords, then bytes) and dword [p1], [p2] += n*16; m = signed word
+ * [buf+0xaa] (read after the first copy); m*0x26 bytes are copied from dword [p1] to buf+0x6ec and dword [p1], [p2] += m*0x26; when the signed word 0x63a4cd is non-zero: 0x44a2b7(0x54dfa0) (cdecl, 1
+ * argument). Returns 0. NATIVE REJECTIONS (return 1, the effects before the offending copy stay): n or m negative (the original's `shr ecx, 2` of a negative byte count copies about 4 GB), or a copy that
+ * would end behind the 0xaba bytes of buf (the original overruns the allocation). Every pointer is an original address resolved through Fl18Host. */
+int32_t m488e9c_init_record(uint8_t *self, uint32_t p0, uint32_t p1, uint32_t p2, const Fl30bWorld *world, const Fl18Host *host);
 
 /* NEXT-DECL */
 

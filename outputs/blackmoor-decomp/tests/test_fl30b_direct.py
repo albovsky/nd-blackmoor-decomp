@@ -70,6 +70,10 @@ class Fl30bDirect(unittest.TestCase):
         """FL-30b: direct test of m44b26a_apply_delta (original 0x44b26a)"""
         self.check('test_m44b26a_apply_delta')
 
+    def test_488e9c_init_record(self):
+        """FL-30b: direct test of m488e9c_init_record (original 0x488e9c)"""
+        self.check('test_m488e9c_init_record')
+
     # CASES-END
 
     def test_sweep_bounded(self):
