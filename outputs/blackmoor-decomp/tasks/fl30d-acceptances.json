@@ -1,0 +1,167 @@
+[
+ {
+  "va": "0x4e2e05",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-30d implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl30d.c",
+   "symbol": "m4e2e05_copy_state"
+  },
+  "tests": [
+   {
+    "path": "tests/fl30d_direct_test.c",
+    "test_id": "test_m4e2e05_copy_state"
+   },
+   {
+    "path": "tests/test_fl30d_direct.py",
+    "test_id": "Fl30dDirect.test_4e2e05_copy_state"
+   },
+   {
+    "path": "tests/test_fl30d_differential.py",
+    "test_id": "Fl30dDifferential.test_4e2e05_copy_state"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl30d_original_oracle.py",
+   "window": [
+    "0x4e2e05",
+    "0x4e2faa"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Copies the sign-extended-word * 0x29 byte table from self+0x457b to the globals at 0x5a1e62 and, per the two first-byte compares against 0x63a9e4 / 0x63a9e8, the strings and words into the globals at 0x5a2664.. and 0x5a434c..; a negative or out-of-mirror count is a native rejection (not original behaviour); every instruction and both directions of every jump executed. See tasks/fl30d-handoff.md."
+ },
+ {
+  "va": "0x4c2a8d",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-30d implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl30d.c",
+   "symbol": "m4c2a8d_make_record"
+  },
+  "tests": [
+   {
+    "path": "tests/fl30d_direct_test.c",
+    "test_id": "test_m4c2a8d_make_record"
+   },
+   {
+    "path": "tests/test_fl30d_direct.py",
+    "test_id": "Fl30dDirect.test_4c2a8d_make_record"
+   },
+   {
+    "path": "tests/test_fl30d_differential.py",
+    "test_id": "Fl30dDifferential.test_4c2a8d_make_record"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl30d_original_oracle.py",
+   "window": [
+    "0x4c2a8d",
+    "0x4c2c3a"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Allocates and fills the 0x59 byte record (second allocation of w*bpp*h bytes, name copy cut at 0x18, size fields); both allocation failures report and return 0; every instruction and both directions of every jump executed. See tasks/fl30d-handoff.md."
+ },
+ {
+  "va": "0x48d3cb",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-30d implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl30d.c",
+   "symbol": "m48d3cb_select_entry"
+  },
+  "tests": [
+   {
+    "path": "tests/fl30d_direct_test.c",
+    "test_id": "test_m48d3cb_select_entry"
+   },
+   {
+    "path": "tests/test_fl30d_direct.py",
+    "test_id": "Fl30dDirect.test_48d3cb_select_entry"
+   },
+   {
+    "path": "tests/test_fl30d_differential.py",
+    "test_id": "Fl30dDifferential.test_48d3cb_select_entry"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl30d_original_oracle.py",
+   "window": [
+    "0x48d3cb",
+    "0x48d5f4"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Selection 0x2766 / 0x2765 / other; for 0x2765 the two four-test signed boxes against the entry at p + k*16 select the value of 0x5b44f0; every instruction and both directions of every jump executed. See tasks/fl30d-handoff.md."
+ },
+ {
+  "va": "0x4f684a",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-30d implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl30d.c",
+   "symbol": "m4f684a_prepare_entry"
+  },
+  "tests": [
+   {
+    "path": "tests/fl30d_direct_test.c",
+    "test_id": "test_m4f684a_prepare_entry"
+   },
+   {
+    "path": "tests/test_fl30d_direct.py",
+    "test_id": "Fl30dDirect.test_4f684a_prepare_entry"
+   },
+   {
+    "path": "tests/test_fl30d_differential.py",
+    "test_id": "Fl30dDifferential.test_4f684a_prepare_entry"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl30d_original_oracle.py",
+   "window": [
+    "0x4f684a",
+    "0x4f6a7e"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Clamps two signed dwords (min(v,0), then the x87 fild/fcomp against -2857.14.. and the truncating 0x50ce04) and calls the vtable entry +0x3c; the original 0x50ce04 bytes run in the oracle and the port uses the equivalent C conversion; every instruction and both directions of every jump executed. See tasks/fl30d-handoff.md."
+ },
+ {
+  "va": "0x414692",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-30d implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl30d.c",
+   "symbol": "m414692_read_block"
+  },
+  "tests": [
+   {
+    "path": "tests/fl30d_direct_test.c",
+    "test_id": "test_m414692_read_block"
+   },
+   {
+    "path": "tests/test_fl30d_direct.py",
+    "test_id": "Fl30dDirect.test_414692_read_block"
+   },
+   {
+    "path": "tests/test_fl30d_differential.py",
+    "test_id": "Fl30dDifferential.test_414692_read_block"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl30d_original_oracle.py",
+   "window": [
+    "0x414692",
+    "0x414947"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Reads a block with three allocations from a stream through cells p1/p2; each allocation failure reports and the port rejects there (the original would store through address 0), a negative count word is a native rejection; every instruction and both directions of every jump executed. See tasks/fl30d-handoff.md."
+ }
+]
