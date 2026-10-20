@@ -107,6 +107,11 @@
    "manifest": "asm_data/data-004.json",
    "report": "asm_data/data-004-report.json",
    "provenance_class": "tool_assisted_reconstructed_data"
+  },
+  {
+   "manifest": "asm_data/data-005.json",
+   "report": "asm_data/data-005-report.json",
+   "provenance_class": "tool_assisted_reconstructed_data"
   }
  ],
  "not_bound": [

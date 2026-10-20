@@ -194,7 +194,7 @@ class RangeDescriptionTests(unittest.TestCase):
         ]
         self.assertGreaterEqual(len(desc["reconstructed"]["bindings"]), 4)
         self.assertEqual(len(desc["reconstructed"]["asm_batches"]), 10)
-        self.assertEqual(len(desc["reconstructed"]["data_batches"]), 4)
+        self.assertEqual(len(desc["reconstructed"]["data_batches"]), 5)
         # only the reconstructed bytes (baseline plus audited asm batches) may be absent; any overlap would raise "overlap" first
         with self.assertRaises(compose_image.ComposeError) as ctx:
             compose_image.check_coverage(structured + referenced, compose_image.ORIGINAL_SIZE)
@@ -462,10 +462,10 @@ class WholeFileCompositionTests(OriginalMixin, unittest.TestCase):
         comp = compose_image.compose(IMAGE_DIR, ORIGINAL, self.build_dir)
         report = compose_image.coverage_report(comp)
         self.assertEqual(report["stage_referenced_bytes"], 0)
-        generated_groups = {i.group for i in comp.items if i.cls == "structured"}
-        # the other groups are generated and checked too, but their items are taken from the audited batches 003 and 004
-        self.assertEqual(generated_groups, {"jump_tables", "int3_padding"})
-        self.assertEqual(report["structured_replaced_by_data_batches"]["bytes"], 23430)
+        # every group is generated and checked against the original, but none of its items is placed: the bytes come from
+        # the audited function sources (switch tables, int 3 padding) and data batches 003 to 005
+        self.assertEqual({i.group for i in comp.items if i.cls == "structured"}, set())
+        self.assertEqual(report["structured_replaced_by_audited_sources"], {"items": 1039, "bytes": 23430 + 5856 + 2214})
         for item in comp.items:
             if item.cls == "referenced":
                 self.assertEqual(item.group, "referenced")
@@ -492,21 +492,24 @@ class WholeFileCompositionTests(OriginalMixin, unittest.TestCase):
         self.assertEqual(by_provenance["tool_assisted_reconstructed_assembly"], {"ranges": 4773, "bytes": 1201090})
         self.assertEqual(by_provenance["explicit_reconstructed_assembly_source"]["bytes"], 384)
         self.assertEqual(by_provenance["tool_assisted_reconstructed_index_table"], {"ranges": 19, "bytes": 1934})
-        self.assertEqual(by_provenance["tool_assisted_reconstructed_padding"], {"ranges": 235, "bytes": 1526})
+        self.assertEqual(by_provenance["tool_assisted_reconstructed_padding"], {"ranges": 616, "bytes": 3740})  # 2,214 of them int 3 padding
+        # 158 switch tables of audited functions plus the 12 table ranges of the two CRT block copies (data batch 005)
+        self.assertEqual(by_provenance["tool_assisted_reconstructed_jump_table"], {"ranges": 170, "bytes": 5856})
         # .rdata, .data and the resource payloads (274,976 bytes) are bound as labeled data directives (owner ruling of
         # 2026-10-19), a class of their own: no function and no code byte; batches 003 and 004 add the 23,430 bytes of
         # PE headers, import tables, resource directory tree and section fill (27 ranges)
         self.assertEqual(by_provenance["tool_assisted_reconstructed_data"], {"ranges": 51, "bytes": 298406})
-        self.assertEqual(sum(entry["bytes"] for entry in by_provenance.values()), 1503354)
-        self.assertEqual(report["by_class"]["reconstructed"]["bytes"], 1503354)
-        self.assertEqual(report["by_class"]["structured"]["bytes"], 8070)  # jump tables and int 3 padding
-        self.assertEqual(report["structured_replaced_by_data_batches"]["bytes"], 23430)
+        self.assertEqual(sum(entry["bytes"] for entry in by_provenance.values()), 1511424)
+        self.assertEqual(report["by_class"]["reconstructed"]["bytes"], 1511424)
+        self.assertEqual(report["by_class"]["structured"]["bytes"], 0)  # the composer places no structured byte
+        self.assertEqual(report["structured_replaced_by_audited_sources"]["bytes"], 23430 + 5856 + 2214)
         self.assertEqual(progress["reconstructed_data_bytes"], 298406)
         self.assertEqual(progress["referenced_bytes"], 0)
         self.assertEqual(progress["code_bytes_reconstructed"], 1201488)
         self.assertEqual(progress["reconstructed_functions"], 4786)
         self.assertEqual(progress["reconstructed_index_table_bytes"], 1934)
-        self.assertEqual(progress["reconstructed_padding_bytes"], 1526)
+        self.assertEqual(progress["reconstructed_padding_bytes"], 3740)
+        self.assertEqual(progress["reconstructed_jump_table_bytes"], 5856)
         # every code byte is reconstructed: the last 22 fragments (1,619 bytes) are bound by batch 010
         self.assertEqual(progress["code_bytes_referenced"], 0)
         self.assertEqual(progress["code_bytes_reconstructed_fraction"], 1.0)
@@ -526,9 +529,9 @@ class WholeFileCompositionTests(OriginalMixin, unittest.TestCase):
             if "functions" not in r and r["status"] == "bound" and r["provenance_class"] != "tool_assisted_reconstructed_data"
         ]
         data_batches = [r for r in comp.reconstructed_records if r["provenance_class"] == "tool_assisted_reconstructed_data"]
-        self.assertEqual([r["batch"] for r in data_batches], ["001", "002", "003", "004"])
-        self.assertEqual([r["profile"] for r in data_batches], ["payloads", "payloads", "structures", "structures"])
-        self.assertEqual(sum(r["length"] for r in data_batches), 298406)
+        self.assertEqual([r["batch"] for r in data_batches], ["001", "002", "003", "004", "005"])
+        self.assertEqual([r["profile"] for r in data_batches], ["payloads", "payloads", "structures", "structures", "jump_tables"])
+        self.assertEqual(sum(r["length"] for r in data_batches), 298406 + 240)
         self.assertEqual(sum(r["length"] for r in baseline), 398)
         assembly = [r for r in baseline if r["provenance_class"] == "explicit_reconstructed_assembly_source"]
         self.assertEqual(sum(r["length"] for r in assembly), 384)
@@ -541,7 +544,9 @@ class WholeFileCompositionTests(OriginalMixin, unittest.TestCase):
         self.assertEqual(sum(r["functions"] for r in batches.values()), 4773)
         self.assertEqual(sum(r["length"] for r in batches.values()), 1201090)
         self.assertEqual(sum(r["index_table_bytes"] for r in batches.values()), 1934)
-        self.assertEqual(sum(r["padding_bytes"] for r in batches.values()), 1526)
+        self.assertEqual(sum(r["padding_bytes"] for r in batches.values()), 3740)
+        self.assertEqual(sum(r["jump_tables"] for r in batches.values()), 158)
+        self.assertEqual(sum(r["jump_table_bytes"] for r in batches.values()), 5616)
         # the baseline keeps its own class: 11 S08 functions in batch 001 and 2 incomplete C ranges in batch 007
         self.assertEqual(batches["001"]["superseded"], 11)
         self.assertEqual(batches["007"]["superseded"], 2)
@@ -590,9 +595,9 @@ class MutantTests(OriginalMixin, unittest.TestCase):
 
         return self.mutated_dir(prepare)
 
-    # groups whose bytes the audited ``structures`` data batches (003, 004) supply: a mutated description no longer
-    # reaches the composed hash, but it is still reported as a mismatch and the CLI still fails
-    REPLACED_GROUPS = {"dos_header", "rich_header", "pe_headers", "section_table", "header_padding", "iat", "import_directory", "resource_tree", "section_padding"}
+    # every group's bytes come from an audited source (function data items, data batches 003 to 005): a mutated
+    # description no longer reaches the composed hash, but it is still reported as a mismatch and the CLI still fails
+    REPLACED_GROUPS = set(compose_image.GROUPS)
 
     def assert_mutant_fails(self, edit, group=None):
         directory = self.mutated_dir(edit)
@@ -625,6 +630,21 @@ class MutantTests(OriginalMixin, unittest.TestCase):
             table["entries"][0] = hex(int(table["entries"][0], 16) ^ 1)
 
         self.assert_mutant_fails(self.edit_json("text_data", change), "jump_tables")
+
+    def test_without_data_batch_005_the_crt_tables_would_fall_back_to_structured_bytes(self):
+        """The jump_tables group only cross-checks the audited sources: unbound, exactly the 240 CRT table bytes remain structured."""
+
+        def drop(directory):
+            path = directory / "reconstructed.json"
+            value = json.loads(path.read_text())
+            value["data_batches"] = [b for b in value["data_batches"] if not b["manifest"].endswith("data-005.json")]
+            path.write_text(json.dumps(value))
+
+        comp = compose_image.compose(self.mutated_dir(drop), ORIGINAL, self.build_dir)
+        self.assertTrue(comp.hash_match)
+        structured = [i for i in comp.items if i.cls == "structured"]
+        self.assertEqual({i.group for i in structured}, {"jump_tables"})
+        self.assertEqual(sum(i.length for i in structured), 240)
 
     def test_index_tables_are_not_generated_from_stored_bytes(self):
         text_data = load_descriptions()["text_data"]
@@ -1019,7 +1039,7 @@ class AsmBatchBindingTests(unittest.TestCase):
 
 @unittest.skipUnless(HAVE_ASSEMBLER, "pinned GNU as not present")
 class AsmDataItemBindingTests(unittest.TestCase):
-    """Index tables and padding of an audited function bind as their own classes; structured ranges are skipped."""
+    """Switch tables, index tables and padding of an audited function bind as their own classes; the ones a structured group also describes replace its items."""
 
     TABLE_BATCH = ("batch-003", "FUN_0040b34a")  # switch table, index table, switch table
     PADDING_BATCH = ("batch-009", "FUN_004fcee2")  # derived entry followed by 8 padding bytes
@@ -1060,15 +1080,21 @@ class AsmDataItemBindingTests(unittest.TestCase):
     def bind(self, batches, structured):
         return compose_image.bind_asm_batches(self.layout, batches, Path(self.tmp.name) / "build", ASSEMBLER, [], structured)
 
-    def test_index_table_binds_as_reconstructed_data_and_switch_tables_are_left_to_structured(self):
+    def test_tables_bind_as_their_own_classes_and_switch_tables_replace_the_structured_ones(self):
         items, records = self.bind(self.make_batch(self.TABLE_BATCH, "table"), self.structured_for(self.TABLE_BATCH))
-        by_kind = {i.kind: i for i in items}
-        self.assertEqual(sorted(i.kind for i in items), ["code", "data"])
-        table = by_kind["data"]
-        self.assertEqual((table.name, table.length, table.provenance), ("IDXTAB_00410e9c", 237, compose_image.ASM_INDEX_CLASS))
+        self.assertEqual(sorted(i.kind for i in items), ["code", "data", "data", "data"])
+        tables = {i.name: i for i in items if i.kind == "data"}
+        index = tables["IDXTAB_00410e9c"]
+        self.assertEqual((index.length, index.provenance, index.replaces_structured), (237, compose_image.ASM_INDEX_CLASS, False))
+        jumps = [i for i in tables.values() if i.provenance == compose_image.ASM_JUMP_TABLE_CLASS]
+        self.assertEqual(sorted((i.name, i.length) for i in jumps), [("SWTAB_00410ca4", 504), ("SWTAB_00410f89", 16)])
+        self.assertTrue(all(i.replaces_structured for i in jumps))
         self.assertEqual(records[0]["index_tables"], 1)
         self.assertEqual(records[0]["index_table_bytes"], 237)
-        self.assertEqual(records[0]["length"], by_kind["code"].length)  # the function length counts code only
+        self.assertEqual(records[0]["jump_tables"], 2)
+        self.assertEqual(records[0]["jump_table_bytes"], sum(i.length for i in jumps))
+        code = next(i for i in items if i.kind == "code")
+        self.assertEqual(records[0]["length"], code.length)  # the function length counts code only
 
     def test_switch_table_that_no_structured_group_generates_is_refused(self):
         with self.assertRaisesRegex(compose_image.ComposeError, "not generated by a structured group"):
@@ -1097,7 +1123,8 @@ class AsmDataItemBindingTests(unittest.TestCase):
         self.assertEqual(records[0]["padding_bytes"], 8)
         offset = padding[0].offset
         items, _ = self.bind(self.make_batch(self.PADDING_BATCH, "padding-structured"), [(offset - 2, 12)])
-        self.assertEqual([i.kind for i in items], ["code"])
+        # padding inside a structured range (int 3 fill) is bound too and replaces the structured item
+        self.assertEqual([(i.kind, i.replaces_structured) for i in items], [("code", False), ("data", True)])
         with self.assertRaisesRegex(compose_image.ComposeError, "partly overlaps"):
             self.bind(self.make_batch(self.PADDING_BATCH, "padding-partial"), [(offset + 4, 8)])
 

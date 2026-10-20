@@ -290,6 +290,36 @@ class StructureBatchTests(unittest.TestCase):
         self.assertEqual(data_asm.audit_layout(layout), [])
 
 
+class JumpTableBatchTests(unittest.TestCase):
+    """Batch 005 (profile ``jump_tables``): the jump tables inside .text that no audited function source carries."""
+
+    def test_the_ranges_are_the_tables_of_the_two_crt_block_copies(self):
+        ranges = data_asm.table_ranges()
+        self.assertEqual(len(ranges), 12)  # 14 tables, two pairs adjacent
+        self.assertEqual(sum(hi - lo for lo, hi in ranges), 240)
+        text = next(s for s in data_asm.load_sections() if s.name == ".text")
+        for lo, hi in ranges:
+            self.assertTrue(text.raw_off <= lo < hi <= text.raw_off + text.virtual_size)
+            self.assertTrue(0x10ED50 <= lo and hi <= 0x10FDB0)  # between the code runs of 0x50ed50 and 0x50fa90 and their copies
+            self.assertEqual((lo % 4, hi % 4), (0, 0))
+
+    def test_the_committed_manifest_claims_exactly_the_derived_ranges(self):
+        manifest = json.loads((ASM_DATA / "data-005.json").read_text())
+        self.assertEqual(manifest["profile"], data_asm.PROFILE_TABLES)
+        self.assertEqual(data_asm.manifest_ranges(manifest), data_asm.table_ranges())
+
+    def test_gen_jump_tables_needs_an_explicit_batch_and_refuses_other_range_options(self):
+        self.assertEqual(data_asm.main(["gen", "--jump-tables"]), 2)  # would otherwise overwrite batch 001
+        self.assertEqual(data_asm.main(["gen", "--jump-tables", "--batch", "005", "--structures", "pe"]), 2)
+
+    def test_the_jump_tables_header_is_accepted_by_the_layout_audit(self):
+        sections = data_asm.load_sections()
+        lines = data_asm.header_lines(((0x10EDB4, 0x10EDC0),), sections, 0x50E000, 0x400000, True, data_asm.PROFILE_TABLES)
+        self.assertIn("# ranges: 0x0050edb4-0x0050edc0 (.text)", lines)
+        layout = data_asm.layout_of("\n".join(lines) + "\n.intel_syntax noprefix\n.data\n.set CODE_0050edc0, 0x50edc0\nIMG:\nDAT_0050edb4:\n.long CODE_0050edc0\n")
+        self.assertEqual(data_asm.audit_layout(layout), [])
+
+
 class CommittedBatchTests(unittest.TestCase):
     """The committed asm_data/ batches against the local original (skipped without it)."""
 
@@ -298,7 +328,7 @@ class CommittedBatchTests(unittest.TestCase):
 
     def test_the_committed_batches_cover_the_non_code_sections_and_carry_no_payload(self):
         manifests = self.manifests()
-        self.assertEqual([m.name for m in manifests], ["data-001.json", "data-002.json", "data-003.json", "data-004.json"])
+        self.assertEqual([m.name for m in manifests], ["data-001.json", "data-002.json", "data-003.json", "data-004.json", "data-005.json"])
         self.assertEqual(sorted(ASM_DATA.glob("*.s")), [])  # the full sources are build outputs, never committed
         total = 0
         for path in manifests:
@@ -316,7 +346,8 @@ class CommittedBatchTests(unittest.TestCase):
             self.assertEqual(report["source"]["sha256"], manifest["source_sha256"])
             self.assertEqual(report["layout"]["sha256"], manifest["layout_sha256"])
         # .rdata 41,924 + .data 208,896 + resource payloads 24,156 + headers/IAT/imports/padding 18,914 + resource tree and padding 4,516
-        self.assertEqual(total, 298406)
+        # + the 240 bytes of CRT block-copy jump tables inside .text (batch 005, not data-section bytes)
+        self.assertEqual(total, 298406 + 240)
 
     @needs_toolchain
     def test_every_committed_batch_audits_clean_and_regenerates_identically(self):
@@ -414,6 +445,17 @@ class MutantTests(unittest.TestCase):
         report = data_asm.audit_manifest(manifest_path, data_asm.DEFAULT_ORIGINAL, data_asm.DEFAULT_ASSEMBLER, build_dir=self.dir)
         self.assertFalse(report["all_accepted"])
         self.assertTrue(any("structure_ranges" in e for e in report["errors"]))
+
+    def test_a_shrunk_jump_tables_manifest_is_rejected(self):
+        for name in ("data-005.json", "data-005.layout"):
+            shutil.copy(ASM_DATA / name, self.dir / name)
+        manifest_path = self.dir / "data-005.json"
+        manifest = json.loads(manifest_path.read_text())
+        manifest["ranges"] = manifest["ranges"][:-1]
+        manifest_path.write_text(json.dumps(manifest))
+        report = data_asm.audit_manifest(manifest_path, data_asm.DEFAULT_ORIGINAL, data_asm.DEFAULT_ASSEMBLER, build_dir=self.dir)
+        self.assertFalse(report["all_accepted"])
+        self.assertTrue(any("table_ranges" in e for e in report["errors"]))
 
     def test_an_incbin_is_rejected(self):
         report = self.audit(lambda text: text + '.incbin "GAME.EXE"\n')
