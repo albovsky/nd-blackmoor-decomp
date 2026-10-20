@@ -8,15 +8,13 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_taskbar_hover_handler
-# naming:       INFERRED (lower confidence, not verified): the repository text src/inventory_button_runtime.h:27 says "0x4e075a (needs object state +0xf2a == 1): when the cursor rectangle"; src/blackmoor_app.mm:8824 says "0x4d3073 -> 0x4e075a with the cursor rectangle of the last pointer position."
-# name-note:    Task bar hover handler: checks the cursor rectangle against the bar bounds and sets the cursor.
+# name:         fn_004e075a
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [eax + n] field_3d, field_757, field_f22, field_f2a, field_f32, field_f36; [ecx + n] field_35, field_41, field_757, field_f22, field_f36; [edi + n] field_minus_1; [edx + n] field_39, field_f26, field_f32, field_f36
 # callees:      calls FUN_004e22fd, FUN_004e2967, FUN_0050ca3e, FUN_0044a2b7, FUN_00427a40
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 129 instruction(s), 10 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class partial_native is a native-touch record, not a counterpart claim
+# unverified:   machine annotation only: the 129 instruction(s), 10 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

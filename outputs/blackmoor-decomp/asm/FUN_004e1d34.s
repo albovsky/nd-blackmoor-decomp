@@ -8,15 +8,13 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_dialogue_object_cleanup
-# naming:       INFERRED (lower confidence, not verified): the repository text src/session_exit.h:188 says "Dialogue-object cleanup (0x4730a6 -> 0x4e1d34)"
-# name-note:    Dialogue-object cleanup, called from 0x4730a6.
+# name:         fn_004e1d34
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_17f, field_187; [ecx + n] field_28, field_18b; [edx + n] field_24
 # callees:      calls FUN_004c2dfb, FUN_004fba69, FUN_004e1c9f
 # track-n:      outputs/blackmoor-decomp/src/original_methods_fl18.c:m4e7bf3_close_slots (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 39 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
+# unverified:   machine annotation only: the 39 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32
 .text

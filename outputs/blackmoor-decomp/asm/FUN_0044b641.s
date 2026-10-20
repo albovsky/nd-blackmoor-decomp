@@ -8,15 +8,13 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_compare_set_event_flag_4f
-# naming:       INFERRED (lower confidence, not verified): the repository text src/blackmoor_app.mm:452 says "arm 0x428133 -> 0x44b641"
-# name-note:    Handler of raw 0x4f compare-and-set-event-flag.
+# name:         fn_0044b641
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       45 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c, local_20, local_24, local_28, local_2c, local_30 and 33 more
 # fields:       [eax + n] field_1, field_3, field_4; [ecx + n] field_3, field_4, field_8; [edx + n] field_2, field_3, field_4, field_8
 # callees:      calls FUN_0050ca3e, FUN_0052139c, FUN_0044a2b7, FUN_0042ba3a
 # track-n:      outputs/blackmoor-decomp/src/action_family_4f.h:action_family_4f_visit (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 526 instruction(s), 59 conditional branch(es) and 5 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
+# unverified:   machine annotation only: the 526 instruction(s), 59 conditional branch(es) and 5 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32
 .text

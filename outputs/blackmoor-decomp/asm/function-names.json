@@ -2,13 +2,13 @@
  "schema": "blackmoor-function-names/1",
  "note": "Names that committed evidence already states for assembly functions; every other source keeps the machine name fn_<va>. Written and checked by scripts/function_names.py; read by scripts/annotate_machine.py and scripts/audit_tool_assisted.py. A name is not a claim that the function is understood beyond its summary, and nothing here claims original C++ or compiler provenance.",
  "counts": {
-  "entries": 1863,
+  "entries": 1822,
   "native_port": 422,
   "parity_rule": 1,
   "ghidra_name": 83,
   "ghidra_funclet": 570,
   "structural": 258,
-  "inferred_prose": 221,
+  "inferred_prose": 180,
   "inferred_strings": 289,
   "inferred_import": 19
  },
@@ -250,21 +250,6 @@
      "path": "src/action_family_44_runtime.h",
      "line": 17,
      "quote": "0x411b16 builds the 0xd8 record"
-    }
-   ]
-  },
-  {
-   "va": "0x00411f24",
-   "name": "inferred_autotext_43_overlay_handler",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Handler for raw 0x43 AUTOTEXT text overlay rows (arm 0x428465).",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/blackmoor_app.mm:493 says \"raw 0x43 (AUTOTEXT text overlay, arm 0x428465, handler 0x411f24)\"",
-   "evidence": [
-    {
-     "path": "src/blackmoor_app.mm",
-     "line": 493,
-     "quote": "raw 0x43 (AUTOTEXT text overlay, arm 0x428465, handler 0x411f24)"
     }
    ]
   },
@@ -794,21 +779,6 @@
    }
   },
   {
-   "va": "0x0041e33b",
-   "name": "inferred_z_entry_render_callback_installer",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Installs the cel render callback 0x422a0a as a Z entry of type 0xb.",
-   "source": "INFERRED (lower confidence, not verified): the repository text tasks/RT-25-cel-conversation-3e-runtime.md:15 says \"installed by `0x41e33b`\"",
-   "evidence": [
-    {
-     "path": "tasks/RT-25-cel-conversation-3e-runtime.md",
-     "line": 15,
-     "quote": "installed by `0x41e33b`"
-    }
-   ]
-  },
-  {
    "va": "0x0041f986",
    "name": "m41f986_init_strings",
    "basis": "native_port",
@@ -892,21 +862,6 @@
      "path": "src/action_family_3f_runtime.c",
      "line": 1289,
      "quote": "hotspot surface refresh (0x420b9e)"
-    }
-   ]
-  },
-  {
-   "va": "0x00420c17",
-   "name": "inferred_conversation_3f_3e_handler",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Dispatcher-arm handler for raw 0x3f sound and 0x3e cel conversations.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/blackmoor_app.mm:267 says \"raw 0x3f sound conversation (dispatcher arm 0x427a50 -> handler 0x420c17)\"",
-   "evidence": [
-    {
-     "path": "src/blackmoor_app.mm",
-     "line": 267,
-     "quote": "raw 0x3f sound conversation (dispatcher arm 0x427a50 -> handler 0x420c17)"
     }
    ]
   },
@@ -1470,21 +1425,6 @@
    }
   },
   {
-   "va": "0x0042c221",
-   "name": "inferred_secondary_video_hotspots_handler",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Handler for raw 0x33 secondary video with hotspots.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/session_bindings_a33.h:17 says \"Raw 0x33 \"secondary video with hotspots\" (RT-46; dispatcher arm of 0x427a50, gate mode 1, handler 0x42c221)\"",
-   "evidence": [
-    {
-     "path": "src/session_bindings_a33.h",
-     "line": 17,
-     "quote": "Raw 0x33 \"secondary video with hotspots\" (RT-46; dispatcher arm of 0x427a50, gate mode 1, handler 0x42c221)"
-    }
-   ]
-  },
-  {
    "va": "0x0042ca22",
    "name": "m42ca22_apply_event_flags",
    "basis": "native_port",
@@ -1647,21 +1587,6 @@
      "path": "src/blackmoor_app.mm",
      "line": 3257,
      "quote": "raw 0xa1 shares the caption writer and the caption flag with raw 0x97 (0x432d1a is"
-    }
-   ]
-  },
-  {
-   "va": "0x004336ad",
-   "name": "inferred_raw_9a_sound_stop_handler",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Handler for raw 0x9a (and 0x9b) rows with a per-phase row state; stops sound channels.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_9a_runtime.h:20 says \"0x4336ad the handler.\"",
-   "evidence": [
-    {
-     "path": "src/action_family_9a_runtime.h",
-     "line": 20,
-     "quote": "0x4336ad the handler."
     }
    ]
   },
@@ -2581,21 +2506,6 @@
    ]
   },
   {
-   "va": "0x0044887c",
-   "name": "inferred_caption_line_layout",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Line layout routine of the caption text layout.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/caption_layout.h:7 says \"Line layout: 0x44887c.\"",
-   "evidence": [
-    {
-     "path": "src/caption_layout.h",
-     "line": 7,
-     "quote": "Line layout: 0x44887c."
-    }
-   ]
-  },
-  {
    "va": "0x004497a0",
    "name": "m4497a0_construct",
    "basis": "native_port",
@@ -2784,21 +2694,6 @@
      "path": "src/action_family_4e_runtime.h",
      "line": 19,
      "quote": "0x44b3c8 target = body[0]; a target outside 30..39"
-    }
-   ]
-  },
-  {
-   "va": "0x0044b641",
-   "name": "inferred_compare_set_event_flag_4f",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Handler of raw 0x4f compare-and-set-event-flag.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/blackmoor_app.mm:452 says \"arm 0x428133 -> 0x44b641\"",
-   "evidence": [
-    {
-     "path": "src/blackmoor_app.mm",
-     "line": 452,
-     "quote": "arm 0x428133 -> 0x44b641"
     }
    ]
   },
@@ -3531,21 +3426,6 @@
    }
   },
   {
-   "va": "0x0045b300",
-   "name": "inferred_bul_puzzle_object_allocator",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Allocates the 0x1b9-byte raw 0xda Bul puzzle singleton object.",
-   "source": "INFERRED (lower confidence, not verified): the repository text tasks/RT-59-bul-puzzle-da-runtime.md:9 says \"allocated by `0x45b300`\"",
-   "evidence": [
-    {
-     "path": "tasks/RT-59-bul-puzzle-da-runtime.md",
-     "line": 9,
-     "quote": "allocated by `0x45b300`"
-    }
-   ]
-  },
-  {
    "va": "0x0045b36a",
    "name": "inferred_bulpuzzle_class_getter",
    "basis": "inferred_strings",
@@ -3558,21 +3438,6 @@
      "strings": [
       "s_CBulPuzzle_0052cf38"
      ]
-    }
-   ]
-  },
-  {
-   "va": "0x0045b37a",
-   "name": "inferred_bul_puzzle_object_constructor",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Constructor of the raw 0xda Bul puzzle singleton, which calls the reset 0x45b3ea.",
-   "source": "INFERRED (lower confidence, not verified): the repository text tasks/RT-59-bul-puzzle-da-runtime.md:9 says \"constructor `0x45b37a`\"",
-   "evidence": [
-    {
-     "path": "tasks/RT-59-bul-puzzle-da-runtime.md",
-     "line": 9,
-     "quote": "constructor `0x45b37a`"
     }
    ]
   },
@@ -3779,21 +3644,6 @@
    ]
   },
   {
-   "va": "0x0045dc8a",
-   "name": "inferred_card_puzzle_reset",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Reset of the raw 0xf6 card puzzle object.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_f6_runtime.h:26 says \"0x45dd4d cleanup, 0x45dc8a reset.\"",
-   "evidence": [
-    {
-     "path": "src/action_family_f6_runtime.h",
-     "line": 26,
-     "quote": "0x45dd4d cleanup, 0x45dc8a reset."
-    }
-   ]
-  },
-  {
    "va": "0x0045dd4d",
    "name": "inferred_card_puzzle_cleanup",
    "basis": "inferred_prose",
@@ -3953,36 +3803,6 @@
    ]
   },
   {
-   "va": "0x0045ea4a",
-   "name": "inferred_card_refill_check_a",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "One of the two refill checks of the card puzzle.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_f6_runtime.h:25 says \"0x45ea4a / 0x45eadc refill checks\"",
-   "evidence": [
-    {
-     "path": "src/action_family_f6_runtime.h",
-     "line": 25,
-     "quote": "0x45ea4a / 0x45eadc refill checks"
-    }
-   ]
-  },
-  {
-   "va": "0x0045eadc",
-   "name": "inferred_card_refill_check_b",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "One of the two refill checks of the card puzzle.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_f6_runtime.h:25 says \"0x45ea4a / 0x45eadc refill checks\"",
-   "evidence": [
-    {
-     "path": "src/action_family_f6_runtime.h",
-     "line": 25,
-     "quote": "0x45ea4a / 0x45eadc refill checks"
-    }
-   ]
-  },
-  {
    "va": "0x0045eb76",
    "name": "inferred_computer_column_picker",
    "basis": "inferred_prose",
@@ -4003,21 +3823,6 @@
    "basis": "inferred_prose",
    "confidence": "low",
    "summary": "Starts a card slide/animation.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_f6_runtime.c:373 says \"0x45ed60 / 0x45ef5a: start a card slide.\"",
-   "evidence": [
-    {
-     "path": "src/action_family_f6_runtime.c",
-     "line": 373,
-     "quote": "0x45ed60 / 0x45ef5a: start a card slide."
-    }
-   ]
-  },
-  {
-   "va": "0x0045ef5a",
-   "name": "inferred_card_slide_starter_alt",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Starts a card slide/animation (twin of 0x45ed60).",
    "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_f6_runtime.c:373 says \"0x45ed60 / 0x45ef5a: start a card slide.\"",
    "evidence": [
     {
@@ -4677,21 +4482,6 @@
    ]
   },
   {
-   "va": "0x00470d7a",
-   "name": "inferred_keypad_puzzle_reset",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Reset of the keypad puzzle object, run after the cleanup releases the surface and slot.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_e0_runtime.h:247 says \"0x470ddc: release the surface and the slot, then the 0x470d7a reset.\"",
-   "evidence": [
-    {
-     "path": "src/action_family_e0_runtime.h",
-     "line": 247,
-     "quote": "0x470ddc: release the surface and the slot, then the 0x470d7a reset."
-    }
-   ]
-  },
-  {
    "va": "0x00470ddc",
    "name": "inferred_keypad_puzzle_cleanup",
    "basis": "inferred_prose",
@@ -5324,21 +5114,6 @@
    ]
   },
   {
-   "va": "0x0047cf4e",
-   "name": "inferred_random_sound_record_player_alt",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Picks a sound record other than NO SOUND at random and plays it.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_ee_runtime.c:316 says \"0x47cd90 / 0x47ce6f / 0x47cf4e: pick a sound record other than \"NO SOUND\" at random and play it.\"",
-   "evidence": [
-    {
-     "path": "src/action_family_ee_runtime.c",
-     "line": 316,
-     "quote": "0x47cd90 / 0x47ce6f / 0x47cf4e: pick a sound record other than \"NO SOUND\" at random and play it."
-    }
-   ]
-  },
-  {
    "va": "0x0047d02d",
    "name": "inferred_sound_record_caption_player",
    "basis": "inferred_prose",
@@ -5467,21 +5242,6 @@
     "symbol": "m47d77d_noop",
     "class": "native_oracle_verified"
    }
-  },
-  {
-   "va": "0x0047d788",
-   "name": "inferred_mouselight_puzzle_handler",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Handler (state machine) of the raw 0xd9 Mouselight puzzle.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/blackmoor_app.mm:11498 says \"raw 0xd9 Mouselight puzzle (dispatcher arm 0x42a383 -> 0x47d788, gate mode 0)\"",
-   "evidence": [
-    {
-     "path": "src/blackmoor_app.mm",
-     "line": 11498,
-     "quote": "raw 0xd9 Mouselight puzzle (dispatcher arm 0x42a383 -> 0x47d788, gate mode 0)"
-    }
-   ]
   },
   {
    "va": "0x0047df57",
@@ -6466,21 +6226,6 @@
    ]
   },
   {
-   "va": "0x0048baa7",
-   "name": "inferred_peephole_object_constructor",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Constructor of the raw 0xd8 Peephole object, which calls the reset 0x48bb17.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_d8_runtime.h:21 says \"0x48bb17 reset (constructor 0x48baa7)\"",
-   "evidence": [
-    {
-     "path": "src/action_family_d8_runtime.h",
-     "line": 21,
-     "quote": "0x48bb17 reset (constructor 0x48baa7)"
-    }
-   ]
-  },
-  {
    "va": "0x0048bb17",
    "name": "reset_fields",
    "basis": "native_port",
@@ -6648,10 +6393,10 @@
   },
   {
    "va": "0x0048d119",
-   "name": "inferred_clear_unread_word_cell",
+   "name": "inferred_clear_word_cell",
    "basis": "inferred_prose",
    "confidence": "low",
-   "summary": "Only stores word [0x594daf] := 0, a cell nothing reads.",
+   "summary": "Per the quoted note it only stores the word 0 into one global cell (called from 0x438444).",
    "source": "INFERRED (lower confidence, not verified): the repository text tasks/RT-50-piano-puzzle-d0-runtime.md:23 says \"`0x48d119` (called at `0x438444`) only stores word `[0x594daf] := 0`\"",
    "evidence": [
     {
@@ -8547,26 +8292,6 @@
    ]
   },
   {
-   "va": "0x004bf9bb",
-   "name": "inferred_movie_action_state_handler",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "State handler of the MOVIE action (state 0 AVF start, state 1 gate), tied to the AVF player.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/avf_player.h:25 says \"MOVIE 0x4bf9bb state 1 + 0x4c0205; worker 0x4c0c7d.\"; src/avf_player.c:189 says \"0x4bf9bb state 0 (AVF).\"",
-   "evidence": [
-    {
-     "path": "src/avf_player.h",
-     "line": 25,
-     "quote": "MOVIE 0x4bf9bb state 1 + 0x4c0205; worker 0x4c0c7d."
-    },
-    {
-     "path": "src/avf_player.c",
-     "line": 189,
-     "quote": "0x4bf9bb state 0 (AVF)."
-    }
-   ]
-  },
-  {
    "va": "0x004c0205",
    "name": "movie_step",
    "basis": "native_port",
@@ -8756,26 +8481,6 @@
      "strings": [
       "s_Nancy_Drew__The_Curse_of_Blackmo_00552d64"
      ]
-    }
-   ]
-  },
-  {
-   "va": "0x004c2790",
-   "name": "inferred_ciftree_image_loader",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Loads a CIFTREE image by name into a surface (picture load).",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/blackmoor_app.mm:6218 says \"the CIFTREE image (0x4c2790)\"; src/autotext_writer.h:12 says \"picture load 0x4c2790\"",
-   "evidence": [
-    {
-     "path": "src/blackmoor_app.mm",
-     "line": 6218,
-     "quote": "the CIFTREE image (0x4c2790)"
-    },
-    {
-     "path": "src/autotext_writer.h",
-     "line": 12,
-     "quote": "picture load 0x4c2790"
     }
    ]
   },
@@ -9586,26 +9291,6 @@
    }
   },
   {
-   "va": "0x004caff5",
-   "name": "inferred_iv_movie_1c_loader",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Loader of action 0x1c copying its 105-byte body (starts with an .IV file name).",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_1c_runtime.h:17 says \"0x40bc1a loader arm -> 0x4caff5 (action_family_1c.c): 105 body bytes.\"; src/scene_resource.c:133 says \"0x4caff5 copies 105 bytes (A-1C.1)\"",
-   "evidence": [
-    {
-     "path": "src/action_family_1c_runtime.h",
-     "line": 17,
-     "quote": "0x40bc1a loader arm -> 0x4caff5 (action_family_1c.c): 105 body bytes."
-    },
-    {
-     "path": "src/scene_resource.c",
-     "line": 133,
-     "quote": "0x4caff5 copies 105 bytes (A-1C.1)"
-    }
-   ]
-  },
-  {
    "va": "0x004cb058",
    "name": "m4cb058_hit_test",
    "basis": "native_port",
@@ -10246,46 +9931,6 @@
    ]
   },
   {
-   "va": "0x004d214b",
-   "name": "inferred_glyph_slot_lookup",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Glyph map: maps a character to its glyph slot, including punctuation and Latin-1 slots in the FONT header.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/caption_layout.c:249 says \"0x4d214b: punctuation and Latin-1 glyph slots in the FONT header.\"; src/autotext_writer.h:10 says \"glyph map 0x4d214b\"",
-   "evidence": [
-    {
-     "path": "src/caption_layout.c",
-     "line": 249,
-     "quote": "0x4d214b: punctuation and Latin-1 glyph slots in the FONT header."
-    },
-    {
-     "path": "src/autotext_writer.h",
-     "line": 10,
-     "quote": "glyph map 0x4d214b"
-    }
-   ]
-  },
-  {
-   "va": "0x004d270b",
-   "name": "inferred_text_glyph_draw",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Glyph draw: draws text with its baseline at bottom and left edge at left, with colour variant and optional underline.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/caption_layout_internal.h:24 says \"0x4d270b: draws `text` with its glyph baseline at `bottom` and its left\"; src/autotext_writer.h:10 says \"glyph draw 0x4d270b\"",
-   "evidence": [
-    {
-     "path": "src/caption_layout_internal.h",
-     "line": 24,
-     "quote": "0x4d270b: draws `text` with its glyph baseline at `bottom` and its left"
-    },
-    {
-     "path": "src/autotext_writer.h",
-     "line": 10,
-     "quote": "glyph draw 0x4d270b"
-    }
-   ]
-  },
-  {
    "va": "0x004d3073",
    "name": "m4d3073_session_tick",
    "basis": "native_port",
@@ -10321,21 +9966,6 @@
      "path": "src/caption_lifecycle.h",
      "line": 227,
      "quote": "Layer 9 callback 0x4d3705 -> 0x4e79ca CUIConvo::RestoreTextBox"
-    }
-   ]
-  },
-  {
-   "va": "0x004d3714",
-   "name": "inferred_taskbar_restore_layer_callback",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Layer 11 render callback that forwards to the task bar restore 0x4e1157.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/caption_lifecycle.c:1201 says \"layer 11 (0x4d3714 ->\"",
-   "evidence": [
-    {
-     "path": "src/caption_lifecycle.c",
-     "line": 1201,
-     "quote": "layer 11 (0x4d3714 ->"
     }
    ]
   },
@@ -11033,26 +10663,6 @@
    ]
   },
   {
-   "va": "0x004de2d8",
-   "name": "inferred_frame_text_box_close",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Closes the frame text box: sets mode 1, restores the task bar and clears the text flags.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/caption_lifecycle.h:9 says \"open / close 0x4de24f / 0x4de2d8\"; tasks/S05-2-framed-text-box-lifecycle.md:14 says \"**Close** `0x4de2d8`: `+0x991 = 1`, `0x4e053f(1)`, `0x4e1113`\"",
-   "evidence": [
-    {
-     "path": "src/caption_lifecycle.h",
-     "line": 9,
-     "quote": "open / close 0x4de24f / 0x4de2d8"
-    },
-    {
-     "path": "tasks/S05-2-framed-text-box-lifecycle.md",
-     "line": 14,
-     "quote": "**Close** `0x4de2d8`: `+0x991 = 1`, `0x4e053f(1)`, `0x4e1113`"
-    }
-   ]
-  },
-  {
    "va": "0x004de322",
    "name": "inferred_caption_text_box_hover",
    "basis": "inferred_prose",
@@ -11079,21 +10689,6 @@
      "path": "src/caption_lifecycle.h",
      "line": 243,
      "quote": "0x4de394 CScrollTextBox::LoadChunk: copy SCTB (needs >= 0x300 bytes)."
-    }
-   ]
-  },
-  {
-   "va": "0x004de413",
-   "name": "inferred_caption_text_box_click",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Click handler of the caption text box.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/caption_lifecycle.h:257 says \"0x4de413 (click).\"",
-   "evidence": [
-    {
-     "path": "src/caption_lifecycle.h",
-     "line": 257,
-     "quote": "0x4de413 (click)."
     }
    ]
   },
@@ -11287,26 +10882,6 @@
    ]
   },
   {
-   "va": "0x004e069c",
-   "name": "inferred_taskbar_chunk_copier",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Copies the 1867-byte TASK chunk into the task bar object at +4.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/inventory_button_runtime.h:62 says \"copied by 0x4e069c\"; src/inventory_button_runtime.h:16 says \"copied to object+4 by 0x4e069c\"",
-   "evidence": [
-    {
-     "path": "src/inventory_button_runtime.h",
-     "line": 62,
-     "quote": "copied by 0x4e069c"
-    },
-    {
-     "path": "src/inventory_button_runtime.h",
-     "line": 16,
-     "quote": "copied to object+4 by 0x4e069c"
-    }
-   ]
-  },
-  {
    "va": "0x004e06c0",
    "name": "inferred_taskbar_object_init",
    "basis": "inferred_prose",
@@ -11318,81 +10893,6 @@
      "path": "src/inventory_button_runtime.h",
      "line": 146,
      "quote": "Power-on state of the bar object after 0x4e06c0"
-    }
-   ]
-  },
-  {
-   "va": "0x004e075a",
-   "name": "inferred_taskbar_hover_handler",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Task bar hover handler: checks the cursor rectangle against the bar bounds and sets the cursor.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/inventory_button_runtime.h:27 says \"0x4e075a (needs object state +0xf2a == 1): when the cursor rectangle\"; src/blackmoor_app.mm:8824 says \"0x4d3073 -> 0x4e075a with the cursor rectangle of the last pointer position.\"",
-   "evidence": [
-    {
-     "path": "src/inventory_button_runtime.h",
-     "line": 27,
-     "quote": "0x4e075a (needs object state +0xf2a == 1): when the cursor rectangle"
-    },
-    {
-     "path": "src/blackmoor_app.mm",
-     "line": 8824,
-     "quote": "0x4d3073 -> 0x4e075a with the cursor rectangle of the last pointer position."
-    }
-   ]
-  },
-  {
-   "va": "0x004e0978",
-   "name": "inferred_taskbar_click_handler",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Task bar left-click handler, asking each button in order via 0x4e26fc.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/inventory_button_runtime.h:177 says \"0x4e0978 for one left click, now = GetTickCount().\"; src/inventory_button_runtime.h:37 says \"0x4e0978 (needs +0xf2a\"",
-   "evidence": [
-    {
-     "path": "src/inventory_button_runtime.h",
-     "line": 177,
-     "quote": "0x4e0978 for one left click, now = GetTickCount()."
-    },
-    {
-     "path": "src/inventory_button_runtime.h",
-     "line": 37,
-     "quote": "0x4e0978 (needs +0xf2a"
-    }
-   ]
-  },
-  {
-   "va": "0x004e0e2b",
-   "name": "inferred_taskbar_tick_process",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Per-tick task bar processing, run after applying the lock table with 0x4e18e5.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/inventory_button_runtime.h:188 says \"0x4e0e2b (with 0x4e18e5 first).\"; src/blackmoor_app.mm:8867 says \"End of a tick (0x43cf9c): 0x4e0e2b while 0x583204 is 0.\"",
-   "evidence": [
-    {
-     "path": "src/inventory_button_runtime.h",
-     "line": 188,
-     "quote": "0x4e0e2b (with 0x4e18e5 first)."
-    },
-    {
-     "path": "src/blackmoor_app.mm",
-     "line": 8867,
-     "quote": "End of a tick (0x43cf9c): 0x4e0e2b while 0x583204 is 0."
-    }
-   ]
-  },
-  {
-   "va": "0x004e1113",
-   "name": "inferred_taskbar_restore_area",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Task bar restore (one of the two taskbar restores 0x4e1157/0x4e1113).",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/caption_lifecycle.h:285 says \"0x4e1157 / 0x4e1113 taskbar restores.\"",
-   "evidence": [
-    {
-     "path": "src/caption_lifecycle.h",
-     "line": 285,
-     "quote": "0x4e1157 / 0x4e1113 taskbar restores."
     }
    ]
   },
@@ -11444,21 +10944,6 @@
    ]
   },
   {
-   "va": "0x004e1305",
-   "name": "inferred_taskbar_lock_table_producer",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "One of the producers of the task bar lock table.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/inventory_button_runtime.h:56 says \"the lock table producers (the scene action handler 0x4e13e4 and 0x4e1305)\"",
-   "evidence": [
-    {
-     "path": "src/inventory_button_runtime.h",
-     "line": 56,
-     "quote": "the lock table producers (the scene action handler 0x4e13e4 and 0x4e1305)"
-    }
-   ]
-  },
-  {
    "va": "0x004e13e4",
    "name": "inferred_scene_action_lock_table_handler",
    "basis": "inferred_prose",
@@ -11501,21 +10986,6 @@
    }
   },
   {
-   "va": "0x004e1d34",
-   "name": "inferred_dialogue_object_cleanup",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Dialogue-object cleanup, called from 0x4730a6.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/session_exit.h:188 says \"Dialogue-object cleanup (0x4730a6 -> 0x4e1d34)\"",
-   "evidence": [
-    {
-     "path": "src/session_exit.h",
-     "line": 188,
-     "quote": "Dialogue-object cleanup (0x4730a6 -> 0x4e1d34)"
-    }
-   ]
-  },
-  {
    "va": "0x004e26fc",
    "name": "inferred_taskbar_button_click_test",
    "basis": "inferred_prose",
@@ -11542,26 +11012,6 @@
      "path": "src/inventory_button_runtime.c",
      "line": 75,
      "quote": "0x4e2940: unconditional store of the state."
-    }
-   ]
-  },
-  {
-   "va": "0x004e29ec",
-   "name": "inferred_taskbar_button_timer_step",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Runs the task bar button timers and animation (stage 0 to 1 on the first call).",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/inventory_button_runtime.h:47 says \"state 1 runs the button timers (0x4e29ec: stage 0 -> 1 on the\"; src/inventory_button_runtime.c:203 says \"0x4e29ec, mode 0.\"",
-   "evidence": [
-    {
-     "path": "src/inventory_button_runtime.h",
-     "line": 47,
-     "quote": "state 1 runs the button timers (0x4e29ec: stage 0 -> 1 on the"
-    },
-    {
-     "path": "src/inventory_button_runtime.c",
-     "line": 203,
-     "quote": "0x4e29ec, mode 0."
     }
    ]
   },
@@ -11774,21 +11224,6 @@
    ]
   },
   {
-   "va": "0x004e79ca",
-   "name": "inferred_convo_text_box_restore",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "CUIConvo::RestoreTextBox, the layer 9 restore callback target.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/caption_lifecycle.h:227 says \"0x4d3705 -> 0x4e79ca CUIConvo::RestoreTextBox\"",
-   "evidence": [
-    {
-     "path": "src/caption_lifecycle.h",
-     "line": 227,
-     "quote": "0x4d3705 -> 0x4e79ca CUIConvo::RestoreTextBox"
-    }
-   ]
-  },
-  {
    "va": "0x004e7ba7",
    "name": "m4e7ba7_view_reset",
    "basis": "native_port",
@@ -11910,46 +11345,6 @@
     "symbol": "m4e8dc8_check_slots",
     "class": "native_oracle_verified"
    }
-  },
-  {
-   "va": "0x004e8e78",
-   "name": "inferred_inventory_view_click_branch",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Left-click branch of the inventory view, reached from 0x4e8dc8 with the hot item.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/inventory_view_runtime.h:186 says \"One left click (0x4e8dc8 -> 0x4e8e78).\"; src/blackmoor_app.mm:3573 says \"A left button down or double click: 0x4e8dc8 -> 0x4e8e78 with the hot item of the\"",
-   "evidence": [
-    {
-     "path": "src/inventory_view_runtime.h",
-     "line": 186,
-     "quote": "One left click (0x4e8dc8 -> 0x4e8e78)."
-    },
-    {
-     "path": "src/blackmoor_app.mm",
-     "line": 3573,
-     "quote": "A left button down or double click: 0x4e8dc8 -> 0x4e8e78 with the hot item of the"
-    }
-   ]
-  },
-  {
-   "va": "0x004e94c1",
-   "name": "inferred_inventory_view_mode_machine",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Mode machine of the inventory view including the open transition for modes 0/4/5.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/inventory_view_runtime.h:22 says \"mode machine 0x4e94c1\"; src/blackmoor_app.mm:3434 says \"the open transition (0x4e94c1 modes 0/4/5)\"",
-   "evidence": [
-    {
-     "path": "src/inventory_view_runtime.h",
-     "line": 22,
-     "quote": "mode machine 0x4e94c1"
-    },
-    {
-     "path": "src/blackmoor_app.mm",
-     "line": 3434,
-     "quote": "the open transition (0x4e94c1 modes 0/4/5)"
-    }
-   ]
   },
   {
    "va": "0x004e97ad",
@@ -12137,26 +11532,6 @@
     "symbol": "m4ea269_select_piece",
     "class": "native_oracle_verified"
    }
-  },
-  {
-   "va": "0x004ea361",
-   "name": "inferred_timed_dismiss_check",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Timed dismiss check: true when the armed deadline is below the clock (unsigned).",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/caption_lifecycle.c:1077 says \"0x4ea361: unsigned \"deadline < clock\".\"; tasks/S05-2-framed-text-box-lifecycle.md:22 says \"The timed dismiss on `0x571442` (`0x4ea361`\"",
-   "evidence": [
-    {
-     "path": "src/caption_lifecycle.c",
-     "line": 1077,
-     "quote": "0x4ea361: unsigned \"deadline < clock\"."
-    },
-    {
-     "path": "tasks/S05-2-framed-text-box-lifecycle.md",
-     "line": 22,
-     "quote": "The timed dismiss on `0x571442` (`0x4ea361`"
-    }
-   ]
   },
   {
    "va": "0x004eaadc",
@@ -12456,26 +11831,6 @@
      "path": "src/caption_lifecycle.c",
      "line": 422,
      "quote": "0x4eeb23 (config at box + 0x256)."
-    }
-   ]
-  },
-  {
-   "va": "0x004ef2d1",
-   "name": "inferred_slider_hit_test",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Slider hit test on a point (x, y), used for frame controls.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/caption_lifecycle.c:532 says \"0x4ef2d1(x, y).\"; src/inventory_view_runtime.h:129 says \"the pointer is on a frame control, 0x4e22fd / 0x4ef2d1\"",
-   "evidence": [
-    {
-     "path": "src/caption_lifecycle.c",
-     "line": 532,
-     "quote": "0x4ef2d1(x, y)."
-    },
-    {
-     "path": "src/inventory_view_runtime.h",
-     "line": 129,
-     "quote": "the pointer is on a frame control, 0x4e22fd / 0x4ef2d1"
     }
    ]
   },
@@ -12936,36 +12291,6 @@
    ]
   },
   {
-   "va": "0x004f8f94",
-   "name": "inferred_sound_fade_stage",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "One of three ordered fade stage routines called under sound flag 0x20.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/live_audio.c:729 says \"Fade stages 0x4f9f92/0x4f8f94/0x4f9040 are unrecovered\"",
-   "evidence": [
-    {
-     "path": "src/live_audio.c",
-     "line": 729,
-     "quote": "Fade stages 0x4f9f92/0x4f8f94/0x4f9040 are unrecovered"
-    }
-   ]
-  },
-  {
-   "va": "0x004f9040",
-   "name": "inferred_sound_fade_stage",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "One of three ordered fade stage routines called under sound flag 0x20.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/live_audio.c:729 says \"Fade stages 0x4f9f92/0x4f8f94/0x4f9040 are unrecovered\"",
-   "evidence": [
-    {
-     "path": "src/live_audio.c",
-     "line": 729,
-     "quote": "Fade stages 0x4f9f92/0x4f8f94/0x4f9040 are unrecovered"
-    }
-   ]
-  },
-  {
    "va": "0x004f9234",
    "name": "inferred_direct_sound_set_3d_min_distance",
    "basis": "inferred_strings",
@@ -13217,26 +12542,6 @@
      "path": "his-audio-recovery.md",
      "line": 13,
      "quote": "`0x4fc341` opens a sound channel, calls `0x4fc62d`, and then calls `0x4fb2e3` for playback."
-    }
-   ]
-  },
-  {
-   "va": "0x004fc62d",
-   "name": "inferred_sound_file_load_requester",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Builds the sound path and reaches 0x4fadc4 for a requested file load.",
-   "source": "INFERRED (lower confidence, not verified): the repository text his-audio-recovery.md:13 says \"`0x4fc62d` reaches `0x4fadc4` for a requested file load.\"; src/action_family_97_runtime.c:118 says \"then 0x4fc62d builds\"",
-   "evidence": [
-    {
-     "path": "his-audio-recovery.md",
-     "line": 13,
-     "quote": "`0x4fc62d` reaches `0x4fadc4` for a requested file load."
-    },
-    {
-     "path": "src/action_family_97_runtime.c",
-     "line": 118,
-     "quote": "then 0x4fc62d builds"
     }
    ]
   },

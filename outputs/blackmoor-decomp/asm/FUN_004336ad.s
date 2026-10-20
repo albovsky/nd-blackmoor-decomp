@@ -8,15 +8,13 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_raw_9a_sound_stop_handler
-# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_9a_runtime.h:20 says "0x4336ad the handler."
-# name-note:    Handler for raw 0x9a (and 0x9b) rows with a per-phase row state; stops sound channels.
+# name:         fn_004336ad
 # arguments:    2 ebp-relative stack slot(s) referenced: arg_8, arg_c; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       4 ebp-relative slot(s): local_4, local_8, local_c, local_10
 # fields:       [eax + n] field_4, field_a, field_16, field_19; [ecx + n] field_2, field_8, field_12, field_18; [edx + n] field_2, field_6, field_e, field_16
 # callees:      calls FUN_004fc878, FUN_004fc808
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 141 instruction(s), 14 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
+# unverified:   machine annotation only: the 141 instruction(s), 14 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32
 .text

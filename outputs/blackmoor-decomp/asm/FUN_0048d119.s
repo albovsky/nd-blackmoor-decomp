@@ -8,9 +8,9 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_clear_unread_word_cell
+# name:         inferred_clear_word_cell
 # naming:       INFERRED (lower confidence, not verified): the repository text tasks/RT-50-piano-puzzle-d0-runtime.md:23 says "`0x48d119` (called at `0x438444`) only stores word `[0x594daf] := 0`"
-# name-note:    Only stores word [0x594daf] := 0, a cell nothing reads.
+# name-note:    Per the quoted note it only stores the word 0 into one global cell (called from 0x438444).
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots

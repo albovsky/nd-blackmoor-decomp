@@ -8,15 +8,13 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_glyph_slot_lookup
-# naming:       INFERRED (lower confidence, not verified): the repository text src/caption_layout.c:249 says "0x4d214b: punctuation and Latin-1 glyph slots in the FONT header."; src/autotext_writer.h:10 says "glyph map 0x4d214b"
-# name-note:    Glyph map: maps a character to its glyph slot, including punctuation and Latin-1 slots in the FONT header.
+# name:         fn_004d214b
 # arguments:    3 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       2 ebp-relative slot(s): local_4, local_8
 # fields:       [eax + n] field_5b, field_61, field_67, field_6d, field_73, field_79, field_7f, field_85, field_8b, field_91, field_97, field_9d and 6 more; [ecx + n] field_59, field_5f, field_65, field_6b, field_71, field_77, field_7d, field_83, field_89, field_8f, field_95, field_9b and 6 more; [edx + n] field_5d, field_63, field_69, field_6f, field_75, field_7b, field_81, field_87, field_8d, field_93, field_99, field_9f and 5 more
 # callees:      none: no call or outward jump
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 235 instruction(s), 1 conditional branch(es) and 2 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class partial_native is a native-touch record, not a counterpart claim
+# unverified:   machine annotation only: the 235 instruction(s), 1 conditional branch(es) and 2 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

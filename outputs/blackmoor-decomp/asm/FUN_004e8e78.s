@@ -8,15 +8,13 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_inventory_view_click_branch
-# naming:       INFERRED (lower confidence, not verified): the repository text src/inventory_view_runtime.h:186 says "One left click (0x4e8dc8 -> 0x4e8e78)."; src/blackmoor_app.mm:3573 says "A left button down or double click: 0x4e8dc8 -> 0x4e8e78 with the hot item of the"
-# name-note:    Left-click branch of the inventory view, reached from 0x4e8dc8 with the hot item.
+# name:         fn_004e8e78
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       13 ebp-relative slot(s): local_5, local_7, local_b, local_d, local_f, local_11, local_13, local_34, local_38, local_3c, local_40, local_7c and 1 more
 # fields:       [eax + n] field_56, field_710, field_74e, field_77e, field_6b1c, field_7011, field_8256; [ecx + n] field_56, field_77, field_69d, field_70e, field_780, field_6b1c, field_8286; [edi + n] field_minus_1; [edx + n] field_74e, field_780, field_6b1c
 # callees:      calls FUN_004ea269, FUN_004f6334, FUN_00423259, FUN_004fb77a, FUN_004fb2e3, FUN_0050cd50, FUN_00448d11, FUN_004ea06c, FUN_004e7d04, FUN_004e9e84
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 436 instruction(s), 31 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class partial_native is a native-touch record, not a counterpart claim
+# unverified:   machine annotation only: the 436 instruction(s), 31 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

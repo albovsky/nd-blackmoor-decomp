@@ -8,15 +8,13 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_inventory_view_mode_machine
-# naming:       INFERRED (lower confidence, not verified): the repository text src/inventory_view_runtime.h:22 says "mode machine 0x4e94c1"; src/blackmoor_app.mm:3434 says "the open transition (0x4e94c1 modes 0/4/5)"
-# name-note:    Mode machine of the inventory view including the open transition for modes 0/4/5.
+# name:         fn_004e94c1
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [eax + n] field_7016, field_764c, field_822e, field_8236; [ecx + n] field_7012, field_764c, field_7654, field_822e, field_8232; [edx + n] field_7012, field_7016, field_7650, field_7654, field_822e, field_8232, field_8236
 # callees:      calls FUN_004e0559, FUN_004ee5cd, FUN_004ee5f2, FUN_0050ca3e, FUN_004264e8, FUN_0044a2b7, FUN_004c97b4, FUN_0043dbd5, FUN_004d36ed, FUN_004e29ec, FUN_004e2913, FUN_004e29b7, FUN_004ee673, FUN_004ee6c7, FUN_004e7d04, FUN_004e812f
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 170 instruction(s), 13 conditional branch(es) and 1 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class partial_native is a native-touch record, not a counterpart claim
+# unverified:   machine annotation only: the 170 instruction(s), 13 conditional branch(es) and 1 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

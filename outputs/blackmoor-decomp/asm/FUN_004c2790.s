@@ -8,15 +8,13 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_ciftree_image_loader
-# naming:       INFERRED (lower confidence, not verified): the repository text src/blackmoor_app.mm:6218 says "the CIFTREE image (0x4c2790)"; src/autotext_writer.h:12 says "picture load 0x4c2790"
-# name-note:    Loads a CIFTREE image by name into a surface (picture load).
+# name:         fn_004c2790
 # arguments:    4 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10, arg_14; ret 0x10 (callee pops 16 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [eax + n] field_21, field_55; [ecx + n] field_4, field_33; [edx + n] field_18
 # callees:      calls FUN_0051dc43, FUN_0042639d, FUN_004c97b4, FUN_004181c6
 # track-n:      outputs/blackmoor-decomp/src/blackmoor_app.mm:load_native_raw555_image (function ledger class candidate_port; also native_a36_load_surface, native_a77_random, native_aaa_alloc_slot, native_ad0_alloc_slot, native_ad1_alloc_slot, native_ad3_alloc_slot, native_ad9_alloc_slot, native_ada_alloc_slot, native_ae0_alloc_slot, native_ae4_alloc_slot, native_aea_image, native_aeb_view, native_aee_view, native_af6_alloc_slot; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 91 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
+# unverified:   machine annotation only: the 91 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32
 .text

@@ -155,7 +155,14 @@ def _import_word(import_name: str) -> str:
 
     dll, _, api = import_name.partition("!")
     api = f"ordinal_{api[1:]}" if api.startswith("#") else api
-    return _API_WORD.sub("_", f"{dll.split('.')[0]}_{api}").strip("_")
+    return _API_WORD.sub("_", f"{dll.rsplit('.', 1)[0]}_{api}").strip("_")
+
+
+def _api_word(import_name: str) -> str:
+    """The API part alone (``KERNEL32.dll!GlobalFree`` -> ``GlobalFree``)."""
+
+    api = import_name.partition("!")[2]
+    return _API_WORD.sub("_", f"ordinal_{api[1:]}" if api.startswith("#") else api).strip("_")
 
 
 def structural_entries(xrefs: dict) -> dict[int, dict[str, Any]]:
@@ -200,7 +207,12 @@ def _xrefs_by_va() -> dict[int, dict]:
     return _XREFS_CACHE
 
 
-ROLE_RE = re.compile(r"^[a-z][a-z0-9_]{2,40}$")
+def _first_address(text: str) -> Optional[int]:
+    m = re.search(r"(?i)(?:0x0*|FUN_0*)([0-9a-f]{6})\b", text)
+    return int(m.group(1), 16) if m else None
+
+
+ROLE_RE = re.compile(r"^[a-z][a-z0-9_]{2,39}$")
 STRING_LABEL_RE = re.compile(r"^s_[A-Za-z0-9_]+_[0-9a-f]{8}$")
 
 
@@ -216,7 +228,9 @@ def inferred_problems(entry: dict[str, Any], xrefs_entry: Optional[dict] = None)
         return [f"basis {basis!r} is not an inferred basis"]
     if not role or not (ROLE_RE.match(role) or basis == "inferred_import"):
         problems.append(f"name {name!r} is not inferred_<role> with a lowercase role of 3 to 40 characters")
-    if re.search(r"[0-9a-f]{6}", role):
+    if basis == "inferred_prose" and re.search(r"_[a-d]$", role):
+        problems.append("a single-letter suffix role guesses between twin functions the quote does not tell apart")
+    if re.search(r"[0-9a-f]{6}", role) and re.search(r"\d", role):
         problems.append(f"name {name!r} contains an address-like digit run")
     if _PLACEHOLDER.search(name) or _PLACEHOLDER.search(entry.get("summary", "")) or len(entry.get("summary", "").split()) < 4:
         problems.append("name or summary is empty or a placeholder")
@@ -246,8 +260,12 @@ def inferred_problems(entry: dict[str, Any], xrefs_entry: Optional[dict] = None)
                 problems.append(f"{item['path']}: the quote no longer occurs in the file")
             elif not _address_in(quote, va):
                 problems.append(f"{item['path']}: the quote does not contain the address {va_text(va)}")
-            if item["path"].startswith(("tests/", "asm/", "asm_data/", "unverified-pseudocode/")):
-                problems.append(f"{item['path']}: not a statement about the function (tests, assembly and pseudocode are not prose evidence)")
+            elif len(quote) < 24:
+                problems.append(f"{item['path']}: the quote is too short to state a role")
+            elif _first_address(quote) != va:
+                problems.append(f"{item['path']}: the quote names another address before {va_text(va)}, so the function is not its subject")
+            if not (item["path"].startswith(("src/", "tasks/")) or item["path"].endswith(".md")) or item["path"].endswith(".json"):
+                problems.append(f"{item['path']}: not prose (source comments and notes only)")
         elif basis == "inferred_strings":
             if item["path"] != f"unverified-pseudocode/{va:x}.c.txt":
                 problems.append(f"{item['path']}: not the committed pseudocode of {va_text(va)}")
@@ -260,6 +278,11 @@ def inferred_problems(entry: dict[str, Any], xrefs_entry: Optional[dict] = None)
         elif basis == "inferred_import":
             if item["path"] != XREFS.name:
                 problems.append(f"{item['path']}: import evidence is function-xrefs.json")
+    if basis in CURATED_BASES and not problems:
+        item = {"va": entry["va"], "role": role, "summary": entry["summary"], "evidence": evidence,
+                "strings": (evidence[0].get("strings") or []) if evidence else []}
+        if proposal_entry(item, basis)["source"] != entry.get("source"):
+            problems.append("source (the header's naming line) is not what the evidence regenerates")
     if basis == "inferred_import":
         if xrefs_entry is None:
             xrefs_entry = _xrefs_by_va().get(va)
@@ -280,7 +303,7 @@ def import_wrapper_entries(xrefs: dict) -> dict[int, dict[str, Any]]:
                 and e["body_size"] <= 48 and not e["derived_parts"]):
             api = e["imports"][0]
             va = int(e["va"], 16)
-            out[va] = {"va": va_text(va), "name": INFERRED_PREFIX + "only_call_" + _import_word(api).split("_", 1)[1],
+            out[va] = {"va": va_text(va), "name": INFERRED_PREFIX + "only_call_" + _api_word(api),
                        "basis": "inferred_import", "confidence": "low",
                        "summary": f"A {e['body_size']}-byte leaf function with no direct callee whose only external call is {api}",
                        "source": (f"INFERRED (lower confidence, not verified): function-xrefs.json lists {api} as the only import of the "
@@ -531,7 +554,13 @@ def main(argv: Optional[list[str]] = None) -> int:
         print(f"added {added} {args.basis} entries, rejected {len(rejected)}")
         return 0
     if args.command == "write":
-        keep = {int(e["va"], 16): e for e in curated_entries() if not inferred_problems(e)}
+        keep = {}
+        for e in curated_entries():
+            why = inferred_problems(e)
+            if why:
+                print(f"  dropped {e['va']} {e['name']}: {why[0]}")
+            else:
+                keep[int(e["va"], 16)] = e
         stronger = build()
         stronger_vas = {int(e["va"], 16) for e in stronger}
         entries = stronger + [e for va, e in sorted(keep.items()) if va not in stronger_vas and is_machine_source(va)]

@@ -8,15 +8,13 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_sound_fade_stage
-# naming:       INFERRED (lower confidence, not verified): the repository text src/live_audio.c:729 says "Fade stages 0x4f9f92/0x4f8f94/0x4f9040 are unrecovered"
-# name-note:    One of three ordered fade stage routines called under sound flag 0x20.
+# name:         fn_004f8f94
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       2 ebp-relative slot(s): local_4, local_8
 # fields:       [eax + n] field_4c, field_29b, field_2a7, field_3ca, field_3d2; [ecx + n] field_29b, field_2ab, field_3ca, field_3ce; [edx + n] field_2a3, field_3ca
 # callees:      none direct; 1 indirect transfer(s) whose target is not resolved
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 50 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; indirect transfers are not followed; function ledger class partial_native is a native-touch record, not a counterpart claim
+# unverified:   machine annotation only: the 50 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; indirect transfers are not followed; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

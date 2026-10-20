@@ -8,15 +8,13 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_mouselight_puzzle_handler
-# naming:       INFERRED (lower confidence, not verified): the repository text src/blackmoor_app.mm:11498 says "raw 0xd9 Mouselight puzzle (dispatcher arm 0x42a383 -> 0x47d788, gate mode 0)"
-# name-note:    Handler (state machine) of the raw 0xd9 Mouselight puzzle.
+# name:         fn_0047d788
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       27 ebp-relative slot(s): local_4, local_c, local_10, local_14, local_18, local_1c, local_20, local_24, local_28, local_2c, local_30, local_34 and 15 more
 # fields:       [eax + n] field_1c, field_1d, field_22, field_23, field_25, field_27, field_29, field_2d, field_31, field_35, field_49, field_4d and 3 more; [ecx + n] field_1d, field_1f, field_21, field_23, field_29, field_2d, field_31, field_35, field_4d, field_51, field_55, field_minus_1; [edx + n] field_1f, field_23, field_25, field_27, field_29, field_31, field_35, field_39, field_3d, field_41, field_45, field_4d and 2 more
 # callees:      calls FUN_0051dc43, FUN_0050ca3e, FUN_0042639d, FUN_004c97b4, FUN_0050df94, FUN_0050de00, FUN_004d39f9, FUN_004c2790, FUN_0051e7ba
 # track-n:      outputs/blackmoor-decomp/src/action_family_d9_runtime.h:d9_alpha_at (function ledger class candidate_port; also d9_step; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 563 instruction(s), 20 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
+# unverified:   machine annotation only: the 563 instruction(s), 20 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32
 .text

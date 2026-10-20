@@ -8,15 +8,13 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_movie_action_state_handler
-# naming:       INFERRED (lower confidence, not verified): the repository text src/avf_player.h:25 says "MOVIE 0x4bf9bb state 1 + 0x4c0205; worker 0x4c0c7d."; src/avf_player.c:189 says "0x4bf9bb state 0 (AVF)."
-# name-note:    State handler of the MOVIE action (state 0 AVF start, state 1 gate), tied to the AVF player.
+# name:         fn_004bf9bb
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       15 ebp-relative slot(s): local_4, local_c, local_10, local_14, local_18, local_1c, local_20, local_24, local_28, local_2c, local_30, local_34 and 3 more
 # fields:       [eax + n] field_21, field_29, field_2b, field_17a, field_17e, field_182, field_192, field_1ba, field_1be, field_1d6, field_1da, field_21e and 7 more; [ecx + n] field_27, field_2d, field_3b, field_17a, field_1b2, field_1b6, field_1ba, field_1be, field_1ca, field_1cc, field_1d4, field_1d6 and 11 more; [edx + n] field_2, field_4, field_21, field_27, field_17e, field_18e, field_1b2, field_1b6, field_1ca, field_1ce, field_1d6, field_21a and 8 more
 # callees:      calls FUN_0050ca3e, FUN_0052139c, FUN_004c97b4, FUN_004d36ed, FUN_004bede7, FUN_0041632b, FUN_0044c479, FUN_00449a94, FUN_0044c4ab, FUN_00415011, FUN_004c2dfb, FUN_0044c4c1, FUN_004c2c3a, FUN_004161d1, FUN_0051dc43, FUN_004497a0 and 9 more; plus 1 indirect transfer(s) whose target is not resolved
 # track-n:      outputs/blackmoor-decomp/src/avf_player.c:avf_player_start (function ledger class candidate_port; also movie_step_index, movie_tick; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 492 instruction(s), 26 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; indirect transfers are not followed
+# unverified:   machine annotation only: the 492 instruction(s), 26 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; indirect transfers are not followed
 .intel_syntax noprefix
 .code32
 .text
