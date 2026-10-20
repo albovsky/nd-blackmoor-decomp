@@ -40,6 +40,7 @@ class Fl31cDifferential(DiffBase):
         cls.lib.shim_calls.restype = ctypes.POINTER(ShimCall24)
         cls.lib.shim_world_size.restype = ctypes.c_size_t
         cls.lib.shim_script_probe.argtypes = [ctypes.c_uint32, ctypes.c_void_p, ctypes.c_int]
+        cls.lib.shim_script_return_arg.argtypes = [ctypes.c_uint32, ctypes.c_int]
         cls.lib.shim_fl31c.argtypes = [ctypes.c_int, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
         cls.lib.shim_script_write_bytes.argtypes = [ctypes.c_uint32, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_char_p, ctypes.c_int]
         cls.lib.shim_script_write.argtypes = [ctypes.c_uint32, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_uint32]
@@ -97,6 +98,8 @@ class Fl31cDifferential(DiffBase):
                     self.lib.shim_script_write(s.name, call, arg, offset, size_, value)
             for r in (s.results or ([s.result] if s.result else [])):
                 self.lib.shim_script_return(s.name, r)
+            if getattr(s, 'ret_arg', None) is not None:       # the callee returns its own pointer argument (low 32 bits)
+                self.lib.shim_script_return_arg(s.name, s.ret_arg)
             for name, off, ln in (s.probe or ()):
                 if name.startswith('g:'):
                     probe_spec.setdefault(s.name, []).append(('w', getattr(fx.World, name[2:]).offset, fx.GLOBALS[name[2:]][1]))

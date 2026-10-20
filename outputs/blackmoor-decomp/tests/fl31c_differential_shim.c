@@ -36,6 +36,7 @@ typedef struct ShimScript {
     uint32_t results[512];
     int nresults, used;
     int deref_arg, deref_bytes, deref_arg2, deref_bytes2;
+    int ret_arg;          /* 1 + the index of the argument whose LOW 32 BITS the callee returns (0: scripted results), as a callee that returns its own pointer argument does */
     const uint8_t *probe_ptr[8];
     int probe_len[8], nprobe;
     ShimWrite writes[64];
@@ -82,6 +83,12 @@ void shim_script_return(uint32_t callee, uint32_t value)
 {
     ShimScript *s = script_for(callee);
     s->results[s->nresults++] = value;
+}
+
+/* the callee returns the low 32 bits of its argument `arg` (a host pointer stays truncated, as Fl18Host.call returns 32 bits) */
+void shim_script_return_arg(uint32_t callee, int arg)
+{
+    script_for(callee)->ret_arg = arg + 1;
 }
 
 void shim_script_deref2(uint32_t callee, int arg, int bytes)
@@ -183,7 +190,8 @@ static uint32_t host_call(void *context, uint32_t callee, uintptr_t this_ptr, co
             }
         }
     }
-    if (s->nresults > 0) result = s->results[s->used < s->nresults ? s->used : s->nresults - 1];
+    if (s->ret_arg > 0) result = (uint32_t)args[s->ret_arg - 1];
+    else if (s->nresults > 0) result = s->results[s->used < s->nresults ? s->used : s->nresults - 1];
     s->used++;
     return result;
 }
