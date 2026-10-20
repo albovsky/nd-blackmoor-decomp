@@ -133,7 +133,7 @@ void m47d1c3_alloc_zeroed(uint32_t out, uint32_t size, const Fl31bWorld *world, 
         if (world->word_63a4cd != 0) call1(host, 0x44a2b7, 0, 0x63888b);
         call0(host, 0x4c97b4, 0x5cf659);
     } else {
-        memset(res(host, rd32(res(host, out), 0)), 0, size);
+        if (size != 0) memset(res(host, rd32(res(host, out), 0)), 0, size);
     }
 }
 

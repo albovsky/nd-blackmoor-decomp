@@ -364,7 +364,7 @@ static void rec_case(uint32_t arg, uint32_t word_dword, int dbg, int hit)
     for (k = 0; k < 8; k++)
         if ((uint32_t)k != i) CK(get16(SELF, (size_t)k * 0x5bb + 0x132) == 1);
 }
-static void test_m4fc878_activate_record(void)
+static void test_m4fc878_near_records(void)
 {
     rec_case(0, 1, 0, 1);
     rec_case(2, 1, 0, 1);
@@ -376,6 +376,60 @@ static void test_m4fc878_activate_record(void)
     rec_case(3, 0x8001, 0, 0);
     rec_case(0, 0x10000, 1, 0);                                                      /* word 0 with a non-zero high word is not 1 */
     rec_case(4, 0x00010000u | 3, 1, 0);
+}
+
+/* record indices with bit 15 set: the index is the unsigned low word, so the object is 48 to 96 MB (a lazily committed zeroed allocation). With the debug word on,
+ * the third argument of 0x50ca3e separates 0x8000 from 0xffff8000 (a sign-extended index); the record that a 15-bit mask or a sign extension would address is set to 1. */
+static void far_case(uint32_t idx, uint32_t garbage, int dbg, uint32_t word_dword, int hit)
+{
+    const size_t stride = 0x5bb;
+    uint8_t *obj = (uint8_t *)calloc(stride * 0x10000u + 0x200, 1);
+    size_t off = (size_t)idx * stride + 0x132;
+    int k = 0;
+    if (obj == NULL) {
+        CK(obj != NULL);
+        return;
+    }
+    setup();
+    g_w.word_63a4cd = (int16_t)dbg;
+    set16(obj, (size_t)(idx & 0x7fffu) * stride + 0x132, 1);                         /* the alias of a 15-bit mask */
+    set32(obj, off, word_dword);
+    g_watch = obj + off;
+    m4fc878_activate_record(obj, garbage | idx, &g_w, &g_host);
+    if (dbg) {
+        CKC(k, 0x50ca3e, 0, 3, 0x63888b, 0x560940, idx);
+        CKC(k + 1, 0x44a2b7, 0, 1, 0x63888b);
+        k += 2;
+    }
+    if (hit) {
+        CKC(k, 0x4f61e7, 0x5cf1eb, 1, idx);
+        CK(L.c[k].watch[0] == 1 && L.c[k].watch[1] == 0);
+        k++;
+        CK(get16(obj, off) == 2 && get16(obj, off + 2) == (uint16_t)(word_dword >> 16));
+    } else {
+        CK(get32(obj, off) == word_dword);
+    }
+    CK(L.n == k);
+    CK(get16(obj, (size_t)(idx & 0x7fffu) * stride + 0x132) == 1);                   /* the alias is untouched */
+    g_watch = NULL;
+    free(obj);
+}
+static void test_m4fc878_far_records(void)
+{
+    static const uint32_t idxs[3] = {0x8000, 0x8001, 0xffff};
+    int i;
+    for (i = 0; i < 3 && !g_failed; i++) {
+        far_case(idxs[i], 0, 1, 1, 1);
+        far_case(idxs[i], 0xabcd0000u, 1, 0x00070001u, 1);
+        far_case(idxs[i], 0x12340000u, 0, 1, 1);
+        far_case(idxs[i], 0, 1, 0, 0);
+        far_case(idxs[i], 0xffff0000u, 0, 2, 0);
+    }
+}
+static void test_m4fc878_activate_record(void)
+{
+    test_m4fc878_near_records();
+    if (!g_failed) test_m4fc878_far_records();
 }
 
 /* ---- 0x47d4f7 ------------------------------------------------------------------------------------------------------------------ */

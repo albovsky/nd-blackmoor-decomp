@@ -1,6 +1,6 @@
 # FL-31 batch b (`fl31b`) handoff
 
-Branch `worktree-agent-a92544c882ebdee97` (worktree `/home/user/nd-blackmoor-decomp/.claude/worktrees/agent-a92544c882ebdee97`; the ports land in commit `a86e5ff0`, the handoff and acceptances in the commit after it), based on `6b8fe413` (the FL-31 packet commit, fast-forwarded onto the worktree branch). Implementer: Claude Sonnet. No independent review has been done: every acceptance entry says so in its `reviewer` field; root must have the `slice-reviewer` confirm before collection. Nothing in `function-ledger*.json`, `function-evidence.json` or `function-execution.json` was edited. `tasks/fl31b-acceptances.json` is the proposed `port_acceptances` content (class `native_oracle_verified`, 9 entries; none of the nine rows has a receipt blocker in the packet, so there is no `blockers_reviewed`). `function_ledger.test_area` / `symbol_area` / `addresses_in` were run on all 27 test ids and on the 9 symbols and accept them (the full ledger build was not run).
+Branch `worktree-agent-a92544c882ebdee97` (worktree `/home/user/nd-blackmoor-decomp/.claude/worktrees/agent-a92544c882ebdee97`; the ports land in commit `a86e5ff0`, the handoff and acceptances in the commit after it), based on `6b8fe413`. The integration branch for FL-31 is `claude/fl-31-ports-z39puk` (this worker branch is to be collected onto it by root); review-fix commit: see the git log of this branch (it follows `aefa9711`), based on `6b8fe413` (the FL-31 packet commit, fast-forwarded onto the worktree branch). Implementer: Claude Sonnet. No independent review has been done: every acceptance entry says so in its `reviewer` field; root must have the `slice-reviewer` confirm before collection. Nothing in `function-ledger*.json`, `function-evidence.json` or `function-execution.json` was edited. `tasks/fl31b-acceptances.json` is the proposed `port_acceptances` content (class `native_oracle_verified`, 9 entries; none of the nine rows has a receipt blocker in the packet, so there is no `blockers_reviewed`). `function_ledger.test_area` / `symbol_area` / `addresses_in` were run on all 27 test ids and on the 9 symbols and accept them (the full ledger build was not run).
 
 GAME.EXE SHA-256 `afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45` (read only, checked by the oracle's loader on every run).
 
@@ -16,7 +16,7 @@ All in `src/original_methods_fl31b.c` / `.h` (symbols `m<va>_*`, world struct `F
 | 0x4dadff | 103 | m4dadff_poll_keys | 29/29 | 4/4 | 200 | e5360f6ac0c4d7891320e40a26380a3dfa5a7ad7d86a43e5d47052c5d8985a0a | 544471b7b218e2aed1e198ed97871fbaefed650f64473a2f472d9d5ac03f45a2 |
 | 0x420b9e | 121 | m420b9e_report_name | 32/32 | 2/2 | 144 | 223c56f0597d644e79e2cb6344892ac7bf54280999648aa01494098100d02f46 | 6a323858b8c714a58729ff1c74fe66f11f842730857d348ff765969bed8e5712 |
 | 0x47d1c3 | 139 | m47d1c3_alloc_zeroed | 45/45 | 4/4 | 144 | 6230e0d081a2b737230b86a1dac9d02f97bb7e97343f51764eae506b0b18d21d | 807c78e7d97ff53be2eb26a32d391437a4a316c35421a19e3d3a31e90ed10485 |
-| 0x4fc878 | 145 | m4fc878_activate_record | 38/38 | 4/4 | 350 | 3222fbee7001d5d9f9788ad256e51ebbd1949ff03f049358759abb16c2ea8208 | bfb3f1ddaa0d13aabe1898c6694f9e48c98cf9930c2b3e76d4297d96417b8cb9 |
+| 0x4fc878 | 145 | m4fc878_activate_record | 38/38 | 4/4 | 374 | 723430d88af309b11f4b11e4bee360922f3a46106a6a046cfef5b5ee6385116d | bfb3f1ddaa0d13aabe1898c6694f9e48c98cf9930c2b3e76d4297d96417b8cb9 |
 | 0x47d4f7 | 164 | m47d4f7_reset_fields | 39/39 | 0/0 | 12 | c6aaedbbb9a54fbde49797dcac8ba9885599ce504d6149899f2f3b13fef06137 | 295bb44405bcc175b4ed581b988a811feccc35173d60bef91f7a1d2ddad68985 |
 | 0x47d59b | 165 | m47d59b_release_fields | 56/56 | 10/10 | 96 | fff7090fa466a7e9d38d5181b8cb1e3b85ee88cb29ffe51d4dfd8533da93d66f | 69064fa7ea2d8f7db908498d2b9c653602941b79fa2e06cc62d1a968dafe287b |
 
@@ -29,8 +29,8 @@ Notes per function (the header `original_methods_fl31b.h` gives the byte-level c
 - **0x4daeb5** `read_cursor` (returns `out` in eax, compared in full): the import in slot 0x52a484 is called with the address of a local pair; x/y go to `self+0x18/+0x1c`, then through `out`. Fixtures put `out` inside `self` (shift 2, 4, -4, 0x14 ..) so that the order of the four stores is visible.
 - **0x4dadff** `poll_keys`: `GetAsyncKeyState` results with garbage in the upper half of eax (0x18000, 0x10000, 0xffff8000 ..); the stub logs the two output bytes at each call, which shows that the first store precedes the second call.
 - **0x420b9e** `report_name`: the 5-argument call `0x4c51a5` (`ret 0x14`, thiscall with ecx 0x5cf659); table index is a sign-extended word (-4 to 4 in the fixtures).
-- **0x47d1c3** `alloc_zeroed`: the allocation result is stored before the test; the clear starts at the address re-read from the cell; null path reports through 0x50ca3e, 0x4264e8, optional 0x44a2b7 (signed word 0x63a4cd non-zero, two garbage bytes behind it), 0x4c97b4. Unlike 0x4895cc (FL-29a) nothing here dereferences null, so there is no native rejection.
-- **0x4fc878** `activate_record`: the stack argument is masked to 16 bits (garbage in the upper half); record stride 0x5bb; the stub of 0x4f61e7 probes the state word at the call (still 1), the store of 2 follows the call.
+- **0x47d1c3** `alloc_zeroed`: the allocation result is stored before the test; the clear (guarded by `size != 0`, which the original's `rep stos` with a zero count makes unobservable) starts at the address re-read from the cell; 0x44a2b7 is called only when the debug word 0x63a4cd is non-zero; null path reports through 0x50ca3e, 0x4264e8, optional 0x44a2b7 (signed word 0x63a4cd non-zero, two garbage bytes behind it), 0x4c97b4. Unlike 0x4895cc (FL-29a) nothing here dereferences null, so there is no native rejection.
+- **0x4fc878** `activate_record`: the stack argument is masked to 16 bits (garbage in the upper half); record stride 0x5bb; the stub of 0x4f61e7 probes the state word at the call (still 1), the store of 2 follows the call. Review fix P2: the index is the UNSIGNED low word, so bit 15 matters (0x8000 * 0x5bb = 48 MB, 0xffff * 0x5bb = 96 MB). 12 far scenarios (indices 0x8000, 0x8001, 0xffff; debug word 1 or 0x8000; record word 1 or 0) run in the oracle and the differential with `this` shifted so that only 0x200 bytes around the record word are mapped (`self_off = 0x40 - 0x132 - index * 0x5bb`, Unicorn ecx and the native `self` pointer both shifted, nothing else touched); with the debug word on, the third argument of 0x50ca3e (0x8000 vs 0xffff8000) separates a sign-extended index. The direct test does the same with a lazily committed 96 MB calloc (`test_m4fc878_far_records`, run from `test_m4fc878_activate_record`) and also sets the record that a 15-bit mask would address to 1.
 - **0x47d4f7** `reset_fields`: no branches; whole-object compare on random, 0xff, 0x00 and 0xa5 fills, so a wrong width or offset is visible.
 - **0x47d59b** `release_fields`: all 32 combinations of the five guards (dword +0x1f, dwords +0x49, +0x4d, +0x51, word +0x23 != -1) with several non-zero dword shapes and word values (0, 0x7fff, 0x8000, 0xfffe, ..). 0x47d4f7 is a host stub here (see below).
 
@@ -74,7 +74,7 @@ None: no branch of the nine originals faults or overruns for the inputs the call
 `python3 tests/fl31b_mutation_check.py` over the whole file (single textual edits: hex literal +1, `==`/`!=`, `<`/`<=` boundary, one-line guard deleted, `rd16`/`rd32`/`rds16` width swap):
 
 ```
-mutants 109: caught by the direct test 102, by the differential test only 4, survivors 3
+mutants 110: caught by the direct test 103, by the differential test only 4, survivors 3
 ```
 
 All three survivors were read and are equivalent on every reachable input:
@@ -82,7 +82,7 @@ All three survivors were read and are equivalent on every reachable input:
 - 0x420b9e lines `m = (int16_t)rd16(self, 0xf75)` and `... 0xf73` read as `rd32`: the `(int16_t)` cast takes the low 16 bits of the dword, the same value.
 - 0x47d59b `call1(host, 0x4d3992, 0, rd16(self, 0x23))` read as `rd32`: the stack argument is a word compared by its low 16 bits (the original's upper half is stale), so only the low half is observable.
 
-Mutants applied by hand (the direct test and the differential test are both run on each; all CAUGHT by both): in 0x4daeb5 the stores into `self` moved after the stores through `out`, and `y` written as 0; in 0x4dadff the first store moved after the second call, and the whole eax tested instead of bit 15 of ax; in 0x4fc878 the state store moved before the call, and the index not masked to 16 bits; in 0x47d1c3 the clear one byte short, and the cell store skipped on the non-null path; in 0x47d59b the two frees swapped, and an unsigned word test; in 0x420b9e and 0x4c946b a zero-extended instead of sign-extended word; in 0x4ee673 the guard removed; in 0x47d4f7 a dword store at +0x57 and a changed constant. (The "unsigned word test" mutant of 0x47d59b does not build under `-Werror` for the direct test, which counts as caught; the differential test also catches it.)
+Mutants applied by hand (the direct test and the differential test are both run on each; all CAUGHT by both): in 0x4daeb5 the stores into `self` moved after the stores through `out`, and `y` written as 0; in 0x4dadff the first store moved after the second call, and the whole eax tested instead of bit 15 of ax; in 0x4fc878 the state store moved before the call, the index not masked to 16 bits, the index sign-extended `(uint32_t)(int32_t)(int16_t)index`, and the index masked to 15 bits (the last two are caught only since the far scenarios were added: the direct test fails on the 0x50ca3e argument and the differential test on the trace argument or by faulting outside the mapped bytes); in 0x47d1c3 the clear one byte short, and the cell store skipped on the non-null path; in 0x47d59b the two frees swapped, and an unsigned word test; in 0x420b9e and 0x4c946b a zero-extended instead of sign-extended word; in 0x4ee673 the guard removed; in 0x47d4f7 a dword store at +0x57 and a changed constant. (The "unsigned word test" mutant of 0x47d59b does not build under `-Werror` for the direct test, which counts as caught; the differential test also catches it.)
 
 Known gap of the tool: mutants are single textual edits; multi-line guards, `if (1)`, a dropped `||` operand, loop-bound expressions and double edits are not modelled.
 
@@ -96,14 +96,14 @@ Known gap of the tool: mutants are single textual edits; multi-line guards, `if 
 
 | file | sha256 |
 |---|---|
-| src/original_methods_fl31b.c | eb16d0b7a94185a4c2272635597043fb040537b763dcc0313ce19564418a0add |
+| src/original_methods_fl31b.c | ee02a865335887400827b5ea6482ef958e50818b1d2bed9a77deeb08c8dc85b5 |
 | src/original_methods_fl31b.h | d101bad1f3c9190b275fab8bf4e0aea69d8afdca7a14f261714bc149b886af44 |
 | tests/fl31b_original_oracle.py | 870b30d98aff6968db009246ccff7ec5f360d4085b4317d8a335c634c871b6d4 |
-| tests/fl31b_fixtures.py | 44b6de8eb075c0e06b766b74fb046e71a8c0bae95ce21b4ac3209b23190394db |
-| tests/fl31b_direct_test.c | 84d5b20d2f791a25407ea224a9c7fbfaddcf7d9861733e63674e1ed9b8d3bd65 |
-| tests/fl31b_differential_shim.c | e6bf1160020b660b0953998971ffb77b6dc0070e5e8043fcc6699ae0541f10ec |
-| tests/test_fl31b_differential.py | 717a42eb0e4cb24bc21f364441907e3d433b4f3bbeec38e255f275aa5f3ad1e8 |
+| tests/fl31b_fixtures.py | 2b560b191b3c28b545829dd4801ec335935e9e3d34d847e196eb931cb417880e |
+| tests/fl31b_direct_test.c | ac47a7391152f7f9c9b2d9c8e5d20f6df14b1b3b7400888abf1458005ae46f4d |
+| tests/fl31b_differential_shim.c | 31d8fd4cd3eb2a64f932f0dc5baffb8c504f1600baadf7c9dd0d713f77ca24b0 |
+| tests/test_fl31b_differential.py | 0b9d21136d948ac7e629259d413fcd78074dbbcf6998b46167bb666de7a04628 |
 | tests/test_fl31b_direct.py | 9c20ed846482b9fad16faef934ed817b5d17c6d11d39a5da1a3d8e165de801f7 |
-| tests/fl31b_mutation_check.py | 1185e047a8737275875cc53205e4ffd264584042f9280d5a2d72e0812cdcdf53 |
+| tests/fl31b_mutation_check.py | 1d3fdbbc13d92366c1ac99c05c5a89eab0f1fcb3109d590ad9c1f08c015a85ba |
 
 Native library: the differential builds `tests/fl31b_differential_shim.c` + `src/original_methods_fl31b.c` into a throwaway shared object per run (no committed binary).

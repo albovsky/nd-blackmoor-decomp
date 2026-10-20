@@ -96,7 +96,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Stores the pair from the GetCursorPos import (slot 0x52a484) at +0x18/+0x1c, then through the out pointer, and returns it; 22/22 instructions. See tasks/fl31b-handoff.md."
+  "note": "Stores the GetCursorPos pair (import slot 0x52a484) at +0x18/+0x1c, then through the out pointer, and returns the out pointer; 22/22 instructions. See tasks/fl31b-handoff.md."
  },
  {
   "va": "0x4dadff",
@@ -195,7 +195,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Allocates through 0x51dc43 and stores the result; zeroes size bytes (rep stos) or on null reports through four callees; 45/45, 4/4 directions. See tasks/fl31b-handoff.md."
+  "note": "Allocates via 0x51dc43, stores the result; zeroes size bytes (rep stos) or on null reports (0x44a2b7 only if the debug flag is set); 45/45, 4/4 directions. See tasks/fl31b-handoff.md."
  },
  {
   "va": "0x4fc878",

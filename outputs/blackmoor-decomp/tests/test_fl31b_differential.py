@@ -107,7 +107,7 @@ class Fl31bDifferential(DiffBase):
                 (self.lib.shim_script_deref if index == 0 else self.lib.shim_script_deref2)(s.name, arg, nbytes)
                 deref_len.setdefault(s.name, []).append((arg, nbytes))
         result = ctypes.c_int32(0)
-        self_ptr = ctypes.cast(ctypes.byref(by_name['self'], sc.self_off), ctypes.c_void_p) if 'self' in by_name else None
+        self_ptr = ctypes.c_void_p(ctypes.addressof(by_name['self']) + sc.self_off) if 'self' in by_name else None       # self_off may be negative (a far record: this lies outside the mapped bytes)
         stack_args = (ctypes.c_uint64 * 8)(*[v & 0xffffffffffffffff for v in sc.args])
         self.lib.shim_fl31b(sc.fn, self_ptr, ctypes.byref(stack_args), ctypes.byref(sw), ctypes.byref(result))
         if fx.SPECS[sc.key].get('ret'):
