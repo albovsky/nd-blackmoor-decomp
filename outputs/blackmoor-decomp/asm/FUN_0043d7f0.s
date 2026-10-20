@@ -16,7 +16,7 @@
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      calls FUN_004d3ced, FUN_00468f68, FUN_004a3910, FUN_0048a82e, FUN_004b3da2, FUN_00459bd6, FUN_004a1ce0, FUN_0048e393, FUN_0048d0e5, FUN_004a6477, FUN_004b5c11, FUN_004ab425, FUN_00465b9f, FUN_004618ab, FUN_00487b98, FUN_004afdc7 and 31 more
 # track-n:      outputs/blackmoor-decomp/src/original_methods_fl30c.c:m43d7f0_init_scenes (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 139 instruction(s), 8 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code; function ledger class partial_native is a native-touch record, not a counterpart claim
+# unverified:   machine annotation only: the 139 instruction(s), 8 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text
