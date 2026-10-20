@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004159db
+# name:         m4159db_dispatch_piece
+# naming:       native port src/original_methods_fl27a.c:m4159db_dispatch_piece (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the summary is the acceptance note
+# summary:      1:1 with m4159db_dispatch_piece: the oracle runs every instruction and both directions of every conditional jump (untaken edges only as listed in the handoff). See tasks/fl27a-handoff.md.
 # arguments:    2 ebp-relative stack slot(s) referenced: arg_8, arg_c; ret 0x8 (callee pops 8 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       2 ebp-relative slot(s): local_4, local_8
 # fields:       [eax + n] field_20
 # callees:      calls FUN_00415db9, FUN_00415011, FUN_0050ca3e, FUN_0052139c, FUN_004c97b4
-# track-n:      outputs/blackmoor-decomp/src/avf_decoder.c:check_data (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 42 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/avf_decoder.c:check_data (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 42 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

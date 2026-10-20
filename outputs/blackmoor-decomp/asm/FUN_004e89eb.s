@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004e89eb
+# name:         m4e89eb_layout_slots
+# naming:       native port src/original_methods_fl19a.c:m4e89eb_layout_slots (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-18); the summary is the acceptance note
+# summary:      1:1 with m4e89eb_layout_slots. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 457 bytes.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_764c, field_822e, field_823e, field_8242, field_824a, field_minus_1; [ecx + n] field_7012, field_764c, field_822e, field_823a, field_8246, field_minus_1; [edx + n] field_7654, field_822e, field_823a, field_823e, field_8242, field_8246, field_824e
 # callees:      calls FUN_004ee2a9, FUN_004e22fd, FUN_004e8bb4
-# track-n:      outputs/blackmoor-decomp/src/inventory_view_runtime.h:inventory_view_cursor_choice (function ledger class candidate_port; also inventory_view_hover; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 103 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/inventory_view_runtime.h:inventory_view_cursor_choice (function ledger class native_oracle_verified; also inventory_view_hover; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 103 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

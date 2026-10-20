@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0041546f
+# name:         avf_decode_single
+# naming:       native port src/avf_decoder.c:avf_decode_single (port_acceptances, ledger class native_tests_only, reviewed 2026-10-16); the summary is the acceptance note
+# summary:      Single-buffer decode, all record types. Fatal paths are status returns, buffers passed in, 0x4c7314 is the convert hook, extra native rejections of truncated input. Oracle not run whole.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       8 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c, local_20
 # fields:       [eax + n] field_e, field_21, field_41, field_45, field_17a, field_1c2; [ecx + n] field_a, field_e, field_35, field_39, field_3d, field_45; [edx + n] field_6, field_a, field_e, field_21, field_35, field_3d, field_45
 # callees:      calls FUN_0050ca3e, FUN_004159db, FUN_004c7314, FUN_004150af, FUN_00416af3, FUN_0051dc6c, FUN_00415011, FUN_004264e8, FUN_004c97b4
 # track-n:      outputs/blackmoor-decomp/src/avf_decoder.c:avf_decode_single (function ledger class native_tests_only; also is_empty; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 213 instruction(s), 9 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 213 instruction(s), 9 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

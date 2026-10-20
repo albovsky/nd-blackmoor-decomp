@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004712bd
+# name:         m4712bd_click_27a6_27ad
+# naming:       native port src/original_methods_fl25d.c:m4712bd_click_27a6_27ad (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the summary is the acceptance note
+# summary:      1:1 with m4712bd_click_27a6_27ad. Direct, Unicorn differential and oracle: every instruction reached, both jcc ways (untaken edges allowlisted in the handoff). See tasks/fl25d-handoff.md.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       4 ebp-relative slot(s): local_4, local_8, local_c, local_10
 # fields:       [eax + n] field_87, field_c9c, field_d28, field_d2a, field_d30, field_d32, field_d3a, field_d3e, field_d4a, field_e06; [ecx + n] field_21, field_23, field_c9c, field_d01, field_d2a, field_d30, field_d32, field_d48, field_e00; [edx + n] field_21, field_23, field_24, field_c9c, field_d01, field_d2a, field_d2c, field_d30, field_d32, field_d3b, field_d3f, field_dc2; [esi + n] field_d4c
 # callees:      calls KERNEL32.dll!GetTickCount, FUN_004fb2e3
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 267 instruction(s), 28 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/action_family_e0_runtime.h:e0_click (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 267 instruction(s), 28 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

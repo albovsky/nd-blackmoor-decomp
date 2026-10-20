@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_00484d87
+# name:         follow_pointer
+# naming:       native port src/action_family_ea_runtime.c:follow_pointer (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-17); the summary is the acceptance note
+# summary:      1:1 with follow_pointer (prev copy, centre, clamp). Native returns EA_ERR_HOST on seam failure (no original path); effects are all in the compared image.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [eax + n] field_aa0, field_aa4, field_aa8, field_aac, field_ab8, field_ac0, field_ac4, field_ac8, field_acc, field_bb9, field_bbd, field_bc5 and 1 more; [ecx + n] field_ab0, field_ab4, field_ab8, field_abc, field_ad0, field_ad4, field_ad8, field_adc, field_bb1, field_bb5; [edx + n] field_ab0, field_ab4, field_bb1, field_bb5, field_bc5
 # callees:      calls FUN_00484caf, FUN_004841cb
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 104 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/action_family_ea_runtime.c:follow_pointer (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 104 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

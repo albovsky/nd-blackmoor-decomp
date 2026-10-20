@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004b832c
+# name:         clock_update
+# naming:       native port src/action_family_f5_runtime.c:clock_update (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-17); the summary is the acceptance note
+# summary:      1:1 with clock_update (ms to m:ss, unsigned/signed divides, clamps). Aggregate-state oracle with ordered clock effects.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       6 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18
 # fields:       [eax + n] field_8, field_626; [ecx + n] field_45a, field_626, field_62a, field_62e; [edx + n] field_626, field_62a, field_632
 # callees:      calls KERNEL32.dll!GetTickCount, FUN_00446598
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 82 instruction(s), 6 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/action_family_f5_runtime.c:clock_update (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 82 instruction(s), 6 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

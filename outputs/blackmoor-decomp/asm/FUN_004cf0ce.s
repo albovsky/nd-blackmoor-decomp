@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004cf0ce
+# name:         pick_record
+# naming:       native port src/action_family_2d_runtime.c:pick_record (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-17); the summary is the acceptance note
+# summary:      1:1 with pick_record. Native reads the clip index from o->clip_246 (parameter in the original; same at its one call site); null-set and clip checks native-only.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       8 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c, local_20
 # fields:       [eax + n] field_2d, field_2f, field_31; [ecx + n] field_21, field_2f, field_31, field_226; [edx + n] field_21, field_2d
 # callees:      calls FUN_004cf0a9
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 91 instruction(s), 8 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/action_family_2d_runtime.c:pick_record (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 91 instruction(s), 8 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

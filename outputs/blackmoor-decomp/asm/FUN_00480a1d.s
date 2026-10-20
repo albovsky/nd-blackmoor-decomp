@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_00480a1d
+# name:         sound_good
+# naming:       native port src/action_family_eb_runtime.c:sound_good (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-18); the summary is the acceptance note
+# summary:      1:1 with sound_good (record +0x777, then save_and_check, state 4, deadline2 tick+100). Row phase and world are parameters; host callbacks. save_and_check (0x480b34) is credited separately (FL-10).
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       2 ebp-relative slot(s): local_4, local_8
 # fields:       [eax + n] field_1e, field_13ca; [ecx + n] field_798, field_13e7, field_13eb; [edx + n] field_13e7
 # callees:      calls FUN_004fb2e3, KERNEL32.dll!GetTickCount, FUN_00480b34
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 44 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/action_family_eb_runtime.c:sound_blip (function ledger class native_oracle_verified; also sound_good; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 44 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

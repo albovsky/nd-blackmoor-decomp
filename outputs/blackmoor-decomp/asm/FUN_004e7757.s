@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004e7757
+# name:         m4e7757_close
+# naming:       native port src/original_methods_fl16.c:m4e7757_close (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-18); the summary is the acceptance note
+# summary:      1:1 with m4e7757_close ([this+0x991] := 1, 0x4e76ed direct call clears it again, 0x4d36ed via Fl16Host, then global 0x583204 := 0 as Fl16World.value_583204).
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_991
 # callees:      calls FUN_004e76ed, FUN_004d36ed
-# track-n:      outputs/blackmoor-decomp/src/action_family_3f_runtime.c:phase2 (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 13 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/action_family_3f_runtime.c:phase2 (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 13 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

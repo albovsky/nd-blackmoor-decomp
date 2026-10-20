@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004dcdd3
+# name:         partner_step
+# naming:       native port src/avf_player.c:partner_step (port_acceptances, ledger class native_tests_only, reviewed 2026-10-16); the summary is the acceptance note
+# summary:      Substates 0 and 4 match branch for branch. Seams: debug lines omitted; finish = +0x1c 3 plus the 0x4dad60 reset (caller does it); 0x4f6334 is gate.sound_busy; 0x4fb2e3 is the sound event. Oracle window is not executed whole.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [eax + n] field_4a, field_ee, field_102, field_172, field_1cc; [ecx + n] field_1c, field_4a, field_b7, field_de, field_ee, field_102, field_17a, field_18c, field_18e, field_1be, field_1c2; [edx + n] field_1c, field_de, field_ee, field_172, field_17a, field_1be, field_1cc
 # callees:      calls FUN_0050ca3e, FUN_0044a2b7, FUN_004dd28d, KERNEL32.dll!GetTickCount, FUN_004fb2e3, FUN_004f6334, FUN_004dad60
 # track-n:      outputs/blackmoor-decomp/src/avf_player.c:partner_step (function ledger class native_tests_only; also partner_step_index; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 151 instruction(s), 18 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 151 instruction(s), 18 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

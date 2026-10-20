@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_00465c99
+# name:         m465c99_hit_test
+# naming:       native port src/original_methods_fl24a.c:m465c99_hit_test (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the summary is the acceptance note
+# summary:      1:1 with m465c99_hit_test (row split at (hi-lo)/2, three rectangles, last, calls 465f8e, ret 8). Differential and oracle: every instruction reached. See tasks/fl24a-handoff.md.
 # arguments:    2 ebp-relative stack slot(s) referenced: arg_8, arg_c; ret 0x8 (callee pops 8 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [eax + n] field_2a, field_49, field_5c, field_60, field_64, field_74, field_f8, field_fc, field_100, field_54f; [ecx + n] field_1e, field_2a, field_2c, field_58, field_5c, field_60, field_6c, field_70, field_100, field_104, field_55b; [edx + n] field_2a, field_2c, field_58, field_64, field_68, field_f8, field_fc, field_104, field_553, field_557; [esi + n] field_f8
 # callees:      calls FUN_00465f8e
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 222 instruction(s), 31 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl24a.c:m465c99_hit_test (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 222 instruction(s), 31 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

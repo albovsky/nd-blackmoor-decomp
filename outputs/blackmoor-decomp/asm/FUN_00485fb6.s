@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_00485fb6
+# name:         bad_drop_feedback
+# naming:       native port src/action_family_ea_runtime.c:bad_drop_feedback (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-18); the summary is the acceptance note
+# summary:      1:1 with bad_drop_feedback (record +0xa79, AUTOTEXT caption, state 2, deadline tick+2000). Native errors where the original overruns its 204-byte caption buffer; untested.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       6 ebp-relative slot(s): local_4, local_8, local_c, local_d8, local_dc, local_e0
 # fields:       [eax + n] field_26, field_a9a, field_aec, field_bc1; [ecx + n] field_b4f, field_bac, field_bc1, field_bc9; [edi + n] field_minus_1; [edx + n] field_aec, field_b4f, field_bac
 # callees:      calls FUN_0050cd50, FUN_004fb77a, FUN_004fb2e3, FUN_00423259, FUN_00448d11, KERNEL32.dll!GetTickCount
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 242 instruction(s), 14 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/action_family_ea_runtime.c:bad_drop_feedback (function ledger class native_oracle_verified; also caption_block, feedback_sound, pick_alternate; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 242 instruction(s), 14 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

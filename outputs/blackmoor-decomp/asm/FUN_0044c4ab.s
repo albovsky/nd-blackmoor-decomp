@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0044c4ab
+# name:         release
+# naming:       native port src/avf_player.c:release (port_acceptances, ledger class native_tests_only, reviewed 2026-10-15); the summary is the acceptance note
+# summary:      Static release: if (handshake != 2) handshake = 0, plus an observer callback. avf_player_original_oracle compares it but needs game data, not run here; the RT-9 execution oracle does not compare it, so tests-only.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       none: no [ebp-n] slot referenced
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      none: no call or outward jump
 # track-n:      outputs/blackmoor-decomp/src/action_family_3f_runtime.c:convo3f_cel_reader_iteration (function ledger class native_tests_only; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 9 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 9 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

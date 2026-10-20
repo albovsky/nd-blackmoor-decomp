@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004f6334
+# name:         session_conditions_query_channel_record
+# naming:       native port src/session_bindings_conditions.c:session_conditions_query_channel_record (port_acceptances, ledger class native_tests_only, reviewed 2026-10-15); the summary is the acceptance note
+# summary:      Decision order, error words and status bit match the pseudocode; the DirectSound GetStatus call is a host value in the record. Test passed on macOS arm64, 2026-10-15.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [eax + n] field_16e, field_28f, field_3be, field_3c2, field_3ca, field_3ce; [ecx + n] field_24, field_19e, field_28f, field_3be, field_3c2, field_3ca; [edx + n] field_162, field_172, field_28f, field_3be, field_3c2, field_3ca
 # callees:      calls FUN_004f709c; plus 1 indirect transfer(s) whose target is not resolved
-# track-n:      outputs/blackmoor-decomp/src/blackmoor_app.mm:native_bar_sound_busy (function ledger class native_tests_only; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 79 instruction(s), 8 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; indirect transfers are not followed
+# track-n:      outputs/blackmoor-decomp/src/action_family_da_runtime.c:play_if_idle (function ledger class native_tests_only; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 79 instruction(s), 8 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code; indirect transfers are not followed
 .intel_syntax noprefix
 .code32
 .text

@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0042028e
+# name:         remove_response
+# naming:       native port src/action_family_3f_runtime.c:remove_response (port_acceptances, ledger class native_tests_only, reviewed 2026-10-16); the summary is the acceptance note
+# summary:      Extracted from build_list case 2: drop the same-text entry (count - 1, min 0). Static, so the original's other callers are not routed here. Text compare is convo3f_text_equal; no whole-function receipt, so tests-only.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       7 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c
 # fields:       [eax + n] field_7d9, field_7fc, field_800, field_80a, field_80e, field_ea5, field_f21; [ecx + n] field_7fe, field_802, field_810, field_ea5, field_f21; [edx + n] field_7fa, field_806, field_811, field_ea5, field_f21; [esi + n] field_7fa, field_7fc, field_7fe, field_800, field_802, field_806, field_80a, field_80e, field_810, field_811
 # callees:      calls FUN_0051ea75, FUN_0050d550, FUN_0051eac4
 # track-n:      outputs/blackmoor-decomp/src/action_family_3f_runtime.c:copy_name_cstr (function ledger class native_tests_only; also remove_response; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 207 instruction(s), 4 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 207 instruction(s), 4 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

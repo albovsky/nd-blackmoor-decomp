@@ -144,6 +144,7 @@ def load_module(name: str, path: Path) -> Any:
 
 if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
+import function_names as fnames  # noqa: E402
 import gen_fragments  # noqa: E402
 
 gen = gen_fragments.extend(load_module("gen_hinted_asm_for_audit", SCRIPTS / "gen_hinted_asm.py"))
@@ -236,7 +237,7 @@ def mnemonic_of(code: str) -> str:
     return re.sub(r"\.d(?:8|32)$", "", tokens[0])
 
 
-def audit_source(text: str, header_expect: dict[str, Any], code_symbol: str, allow_index_byte_lists: bool = True, text_base: int = 0x401000, index_owners: Optional[dict[str, int]] = None) -> tuple[list[str], dict[str, Any]]:
+def audit_source(text: str, header_expect: dict[str, Any], code_symbol: str, allow_index_byte_lists: bool = True, text_base: int = 0x401000, index_owners: Optional[dict[str, int]] = None, names: Optional[dict[int, dict[str, Any]]] = None) -> tuple[list[str], dict[str, Any]]:
     """Lexical checks; returns (reasons, facts)."""
 
     reasons: list[str] = []
@@ -265,8 +266,23 @@ def audit_source(text: str, header_expect: dict[str, Any], code_symbol: str, all
     facts["annotation"] = "machine" if machine else "hand"
     name = header.get("name", "")
     if machine:
-        if name != "fn_" + code_symbol[4:]:
-            reasons.append(f"machine-annotated function name {name!r} is not fn_<va> of {code_symbol}")
+        # asm/function-names.json (scripts/function_names.py) may give a function the name that committed evidence states;
+        # then the source must carry exactly that name, naming line and summary, and nothing else may carry them.
+        named = (names or {}).get(int(code_symbol[4:], 16))
+        facts["naming"] = named["basis"] if named else ""
+        if named:
+            if name != named["name"]:
+                reasons.append(f"machine-annotated function name {name!r} is not the name {named['name']!r} that asm/function-names.json records for {code_symbol}")
+            if header.get("naming") != fnames.naming_text(named):
+                reasons.append("header 'naming' differs from asm/function-names.json")
+            if header.get("summary") != fnames.summary_text(named):
+                reasons.append("header 'summary' differs from asm/function-names.json")
+        else:
+            if name != "fn_" + code_symbol[4:]:
+                reasons.append(f"machine-annotated function name {name!r} is not fn_<va> of {code_symbol}")
+            for key in ("naming", "summary"):
+                if key in header:
+                    reasons.append(f"header {key!r} present but asm/function-names.json has no entry for {code_symbol}")
     elif name and (
         not re.match(r"^[A-Za-z_][A-Za-z0-9_:.]*$", name)
         or re.match(r"^FUN_[0-9a-f]{8}$", name)
@@ -596,6 +612,8 @@ class AuditConfig:
     baseline_dir: Optional[Path] = PROJECT
     image_base: int = 0x400000
     allow_index_byte_lists: bool = True
+    # va -> entry of asm/function-names.json; None means no function has a recorded name
+    names: Optional[dict[int, dict[str, Any]]] = None
 
 
 def audit_manifest(manifest_path: Path, config: AuditConfig) -> dict[str, Any]:
@@ -664,6 +682,7 @@ def audit_manifest(manifest_path: Path, config: AuditConfig) -> dict[str, Any]:
         for item in result["data_items"]:
             handoff.append({"function": result["function"], **item})
     report["accepted_count"] = len(accepted)
+    report["named_functions"] = sum(1 for f in accepted if f.get("naming"))
     report["code_bytes_accepted"] = sum(f["code"]["size"] for f in accepted)
     report["by_region"] = by_region
     report["data_items_for_m02"] = handoff
@@ -782,10 +801,12 @@ def audit_function(entry: dict[str, Any], va: int, layout, image, manifest_path:
     if entry.get("evidence_id") != image.evidence.get(va):
         reasons.append("evidence_id in the manifest differs from function-index.json")
     index_owners = {f"IDXTAB_{i.va:08x}": i.owner_jmp for i in layout.data if i.kind == "index_table"}
-    lexical, facts = audit_source(text, header_expect, symbol, config.allow_index_byte_lists, image.base, index_owners)
+    lexical, facts = audit_source(text, header_expect, symbol, config.allow_index_byte_lists, image.base, index_owners, config.names)
     reasons += lexical
     result["basic_blocks"] = facts.get("basic_blocks")
     result["annotation"] = facts.get("annotation", "hand")
+    if facts.get("naming"):
+        result["naming"] = facts["naming"]
     track = facts["header"].get("track-n", "")
     if config.repository and track and track != "host-adapter: none":
         match = re.match(r"^([\w./+-]+):([\w:~]+)", track)
@@ -931,8 +952,11 @@ def main(argv: Optional[list[str]] = None) -> int:
     parser.add_argument("manifest", type=Path)
     parser.add_argument("--original", type=Path, default=WORK / "original/GAME.EXE")
     parser.add_argument("--report", type=Path)
+    parser.add_argument("--names", type=Path, default=fnames.NAMES,
+                        help="function names table (default asm/function-names.json; a missing file means no recorded names)")
     args = parser.parse_args(argv)
-    config = AuditConfig(original=args.original)
+    names = fnames.load(args.names) if args.names.is_file() else None
+    config = AuditConfig(original=args.original, names=names)
     report = audit_manifest(args.manifest, config)
     encoded = json.dumps(report, indent=2, sort_keys=True) + "\n"
     if args.report:

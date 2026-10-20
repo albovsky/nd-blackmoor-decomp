@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_00485d52
+# name:         drop_sound
+# naming:       native port src/action_family_ea_runtime.c:drop_sound (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-18); the summary is the acceptance note
+# summary:      1:1 with drop_sound (record +0x6d8, rand()%3 alternate loop, state 1, deadline tick+300, flag 1). Body is a parameter; negative rand returns EA_ERR_BOUNDS; oracle aggregate.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       4 ebp-relative slot(s): local_4, local_8, local_c, local_10
 # fields:       [eax + n] field_26, field_b73; [ecx + n] field_bc9; [edx + n] field_b87, field_bac
 # callees:      calls FUN_0050cd50, FUN_004fb77a, FUN_004fb2e3, KERNEL32.dll!GetTickCount
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 131 instruction(s), 8 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/action_family_ea_runtime.c:drop_sound (function ledger class native_oracle_verified; also pick_alternate, piece_sound; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 131 instruction(s), 8 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

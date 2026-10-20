@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0047fa11
+# name:         rotate_piece
+# naming:       native port src/action_family_eb_runtime.c:rotate_piece (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-17); the summary is the acceptance note
+# summary:      1:1 with rotate_piece (orientation wrap, centre, clamp, saved rect). Native returns a status on host view failure; oracle is aggregate.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       5 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14
 # fields:       [eax + n] field_2, field_6, field_c, field_16, field_22, field_23, field_134c; [ecx + n] field_2, field_4, field_6, field_8, field_a, field_c, field_10, field_20, field_22, field_7b4; [edx + n] field_4, field_6, field_8, field_c, field_e, field_14, field_16, field_20, field_22, field_23
 # callees:      calls FUN_0047f19d, FUN_0047e52f
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 123 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/action_family_eb_runtime.c:rotate_piece (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 123 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

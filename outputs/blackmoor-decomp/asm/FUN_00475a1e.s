@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_00475a1e
+# name:         fill
+# naming:       native port src/action_family_e4_runtime.c:fill (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-17); the summary is the acceptance note
+# summary:      fill matches the original loops (rows body+0x42, cols +0x44), the all/single-cell gate, the rand % (kinds-1) retry against upper then left neighbour, kind/rect/present/matched stores and the call to the cell rect;
 # arguments:    3 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10; ret 0xc (callee pops 12 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       6 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18
 # fields:       [eax + n] field_4, field_22, field_30, field_44; [ecx + n] field_2, field_30; [edx + n] field_1, field_30, field_42, field_46
 # callees:      calls FUN_0050cd50, FUN_00475bef
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 127 instruction(s), 10 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 127 instruction(s), 10 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

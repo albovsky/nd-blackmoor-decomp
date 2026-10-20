@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0048569e
+# name:         m48569e_handle_key
+# naming:       native port src/original_methods_fl21b.c:m48569e_handle_key (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-19); the summary is the acceptance note
+# summary:      1:1 with m48569e_handle_key. Direct test: whole objects and ordered host calls. Differential test: original bytes (Unicorn) vs native on the same random fixtures, every instruction reached. Oracle window runs all 1539 bytes.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [eax + n] field_4, field_8, field_c, field_26, field_2a, field_3a, field_8f, field_ac, field_a92, field_a9e, field_b83, field_ba7 and 4 more; [ecx + n] field_4, field_8, field_c, field_23, field_26, field_2a, field_2d, field_32, field_36, field_3a, field_ac, field_a96 and 7 more; [edx + n] field_4, field_8, field_c, field_2a, field_2d, field_2e, field_32, field_36, field_4a, field_4b, field_8f, field_9f and 6 more; [esi + n] field_2a, field_2e, field_bf
 # callees:      calls FUN_00484622, FUN_004853b0, FUN_00485f12, FUN_00485ca1, FUN_004846c2, FUN_00484f0d, FUN_00485d52, FUN_004841cb, FUN_00484935
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 356 instruction(s), 19 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/action_family_ea_runtime.h:ea_click (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 356 instruction(s), 19 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

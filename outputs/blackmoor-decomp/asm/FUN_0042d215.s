@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0042d215
+# name:         frame_advance
+# naming:       native port src/action_family_33_runtime.c:frame_advance (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-17); the summary is the acceptance note
+# summary:      1:1 with frame_advance (modes 0-3 clamp/wrap, latch compare). Native: reads w4c/w4e/w52/w56 from the parsed set, not DAT_005b4ead; oracle is aggregate.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_4c, field_52, field_56; [ecx + n] field_4c, field_4e, field_52, field_56
 # callees:      none: no call or outward jump
-# track-n:      outputs/blackmoor-decomp/src/avf_player.c:secondary_step_index (function ledger class candidate_port; also secondary_swap; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 66 instruction(s), 7 conditional branch(es) and 1 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/action_family_33_runtime.c:frame_advance (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 66 instruction(s), 7 conditional branch(es) and 1 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and summary are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text
