@@ -8,15 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_sound_channel_stop
-# naming:       INFERRED (lower confidence, not verified): the repository text src/live_audio.c:917 says "Explicit Stop 0x4f61e7 writes slot+0x287 = 1 before the COM Stop"
-# name-note:    Explicit sound channel Stop; writes slot+0x287 = 1 before the COM Stop.
+# name:         m4f61e7_start_record
+# naming:       native port src/original_methods_fl30a.c:m4f61e7_start_record (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port
+# name-note:    Start of a record: stores 0x3e8/0, calls 0x4f709c, checks rec+0x162/+0x28f, calls the vtable entry +0x48 and reports via 0x50ca3e/0x44a2b7; all instructions and jump directions run.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       2 ebp-relative slot(s): local_4, local_8
 # fields:       [eax + n] field_28f, field_3be, field_3c2, field_3ca, field_3ce; [ecx + n] field_48, field_287, field_28f, field_3be, field_3c2, field_3ca; [edx + n] field_162, field_28f, field_3be, field_3c2, field_3ca
 # callees:      calls FUN_004f709c, FUN_0050ca3e, FUN_0044a2b7; plus 1 indirect transfer(s) whose target is not resolved
-# track-n:      outputs/blackmoor-decomp/src/live_audio.c:live_audio_stop_channel (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 78 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; indirect transfers are not followed
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl30a.c:m4f61e7_start_record (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 78 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code; indirect transfers are not followed
 .intel_syntax noprefix
 .code32
 .text

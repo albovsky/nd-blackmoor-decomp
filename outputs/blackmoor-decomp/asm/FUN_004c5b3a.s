@@ -8,15 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_color_keyed_surface_blit
-# naming:       INFERRED (lower confidence, not verified): the repository text src/autotext_writer.c:166 says "0x4c5b3a: colour-keyed copy of the source rectangle"; src/caption_layout.c:539 says "0x4c5b3a: source-height rows, source-width words; only words"
-# name-note:    Colour-keyed copy of a source rectangle to the destination left/top; only non-key words are written.
+# name:         m4c5b3a_copy_keyed
+# naming:       native port src/original_methods_fl30b.c:m4c5b3a_copy_keyed (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port
+# name-note:    Colour-keyed word copy between two surface descriptors, size-equality report under the debug word; all instructions and jump directions run; a null descriptor is a native rejection. See fl30b-handoff.md.
 # arguments:    5 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10, arg_14, arg_18; ret 0x14 (callee pops 20 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       15 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c, local_20, local_24, local_28, local_124, local_128 and 3 more
 # fields:       [eax + n] field_4, field_8, field_c, field_2f; [ecx + n] field_4, field_8, field_c, field_2f; [edx + n] field_4, field_8, field_c, field_2f, field_38d0
 # callees:      calls FUN_0050ca3e, FUN_0052139c, FUN_004c97b4
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 166 instruction(s), 8 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class partial_native is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl30b.c:m4c5b3a_copy_keyed (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 166 instruction(s), 8 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

@@ -10458,6 +10458,7 @@
       "contains_original_byte_values": false,
       "data_items": [],
       "function": "FUN_00411f24",
+      "naming": "native_port",
       "object": {
         "sha256": "7dca82bde0f2bb4c52ef4ba1114d40102befa7a9fcd2659ebe71e59dc60a0232",
         "size": 70958
@@ -10467,7 +10468,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_00411f24.s",
-        "sha256": "61e164d2a1bc6963c18b3a9228d46e2e040335641a7fbb9cbb9c5f4470381e26"
+        "sha256": "6e2cca57941cced0afe4ba8e3e8f61551a484c545187558a14d6432151caf93d"
       },
       "status": "accepted",
       "va": 4267812
@@ -10898,7 +10899,7 @@
       "contains_original_byte_values": false,
       "data_items": [],
       "function": "FUN_00414692",
-      "naming": "inferred_prose",
+      "naming": "native_port",
       "object": {
         "sha256": "4919cf7fe5030faf575dc8148da5f143b82d14765236cb6b16bd212a52578d49",
         "size": 80890
@@ -10908,7 +10909,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_00414692.s",
-        "sha256": "f71a61745f04a9bdf38eb1690ac91582fa069e322ca8320f013e6ff4e53e2f75"
+        "sha256": "2d17c12d0570cbffeabd321452b9262e885697e4ca57d63a0539d1c4636bda39"
       },
       "status": "accepted",
       "va": 4277906
@@ -13664,7 +13665,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_004234dd.s",
-        "sha256": "c403425754ef879d1597faf8c55725de54a3320e479695ff264a9b54a0486a7d"
+        "sha256": "4fad7727f2e2ddab7544d5c7d4171370f5ef39d8f65ed6ea7fca9ecd013d5d89"
       },
       "status": "accepted",
       "va": 4338909
@@ -13850,6 +13851,7 @@
       "contains_original_byte_values": false,
       "data_items": [],
       "function": "FUN_00423876",
+      "naming": "native_port",
       "object": {
         "sha256": "033c5c7df54f5c7670f2fd29f43ec5cc62c73e552336ec7c26f33f50d61b5b46",
         "size": 142740
@@ -13859,7 +13861,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_00423876.s",
-        "sha256": "341b6e217c2a454dc241215bf21def0fc7cfeafef731711d269a45e6f7168036"
+        "sha256": "700e588f6766feb6ec7537e5047afab1b045ecc7a4d8ad8f63df1d6bd06eed26"
       },
       "status": "accepted",
       "va": 4339830
@@ -15870,6 +15872,7 @@
       "contains_original_byte_values": false,
       "data_items": [],
       "function": "FUN_0042e844",
+      "naming": "native_port",
       "object": {
         "sha256": "de6f74becd1b1837f66e7db81514bba62316d655a1df2a6cf7707ca9df1a105a",
         "size": 187564
@@ -15879,7 +15882,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_0042e844.s",
-        "sha256": "add9acf2256a6acdf7d9096006344c855452061bb2ba4552a0362e053b33439a"
+        "sha256": "27a2a9ff99d2a81190ca1ae142fb8a3dc2892f7a7b0d099251b4597ba03950da"
       },
       "status": "accepted",
       "va": 4384836
@@ -16867,7 +16870,7 @@
       "contains_original_byte_values": false,
       "data_items": [],
       "function": "FUN_0043d7f0",
-      "naming": "inferred_prose",
+      "naming": "native_port",
       "object": {
         "sha256": "8a9a41c35fba6ba749049b43bb13596d72c42f4c9a9adc5baa3d789e0f763aa7",
         "size": 250244
@@ -16877,7 +16880,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_0043d7f0.s",
-        "sha256": "766a73736ae54cce925a790c7b61a05a3d1f50ba5ea9b941c09c79a2804171f0"
+        "sha256": "44a1da5b62e92dbc9b77520f38ac2950e827794dc3726d0bd4548e631b5cd6b0"
       },
       "status": "accepted",
       "va": 4446192
@@ -20830,9 +20833,9 @@
       "va": 4498450
     }
   ],
-  "manifest_sha256": "a79014ca8d81727a7c06d73751061108d742714820bcb13d077207da8f756edc",
-  "named_functions": 186,
-  "names_sha256": "391751490ef1156eebcbede2b23588387192543249f554b2d40a1e02228a12f8",
+  "manifest_sha256": "0a18982ce399a13be6c6eb6717be054a96efc0b0372e8bf6593e0b8869156932",
+  "named_functions": 189,
+  "names_sha256": "17652eaf7f697809ece671f76bdff178f43c1fa64efab77880697eaafe73e1b7",
   "note": "Accepted functions are candidates for the tool_assisted_reconstructed_assembly class; they count only after root accepts the independent review. No claim is made about original C++ or compiler provenance.",
   "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45"
 }

@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004d270b
+# name:         m4d270b_draw_text
+# naming:       native port src/original_methods_fl30a.c:m4d270b_draw_text (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port
+# name-note:    Draws a string glyph by glyph (0x4d214b, class routines, 0x4c5b3a, pen globals, __ftol, word fill); all instructions and jump directions run; flag set with no glyph is a native rejection.
 # arguments:    10 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10, arg_14, arg_18, arg_1c, arg_20, arg_24, arg_28, arg_2c; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       14 ebp-relative slot(s): local_4, local_c, local_14, local_18, local_1c, local_20, local_24, local_28, local_2c, local_30, local_34, local_38 and 2 more
 # fields:       [eax + n] field_2f, field_3f, field_43, field_c3, field_c7, field_cb, field_cf, field_minus_1, field_minus_30, field_minus_61; [ecx + n] field_2, field_3f, field_43, field_4f, field_55, field_57, field_c3, field_c7, field_cb, field_cf, field_minus_1, field_minus_41; [edx + n] field_3f, field_43, field_51, field_53, field_c3, field_c7, field_cb, field_cf
 # callees:      calls FUN_0052139c, FUN_004c97b4, FUN_004d214b, FUN_0050d651, FUN_0050d67f, FUN_0050d6a7, FUN_0050d6cf, FUN_004c5b3a, FUN_0050ce04
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 350 instruction(s), 17 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl30a.c:m4d270b_draw_text (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 350 instruction(s), 17 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text
