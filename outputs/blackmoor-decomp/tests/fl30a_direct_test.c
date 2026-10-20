@@ -434,8 +434,112 @@ static void test_m44b3c8_sum_kinds(void)
     CKC(2, 0x50ca3e, 0, 3, 0x63888b, 0x549088, 0x65);
 }
 
+/* ---- 0x47ef0f latch_hit_counter ---------------------------------------------------------------------------------------------- */
+static void hit2_good(void)
+{
+    setup();
+    set16(SELF, 0x1e, 1);
+    set32(g_w.table_5bb5e5, 1 * 0x8d, RVA(1));
+    set32(g_w.table_5bb5e5, 1 * 0x8d + 0x4d, 1);
+    set32(g_w.table_5bb5e5, 0, RVA(2));
+    set32(g_w.table_5bb5e5, 0x4d, 1);
+    memset(g_r[1] + 0x40, 0, 0x20);
+    memset(g_r[2] + 0x40, 0, 0x20);
+    g_r[1][0x48] = 1;
+    set32(SELF, 0x13c5, 1);
+    memset(SELF + 0x13ca, 0, 0x10);
+    set16(SELF, 0x1417, 1);
+    set32(SELF, 0x1344, 0);
+    set16(SELF, 0x13e3, 0x1111);
+    set16(SELF, 0x13e5, 0x2222);
+}
+static void test_m47ef0f_latch_hit_counter(void)
+{
+    int guard;
+    for (guard = 0; guard < 7; guard++) {
+        hit2_good();
+        switch (guard) {
+        case 0: set32(SELF, 0x13c5, 0); break;
+        case 1: g_r[1][0x48] = 0; break;
+        case 2: g_r[1][0x49] = 7; break;
+        case 3: SELF[0x13ce] = 1; break;
+        case 4: set32(SELF, 0x13ca, 0x10000); break;
+        case 5: set32(g_w.table_5bb5e5, 1 * 0x8d + 0x4d, 0); break;
+        default: set16(SELF, 0x1417, 0); break;
+        }
+        g_nscript = 0;
+        script(0x47e9d3, 1, 2, 0, 0, 0);
+        m47ef0f_latch_hit_counter(SELF, &g_w, &g_host);
+        CK(L.n == 0 && get16(SELF, 0x13e3) == 0x1111 && get32(SELF, 0x1344) == 0);
+    }
+    hit2_good();                                         /* byte guard at 0x13ce (a set 0x13cf does not stop), word guard at 0x1417 (0x100 is non-zero) */
+    SELF[0x13cf] = 1;
+    set16(SELF, 0x1417, 0x100);
+    script(0x47e9d3, 1, 0xffff, 0, 0, 0);
+    m47ef0f_latch_hit_counter(SELF, &g_w, &g_host);
+    CK(L.n == 1);
+    /* first path: flag set, h = word [0x1350] = 2 */
+    hit2_good();
+    set32(SELF, 0x1344, 0x10000);
+    set16(SELF, 0x1350, 2);
+    set32(SELF, 2 * 0x25 + 0x7be, 100);
+    set32(SELF, 2 * 0x25 + 0x7b6, 60);
+    set32(SELF, 2 * 0x25 + 0x7c2, 5);
+    set32(SELF, 2 * 0x25 + 0x7ba, 0x10008);
+    SELF[2 * 0x25 + 0x7d7] = 1;                          /* the counter block belongs to the second path only */
+    SELF[0x7a0 + 1] = 5;
+    m47ef0f_latch_hit_counter(SELF, &g_w, &g_host);
+    CK(L.n == 3);
+    CKC(0, 0x47fa11, SELFP, 1, 2);
+    CKC0(1, 0x480abe, SELFP);
+    CKC(2, 0x47ed96, SELFP, 1, 2);
+    CK(get16(SELF, 0x13e3) == 40 && get16(SELF, 0x13e5) == 0xfffd && SELF[0x7a0 + 1] == 5);
+    /* second path: 0x47e9d3 returns ax = 3; counter index k = 4 with a counter of 2 and a zero record byte: decremented */
+    hit2_good();
+    g_nscript = 0;
+    script(0x47e9d3, 1, 0xabcd0003u, 0, 0, 0);
+    set32(SELF, 3 * 0x25 + 0x7be, 7);
+    set32(SELF, 3 * 0x25 + 0x7b6, 9);
+    set32(SELF, 3 * 0x25 + 0x7c2, 0x20000);
+    set32(SELF, 3 * 0x25 + 0x7ba, 1);
+    SELF[3 * 0x25 + 0x7d7] = 4;
+    SELF[0x7a0 + 4] = 2;
+    g_r[1][4 * 0x53 + 0xe9] = 0;
+    m47ef0f_latch_hit_counter(SELF, &g_w, &g_host);
+    CK(L.n == 4);
+    CKC0(0, 0x47e9d3, SELFP);
+    CKC(1, 0x47fa11, SELFP, 1, 3);
+    CKC0(2, 0x480abe, SELFP);
+    CKC(3, 0x47ed96, SELFP, 1, 3);
+    CK(get32(SELF, 0x1344) == 1 && get16(SELF, 0x1350) == 3 && get16(SELF, 0x13e3) == 0xfffe && get16(SELF, 0x13e5) == 0xffff && SELF[0x7a0 + 4] == 1);
+    /* counter 0: not decremented (no wrap); counter 2 with a non-zero record byte: not decremented */
+    hit2_good();
+    g_nscript = 0;
+    script(0x47e9d3, 1, 3, 0, 0, 0);
+    SELF[3 * 0x25 + 0x7d7] = 4;
+    SELF[0x7a0 + 4] = 0;
+    g_r[1][4 * 0x53 + 0xe9] = 0;
+    m47ef0f_latch_hit_counter(SELF, &g_w, &g_host);
+    CK(SELF[0x7a0 + 4] == 0);
+    hit2_good();
+    g_nscript = 0;
+    script(0x47e9d3, 1, 3, 0, 0, 0);
+    SELF[3 * 0x25 + 0x7d7] = 4;
+    SELF[0x7a0 + 4] = 2;
+    g_r[1][4 * 0x53 + 0xe9] = 0x80;
+    m47ef0f_latch_hit_counter(SELF, &g_w, &g_host);
+    CK(SELF[0x7a0 + 4] == 2);
+    /* ax == -1: end after the first callee */
+    hit2_good();
+    g_nscript = 0;
+    script(0x47e9d3, 1, 0x1ffff, 0, 0, 0);
+    m47ef0f_latch_hit_counter(SELF, &g_w, &g_host);
+    CK(L.n == 1 && get32(SELF, 0x1344) == 0 && get16(SELF, 0x13e3) == 0x1111);
+}
+
 /* CASES-END */
 
+static void hit2_good(void);
 static void kinds_setup(uint8_t kind);
 static void trip(int i, uint8_t e, int16_t value);
 /* ---- bounded sweep ------------------------------------------------------------------------------------------------------------- */
@@ -468,6 +572,13 @@ static void test_sweep_bounded(void)
         for (i = 0; i < 10; i++) trip(i, (uint8_t)(seed >> (i + 3)), (int16_t)(seed >> i));
         for (i = 0; i < (int)sizeof g_tab; i++) g_tab[i] = (uint8_t)(seed >> (i & 7));
         m44b3c8_sum_kinds(1, &g_w, &g_host);
+        hit2_good();
+        for (i = 0; i < 0x100; i++) g_r[0][0x7a0 + i] = (uint8_t)(seed >> (i & 7));
+        set32(SELF, 0x1344, seed & 1);
+        set16(SELF, 0x1350, (uint16_t)(seed % 6));
+        g_nscript = 0;
+        script(0x47e9d3, 1, (seed >> 4) % 6, 0, 0, 0);
+        m47ef0f_latch_hit_counter(SELF, &g_w, &g_host);
         set32(SELF, 0x3ce, RVA(1));
         set32(g_r[1], 0x162, seed | 1);
         set32(g_r[1], 0x28f, RVA(2));
@@ -501,6 +612,7 @@ int main(void)
     RUN(test_m484762_intersect_rects);
     RUN(test_m484ac0_latch_hit);
     RUN(test_m44b3c8_sum_kinds);
+    RUN(test_m47ef0f_latch_hit_counter);
     /* RUNS */
     RUN(test_sweep_bounded);
     return failures;

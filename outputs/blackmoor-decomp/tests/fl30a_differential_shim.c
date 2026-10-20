@@ -188,7 +188,7 @@ static uint32_t host_call(void *context, uint32_t callee, uintptr_t this_ptr, co
     return result;
 }
 
-enum { F30A_4F61E7 = 1, F30A_484762, F30A_484AC0, F30A_44B3C8 };
+enum { F30A_4F61E7 = 1, F30A_484762, F30A_484AC0, F30A_44B3C8, F30A_47EF0F };
 
 /* Runs one port on `self` (this); `a` holds the stack arguments of the function as 64-bit values. `result` is the return value of the ports that have one. The world is the host context, so that each logged call keeps a snapshot of it. */
 void shim_fl30a(int fn, uint8_t *self, const uintptr_t *a, Fl30aWorld *w, int32_t *result)
@@ -205,6 +205,7 @@ void shim_fl30a(int fn, uint8_t *self, const uintptr_t *a, Fl30aWorld *w, int32_
     case F30A_484762: *result = (int32_t)m484762_intersect_rects(self, (uint32_t)a[0], (uint32_t)a[1]); break;
     case F30A_484AC0: m484ac0_latch_hit(self, w, &host); break;
     case F30A_44B3C8: m44b3c8_sum_kinds((uint32_t)a[0], w, &host); break;
+    case F30A_47EF0F: m47ef0f_latch_hit_counter(self, w, &host); break;
     /*CASES*/
     default: break;
     }

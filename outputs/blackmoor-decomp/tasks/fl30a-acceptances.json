@@ -99,6 +99,39 @@
   "note": "Accumulates the ten (kind, value) triples of a record into the float table at 0x58c91d (word table, float table, plain value and the two reports), in 53-bit x87 precision, then calls 0x42ba3a; every instruction executed, one jump direction allowlisted (see the handoff). See tasks/fl30a-handoff.md."
  },
  {
+  "va": "0x47ef0f",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-30a implementer; no independent review yet (slice-reviewer pending)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl30a.c",
+   "symbol": "m47ef0f_latch_hit_counter"
+  },
+  "tests": [
+   {
+    "path": "tests/fl30a_direct_test.c",
+    "test_id": "test_m47ef0f_latch_hit_counter"
+   },
+   {
+    "path": "tests/test_fl30a_direct.py",
+    "test_id": "Fl30aDirect.test_47ef0f_latch_hit_counter"
+   },
+   {
+    "path": "tests/test_fl30a_differential.py",
+    "test_id": "Fl30aDifferential.test_47ef0f_latch_hit_counter"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl30a_original_oracle.py",
+   "window": [
+    "0x47ef0f",
+    "0x47f19d"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Same latch/offset logic as 0x484ac0 for the object with the stride-0x25 table at +0x7b6, plus the byte counter decrement at +0x7a0; every instruction and both directions of every jump executed. See tasks/fl30a-handoff.md."
+ },
+ {
   "va": "0x484762",
   "class": "native_oracle_verified",
   "reviewer": "Claude Sonnet FL-30a implementer; no independent review yet (slice-reviewer pending)",

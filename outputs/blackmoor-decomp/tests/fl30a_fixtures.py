@@ -281,6 +281,29 @@ def gen_hit(key, rng, n, paths, extra=None):
     return make(key, [self_area(s), Area('rec', rec_va, rec, image=False), Area('rec2', rec2_va, rec2, image=False), area], stubs, {}, [], (), (kind, *rest, variant, n % 2), ptrs)
 
 
+def extra_47ef0f(s, rec, kind, variant, h, ret, path_a):
+    """0x47ef0f, second path only: the counter index k at self[h*0x25 + 0x7d7], the counter byte self[k + 0x7a0] and the record byte rec[k*0x53 + 0xe9]."""
+    if path_a:
+        return
+    hh = ret & 0xffff
+    hh = hh - 0x10000 if hh >= 0x8000 else hh
+    if kind != 'B':
+        hh = ret & 0xffff
+        hh = hh - 0x10000 if hh >= 0x8000 else hh
+    if not 0 <= hh <= 8:
+        return
+    k = [0, 1, 2, 5, 7, 8, 3, 4][variant % 8]
+    c, m = [(0, 0), (1, 0), (2, 0), (255, 0), (1, 1), (3, 0x80), (0, 0xff), (7, 0xff)][(variant // 2 + variant) % 8]
+    s[hh * 0x25 + 0x7d7] = k
+    s[k + 0x7a0] = c
+    rec[k * 0x53 + 0xe9] = m
+
+
+def gen_47ef0f(rng, n):
+    paths = [('A', h) for h in (0, 1, 3, 5)] + [('B', r) for r in (0xffff, 0x1ffff, 0, 1, 2, 5, 0x12340003, 0x7f000004)]
+    return gen_hit('47ef0f', rng, n, paths, extra_47ef0f)
+
+
 def gen_484ac0(rng, n):
     paths = [('A', h) for h in (0, 1, 3, 5)] + [('B', r) for r in (0xffff, 0x1ffff, 0, 1, 2, 5, 0x12340003, 0x7f000004)]
     return gen_hit('484ac0', rng, n, paths)
@@ -343,10 +366,11 @@ SPECS = {
     '4f61e7': dict(id=1, va=0x4f61e7, size=333, gen=gen_4f61e7, cleanup=4, ret=True, n=24 * 8),
     '484ac0': dict(id=3, va=0x484ac0, size=495, gen=gen_484ac0, cleanup=0, n=(7 * 2 + 12) * 12),
     '44b3c8': dict(id=4, va=0x44b3c8, size=633, gen=gen_44b3c8, cleanup=4, fpcw=0x27f, n=(10 * 11 + 12) * 6),
+    '47ef0f': dict(id=5, va=0x47ef0f, size=654, gen=gen_47ef0f, cleanup=0, n=(7 * 2 + 12) * 16),
     '484762': dict(id=2, va=0x484762, size=467, gen=gen_484762, cleanup=8, ret=True, n=2 * 625 + 600),
 }
 KEYS = list(SPECS)
-NAMES = {'4f61e7': 'start_record', '484762': 'intersect_rects', '484ac0': 'latch_hit', '44b3c8': 'sum_kinds'}
+NAMES = {'4f61e7': 'start_record', '484762': 'intersect_rects', '484ac0': 'latch_hit', '44b3c8': 'sum_kinds', '47ef0f': 'latch_hit_counter'}
 
 
 def build(key, rng, n):

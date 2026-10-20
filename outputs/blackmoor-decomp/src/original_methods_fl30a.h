@@ -43,6 +43,14 @@ uint32_t m4f61e7_start_record(uint8_t *self, uint32_t index, const Fl30aWorld *w
  * 0x42ba3a(index) (cdecl, 1 word argument). The two constants 100.0 and 9999.0 are the floats at 0x52cbec and 0x52cbe8 of the original. */
 void m44b3c8_sum_kinds(uint32_t index, const Fl30aWorld *world, const Fl18Host *host);
 
+/* 0x47ef0f, thiscall, plain `ret`, no result, the same structure as 0x484ac0 with other offsets: w = signed word [self+0x1e]; rec and the state as there. Returns at once unless dword [self+0x13c5] != 0, byte [rec+0x48] != 0,
+ * byte [rec+0x49] == 0, byte [self+0x13ce] == 0, dword [self+0x13ca] == 0, the state == 1 and the signed word [self+0x1417] != 0. Then, when dword [self+0x1344] != 0: h = word [self+0x1350] and 0x47fa11(this self, h)
+ * (thiscall, 1 word argument); otherwise h = ax of 0x47e9d3(this self) (thiscall, no arguments), h == -1 returns; 0x47fa11(this self, h); dword [self+0x1344] = 1; word [self+0x1350] = h. In both cases: word [self+0x13e3] =
+ * dword [self + h*0x25 + 0x7be] - dword [self + h*0x25 + 0x7b6] and word [self+0x13e5] = dword [self + h*0x25 + 0x7c2] - dword [self + h*0x25 + 0x7ba] (low 16 bits; h as a signed word read again from [self+0x1350]
+ * in the second case). In the second case only: k = byte [self + h*0x25 + 0x7d7]; when byte [self + k + 0x7a0] != 0 and byte [rec + k*0x53 + 0xe9] == 0 the byte [self + k + 0x7a0] is decremented by one. Then
+ * 0x480abe(this self) (thiscall, no arguments) and 0x47ed96(this self, h) (thiscall, 1 word argument). */
+void m47ef0f_latch_hit_counter(uint8_t *self, const Fl30aWorld *world, const Fl18Host *host);
+
 /* 0x484ac0, thiscall, plain `ret`, no result: w = signed word [self+0x26]; rec = dword [0x5bb5e5 + w*0x8d] (an original address; the table is the Fl30aWorld pointer) and the state dword [0x5bb632 + w*0x8d]
  * (the same table, +0x4d). Returns at once (nothing else happens) unless dword [self+0xba7] != 0, byte [rec+0x24] != 0, byte [rec+0x25] == 0, byte [self+0xbb0] == 0, dword [self+0xbac] == 0, the state == 1 and the
  * signed word [self+0xbf9] != 0. Then, when dword [self+0xa92] != 0: h = word [self+0xa9e] and 0x4853b0(this self, h) (thiscall, 1 word argument); otherwise h = ax of 0x4846c2(this self) (thiscall, no arguments),

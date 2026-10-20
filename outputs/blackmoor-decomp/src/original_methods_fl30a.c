@@ -239,3 +239,39 @@ void m44b3c8_sum_kinds(uint32_t index, const Fl30aWorld *world, const Fl18Host *
     }
     call1(host, 0x42ba3a, 0, index & 0xffffu);
 }
+
+/* ---- 0x47ef0f latch_hit_counter ---------------------------------------------------------------------------------------------- */
+void m47ef0f_latch_hit_counter(uint8_t *self, const Fl30aWorld *world, const Fl18Host *host)
+{
+    ptrdiff_t slot = (ptrdiff_t)(int32_t)((uint32_t)(int32_t)(int16_t)rd16(self, 0x1e) * 0x8du);
+    uint32_t rec = rd32(world->table_5bb5e5, slot);
+    int16_t h;
+    if (rd32(self, 0x13c5) == 0) return;
+    if (res(host, rec)[0x48] == 0) return;
+    if (res(host, rec)[0x49] != 0) return;
+    if (self[0x13ce] != 0) return;
+    if (rd32(self, 0x13ca) != 0) return;
+    if (rd32(world->table_5bb5e5, slot + 0x4d) != 1) return;
+    if ((int16_t)rd16(self, 0x1417) == 0) return;
+    if (rd32(self, 0x1344) != 0) {
+        h = (int16_t)rd16(self, 0x1350);
+        call1(host, 0x47fa11, (uintptr_t)self, (uint16_t)h);
+        wr16(self, 0x13e3, (uint16_t)(rd32(self, (ptrdiff_t)h * 0x25 + 0x7be) - rd32(self, (ptrdiff_t)h * 0x25 + 0x7b6)));
+        wr16(self, 0x13e5, (uint16_t)(rd32(self, (ptrdiff_t)h * 0x25 + 0x7c2) - rd32(self, (ptrdiff_t)h * 0x25 + 0x7ba)));
+    } else {
+        ptrdiff_t base;
+        uint8_t k;
+        h = (int16_t)call0(host, 0x47e9d3, (uintptr_t)self);
+        if (h == -1) return;
+        call1(host, 0x47fa11, (uintptr_t)self, (uint16_t)h);
+        wr32(self, 0x1344, 1);
+        wr16(self, 0x1350, (uint16_t)h);
+        base = (ptrdiff_t)(int16_t)rd16(self, 0x1350) * 0x25;       /* [self+0x1350] is read again for every use, as in the original */
+        wr16(self, 0x13e3, (uint16_t)(rd32(self, base + 0x7be) - rd32(self, base + 0x7b6)));
+        wr16(self, 0x13e5, (uint16_t)(rd32(self, base + 0x7c2) - rd32(self, base + 0x7ba)));
+        k = self[base + 0x7d7];
+        if (self[k + 0x7a0] != 0 && res(host, rec)[(ptrdiff_t)k * 0x53 + 0xe9] == 0) self[k + 0x7a0] = (uint8_t)(self[k + 0x7a0] - 1);
+    }
+    call0(host, 0x480abe, (uintptr_t)self);
+    call1(host, 0x47ed96, (uintptr_t)self, (uint16_t)h);
+}

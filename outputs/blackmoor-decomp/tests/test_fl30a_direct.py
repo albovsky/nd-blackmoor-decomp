@@ -82,6 +82,10 @@ class Fl30aDirect(unittest.TestCase):
         """FL-30a: direct test of m44b3c8_sum_kinds (original 0x44b3c8)"""
         self.check('test_m44b3c8_sum_kinds')
 
+    def test_47ef0f_latch_hit_counter(self):
+        """FL-30a: direct test of m47ef0f_latch_hit_counter (original 0x47ef0f)"""
+        self.check('test_m47ef0f_latch_hit_counter')
+
     # CASES-END
 
     def test_sweep_bounded(self):
