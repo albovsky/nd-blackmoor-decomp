@@ -80,7 +80,7 @@ def run_original(sc):
         read['g:' + field] = GLOBALS[field]
     for x in sc.stubs.values():
         x.probe_addr = [(next(a.va for a in sc.areas if a.name == name) + off, ln) for name, off, ln in (x.probe or ())]
-    runner = Original27(image_patches, regions, sc.stubs, {})
+    runner = Original27(image_patches, regions, sc.stubs, {}, fpcw=SPECS[sc.key].get('fpcw'))
     orig = runner.run(sc.va, sc.size, ecx=sc.ecx, stack_args=sc.stack, read=read)
     orig.edges = getattr(runner, 'edges', set())      # (address, next address) of the instructions executed in a row
     if orig.cleanup != SPECS[sc.key].get('cleanup', 0):
@@ -266,15 +266,49 @@ def gen_48d3cb(rng, n):
     return make('48d3cb', [self_area(s), area, Area('p', PREC_VA, p, image=False)], {}, g, [a0, a1], (a0, a1), (sel, k, path, zero26, idx), {'table_5bb5e5': ('tbl', 2 * 0x8d)})
 
 
+# ---- 0x4f684a ---------------------------------------------------------------------------------------------------------------------
+
+Q_VA, OBJ_VA, VTB_VA = od.region_va(1), od.region_va(2), od.region_va(3)
+FVALUES = [0, 5, 0x7fffffff, -1, -2857, -2858, -3000, -0x80000000]       # -2857 is above the constant -2857.14..., -2858 below it
+A0S = [0, 1, 2, -1]
+
+
+def gen_4f684a(rng, n):
+    (kind, *rest), variant = prof(n, [('r0',), ('noobj',)] + [('go', i, j) for i in range(len(FVALUES)) for j in range(len(FVALUES))])
+    a0 = A0S[n % 4]
+    s = bytearray(rng.randbytes(0x400))
+    q_off = 0x5bb + a0 * 0x5bb
+    put32(s, 0x3ce, Q_VA + 0x5bb)
+    q = bytearray(rng.randbytes(0x5bb * 3 + 0x300))
+    obj = bytearray(rng.randbytes(0x40))
+    vt = bytearray(rng.randbytes(0x100))
+    put32(vt, 0x3c, VT_A)
+    put32(obj, 0, VTB_VA)
+    put32(q, q_off + 0x28f, 0 if kind == 'noobj' else OBJ_VA)
+    fi, fj = (rest[0], rest[1]) if kind == 'go' else (n % len(FVALUES), (n // 3) % len(FVALUES))
+    put32(q, q_off + 0x13c, FVALUES[fi])
+    put32(q, q_off + 0x140, FVALUES[fj])
+    hr = [0, 1, 0x80000000, 0x10000][(fi + fj + n // 7) % 4] if kind == 'go' else 0
+    g = {'word_63a4cd': [0, 1, 0x8000, 0x100, 0xffff][n % 5]}
+    r4f = 0 if kind == 'r0' else [1, 0x10000, 0x80000000, 0xffffffff][n % 4]
+    stubs = {0x4f709c: stub(0x4f709c, THISCALL(0), results=[r4f], probe=[('self', 0x3c0, 0x10)]),
+             VT_A: stub(VT_A, (2, True, 8), results=[hr], probe=[('q', q_off + 0x13c, 8), ('self', 0x3c0, 0x10)]),
+             0x50ca3e: stub(0x50ca3e, CDECL(5)), 0x44a2b7: stub(0x44a2b7, CDECL(1))}
+    stack = [a0 & 0xffffffff]
+    return make('4f684a', [self_area(s), Area('q', Q_VA, q, image=False), Area('obj', OBJ_VA, obj, image=False), Area('vtbl', VTB_VA, vt, image=False)], stubs, g, stack, tuple(stack),
+                (kind, *rest, a0))
+
+
 # @@GENERATORS@@
 
 SPECS = {
     '4e2e05': dict(id=1, va=0x4e2e05, size=421, gen=gen_4e2e05, cleanup=0, n=28 * 4),
     '48d3cb': dict(id=3, va=0x48d3cb, size=553, gen=gen_48d3cb, cleanup=8, n=2 * 3 * 21 * 2 + 6),
+    '4f684a': dict(id=4, va=0x4f684a, size=564, gen=gen_4f684a, cleanup=4, ret=True, fpcw=0x27f, n=66 * 4),
     '4c2a8d': dict(id=2, va=0x4c2a8d, size=429, gen=gen_4c2a8d, cleanup=16, ret=True, n=74 * 2),
 }
 KEYS = list(SPECS)
-NAMES = {'4e2e05': 'copy_state', '4c2a8d': 'make_record', '48d3cb': 'select_entry'}
+NAMES = {'4e2e05': 'copy_state', '4c2a8d': 'make_record', '48d3cb': 'select_entry', '4f684a': 'prepare_entry'}
 
 
 def build(key, rng, n):

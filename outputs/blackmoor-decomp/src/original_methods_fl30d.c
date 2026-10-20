@@ -210,3 +210,56 @@ void m48d3cb_select_entry(uint8_t *self, uint32_t sel, uint32_t k_arg, Fl30dWorl
     if (self[0x26] == 0) wr16(self, 0x27, (uint16_t)k_arg);
     (void)host;
 }
+
+/* ---- 0x4f684a prepare_entry ------------------------------------------------------------------------------------------------------ */
+/* fild, fcomp against the double at 0x52e4d8 (-2857.142857142857 = 0xc0a6524924924924), the constant taken when the value compares below or equal, then 0x50ce04 (truncating fistp) */
+static uint32_t clamp_ftol(int32_t value)
+{
+    const uint64_t kbits = 0xc0a6524924924924ull;
+    double k, v = (double)value, use;
+    memcpy(&k, &kbits, sizeof k);
+    use = (v < k || v == k) ? k : v;
+    return (uint32_t)(int32_t)use;
+}
+
+uint32_t m4f684a_prepare_entry(uint8_t *self, uint32_t a0, const Fl30dWorld *world, const Fl18Host *host)
+{
+    uint32_t q_va, obj, vtbl, entry, hr;
+    uint8_t *q;
+    int32_t f1, f2;
+    wr32(self, 0x3c2, 0x3e8);
+    wr32(self, 0x3ca, 0);
+    q_va = rd32(self, 0x3ce) + a0 * 0x5bbu;
+    if (call0(host, 0x4f709c, (uintptr_t)self) == 0) {
+        wr32(self, 0x3c2, 0x3ea);
+        wr32(self, 0x3be, 0);
+        return rd32(self, 0x3be);
+    }
+    q = res(host, q_va);
+    if (rd32(q, 0x28f) == 0) {
+        wr32(self, 0x3c2, 0x3ef);
+        wr32(self, 0x3be, 0);
+        return rd32(self, 0x3be);
+    }
+    f1 = (int32_t)rd32(q, 0x13c);
+    wr32(q, 0x13c, (uint32_t)(f1 < 0 ? f1 : 0));
+    f2 = (int32_t)rd32(q, 0x140);
+    wr32(q, 0x140, (uint32_t)(f2 < 0 ? f2 : 0));
+    wr32(q, 0x13c, clamp_ftol((int32_t)rd32(q, 0x13c)));
+    wr32(q, 0x140, clamp_ftol((int32_t)rd32(q, 0x140)));
+    obj = rd32(q, 0x28f);
+    vtbl = rd32(res(host, obj), 0);
+    entry = rd32(res(host, vtbl + 0x3c), 0);
+    hr = call2(host, entry, obj, obj, rd32(q, 0x13c));
+    wr32(self, 0x3ca, hr);
+    if (hr == 0) {
+        if (world->word_63a4cd != 0) {
+            call5(host, 0x50ca3e, 0, 0x63888b, 0x55e8fc, rd32(q, 0x13c), a0, q_va + 4);
+            call1(host, 0x44a2b7, 0, 0x63888b);
+        }
+        return 1;
+    }
+    wr32(self, 0x3c2, 0x408);
+    wr32(self, 0x3be, 0);
+    return rd32(self, 0x3be);
+}

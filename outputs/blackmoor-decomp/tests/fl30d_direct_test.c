@@ -350,6 +350,93 @@ static void test_m48d3cb_select_entry(void)
     }
 }
 
+/* ---- 0x4f684a ------------------------------------------------------------------------------------------------------------------ */
+#define VTE 0x7e000900u
+static void pe_setup(uint32_t a0_scale_base)
+{
+    setup();
+    memset(g_r[1], 0, RSZ);
+    memset(g_r[2], 0, 0x40);
+    memset(g_r[3], 0, 0x100);
+    memset(SELF, 0x55, 0x400);
+    set32(SELF, 0x3ce, RVA(1) + a0_scale_base);
+    set32(g_r[1], a0_scale_base + 0x28f, RVA(2));        /* q = region 1 + a0_scale_base: the object */
+    set32(g_r[2], 0, RVA(3));                            /* its vtable */
+    set32(g_r[3], 0x3c, VTE);                            /* entry +0x3c */
+    script(0x4f709c, 1, 1, 0, 0, 0);
+    script(VTE, 1, 0, 0, 0, 0);
+}
+static void test_m4f684a_prepare_entry(void)
+{
+    uint8_t *q = g_r[1];
+    uint32_t r;
+    /* a0 = 2: q = [self+0x3ce] + 2 * 0x5bb; the clamp: positive -> 0, -1 -> -1, -2857 -> -2857, -2858 -> -2857, very negative -> -2857 */
+    pe_setup(0);
+    set32(SELF, 0x3ce, RVA(1));
+    set32(q, 2 * 0x5bb + 0x28f, RVA(2));
+    set32(q, 2 * 0x5bb + 0x13c, 0x7fffffff);
+    set32(q, 2 * 0x5bb + 0x140, (uint32_t)-2858);
+    r = m4f684a_prepare_entry(SELF, 2, &g_w, &g_host);
+    CK(r == 1);
+    CK(get32(q, 2 * 0x5bb + 0x13c) == 0 && get32(q, 2 * 0x5bb + 0x140) == (uint32_t)-2857);
+    CK(get32(SELF, 0x3c2) == 0x3e8 && get32(SELF, 0x3ca) == 0 && get32(SELF, 0x3be) == 0x55555555u);   /* success touches only these */
+    CK(L.n == 2);
+    CKC0(0, 0x4f709c, SELFP);
+    CKC(1, VTE, RVA(2), 2, RVA(2), (uint32_t)0);                            /* ecx = obj, args (obj, [q+0x13c]) */
+    pe_setup(0);
+    set32(SELF, 0x3ce, RVA(1));
+    set32(q, 2 * 0x5bb + 0x28f, RVA(2));
+    set32(q, 2 * 0x5bb + 0x13c, (uint32_t)-2857);
+    set32(q, 2 * 0x5bb + 0x140, 0x80000000u);
+    L.n = 0;
+    CK(m4f684a_prepare_entry(SELF, 2, &g_w, &g_host) == 1);
+    CK(get32(q, 2 * 0x5bb + 0x13c) == (uint32_t)-2857 && get32(q, 2 * 0x5bb + 0x140) == (uint32_t)-2857);   /* -2857 is above the constant: kept; INT_MIN: the constant */
+    CKC(1, VTE, RVA(2), 2, RVA(2), (uint32_t)-2857);
+    pe_setup(0);
+    set32(SELF, 0x3ce, RVA(1));
+    set32(q, 2 * 0x5bb + 0x28f, RVA(2));
+    set32(q, 2 * 0x5bb + 0x13c, (uint32_t)-1);
+    set32(q, 2 * 0x5bb + 0x140, (uint32_t)-3000);
+    L.n = 0;
+    CK(m4f684a_prepare_entry(SELF, 2, &g_w, &g_host) == 1);
+    CK(get32(q, 2 * 0x5bb + 0x13c) == (uint32_t)-1 && get32(q, 2 * 0x5bb + 0x140) == (uint32_t)-2857);
+    /* the debug flag: a non-zero signed word traces after a successful call */
+    pe_setup(0);
+    set32(SELF, 0x3ce, RVA(1) - 0x5bb);
+    set32(q, 0x28f, RVA(2));
+    g_w.word_63a4cd = (int16_t)0x8000;
+    L.n = 0;
+    CK(m4f684a_prepare_entry(SELF, 1, &g_w, &g_host) == 1);                 /* q = [self+0x3ce] + 0x5bb = region 1 */
+    CK(L.n == 4);
+    CKC(2, 0x50ca3e, 0, 5, 0x63888b, 0x55e8fc, 0, 1, RVA(1) + 4);
+    CKC(3, 0x44a2b7, 0, 1, 0x63888b);
+    /* the callee reports a failure: hr is kept at [self+0x3ca], 0x408 and 0 are stored and the result is 0 (no trace) */
+    pe_setup(0);
+    set32(SELF, 0x3ce, RVA(1));
+    g_nscript = 0;
+    script(0x4f709c, 1, 5, 0, 0, 0);
+    script(VTE, 1, 0x10000, 0, 0, 0);
+    g_w.word_63a4cd = 1;
+    L.n = 0;
+    CK(m4f684a_prepare_entry(SELF, 0, &g_w, &g_host) == 0);
+    CK(get32(SELF, 0x3ca) == 0x10000 && get32(SELF, 0x3c2) == 0x408 && get32(SELF, 0x3be) == 0 && L.n == 2);
+    /* 0x4f709c returns 0: 0x3ea, and no vtable call */
+    pe_setup(0);
+    g_nscript = 0;
+    script(0x4f709c, 1, 0, 0, 0, 0);
+    L.n = 0;
+    CK(m4f684a_prepare_entry(SELF, 0, &g_w, &g_host) == 0);
+    CK(get32(SELF, 0x3c2) == 0x3ea && get32(SELF, 0x3be) == 0 && get32(SELF, 0x3ca) == 0 && L.n == 1);
+    /* no object at [q+0x28f]: 0x3ef */
+    pe_setup(0);
+    set32(SELF, 0x3ce, RVA(1));
+    set32(q, 0x28f, 0);
+    set32(q, 0x13c, 5);
+    L.n = 0;
+    CK(m4f684a_prepare_entry(SELF, 0, &g_w, &g_host) == 0);
+    CK(get32(SELF, 0x3c2) == 0x3ef && get32(SELF, 0x3be) == 0 && L.n == 1 && get32(q, 0x13c) == 5);
+}
+
 /*TESTS*/
 
 /* ---- bounded sweep ------------------------------------------------------------------------------------------------------------- */
@@ -383,6 +470,15 @@ static void test_sweep_bounded(void)
         set32(g_r[1], 0x2f9, seed);
         m48d3cb_select_entry(SELF, 0x2765 + (seed & 1), (seed >> 4) % 8, &g_w, &g_host);
         L.n = 0;
+        pe_setup(0);
+        set32(SELF, 0x3ce, RVA(1));
+        set32(g_r[1], 0x28f, RVA(2));
+        set32(g_r[1], 0x13c, seed);
+        set32(g_r[1], 0x140, seed >> 3);
+        g_w.word_63a4cd = (int16_t)(seed >> 5);
+        m4f684a_prepare_entry(SELF, 0, &g_w, &g_host);
+        L.n = 0;
+        g_nscript = 0;
         /*SWEEPBODY*/
     }
 }
@@ -405,6 +501,7 @@ int main(void)
     int failures = 0;
     RUN(test_m4e2e05_copy_state);
     RUN(test_m48d3cb_select_entry);
+    RUN(test_m4f684a_prepare_entry);
     RUN(test_m4c2a8d_make_record);
     /*RUNS*/
     RUN(test_sweep_bounded);

@@ -36,6 +36,7 @@ typedef struct Fl30dWorld {
     uint32_t dword_5d1631;     /* 0x48d3cb: written */
     uint32_t dword_5d1639;     /* 0x48d3cb: written */
     uint32_t dword_5c39e5;     /* 0x48d3cb: written */
+    int16_t word_63a4cd;       /* 0x4f684a: the debug flag: a non-zero signed word turns on the trace output */
 } Fl30dWorld;
 
 /* 0x4e2e05, thiscall, plain `ret`, no result. Native rejection (NOT original behaviour): when the signed word [self+0x1471] is negative, or its product with 0x29 does not fit
@@ -64,6 +65,15 @@ uint32_t m4c2a8d_make_record(uint8_t *self, uint32_t w, uint32_t h, uint32_t tag
  * [p+0x30b], [p+0x313], [p+0x307], [p+0x30f]: when they all pass [0x5b44f0] = signed word [p+0x305], else 0. Then [0x5d1631] = 0x5b160c + [0x5b44f0] * 32 + [0x5b44f4] * 16 (32-bit), [0x5d1639] = 1,
  * [0x5c39e5] = 0x2765, byte [self+0x24] = 1 and, when byte [self+0x26] == 0, word [self+0x27] = k. Any other sel: word [self+0x27] = 0xffff. */
 void m48d3cb_select_entry(uint8_t *self, uint32_t sel, uint32_t k, Fl30dWorld *world, const Fl18Host *host);
+
+/* 0x4f684a, thiscall, `ret 4`, returns eax; the stack argument is the dword `a0`. dword [self+0x3c2] = 0x3e8, dword [self+0x3ca] = 0; q = dword [self+0x3ce] + a0 * 0x5bb (32-bit; an original address);
+ * 0x4f709c(this self) (thiscall, 0 arguments): when it returns 0: dword [self+0x3c2] = 0x3ea, dword [self+0x3be] = 0, result 0. When dword [q+0x28f] == 0: dword [self+0x3c2] = 0x3ef,
+ * dword [self+0x3be] = 0, result 0. Otherwise the signed dwords [q+0x13c] and [q+0x140] are each replaced by min(value, 0), and then each by the C conversion (truncation toward zero, as 0x50ce04
+ * does: it sets the x87 rounding control to truncate for the FISTP and restores the control word) of max(double(value), -2857.142857142857) (the constant at 0x52e4d8; the original takes the
+ * constant when the double compares below or equal to it); [q+0x13c] first. Then hr = the vtable entry dword [vt + 0x3c] (vt = dword [obj], obj = dword [q+0x28f]) called with ecx = obj and
+ * the stack arguments (obj, dword [q+0x13c]) (a stdcall callee, pops 8); dword [self+0x3ca] = hr. When hr == 0: when the signed word 0x63a4cd is non-zero: 0x50ca3e(0x63888b, 0x55e8fc, dword
+ * [q+0x13c], a0, q + 4) (cdecl, 5 arguments), 0x44a2b7(0x63888b) (cdecl, 1 argument); the result is 1. Otherwise (hr != 0): dword [self+0x3c2] = 0x408, dword [self+0x3be] = 0, result 0. */
+uint32_t m4f684a_prepare_entry(uint8_t *self, uint32_t a0, const Fl30dWorld *world, const Fl18Host *host);
 
 #ifdef __cplusplus
 }

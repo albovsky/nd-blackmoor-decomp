@@ -78,6 +78,10 @@ class Fl30dDirect(unittest.TestCase):
         """FL-30d: direct test of m48d3cb_select_entry (original 0x48d3cb)"""
         self.check('test_m48d3cb_select_entry')
 
+    def test_4f684a_prepare_entry(self):
+        """FL-30d: direct test of m4f684a_prepare_entry (original 0x4f684a)"""
+        self.check('test_m4f684a_prepare_entry')
+
     # CASES-END
 
     def test_sweep_bounded(self):

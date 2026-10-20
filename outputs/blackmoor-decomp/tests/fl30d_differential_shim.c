@@ -188,7 +188,7 @@ static uint32_t host_call(void *context, uint32_t callee, uintptr_t this_ptr, co
     return result;
 }
 
-enum { F30D_NONE = 0, F30D_4E2E05, F30D_4C2A8D, F30D_48D3CB /*ENUM*/ };
+enum { F30D_NONE = 0, F30D_4E2E05, F30D_4C2A8D, F30D_48D3CB, F30D_4F684A /*ENUM*/ };
 
 /* Runs one port on `self` (this); `a` holds the stack arguments of the function as 64-bit values. `result` is the return value of the ports that have one
  * (the functions that return ax: the sign-extended ax; 0x4895cc: 1 for the native rejection). The world is the host context, so that each logged call keeps a snapshot of it. */
@@ -205,6 +205,7 @@ void shim_fl30d(int fn, uint8_t *self, const uintptr_t *a, Fl30dWorld *w, int32_
     case F30D_4E2E05: *result = m4e2e05_copy_state(self, w, &host); break;
     case F30D_4C2A8D: *result = (int32_t)m4c2a8d_make_record(self, (uint32_t)a[0], (uint32_t)a[1], (uint32_t)a[2], (uint32_t)a[3], w, &host); break;
     case F30D_48D3CB: m48d3cb_select_entry(self, (uint32_t)a[0], (uint32_t)a[1], w, &host); break;
+    case F30D_4F684A: *result = (int32_t)m4f684a_prepare_entry(self, (uint32_t)a[0], w, &host); break;
     /*CASES*/
     default: break;
     }
