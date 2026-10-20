@@ -32,6 +32,7 @@ typedef struct Fl30bWorld {
     uint8_t *dwords_585801;     /* 0x42e844: dwords indexed by a signed word (the pointer names the original address 0x585801; the caller leaves slack on both sides) */
     uint32_t value_5bb1ca;      /* 0x42e844: set to 1 when a record leaves state 0 */
     int16_t word_5bb50b;        /* 0x42e844: the key word compared with the entries */
+    uint32_t value_5bb1fa;      /* 0x4cbba9: selects the file name format */
     /*WORLD-NEXT*/
 } Fl30bWorld;
 
@@ -77,6 +78,25 @@ void m42e844_step_record(uint32_t index, Fl30bWorld *world, const Fl18Host *host
  * through the null pointer: native rejection, return 1, buf is not freed). Otherwise the 0xaba bytes at buf are copied to buf2, byte [r+0x40] = 0, byte [r-2] = 0x36, byte [r-1] = 1, dword [r+0x4d] = 0 and
  * 0x51dc6c(buf) (cdecl, 1 argument). Returns 0. NATIVE REJECTION (return 1) also when num holds no NUL in its 8 bytes (the original overwrites the local that follows). Every pointer is an original address. */
 int32_t m411f24_replace_record(uint8_t *self, uint32_t index, const Fl30bWorld *world, const Fl18Host *host);
+
+/* 0x4cbba9, thiscall, `ret 4`, the stack argument is the original address `path` of a NUL-terminated string. When dword [self+0x1a] != 0: 0x4cbb00(this self) (thiscall, no arguments). When the string is
+ * empty: 0x50ca3e(0x63888b, 0x558c48, path) (cdecl; the original's call has 3 arguments) and the failure block. Otherwise 0x50cd72(self+0x1e, 0x639da2 or 0x639dae, 0x639db1, path, 0x558c98 or
+ * 0x558c9c) (cdecl, 5 arguments; the first pair when dword 0x5bb1fa != 0), dword [self+0x12a] = 0, file = 0x50d0a9(self+0x1e, 0x558ca0) (cdecl, 2 arguments) stored to dword [self+0x12a]; file == 0:
+ * 0x50ca3e(0x63888b, 0x558ca4, self+0x1e) and the failure block. Then 0x4cc70f(this self; self+0x1a, 0x29) (thiscall, 2 arguments: it stores the header address to dword [self+0x1a]);
+ * 0x50cf61(h, 0x21, 1, file) and 0x50cf61(h + 0x21, 4, 1, file) (cdecl, 4 arguments; h = dword [self+0x1a], a result other than 1 is a failure: 0x50ca3e(0x63888b, 0x558cf4, self+0x1e) and the failure block);
+ * n = dword [h+0x21]; 0x4cc70f(this self; h + 0x25, n*0xd); dword [self+0x12e] = k = 0 and, while signed k < signed dword [h+0x21]: e = dword [h+0x25] + k*0xd is stored to dword [self+0x122]; the reads
+ * 0x50cf61(e, 2, 1, file), (e+2, 2, 1, file), (e+4, 1, 1, file), (e+5, 2, 1, file), (e+7, 2, 1, file) must each return 1 (else 0x50ca3e(0x63888b, 0x558d64, k, self+0x1e) and the failure block);
+ * m = signed word [e+2]; 0x4cc70f(this self; e + 9, m*0x18); 0x50cf61(dword [e+9], m*0x18, 1, file) must return 1 (else 0x50ca3e(0x63888b, 0x558dc8, k, self+0x1e) and the failure block); k is
+ * incremented. When the loop ends: 0x50cee4(dword [self+0x12a]) (cdecl, 1 argument) and the function returns. Failure block: 0x4264e8(this 0x583979, 0x63888b) (thiscall, 1 argument); when the signed word
+ * 0x63a4cd is non-zero 0x44a2b7(0x63888b) (cdecl, 1 argument); when dword [self+0x12a] != 0 (for an empty string this is the stale value) 0x50cee4(that dword); 0x4c97b4(this 0x5cf659). Pointers into `self` are
+ * host pointers, every other pointer an original address resolved through Fl18Host. The count n is caller-validated (nothing is bounds checked, as in the original). Callee effects on `self` and on the header are
+ * made by the host (0x4cc70f stores the allocation addresses). */
+void m4cbba9_load_file(uint8_t *self, uint32_t path, const Fl30bWorld *world, const Fl18Host *host);
+
+/* 0x4d214b, cdecl, plain `ret`, returns eax: the stack arguments are `ch` (only the low byte is read, as a signed byte), `obj` (an original address) and `out` (an original address of a word). The 53 byte
+ * values listed in the switch of the port (a `jmp [idx*4+table]` through an index table of 0xfe bytes in the original, bytes above 0x7d and every other value go to the default arm) select the
+ * word at obj + 0x59 + 2*k (k = 0 .. 52, one arm each): that word is stored to [out] and the result is 1. Every other value: the result is 0 and nothing is stored. */
+int32_t m4d214b_lookup_word(uint32_t ch, uint32_t obj, uint32_t out, const Fl18Host *host);
 
 /* NEXT-DECL */
 

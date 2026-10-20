@@ -86,6 +86,14 @@ class Fl30bDirect(unittest.TestCase):
         """FL-30b: direct test of m411f24_replace_record (original 0x411f24)"""
         self.check('test_m411f24_replace_record')
 
+    def test_4cbba9_load_file(self):
+        """FL-30b: direct test of m4cbba9_load_file (original 0x4cbba9)"""
+        self.check('test_m4cbba9_load_file')
+
+    def test_4d214b_lookup_word(self):
+        """FL-30b: direct test of m4d214b_lookup_word (original 0x4d214b)"""
+        self.check('test_m4d214b_lookup_word')
+
     # CASES-END
 
     def test_sweep_bounded(self):

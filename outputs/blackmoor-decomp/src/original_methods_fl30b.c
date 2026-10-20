@@ -293,3 +293,123 @@ int32_t m411f24_replace_record(uint8_t *self, uint32_t index, const Fl30bWorld *
     call1(host, 0x51dc6c, 0, buf);
     return 0;
 }
+
+/* ---- 0x4cbba9 load_file ---------------------------------------------------------------------------------------------------------- */
+static int read4cbba9(const Fl18Host *host, uint32_t dst, uint32_t size, uint32_t file)
+{
+    return call4(host, 0x50cf61, 0, dst, size, 1, file) == 1;
+}
+
+void m4cbba9_load_file(uint8_t *self, uint32_t path, const Fl30bWorld *world, const Fl18Host *host)
+{
+    if (rd32(self, 0x1a) != 0) call0(host, 0x4cbb00, (uintptr_t)self);
+    if (c_strlen(res(host, path)) == 0) {
+        call3(host, 0x50ca3e, 0, 0x63888b, 0x558c48, path);
+        goto failure;
+    }
+    if (world->value_5bb1fa != 0) call5(host, 0x50cd72, 0, (uintptr_t)(self + 0x1e), 0x639da2, 0x639db1, path, 0x558c98);
+    else call5(host, 0x50cd72, 0, (uintptr_t)(self + 0x1e), 0x639dae, 0x639db1, path, 0x558c9c);
+    wr32(self, 0x12a, 0);
+    wr32(self, 0x12a, call2(host, 0x50d0a9, 0, (uintptr_t)(self + 0x1e), 0x558ca0));
+    if (rd32(self, 0x12a) == 0) {
+        call3(host, 0x50ca3e, 0, 0x63888b, 0x558ca4, (uintptr_t)(self + 0x1e));
+        goto failure;
+    }
+    call2(host, 0x4cc70f, (uintptr_t)self, (uintptr_t)(self + 0x1a), 0x29);
+    if (!read4cbba9(host, rd32(self, 0x1a), 0x21, rd32(self, 0x12a)) || !read4cbba9(host, rd32(self, 0x1a) + 0x21, 4, rd32(self, 0x12a))) {
+        call3(host, 0x50ca3e, 0, 0x63888b, 0x558cf4, (uintptr_t)(self + 0x1e));
+        goto failure;
+    }
+    call2(host, 0x4cc70f, (uintptr_t)self, rd32(self, 0x1a) + 0x25, rd32(res(host, rd32(self, 0x1a)), 0x21) * 0xdu);
+    wr32(self, 0x12e, 0);
+    for (;; wr32(self, 0x12e, rd32(self, 0x12e) + 1)) {
+        uint32_t e;
+        int32_t m;
+        if ((int32_t)rd32(self, 0x12e) >= (int32_t)rd32(res(host, rd32(self, 0x1a)), 0x21)) break;
+        e = rd32(res(host, rd32(self, 0x1a)), 0x25) + rd32(self, 0x12e) * 0xdu;
+        wr32(self, 0x122, e);
+        if (!(read4cbba9(host, rd32(self, 0x122), 2, rd32(self, 0x12a)) && read4cbba9(host, rd32(self, 0x122) + 2, 2, rd32(self, 0x12a)) &&
+              read4cbba9(host, rd32(self, 0x122) + 4, 1, rd32(self, 0x12a)) && read4cbba9(host, rd32(self, 0x122) + 5, 2, rd32(self, 0x12a)) &&
+              read4cbba9(host, rd32(self, 0x122) + 7, 2, rd32(self, 0x12a)))) {
+            call4(host, 0x50ca3e, 0, 0x63888b, 0x558d64, rd32(self, 0x12e), (uintptr_t)(self + 0x1e));
+            goto failure;
+        }
+        m = rds16(res(host, rd32(self, 0x122)), 2);
+        call2(host, 0x4cc70f, (uintptr_t)self, rd32(self, 0x122) + 9, (uint32_t)m * 0x18u);
+        if (!read4cbba9(host, rd32(res(host, rd32(self, 0x122)), 9), (uint32_t)rds16(res(host, rd32(self, 0x122)), 2) * 0x18u, rd32(self, 0x12a))) {
+            call4(host, 0x50ca3e, 0, 0x63888b, 0x558dc8, rd32(self, 0x12e), (uintptr_t)(self + 0x1e));
+            goto failure;
+        }
+    }
+    call1(host, 0x50cee4, 0, rd32(self, 0x12a));
+    return;
+failure:
+    call1(host, 0x4264e8, 0x583979, 0x63888b);
+    if (world->word_63a4cd != 0) call1(host, 0x44a2b7, 0, 0x63888b);
+    if (rd32(self, 0x12a) != 0) call1(host, 0x50cee4, 0, rd32(self, 0x12a));
+    call0(host, 0x4c97b4, 0x5cf659);
+}
+
+/* ---- 0x4d214b lookup_word -------------------------------------------------------------------------------------------------------- */
+int32_t m4d214b_lookup_word(uint32_t ch, uint32_t obj, uint32_t out, const Fl18Host *host)
+{
+    int32_t off;
+    switch ((int8_t)(ch & 0xff)) {
+    case -128: off = 0xc1; break;
+    case -95: off = 0x9b; break;
+    case -65: off = 0x9d; break;
+    case -64: off = 0x87; break;
+    case -60: off = 0x8f; break;
+    case -59: off = 0xb1; break;
+    case -55: off = 0xa3; break;
+    case -47: off = 0x9f; break;
+    case -42: off = 0x93; break;
+    case -36: off = 0x97; break;
+    case -33: off = 0xad; break;
+    case -32: off = 0x79; break;
+    case -31: off = 0xa5; break;
+    case -30: off = 0x89; break;
+    case -28: off = 0x91; break;
+    case -27: off = 0xb3; break;
+    case -25: off = 0x7b; break;
+    case -24: off = 0x7d; break;
+    case -23: off = 0x7f; break;
+    case -22: off = 0x81; break;
+    case -21: off = 0x83; break;
+    case -19: off = 0xa7; break;
+    case -18: off = 0x8b; break;
+    case -15: off = 0xa1; break;
+    case -13: off = 0xa9; break;
+    case -12: off = 0x85; break;
+    case -10: off = 0x95; break;
+    case -7: off = 0x8d; break;
+    case -6: off = 0xab; break;
+    case -4: off = 0x99; break;
+    case 33: off = 0x65; break;
+    case 35: off = 0xb5; break;
+    case 36: off = 0xb7; break;
+    case 37: off = 0x67; break;
+    case 38: off = 0x69; break;
+    case 39: off = 0x73; break;
+    case 40: off = 0x6d; break;
+    case 41: off = 0x6f; break;
+    case 42: off = 0x6b; break;
+    case 43: off = 0x71; break;
+    case 44: off = 0x5b; break;
+    case 45: off = 0x61; break;
+    case 46: off = 0x59; break;
+    case 47: off = 0x77; break;
+    case 58: off = 0x5f; break;
+    case 59: off = 0x75; break;
+    case 60: off = 0xb9; break;
+    case 61: off = 0x5d; break;
+    case 62: off = 0xbb; break;
+    case 63: off = 0x63; break;
+    case 95: off = 0xaf; break;
+    case 123: off = 0xbd; break;
+    case 125: off = 0xbf; break;
+    default: return 0;
+    }
+    wr16(res(host, out), 0, rd16(res(host, obj), off));
+    return 1;
+}

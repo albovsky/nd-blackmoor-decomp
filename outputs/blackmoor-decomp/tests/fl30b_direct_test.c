@@ -43,9 +43,14 @@ static struct {
     } c[MAXCALL];
 } L;
 static struct {
-    uint32_t callee, results[8];
+    uint32_t callee, results[40];
     int n, used;
-} S[4];
+} S[8];
+static struct {
+    uint32_t callee, value;
+    int call, arg, off, size;
+} W[16];
+static int g_nw;
 static int g_nscript;
 static __attribute__((unused)) void script(uint32_t callee, int n, uint32_t r0, uint32_t r1, uint32_t r2, uint32_t r3)
 {
@@ -59,6 +64,7 @@ static __attribute__((unused)) void script(uint32_t callee, int n, uint32_t r0, 
     g_nscript++;
 }
 
+static const uint8_t *host_resolve(void *ctx, uint32_t a);
 static char g_const[16] = "ABCDEFGHIJK";           /* the string the host serves at the original address 0x5415c8 */
 static uint8_t g_numtext[8];
 static uint32_t host_call(void *ctx, uint32_t callee, uintptr_t this_ptr, const uintptr_t *args, int nargs)
@@ -73,6 +79,15 @@ static uint32_t host_call(void *ctx, uint32_t callee, uintptr_t this_ptr, const 
         for (k = 0; k < nargs && k < 12; k++) L.c[i].a[k] = args[k];
         memcpy(L.c[i].probe, g_r[4], 16);
     }
+    for (k = 0; k < g_nw; k++)
+        if (W[k].callee == callee) {
+            int before = 0, j;
+            uint8_t *dst;
+            for (j = 0; j < i && j < MAXCALL; j++) before += L.c[j].callee == callee;
+            if (before != W[k].call) continue;
+            dst = args[W[k].arg] > 0xffffffffu ? (uint8_t *)args[W[k].arg] : (uint8_t *)host_resolve(NULL, (uint32_t)args[W[k].arg]);
+            memcpy(dst + W[k].off, &W[k].value, (size_t)W[k].size);
+        }
     if (callee == 0x5193ca && nargs == 3) memcpy((void *)args[1], g_numtext, 8);       /* the number to text conversion writes into the caller local */
     L.n++;
     for (k = 0; k < g_nscript; k++)
@@ -110,6 +125,7 @@ static void setup(void)
     g_host.resolve = host_resolve;
     L.n = 0;
     g_nscript = 0;
+    g_nw = 0;
 }
 
 static void ck_call(int line, int idx, uint32_t callee, uintptr_t this_ptr, int nargs, const uintptr_t *want)
@@ -517,6 +533,160 @@ static void test_m411f24_replace_record(void)
     CK(m411f24_replace_record(SELF, 0, &g_w, &g_host) == 1 && L.n == 5 && get32(g_w.records_5bb5e5, 0) == RVA(1));
 }
 
+/* ---- 0x4cbba9 ------------------------------------------------------------------------------------------------------------------ */
+static void wscript(uint32_t callee, int call, uint32_t value, int size)
+{
+    W[g_nw].callee = callee;
+    W[g_nw].call = call;
+    W[g_nw].arg = 0;
+    W[g_nw].off = 0;
+    W[g_nw].size = size;
+    W[g_nw].value = value;
+    g_nw++;
+}
+#define FILEH 0xf11eu
+/* a path "abc", header at RVA(2), entries at RVA(3), data at RVA(4); the host's 0x4cc70f stores the addresses, the read of the header writes the count n, the second read of entry k its word m */
+static void load4cb(uint32_t n, uint32_t m0, uint32_t m1, uint32_t file, uint32_t fmt, int dbg, const uint32_t *reads, int nreads)
+{
+    setup();
+    memset(g_r[2], 0x66, 0x80);
+    memset(g_r[3], 0x77, 0x100);
+    memcpy(g_r[1], "abc", 4);
+    set32(SELF, 0x1a, 0);
+    set32(SELF, 0x12a, 0x55);
+    g_w.value_5bb1fa = fmt;
+    g_w.word_63a4cd = (int16_t)dbg;
+    script(0x50d0a9, 1, file, 0, 0, 0);
+    {
+        int i;
+        for (i = 0; i < nreads; i++) S[g_nscript].results[i] = reads[i];
+        S[g_nscript].callee = 0x50cf61;
+        S[g_nscript].n = nreads;
+        S[g_nscript].used = 0;
+        g_nscript++;
+    }
+    wscript(0x4cc70f, 0, RVA(2), 4);
+    wscript(0x4cc70f, 1, RVA(3), 4);
+    wscript(0x4cc70f, 2, RVA(4), 4);
+    wscript(0x4cc70f, 3, RVA(4) + 0x40, 4);
+    wscript(0x50cf61, 1, n, 4);
+    wscript(0x50cf61, 3, m0, 2);
+    wscript(0x50cf61, 9, m1, 2);
+}
+static void test_m4cbba9_load_file(void)
+{
+    const uint32_t ok[40] = {1};      /* every read returns 1 (the last scripted value repeats) */
+    uint32_t r[40];
+    int i;
+    load4cb(2, 2, 0, FILEH, 0, 0, ok, 1);
+    set32(SELF, 0x1a, 0x13579);       /* a previous file: 0x4cbb00 first */
+    m4cbba9_load_file(SELF, RVA(1), &g_w, &g_host);
+    CK(L.n == 22);
+    CKC0(0, 0x4cbb00, SELFP);
+    CKC(1, 0x50cd72, 0, 5, (uintptr_t)(SELF + 0x1e), 0x639dae, 0x639db1, RVA(1), 0x558c9c);
+    CKC(2, 0x50d0a9, 0, 2, (uintptr_t)(SELF + 0x1e), 0x558ca0);
+    CKC(3, 0x4cc70f, SELFP, 2, (uintptr_t)(SELF + 0x1a), 0x29);
+    CKC(4, 0x50cf61, 0, 4, RVA(2), 0x21, 1, FILEH);
+    CKC(5, 0x50cf61, 0, 4, RVA(2) + 0x21, 4, 1, FILEH);
+    CKC(6, 0x4cc70f, SELFP, 2, RVA(2) + 0x25, 26);
+    CKC(7, 0x50cf61, 0, 4, RVA(3), 2, 1, FILEH);
+    CKC(8, 0x50cf61, 0, 4, RVA(3) + 2, 2, 1, FILEH);
+    CKC(9, 0x50cf61, 0, 4, RVA(3) + 4, 1, 1, FILEH);
+    CKC(10, 0x50cf61, 0, 4, RVA(3) + 5, 2, 1, FILEH);
+    CKC(11, 0x50cf61, 0, 4, RVA(3) + 7, 2, 1, FILEH);
+    CKC(12, 0x4cc70f, SELFP, 2, RVA(3) + 9, 48);
+    CKC(13, 0x50cf61, 0, 4, RVA(4), 48, 1, FILEH);
+    CKC(14, 0x50cf61, 0, 4, RVA(3) + 13, 2, 1, FILEH);
+    CKC(19, 0x4cc70f, SELFP, 2, RVA(3) + 13 + 9, 0);
+    CKC(20, 0x50cf61, 0, 4, RVA(4) + 0x40, 0, 1, FILEH);
+    CKC(21, 0x50cee4, 0, 1, FILEH);
+    CK(get32(SELF, 0x12a) == FILEH && get32(SELF, 0x12e) == 2 && get32(SELF, 0x122) == RVA(3) + 13 && get32(SELF, 0x1a) == RVA(2));
+    /* the first format when dword 0x5bb1fa is non-zero; no previous file: no 0x4cbb00 */
+    load4cb(0, 0, 0, FILEH, 1, 0, ok, 1);
+    m4cbba9_load_file(SELF, RVA(1), &g_w, &g_host);
+    CK(L.n == 7);
+    CKC(0, 0x50cd72, 0, 5, (uintptr_t)(SELF + 0x1e), 0x639da2, 0x639db1, RVA(1), 0x558c98);
+    CKC(5, 0x4cc70f, SELFP, 2, RVA(2) + 0x25, 0);
+    CKC(6, 0x50cee4, 0, 1, FILEH);
+    load4cb(0xffffffffu, 0, 0, FILEH, 0, 0, ok, 1);          /* a negative count: no entry */
+    m4cbba9_load_file(SELF, RVA(1), &g_w, &g_host);
+    CK(L.n == 7 && get32(SELF, 0x12e) == 0);
+    /* an empty path: the report, then the failure block with the stale file value (0x55) and the debug call */
+    load4cb(2, 2, 0, FILEH, 0, 1, ok, 1);
+    g_r[1][0] = 0;
+    m4cbba9_load_file(SELF, RVA(1), &g_w, &g_host);
+    CK(L.n == 5);
+    CKC(0, 0x50ca3e, 0, 3, 0x63888b, 0x558c48, RVA(1));
+    CKC(1, 0x4264e8, 0x583979, 1, 0x63888b);
+    CKC(2, 0x44a2b7, 0, 1, 0x63888b);
+    CKC(3, 0x50cee4, 0, 1, 0x55);
+    CKC0(4, 0x4c97b4, 0x5cf659);
+    /* the file does not open: the report, no close */
+    load4cb(2, 2, 0, 0, 0, 0, ok, 1);
+    m4cbba9_load_file(SELF, RVA(1), &g_w, &g_host);
+    CK(L.n == 5);
+    CKC(2, 0x50ca3e, 0, 3, 0x63888b, 0x558ca4, (uintptr_t)(SELF + 0x1e));
+    CKC(3, 0x4264e8, 0x583979, 1, 0x63888b);
+    CKC0(4, 0x4c97b4, 0x5cf659);
+    CK(get32(SELF, 0x12a) == 0);
+    /* a failing read: the header (reads 0 and 1), then each of the 6 reads of entry 1 (0 = ok) */
+    for (i = 0; i < 40; i++) r[i] = 1;
+    for (i = 0; i < 14; i++) {
+        int j;
+        for (j = 0; j < 40; j++) r[j] = 1;
+        r[i] = 2;
+        load4cb(2, 2, 3, FILEH, 0, 0, r, i + 1);
+        m4cbba9_load_file(SELF, RVA(1), &g_w, &g_host);
+        /* calls before the failing read: 4 (open etc.) + reads, and one 0x4cc70f in front of the entries and one in front of each big read */
+        if (i < 2) {
+            CK(L.n == 8 + i);
+            CKC(4 + i, 0x50ca3e, 0, 3, 0x63888b, 0x558cf4, (uintptr_t)(SELF + 0x1e));
+        } else {
+            int k = (i - 2) / 6, j2 = (i - 2) % 6;
+            CK(L.c[L.n - 4].callee == 0x50ca3e && L.c[L.n - 4].nargs == 4 && L.c[L.n - 4].a[1] == (j2 == 5 ? 0x558dc8u : 0x558d64u) && L.c[L.n - 4].a[2] == (uint32_t)k && L.c[L.n - 4].a[3] == (uintptr_t)(SELF + 0x1e));
+        }
+        CK(L.c[L.n - 3].callee == 0x4264e8 && L.c[L.n - 2].callee == 0x50cee4 && L.c[L.n - 2].a[0] == FILEH && L.c[L.n - 1].callee == 0x4c97b4);
+    }
+}
+
+/* ---- 0x4d214b ------------------------------------------------------------------------------------------------------------------ */
+static int lookup4d(int ch, uint32_t *result)
+{
+    set16(g_r[2], 0, 0xdead);
+    *result = (uint32_t)m4d214b_lookup_word((uint32_t)ch | 0x7f000000u, RVA(1), RVA(2), &g_host);
+    return get16(g_r[2], 0);
+}
+static void test_m4d214b_lookup_word(void)
+{
+    uint32_t r;
+    int k, n = 0;
+    setup();
+    for (k = 0; k < 0x100; k++) set16(g_r[1], (size_t)k * 2, (uint16_t)(0x1000 + k));
+    /* hand-read from the arms of the original: '.' is the first arm (+0x59), ',' +0x5b, '=' +0x5d, ':' +0x5f, '-' +0x61, '?' +0x63, '!' +0x65; byte 0x80 (-128) the last (+0xc1) */
+    CK(lookup4d('.', &r) == get16(g_r[1], 0x59) && r == 1);
+    CK(lookup4d(',', &r) == get16(g_r[1], 0x5b) && r == 1);
+    CK(lookup4d('=', &r) == get16(g_r[1], 0x5d) && r == 1);
+    CK(lookup4d(':', &r) == get16(g_r[1], 0x5f) && r == 1);
+    CK(lookup4d('-', &r) == get16(g_r[1], 0x61) && r == 1);
+    CK(lookup4d('?', &r) == get16(g_r[1], 0x63) && r == 1);
+    CK(lookup4d('!', &r) == get16(g_r[1], 0x65) && r == 1);
+    CK(lookup4d(0x80, &r) == get16(g_r[1], 0xc1) && r == 1);
+    CK(lookup4d('}', &r) == get16(g_r[1], 0xbf) && r == 1);
+    CK(lookup4d(0xe7, &r) == get16(g_r[1], 0x7b) && r == 1 && lookup4d(0xeb, &r) == get16(g_r[1], 0x83) && r == 1);       /* -25 .. -21: five consecutive arms */
+    /* unmapped values and the two bytes above the index table: result 0, nothing stored */
+    CK(lookup4d('a', &r) == 0xdead && r == 0);
+    CK(lookup4d(0, &r) == 0xdead && r == 0);
+    CK(lookup4d(0x7e, &r) == 0xdead && r == 0 && lookup4d(0x7f, &r) == 0xdead && r == 0);
+    /* exactly 53 byte values are mapped, to 53 different words */
+    for (k = 0; k < 0x100; k++) {
+        uint32_t res_;
+        int v = lookup4d(k, &res_);
+        if (res_) n++;
+        else CK(v == 0xdead);
+    }
+    CK(n == 53);
+}
+
 /* CASES-NEXT */
 
 /* ---- bounded sweep ------------------------------------------------------------------------------------------------------------- */
@@ -555,6 +725,17 @@ static void test_sweep_bounded(void)
         rep411(((int)(seed >> 3) % 3) - 1, "7", RVA(3), RVA(4));
         set16(g_r[1], 2, (uint16_t)seed);
         m411f24_replace_record(SELF, (uint32_t)(((int)(seed >> 3) % 3) - 1), &g_w, &g_host);
+        {
+            uint32_t rr[20];
+            int q;
+            for (q = 0; q < 20; q++) rr[q] = (seed >> q) & 1 ? 1u : 0u;
+            load4cb(seed % 3, seed % 5, seed % 7, (seed >> 3) & 1 ? FILEH : 0, (uint32_t)(seed >> 4) & 1, (int)(seed >> 6) & 1, rr, 20);
+            m4cbba9_load_file(SELF, RVA(1), &g_w, &g_host);
+        }
+        {
+            uint32_t rr;
+            lookup4d((int)(seed & 0xff), &rr);
+        }
         /*SWEEP*/
         L.n = 0;
     }
@@ -581,6 +762,8 @@ int main(void)
     RUN(test_m4c5b3a_copy_keyed);
     RUN(test_m42e844_step_record);
     RUN(test_m411f24_replace_record);
+    RUN(test_m4cbba9_load_file);
+    RUN(test_m4d214b_lookup_word);
     /*RUNS*/
     RUN(test_sweep_bounded);
     return failures;

@@ -58,7 +58,7 @@ class Fl30bDifferential(DiffBase):
         out = []
         for i in range(self.lib.shim_call_count()):
             c = calls[i]
-            entry = [c.id, va_of(c.this_ptr), *[va_of(c.arg[k]) for k in range(c.nargs)]]
+            entry = [c.id, va_of(c.this_ptr), *[va_of(c.arg[k]) for k in range(min(c.nargs, fx.LOG_ARGS.get((self.current_key, c.id), c.nargs)))]]
             for index, (arg, nbytes) in enumerate(deref_len.get(c.id, ())):       # the bytes behind pointer arguments that are host pointers (locals of the function)
                 entry.append(bytes(c.data)[128 * index:128 * index + nbytes] if c.arg[arg] >= 1 << 32 else b'')
             if c.id in probe_spec:       # one blob, in the order of the stub's probe list: fixture bytes (from the shim's probe buffer) and globals (from the world snapshot)
@@ -76,6 +76,7 @@ class Fl30bDifferential(DiffBase):
     def pair(self, sc, executed, edges):
         """Runs the original and the native function on scenario `sc` and compares."""
         orig, expected, _ = fx.run_original(sc)
+        self.current_key = sc.key
         self.lib.shim_reset()
         arrays, by_name = [], {}
         for a in sc.areas:
@@ -176,6 +177,14 @@ class Fl30bDifferential(DiffBase):
     def test_411f24_replace_record(self):
         """FL-30b: differential test of m411f24_replace_record (original 0x411f24)"""
         self.run_key('411f24')
+
+    def test_4cbba9_load_file(self):
+        """FL-30b: differential test of m4cbba9_load_file (original 0x4cbba9)"""
+        self.run_key('4cbba9')
+
+    def test_4d214b_lookup_word(self):
+        """FL-30b: differential test of m4d214b_lookup_word (original 0x4d214b)"""
+        self.run_key('4d214b')
 
     # TESTS-END
 

@@ -17,7 +17,7 @@ sys.dont_write_bytecode = True
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import original_differential as od
 from fl28b_fixtures import (Original27, stub, CDECL, STDCALL, THISCALL, Area, put32, put16, prof, normalize, conditional_edges, LOCAL, FMT, records_area, debug_areas,
-                            REC_STRIDE, RECORDS_VA)
+                            REC_STRIDE, RECORDS_VA, zstring)
 
 PROJECT = Path(__file__).resolve().parents[1]
 CTYPES = {'uint8_t': ctypes.c_uint8, 'int16_t': ctypes.c_int16, 'uint16_t': ctypes.c_uint16, 'int32_t': ctypes.c_int32, 'uint32_t': ctypes.c_uint32}
@@ -388,15 +388,68 @@ def gen_411f24(rng, n):
     return make('411f24', areas, stubs, g, [a], (a,), (kind, *rest, slot), pointers, partial=partial)
 
 
+# ---- 0x4cbba9 ---------------------------------------------------------------------------------------------------------------------
+
+FILE_V = 0x00c10000          # a handle whose low 16 bits are zero: a 16-bit read of the stored handle would see 0
+HDR_VA, ENT_VA, DATA_VA, PATH_VA = od.region_va(2), od.region_va(3), od.region_va(4), od.region_va(1)
+LOG_ARGS = {('4cbba9', 0x50ca3e): 3}        # 0x50ca3e is called with 3 or 4 arguments by this function: the stub logs the first three
+
+
+def gen_4cbba9(rng, n):
+    profiles = [('empty', s) for s in (0, 0x777)] + [('fopen0',)] + [('hdr', j) for j in (0, 1)]
+    profiles += [('ent', cnt, k, j) for cnt in (1, 2) for k in range(cnt) for j in range(6)] + [('ok', cnt) for cnt in (0, 1, 2, 3, -1, 0x80000000)]
+    (kind, *rest), variant = prof(n, profiles)
+    dbg, fmt = [0, 1, 0x100, 0x8000][variant % 4], [0, 0x100, 1, 0x80000000][variant % 4]
+    me = bytearray(rng.randbytes(0x200))
+    put32(me, 0x1a, rng.choice([0x10000, 0x80000000, rng.randrange(1, 1 << 32)]) if variant % 2 else 0)
+    put32(me, 0x12a, rest[0] if kind == 'empty' else rng.randrange(1 << 32))
+    path = zstring(rng, 0 if kind == 'empty' else rng.choice([1, 5, 0x1f]), 0x40)
+    hdr, ent = bytearray(rng.randbytes(0x80)), bytearray(rng.randbytes(0x100))
+    cnt = rest[0] if kind in ('ok', 'ent') else rng.choice([1, 2])
+    ms = [rng.choice([0, 1, 2, 3, 0xffff, 0x8000]) for _ in range(4)]
+    reads = [1, 1] if kind not in ('hdr',) else [1, 1]
+    for k in range(max(min(cnt, 3), 0) if kind in ('ok', 'ent') else 0):
+        reads += [1] * 6
+    results = list(reads)
+    fail_at = rest[0] if kind == 'hdr' else (2 + 6 * rest[1] + rest[2] if kind == 'ent' else None)
+    if fail_at is not None:
+        results = results[:fail_at] + [rng.choice([0, 2, 0xffffffff, 0x10000])]
+    writes_read = [(1, 0, 0, 4, cnt)]
+    for k in range(max(min(cnt, 3), 0)):
+        writes_read.append((2 + 6 * k + 1, 0, 0, 2, ms[k]))
+    writes_alloc = [(0, 0, 0, 4, HDR_VA), (1, 0, 0, 4, ENT_VA)] + [(2 + k, 0, 0, 4, DATA_VA + 0x40 * k) for k in range(3)]
+    probe = [('self', 0x1a, 4), ('self', 0x120, 0x20)]
+    stubs = {0x4cbb00: stub(0x4cbb00, THISCALL(0), probe), 0x50ca3e: stub(0x50ca3e, CDECL(3), probe), 0x50cd72: stub(0x50cd72, CDECL(5), probe),
+             0x50d0a9: stub(0x50d0a9, CDECL(2), probe, results=[0 if kind == 'fopen0' else FILE_V]), 0x4cc70f: stub(0x4cc70f, THISCALL(2), probe, writes=writes_alloc),
+             0x50cf61: stub(0x50cf61, CDECL(4), probe, results=results or [1], writes=writes_read), 0x4264e8: stub(0x4264e8, THISCALL(1), probe),
+             0x44a2b7: stub(0x44a2b7, CDECL(1), probe), 0x50cee4: stub(0x50cee4, CDECL(1), probe), 0x4c97b4: stub(0x4c97b4, THISCALL(0), probe)}
+    areas = [self_area(me), Area('path', PATH_VA, path, image=False), Area('hdr', HDR_VA, hdr, image=False), Area('ent', ENT_VA, ent, image=False),
+             Area('data', DATA_VA, bytearray(rng.randbytes(0x400)), image=False, compare=False)]
+    return make('4cbba9', areas, stubs, {'word_63a4cd': dbg, 'value_5bb1fa': fmt}, [PATH_VA], (PATH_VA,), (kind, *rest, variant))
+
+
+# ---- 0x4d214b ---------------------------------------------------------------------------------------------------------------------
+
+
+def gen_4d214b(rng, n):
+    c = (n % 256) - 128
+    obj_va, out_va = od.region_va(1), od.region_va(2)
+    obj, out = bytearray(rng.randbytes(0x200)), bytearray(rng.randbytes(8))
+    a = (c & 0xff) | (rng.randrange(1 << 24) << 8)       # the original reads the low byte only
+    return make('4d214b', [Area('obj', obj_va, obj, image=False), Area('out', out_va, out, image=False)], {}, {}, [a, obj_va, out_va], (a, obj_va, out_va), (c,))
+
+
 SPECS = {
     '44b26a': dict(id=1, va=0x44b26a, size=350, gen=gen_44b26a, cleanup=4, fpcw=0x27f, n=(16 + 4 * 3 * len(WORDS) + 4 * 3 * len(FLOATS)) * 2),
     '488e9c': dict(id=2, va=0x488e9c, size=447, gen=gen_488e9c, cleanup=12, n=61 * 10),
     '42e844': dict(id=4, va=0x42e844, size=579, gen=gen_42e844, cleanup=0, n=60 * 3),
     '411f24': dict(id=5, va=0x411f24, size=660, gen=gen_411f24, cleanup=4, n=7 * 12),
+    '4cbba9': dict(id=6, va=0x4cbba9, size=969, gen=gen_4cbba9, cleanup=4, n=(3 + 2 + 18 + 6) * 4),
+    '4d214b': dict(id=7, va=0x4d214b, size=1472, code=1002, gen=gen_4d214b, cleanup=0, ret=True, n=512),
     '4c5b3a': dict(id=3, va=0x4c5b3a, size=529, gen=gen_4c5b3a, cleanup=20, n=26 * 16),
 }
 KEYS = list(SPECS)
-NAMES = {'44b26a': 'apply_delta', '488e9c': 'init_record', '4c5b3a': 'copy_keyed', '42e844': 'step_record', '411f24': 'replace_record'}
+NAMES = {'44b26a': 'apply_delta', '488e9c': 'init_record', '4c5b3a': 'copy_keyed', '42e844': 'step_record', '411f24': 'replace_record', '4cbba9': 'load_file', '4d214b': 'lookup_word'}
 
 
 def build(key, rng, n):
