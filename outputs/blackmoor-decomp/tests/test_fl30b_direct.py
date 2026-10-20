@@ -1,0 +1,105 @@
+"""FL-30 (batch b): direct C tests of the GAME.EXE functions in src/original_methods_fl30b.c.
+
+tests/fl30b_direct_test.c links src/original_methods_fl30b.c and prints one PASS/FAIL line per case; every test below checks one of
+them. Expected values come from the original's disassembly, not from the native code.
+
+One direct case per function (the ported functions of batch a); the Unicorn comparison against the original bytes is in
+tests/test_fl30b_differential.py.
+"""
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import tempfile
+import unittest
+
+PROJECT = Path(__file__).resolve().parents[1]
+SRC = PROJECT / 'src'
+TEST_C = PROJECT / 'tests/fl30b_direct_test.c'
+KERNELS = ['original_methods_fl30b.c']
+sys_path = str(Path(__file__).resolve().parent)
+import sys
+sys.dont_write_bytecode = True
+sys.path.insert(0, sys_path)
+import fl30b_fixtures as fx
+EXPECTED = ['test_m%s_%s' % (k, fx.NAMES[k]) for k in fx.KEYS] + ['test_sweep_bounded']
+
+
+def compiler():
+    # The repo scripts call `xcrun --sdk macosx clang` on macOS; where xcrun is absent use clang, cc or gcc.
+    if os.environ.get('CC'):
+        return [os.environ['CC']]
+    if shutil.which('xcrun'):
+        return ['xcrun', '--sdk', 'macosx', 'clang']
+    return [shutil.which('clang') or shutil.which('cc') or shutil.which('gcc')]
+
+
+def build(output, test_c=TEST_C, src_dir=SRC, extra=()):
+    cmd = [*compiler(), '-std=c11', '-Wall', '-Wextra', '-Wpedantic', '-Werror', '-O2', '-ffp-contract=off', '-g', *extra, f'-I{src_dir}', str(test_c),
+           *[str(src_dir / name) for name in KERNELS], '-lm', '-o', str(output)]
+    return subprocess.run(cmd, capture_output=True, text=True)
+
+
+class Fl30bDirect(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.directory = tempfile.TemporaryDirectory()
+        cls.addClassCleanup(cls.directory.cleanup)
+        binary = Path(cls.directory.name) / 'fl30b_direct_test'
+        built = build(binary)
+        if built.returncode != 0:
+            raise AssertionError(built.stderr)
+        done = subprocess.run([str(binary)], capture_output=True, text=True, timeout=120)
+        cls.returncode = done.returncode
+        cls.results = {}
+        for line in done.stdout.splitlines():
+            status, _, rest = line.partition(' ')
+            if status in ('PASS', 'FAIL'):
+                name, _, message = rest.partition(': ')
+                cls.results[name] = (status, message)
+
+    def check(self, name):
+        self.assertIn(name, self.results)
+        self.assertEqual(self.results[name], ('PASS', ''), self.results[name])
+
+    def test_every_case_ran_and_the_binary_passed(self):
+        self.assertEqual(sorted(self.results), sorted(EXPECTED))
+        self.assertEqual(self.returncode, 0)
+
+    def test_44b26a_apply_delta(self):
+        """FL-30b: direct test of m44b26a_apply_delta (original 0x44b26a)"""
+        self.check('test_m44b26a_apply_delta')
+
+    def test_488e9c_init_record(self):
+        """FL-30b: direct test of m488e9c_init_record (original 0x488e9c)"""
+        self.check('test_m488e9c_init_record')
+
+    def test_4c5b3a_copy_keyed(self):
+        """FL-30b: direct test of m4c5b3a_copy_keyed (original 0x4c5b3a)"""
+        self.check('test_m4c5b3a_copy_keyed')
+
+    def test_42e844_step_record(self):
+        """FL-30b: direct test of m42e844_step_record (original 0x42e844)"""
+        self.check('test_m42e844_step_record')
+
+    def test_411f24_replace_record(self):
+        """FL-30b: direct test of m411f24_replace_record (original 0x411f24)"""
+        self.check('test_m411f24_replace_record')
+
+    def test_4cbba9_load_file(self):
+        """FL-30b: direct test of m4cbba9_load_file (original 0x4cbba9)"""
+        self.check('test_m4cbba9_load_file')
+
+    def test_4d214b_lookup_word(self):
+        """FL-30b: direct test of m4d214b_lookup_word (original 0x4d214b)"""
+        self.check('test_m4d214b_lookup_word')
+
+    # CASES-END
+
+    def test_sweep_bounded(self):
+        """FL-30b: bounded random sweep over every port (meant for the sanitiser builds; checks that it runs)"""
+        self.check('test_sweep_bounded')
+
+
+if __name__ == '__main__':
+    unittest.main()

@@ -1,0 +1,167 @@
+[
+ {
+  "va": "0x4e2e05",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-30d implementer; Sonnet slice-reviewer diff review done",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl30d.c",
+   "symbol": "m4e2e05_copy_state"
+  },
+  "tests": [
+   {
+    "path": "tests/fl30d_direct_test.c",
+    "test_id": "test_m4e2e05_copy_state"
+   },
+   {
+    "path": "tests/test_fl30d_direct.py",
+    "test_id": "Fl30dDirect.test_4e2e05_copy_state"
+   },
+   {
+    "path": "tests/test_fl30d_differential.py",
+    "test_id": "Fl30dDifferential.test_4e2e05_copy_state"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl30d_original_oracle.py",
+   "window": [
+    "0x4e2e05",
+    "0x4e2faa"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Copies count*0x29 bytes and the two compare-selected string groups into the 0x5a1e54 globals; bad count is a native rejection; all instructions and jump directions executed. See tasks/fl30d-handoff.md."
+ },
+ {
+  "va": "0x4c2a8d",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-30d implementer; Sonnet slice-reviewer diff review done",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl30d.c",
+   "symbol": "m4c2a8d_make_record"
+  },
+  "tests": [
+   {
+    "path": "tests/fl30d_direct_test.c",
+    "test_id": "test_m4c2a8d_make_record"
+   },
+   {
+    "path": "tests/test_fl30d_direct.py",
+    "test_id": "Fl30dDirect.test_4c2a8d_make_record"
+   },
+   {
+    "path": "tests/test_fl30d_differential.py",
+    "test_id": "Fl30dDifferential.test_4c2a8d_make_record"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl30d_original_oracle.py",
+   "window": [
+    "0x4c2a8d",
+    "0x4c2c3a"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Allocates and fills the 0x59 byte record (name cut at 0x18); both allocation failures report and return 0; all instructions and jump directions executed. See tasks/fl30d-handoff.md."
+ },
+ {
+  "va": "0x48d3cb",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-30d implementer; Sonnet slice-reviewer diff review done",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl30d.c",
+   "symbol": "m48d3cb_select_entry"
+  },
+  "tests": [
+   {
+    "path": "tests/fl30d_direct_test.c",
+    "test_id": "test_m48d3cb_select_entry"
+   },
+   {
+    "path": "tests/test_fl30d_direct.py",
+    "test_id": "Fl30dDirect.test_48d3cb_select_entry"
+   },
+   {
+    "path": "tests/test_fl30d_differential.py",
+    "test_id": "Fl30dDifferential.test_48d3cb_select_entry"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl30d_original_oracle.py",
+   "window": [
+    "0x48d3cb",
+    "0x48d5f4"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Selection 0x2766/0x2765/other; for 0x2765 two signed four-test boxes pick 0x5b44f0; all instructions and jump directions executed. See tasks/fl30d-handoff.md."
+ },
+ {
+  "va": "0x4f684a",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-30d implementer; Sonnet slice-reviewer diff review done",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl30d.c",
+   "symbol": "m4f684a_prepare_entry"
+  },
+  "tests": [
+   {
+    "path": "tests/fl30d_direct_test.c",
+    "test_id": "test_m4f684a_prepare_entry"
+   },
+   {
+    "path": "tests/test_fl30d_direct.py",
+    "test_id": "Fl30dDirect.test_4f684a_prepare_entry"
+   },
+   {
+    "path": "tests/test_fl30d_differential.py",
+    "test_id": "Fl30dDifferential.test_4f684a_prepare_entry"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl30d_original_oracle.py",
+   "window": [
+    "0x4f684a",
+    "0x4f6a7e"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Clamps two dwords (min 0, x87 clamp at -2857.14, truncation) and calls vtable +0x3c; 0x50ce04 runs in the oracle, C conversion in the port; all instructions executed. See tasks/fl30d-handoff.md."
+ },
+ {
+  "va": "0x414692",
+  "class": "native_oracle_verified",
+  "reviewer": "Claude Sonnet FL-30d implementer; Sonnet slice-reviewer diff review done",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl30d.c",
+   "symbol": "m414692_read_block"
+  },
+  "tests": [
+   {
+    "path": "tests/fl30d_direct_test.c",
+    "test_id": "test_m414692_read_block"
+   },
+   {
+    "path": "tests/test_fl30d_direct.py",
+    "test_id": "Fl30dDirect.test_414692_read_block"
+   },
+   {
+    "path": "tests/test_fl30d_differential.py",
+    "test_id": "Fl30dDifferential.test_414692_read_block"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl30d_original_oracle.py",
+   "window": [
+    "0x414692",
+    "0x414947"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Reads a three-allocation block through cells p1/p2; allocation failures report then port rejects, negative count rejected; all instructions and jump directions executed. See tasks/fl30d-handoff.md."
+ }
+]

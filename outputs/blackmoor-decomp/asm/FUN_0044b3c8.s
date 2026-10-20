@@ -8,15 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_float_value_recompute_4e
-# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_4e_runtime.h:19 says "0x44b3c8 target = body[0]; a target outside 30..39"
-# name-note:    Method of raw 0x4e float value recomputation: resets and recomputes one of the ten float value slots.
+# name:         m44b3c8_sum_kinds
+# naming:       native port src/original_methods_fl30a.c:m44b3c8_sum_kinds (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port
+# name-note:    Sums up to ten (kind, value) triples into the float cells at 0x58c91d in 53-bit x87 order (divide then multiply), re-reads the kind byte; all instructions run, one jump direction allowlisted.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       11 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c, local_20, local_24, local_28, local_2c
 # fields:       [eax + n] field_1, field_2; [ecx + n] field_1, field_2; [edx + n] field_1
 # callees:      calls FUN_0050ca3e, FUN_0052139c, FUN_0042ba3a
-# track-n:      outputs/blackmoor-decomp/src/action_family_4e_runtime.h:action_family_4e_runtime_visit (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 181 instruction(s), 11 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl30a.c:m44b3c8_sum_kinds (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 181 instruction(s), 11 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

@@ -3481,7 +3481,7 @@
       "contains_original_byte_values": false,
       "data_items": [],
       "function": "FUN_004e2e05",
-      "naming": "inferred_prose",
+      "naming": "native_port",
       "object": {
         "sha256": "8e52c2697fd83bf96f004181dfc7e800a6547b6cb3412f23c2dc51ab709a0439",
         "size": 926154
@@ -3491,7 +3491,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_004e2e05.s",
-        "sha256": "0cdea233fc88715a65913e4018b1dde92f16ddc16ee6e695edd5238f1b8888bb"
+        "sha256": "bad2e42045dce0859cb237ff28d2111d9d02ca55643d24175f00ffd21e439bb5"
       },
       "status": "accepted",
       "va": 5123589
@@ -8643,7 +8643,7 @@
       "contains_original_byte_values": false,
       "data_items": [],
       "function": "FUN_004f61e7",
-      "naming": "inferred_prose",
+      "naming": "native_port",
       "object": {
         "sha256": "71bb5d20777f3817e9182b8bf8be0e6f0e716f0124db9857ed2c8324fc4840aa",
         "size": 1005020
@@ -8653,7 +8653,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_004f61e7.s",
-        "sha256": "8d9d390aabd34f3c38df72715f300f388cd1eefd55161a90dbd6efcc1af75864"
+        "sha256": "f67026730b7b876a8d4e4fc4563c2faabdf0c9fcf6b90359d46ba522381d408f"
       },
       "status": "accepted",
       "va": 5202407
@@ -22635,9 +22635,9 @@
       "va": 5314725
     }
   ],
-  "manifest_sha256": "4668dfaa71ba88a794ddbbf3355e22aa9c98a58f59c1e28af54e1a7484c5260f",
+  "manifest_sha256": "2204e59c7f977f690efb989d7fd1b47967394c448b8c7b0df5b549125b29bb21",
   "named_functions": 158,
-  "names_sha256": "e1d73fac80161106b10ec80d43b51f7aece5aa89dd434b45df6c81f1f21a3efe",
+  "names_sha256": "f190b45374e8695dd13dcea4ff422640085e87d0f32bafa0ae314f3fc7c5e668",
   "note": "Accepted functions are candidates for the tool_assisted_reconstructed_assembly class; they count only after root accepts the independent review. No claim is made about original C++ or compiler provenance.",
   "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45"
 }

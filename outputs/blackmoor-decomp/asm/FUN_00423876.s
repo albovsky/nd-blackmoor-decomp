@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_00423876
+# name:         m423876_unwind_chain
+# naming:       native port src/original_methods_fl30c.c:m423876_unwind_chain (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port
+# name-note:    Recursive node chain release (callees 0x423aae/0x423a30/0x4234dd/0x4235fd), c+4 cleared, optional free; endless-loop node types rejected natively. See fl30c-handoff.md.
 # arguments:    2 ebp-relative stack slot(s) referenced: arg_8, arg_c; ret 0x8 (callee pops 8 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       7 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c
 # fields:       [eax + n] field_8, field_48; [ecx + n] field_34, field_44; [edx + n] field_4, field_c, field_44
 # callees:      calls FUN_0050ca3e, FUN_00423aae, FUN_00423a30, FUN_004234dd, FUN_00423876, FUN_004235fd, FUN_0051dc6c, FUN_0052139c, FUN_0044a2b7, FUN_004c97b4
-# track-n:      outputs/blackmoor-decomp/src/original_methods_fl18.c:m423b51_reset_record (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 132 instruction(s), 14 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl30c.c:m423876_unwind_chain (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 132 instruction(s), 14 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text
