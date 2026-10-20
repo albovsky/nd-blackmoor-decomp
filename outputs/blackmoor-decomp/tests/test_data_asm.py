@@ -261,6 +261,19 @@ class StructureBatchTests(unittest.TestCase):
         self.assertEqual(covered, 1511424 - text.virtual_size)
         self.assertRaises(data_asm.DataAsmError, data_asm.structure_ranges, "nope")
 
+    def test_gen_structures_needs_an_explicit_batch_and_refuses_other_range_options(self):
+        self.assertEqual(data_asm.main(["gen", "--structures", "pe"]), 2)  # would otherwise overwrite batch 001
+        self.assertEqual(data_asm.main(["gen", "--structures", "pe", "--batch", "003", "--resources"]), 2)
+
+    def test_committed_structures_manifests_claim_exactly_the_derived_ranges(self):
+        claimed = {}
+        for name in ("data-003.json", "data-004.json"):
+            manifest = json.loads((ASM_DATA / name).read_text())
+            self.assertEqual(manifest["profile"], data_asm.PROFILE_STRUCTURES)
+            claimed[name] = data_asm.manifest_ranges(manifest)
+        self.assertEqual(claimed["data-003.json"], data_asm.structure_ranges("pe"))
+        self.assertEqual(claimed["data-004.json"], data_asm.structure_ranges("resource"))
+
     def test_the_file_headers_are_a_pseudo_section(self):
         sections = data_asm.load_sections()
         self.assertEqual(data_asm.containing_section(sections, 0, 0x1000).name, data_asm.HEADERS)
@@ -381,6 +394,26 @@ class MutantTests(unittest.TestCase):
         report = self.audit(lambda text: text + "# edited\n", rehash=False)
         self.assertFalse(report["all_accepted"])
         self.assertTrue(any("manifest hash" in e for e in report["errors"]))
+
+    def test_an_unknown_profile_is_rejected(self):
+        manifest_path = self.dir / "data-002.json"
+        manifest = json.loads(manifest_path.read_text())
+        manifest["profile"] = "anything"
+        manifest_path.write_text(json.dumps(manifest))
+        report = data_asm.audit_manifest(manifest_path, data_asm.DEFAULT_ORIGINAL, data_asm.DEFAULT_ASSEMBLER, source_path=None, build_dir=self.dir)
+        self.assertFalse(report["all_accepted"])
+        self.assertTrue(any("unknown profile" in e for e in report["errors"]))
+
+    def test_a_shrunk_structures_manifest_is_rejected(self):
+        for name in ("data-003.json", "data-003.layout"):
+            shutil.copy(ASM_DATA / name, self.dir / name)
+        manifest_path = self.dir / "data-003.json"
+        manifest = json.loads(manifest_path.read_text())
+        manifest["ranges"] = manifest["ranges"][:-1]
+        manifest_path.write_text(json.dumps(manifest))
+        report = data_asm.audit_manifest(manifest_path, data_asm.DEFAULT_ORIGINAL, data_asm.DEFAULT_ASSEMBLER, build_dir=self.dir)
+        self.assertFalse(report["all_accepted"])
+        self.assertTrue(any("structure_ranges" in e for e in report["errors"]))
 
     def test_an_incbin_is_rejected(self):
         report = self.audit(lambda text: text + '.incbin "GAME.EXE"\n')

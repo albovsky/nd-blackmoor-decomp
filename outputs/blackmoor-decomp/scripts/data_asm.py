@@ -114,6 +114,7 @@ def load_sections(image_dir: Path = IMAGE_DIR) -> list[Section]:
 HEADERS = "<headers>"
 PROFILE_PAYLOADS = "payloads"  # .rdata / .data / resource payloads (the default; manifests of batches 001 and 002 carry no profile)
 PROFILE_STRUCTURES = "structures"  # PE headers, import tables, resource directory tree and section padding
+PROFILES = (PROFILE_PAYLOADS, PROFILE_STRUCTURES)
 
 
 def containing_section(sections: list[Section], lo: int, hi: int) -> Optional[Section]:
@@ -803,6 +804,11 @@ def audit_manifest(
     original = original_path.read_bytes()
     if manifest.get("schema") != SCHEMA or manifest.get("class") != DATA_CLASS:
         problems.append("the manifest is not a data-asm manifest of this class")
+    profile = manifest.get("profile", PROFILE_PAYLOADS)
+    if profile not in PROFILES:
+        problems.append(f"unknown profile {profile!r}")
+    elif profile == PROFILE_STRUCTURES and manifest_ranges(manifest) not in (structure_ranges("pe", image_dir), structure_ranges("resource", image_dir)):
+        problems.append("a structures manifest must claim exactly the ranges structure_ranges() derives")
     if sha256(original) != ORIGINAL_SHA256 or manifest.get("original_sha256") != ORIGINAL_SHA256:
         problems.append("the original is not the pinned GAME.EXE")
     if source_path is None:
@@ -921,6 +927,8 @@ def cmd_gen(args: argparse.Namespace) -> int:
     original = args.original.read_bytes()
     profile = PROFILE_STRUCTURES if args.structures else None
     if args.structures:
+        if args.range or args.resources or args.batch is None:
+            raise DataAsmError("--structures needs an explicit --batch and cannot be combined with --range or --resources")
         ranges = structure_ranges(args.structures)
         args.no_pointers = True
     else:
@@ -930,6 +938,7 @@ def cmd_gen(args: argparse.Namespace) -> int:
     text, analysis, origin_va = generate(original, ranges, pointers=not args.no_pointers, profile=profile)
     args.out.mkdir(parents=True, exist_ok=True)
     args.build_dir.mkdir(parents=True, exist_ok=True)
+    args.batch = args.batch or "001"
     name = f"data-{args.batch}"
     (args.build_dir / f"{name}.s").write_text(text, encoding="utf-8")
     layout_text = layout_of(text)
@@ -974,7 +983,7 @@ def make_parser() -> argparse.ArgumentParser:
     g.add_argument("--original", type=Path, default=DEFAULT_ORIGINAL)
     g.add_argument("--out", type=Path, default=DEFAULT_OUT, help="where the manifest and layout (committed files) go")
     g.add_argument("--build-dir", type=Path, default=DEFAULT_BUILD, help="where the full source (a build output, never committed) goes")
-    g.add_argument("--batch", default="001")
+    g.add_argument("--batch", default=None, help="batch number (default 001 unless --structures)")
     g.add_argument("--no-pointers", action="store_true", help="resource payloads: do not detect pointers")
     g.add_argument("--resources", action="store_true", help="the resource leaf payloads of image/resources.json (implies --no-pointers)")
     g.add_argument("--structures", choices=("pe", "resource"), help="the bytes the composer's structured groups generate: PE headers, import tables and padding (pe), or the resource directory tree and padding (resource)")

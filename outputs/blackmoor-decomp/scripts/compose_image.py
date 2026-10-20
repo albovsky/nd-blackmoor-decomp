@@ -741,6 +741,8 @@ def bind_data_batches(
         report = load_json(report_path)
         if manifest.get("class") != DATA_ASM_CLASS or batch.get("provenance_class", DATA_ASM_CLASS) != DATA_ASM_CLASS:
             raise ComposeError(f"{batch['manifest']}: not a {DATA_ASM_CLASS} batch")
+        if manifest.get("profile", data_asm.PROFILE_PAYLOADS) not in data_asm.PROFILES:
+            raise ComposeError(f"{batch['manifest']}: unknown profile {manifest.get('profile')!r}")
         if manifest.get("original_sha256") != ORIGINAL_SHA256:
             raise ComposeError(f"{batch['manifest']}: describes a different original")
         if report.get("manifest_sha256") != file_sha256(manifest_path):
@@ -1104,9 +1106,15 @@ def supersede_structured(items: list[Item], bound: list[Item]) -> tuple[list[Ite
     ``structured_mismatches`` keeps checking the committed descriptions); an item that lies wholly inside a bound
     structures range is then taken from the batch instead, and an item that straddles its edge is an error.
     """
-    spans = sorted((b.offset, b.end) for b in bound if b.replaces_structured)
+    spans: list[list[int]] = []
+    for lo, hi in sorted((b.offset, b.end) for b in bound if b.replaces_structured):
+        if spans and spans[-1][1] == lo:
+            spans[-1][1] = hi  # adjacent bound ranges: an item may cross the seam
+        else:
+            spans.append([lo, hi])
     kept: list[Item] = []
     count = total = 0
+    dropped = [0] * len(spans)
     for item in items:
         inside = any(lo <= item.offset and item.end <= hi for lo, hi in spans)
         straddle = any(item.offset < hi and lo < item.end for lo, hi in spans) and not inside
@@ -1115,8 +1123,13 @@ def supersede_structured(items: list[Item], bound: list[Item]) -> tuple[list[Ite
         if inside:
             count += 1
             total += item.length
+            dropped[next(n for n, (lo, hi) in enumerate(spans) if lo <= item.offset and item.end <= hi)] += item.length
         else:
             kept.append(item)
+    # the replaced items must tile every bound range, so a structured item lost from a description cannot hide behind the batch
+    for (lo, hi), got in zip(spans, dropped):
+        if got != hi - lo:
+            raise ComposeError(f"the structured groups cover {got} of the {hi - lo} bytes of the structures range at {hx(lo)}")
     return kept, {"items": count, "bytes": total}
 
 
@@ -2022,7 +2035,8 @@ def cmd_stages(args: argparse.Namespace) -> int:
             "referenced_bytes": report["by_class"][CLS_REFERENCED]["bytes"],
         }
         results.append(row)
-        ok = ok and comp.hash_match
+        # the groups the structures batches replace no longer reach the hash, so a stage also needs its descriptions to agree
+        ok = ok and comp.hash_match and not comp.structured_mismatches
         print(
             f"stage {stage:2d} {group or '(all referenced)':<18} match={comp.hash_match} structured={row['structured_bytes']:>9,} referenced={row['referenced_bytes']:>9,}"
         )

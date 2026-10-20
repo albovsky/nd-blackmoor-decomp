@@ -752,6 +752,11 @@ class AuditedBatchTests(unittest.TestCase):
         self.create_text_fill_batch(0x120)
         with self.assertRaisesRegex(GEN.ProgressError, "outside its section"):
             self.model()
+        self.tearDown()
+        self.setUp()
+        self.create_text_fill_batch(0x130)  # straddles the end of the code
+        with self.assertRaisesRegex(GEN.ProgressError, "outside its section"):
+            self.model()
 
     def mutate_report(self, change):
         path = self.asm / "batch-001-report.json"

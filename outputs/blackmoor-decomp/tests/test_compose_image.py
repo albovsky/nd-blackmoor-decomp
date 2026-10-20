@@ -238,6 +238,16 @@ class SupersedeStructuredTests(unittest.TestCase):
             compose_image.supersede_structured([self.item(8, 16)], [self.bound(0, 16)])
         self.assertIn("straddles", str(ctx.exception))
 
+    def test_items_must_tile_the_bound_range(self):
+        # an item lost from a structured description would otherwise be filled silently by the batch
+        with self.assertRaises(compose_image.ComposeError) as ctx:
+            compose_image.supersede_structured([self.item(0, 8)], [self.bound(0, 16)])
+        self.assertIn("cover 8 of the 16", str(ctx.exception))
+
+    def test_adjacent_structures_ranges_are_one_span(self):
+        kept, replaced = compose_image.supersede_structured([self.item(0, 8), self.item(8, 16)], [self.bound(0, 12), self.bound(12, 12)])
+        self.assertEqual((kept, replaced), ([], {"items": 2, "bytes": 24}))
+
     def test_a_payload_batch_replaces_nothing(self):
         items = [self.item(0, 8)]
         kept, replaced = compose_image.supersede_structured(items, [self.bound(0, 16, replaces=False)])
