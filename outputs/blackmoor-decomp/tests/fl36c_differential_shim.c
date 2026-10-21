@@ -211,6 +211,7 @@ void shim_fl36c(int fn, uint8_t *self, const uintptr_t *a, Fl36cWorld *w, int32_
     host.tick = host_tick;
     (void)a;
     (void)w;
+    (void)self;
 
     switch (fn) {
     case F36C_401032: *result = (int32_t)m401032_init_vtable_call(self, &host); break;

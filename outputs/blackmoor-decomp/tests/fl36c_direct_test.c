@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define UNUSED_FN __attribute__((unused))
+
 static int g_failed;
 static char g_msg[256];
 #define CK(cond)                                                               \
@@ -17,12 +19,11 @@ static char g_msg[256];
         }                                                                      \
     } while (0)
 
-#define SELF_SIZE 0x100
+#define SELF_SIZE 0x200
 static uint8_t g_self[SELF_SIZE];
 #define SELF g_self
 static Fl18Host g_host;
 static Fl36cWorld g_w;
-#define GLOBAL_VALUE (g_w.dword_569138)
 
 #define MAXCALL 8
 static struct {
@@ -33,10 +34,11 @@ static struct {
         int nargs;
         uintptr_t a[2];
         uint32_t first_dword;   /* the dword at [this] at the call */
-        uint32_t global;        /* the world dword at the call */
+        uint32_t global;        /* the first world dword at the call */
     } c[MAXCALL];
 } L;
-static uint32_t g_ret;           /* the answer of every callee */
+static uint32_t g_ret;           /* the answer of every callee but the allocator */
+static uint32_t g_new;           /* the answer of 0x51dc43 */
 
 static uint32_t host_call(void *ctx, uint32_t callee, uintptr_t this_ptr, const uintptr_t *args, int nargs)
 {
@@ -48,10 +50,10 @@ static uint32_t host_call(void *ctx, uint32_t callee, uintptr_t this_ptr, const 
         L.c[i].nargs = nargs;
         for (k = 0; k < nargs && k < 2; k++) L.c[i].a[k] = args[k];
         L.c[i].first_dword = this_ptr > 0xffffffffu ? (uint32_t)(((const uint8_t *)this_ptr)[0] | ((const uint8_t *)this_ptr)[1] << 8 | ((const uint8_t *)this_ptr)[2] << 16 | (uint32_t)((const uint8_t *)this_ptr)[3] << 24) : 0;
-        L.c[i].global = GLOBAL_VALUE;
+        L.c[i].global = g_w.dword_569138;
     }
     L.n++;
-    return g_ret;
+    return callee == 0x51dc43 ? g_new : g_ret;
 }
 
 static const uint8_t *host_resolve(void *ctx, uint32_t a)
@@ -61,6 +63,17 @@ static const uint8_t *host_resolve(void *ctx, uint32_t a)
     return NULL;
 }
 
+UNUSED_FN static void world_init(Fl36cWorld *w)
+{
+    memset(w, 0, sizeof *w);
+    w->dword_569138 = (uint32_t)0xdeadbee0u;
+}
+
+UNUSED_FN static int world_eq(const Fl36cWorld *a, const Fl36cWorld *b)
+{
+    return a->dword_569138 == b->dword_569138;
+}
+
 static void setup(void)
 {
     size_t i;
@@ -68,23 +81,39 @@ static void setup(void)
     memset(&g_host, 0, sizeof g_host);
     g_host.call = host_call;
     g_host.resolve = host_resolve;
-    memset(&g_w, 0, sizeof g_w);
-    g_w.dword_569138 = 0xdeadbeefu;
+    world_init(&g_w);
     L.n = 0;
     g_ret = 0;
+    g_new = 0;
 }
 
-static const uint32_t RETS[] = {0, 0x80000000u, 0xcafef00du, 0xffffffffu};
+UNUSED_FN static void put32(uint8_t *p, size_t off, uint32_t v)
+{
+    p[off] = (uint8_t)v;
+    p[off + 1] = (uint8_t)(v >> 8);
+    p[off + 2] = (uint8_t)(v >> 16);
+    p[off + 3] = (uint8_t)(v >> 24);
+}
+
+UNUSED_FN static uint32_t get32(const uint8_t *p, size_t off)
+{
+    return (uint32_t)p[off] | (uint32_t)p[off + 1] << 8 | (uint32_t)p[off + 2] << 16 | (uint32_t)p[off + 3] << 24;
+}
+
+static const uint32_t RETS[] UNUSED_FN = {0, 0x80000000u, 0xcafef00du, 0xffffffffu};
 #define NRETS (sizeof RETS / sizeof RETS[0])
+
+typedef uint32_t (*GetFn)(uint8_t *);
+typedef void (*EmptyFn)(uint8_t *);
+typedef uint32_t (*CallFn)(uint8_t *, const Fl18Host *);
+typedef uint32_t (*SCallFn)(const Fl18Host *);
+typedef uint8_t *(*DtorBaseFn)(uint8_t *, const Fl18Host *);
 
 static void check_vtable_call(uint32_t got_or_zero, int returns_self, uint32_t vtbl, uint32_t callee, uint32_t want_ret, const uint8_t *before)
 {
     uint8_t want[SELF_SIZE];
     memcpy(want, before, sizeof want);
-    want[0] = (uint8_t)vtbl;
-    want[1] = (uint8_t)(vtbl >> 8);
-    want[2] = (uint8_t)(vtbl >> 16);
-    want[3] = (uint8_t)(vtbl >> 24);
+    put32(want, 0, vtbl);
     if (returns_self)
         CK(got_or_zero == 0);
     else

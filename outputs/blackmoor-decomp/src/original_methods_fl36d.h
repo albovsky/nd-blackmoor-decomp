@@ -16,9 +16,10 @@ extern "C" {
  * source names.
  *
  * dtor      97 rows: scalar-deleting destructors (call a destructor, delete this when bit 0 of the argument is set, return this).
- * The constants of every row (the returned value, the vtable dword, the callee, the stored constant) were read from that row's own disassembly by the generator, which also
- * asserted that every row of a kind has the identical masked instruction stream. A callee that changes `self` or a global that the function reads again afterwards is not
- * exercised (the functions read nothing again). */
+ * The constants of every row (the returned value, the field offset, the vtable dword, the callees, the stored constants) were read from that row's own disassembly by the
+ * generator, which also asserted that every row of a kind has the identical masked instruction stream. A callee that changes `self` or a global that the function reads again
+ * afterwards is not exercised (the functions read nothing again). The rows with a structured-exception frame link it into fs:[0] and unlink it before returning; the frame (and the
+ * handler, which runs only when a callee throws) is not modelled. */
 
 /* 0x401100, thiscall, `ret 4`, returns this: 0x401032(this) (thiscall, no arguments), then, only when bit 0 of the stack argument is set, 0x51dc6c(this) (cdecl, one argument, caller pops). */
 uint8_t *m401100_scalar_deleting_dtor(uint8_t *self, uint32_t flags, const Fl18Host *host);

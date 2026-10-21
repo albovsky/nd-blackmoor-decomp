@@ -211,6 +211,7 @@ void shim_fl36b(int fn, uint8_t *self, const uintptr_t *a, void *w, int32_t *res
     host.tick = host_tick;
     (void)a;
     (void)w;
+    (void)self;
 
     switch (fn) {
     case F36B_40104E: *result = (int32_t)m40104e_get_constant(self); break;

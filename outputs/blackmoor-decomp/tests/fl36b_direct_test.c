@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define UNUSED_FN __attribute__((unused))
+
 static int g_failed;
 static char g_msg[256];
 #define CK(cond)                                                               \
@@ -17,7 +19,7 @@ static char g_msg[256];
         }                                                                      \
     } while (0)
 
-#define SELF_SIZE 0x100
+#define SELF_SIZE 0x200
 static uint8_t g_self[SELF_SIZE];
 #define SELF g_self
 static Fl18Host g_host;
@@ -31,10 +33,11 @@ static struct {
         int nargs;
         uintptr_t a[2];
         uint32_t first_dword;   /* the dword at [this] at the call */
-        uint32_t global;        /* the world dword at the call */
+        uint32_t global;        /* the first world dword at the call */
     } c[MAXCALL];
 } L;
-static uint32_t g_ret;           /* the answer of every callee */
+static uint32_t g_ret;           /* the answer of every callee but the allocator */
+static uint32_t g_new;           /* the answer of 0x51dc43 */
 
 static uint32_t host_call(void *ctx, uint32_t callee, uintptr_t this_ptr, const uintptr_t *args, int nargs)
 {
@@ -49,7 +52,7 @@ static uint32_t host_call(void *ctx, uint32_t callee, uintptr_t this_ptr, const 
         L.c[i].global = 0;
     }
     L.n++;
-    return g_ret;
+    return callee == 0x51dc43 ? g_new : g_ret;
 }
 
 static const uint8_t *host_resolve(void *ctx, uint32_t a)
@@ -68,9 +71,31 @@ static void setup(void)
     g_host.resolve = host_resolve;
     L.n = 0;
     g_ret = 0;
+    g_new = 0;
 }
 
+UNUSED_FN static void put32(uint8_t *p, size_t off, uint32_t v)
+{
+    p[off] = (uint8_t)v;
+    p[off + 1] = (uint8_t)(v >> 8);
+    p[off + 2] = (uint8_t)(v >> 16);
+    p[off + 3] = (uint8_t)(v >> 24);
+}
+
+UNUSED_FN static uint32_t get32(const uint8_t *p, size_t off)
+{
+    return (uint32_t)p[off] | (uint32_t)p[off + 1] << 8 | (uint32_t)p[off + 2] << 16 | (uint32_t)p[off + 3] << 24;
+}
+
+static const uint32_t RETS[] UNUSED_FN = {0, 0x80000000u, 0xcafef00du, 0xffffffffu};
+#define NRETS (sizeof RETS / sizeof RETS[0])
+
 typedef uint32_t (*GetFn)(uint8_t *);
+typedef void (*EmptyFn)(uint8_t *);
+typedef uint32_t (*CallFn)(uint8_t *, const Fl18Host *);
+typedef uint32_t (*SCallFn)(const Fl18Host *);
+typedef uint8_t *(*DtorBaseFn)(uint8_t *, const Fl18Host *);
+
 static void check_get(GetFn fn, uint32_t want)
 {
     uint8_t before[SELF_SIZE];
@@ -81,7 +106,6 @@ static void check_get(GetFn fn, uint32_t want)
     CK(L.n == 0);
 }
 
-typedef void (*EmptyFn)(uint8_t *);
 static void check_empty(EmptyFn fn)
 {
     uint8_t before[SELF_SIZE];

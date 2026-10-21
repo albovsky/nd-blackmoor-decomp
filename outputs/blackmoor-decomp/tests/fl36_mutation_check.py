@@ -46,6 +46,43 @@ MUTANTS = {
 MUTANTS['empty'] = [('writes self[0]', r'\(void\)self;', lambda m: 'self[0] ^= 1;')]
 MUTANTS['setg'] = MUTANTS['setg'][:2] + [('no store', r'    world->dword_[0-9a-f]+ = 0x[0-9a-f]+u;\n', lambda m: '    (void)world;\n')]
 
+X1 = lambda m: '%x' % (int(m, 16) ^ 1)
+MUTANTS['retn'] = MUTANTS['empty']
+MUTANTS['getf'] = [('offset + 4', r'rd32\(self, 0x([0-9a-f]+)\)', lambda m: 'rd32(self, 0x%x)' % (int(m.group(1), 16) + 4))]
+MUTANTS['setvt'] = [MUTANTS['ctorret'][0], MUTANTS['ctorret'][2]]
+MUTANTS['tail0'] = [('callee ^ 1', r'call0\(host, 0x([0-9a-f]+),', lambda m: 'call0(host, 0x%s,' % X1(m.group(1))),
+                    ('result discarded', r'return (call0\(.*\));\n', lambda m: '(void)%s;\n    return 0;\n' % m.group(1))]
+MUTANTS['fwd1'] = [('callee ^ 1', r'call1\(host, 0x([0-9a-f]+),', lambda m: 'call1(host, 0x%s,' % X1(m.group(1))),
+                   ('argument ^ 1', r'\(uintptr_t\)self, arg\)', lambda m: '(uintptr_t)self, arg ^ 1u)'),
+                   ('result discarded', r'return (call1\(.*\));\n', lambda m: '(void)%s;\n    return 0;\n' % m.group(1))]
+MUTANTS['dtorbase'] = [('callee ^ 1', r'call0\(host, 0x([0-9a-f]+),', lambda m: 'call0(host, 0x%s,' % X1(m.group(1))),
+                       ('vtable dword ^ 1', r'wr32\(self, 0, 0x([0-9a-f]+)u\)', lambda m: 'wr32(self, 0, 0x%su)' % X1(m.group(1))),
+                       ('store before the call', r'(    \(void\)call0\(host, 0x[0-9a-f]+, \(uintptr_t\)self\);\n)(    wr32\(self, 0, 0x[0-9a-f]+u\);\n)', lambda m: m.group(2) + m.group(1)),
+                       ('returns NULL', r'return self;', lambda m: 'return NULL;')]
+MUTANTS['setfa'] = [('offset + 4', r'wr32\(self, 0x([0-9a-f]+), value\)', lambda m: 'wr32(self, 0x%x, value)' % (int(m.group(1), 16) + 4)),
+                    ('value ^ 1', r', value\)', lambda m: ', value ^ 1u)'), MUTANTS['ctorret'][2]]
+MUTANTS['setfi'] = [('offset + 4', r'wr32\(self, 0x([0-9a-f]+), 0x', lambda m: 'wr32(self, 0x%x, 0x' % (int(m.group(1), 16) + 4)),
+                    ('constant ^ 1', r'wr32\(self, 0x[0-9a-f]+, 0x([0-9a-f]+)u\)', lambda m: m.group(0).replace('0x%su' % m.group(1), '0x%su' % X1(m.group(1)))), MUTANTS['ctorret'][2]]
+MUTANTS['setw'] = [('constant ^ 1', r'= 0x([0-9a-f]+);', lambda m: '= 0x%s;' % X1(m.group(1))), ('no store', r'    world->word_[0-9a-f]+ = 0x[0-9a-f]+;\n', lambda m: '    (void)world;\n')]
+MUTANTS['setw2'] = [('constant ^ 1', r'= 0x([0-9a-f]+);', lambda m: '= 0x%s;' % X1(m.group(1))),
+                    ('second store dropped', r'(    world->word_[0-9a-f]+ = 0x[0-9a-f]+;\n)    world->word_[0-9a-f]+ = 0x[0-9a-f]+;\n', lambda m: m.group(1)),
+                    ('no store', r'    world->word_[0-9a-f]+ = 0x[0-9a-f]+;\n', lambda m: '    (void)world;\n')]
+MUTANTS['call2'] = [('callee ^ 1', r'call0\(host, 0x([0-9a-f]+),', lambda m: 'call0(host, 0x%s,' % X1(m.group(1))),
+                    ('second callee ^ 1', r'(call0\(host, 0x[0-9a-f]+,.*?)call0\(host, 0x([0-9a-f]+),', lambda m: m.group(1) + 'call0(host, 0x%s,' % X1(m.group(2))),
+                    ('second call dropped', r'(    \(void\)call0\(host, 0x[0-9a-f]+, \(uintptr_t\)self\);\n)    \(void\)call0\(host, 0x[0-9a-f]+, \(uintptr_t\)self\);\n', lambda m: m.group(1)),
+                    ('constant ^ 1', r'return 0x([0-9a-f]+)u;', lambda m: 'return 0x%su;' % X1(m.group(1)))]
+MUTANTS['scall'] = [('callee ^ 1', r'call0\(host, 0x([0-9a-f]+),', lambda m: 'call0(host, 0x%s,' % X1(m.group(1))),
+                    ('object ^ 1', r'call0\(host, 0x[0-9a-f]+, 0x([0-9a-f]+)\)', lambda m: m.group(0).replace('0x%s)' % m.group(1), '0x%s)' % X1(m.group(1))))]
+MUTANTS['newctor'] = [('size ^ 1', r'call1\(host, 0x51dc43, 0, 0x([0-9a-f]+)\)', lambda m: 'call1(host, 0x51dc43, 0, 0x%s)' % X1(m.group(1))),
+                      ('callee ^ 1', r'call0\(host, 0x([0-9a-f]+), \(uintptr_t\)p\)', lambda m: 'call0(host, 0x%s, (uintptr_t)p)' % X1(m.group(1))),
+                      ('constructs without the null test', r'p != 0 \? (call0\(.*\)) : 0;', lambda m: m.group(1) + ';'),
+                      ('returns p', r'p != 0 \? call0\(.*\) : 0;', lambda m: 'p;')]
+MUTANTS['ctoreh'] = [('vtable dword ^ 1', r'wr32\(self, 0, 0x([0-9a-f]+)u\)', lambda m: 'wr32(self, 0, 0x%su)' % X1(m.group(1))),
+                     ('callee ^ 1', r'call0\(host, 0x([0-9a-f]+),', lambda m: 'call0(host, 0x%s,' % X1(m.group(1))),
+                     ('second callee ^ 1', r'(call0\(host, 0x[0-9a-f]+,.*?)call0\(host, 0x([0-9a-f]+),', lambda m: m.group(1) + 'call0(host, 0x%s,' % X1(m.group(2))),
+                     ('store before the first call', r'(    \(void\)call0\(host, 0x[0-9a-f]+, \(uintptr_t\)self\);\n)(    wr32\(self, 0, 0x[0-9a-f]+u\);\n)', lambda m: m.group(2) + m.group(1)),
+                     ('returns NULL', r'return self;', lambda m: 'return NULL;')]
+
 
 def function_blocks(text):
     """[(name, start, end)] of the function bodies of the generated source."""
@@ -79,7 +116,7 @@ def main():
                     if lab != label:
                         continue
                     body = text[a:b]
-                    new, n = re.subn(rx, fn, body, count=1)
+                    new, n = re.subn(rx, fn, body, count=1, flags=re.S)
                     if n and new != body:
                         text = text[:a] + new + text[b:]
                         mutated[name] = kind

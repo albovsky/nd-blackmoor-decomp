@@ -13,6 +13,13 @@ FL36_UNUSED static void wr32(uint8_t *base, ptrdiff_t off, uint32_t v)
     memcpy(base + off, &v, sizeof v);
 }
 
+FL36_UNUSED static uint32_t rd32(const uint8_t *base, ptrdiff_t off)
+{
+    uint32_t v;
+    memcpy(&v, base + off, sizeof v);
+    return v;
+}
+
 FL36_UNUSED static uint32_t callv(const Fl18Host *host, uint32_t callee, uintptr_t this_ptr, const uintptr_t *args, int n)
 {
     return host->call != NULL ? host->call(host->context, callee, this_ptr, n > 0 ? args : NULL, n) : 0;

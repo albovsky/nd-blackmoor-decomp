@@ -17,9 +17,10 @@ extern "C" {
  *
  * get      112 rows: getters that return one constant (`mov eax, imm32`).
  * empty     17 rows: methods that do nothing.
- * The constants of every row (the returned value, the vtable dword, the callee, the stored constant) were read from that row's own disassembly by the generator, which also
- * asserted that every row of a kind has the identical masked instruction stream. A callee that changes `self` or a global that the function reads again afterwards is not
- * exercised (the functions read nothing again). */
+ * The constants of every row (the returned value, the field offset, the vtable dword, the callees, the stored constants) were read from that row's own disassembly by the
+ * generator, which also asserted that every row of a kind has the identical masked instruction stream. A callee that changes `self` or a global that the function reads again
+ * afterwards is not exercised (the functions read nothing again). The rows with a structured-exception frame link it into fs:[0] and unlink it before returning; the frame (and the
+ * handler, which runs only when a callee throws) is not modelled. */
 
 /* 0x40104e, thiscall, plain `ret`: returns the constant 0x52a550u in eax; `this` is only saved in a local and not read. */
 uint32_t m40104e_get_constant(uint8_t *self);

@@ -211,6 +211,7 @@ void shim_fl36d(int fn, uint8_t *self, const uintptr_t *a, void *w, int32_t *res
     host.tick = host_tick;
     (void)a;
     (void)w;
+    (void)self;
 
     switch (fn) {
     case F36D_401100: *result = m401100_scalar_deleting_dtor(self, (uint32_t)a[0], &host) == self ? 0 : 1; break;

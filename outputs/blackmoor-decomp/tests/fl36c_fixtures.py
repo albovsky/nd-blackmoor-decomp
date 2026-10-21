@@ -17,7 +17,7 @@ from types import SimpleNamespace
 sys.dont_write_bytecode = True
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import original_differential as od
-from fl28b_fixtures import (Original27, stub, CDECL, STDCALL, THISCALL, Area, put32, put16, prof, normalize, conditional_edges, LOCAL, FMT)
+from fl28b_fixtures import (Original27, stub, CDECL, STDCALL, THISCALL, Area, put32, put16, prof, normalize, conditional_edges, LOCAL, FMT, TIB)
 
 PROJECT = Path(__file__).resolve().parents[1]
 CTYPES = {'uint8_t': ctypes.c_uint8, 'int16_t': ctypes.c_int16, 'uint16_t': ctypes.c_uint16, 'int32_t': ctypes.c_int32, 'uint32_t': ctypes.c_uint32}
@@ -53,10 +53,10 @@ GLOBALS = {n: (int(n.rsplit('_', 1)[1], 16), ctypes.sizeof(t)) for n, t, p in WO
 WORD_ARGS = {}
 
 
-def make(key, areas, stubs, g, stack, args, profile, pointers=None, iat=None, fault=None):
+def make(key, areas, stubs, g, stack, args, profile, pointers=None, iat=None, fault=None, seh=None):
     sp = SPECS[key]
     return SimpleNamespace(key=key, fn=sp['id'], va=sp['va'], size=sp['size'], code=sp.get('code', sp['size']), areas=areas, stubs=stubs, iat=iat or {}, g=g,
-                           ecx=od.region_va(0), pointers=pointers or {}, word_args=WORD_ARGS, profile=profile, stack=stack, args=args, seh=None, partial=None, fault=fault)
+                           ecx=od.region_va(0), pointers=pointers or {}, word_args=WORD_ARGS, profile=profile, stack=stack, args=args, seh=seh, partial=None, fault=fault)
 
 
 def run_original(sc):
@@ -69,13 +69,17 @@ def run_original(sc):
     read = {a.name: (a.va, len(a.data)) for a in sc.areas if a.compare}
     for field in sc.g:
         read['g:' + field] = GLOBALS[field]
+    if sc.seh is not None:
+        read['tib'] = (TIB, 4)
     for x in [*sc.stubs.values(), *sc.iat.values()]:
         x.probe_addr = [((GLOBALS[name[2:]][0] if name.startswith('g:') else next(a.va for a in sc.areas if a.name == name)) + off, ln) for name, off, ln in (x.probe or ())]
-    runner = Original27(image_patches, regions, sc.stubs, sc.iat)
+    runner = Original27(image_patches, regions, sc.stubs, sc.iat, seh=sc.seh)
     orig = runner.run(sc.va, sc.size, ecx=sc.ecx, stack_args=sc.stack, read=read)
     orig.edges = getattr(runner, 'edges', set())      # (address, next address) of the instructions executed in a row
     if orig.cleanup != SPECS[sc.key].get('cleanup', 0):
         raise AssertionError('the function popped %d bytes' % orig.cleanup)
+    if sc.seh is not None and orig.memory.pop('tib') != struct.pack('<I', sc.seh):
+        raise AssertionError('the structured-exception chain at fs:[0] was not restored')
     if SPECS[sc.key].get('retself') and orig.eax != sc.ecx:
         raise AssertionError('the function must return this')
     calls = normalize(orig.calls, sc.stubs, sc.iat, sc.word_args)
@@ -115,6 +119,8 @@ def check_edges(key, edges):
 
 
 SELF_BYTES = 0x200
+RETSELF = ('ctorret', 'dtor', 'setvt', 'dtorbase', 'setfa', 'setfi', 'ctoreh')
+NORET = ('empty', 'retn', 'setw', 'setw2')
 RET_VALUES = [0, 1, 0x80000000, 0xffffffff]
 FLAGS = [0, 1, 2, 3, 0x100, 0x101, 0xfffffffe, 0xffffffff, 0x80000000, 0x80000001]
 
@@ -398,36 +404,63 @@ ROWS = {
 
 def gen(key, rng, n):
     kind, c = ROWS[key]
-    g = {n_: rng.choice([0, 0xffffffff, rng.randrange(1 << 32)]) for n_ in GLOBALS}
+    g = {n_: rng.choice([0xffffffff, 0xa5a5a5a5, rng.randrange(1, 1 << 32)]) for n_ in GLOBALS}      # never 0: a store of 0 must show
     self_probe = [('self', 0, 0x20)]
-    if kind in ('get', 'empty'):
-        return make(key, [self_area(rng)], {}, g, [], (), (n,))
-    if kind in ('ctor', 'ctorret'):
-        stubs = {c['callee']: stub(c['callee'], THISCALL(0), results=[result(rng)], probe=self_probe)}
-        return make(key, [self_area(rng)], stubs, g, [], (), (n,))
+    areas = [self_area(rng)]
+    th0 = lambda callee: stub(callee, THISCALL(0), results=[result(rng)], probe=self_probe)
+    if kind in ('get', 'empty', 'getf', 'setvt', 'setfi', 'setw', 'setw2'):
+        return make(key, areas, {}, g, [], (), (n,))
+    if kind == 'retn':
+        words = [rng.randrange(1 << 32) for _ in range(c['n'] // 4)]
+        return make(key, areas, {}, g, words, tuple(words), (n,))
+    if kind == 'setfa':
+        value = rng.choice([0, 1, 0xffffffff, rng.randrange(1 << 32)])
+        return make(key, areas, {}, g, [value], (value,), (value,))
+    if kind in ('ctor', 'ctorret', 'tail0', 'dtorbase'):
+        return make(key, areas, {c['callee']: th0(c['callee'])}, g, [], (), (n,))
     if kind == 'setg':
         stubs = {c['callee']: stub(c['callee'], THISCALL(0), results=[result(rng)], probe=[('g:dword_%x' % c['addr'], 0, 4), *self_probe])}
-        return make(key, [self_area(rng)], stubs, g, [], (), (n,))
+        return make(key, areas, stubs, g, [], (), (n,))
     if kind == 'dtor':
         flags = FLAGS[n % len(FLAGS)]
-        stubs = {c['callee']: stub(c['callee'], THISCALL(0), results=[result(rng)], probe=self_probe),
-                 0x51dc6c: stub(0x51dc6c, CDECL(1), results=[result(rng)], probe=self_probe)}
-        return make(key, [self_area(rng)], stubs, g, [flags], (flags,), (flags,))
+        stubs = {c['callee']: th0(c['callee']), 0x51dc6c: stub(0x51dc6c, CDECL(1), results=[result(rng)], probe=self_probe)}
+        return make(key, areas, stubs, g, [flags], (flags,), (flags,))
+    if kind == 'fwd1':
+        arg = rng.choice([0, 1, 0xffffffff, rng.randrange(1 << 32)])
+        stubs = {c['callee']: stub(c['callee'], THISCALL(1), results=[result(rng)], probe=self_probe)}
+        return make(key, areas, stubs, g, [arg], (arg,), (arg,))
+    if kind == 'call2':
+        return make(key, areas, {c['callee']: th0(c['callee']), c['callee2']: th0(c['callee2'])}, g, [], (), (n,))
+    if kind == 'scall':
+        return make(key, areas, {c['callee']: th0(c['callee'])}, g, [], (), (n,))
+    if kind == 'newctor':
+        made = 0 if n % 2 == 0 else rng.choice([1, 0x1000, 0x7fffffff, 0x80000000, 0xffffffff, rng.randrange(1, 1 << 32)])
+        stubs = {0x51dc43: stub(0x51dc43, CDECL(1), results=[made]), c['callee']: th0(c['callee'])}
+        sc = make(key, areas, stubs, g, [], (), (made,))
+        sc.seh = rng.randrange(1 << 32)
+        return sc
+    if kind == 'ctoreh':
+        sc = make(key, areas, {c['callee']: th0(c['callee']), c['callee2']: th0(c['callee2'])}, g, [], (), (n,))
+        sc.seh = rng.randrange(1 << 32)
+        return sc
     raise KeyError(kind)
 
 
-COUNTS = {'get': 4, 'empty': 2, 'ctor': 4, 'ctorret': 4, 'setg': 4, 'dtor': 2 * len(FLAGS)}
+COUNTS = {'get': 4, 'empty': 2, 'ctor': 4, 'ctorret': 4, 'setg': 4, 'dtor': 2 * len(FLAGS), 'getf': 4, 'retn': 2, 'setvt': 2, 'tail0': 4, 'fwd1': 6, 'dtorbase': 4, 'setfa': 4,
+          'setfi': 2, 'setw': 3, 'setw2': 3, 'call2': 3, 'scall': 4, 'newctor': 8, 'ctoreh': 4}
 SPECS = {}
 NAMES = {}
 for _i, (_k, (_kind, _c)) in enumerate(ROWS.items()):
     _spec = SPECS[_k] = dict(id=_i + 1, va=int(_k, 16), size=SIZES[_k][0], code=SIZES[_k][1], n=COUNTS[_kind])
-    if _kind == 'dtor':
+    if _kind in ('dtor', 'fwd1', 'setfa'):
         _spec['cleanup'] = 4
-    if _kind in ('ctorret', 'dtor'):
+    if _kind == 'retn':
+        _spec['cleanup'] = _c['n']
+    if _kind in RETSELF:
         _spec['retself'] = True
-    elif _kind != 'empty':
+    elif _kind not in NORET:
         _spec['ret'] = True
-    NAMES[_k] = {'get': 'get_constant', 'empty': 'empty_method', 'ctor': 'init_vtable_call', 'ctorret': 'init_vtable_call_ret_self', 'setg': 'set_mode_call', 'dtor': 'scalar_deleting_dtor'}[_kind]
+    NAMES[_k] = {'get': 'get_constant', 'empty': 'empty_method', 'ctor': 'init_vtable_call', 'ctorret': 'init_vtable_call_ret_self', 'setg': 'set_mode_call', 'dtor': 'scalar_deleting_dtor', 'getf': 'get_field', 'retn': 'empty_method_args', 'setvt': 'init_vtable_ret_self', 'tail0': 'forward_call', 'fwd1': 'forward_call_arg', 'dtorbase': 'destruct_base_set_vtable', 'setfa': 'set_field_arg', 'setfi': 'set_field_const', 'setw': 'set_word', 'setw2': 'set_two_words', 'call2': 'call_two_return_const', 'scall': 'call_global_object', 'newctor': 'new_and_construct', 'ctoreh': 'construct_base_set_vtable'}[_kind]
 KEYS = list(SPECS)
 
 

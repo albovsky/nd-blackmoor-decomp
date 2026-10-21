@@ -18,12 +18,13 @@ extern "C" {
  * ctor      65 rows: constructor stubs that store a dword at [this] and call one more method (return its eax).
  * ctorret   16 rows: constructor stubs that store a dword at [this], call one more method and return this.
  * setg      49 rows: methods that store one constant in the global dword 0x569138 and call 0x401526(this).
- * The constants of every row (the returned value, the vtable dword, the callee, the stored constant) were read from that row's own disassembly by the generator, which also
- * asserted that every row of a kind has the identical masked instruction stream. A callee that changes `self` or a global that the function reads again afterwards is not
- * exercised (the functions read nothing again). */
+ * The constants of every row (the returned value, the field offset, the vtable dword, the callees, the stored constants) were read from that row's own disassembly by the
+ * generator, which also asserted that every row of a kind has the identical masked instruction stream. A callee that changes `self` or a global that the function reads again
+ * afterwards is not exercised (the functions read nothing again). The rows with a structured-exception frame link it into fs:[0] and unlink it before returning; the frame (and the
+ * handler, which runs only when a callee throws) is not modelled. */
 
 typedef struct Fl36cWorld {
-    /* the global dword that the "set_mode_call" rows store (carried so that a store of the wrong width or at the wrong place shows) */
+    /* the globals that the rows store into (carried so that a store of the wrong width or at the wrong place shows) */
     uint32_t dword_569138;
 } Fl36cWorld;
 
