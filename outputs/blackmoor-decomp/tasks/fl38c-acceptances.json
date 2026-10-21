@@ -1,0 +1,794 @@
+[
+  {
+    "va": "0x40430e",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet 5.5 implementer, self-checked, independent review pending (FL-38c)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl38c.c",
+      "symbol": "m40430e_read_word_setting"
+    },
+    "tests": [
+      {
+        "path": "tests/fl38c_direct_test.c",
+        "test_id": "test_m40430e_read_word_setting"
+      },
+      {
+        "path": "tests/test_fl38c_direct.py",
+        "test_id": "Fl38cDirect.test_40430e_read_word_setting"
+      },
+      {
+        "path": "tests/test_fl38c_differential.py",
+        "test_id": "Fl38cDifferential.test_40430e_read_word_setting"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl38c_original_oracle.py",
+      "window": [
+        "0x40430e",
+        "0x404349"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "String read by 0x51d5b2 (this+0x18c) into a local, converted by 0x50cb1b, low word stored at [0x5e5686], then 0x4033db(this). 20/20 instructions, no jumps."
+  },
+  {
+    "va": "0x404349",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet 5.5 implementer, self-checked, independent review pending (FL-38c)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl38c.c",
+      "symbol": "m404349_read_word_setting"
+    },
+    "tests": [
+      {
+        "path": "tests/fl38c_direct_test.c",
+        "test_id": "test_m404349_read_word_setting"
+      },
+      {
+        "path": "tests/test_fl38c_direct.py",
+        "test_id": "Fl38cDirect.test_404349_read_word_setting"
+      },
+      {
+        "path": "tests/test_fl38c_differential.py",
+        "test_id": "Fl38cDifferential.test_404349_read_word_setting"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl38c_original_oracle.py",
+      "window": [
+        "0x404349",
+        "0x404384"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "String read by 0x51d5b2 (this+0x14c) into a local, converted by 0x50cb1b, low word stored at [0x5e5684], then 0x4033db(this). 20/20 instructions, no jumps."
+  },
+  {
+    "va": "0x40492f",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet 5.5 implementer, self-checked, independent review pending (FL-38c)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl38c.c",
+      "symbol": "m40492f_read_word_setting"
+    },
+    "tests": [
+      {
+        "path": "tests/fl38c_direct_test.c",
+        "test_id": "test_m40492f_read_word_setting"
+      },
+      {
+        "path": "tests/test_fl38c_direct.py",
+        "test_id": "Fl38cDirect.test_40492f_read_word_setting"
+      },
+      {
+        "path": "tests/test_fl38c_differential.py",
+        "test_id": "Fl38cDifferential.test_40492f_read_word_setting"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl38c_original_oracle.py",
+      "window": [
+        "0x40492f",
+        "0x40496a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "String read by 0x51d5b2 (this+0x38c) into a local, converted by 0x50cb1b, low word stored at [0x5ec33a], then 0x4033db(this). 20/20 instructions, no jumps."
+  },
+  {
+    "va": "0x40496a",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet 5.5 implementer, self-checked, independent review pending (FL-38c)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl38c.c",
+      "symbol": "m40496a_read_word_setting"
+    },
+    "tests": [
+      {
+        "path": "tests/fl38c_direct_test.c",
+        "test_id": "test_m40496a_read_word_setting"
+      },
+      {
+        "path": "tests/test_fl38c_direct.py",
+        "test_id": "Fl38cDirect.test_40496a_read_word_setting"
+      },
+      {
+        "path": "tests/test_fl38c_differential.py",
+        "test_id": "Fl38cDifferential.test_40496a_read_word_setting"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl38c_original_oracle.py",
+      "window": [
+        "0x40496a",
+        "0x4049a5"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "String read by 0x51d5b2 (this+0x3cc) into a local, converted by 0x50cb1b, low word stored at [0x5ec284], then 0x4033db(this). 20/20 instructions, no jumps."
+  },
+  {
+    "va": "0x4049a5",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet 5.5 implementer, self-checked, independent review pending (FL-38c)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl38c.c",
+      "symbol": "m4049a5_read_word_setting"
+    },
+    "tests": [
+      {
+        "path": "tests/fl38c_direct_test.c",
+        "test_id": "test_m4049a5_read_word_setting"
+      },
+      {
+        "path": "tests/test_fl38c_direct.py",
+        "test_id": "Fl38cDirect.test_4049a5_read_word_setting"
+      },
+      {
+        "path": "tests/test_fl38c_differential.py",
+        "test_id": "Fl38cDifferential.test_4049a5_read_word_setting"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl38c_original_oracle.py",
+      "window": [
+        "0x4049a5",
+        "0x4049e0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "String read by 0x51d5b2 (this+0x44c) into a local, converted by 0x50cb1b, low word stored at [0x5ec288], then 0x4033db(this). 20/20 instructions, no jumps."
+  },
+  {
+    "va": "0x4049e0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet 5.5 implementer, self-checked, independent review pending (FL-38c)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl38c.c",
+      "symbol": "m4049e0_read_word_setting"
+    },
+    "tests": [
+      {
+        "path": "tests/fl38c_direct_test.c",
+        "test_id": "test_m4049e0_read_word_setting"
+      },
+      {
+        "path": "tests/test_fl38c_direct.py",
+        "test_id": "Fl38cDirect.test_4049e0_read_word_setting"
+      },
+      {
+        "path": "tests/test_fl38c_differential.py",
+        "test_id": "Fl38cDifferential.test_4049e0_read_word_setting"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl38c_original_oracle.py",
+      "window": [
+        "0x4049e0",
+        "0x404a1b"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "String read by 0x51d5b2 (this+0x40c) into a local, converted by 0x50cb1b, low word stored at [0x5ec286], then 0x4033db(this). 20/20 instructions, no jumps."
+  },
+  {
+    "va": "0x40893f",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet 5.5 implementer, self-checked, independent review pending (FL-38c)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl38c.c",
+      "symbol": "m40893f_read_word_setting"
+    },
+    "tests": [
+      {
+        "path": "tests/fl38c_direct_test.c",
+        "test_id": "test_m40893f_read_word_setting"
+      },
+      {
+        "path": "tests/test_fl38c_direct.py",
+        "test_id": "Fl38cDirect.test_40893f_read_word_setting"
+      },
+      {
+        "path": "tests/test_fl38c_differential.py",
+        "test_id": "Fl38cDifferential.test_40893f_read_word_setting"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl38c_original_oracle.py",
+      "window": [
+        "0x40893f",
+        "0x40897a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "String read by 0x51d5b2 (this+0x94c) into a local, converted by 0x50cb1b, low word stored at [0x5ec2d4], then 0x407ca7(this). 20/20 instructions, no jumps."
+  },
+  {
+    "va": "0x4043b6",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet 5.5 implementer, self-checked, independent review pending (FL-38c)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl38c.c",
+      "symbol": "m4043b6_read_time_setting"
+    },
+    "tests": [
+      {
+        "path": "tests/fl38c_direct_test.c",
+        "test_id": "test_m4043b6_read_time_setting"
+      },
+      {
+        "path": "tests/test_fl38c_direct.py",
+        "test_id": "Fl38cDirect.test_4043b6_read_time_setting"
+      },
+      {
+        "path": "tests/test_fl38c_differential.py",
+        "test_id": "Fl38cDifferential.test_4043b6_read_time_setting"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl38c_original_oracle.py",
+      "window": [
+        "0x4043b6",
+        "0x40445a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "String via 0x51d5b2 (this+0x24c), 0x50cb1b result to entry field 0x5e56aa; field 0x5e569e = h*3600000+m*60000+s*1000, then 0x4033db(this). 39/39 instructions."
+  },
+  {
+    "va": "0x40445a",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet 5.5 implementer, self-checked, independent review pending (FL-38c)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl38c.c",
+      "symbol": "m40445a_read_time_setting"
+    },
+    "tests": [
+      {
+        "path": "tests/fl38c_direct_test.c",
+        "test_id": "test_m40445a_read_time_setting"
+      },
+      {
+        "path": "tests/test_fl38c_direct.py",
+        "test_id": "Fl38cDirect.test_40445a_read_time_setting"
+      },
+      {
+        "path": "tests/test_fl38c_differential.py",
+        "test_id": "Fl38cDifferential.test_40445a_read_time_setting"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl38c_original_oracle.py",
+      "window": [
+        "0x40445a",
+        "0x4044fe"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "String via 0x51d5b2 (this+0x20c), 0x50cb1b result to entry field 0x5e56a6; field 0x5e569e = h*3600000+m*60000+s*1000, then 0x4033db(this). 39/39 instructions."
+  },
+  {
+    "va": "0x4044fe",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet 5.5 implementer, self-checked, independent review pending (FL-38c)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl38c.c",
+      "symbol": "m4044fe_read_time_setting"
+    },
+    "tests": [
+      {
+        "path": "tests/fl38c_direct_test.c",
+        "test_id": "test_m4044fe_read_time_setting"
+      },
+      {
+        "path": "tests/test_fl38c_direct.py",
+        "test_id": "Fl38cDirect.test_4044fe_read_time_setting"
+      },
+      {
+        "path": "tests/test_fl38c_differential.py",
+        "test_id": "Fl38cDifferential.test_4044fe_read_time_setting"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl38c_original_oracle.py",
+      "window": [
+        "0x4044fe",
+        "0x4045a2"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "String via 0x51d5b2 (this+0x28c), 0x50cb1b result to entry field 0x5e56a2; field 0x5e569e = h*3600000+m*60000+s*1000, then 0x4033db(this). 39/39 instructions."
+  },
+  {
+    "va": "0x4045a2",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet 5.5 implementer, self-checked, independent review pending (FL-38c)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl38c.c",
+      "symbol": "m4045a2_read_time_setting"
+    },
+    "tests": [
+      {
+        "path": "tests/fl38c_direct_test.c",
+        "test_id": "test_m4045a2_read_time_setting"
+      },
+      {
+        "path": "tests/test_fl38c_direct.py",
+        "test_id": "Fl38cDirect.test_4045a2_read_time_setting"
+      },
+      {
+        "path": "tests/test_fl38c_differential.py",
+        "test_id": "Fl38cDifferential.test_4045a2_read_time_setting"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl38c_original_oracle.py",
+      "window": [
+        "0x4045a2",
+        "0x404646"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "String via 0x51d5b2 (this+0x30c), 0x50cb1b result to entry field 0x5e56be; field 0x5e56b2 = h*3600000+m*60000+s*1000, then 0x4033db(this). 39/39 instructions."
+  },
+  {
+    "va": "0x404646",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet 5.5 implementer, self-checked, independent review pending (FL-38c)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl38c.c",
+      "symbol": "m404646_read_time_setting"
+    },
+    "tests": [
+      {
+        "path": "tests/fl38c_direct_test.c",
+        "test_id": "test_m404646_read_time_setting"
+      },
+      {
+        "path": "tests/test_fl38c_direct.py",
+        "test_id": "Fl38cDirect.test_404646_read_time_setting"
+      },
+      {
+        "path": "tests/test_fl38c_differential.py",
+        "test_id": "Fl38cDifferential.test_404646_read_time_setting"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl38c_original_oracle.py",
+      "window": [
+        "0x404646",
+        "0x4046ea"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "String via 0x51d5b2 (this+0x2cc), 0x50cb1b result to entry field 0x5e56ba; field 0x5e56b2 = h*3600000+m*60000+s*1000, then 0x4033db(this). 39/39 instructions."
+  },
+  {
+    "va": "0x4046ea",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet 5.5 implementer, self-checked, independent review pending (FL-38c)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl38c.c",
+      "symbol": "m4046ea_read_time_setting"
+    },
+    "tests": [
+      {
+        "path": "tests/fl38c_direct_test.c",
+        "test_id": "test_m4046ea_read_time_setting"
+      },
+      {
+        "path": "tests/test_fl38c_direct.py",
+        "test_id": "Fl38cDirect.test_4046ea_read_time_setting"
+      },
+      {
+        "path": "tests/test_fl38c_differential.py",
+        "test_id": "Fl38cDifferential.test_4046ea_read_time_setting"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl38c_original_oracle.py",
+      "window": [
+        "0x4046ea",
+        "0x40478e"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "String via 0x51d5b2 (this+0x34c), 0x50cb1b result to entry field 0x5e56b6; field 0x5e56b2 = h*3600000+m*60000+s*1000, then 0x4033db(this). 39/39 instructions."
+  },
+  {
+    "va": "0x454f29",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet 5.5 implementer, self-checked, independent review pending (FL-38c)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl38c.c",
+      "symbol": "m454f29_shift_rect"
+    },
+    "tests": [
+      {
+        "path": "tests/fl38c_direct_test.c",
+        "test_id": "test_m454f29_shift_rect"
+      },
+      {
+        "path": "tests/test_fl38c_direct.py",
+        "test_id": "Fl38cDirect.test_454f29_shift_rect"
+      },
+      {
+        "path": "tests/test_fl38c_differential.py",
+        "test_id": "Fl38cDifferential.test_454f29_shift_rect"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl38c_original_oracle.py",
+      "window": [
+        "0x454f29",
+        "0x454f7c"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Copies rect src to dst: +4 and +0xc plus [0x58318a], +0 and +8 plus [0x583186] (32-bit wrap), ret 8. 27/27 instructions, no jumps."
+  },
+  {
+    "va": "0x457071",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet 5.5 implementer, self-checked, independent review pending (FL-38c)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl38c.c",
+      "symbol": "m457071_shift_rect"
+    },
+    "tests": [
+      {
+        "path": "tests/fl38c_direct_test.c",
+        "test_id": "test_m457071_shift_rect"
+      },
+      {
+        "path": "tests/test_fl38c_direct.py",
+        "test_id": "Fl38cDirect.test_457071_shift_rect"
+      },
+      {
+        "path": "tests/test_fl38c_differential.py",
+        "test_id": "Fl38cDifferential.test_457071_shift_rect"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl38c_original_oracle.py",
+      "window": [
+        "0x457071",
+        "0x4570c4"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Copies rect src to dst: +4 and +0xc plus [0x58318a], +0 and +8 plus [0x583186] (32-bit wrap), ret 8. 27/27 instructions, no jumps."
+  },
+  {
+    "va": "0x458137",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet 5.5 implementer, self-checked, independent review pending (FL-38c)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl38c.c",
+      "symbol": "m458137_shift_rect"
+    },
+    "tests": [
+      {
+        "path": "tests/fl38c_direct_test.c",
+        "test_id": "test_m458137_shift_rect"
+      },
+      {
+        "path": "tests/test_fl38c_direct.py",
+        "test_id": "Fl38cDirect.test_458137_shift_rect"
+      },
+      {
+        "path": "tests/test_fl38c_differential.py",
+        "test_id": "Fl38cDifferential.test_458137_shift_rect"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl38c_original_oracle.py",
+      "window": [
+        "0x458137",
+        "0x45818a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Copies rect src to dst: +4 and +0xc plus [0x58318a], +0 and +8 plus [0x583186] (32-bit wrap), ret 8. 27/27 instructions, no jumps."
+  },
+  {
+    "va": "0x46453b",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet 5.5 implementer, self-checked, independent review pending (FL-38c)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl38c.c",
+      "symbol": "m46453b_shift_rect"
+    },
+    "tests": [
+      {
+        "path": "tests/fl38c_direct_test.c",
+        "test_id": "test_m46453b_shift_rect"
+      },
+      {
+        "path": "tests/test_fl38c_direct.py",
+        "test_id": "Fl38cDirect.test_46453b_shift_rect"
+      },
+      {
+        "path": "tests/test_fl38c_differential.py",
+        "test_id": "Fl38cDifferential.test_46453b_shift_rect"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl38c_original_oracle.py",
+      "window": [
+        "0x46453b",
+        "0x46458e"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Copies rect src to dst: +4 and +0xc plus [0x58318a], +0 and +8 plus [0x583186] (32-bit wrap), ret 8. 27/27 instructions, no jumps."
+  },
+  {
+    "va": "0x466db1",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet 5.5 implementer, self-checked, independent review pending (FL-38c)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl38c.c",
+      "symbol": "m466db1_shift_rect"
+    },
+    "tests": [
+      {
+        "path": "tests/fl38c_direct_test.c",
+        "test_id": "test_m466db1_shift_rect"
+      },
+      {
+        "path": "tests/test_fl38c_direct.py",
+        "test_id": "Fl38cDirect.test_466db1_shift_rect"
+      },
+      {
+        "path": "tests/test_fl38c_differential.py",
+        "test_id": "Fl38cDifferential.test_466db1_shift_rect"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl38c_original_oracle.py",
+      "window": [
+        "0x466db1",
+        "0x466e04"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Copies rect src to dst: +4 and +0xc plus [0x58318a], +0 and +8 plus [0x583186] (32-bit wrap), ret 8. 27/27 instructions, no jumps."
+  },
+  {
+    "va": "0x479d98",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet 5.5 implementer, self-checked, independent review pending (FL-38c)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl38c.c",
+      "symbol": "m479d98_shift_rect"
+    },
+    "tests": [
+      {
+        "path": "tests/fl38c_direct_test.c",
+        "test_id": "test_m479d98_shift_rect"
+      },
+      {
+        "path": "tests/test_fl38c_direct.py",
+        "test_id": "Fl38cDirect.test_479d98_shift_rect"
+      },
+      {
+        "path": "tests/test_fl38c_differential.py",
+        "test_id": "Fl38cDifferential.test_479d98_shift_rect"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl38c_original_oracle.py",
+      "window": [
+        "0x479d98",
+        "0x479deb"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Copies rect src to dst: +4 and +0xc plus [0x58318a], +0 and +8 plus [0x583186] (32-bit wrap), ret 8. 27/27 instructions, no jumps."
+  },
+  {
+    "va": "0x4465fd",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet 5.5 implementer, self-checked, independent review pending (FL-38c)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl38c.c",
+      "symbol": "m4465fd_new_zeroed"
+    },
+    "tests": [
+      {
+        "path": "tests/fl38c_direct_test.c",
+        "test_id": "test_m4465fd_new_zeroed"
+      },
+      {
+        "path": "tests/test_fl38c_direct.py",
+        "test_id": "Fl38cDirect.test_4465fd_new_zeroed"
+      },
+      {
+        "path": "tests/test_fl38c_differential.py",
+        "test_id": "Fl38cDifferential.test_4465fd_new_zeroed"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl38c_original_oracle.py",
+      "window": [
+        "0x4465fd",
+        "0x446688"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "p = 0x51dc43(size) stored at *out; p == 0: report with fmt 0x54824c, 0x4264e8, debug 0x44a2b7, 0x4c97b4 (returns); else size bytes zeroed. 45/45 instructions, 4/4 jump ways."
+  },
+  {
+    "va": "0x4547bc",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet 5.5 implementer, self-checked, independent review pending (FL-38c)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl38c.c",
+      "symbol": "m4547bc_new_zeroed"
+    },
+    "tests": [
+      {
+        "path": "tests/fl38c_direct_test.c",
+        "test_id": "test_m4547bc_new_zeroed"
+      },
+      {
+        "path": "tests/test_fl38c_direct.py",
+        "test_id": "Fl38cDirect.test_4547bc_new_zeroed"
+      },
+      {
+        "path": "tests/test_fl38c_differential.py",
+        "test_id": "Fl38cDifferential.test_4547bc_new_zeroed"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl38c_original_oracle.py",
+      "window": [
+        "0x4547bc",
+        "0x454847"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "p = 0x51dc43(size) stored at *out; p == 0: report with fmt 0x549e28, 0x4264e8, debug 0x44a2b7, 0x4c97b4 (returns); else size bytes zeroed. 45/45 instructions, 4/4 jump ways."
+  },
+  {
+    "va": "0x454f7c",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet 5.5 implementer, self-checked, independent review pending (FL-38c)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl38c.c",
+      "symbol": "m454f7c_clamp_to_bounds"
+    },
+    "tests": [
+      {
+        "path": "tests/fl38c_direct_test.c",
+        "test_id": "test_m454f7c_clamp_to_bounds"
+      },
+      {
+        "path": "tests/test_fl38c_direct.py",
+        "test_id": "Fl38cDirect.test_454f7c_clamp_to_bounds"
+      },
+      {
+        "path": "tests/test_fl38c_differential.py",
+        "test_id": "Fl38cDifferential.test_454f7c_clamp_to_bounds"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl38c_original_oracle.py",
+      "window": [
+        "0x454f7c",
+        "0x45504b"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Clamps self[0x4e,0x56] and self[0x4a,0x52] into global bounds [0x58319a,0x5831a2], [0x583196,0x58319e], extents int16 +0x16c, +0x16a. 63/63 instructions, 8/8 jump ways."
+  },
+  {
+    "va": "0x46458e",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet 5.5 implementer, self-checked, independent review pending (FL-38c)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl38c.c",
+      "symbol": "m46458e_clamp_to_bounds"
+    },
+    "tests": [
+      {
+        "path": "tests/fl38c_direct_test.c",
+        "test_id": "test_m46458e_clamp_to_bounds"
+      },
+      {
+        "path": "tests/test_fl38c_direct.py",
+        "test_id": "Fl38cDirect.test_46458e_clamp_to_bounds"
+      },
+      {
+        "path": "tests/test_fl38c_differential.py",
+        "test_id": "Fl38cDifferential.test_46458e_clamp_to_bounds"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl38c_original_oracle.py",
+      "window": [
+        "0x46458e",
+        "0x46465d"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Clamps self[0x4e,0x56] and self[0x4a,0x52] into global bounds [0x58319a,0x5831a2], [0x583196,0x58319e], extents int16 +0xd4, +0xd2. 63/63 instructions, 8/8 jump ways."
+  },
+  {
+    "va": "0x46b855",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet 5.5 implementer, self-checked, independent review pending (FL-38c)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl38c.c",
+      "symbol": "m46b855_clamp_to_bounds"
+    },
+    "tests": [
+      {
+        "path": "tests/fl38c_direct_test.c",
+        "test_id": "test_m46b855_clamp_to_bounds"
+      },
+      {
+        "path": "tests/test_fl38c_direct.py",
+        "test_id": "Fl38cDirect.test_46b855_clamp_to_bounds"
+      },
+      {
+        "path": "tests/test_fl38c_differential.py",
+        "test_id": "Fl38cDifferential.test_46b855_clamp_to_bounds"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl38c_original_oracle.py",
+      "window": [
+        "0x46b855",
+        "0x46b954"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Clamps self[0x49f8,0x4a00] and self[0x49f4,0x49fc] into global bounds [0x58319a,0x5831a2], [0x583196,0x58319e], extents int16 +0x816c, +0x816a. 63/63 instructions, 8/8 jump ways."
+  }
+]
