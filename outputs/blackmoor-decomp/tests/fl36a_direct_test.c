@@ -217,6 +217,7 @@ static int en_call(uint32_t id, uint32_t *result)
 }
 static void test_m4f379c_open_entry(void)
 {
+    (void)m4f379c_open_entry;
     uint32_t r = 0xdeadu;
     int k;
     /* the plain path: header ok, size <= 0x56220, debug off */
@@ -364,6 +365,7 @@ static void rc_head(int w2, int h2)
 }
 static void test_m4c36b2_save_region(void)
 {
+    (void)m4c36b2_save_region;
     int i, k;
     /* a sub-rectangle (w2 = 3 < W): rows of 6 bytes from buf1 + 10 with a source step of 8 */
     rc_setup(1, 2, 1, 1, 4, 3);

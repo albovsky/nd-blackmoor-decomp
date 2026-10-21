@@ -3,7 +3,7 @@
   "all_accepted": true,
   "assembler": {
     "binutils_archive_sha512": "20977ad17729141a2c26d358628f44a0944b84dcfefdec2ba029c2d02f40dfc41cc91c0631044560d2bd6f9a51e1f15846b4b311befbe14f1239f14ff7d57824",
-    "path": "work/tools/s08-binutils-2.43.1/prefix/bin/i686-w64-mingw32-as",
+    "path": "wp/tools/s08-binutils-2.43.1/prefix/bin/i686-w64-mingw32-as",
     "self_test": "passed",
     "sha256": "e098415986a220be7e4b2d14f3b0894cf065a8f21d6aaf117140d2966039e5c4",
     "version_line": "GNU assembler (GNU Binutils) 2.43.1"
@@ -2107,7 +2107,7 @@
       "contains_original_byte_values": false,
       "data_items": [],
       "function": "FUN_004e01fb",
-      "naming": "inferred_strings",
+      "naming": "native_port",
       "object": {
         "sha256": "27dec1efd03c6443b4b7e231ffd50e006469d5e225f27c3f44f8d8aae765614b",
         "size": 914330
@@ -2117,7 +2117,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_004e01fb.s",
-        "sha256": "525a647df2355d3bae97efea5b91c7574625c2539b2adcd47347a2d56483198b"
+        "sha256": "9cd031280c35828370f364a9b35f00ada36cd7bcc6c3752ac7722a3b267744b2"
       },
       "status": "accepted",
       "va": 5112315
@@ -10981,6 +10981,7 @@
         }
       ],
       "function": "FUN_004fce5e",
+      "naming": "native_port",
       "object": {
         "sha256": "ee99a80a3aa49ff3a5f37f8677380a2c10fcb8c7af789e0221d328b7c3544f99",
         "size": 1032259
@@ -10990,7 +10991,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_004fce5e.s",
-        "sha256": "cfa9e6d5059c0a12d0c0d5473b78b6448e48787915ff4297c2dc542dbf60b44b"
+        "sha256": "608be83b819d15d655beee2dfbf024bcacc1a046e3473f45534a4012b624f62d"
       },
       "status": "accepted",
       "va": 5230174
@@ -22638,9 +22639,9 @@
       "va": 5314725
     }
   ],
-  "manifest_sha256": "6b99bd774f36be04136216e512f1e5106100dc8ce2f68995b85aac7f1e0f5a8c",
-  "named_functions": 161,
-  "names_sha256": "df7115772d6854ce06dfa131d80ef767c8362ad0ce3e7f914f313f0f3f4ca78c",
+  "manifest_sha256": "cf03dec82e21eb0d6be0267ddc4f964b3e266b02ae791b57cbd55dbf16810e7f",
+  "named_functions": 162,
+  "names_sha256": "0355d6caf2df6e76d9f495be4e493cb05e184269f592ed2aefb1dc9b5c957636",
   "note": "Accepted functions are candidates for the tool_assisted_reconstructed_assembly class; they count only after root accepts the independent review. No claim is made about original C++ or compiler provenance.",
   "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45"
 }
