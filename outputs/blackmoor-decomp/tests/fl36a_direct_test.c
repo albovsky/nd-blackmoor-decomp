@@ -24,6 +24,8 @@ static char g_msg[256];
 #define IMG_BASE 0x540000u
 static uint8_t g_r[8][RSZ];
 static uint8_t g_img[0x30000];
+#define TBL_BASE 0x5bb500u            /* the record table of 0x4c36b2 (0x5bb5e5 + index * 0x8d) */
+static uint8_t g_tbl[0x400];
 static Fl36aWorld g_w;
 static Fl18Host g_host;
 #define SELF g_r[0]
@@ -102,6 +104,7 @@ static uint32_t host_call(void *ctx, uint32_t callee, uintptr_t this_ptr, const 
         memset(L.c[i].loc, 0, sizeof L.c[i].loc);
         L.c[i].state3be = get32(g_r[0], 0x3be);
         if (callee == 0x50ca3e && nargs > 2 && args[2] > 0xffffffffu) memcpy(L.c[i].loc, (const void *)args[2], sizeof L.c[i].loc);
+        if (callee == 0x50e493 && nargs > 0 && args[0] > 0xffffffffu) memcpy(L.c[i].loc, (const void *)args[0], 0x12);      /* the TGA header local of 0x4c36b2 */
     }
     L.n++;
     for (k = 0; k < g_nwrites; k++)
@@ -123,6 +126,7 @@ static const uint8_t *host_resolve(void *ctx, uint32_t a)
 {
     (void)ctx;
     if (a >= IMG_BASE && a < IMG_BASE + sizeof g_img) return g_img + (a - IMG_BASE);
+    if (a >= TBL_BASE && a < TBL_BASE + sizeof g_tbl) return g_tbl + (a - TBL_BASE);
     if (a >= RVA(0) && a < RVA(8)) {
         uint32_t i = (a - RVA(0)) >> 16, off = (a - RVA(0)) & 0xffff;
         if (off < RSZ) return g_r[i] + off;
@@ -314,6 +318,174 @@ static void test_m4f379c_open_entry(void)
 }
 
 
+
+/* ---- 0x4c36b2 ------------------------------------------------------------------------------------------------------------------ */
+/* layout: the record of index idx is at 0x5bb5e5 + idx * 0x8d in g_tbl ([rec] = the object, [rec+0x4d] = the state); the object is at RC_OBJ = RVA(4) + 3; buf1 = RVA(2) + 0x400 (24 bytes 1 .. 24),
+ * buf2 = RVA(3) + 0x100 (filled with 0xee); self = region 0 ([self+8] = 0x12345678). Geometry: W = 4, H = 3, bpp = 2. */
+#define RC_OBJ (RVA(4) + 3)
+#define RC_B1 (RVA(2) + 0x400)
+#define RC_B2 (RVA(3) + 0x100)
+#define OBJ (g_r[4] + 3)
+#define REC(idx) (g_tbl + (0x5bb5e5u - TBL_BASE) + (size_t)(int)(idx) * 0x8du)
+static void rc_setup(int idx, uint32_t state, int32_t x0, int32_t y0, int32_t x1, int32_t y1)
+{
+    int i;
+    setup();
+    memset(g_tbl, 0x55, sizeof g_tbl);
+    set32(REC(idx), 0, RC_OBJ);
+    set32(REC(idx), 0x4d, state);
+    set32(OBJ, 0x21, (uint32_t)x0); set32(OBJ, 0x25, (uint32_t)y0); set32(OBJ, 0x29, (uint32_t)x1); set32(OBJ, 0x2d, (uint32_t)y1);
+    OBJ[0x31] = 0; OBJ[0x32] = 0xff; OBJ[0x33] = 0xff;
+    set32(SELF, 8, 0x12345678);
+    for (i = 0; i < 24; i++) g_r[2][0x400 + i] = (uint8_t)(i + 1);
+    memset(g_r[3], 0xee, 0x200);
+    g_w.word_63988b = 4; g_w.word_63988d = 3; g_w.word_639895 = 2; g_w.byte_639893 = 0x18; g_w.value_5839a9 = 0x77; g_w.word_63a4cd = 0;
+    script(0x51dc43, RC_B1);
+    script_more(0x51dc43, RC_B2);
+    script(0x4c334f, 1);
+    script(0x50d0a9, 0x1234abcdu);
+    script_write(0x4c4067, 0, 2, 0x10, 4, 0xaaaa0001u);
+    script_write(0x4c4067, 0, 2, 0x24, 4, 0xbbbb0002u);
+}
+static int rc_call(int idx)
+{
+    return m4c36b2_save_region(SELF, (uint32_t)idx | 0x7ab00000u, &g_w, &g_host);       /* the upper half of the stack word is not read */
+}
+/* the calls of a complete run up to 0x4c4202: two allocations, the bitmap copy hooks */
+static void rc_head(int w2, int h2)
+{
+    CKC(0, 0x51dc43, 0, 1, 24);
+    CKC(1, 0x51dc43, 0, 1, (uintptr_t)(w2 * h2 * 2));
+    CKC(2, 0x4c4067, SELFV, 5, 0x12345678, 0, L.c[2].a[2], 0x55419c, 0x10);
+    CK(L.c[2].a[2] > 0xffffffffu);
+    CKC(3, 0x43f04b, 0x5d2f2d, 5, RC_B1, 0xbbbb0002u, 3, 8, 0xaaaa0001u);
+    CKC(4, 0x4c4202, SELFV, 3, 0x12345678, 0, 0x5541d0);
+    (void)w2; (void)h2;
+}
+static void test_m4c36b2_save_region(void)
+{
+    int i, k;
+    /* a sub-rectangle (w2 = 3 < W): rows of 6 bytes from buf1 + 10 with a source step of 8 */
+    rc_setup(1, 2, 1, 1, 4, 3);
+    CK(rc_call(1) == 0 && L.n == 8);
+    rc_head(3, 2);
+    CKC(5, 0x4c334f, SELFV, 4, RC_B2, 3, 2, RC_OBJ);
+    CKC(6, 0x51dc6c, 0, 1, RC_B1);
+    CKC(7, 0x51dc6c, 0, 1, RC_B2);
+    for (i = 0; i < 6; i++) CK(g_r[3][0x100 + i] == 11 + i && g_r[3][0x106 + i] == 19 + i);
+    CK(g_r[3][0x10c] == 0xee && g_r[3][0xff] == 0xee);
+    CK(get32(REC(1), 0x4d) == 3 && g_w.value_5839a9 == 0 && get32(REC(1), 0) == RC_OBJ);
+    CK(L.c[5].state3be == get32(g_r[0], 0x3be));        /* nothing of self changes */
+    /* the same on the index -1 (a signed word) and with the other records untouched */
+    rc_setup(-1, 2, 1, 1, 4, 3);
+    CK(rc_call(-1) == 0 && L.n == 8 && get32(REC(-1), 0x4d) == 3 && get32(REC(0), 0x4d) == 0x55555555u && get32(REC(1), 0x4d) == 0x55555555u);
+    /* w2 == W, h2 < H: a sub-rectangle still (rows of 8 bytes from buf1 + 8) */
+    rc_setup(1, 2, 0, 1, 4, 3);
+    CK(rc_call(1) == 0 && L.n == 8);
+    for (i = 0; i < 16; i++) CK(g_r[3][0x100 + i] == 9 + i);
+    CK(g_r[3][0x110] == 0xee);
+    /* w2 < W, h2 == H: three rows of 6 bytes from buf1 + 2 */
+    rc_setup(1, 2, 1, 0, 4, 3);
+    CK(rc_call(1) == 0);
+    for (i = 0; i < 6; i++) CK(g_r[3][0x100 + i] == 3 + i && g_r[3][0x106 + i] == 11 + i && g_r[3][0x10c + i] == 19 + i);
+    /* w2 >= W and h2 >= H (also bigger than the buffer): the whole W * H * bpp bytes, nothing more */
+    rc_setup(1, 2, 0, 0, 4, 3);
+    CK(rc_call(1) == 0);
+    for (i = 0; i < 24; i++) CK(g_r[3][0x100 + i] == i + 1);
+    CK(g_r[3][0x118] == 0xee);
+    rc_setup(1, 2, -1, -2, 4, 3);
+    CK(rc_call(1) == 0);
+    for (i = 0; i < 24; i++) CK(g_r[3][0x100 + i] == i + 1);
+    CK(g_r[3][0x118] == 0xee);
+    CKC(1, 0x51dc43, 0, 1, 5 * 5 * 2);
+    /* w2 == W exactly (x0 = -1) or h2 == H exactly (y0 = -1): still the full copy (contiguous from the start of buf1), not the sub-rectangle */
+    rc_setup(1, 2, -1, 0, 3, 3);
+    CK(rc_call(1) == 0);
+    for (i = 0; i < 24; i++) CK(g_r[3][0x100 + i] == i + 1);
+    rc_setup(1, 2, 0, -1, 4, 2);
+    CK(rc_call(1) == 0);
+    for (i = 0; i < 24; i++) CK(g_r[3][0x100 + i] == i + 1);
+    /* h2 < 0 (signed): the compare with H is false, so no full copy, and the row loop does not run; the size passed to the allocator is the 32-bit product */
+    rc_setup(1, 2, 0, 5, 4, 3);
+    CK(rc_call(1) == 0 && L.n == 8 && g_r[3][0x100] == 0xee && g_r[3][0x117] == 0xee);
+    CKC(1, 0x51dc43, 0, 1, 0xfffffff0u);
+    /* H < 0 and w2 < 0, h2 == 0: sub-rectangle path again, nothing copied */
+    rc_setup(1, 2, 3, -1, 1, -1); g_w.word_63988d = -1;
+    CK(rc_call(1) == 0 && L.n == 8 && g_r[3][0x100] == 0xee);
+    CKC(0, 0x51dc43, 0, 1, 0xfffffff8u);
+    CKC(1, 0x51dc43, 0, 1, 0);
+    /* no rows: h2 == 0 copies nothing, the allocation is still made */
+    rc_setup(1, 2, 0, 2, 4, 2);
+    CK(rc_call(1) == 0 && g_r[3][0x100] == 0xee);
+    CKC(1, 0x51dc43, 0, 1, 0);
+    /* a negative rectangle (signed compares): x1 = -1 <= W, y1 = -1 <= H; w2 = 2, h2 = 1; the source starts 22 bytes before buf1 */
+    rc_setup(1, 2, -3, -2, -1, -1);
+    for (i = 0; i < 0x40; i++) g_r[2][0x400 - 0x40 + i] = (uint8_t)(0xa0 + i);
+    CK(rc_call(1) == 0 && L.n == 8);
+    for (i = 0; i < 4; i++) CK(g_r[3][0x100 + i] == 0xa0 + 0x40 - 22 + i);
+    /* the rectangle does not fit: [obj+0x2d] > H or [obj+0x29] > W (signed): nothing happens */
+    for (k = 0; k < 4; k++) {
+        rc_setup(1, 2, 0, 0, k == 1 ? 5 : (k == 3 ? 0x7fffffff : 4), k == 0 ? 4 : (k == 2 ? 0x7fffffff : 3));
+        CK(rc_call(1) == 0 && L.n == 0 && get32(REC(1), 0x4d) == 2 && g_w.value_5839a9 == 0x77);
+    }
+    /* the first allocation fails: the report with the debug word, then status 1 and nothing else (the state stays 2, the global 0x77) */
+    rc_setup(1, 2, 1, 1, 4, 3); S[0].results[0] = 0; S[0].n = 1;
+    CK(rc_call(1) == 1 && L.n == 1 && get32(REC(1), 0x4d) == 2 && g_w.value_5839a9 == 0x77);
+    rc_setup(1, 2, 1, 1, 4, 3); S[0].results[0] = 0; S[0].n = 1; g_w.word_63a4cd = 0x100;
+    CK(rc_call(1) == 1 && L.n == 2 && get32(REC(1), 0x4d) == 2 && g_w.value_5839a9 == 0x77);
+    CKC(1, 0x44a2b7, 0, 1, 0x554120);
+    /* the second allocation fails: report (debug), the first buffer freed, state 3, global 0, no 0x4c4067 */
+    rc_setup(1, 2, 1, 1, 4, 3); S[0].results[1] = 0; g_w.word_63a4cd = 1;
+    CK(rc_call(1) == 0 && L.n == 4 && get32(REC(1), 0x4d) == 3 && g_w.value_5839a9 == 0);
+    CKC(2, 0x44a2b7, 0, 1, 0x55415c);
+    CKC(3, 0x51dc6c, 0, 1, RC_B1);
+    rc_setup(1, 2, 1, 1, 4, 3); S[0].results[1] = 0;
+    CK(rc_call(1) == 0 && L.n == 3 && get32(REC(1), 0x4d) == 3);
+    /* 0x4c334f fails: the report only with the debug word on */
+    rc_setup(1, 2, 1, 1, 4, 3); S[1].results[0] = 0; g_w.word_63a4cd = (int16_t)0x8000;
+    CK(rc_call(1) == 0 && L.n == 9);
+    CKC(6, 0x44a2b7, 0, 1, 0x554204);
+    rc_setup(1, 2, 1, 1, 4, 3); S[1].results[0] = 0;
+    CK(rc_call(1) == 0 && L.n == 8);
+    /* byte [obj+0x31] != 0: the 0x12-byte header, the file written */
+    rc_setup(1, 2, 1, 1, 4, 3); OBJ[0x31] = 0x80; OBJ[0x32] = 0; OBJ[0x33] = 0;
+    CK(rc_call(1) == 0 && L.n == 13);
+    rc_head(3, 2);
+    CKC(5, 0x50cd72, 0, 5, 0x63888b, 0x639a9f, 0x639aa2, RC_OBJ, 0x554238);
+    CKC(6, 0x50d0a9, 0, 2, 0x63888b, 0x554240);
+    CKC(7, 0x50e493, 0, 4, L.c[7].a[0], 0x12, 1, 0x1234abcdu);
+    CK(L.c[7].a[0] > 0xffffffffu);
+    {
+        static const uint8_t hdr[0x12] = {0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 2, 0, 0x18, 0x20};
+        CK(memcmp(L.c[7].loc, hdr, 0x12) == 0);
+    }
+    CKC(8, 0x4c7481, SELFV, 2, RC_B2, 12);
+    CKC(9, 0x50e493, 0, 4, RC_B2, 12, 1, 0x1234abcdu);
+    CKC(10, 0x50cee4, 0, 1, 0x1234abcdu);
+    CKC(11, 0x51dc6c, 0, 1, RC_B1);
+    CKC(12, 0x51dc6c, 0, 1, RC_B2);
+    /* the file does not open: no write, cleanup */
+    rc_setup(1, 2, 1, 1, 4, 3); OBJ[0x31] = 1; S[2].results[0] = 0;
+    CK(rc_call(1) == 0 && L.n == 9 && get32(REC(1), 0x4d) == 3);
+    CKC(6, 0x50d0a9, 0, 2, 0x63888b, 0x554240);
+    CKC(7, 0x51dc6c, 0, 1, RC_B1);
+    /* state 0: the global 1, 0x4d36ed with ecx = the object, state 2 */
+    rc_setup(1, 0, 1, 1, 4, 3);
+    CK(rc_call(1) == 0 && L.n == 1 && get32(REC(1), 0x4d) == 2 && g_w.value_5839a9 == 1);
+    CKC0(0, 0x4d36ed, RC_OBJ);
+    /* state 3: 0x42ba3a with the index word; other states (also a dword whose low byte is 2 or 3): nothing */
+    rc_setup(-1, 3, 1, 1, 4, 3);
+    CK(m4c36b2_save_region(SELF, 0x7ab0ffffu, &g_w, &g_host) == 0 && L.n == 1 && get32(REC(-1), 0x4d) == 3);
+    CKC(0, 0x42ba3a, 0, 1, 0xffff);
+    {
+        static const uint32_t other[] = {1, 4, 0x10000002u, 0x10000003u, 0x102, 0x103, 0xffffffffu};
+        for (k = 0; k < 7; k++) {
+            rc_setup(1, other[k], 1, 1, 4, 3);
+            CK(rc_call(1) == 0 && L.n == 0 && get32(REC(1), 0x4d) == other[k] && g_w.value_5839a9 == 0x77);
+        }
+    }
+}
+
 /* TESTS-END */
 
 /* ---- bounded sweep ------------------------------------------------------------------------------------------------------------- */
@@ -345,6 +517,16 @@ static void test_sweep_bounded(void)
         set32(SELF, 0x3ce, EN_VA - (uint32_t)(seed & 0xffffu) * 0x5bbu);
         en_call((uint32_t)seed, &r);
         L.n = 0;
+        /* 0x4c36b2: random geometry inside the buffers, random scripted answers */
+        rc_setup(1, 2, (int32_t)(seed >> 3 & 1), (int32_t)(seed >> 5 & 1), (int32_t)(2 + (seed >> 7 & 2)), (int32_t)(2 + (seed >> 9 & 1)));
+        g_w.word_63a4cd = (int16_t)(seed >> 10 & 1);
+        OBJ[0x31] = (uint8_t)(seed >> 11 & 1);
+        if (seed >> 12 & 1) S[0].results[1] = 0;
+        S[1].results[0] = seed >> 13 & 1;
+        S[2].results[0] = seed >> 14 & 3 ? 0x1234abcdu : 0;
+        if (!(seed >> 15 & 7)) S[0].results[0] = 0;
+        m4c36b2_save_region(SELF, seed >> 4 & 1 ? 1u : 0x1000001u, &g_w, &g_host);
+        L.n = 0;
         /* SWEEP-END */
         L.n = 0;
     }
@@ -367,6 +549,7 @@ int main(void)
 {
     int failures = 0;
     RUN(test_m4f379c_open_entry);
+    RUN(test_m4c36b2_save_region);
     /* RUN-END */
     RUN(test_sweep_bounded);
     return failures;

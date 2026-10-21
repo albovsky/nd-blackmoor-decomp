@@ -212,6 +212,7 @@ void shim_fl36a(int fn, uint8_t *self, const uintptr_t *a, Fl36aWorld *w, int32_
 
     switch (fn) {
     case F36A_4F379C: *result = m4f379c_open_entry(self, (uint32_t)a[0], value, w, &host); break;
+    case F36A_4C36B2: *result = m4c36b2_save_region(self, (uint32_t)a[0], w, &host); break;
     /*CASES*/
     default: break;
     }

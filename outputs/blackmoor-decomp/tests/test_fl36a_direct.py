@@ -70,6 +70,10 @@ class Fl36aDirect(unittest.TestCase):
         """FL-36a: direct test of m4f379c_open_entry (original 0x4f379c)"""
         self.check('test_m4f379c_open_entry')
 
+    def test_4c36b2_save_region(self):
+        """FL-36a: direct test of m4c36b2_save_region (original 0x4c36b2)"""
+        self.check('test_m4c36b2_save_region')
+
     # TESTS-END
 
     def test_sweep_bounded(self):

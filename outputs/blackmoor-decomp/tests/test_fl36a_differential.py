@@ -115,7 +115,7 @@ class Fl36aDifferential(DiffBase):
         stack_args = (ctypes.c_uint64 * 8)(*[v & 0xffffffffffffffff for v in sc.args])
         self.lib.shim_fl36a(sc.fn, self_ptr, ctypes.byref(stack_args), ctypes.byref(sw), ctypes.byref(result), ctypes.byref(value))
         if fx.SPECS[sc.key].get('status'):
-            self.assertEqual(result.value, 1 if (sc.fault is not None or sc.endless is not None) else 0, 'native status (1 = the port stops where the original faults / never finishes)')
+            self.assertEqual(result.value, 1 if (sc.fault is not None or sc.endless is not None or sc.partial is not None) else 0, 'native status (1 = the port stops where the original faults / never finishes)')
         if fx.SPECS[sc.key].get('retoff') is not None:
             self.assertEqual(result.value, 0, 'the port must return self + 0x%x' % fx.SPECS[sc.key]['retoff'])
         if fx.SPECS[sc.key].get('ret'):
@@ -165,6 +165,10 @@ class Fl36aDifferential(DiffBase):
     def test_4f379c_open_entry(self):
         """FL-36a: differential test of m4f379c_open_entry (original 0x4f379c); 0x50ca3e is logged with the arity of each call site"""
         self.run_key('4f379c')
+
+    def test_4c36b2_save_region(self):
+        """FL-36a: differential test of m4c36b2_save_region (original 0x4c36b2), including the scenarios in which the first allocation fails (the original frees an unset stack slot; the port rejects)"""
+        self.run_key('4c36b2')
 
     # TESTS-END
 

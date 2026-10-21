@@ -96,11 +96,11 @@ class Original36a(Original27):
         self.rets.append(ret)
 
 
-def make(key, areas, stubs, g, stack, args, profile, iat=None, pointers=None, self_off=0):
+def make(key, areas, stubs, g, stack, args, profile, iat=None, pointers=None, self_off=0, partial=None):
     sp = SPECS[key]
     return SimpleNamespace(key=key, fn=sp['id'], va=sp['va'], size=sp['size'], code=sp.get('code', sp['size']), areas=areas, stubs=stubs, iat=iat or {}, g=g,
                            ecx=od.region_va(0) + self_off, self_off=self_off, pointers=pointers or {}, word_args=WORD_ARGS, profile=profile, stack=stack, args=args,
-                           seh=None, partial=None, fault=None, endless=None)
+                           seh=None, partial=partial, fault=None, endless=None)
 
 
 def run_original(sc):
@@ -130,8 +130,11 @@ def run_original(sc):
     return orig, calls, h.hexdigest()
 
 
-# the conditional-jump directions that no scenario takes, with the reason (anything else untaken fails the tests): none for 0x4f379c
-UNTAKEN_ALLOWED = {}
+# the conditional-jump directions that no scenario takes, with the reason (anything else untaken fails the tests): none for 0x4f379c; one for 0x4c36b2
+UNTAKEN_ALLOWED = {
+    '4c36b2': {(0x4c3baa, 'taken'): 'je after `cmp dword [ebp-0xa4], 0` (fp) at 0x4c3ba3: this point is reached only after `jne 0x4c3b2f` at 0x4c3b28 saw fp != 0 and no instruction between them writes the local '
+                                    '[ebp-0xa4] (the callees get pointers to other locals and to heap buffers), so the edge cannot be taken; the block behind it (0x4c3bac..0x4c3bb8, the fclose) always runs'},
+}
 
 
 def untaken_edges(key, edges):
@@ -255,14 +258,86 @@ def gen_4f379c(rng, n):
     return make('4f379c', areas, stubs, g, args, tuple(args), (profile, variant, id_))
 
 
+# ---- 0x4c36b2 ---------------------------------------------------------------------------------------------------------------------
+
+# (W, H, bpp, x0, y0, x1, y1): the object's rectangle [x0, x1) x [y0, y1) inside the W x H buffer (the saved region is w2 = x1 - x0 wide, h2 = y1 - y0 high)
+R_GEOMS = [(4, 3, 2, 0, 0, 4, 3), (5, 5, 1, 0, 0, 5, 5), (4, 3, 2, -1, -2, 4, 3), (5, 4, 2, 1, 1, 4, 3), (5, 4, 3, 1, 0, 5, 4), (4, 5, 2, 0, 1, 4, 4), (4, 4, 2, -3, -2, -1, -1), (4, 3, 4, 0, 2, 4, 2),
+           (1, 1, 1, 0, 0, 1, 1), (6, 3, 3, 2, 0, 6, 3), (3, 6, 4, 0, 3, 3, 5),
+           (4, 3, 2, 0, 5, 4, 3), (4, -1, 2, 3, -1, 1, -1), (4, 3, 2, -1, 0, 3, 3), (4, 3, 2, 0, -1, 4, 2)]          # the last two: h2 < 0 (no rows, no full copy: the compares are signed); H < 0 with w2 < 0 and h2 == 0; the last two: w2 == W (x0 < 0) and h2 == H (y0 < 0) exactly, where the full copy differs from the sub-rectangle copy
+R_STATES_OTHER = [1, 4, 0xffffffff, 0x10000003, 0x100, 0x80000002, 0x102]
+R_INDEXES = [0, 1, -1, 2]
+R_MODES = 5           # 0: byte [obj+0x31] == 0, 0x4c334f != 0; 1: == 0, 0x4c334f == 0, debug on; 2: == 0, 0x4c334f == 0, debug off; 3: != 0 (file written); 4: != 0, the file does not open
+R_PROFILES = ([('s0',), ('s3',)] + [('so', k) for k in range(len(R_STATES_OTHER))] + [('rej', k) for k in range(5)] + [('m1', d) for d in (0, 1)] + [('m2', d) for d in (0, 1)]
+              + [('ok', g, m) for g in range(len(R_GEOMS)) for m in range(R_MODES)])
+R_TBL_LO = -1          # the record table area covers the indexes -1 .. 2 (0x8d bytes each)
+R_TBL_VA = 0x5bb5e5 + R_TBL_LO * 0x8d
+
+
+def gen_4c36b2(rng, n):
+    profile, variant = prof(n, R_PROFILES)
+    kind = profile[0]
+    idx = R_INDEXES[(n + variant) % len(R_INDEXES)]
+    geom = R_GEOMS[profile[1]] if kind == 'ok' else R_GEOMS[(n + variant) % len(R_GEOMS)]
+    W, H, bpp, x0, y0, x1, y1 = geom
+    mode = profile[2] if kind == 'ok' else 0
+    dbg = (variant + n) % 2 if kind == 'ok' else (profile[1] if kind in ('m1', 'm2') else (n + variant) % 2)
+    if kind == 'ok' and mode == 1:
+        dbg = 1
+    if kind == 'ok' and mode == 2:
+        dbg = 0
+    state = {'s0': 0, 's3': 3, 'so': R_STATES_OTHER[profile[1]] if kind == 'so' else 0}.get(kind, 2)
+    obj_va = od.region_va(4) + 3 + variant % 2
+    tbl = bytearray(rng.randbytes(0x8d * 4))
+    rec = (idx - R_TBL_LO) * 0x8d
+    put32(tbl, rec, obj_va if kind != 's0' else rnd32(rng))
+    put32(tbl, rec + 0x4d, state)
+    obj = bytearray(rng.randbytes(0x80))
+    if kind == 'rej':
+        # one of the two compares fails, signed: [obj+0x2d] > H, [obj+0x29] > W, both, and the 0x7fffffff extremes
+        x1, y1 = [(x1, y1 + 1), (x1 + 1, y1), (x1 + 1, y1 + 1), (0x7fffffff, y1), (x1, 0x7fffffff)][profile[1]]
+    base = obj_va - od.region_va(4)
+    put32(obj, base + 0x21, x0)
+    put32(obj, base + 0x25, y0)
+    put32(obj, base + 0x29, x1)
+    put32(obj, base + 0x2d, y1)
+    byte31 = 0 if mode in (0, 1, 2) else rng.choice([1, 0x80, 0xff, 0x7f])
+    obj[base + 0x31] = byte31
+    obj[base + 0x32] = obj[base + 0x33] = 0xff if byte31 == 0 else 0           # the bytes behind it, which a wider read would see (+0x30 is the top byte of the dword at +0x2d)
+    s = bytearray(rng.randbytes(0x40))
+    buf1_off, buf2_off = 0x400, 0x100 + variant % 3
+    buf1_va, buf2_va = od.region_va(2) + buf1_off, od.region_va(3) + buf2_off
+    buf1 = bytearray(rng.randbytes(0x1000))
+    buf2 = bytearray(rng.randbytes(0x1000))
+    fp = rng.choice([rnd32(rng) | 1, 0x10000, 0x80000000, 0xff000000])
+    r_open = 0 if mode == 4 else fp
+    r_334f = 0 if mode in (1, 2) else rng.choice([1, 0x80000000, 0x100, 0xff])
+    b1 = 0 if kind == 'm1' else buf1_va
+    b2 = 0 if kind == 'm2' else buf2_va
+    probe = [('self', 0, 0x40), ('tbl', 0, len(tbl)), ('buf2', 0x100, 0x100), ('g:value_5839a9', 0, 4)]
+    v1, v2 = rnd32(rng), rnd32(rng)
+    stubs = {0x4d36ed: stub(0x4d36ed, THISCALL(0), probe=probe), 0x42ba3a: stub(0x42ba3a, CDECL(1), probe=probe), 0x51dc43: stub(0x51dc43, CDECL(1), probe=probe, results=[b1, b2]),
+             0x44a2b7: stub(0x44a2b7, CDECL(1), probe=probe), 0x4c4067: stub(0x4c4067, THISCALL(5), probe=probe, writes=[(0, 2, 0x10, 4, v1), (0, 2, 0x24, 4, v2)]),
+             0x43f04b: stub(0x43f04b, THISCALL(5), probe=probe), 0x4c4202: stub(0x4c4202, THISCALL(3), probe=probe), 0x4c334f: stub(0x4c334f, THISCALL(4), probe=probe, results=[r_334f]),
+             0x50cd72: stub(0x50cd72, CDECL(5), probe=probe), 0x50d0a9: stub(0x50d0a9, CDECL(2), probe=probe, results=[r_open]), 0x50e493: stub(0x50e493, CDECL(4), probe=probe, derefs=[(0, 0x12)]),
+             0x4c7481: stub(0x4c7481, THISCALL(2), probe=probe), 0x50cee4: stub(0x50cee4, CDECL(1), probe=probe), 0x51dc6c: stub(0x51dc6c, CDECL(1), probe=probe)}
+    g = {'word_63988b': W, 'word_63988d': H, 'word_639895': bpp, 'byte_639893': rng.randrange(256), 'value_5839a9': rnd32(rng), 'word_63a4cd': E_DBG[(variant + n) % 4] if dbg else 0}
+    areas = [self_area(s), Area('tbl', R_TBL_VA, tbl, image=True), Area('buf1', od.region_va(2), buf1, image=False), Area('buf2', od.region_va(3), buf2, image=False),
+             Area('obj', od.region_va(4), obj, image=False)]
+    args = [word_arg(rng, idx)]
+    # the first allocation fails: the original goes on and frees a stack slot that nothing has set; the port stops after the report (1 or 2 calls) and changes nothing
+    partial = (1 + (1 if dbg else 0), {}) if kind == 'm1' else None
+    return make('4c36b2', areas, stubs, g, args, tuple(args), (profile, variant, idx), partial=partial)
+
+
 # GEN-END
 
 SPECS = {
     '4f379c': dict(id=1, va=0x4f379c, size=1162, gen=gen_4f379c, cleanup=4, status=True, ret=True, n=len(E_PROFILES) * 4),
+    '4c36b2': dict(id=2, va=0x4c36b2, size=1451, gen=gen_4c36b2, cleanup=4, status=True, n=len(R_PROFILES) * 4),
     # SPECS-END
 }
 KEYS = list(SPECS)
-NAMES = {'4f379c': 'open_entry'}
+NAMES = {'4f379c': 'open_entry', '4c36b2': 'save_region'}
 
 
 def build(key, rng, n):

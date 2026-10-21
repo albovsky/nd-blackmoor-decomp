@@ -3,8 +3,8 @@
 
 Runs ONLY the original bytes (Unicorn, no native library) on the fixtures of tests/fl36a_fixtures.py, the same generator and the same
 original-run function that tests/test_fl36a_differential.py uses against the native port. The hooks are the OS and host boundaries only:
-the recording stubs of the callees (entered by address; they return a scripted value and pop their stack arguments), among them the CRT-shaped 0x50ca3e
-and 0x52139c, the cursor helpers 0x4dae88 / 0x4daeb5 and the text helpers 0x4d214b / 0x50d651 ..0x50d6cf; callees that return their pointer argument are scripted the same way.
+the recording stubs of the callees (entered by address; they return a scripted value and pop their stack arguments), among them the CRT-shaped 0x50ca3e (read with five words and logged with the arity of its call site), 0x50d0a9,
+0x50cf61, 0x50cd72, 0x50e493, 0x52139c and the allocation and free routines 0x51dc43 / 0x51dc6c; the UNTAKEN_ALLOWED edge of 0x4c36b2 (the je at 0x4c3baa) is printed as a missing direction and explained in tests/fl36a_fixtures.py.
 Nothing inside a function under test is patched; every guard, compare, index computation, `rep stos` and store of the bodies runs as original
 instructions.
 
