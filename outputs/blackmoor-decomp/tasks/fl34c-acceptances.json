@@ -1,0 +1,266 @@
+[
+ {
+  "va": "0x4d0abc",
+  "class": "native_oracle_verified",
+  "reviewer": "implementer only, not independently reviewed (FL-34c)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl34c.c",
+   "symbol": "m4d0abc_post_message"
+  },
+  "tests": [
+   {
+    "path": "tests/fl34c_direct_test.c",
+    "test_id": "test_m4d0abc_post_message"
+   },
+   {
+    "path": "tests/test_fl34c_direct.py",
+    "test_id": "Fl34cDirect.test_4d0abc_post_message"
+   },
+   {
+    "path": "tests/test_fl34c_differential.py",
+    "test_id": "Fl34cDifferential.test_4d0abc_post_message"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl34c_original_oracle.py",
+   "window": [
+    "0x4d0abc",
+    "0x4d0afc"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Reads 0x5d2a27/23/5cf665/1f and pushes them with 0x55a05c to 0x4c5377(ecx 0x5cf659, ret 0x14), then stores word 0x5bb1c4=2 and 0x63a97c=0. Reads before, stores after the call."
+ },
+ {
+  "va": "0x4d0c17",
+  "class": "native_oracle_verified",
+  "reviewer": "implementer only, not independently reviewed (FL-34c)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl34c.c",
+   "symbol": "m4d0c17_post_message"
+  },
+  "tests": [
+   {
+    "path": "tests/fl34c_direct_test.c",
+    "test_id": "test_m4d0c17_post_message"
+   },
+   {
+    "path": "tests/test_fl34c_direct.py",
+    "test_id": "Fl34cDirect.test_4d0c17_post_message"
+   },
+   {
+    "path": "tests/test_fl34c_differential.py",
+    "test_id": "Fl34cDifferential.test_4d0c17_post_message"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl34c_original_oracle.py",
+   "window": [
+    "0x4d0c17",
+    "0x4d0c57"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Same body as 0x4d0abc with globals 0x5d2bdb/df/e3, text 0x55a0e8 and cleared word 0x63a97e; constants verified from its own disassembly; 0x4c5377 pops 0x14."
+ },
+ {
+  "va": "0x4e01fb",
+  "class": "native_oracle_verified",
+  "reviewer": "implementer only, not independently reviewed (FL-34c)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl34c.c",
+   "symbol": "m4e01fb_post_message"
+  },
+  "tests": [
+   {
+    "path": "tests/fl34c_direct_test.c",
+    "test_id": "test_m4e01fb_post_message"
+   },
+   {
+    "path": "tests/test_fl34c_direct.py",
+    "test_id": "Fl34cDirect.test_4e01fb_post_message"
+   },
+   {
+    "path": "tests/test_fl34c_differential.py",
+    "test_id": "Fl34cDifferential.test_4e01fb_post_message"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl34c_original_oracle.py",
+   "window": [
+    "0x4e01fb",
+    "0x4e023b"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Same body as 0x4d0abc with globals 0x5d2819/1d/21, text 0x55ba9c and cleared word 0x63a9d0; constants verified from its own disassembly; 0x4c5377 pops 0x14."
+ },
+ {
+  "va": "0x4cca9c",
+  "class": "native_oracle_verified",
+  "reviewer": "implementer only, not independently reviewed (FL-34c)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl34c.c",
+   "symbol": "m4cca9c_fill_record"
+  },
+  "tests": [
+   {
+    "path": "tests/fl34c_direct_test.c",
+    "test_id": "test_m4cca9c_fill_record"
+   },
+   {
+    "path": "tests/test_fl34c_direct.py",
+    "test_id": "Fl34cDirect.test_4cca9c_fill_record"
+   },
+   {
+    "path": "tests/test_fl34c_differential.py",
+    "test_id": "Fl34cDifferential.test_4cca9c_fill_record"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl34c_original_oracle.py",
+   "window": [
+    "0x4cca9c",
+    "0x4ccacf"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Calls 0x4cc962(self, rec) then stores dwords rec+0, +0x14, +0x28 from stack args 2..4; ret 0x10 popped; eax at ret is the last argument; rec may alias self."
+ },
+ {
+  "va": "0x446f77",
+  "class": "native_oracle_verified",
+  "reviewer": "implementer only, not independently reviewed (FL-34c)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl34c.c",
+   "symbol": "m446f77_construct"
+  },
+  "tests": [
+   {
+    "path": "tests/fl34c_direct_test.c",
+    "test_id": "test_m446f77_construct"
+   },
+   {
+    "path": "tests/test_fl34c_direct.py",
+    "test_id": "Fl34cDirect.test_446f77_construct"
+   },
+   {
+    "path": "tests/test_fl34c_differential.py",
+    "test_id": "Fl34cDifferential.test_446f77_construct"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl34c_original_oracle.py",
+   "window": [
+    "0x446f77",
+    "0x446faa"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Calls 0x51d716(self), stores vtable 0x52ca58 at self, zero dwords at the unaligned self+0x31 and +0x35, returns self. Stores follow the call (callee writes overwritten)."
+ },
+ {
+  "va": "0x4fce5e",
+  "class": "native_oracle_verified",
+  "reviewer": "implementer only, not independently reviewed (FL-34c)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl34c.c",
+   "symbol": "m4fce5e_call_with_record_dword"
+  },
+  "tests": [
+   {
+    "path": "tests/fl34c_direct_test.c",
+    "test_id": "test_m4fce5e_call_with_record_dword"
+   },
+   {
+    "path": "tests/test_fl34c_direct.py",
+    "test_id": "Fl34cDirect.test_4fce5e_call_with_record_dword"
+   },
+   {
+    "path": "tests/test_fl34c_differential.py",
+    "test_id": "Fl34cDifferential.test_4fce5e_call_with_record_dword"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl34c_original_oracle.py",
+   "window": [
+    "0x4fce5e",
+    "0x4fce90"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Reads the dword at 0x5bb5e5 + movsx(word arg)*0x8d (32-bit imul), calls 0x4f7e93(ecx 0x5cf1eb, that dword); ret 4 popped; returns the callee eax. High half of arg ignored."
+ },
+ {
+  "va": "0x4d3ffe",
+  "class": "native_oracle_verified",
+  "reviewer": "implementer only, not independently reviewed (FL-34c)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl34c.c",
+   "symbol": "m4d3ffe_start_flag"
+  },
+  "tests": [
+   {
+    "path": "tests/fl34c_direct_test.c",
+    "test_id": "test_m4d3ffe_start_flag"
+   },
+   {
+    "path": "tests/test_fl34c_direct.py",
+    "test_id": "Fl34cDirect.test_4d3ffe_start_flag"
+   },
+   {
+    "path": "tests/test_fl34c_differential.py",
+    "test_id": "Fl34cDifferential.test_4d3ffe_start_flag"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl34c_original_oracle.py",
+   "window": [
+    "0x4d3ffe",
+    "0x4d4043"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Stores self+0x440=1, calls 0x4dad60(ecx 0x5830a6), clears dword self+0x462, then reads byte 0x61c6ae (zero-extended) after the call: when 0, clears self+0x1c. jne both ways."
+ },
+ {
+  "va": "0x47a3d9",
+  "class": "native_oracle_verified",
+  "reviewer": "implementer only, not independently reviewed (FL-34c)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl34c.c",
+   "symbol": "m47a3d9_set_flags"
+  },
+  "tests": [
+   {
+    "path": "tests/fl34c_direct_test.c",
+    "test_id": "test_m47a3d9_set_flags"
+   },
+   {
+    "path": "tests/test_fl34c_direct.py",
+    "test_id": "Fl34cDirect.test_47a3d9_set_flags"
+   },
+   {
+    "path": "tests/test_fl34c_differential.py",
+    "test_id": "Fl34cDifferential.test_47a3d9_set_flags"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl34c_original_oracle.py",
+   "window": [
+    "0x47a3d9",
+    "0x47a416"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Calls 0x4789d6(self); test eax,eax on the full 32 bits: nonzero stores 1 at self+0x1576 and self+0x24, zero stores 0 at self+0x1576 only. je both ways."
+ }
+]
