@@ -1,0 +1,7 @@
+# FL-37 packet: the 57 near-copies of the flag toggles of FL-34 batch b
+
+Same bar, same file shapes, same rulings and environment as `tasks/FL-34-toggle-family.md` (batch `fl34b`, the template). Pool named in the FL-34 handoff: the flag toggles at `0x406b3f..0x407ac7` (flags `0x5e353e..0x5e361e`, k = 0xd..0x45).
+
+All 57 rows were disassembled one by one (Capstone over the original image) and checked against one 18-instruction shape (`push ebp; mov ebp,esp; push ecx; mov [ebp-4],ecx; cmp dword [flag],1; jne; mov dword [flag],0; jmp; mov dword [flag],1; movsx eax, word [0x5e335e]; cmp eax,k; jne; mov word [0x5e335e],0xffff; mov ecx,[ebp-4]; call 0x404be1; mov esp,ebp; pop ebp; ret`): the flag is the same dword in the compare and both stores, the call target is `0x404be1` in every row, and the constants are `flag = 0x5e353e + 4*n`, `k = 0xd + n`. 56 rows have span 71; `0x407ac7` has span 73 (71 code bytes plus two `int3`, window = the span as for `0x402fc3` in FL-34 batch a). No receipt blocker, no x87, no indirect jump, no unreachable block.
+
+One batch, one slice, one PR: `src/original_methods_fl37.[ch]` (`m<va>_toggle_<flag>`, world `Fl37World`), `tests/fl37_*`, `tests/test_fl37_*`, `tasks/fl37-acceptances.json`, `tasks/fl37-handoff.md`. The files were generated from the fl34b files and each row's own constants by a throwaway script; nothing is shared with other batches. Any row with an untaken jump edge or unreachable code would stay pending and be listed in the handoff.
