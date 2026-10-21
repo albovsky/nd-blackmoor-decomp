@@ -1,4 +1,4 @@
-"""FL-35 (batch b) differential tests: the original GAME.EXE bytes (Unicorn) against src/original_methods_fl35a.c on the same generated
+"""FL-35 (batch a) differential tests: the original GAME.EXE bytes (Unicorn) against src/original_methods_fl35a.c on the same generated
 fixtures (tests/fl35a_fixtures.py builds them; the original side is fl35a_fixtures.run_original, the same function that
 tests/fl35a_original_oracle.py uses).
 

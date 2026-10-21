@@ -2,7 +2,7 @@
   {
     "va": "0x4080fc",
     "class": "native_oracle_verified",
-    "reviewer": "pending diff review (FL-35)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl35b.c",
@@ -35,7 +35,7 @@
   {
     "va": "0x40812e",
     "class": "native_oracle_verified",
-    "reviewer": "pending diff review (FL-35)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl35b.c",
@@ -68,7 +68,7 @@
   {
     "va": "0x408169",
     "class": "native_oracle_verified",
-    "reviewer": "pending diff review (FL-35)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl35b.c",
@@ -101,7 +101,7 @@
   {
     "va": "0x4081a4",
     "class": "native_oracle_verified",
-    "reviewer": "pending diff review (FL-35)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl35b.c",
@@ -134,7 +134,7 @@
   {
     "va": "0x4081df",
     "class": "native_oracle_verified",
-    "reviewer": "pending diff review (FL-35)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl35b.c",
@@ -167,7 +167,7 @@
   {
     "va": "0x40821a",
     "class": "native_oracle_verified",
-    "reviewer": "pending diff review (FL-35)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl35b.c",
@@ -200,7 +200,7 @@
   {
     "va": "0x408255",
     "class": "native_oracle_verified",
-    "reviewer": "pending diff review (FL-35)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl35b.c",
@@ -233,7 +233,7 @@
   {
     "va": "0x408290",
     "class": "native_oracle_verified",
-    "reviewer": "pending diff review (FL-35)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl35b.c",
@@ -266,7 +266,7 @@
   {
     "va": "0x4082cb",
     "class": "native_oracle_verified",
-    "reviewer": "pending diff review (FL-35)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl35b.c",
@@ -299,7 +299,7 @@
   {
     "va": "0x408306",
     "class": "native_oracle_verified",
-    "reviewer": "pending diff review (FL-35)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl35b.c",
@@ -332,7 +332,7 @@
   {
     "va": "0x408341",
     "class": "native_oracle_verified",
-    "reviewer": "pending diff review (FL-35)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl35b.c",
@@ -365,7 +365,7 @@
   {
     "va": "0x40837c",
     "class": "native_oracle_verified",
-    "reviewer": "pending diff review (FL-35)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl35b.c",
@@ -398,7 +398,7 @@
   {
     "va": "0x4083b7",
     "class": "native_oracle_verified",
-    "reviewer": "pending diff review (FL-35)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl35b.c",
@@ -431,7 +431,7 @@
   {
     "va": "0x4083f2",
     "class": "native_oracle_verified",
-    "reviewer": "pending diff review (FL-35)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl35b.c",
@@ -464,7 +464,7 @@
   {
     "va": "0x40842d",
     "class": "native_oracle_verified",
-    "reviewer": "pending diff review (FL-35)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl35b.c",
@@ -497,7 +497,7 @@
   {
     "va": "0x408468",
     "class": "native_oracle_verified",
-    "reviewer": "pending diff review (FL-35)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl35b.c",
@@ -530,7 +530,7 @@
   {
     "va": "0x4084a3",
     "class": "native_oracle_verified",
-    "reviewer": "pending diff review (FL-35)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl35b.c",
@@ -563,7 +563,7 @@
   {
     "va": "0x4084de",
     "class": "native_oracle_verified",
-    "reviewer": "pending diff review (FL-35)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl35b.c",
@@ -596,7 +596,7 @@
   {
     "va": "0x408519",
     "class": "native_oracle_verified",
-    "reviewer": "pending diff review (FL-35)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl35b.c",
@@ -629,7 +629,7 @@
   {
     "va": "0x408554",
     "class": "native_oracle_verified",
-    "reviewer": "pending diff review (FL-35)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl35b.c",
@@ -662,7 +662,7 @@
   {
     "va": "0x40858f",
     "class": "native_oracle_verified",
-    "reviewer": "pending diff review (FL-35)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl35b.c",
@@ -695,7 +695,7 @@
   {
     "va": "0x4085ca",
     "class": "native_oracle_verified",
-    "reviewer": "pending diff review (FL-35)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl35b.c",
@@ -728,7 +728,7 @@
   {
     "va": "0x408605",
     "class": "native_oracle_verified",
-    "reviewer": "pending diff review (FL-35)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl35b.c",
@@ -761,7 +761,7 @@
   {
     "va": "0x408640",
     "class": "native_oracle_verified",
-    "reviewer": "pending diff review (FL-35)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl35b.c",
@@ -794,7 +794,7 @@
   {
     "va": "0x40867b",
     "class": "native_oracle_verified",
-    "reviewer": "pending diff review (FL-35)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl35b.c",
@@ -827,7 +827,7 @@
   {
     "va": "0x4086b6",
     "class": "native_oracle_verified",
-    "reviewer": "pending diff review (FL-35)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl35b.c",
@@ -860,7 +860,7 @@
   {
     "va": "0x4086f1",
     "class": "native_oracle_verified",
-    "reviewer": "pending diff review (FL-35)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl35b.c",
@@ -893,7 +893,7 @@
   {
     "va": "0x40872c",
     "class": "native_oracle_verified",
-    "reviewer": "pending diff review (FL-35)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl35b.c",
@@ -926,7 +926,7 @@
   {
     "va": "0x408767",
     "class": "native_oracle_verified",
-    "reviewer": "pending diff review (FL-35)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl35b.c",
@@ -959,7 +959,7 @@
   {
     "va": "0x4087a2",
     "class": "native_oracle_verified",
-    "reviewer": "pending diff review (FL-35)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl35b.c",
@@ -992,7 +992,7 @@
   {
     "va": "0x4087dd",
     "class": "native_oracle_verified",
-    "reviewer": "pending diff review (FL-35)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl35b.c",
@@ -1025,7 +1025,7 @@
   {
     "va": "0x408818",
     "class": "native_oracle_verified",
-    "reviewer": "pending diff review (FL-35)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl35b.c",
@@ -1058,7 +1058,7 @@
   {
     "va": "0x408853",
     "class": "native_oracle_verified",
-    "reviewer": "pending diff review (FL-35)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl35b.c",
@@ -1091,7 +1091,7 @@
   {
     "va": "0x40888e",
     "class": "native_oracle_verified",
-    "reviewer": "pending diff review (FL-35)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl35b.c",
@@ -1124,7 +1124,7 @@
   {
     "va": "0x4088c9",
     "class": "native_oracle_verified",
-    "reviewer": "pending diff review (FL-35)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl35b.c",
@@ -1157,7 +1157,7 @@
   {
     "va": "0x408904",
     "class": "native_oracle_verified",
-    "reviewer": "pending diff review (FL-35)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl35b.c",

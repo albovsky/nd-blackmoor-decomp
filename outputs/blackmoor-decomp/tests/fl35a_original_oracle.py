@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""FL-35 (batch b): original-x86 oracle for the pending struct methods of GAME.EXE listed in tasks/FL-35-small-handlers.md (batch b).
+"""FL-35 (batch a): original-x86 oracle for the pending game rows of GAME.EXE ported in src/original_methods_fl35a.c (the 28 tag readers).
 
 Runs ONLY the original bytes (Unicorn, no native library) on the fixtures of tests/fl35a_fixtures.py, the same generator and the same
 original-run function that tests/test_fl35a_differential.py uses against the native port. The hooks are the OS and host boundaries only:

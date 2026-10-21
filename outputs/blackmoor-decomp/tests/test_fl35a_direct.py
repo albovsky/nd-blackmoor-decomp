@@ -1,9 +1,9 @@
-"""FL-35 (batch b): direct C tests of the GAME.EXE functions in src/original_methods_fl35a.c.
+"""FL-35 (batch a): direct C tests of the GAME.EXE functions in src/original_methods_fl35a.c.
 
 tests/fl35a_direct_test.c links src/original_methods_fl35a.c and prints one PASS/FAIL line per case; every test below checks one of
 them. Expected values come from the original's disassembly, not from the native code.
 
-One direct case per function ; the Unicorn comparison against the original bytes is in
+One direct case per function; the Unicorn comparison against the original bytes is in
 tests/test_fl35a_differential.py.
 """
 import os

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""FL-35 (batch b) mutation check: shows that the direct test and the Unicorn differential detect deliberately broken rules.
+"""FL-35 (batch a) mutation check: shows that the direct test and the Unicorn differential detect deliberately broken rules.
 
 Mechanical mutants of src/original_methods_fl35a.c, one at a time, each applied to a copy in a scratch directory:
   literal   a hexadecimal literal (an offset, a selector, a table address, a constant) is raised by one
