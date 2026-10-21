@@ -266,7 +266,7 @@ void m407a39_toggle_5e3616(uint8_t *self, Fl37World *world, const Fl18Host *host
  * 0xffff. Then 0x404be1(this self) (thiscall, no arguments). */
 void m407a80_toggle_5e361a(uint8_t *self, Fl37World *world, const Fl18Host *host);
 
-/* 0x407ac7 (71 bytes), thiscall, plain `ret`: when dword [0x5e361e] == 1 it is set to 0 and nothing else is stored. Otherwise it is set to 1 and, when the signed word [0x5e335e] == 0x45 (`movsx eax, word ptr [0x5e335e]; cmp eax, 0x45; jne`), that word is set to
+/* 0x407ac7 (73 bytes: 71 code bytes plus two `int3`), thiscall, plain `ret`: when dword [0x5e361e] == 1 it is set to 0 and nothing else is stored. Otherwise it is set to 1 and, when the signed word [0x5e335e] == 0x45 (`movsx eax, word ptr [0x5e335e]; cmp eax, 0x45; jne`), that word is set to
  * 0xffff. Then 0x404be1(this self) (thiscall, no arguments). */
 void m407ac7_toggle_5e361e(uint8_t *self, Fl37World *world, const Fl18Host *host);
 

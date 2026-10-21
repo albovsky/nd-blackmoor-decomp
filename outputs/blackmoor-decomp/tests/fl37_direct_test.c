@@ -129,7 +129,7 @@ static void setup(void)
 
 typedef void (*FlagFn)(uint8_t *, Fl37World *, const Fl18Host *);
 
-/* `which` = the index of the row's flag in the order above, `k` = the word constant of the row (0x4067a5 is `test eax,eax`, i.e. 0) */
+/* `which` = the index of the row's flag in the order above, `k` = the word constant of the row (0xd to 0x45 in this batch) */
 static void check_flag(FlagFn fn, uint32_t k, int which)
 {
     static const uint32_t flags[] = {1, 0, 2, 0x100, 0x10001u, 0xffffffffu, 0x80000001u};

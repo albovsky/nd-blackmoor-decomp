@@ -25449,6 +25449,1887 @@
    },
    "parts_accounted": [],
    "note": "Calls 0x4789d6(self); test eax,eax on the full 32 bits: nonzero stores 1 at self+0x1576 and self+0x24, zero stores 0 at self+0x1576 only. je both ways."
+  },
+  {
+   "va": "0x406b3f",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m406b3f_toggle_5e353e"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m406b3f_toggle_5e353e"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_406b3f_toggle_5e353e"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_406b3f_toggle_5e353e"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x406b3f",
+     "0x406b86"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e353e; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0xd becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x406b86",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m406b86_toggle_5e3542"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m406b86_toggle_5e3542"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_406b86_toggle_5e3542"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_406b86_toggle_5e3542"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x406b86",
+     "0x406bcd"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e3542; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0xe becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x406bcd",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m406bcd_toggle_5e3546"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m406bcd_toggle_5e3546"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_406bcd_toggle_5e3546"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_406bcd_toggle_5e3546"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x406bcd",
+     "0x406c14"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e3546; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0xf becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x406c14",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m406c14_toggle_5e354a"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m406c14_toggle_5e354a"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_406c14_toggle_5e354a"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_406c14_toggle_5e354a"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x406c14",
+     "0x406c5b"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e354a; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x10 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x406c5b",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m406c5b_toggle_5e354e"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m406c5b_toggle_5e354e"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_406c5b_toggle_5e354e"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_406c5b_toggle_5e354e"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x406c5b",
+     "0x406ca2"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e354e; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x11 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x406ca2",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m406ca2_toggle_5e3552"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m406ca2_toggle_5e3552"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_406ca2_toggle_5e3552"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_406ca2_toggle_5e3552"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x406ca2",
+     "0x406ce9"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e3552; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x12 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x406ce9",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m406ce9_toggle_5e3556"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m406ce9_toggle_5e3556"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_406ce9_toggle_5e3556"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_406ce9_toggle_5e3556"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x406ce9",
+     "0x406d30"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e3556; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x13 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x406d30",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m406d30_toggle_5e355a"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m406d30_toggle_5e355a"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_406d30_toggle_5e355a"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_406d30_toggle_5e355a"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x406d30",
+     "0x406d77"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e355a; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x14 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x406d77",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m406d77_toggle_5e355e"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m406d77_toggle_5e355e"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_406d77_toggle_5e355e"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_406d77_toggle_5e355e"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x406d77",
+     "0x406dbe"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e355e; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x15 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x406dbe",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m406dbe_toggle_5e3562"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m406dbe_toggle_5e3562"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_406dbe_toggle_5e3562"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_406dbe_toggle_5e3562"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x406dbe",
+     "0x406e05"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e3562; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x16 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x406e05",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m406e05_toggle_5e3566"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m406e05_toggle_5e3566"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_406e05_toggle_5e3566"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_406e05_toggle_5e3566"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x406e05",
+     "0x406e4c"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e3566; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x17 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x406e4c",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m406e4c_toggle_5e356a"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m406e4c_toggle_5e356a"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_406e4c_toggle_5e356a"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_406e4c_toggle_5e356a"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x406e4c",
+     "0x406e93"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e356a; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x18 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x406e93",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m406e93_toggle_5e356e"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m406e93_toggle_5e356e"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_406e93_toggle_5e356e"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_406e93_toggle_5e356e"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x406e93",
+     "0x406eda"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e356e; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x19 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x406eda",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m406eda_toggle_5e3572"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m406eda_toggle_5e3572"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_406eda_toggle_5e3572"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_406eda_toggle_5e3572"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x406eda",
+     "0x406f21"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e3572; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x1a becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x406f21",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m406f21_toggle_5e3576"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m406f21_toggle_5e3576"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_406f21_toggle_5e3576"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_406f21_toggle_5e3576"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x406f21",
+     "0x406f68"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e3576; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x1b becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x406f68",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m406f68_toggle_5e357a"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m406f68_toggle_5e357a"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_406f68_toggle_5e357a"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_406f68_toggle_5e357a"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x406f68",
+     "0x406faf"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e357a; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x1c becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x406faf",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m406faf_toggle_5e357e"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m406faf_toggle_5e357e"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_406faf_toggle_5e357e"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_406faf_toggle_5e357e"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x406faf",
+     "0x406ff6"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e357e; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x1d becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x406ff6",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m406ff6_toggle_5e3582"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m406ff6_toggle_5e3582"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_406ff6_toggle_5e3582"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_406ff6_toggle_5e3582"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x406ff6",
+     "0x40703d"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e3582; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x1e becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x40703d",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m40703d_toggle_5e3586"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m40703d_toggle_5e3586"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_40703d_toggle_5e3586"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_40703d_toggle_5e3586"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x40703d",
+     "0x407084"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e3586; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x1f becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x407084",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m407084_toggle_5e358a"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m407084_toggle_5e358a"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_407084_toggle_5e358a"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_407084_toggle_5e358a"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x407084",
+     "0x4070cb"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e358a; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x20 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x4070cb",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m4070cb_toggle_5e358e"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m4070cb_toggle_5e358e"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_4070cb_toggle_5e358e"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_4070cb_toggle_5e358e"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x4070cb",
+     "0x407112"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e358e; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x21 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x407112",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m407112_toggle_5e3592"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m407112_toggle_5e3592"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_407112_toggle_5e3592"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_407112_toggle_5e3592"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x407112",
+     "0x407159"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e3592; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x22 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x407159",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m407159_toggle_5e3596"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m407159_toggle_5e3596"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_407159_toggle_5e3596"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_407159_toggle_5e3596"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x407159",
+     "0x4071a0"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e3596; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x23 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x4071a0",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m4071a0_toggle_5e359a"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m4071a0_toggle_5e359a"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_4071a0_toggle_5e359a"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_4071a0_toggle_5e359a"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x4071a0",
+     "0x4071e7"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e359a; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x24 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x4071e7",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m4071e7_toggle_5e359e"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m4071e7_toggle_5e359e"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_4071e7_toggle_5e359e"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_4071e7_toggle_5e359e"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x4071e7",
+     "0x40722e"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e359e; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x25 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x40722e",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m40722e_toggle_5e35a2"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m40722e_toggle_5e35a2"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_40722e_toggle_5e35a2"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_40722e_toggle_5e35a2"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x40722e",
+     "0x407275"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e35a2; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x26 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x407275",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m407275_toggle_5e35a6"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m407275_toggle_5e35a6"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_407275_toggle_5e35a6"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_407275_toggle_5e35a6"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x407275",
+     "0x4072bc"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e35a6; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x27 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x4072bc",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m4072bc_toggle_5e35aa"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m4072bc_toggle_5e35aa"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_4072bc_toggle_5e35aa"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_4072bc_toggle_5e35aa"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x4072bc",
+     "0x407303"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e35aa; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x28 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x407303",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m407303_toggle_5e35ae"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m407303_toggle_5e35ae"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_407303_toggle_5e35ae"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_407303_toggle_5e35ae"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x407303",
+     "0x40734a"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e35ae; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x29 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x40734a",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m40734a_toggle_5e35b2"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m40734a_toggle_5e35b2"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_40734a_toggle_5e35b2"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_40734a_toggle_5e35b2"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x40734a",
+     "0x407391"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e35b2; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x2a becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x407391",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m407391_toggle_5e35b6"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m407391_toggle_5e35b6"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_407391_toggle_5e35b6"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_407391_toggle_5e35b6"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x407391",
+     "0x4073d8"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e35b6; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x2b becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x4073d8",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m4073d8_toggle_5e35ba"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m4073d8_toggle_5e35ba"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_4073d8_toggle_5e35ba"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_4073d8_toggle_5e35ba"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x4073d8",
+     "0x40741f"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e35ba; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x2c becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x40741f",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m40741f_toggle_5e35be"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m40741f_toggle_5e35be"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_40741f_toggle_5e35be"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_40741f_toggle_5e35be"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x40741f",
+     "0x407466"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e35be; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x2d becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x407466",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m407466_toggle_5e35c2"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m407466_toggle_5e35c2"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_407466_toggle_5e35c2"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_407466_toggle_5e35c2"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x407466",
+     "0x4074ad"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e35c2; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x2e becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x4074ad",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m4074ad_toggle_5e35c6"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m4074ad_toggle_5e35c6"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_4074ad_toggle_5e35c6"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_4074ad_toggle_5e35c6"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x4074ad",
+     "0x4074f4"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e35c6; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x2f becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x4074f4",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m4074f4_toggle_5e35ca"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m4074f4_toggle_5e35ca"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_4074f4_toggle_5e35ca"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_4074f4_toggle_5e35ca"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x4074f4",
+     "0x40753b"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e35ca; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x30 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x40753b",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m40753b_toggle_5e35ce"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m40753b_toggle_5e35ce"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_40753b_toggle_5e35ce"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_40753b_toggle_5e35ce"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x40753b",
+     "0x407582"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e35ce; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x31 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x407582",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m407582_toggle_5e35d2"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m407582_toggle_5e35d2"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_407582_toggle_5e35d2"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_407582_toggle_5e35d2"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x407582",
+     "0x4075c9"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e35d2; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x32 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x4075c9",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m4075c9_toggle_5e35d6"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m4075c9_toggle_5e35d6"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_4075c9_toggle_5e35d6"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_4075c9_toggle_5e35d6"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x4075c9",
+     "0x407610"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e35d6; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x33 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x407610",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m407610_toggle_5e35da"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m407610_toggle_5e35da"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_407610_toggle_5e35da"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_407610_toggle_5e35da"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x407610",
+     "0x407657"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e35da; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x34 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x407657",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m407657_toggle_5e35de"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m407657_toggle_5e35de"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_407657_toggle_5e35de"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_407657_toggle_5e35de"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x407657",
+     "0x40769e"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e35de; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x35 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x40769e",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m40769e_toggle_5e35e2"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m40769e_toggle_5e35e2"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_40769e_toggle_5e35e2"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_40769e_toggle_5e35e2"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x40769e",
+     "0x4076e5"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e35e2; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x36 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x4076e5",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m4076e5_toggle_5e35e6"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m4076e5_toggle_5e35e6"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_4076e5_toggle_5e35e6"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_4076e5_toggle_5e35e6"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x4076e5",
+     "0x40772c"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e35e6; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x37 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x40772c",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m40772c_toggle_5e35ea"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m40772c_toggle_5e35ea"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_40772c_toggle_5e35ea"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_40772c_toggle_5e35ea"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x40772c",
+     "0x407773"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e35ea; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x38 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x407773",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m407773_toggle_5e35ee"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m407773_toggle_5e35ee"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_407773_toggle_5e35ee"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_407773_toggle_5e35ee"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x407773",
+     "0x4077ba"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e35ee; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x39 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x4077ba",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m4077ba_toggle_5e35f2"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m4077ba_toggle_5e35f2"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_4077ba_toggle_5e35f2"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_4077ba_toggle_5e35f2"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x4077ba",
+     "0x407801"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e35f2; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x3a becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x407801",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m407801_toggle_5e35f6"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m407801_toggle_5e35f6"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_407801_toggle_5e35f6"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_407801_toggle_5e35f6"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x407801",
+     "0x407848"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e35f6; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x3b becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x407848",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m407848_toggle_5e35fa"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m407848_toggle_5e35fa"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_407848_toggle_5e35fa"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_407848_toggle_5e35fa"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x407848",
+     "0x40788f"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e35fa; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x3c becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x40788f",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m40788f_toggle_5e35fe"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m40788f_toggle_5e35fe"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_40788f_toggle_5e35fe"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_40788f_toggle_5e35fe"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x40788f",
+     "0x4078d6"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e35fe; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x3d becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x4078d6",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m4078d6_toggle_5e3602"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m4078d6_toggle_5e3602"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_4078d6_toggle_5e3602"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_4078d6_toggle_5e3602"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x4078d6",
+     "0x40791d"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e3602; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x3e becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x40791d",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m40791d_toggle_5e3606"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m40791d_toggle_5e3606"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_40791d_toggle_5e3606"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_40791d_toggle_5e3606"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x40791d",
+     "0x407964"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e3606; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x3f becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x407964",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m407964_toggle_5e360a"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m407964_toggle_5e360a"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_407964_toggle_5e360a"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_407964_toggle_5e360a"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x407964",
+     "0x4079ab"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e360a; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x40 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x4079ab",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m4079ab_toggle_5e360e"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m4079ab_toggle_5e360e"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_4079ab_toggle_5e360e"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_4079ab_toggle_5e360e"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x4079ab",
+     "0x4079f2"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e360e; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x41 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x4079f2",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m4079f2_toggle_5e3612"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m4079f2_toggle_5e3612"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_4079f2_toggle_5e3612"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_4079f2_toggle_5e3612"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x4079f2",
+     "0x407a39"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e3612; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x42 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x407a39",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m407a39_toggle_5e3616"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m407a39_toggle_5e3616"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_407a39_toggle_5e3616"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_407a39_toggle_5e3616"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x407a39",
+     "0x407a80"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e3616; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x43 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x407a80",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m407a80_toggle_5e361a"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m407a80_toggle_5e361a"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_407a80_toggle_5e361a"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_407a80_toggle_5e361a"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x407a80",
+     "0x407ac7"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e361a; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x44 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  },
+  {
+   "va": "0x407ac7",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-37)",
+   "date": "2026-10-21",
+   "native_source": {
+    "path": "src/original_methods_fl37.c",
+    "symbol": "m407ac7_toggle_5e361e"
+   },
+   "tests": [
+    {
+     "path": "tests/fl37_direct_test.c",
+     "test_id": "test_m407ac7_toggle_5e361e"
+    },
+    {
+     "path": "tests/test_fl37_direct.py",
+     "test_id": "Fl37Direct.test_407ac7_toggle_5e361e"
+    },
+    {
+     "path": "tests/test_fl37_differential.py",
+     "test_id": "Fl37Differential.test_407ac7_toggle_5e361e"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl37_original_oracle.py",
+    "window": [
+     "0x407ac7",
+     "0x407b10"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Toggles the flag at 0x5e361e; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x45 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
   }
  ],
  "not_needed_entries": [
