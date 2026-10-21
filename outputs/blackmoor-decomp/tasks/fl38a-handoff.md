@@ -56,7 +56,7 @@ None dropped inside the scope: every row has all instructions executed and both 
 
 - `python3 tests/fl38a_original_oracle.py`: exit 0, every row N/N instructions and all branch directions (output above per row).
 - `python3 -m unittest tests.test_fl38a_direct tests.test_fl38a_differential`: 56 tests OK (27 direct rows + the exact-size case + the all-cases check; 27 differential).
-- `python3 tests/fl38a_mutation_check.py --differential`: 316 mutants (41 labels, each applied to every function of its kind), 0 survivors with the direct and differential tests; a mutant that makes the shim crash (unsigned index) counts as caught.
+- `python3 tests/fl38a_mutation_check.py --differential`: 316 mutants (36 labels, each applied to every function of its kind), 0 survivors with the direct and differential tests; a mutant that makes the shim crash (unsigned index) counts as caught.
 - Generator (not in the repo): /tmp/claude-0/s/gen38a*.py.
 
-Commit: @COMMIT@
+Commit: 7e7d8986 (all files); this handoff was updated in the following commit.
