@@ -3,7 +3,7 @@
   "all_accepted": true,
   "assembler": {
     "binutils_archive_sha512": "20977ad17729141a2c26d358628f44a0944b84dcfefdec2ba029c2d02f40dfc41cc91c0631044560d2bd6f9a51e1f15846b4b311befbe14f1239f14ff7d57824",
-    "path": "work/tools/s08-binutils-2.43.1/prefix/bin/i686-w64-mingw32-as",
+    "path": "wp/tools/s08-binutils-2.43.1/prefix/bin/i686-w64-mingw32-as",
     "self_test": "passed",
     "sha256": "e098415986a220be7e4b2d14f3b0894cf065a8f21d6aaf117140d2966039e5c4",
     "version_line": "GNU assembler (GNU Binutils) 2.43.1"
@@ -14531,6 +14531,7 @@
       "contains_original_byte_values": false,
       "data_items": [],
       "function": "FUN_0047a3d9",
+      "naming": "native_port",
       "object": {
         "sha256": "a7c6921219d41b5134c45986629f23d4b656ab532a87880048e4283e57f289fa",
         "size": 497079
@@ -14540,7 +14541,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_0047a3d9.s",
-        "sha256": "2603160b9e202892a0f71183947006ce55c4aaeedc56f810a0df9e103936cdc9"
+        "sha256": "5e5237efadfd60118aec04bdbaeaf416d81cd39e780635e85f4e3ae8f09608dd"
       },
       "status": "accepted",
       "va": 4695001
@@ -21081,9 +21082,9 @@
       "va": 4790079
     }
   ],
-  "manifest_sha256": "dd3613a43d40c8afcf189371bac81752b9b478d6f9462bdefe9aa5cee13d4bc1",
-  "named_functions": 301,
-  "names_sha256": "de11a58e5705fb28e624798bf6f4e01f34c357520fcd436c836c5e72e6b86feb",
+  "manifest_sha256": "58a2d017357ca19745f09a6b7f7e7f64b1ef41603d375e216b91965ae32702af",
+  "named_functions": 302,
+  "names_sha256": "22694c0c6c68958370c0b0e8ececf44751638cb0f06cadfe452685dd552bf65d",
   "note": "Accepted functions are candidates for the tool_assisted_reconstructed_assembly class; they count only after root accepts the independent review. No claim is made about original C++ or compiler provenance.",
   "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45"
 }

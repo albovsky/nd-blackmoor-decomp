@@ -1,695 +1,695 @@
 [
- {
-  "va": "0x402962",
-  "class": "native_oracle_verified",
-  "reviewer": "implementer only, independent review pending, FL-34a",
-  "date": "2026-10-21",
-  "native_source": {
-   "path": "src/original_methods_fl34a.c",
-   "symbol": "m402962_toggle_5e60d6"
+  {
+    "va": "0x402962",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-34)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl34a.c",
+      "symbol": "m402962_toggle_5e60d6"
+    },
+    "tests": [
+      {
+        "path": "tests/fl34a_direct_test.c",
+        "test_id": "test_m402962_toggle_5e60d6"
+      },
+      {
+        "path": "tests/test_fl34a_direct.py",
+        "test_id": "Fl34aDirect.test_402962_toggle_5e60d6"
+      },
+      {
+        "path": "tests/test_fl34a_differential.py",
+        "test_id": "Fl34aDifferential.test_402962_toggle_5e60d6"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl34a_original_oracle.py",
+      "window": [
+        "0x402962",
+        "0x4029a9"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Toggles the dword at 0x5e60d6+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
   },
-  "tests": [
-   {
-    "path": "tests/fl34a_direct_test.c",
-    "test_id": "test_m402962_toggle_5e60d6"
-   },
-   {
-    "path": "tests/test_fl34a_direct.py",
-    "test_id": "Fl34aDirect.test_402962_toggle_5e60d6"
-   },
-   {
-    "path": "tests/test_fl34a_differential.py",
-    "test_id": "Fl34aDifferential.test_402962_toggle_5e60d6"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl34a_original_oracle.py",
-   "window": [
-    "0x402962",
-    "0x4029a9"
-   ]
+  {
+    "va": "0x402a7e",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-34)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl34a.c",
+      "symbol": "m402a7e_toggle_5e60e6"
+    },
+    "tests": [
+      {
+        "path": "tests/fl34a_direct_test.c",
+        "test_id": "test_m402a7e_toggle_5e60e6"
+      },
+      {
+        "path": "tests/test_fl34a_direct.py",
+        "test_id": "Fl34aDirect.test_402a7e_toggle_5e60e6"
+      },
+      {
+        "path": "tests/test_fl34a_differential.py",
+        "test_id": "Fl34aDifferential.test_402a7e_toggle_5e60e6"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl34a_original_oracle.py",
+      "window": [
+        "0x402a7e",
+        "0x402ac5"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Toggles the dword at 0x5e60e6+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
   },
-  "parts_accounted": [],
-  "note": "Toggles the dword at 0x5e60d6+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
- },
- {
-  "va": "0x402a7e",
-  "class": "native_oracle_verified",
-  "reviewer": "implementer only, independent review pending, FL-34a",
-  "date": "2026-10-21",
-  "native_source": {
-   "path": "src/original_methods_fl34a.c",
-   "symbol": "m402a7e_toggle_5e60e6"
+  {
+    "va": "0x402ac5",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-34)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl34a.c",
+      "symbol": "m402ac5_toggle_5e60ea"
+    },
+    "tests": [
+      {
+        "path": "tests/fl34a_direct_test.c",
+        "test_id": "test_m402ac5_toggle_5e60ea"
+      },
+      {
+        "path": "tests/test_fl34a_direct.py",
+        "test_id": "Fl34aDirect.test_402ac5_toggle_5e60ea"
+      },
+      {
+        "path": "tests/test_fl34a_differential.py",
+        "test_id": "Fl34aDifferential.test_402ac5_toggle_5e60ea"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl34a_original_oracle.py",
+      "window": [
+        "0x402ac5",
+        "0x402b0c"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Toggles the dword at 0x5e60ea+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
   },
-  "tests": [
-   {
-    "path": "tests/fl34a_direct_test.c",
-    "test_id": "test_m402a7e_toggle_5e60e6"
-   },
-   {
-    "path": "tests/test_fl34a_direct.py",
-    "test_id": "Fl34aDirect.test_402a7e_toggle_5e60e6"
-   },
-   {
-    "path": "tests/test_fl34a_differential.py",
-    "test_id": "Fl34aDifferential.test_402a7e_toggle_5e60e6"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl34a_original_oracle.py",
-   "window": [
-    "0x402a7e",
-    "0x402ac5"
-   ]
+  {
+    "va": "0x402b0c",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-34)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl34a.c",
+      "symbol": "m402b0c_toggle_5e60ee"
+    },
+    "tests": [
+      {
+        "path": "tests/fl34a_direct_test.c",
+        "test_id": "test_m402b0c_toggle_5e60ee"
+      },
+      {
+        "path": "tests/test_fl34a_direct.py",
+        "test_id": "Fl34aDirect.test_402b0c_toggle_5e60ee"
+      },
+      {
+        "path": "tests/test_fl34a_differential.py",
+        "test_id": "Fl34aDifferential.test_402b0c_toggle_5e60ee"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl34a_original_oracle.py",
+      "window": [
+        "0x402b0c",
+        "0x402b53"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Toggles the dword at 0x5e60ee+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
   },
-  "parts_accounted": [],
-  "note": "Toggles the dword at 0x5e60e6+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
- },
- {
-  "va": "0x402ac5",
-  "class": "native_oracle_verified",
-  "reviewer": "implementer only, independent review pending, FL-34a",
-  "date": "2026-10-21",
-  "native_source": {
-   "path": "src/original_methods_fl34a.c",
-   "symbol": "m402ac5_toggle_5e60ea"
+  {
+    "va": "0x402b53",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-34)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl34a.c",
+      "symbol": "m402b53_toggle_5e60f2"
+    },
+    "tests": [
+      {
+        "path": "tests/fl34a_direct_test.c",
+        "test_id": "test_m402b53_toggle_5e60f2"
+      },
+      {
+        "path": "tests/test_fl34a_direct.py",
+        "test_id": "Fl34aDirect.test_402b53_toggle_5e60f2"
+      },
+      {
+        "path": "tests/test_fl34a_differential.py",
+        "test_id": "Fl34aDifferential.test_402b53_toggle_5e60f2"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl34a_original_oracle.py",
+      "window": [
+        "0x402b53",
+        "0x402b9a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Toggles the dword at 0x5e60f2+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
   },
-  "tests": [
-   {
-    "path": "tests/fl34a_direct_test.c",
-    "test_id": "test_m402ac5_toggle_5e60ea"
-   },
-   {
-    "path": "tests/test_fl34a_direct.py",
-    "test_id": "Fl34aDirect.test_402ac5_toggle_5e60ea"
-   },
-   {
-    "path": "tests/test_fl34a_differential.py",
-    "test_id": "Fl34aDifferential.test_402ac5_toggle_5e60ea"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl34a_original_oracle.py",
-   "window": [
-    "0x402ac5",
-    "0x402b0c"
-   ]
+  {
+    "va": "0x402b9a",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-34)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl34a.c",
+      "symbol": "m402b9a_toggle_5e60f6"
+    },
+    "tests": [
+      {
+        "path": "tests/fl34a_direct_test.c",
+        "test_id": "test_m402b9a_toggle_5e60f6"
+      },
+      {
+        "path": "tests/test_fl34a_direct.py",
+        "test_id": "Fl34aDirect.test_402b9a_toggle_5e60f6"
+      },
+      {
+        "path": "tests/test_fl34a_differential.py",
+        "test_id": "Fl34aDifferential.test_402b9a_toggle_5e60f6"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl34a_original_oracle.py",
+      "window": [
+        "0x402b9a",
+        "0x402be1"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Toggles the dword at 0x5e60f6+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
   },
-  "parts_accounted": [],
-  "note": "Toggles the dword at 0x5e60ea+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
- },
- {
-  "va": "0x402b0c",
-  "class": "native_oracle_verified",
-  "reviewer": "implementer only, independent review pending, FL-34a",
-  "date": "2026-10-21",
-  "native_source": {
-   "path": "src/original_methods_fl34a.c",
-   "symbol": "m402b0c_toggle_5e60ee"
+  {
+    "va": "0x402be1",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-34)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl34a.c",
+      "symbol": "m402be1_toggle_5e60fa"
+    },
+    "tests": [
+      {
+        "path": "tests/fl34a_direct_test.c",
+        "test_id": "test_m402be1_toggle_5e60fa"
+      },
+      {
+        "path": "tests/test_fl34a_direct.py",
+        "test_id": "Fl34aDirect.test_402be1_toggle_5e60fa"
+      },
+      {
+        "path": "tests/test_fl34a_differential.py",
+        "test_id": "Fl34aDifferential.test_402be1_toggle_5e60fa"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl34a_original_oracle.py",
+      "window": [
+        "0x402be1",
+        "0x402c28"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Toggles the dword at 0x5e60fa+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
   },
-  "tests": [
-   {
-    "path": "tests/fl34a_direct_test.c",
-    "test_id": "test_m402b0c_toggle_5e60ee"
-   },
-   {
-    "path": "tests/test_fl34a_direct.py",
-    "test_id": "Fl34aDirect.test_402b0c_toggle_5e60ee"
-   },
-   {
-    "path": "tests/test_fl34a_differential.py",
-    "test_id": "Fl34aDifferential.test_402b0c_toggle_5e60ee"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl34a_original_oracle.py",
-   "window": [
-    "0x402b0c",
-    "0x402b53"
-   ]
+  {
+    "va": "0x402c28",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-34)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl34a.c",
+      "symbol": "m402c28_toggle_5e60fe"
+    },
+    "tests": [
+      {
+        "path": "tests/fl34a_direct_test.c",
+        "test_id": "test_m402c28_toggle_5e60fe"
+      },
+      {
+        "path": "tests/test_fl34a_direct.py",
+        "test_id": "Fl34aDirect.test_402c28_toggle_5e60fe"
+      },
+      {
+        "path": "tests/test_fl34a_differential.py",
+        "test_id": "Fl34aDifferential.test_402c28_toggle_5e60fe"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl34a_original_oracle.py",
+      "window": [
+        "0x402c28",
+        "0x402c6f"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Toggles the dword at 0x5e60fe+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
   },
-  "parts_accounted": [],
-  "note": "Toggles the dword at 0x5e60ee+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
- },
- {
-  "va": "0x402b53",
-  "class": "native_oracle_verified",
-  "reviewer": "implementer only, independent review pending, FL-34a",
-  "date": "2026-10-21",
-  "native_source": {
-   "path": "src/original_methods_fl34a.c",
-   "symbol": "m402b53_toggle_5e60f2"
+  {
+    "va": "0x402c6f",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-34)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl34a.c",
+      "symbol": "m402c6f_toggle_5e6102"
+    },
+    "tests": [
+      {
+        "path": "tests/fl34a_direct_test.c",
+        "test_id": "test_m402c6f_toggle_5e6102"
+      },
+      {
+        "path": "tests/test_fl34a_direct.py",
+        "test_id": "Fl34aDirect.test_402c6f_toggle_5e6102"
+      },
+      {
+        "path": "tests/test_fl34a_differential.py",
+        "test_id": "Fl34aDifferential.test_402c6f_toggle_5e6102"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl34a_original_oracle.py",
+      "window": [
+        "0x402c6f",
+        "0x402cb6"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Toggles the dword at 0x5e6102+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
   },
-  "tests": [
-   {
-    "path": "tests/fl34a_direct_test.c",
-    "test_id": "test_m402b53_toggle_5e60f2"
-   },
-   {
-    "path": "tests/test_fl34a_direct.py",
-    "test_id": "Fl34aDirect.test_402b53_toggle_5e60f2"
-   },
-   {
-    "path": "tests/test_fl34a_differential.py",
-    "test_id": "Fl34aDifferential.test_402b53_toggle_5e60f2"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl34a_original_oracle.py",
-   "window": [
-    "0x402b53",
-    "0x402b9a"
-   ]
+  {
+    "va": "0x402cb6",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-34)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl34a.c",
+      "symbol": "m402cb6_toggle_5e6106"
+    },
+    "tests": [
+      {
+        "path": "tests/fl34a_direct_test.c",
+        "test_id": "test_m402cb6_toggle_5e6106"
+      },
+      {
+        "path": "tests/test_fl34a_direct.py",
+        "test_id": "Fl34aDirect.test_402cb6_toggle_5e6106"
+      },
+      {
+        "path": "tests/test_fl34a_differential.py",
+        "test_id": "Fl34aDifferential.test_402cb6_toggle_5e6106"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl34a_original_oracle.py",
+      "window": [
+        "0x402cb6",
+        "0x402cfd"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Toggles the dword at 0x5e6106+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
   },
-  "parts_accounted": [],
-  "note": "Toggles the dword at 0x5e60f2+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
- },
- {
-  "va": "0x402b9a",
-  "class": "native_oracle_verified",
-  "reviewer": "implementer only, independent review pending, FL-34a",
-  "date": "2026-10-21",
-  "native_source": {
-   "path": "src/original_methods_fl34a.c",
-   "symbol": "m402b9a_toggle_5e60f6"
+  {
+    "va": "0x402cfd",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-34)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl34a.c",
+      "symbol": "m402cfd_toggle_5e610a"
+    },
+    "tests": [
+      {
+        "path": "tests/fl34a_direct_test.c",
+        "test_id": "test_m402cfd_toggle_5e610a"
+      },
+      {
+        "path": "tests/test_fl34a_direct.py",
+        "test_id": "Fl34aDirect.test_402cfd_toggle_5e610a"
+      },
+      {
+        "path": "tests/test_fl34a_differential.py",
+        "test_id": "Fl34aDifferential.test_402cfd_toggle_5e610a"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl34a_original_oracle.py",
+      "window": [
+        "0x402cfd",
+        "0x402d44"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Toggles the dword at 0x5e610a+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
   },
-  "tests": [
-   {
-    "path": "tests/fl34a_direct_test.c",
-    "test_id": "test_m402b9a_toggle_5e60f6"
-   },
-   {
-    "path": "tests/test_fl34a_direct.py",
-    "test_id": "Fl34aDirect.test_402b9a_toggle_5e60f6"
-   },
-   {
-    "path": "tests/test_fl34a_differential.py",
-    "test_id": "Fl34aDifferential.test_402b9a_toggle_5e60f6"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl34a_original_oracle.py",
-   "window": [
-    "0x402b9a",
-    "0x402be1"
-   ]
+  {
+    "va": "0x402d44",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-34)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl34a.c",
+      "symbol": "m402d44_toggle_5e610e"
+    },
+    "tests": [
+      {
+        "path": "tests/fl34a_direct_test.c",
+        "test_id": "test_m402d44_toggle_5e610e"
+      },
+      {
+        "path": "tests/test_fl34a_direct.py",
+        "test_id": "Fl34aDirect.test_402d44_toggle_5e610e"
+      },
+      {
+        "path": "tests/test_fl34a_differential.py",
+        "test_id": "Fl34aDifferential.test_402d44_toggle_5e610e"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl34a_original_oracle.py",
+      "window": [
+        "0x402d44",
+        "0x402d8b"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Toggles the dword at 0x5e610e+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
   },
-  "parts_accounted": [],
-  "note": "Toggles the dword at 0x5e60f6+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
- },
- {
-  "va": "0x402be1",
-  "class": "native_oracle_verified",
-  "reviewer": "implementer only, independent review pending, FL-34a",
-  "date": "2026-10-21",
-  "native_source": {
-   "path": "src/original_methods_fl34a.c",
-   "symbol": "m402be1_toggle_5e60fa"
+  {
+    "va": "0x402d8b",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-34)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl34a.c",
+      "symbol": "m402d8b_toggle_5e6112"
+    },
+    "tests": [
+      {
+        "path": "tests/fl34a_direct_test.c",
+        "test_id": "test_m402d8b_toggle_5e6112"
+      },
+      {
+        "path": "tests/test_fl34a_direct.py",
+        "test_id": "Fl34aDirect.test_402d8b_toggle_5e6112"
+      },
+      {
+        "path": "tests/test_fl34a_differential.py",
+        "test_id": "Fl34aDifferential.test_402d8b_toggle_5e6112"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl34a_original_oracle.py",
+      "window": [
+        "0x402d8b",
+        "0x402dd2"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Toggles the dword at 0x5e6112+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
   },
-  "tests": [
-   {
-    "path": "tests/fl34a_direct_test.c",
-    "test_id": "test_m402be1_toggle_5e60fa"
-   },
-   {
-    "path": "tests/test_fl34a_direct.py",
-    "test_id": "Fl34aDirect.test_402be1_toggle_5e60fa"
-   },
-   {
-    "path": "tests/test_fl34a_differential.py",
-    "test_id": "Fl34aDifferential.test_402be1_toggle_5e60fa"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl34a_original_oracle.py",
-   "window": [
-    "0x402be1",
-    "0x402c28"
-   ]
+  {
+    "va": "0x402dd2",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-34)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl34a.c",
+      "symbol": "m402dd2_toggle_5e6116"
+    },
+    "tests": [
+      {
+        "path": "tests/fl34a_direct_test.c",
+        "test_id": "test_m402dd2_toggle_5e6116"
+      },
+      {
+        "path": "tests/test_fl34a_direct.py",
+        "test_id": "Fl34aDirect.test_402dd2_toggle_5e6116"
+      },
+      {
+        "path": "tests/test_fl34a_differential.py",
+        "test_id": "Fl34aDifferential.test_402dd2_toggle_5e6116"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl34a_original_oracle.py",
+      "window": [
+        "0x402dd2",
+        "0x402e19"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Toggles the dword at 0x5e6116+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
   },
-  "parts_accounted": [],
-  "note": "Toggles the dword at 0x5e60fa+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
- },
- {
-  "va": "0x402c28",
-  "class": "native_oracle_verified",
-  "reviewer": "implementer only, independent review pending, FL-34a",
-  "date": "2026-10-21",
-  "native_source": {
-   "path": "src/original_methods_fl34a.c",
-   "symbol": "m402c28_toggle_5e60fe"
+  {
+    "va": "0x402e19",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-34)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl34a.c",
+      "symbol": "m402e19_toggle_5e611a"
+    },
+    "tests": [
+      {
+        "path": "tests/fl34a_direct_test.c",
+        "test_id": "test_m402e19_toggle_5e611a"
+      },
+      {
+        "path": "tests/test_fl34a_direct.py",
+        "test_id": "Fl34aDirect.test_402e19_toggle_5e611a"
+      },
+      {
+        "path": "tests/test_fl34a_differential.py",
+        "test_id": "Fl34aDifferential.test_402e19_toggle_5e611a"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl34a_original_oracle.py",
+      "window": [
+        "0x402e19",
+        "0x402e60"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Toggles the dword at 0x5e611a+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
   },
-  "tests": [
-   {
-    "path": "tests/fl34a_direct_test.c",
-    "test_id": "test_m402c28_toggle_5e60fe"
-   },
-   {
-    "path": "tests/test_fl34a_direct.py",
-    "test_id": "Fl34aDirect.test_402c28_toggle_5e60fe"
-   },
-   {
-    "path": "tests/test_fl34a_differential.py",
-    "test_id": "Fl34aDifferential.test_402c28_toggle_5e60fe"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl34a_original_oracle.py",
-   "window": [
-    "0x402c28",
-    "0x402c6f"
-   ]
+  {
+    "va": "0x402e60",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-34)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl34a.c",
+      "symbol": "m402e60_toggle_5e611e"
+    },
+    "tests": [
+      {
+        "path": "tests/fl34a_direct_test.c",
+        "test_id": "test_m402e60_toggle_5e611e"
+      },
+      {
+        "path": "tests/test_fl34a_direct.py",
+        "test_id": "Fl34aDirect.test_402e60_toggle_5e611e"
+      },
+      {
+        "path": "tests/test_fl34a_differential.py",
+        "test_id": "Fl34aDifferential.test_402e60_toggle_5e611e"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl34a_original_oracle.py",
+      "window": [
+        "0x402e60",
+        "0x402ea7"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Toggles the dword at 0x5e611e+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
   },
-  "parts_accounted": [],
-  "note": "Toggles the dword at 0x5e60fe+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
- },
- {
-  "va": "0x402c6f",
-  "class": "native_oracle_verified",
-  "reviewer": "implementer only, independent review pending, FL-34a",
-  "date": "2026-10-21",
-  "native_source": {
-   "path": "src/original_methods_fl34a.c",
-   "symbol": "m402c6f_toggle_5e6102"
+  {
+    "va": "0x402ea7",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-34)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl34a.c",
+      "symbol": "m402ea7_toggle_5e6122"
+    },
+    "tests": [
+      {
+        "path": "tests/fl34a_direct_test.c",
+        "test_id": "test_m402ea7_toggle_5e6122"
+      },
+      {
+        "path": "tests/test_fl34a_direct.py",
+        "test_id": "Fl34aDirect.test_402ea7_toggle_5e6122"
+      },
+      {
+        "path": "tests/test_fl34a_differential.py",
+        "test_id": "Fl34aDifferential.test_402ea7_toggle_5e6122"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl34a_original_oracle.py",
+      "window": [
+        "0x402ea7",
+        "0x402eee"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Toggles the dword at 0x5e6122+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
   },
-  "tests": [
-   {
-    "path": "tests/fl34a_direct_test.c",
-    "test_id": "test_m402c6f_toggle_5e6102"
-   },
-   {
-    "path": "tests/test_fl34a_direct.py",
-    "test_id": "Fl34aDirect.test_402c6f_toggle_5e6102"
-   },
-   {
-    "path": "tests/test_fl34a_differential.py",
-    "test_id": "Fl34aDifferential.test_402c6f_toggle_5e6102"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl34a_original_oracle.py",
-   "window": [
-    "0x402c6f",
-    "0x402cb6"
-   ]
+  {
+    "va": "0x402eee",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-34)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl34a.c",
+      "symbol": "m402eee_toggle_5e6126"
+    },
+    "tests": [
+      {
+        "path": "tests/fl34a_direct_test.c",
+        "test_id": "test_m402eee_toggle_5e6126"
+      },
+      {
+        "path": "tests/test_fl34a_direct.py",
+        "test_id": "Fl34aDirect.test_402eee_toggle_5e6126"
+      },
+      {
+        "path": "tests/test_fl34a_differential.py",
+        "test_id": "Fl34aDifferential.test_402eee_toggle_5e6126"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl34a_original_oracle.py",
+      "window": [
+        "0x402eee",
+        "0x402f35"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Toggles the dword at 0x5e6126+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
   },
-  "parts_accounted": [],
-  "note": "Toggles the dword at 0x5e6102+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
- },
- {
-  "va": "0x402cb6",
-  "class": "native_oracle_verified",
-  "reviewer": "implementer only, independent review pending, FL-34a",
-  "date": "2026-10-21",
-  "native_source": {
-   "path": "src/original_methods_fl34a.c",
-   "symbol": "m402cb6_toggle_5e6106"
+  {
+    "va": "0x402f35",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-34)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl34a.c",
+      "symbol": "m402f35_toggle_5e612a"
+    },
+    "tests": [
+      {
+        "path": "tests/fl34a_direct_test.c",
+        "test_id": "test_m402f35_toggle_5e612a"
+      },
+      {
+        "path": "tests/test_fl34a_direct.py",
+        "test_id": "Fl34aDirect.test_402f35_toggle_5e612a"
+      },
+      {
+        "path": "tests/test_fl34a_differential.py",
+        "test_id": "Fl34aDifferential.test_402f35_toggle_5e612a"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl34a_original_oracle.py",
+      "window": [
+        "0x402f35",
+        "0x402f7c"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Toggles the dword at 0x5e612a+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
   },
-  "tests": [
-   {
-    "path": "tests/fl34a_direct_test.c",
-    "test_id": "test_m402cb6_toggle_5e6106"
-   },
-   {
-    "path": "tests/test_fl34a_direct.py",
-    "test_id": "Fl34aDirect.test_402cb6_toggle_5e6106"
-   },
-   {
-    "path": "tests/test_fl34a_differential.py",
-    "test_id": "Fl34aDifferential.test_402cb6_toggle_5e6106"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl34a_original_oracle.py",
-   "window": [
-    "0x402cb6",
-    "0x402cfd"
-   ]
+  {
+    "va": "0x402f7c",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-34)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl34a.c",
+      "symbol": "m402f7c_toggle_5e612e"
+    },
+    "tests": [
+      {
+        "path": "tests/fl34a_direct_test.c",
+        "test_id": "test_m402f7c_toggle_5e612e"
+      },
+      {
+        "path": "tests/test_fl34a_direct.py",
+        "test_id": "Fl34aDirect.test_402f7c_toggle_5e612e"
+      },
+      {
+        "path": "tests/test_fl34a_differential.py",
+        "test_id": "Fl34aDifferential.test_402f7c_toggle_5e612e"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl34a_original_oracle.py",
+      "window": [
+        "0x402f7c",
+        "0x402fc3"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Toggles the dword at 0x5e612e+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
   },
-  "parts_accounted": [],
-  "note": "Toggles the dword at 0x5e6106+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
- },
- {
-  "va": "0x402cfd",
-  "class": "native_oracle_verified",
-  "reviewer": "implementer only, independent review pending, FL-34a",
-  "date": "2026-10-21",
-  "native_source": {
-   "path": "src/original_methods_fl34a.c",
-   "symbol": "m402cfd_toggle_5e610a"
-  },
-  "tests": [
-   {
-    "path": "tests/fl34a_direct_test.c",
-    "test_id": "test_m402cfd_toggle_5e610a"
-   },
-   {
-    "path": "tests/test_fl34a_direct.py",
-    "test_id": "Fl34aDirect.test_402cfd_toggle_5e610a"
-   },
-   {
-    "path": "tests/test_fl34a_differential.py",
-    "test_id": "Fl34aDifferential.test_402cfd_toggle_5e610a"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl34a_original_oracle.py",
-   "window": [
-    "0x402cfd",
-    "0x402d44"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Toggles the dword at 0x5e610a+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
- },
- {
-  "va": "0x402d44",
-  "class": "native_oracle_verified",
-  "reviewer": "implementer only, independent review pending, FL-34a",
-  "date": "2026-10-21",
-  "native_source": {
-   "path": "src/original_methods_fl34a.c",
-   "symbol": "m402d44_toggle_5e610e"
-  },
-  "tests": [
-   {
-    "path": "tests/fl34a_direct_test.c",
-    "test_id": "test_m402d44_toggle_5e610e"
-   },
-   {
-    "path": "tests/test_fl34a_direct.py",
-    "test_id": "Fl34aDirect.test_402d44_toggle_5e610e"
-   },
-   {
-    "path": "tests/test_fl34a_differential.py",
-    "test_id": "Fl34aDifferential.test_402d44_toggle_5e610e"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl34a_original_oracle.py",
-   "window": [
-    "0x402d44",
-    "0x402d8b"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Toggles the dword at 0x5e610e+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
- },
- {
-  "va": "0x402d8b",
-  "class": "native_oracle_verified",
-  "reviewer": "implementer only, independent review pending, FL-34a",
-  "date": "2026-10-21",
-  "native_source": {
-   "path": "src/original_methods_fl34a.c",
-   "symbol": "m402d8b_toggle_5e6112"
-  },
-  "tests": [
-   {
-    "path": "tests/fl34a_direct_test.c",
-    "test_id": "test_m402d8b_toggle_5e6112"
-   },
-   {
-    "path": "tests/test_fl34a_direct.py",
-    "test_id": "Fl34aDirect.test_402d8b_toggle_5e6112"
-   },
-   {
-    "path": "tests/test_fl34a_differential.py",
-    "test_id": "Fl34aDifferential.test_402d8b_toggle_5e6112"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl34a_original_oracle.py",
-   "window": [
-    "0x402d8b",
-    "0x402dd2"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Toggles the dword at 0x5e6112+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
- },
- {
-  "va": "0x402dd2",
-  "class": "native_oracle_verified",
-  "reviewer": "implementer only, independent review pending, FL-34a",
-  "date": "2026-10-21",
-  "native_source": {
-   "path": "src/original_methods_fl34a.c",
-   "symbol": "m402dd2_toggle_5e6116"
-  },
-  "tests": [
-   {
-    "path": "tests/fl34a_direct_test.c",
-    "test_id": "test_m402dd2_toggle_5e6116"
-   },
-   {
-    "path": "tests/test_fl34a_direct.py",
-    "test_id": "Fl34aDirect.test_402dd2_toggle_5e6116"
-   },
-   {
-    "path": "tests/test_fl34a_differential.py",
-    "test_id": "Fl34aDifferential.test_402dd2_toggle_5e6116"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl34a_original_oracle.py",
-   "window": [
-    "0x402dd2",
-    "0x402e19"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Toggles the dword at 0x5e6116+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
- },
- {
-  "va": "0x402e19",
-  "class": "native_oracle_verified",
-  "reviewer": "implementer only, independent review pending, FL-34a",
-  "date": "2026-10-21",
-  "native_source": {
-   "path": "src/original_methods_fl34a.c",
-   "symbol": "m402e19_toggle_5e611a"
-  },
-  "tests": [
-   {
-    "path": "tests/fl34a_direct_test.c",
-    "test_id": "test_m402e19_toggle_5e611a"
-   },
-   {
-    "path": "tests/test_fl34a_direct.py",
-    "test_id": "Fl34aDirect.test_402e19_toggle_5e611a"
-   },
-   {
-    "path": "tests/test_fl34a_differential.py",
-    "test_id": "Fl34aDifferential.test_402e19_toggle_5e611a"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl34a_original_oracle.py",
-   "window": [
-    "0x402e19",
-    "0x402e60"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Toggles the dword at 0x5e611a+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
- },
- {
-  "va": "0x402e60",
-  "class": "native_oracle_verified",
-  "reviewer": "implementer only, independent review pending, FL-34a",
-  "date": "2026-10-21",
-  "native_source": {
-   "path": "src/original_methods_fl34a.c",
-   "symbol": "m402e60_toggle_5e611e"
-  },
-  "tests": [
-   {
-    "path": "tests/fl34a_direct_test.c",
-    "test_id": "test_m402e60_toggle_5e611e"
-   },
-   {
-    "path": "tests/test_fl34a_direct.py",
-    "test_id": "Fl34aDirect.test_402e60_toggle_5e611e"
-   },
-   {
-    "path": "tests/test_fl34a_differential.py",
-    "test_id": "Fl34aDifferential.test_402e60_toggle_5e611e"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl34a_original_oracle.py",
-   "window": [
-    "0x402e60",
-    "0x402ea7"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Toggles the dword at 0x5e611e+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
- },
- {
-  "va": "0x402ea7",
-  "class": "native_oracle_verified",
-  "reviewer": "implementer only, independent review pending, FL-34a",
-  "date": "2026-10-21",
-  "native_source": {
-   "path": "src/original_methods_fl34a.c",
-   "symbol": "m402ea7_toggle_5e6122"
-  },
-  "tests": [
-   {
-    "path": "tests/fl34a_direct_test.c",
-    "test_id": "test_m402ea7_toggle_5e6122"
-   },
-   {
-    "path": "tests/test_fl34a_direct.py",
-    "test_id": "Fl34aDirect.test_402ea7_toggle_5e6122"
-   },
-   {
-    "path": "tests/test_fl34a_differential.py",
-    "test_id": "Fl34aDifferential.test_402ea7_toggle_5e6122"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl34a_original_oracle.py",
-   "window": [
-    "0x402ea7",
-    "0x402eee"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Toggles the dword at 0x5e6122+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
- },
- {
-  "va": "0x402eee",
-  "class": "native_oracle_verified",
-  "reviewer": "implementer only, independent review pending, FL-34a",
-  "date": "2026-10-21",
-  "native_source": {
-   "path": "src/original_methods_fl34a.c",
-   "symbol": "m402eee_toggle_5e6126"
-  },
-  "tests": [
-   {
-    "path": "tests/fl34a_direct_test.c",
-    "test_id": "test_m402eee_toggle_5e6126"
-   },
-   {
-    "path": "tests/test_fl34a_direct.py",
-    "test_id": "Fl34aDirect.test_402eee_toggle_5e6126"
-   },
-   {
-    "path": "tests/test_fl34a_differential.py",
-    "test_id": "Fl34aDifferential.test_402eee_toggle_5e6126"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl34a_original_oracle.py",
-   "window": [
-    "0x402eee",
-    "0x402f35"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Toggles the dword at 0x5e6126+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
- },
- {
-  "va": "0x402f35",
-  "class": "native_oracle_verified",
-  "reviewer": "implementer only, independent review pending, FL-34a",
-  "date": "2026-10-21",
-  "native_source": {
-   "path": "src/original_methods_fl34a.c",
-   "symbol": "m402f35_toggle_5e612a"
-  },
-  "tests": [
-   {
-    "path": "tests/fl34a_direct_test.c",
-    "test_id": "test_m402f35_toggle_5e612a"
-   },
-   {
-    "path": "tests/test_fl34a_direct.py",
-    "test_id": "Fl34aDirect.test_402f35_toggle_5e612a"
-   },
-   {
-    "path": "tests/test_fl34a_differential.py",
-    "test_id": "Fl34aDifferential.test_402f35_toggle_5e612a"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl34a_original_oracle.py",
-   "window": [
-    "0x402f35",
-    "0x402f7c"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Toggles the dword at 0x5e612a+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
- },
- {
-  "va": "0x402f7c",
-  "class": "native_oracle_verified",
-  "reviewer": "implementer only, independent review pending, FL-34a",
-  "date": "2026-10-21",
-  "native_source": {
-   "path": "src/original_methods_fl34a.c",
-   "symbol": "m402f7c_toggle_5e612e"
-  },
-  "tests": [
-   {
-    "path": "tests/fl34a_direct_test.c",
-    "test_id": "test_m402f7c_toggle_5e612e"
-   },
-   {
-    "path": "tests/test_fl34a_direct.py",
-    "test_id": "Fl34aDirect.test_402f7c_toggle_5e612e"
-   },
-   {
-    "path": "tests/test_fl34a_differential.py",
-    "test_id": "Fl34aDifferential.test_402f7c_toggle_5e612e"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl34a_original_oracle.py",
-   "window": [
-    "0x402f7c",
-    "0x402fc3"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Toggles the dword at 0x5e612e+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
- },
- {
-  "va": "0x402fc3",
-  "class": "native_oracle_verified",
-  "reviewer": "implementer only, independent review pending, FL-34a",
-  "date": "2026-10-21",
-  "native_source": {
-   "path": "src/original_methods_fl34a.c",
-   "symbol": "m402fc3_toggle_5e6132"
-  },
-  "tests": [
-   {
-    "path": "tests/fl34a_direct_test.c",
-    "test_id": "test_m402fc3_toggle_5e6132"
-   },
-   {
-    "path": "tests/test_fl34a_direct.py",
-    "test_id": "Fl34aDirect.test_402fc3_toggle_5e6132"
-   },
-   {
-    "path": "tests/test_fl34a_differential.py",
-    "test_id": "Fl34aDifferential.test_402fc3_toggle_5e6132"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl34a_original_oracle.py",
-   "window": [
-    "0x402fc3",
-    "0x403010"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Toggles the dword at 0x5e6132+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
- }
+  {
+    "va": "0x402fc3",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-34)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl34a.c",
+      "symbol": "m402fc3_toggle_5e6132"
+    },
+    "tests": [
+      {
+        "path": "tests/fl34a_direct_test.c",
+        "test_id": "test_m402fc3_toggle_5e6132"
+      },
+      {
+        "path": "tests/test_fl34a_direct.py",
+        "test_id": "Fl34aDirect.test_402fc3_toggle_5e6132"
+      },
+      {
+        "path": "tests/test_fl34a_differential.py",
+        "test_id": "Fl34aDifferential.test_402fc3_toggle_5e6132"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl34a_original_oracle.py",
+      "window": [
+        "0x402fc3",
+        "0x403010"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Toggles the dword at 0x5e6132+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
+  }
 ]

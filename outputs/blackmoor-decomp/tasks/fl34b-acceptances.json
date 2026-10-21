@@ -1,332 +1,332 @@
 [
- {
-  "va": "0x4067a5",
-  "class": "native_oracle_verified",
-  "reviewer": "implementer Claude Sonnet 5.5, FL-34b; independent review pending",
-  "date": "2026-10-21",
-  "native_source": {
-   "path": "src/original_methods_fl34b.c",
-   "symbol": "m4067a5_toggle_5e350a"
+  {
+    "va": "0x4067a5",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-34)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl34b.c",
+      "symbol": "m4067a5_toggle_5e350a"
+    },
+    "tests": [
+      {
+        "path": "tests/fl34b_direct_test.c",
+        "test_id": "test_m4067a5_toggle_5e350a"
+      },
+      {
+        "path": "tests/test_fl34b_direct.py",
+        "test_id": "Fl34bDirect.test_4067a5_toggle_5e350a"
+      },
+      {
+        "path": "tests/test_fl34b_differential.py",
+        "test_id": "Fl34bDifferential.test_4067a5_toggle_5e350a"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl34b_original_oracle.py",
+      "window": [
+        "0x4067a5",
+        "0x4067eb"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Toggles the flag at 0x5e350a; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
   },
-  "tests": [
-   {
-    "path": "tests/fl34b_direct_test.c",
-    "test_id": "test_m4067a5_toggle_5e350a"
-   },
-   {
-    "path": "tests/test_fl34b_direct.py",
-    "test_id": "Fl34bDirect.test_4067a5_toggle_5e350a"
-   },
-   {
-    "path": "tests/test_fl34b_differential.py",
-    "test_id": "Fl34bDifferential.test_4067a5_toggle_5e350a"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl34b_original_oracle.py",
-   "window": [
-    "0x4067a5",
-    "0x4067eb"
-   ]
+  {
+    "va": "0x4068c0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-34)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl34b.c",
+      "symbol": "m4068c0_toggle_5e351a"
+    },
+    "tests": [
+      {
+        "path": "tests/fl34b_direct_test.c",
+        "test_id": "test_m4068c0_toggle_5e351a"
+      },
+      {
+        "path": "tests/test_fl34b_direct.py",
+        "test_id": "Fl34bDirect.test_4068c0_toggle_5e351a"
+      },
+      {
+        "path": "tests/test_fl34b_differential.py",
+        "test_id": "Fl34bDifferential.test_4068c0_toggle_5e351a"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl34b_original_oracle.py",
+      "window": [
+        "0x4068c0",
+        "0x406907"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Toggles the flag at 0x5e351a; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x4 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
   },
-  "parts_accounted": [],
-  "note": "Toggles the flag at 0x5e350a; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
- },
- {
-  "va": "0x4068c0",
-  "class": "native_oracle_verified",
-  "reviewer": "implementer Claude Sonnet 5.5, FL-34b; independent review pending",
-  "date": "2026-10-21",
-  "native_source": {
-   "path": "src/original_methods_fl34b.c",
-   "symbol": "m4068c0_toggle_5e351a"
+  {
+    "va": "0x406907",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-34)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl34b.c",
+      "symbol": "m406907_toggle_5e351e"
+    },
+    "tests": [
+      {
+        "path": "tests/fl34b_direct_test.c",
+        "test_id": "test_m406907_toggle_5e351e"
+      },
+      {
+        "path": "tests/test_fl34b_direct.py",
+        "test_id": "Fl34bDirect.test_406907_toggle_5e351e"
+      },
+      {
+        "path": "tests/test_fl34b_differential.py",
+        "test_id": "Fl34bDifferential.test_406907_toggle_5e351e"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl34b_original_oracle.py",
+      "window": [
+        "0x406907",
+        "0x40694e"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Toggles the flag at 0x5e351e; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x5 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
   },
-  "tests": [
-   {
-    "path": "tests/fl34b_direct_test.c",
-    "test_id": "test_m4068c0_toggle_5e351a"
-   },
-   {
-    "path": "tests/test_fl34b_direct.py",
-    "test_id": "Fl34bDirect.test_4068c0_toggle_5e351a"
-   },
-   {
-    "path": "tests/test_fl34b_differential.py",
-    "test_id": "Fl34bDifferential.test_4068c0_toggle_5e351a"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl34b_original_oracle.py",
-   "window": [
-    "0x4068c0",
-    "0x406907"
-   ]
+  {
+    "va": "0x40694e",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-34)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl34b.c",
+      "symbol": "m40694e_toggle_5e3522"
+    },
+    "tests": [
+      {
+        "path": "tests/fl34b_direct_test.c",
+        "test_id": "test_m40694e_toggle_5e3522"
+      },
+      {
+        "path": "tests/test_fl34b_direct.py",
+        "test_id": "Fl34bDirect.test_40694e_toggle_5e3522"
+      },
+      {
+        "path": "tests/test_fl34b_differential.py",
+        "test_id": "Fl34bDifferential.test_40694e_toggle_5e3522"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl34b_original_oracle.py",
+      "window": [
+        "0x40694e",
+        "0x406995"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Toggles the flag at 0x5e3522; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x6 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
   },
-  "parts_accounted": [],
-  "note": "Toggles the flag at 0x5e351a; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x4 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
- },
- {
-  "va": "0x406907",
-  "class": "native_oracle_verified",
-  "reviewer": "implementer Claude Sonnet 5.5, FL-34b; independent review pending",
-  "date": "2026-10-21",
-  "native_source": {
-   "path": "src/original_methods_fl34b.c",
-   "symbol": "m406907_toggle_5e351e"
+  {
+    "va": "0x406995",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-34)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl34b.c",
+      "symbol": "m406995_toggle_5e3526"
+    },
+    "tests": [
+      {
+        "path": "tests/fl34b_direct_test.c",
+        "test_id": "test_m406995_toggle_5e3526"
+      },
+      {
+        "path": "tests/test_fl34b_direct.py",
+        "test_id": "Fl34bDirect.test_406995_toggle_5e3526"
+      },
+      {
+        "path": "tests/test_fl34b_differential.py",
+        "test_id": "Fl34bDifferential.test_406995_toggle_5e3526"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl34b_original_oracle.py",
+      "window": [
+        "0x406995",
+        "0x4069dc"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Toggles the flag at 0x5e3526; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x7 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
   },
-  "tests": [
-   {
-    "path": "tests/fl34b_direct_test.c",
-    "test_id": "test_m406907_toggle_5e351e"
-   },
-   {
-    "path": "tests/test_fl34b_direct.py",
-    "test_id": "Fl34bDirect.test_406907_toggle_5e351e"
-   },
-   {
-    "path": "tests/test_fl34b_differential.py",
-    "test_id": "Fl34bDifferential.test_406907_toggle_5e351e"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl34b_original_oracle.py",
-   "window": [
-    "0x406907",
-    "0x40694e"
-   ]
+  {
+    "va": "0x4069dc",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-34)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl34b.c",
+      "symbol": "m4069dc_toggle_5e352a"
+    },
+    "tests": [
+      {
+        "path": "tests/fl34b_direct_test.c",
+        "test_id": "test_m4069dc_toggle_5e352a"
+      },
+      {
+        "path": "tests/test_fl34b_direct.py",
+        "test_id": "Fl34bDirect.test_4069dc_toggle_5e352a"
+      },
+      {
+        "path": "tests/test_fl34b_differential.py",
+        "test_id": "Fl34bDifferential.test_4069dc_toggle_5e352a"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl34b_original_oracle.py",
+      "window": [
+        "0x4069dc",
+        "0x406a23"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Toggles the flag at 0x5e352a; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x8 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
   },
-  "parts_accounted": [],
-  "note": "Toggles the flag at 0x5e351e; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x5 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
- },
- {
-  "va": "0x40694e",
-  "class": "native_oracle_verified",
-  "reviewer": "implementer Claude Sonnet 5.5, FL-34b; independent review pending",
-  "date": "2026-10-21",
-  "native_source": {
-   "path": "src/original_methods_fl34b.c",
-   "symbol": "m40694e_toggle_5e3522"
+  {
+    "va": "0x406a23",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-34)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl34b.c",
+      "symbol": "m406a23_toggle_5e352e"
+    },
+    "tests": [
+      {
+        "path": "tests/fl34b_direct_test.c",
+        "test_id": "test_m406a23_toggle_5e352e"
+      },
+      {
+        "path": "tests/test_fl34b_direct.py",
+        "test_id": "Fl34bDirect.test_406a23_toggle_5e352e"
+      },
+      {
+        "path": "tests/test_fl34b_differential.py",
+        "test_id": "Fl34bDifferential.test_406a23_toggle_5e352e"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl34b_original_oracle.py",
+      "window": [
+        "0x406a23",
+        "0x406a6a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Toggles the flag at 0x5e352e; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x9 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
   },
-  "tests": [
-   {
-    "path": "tests/fl34b_direct_test.c",
-    "test_id": "test_m40694e_toggle_5e3522"
-   },
-   {
-    "path": "tests/test_fl34b_direct.py",
-    "test_id": "Fl34bDirect.test_40694e_toggle_5e3522"
-   },
-   {
-    "path": "tests/test_fl34b_differential.py",
-    "test_id": "Fl34bDifferential.test_40694e_toggle_5e3522"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl34b_original_oracle.py",
-   "window": [
-    "0x40694e",
-    "0x406995"
-   ]
+  {
+    "va": "0x406a6a",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-34)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl34b.c",
+      "symbol": "m406a6a_toggle_5e3532"
+    },
+    "tests": [
+      {
+        "path": "tests/fl34b_direct_test.c",
+        "test_id": "test_m406a6a_toggle_5e3532"
+      },
+      {
+        "path": "tests/test_fl34b_direct.py",
+        "test_id": "Fl34bDirect.test_406a6a_toggle_5e3532"
+      },
+      {
+        "path": "tests/test_fl34b_differential.py",
+        "test_id": "Fl34bDifferential.test_406a6a_toggle_5e3532"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl34b_original_oracle.py",
+      "window": [
+        "0x406a6a",
+        "0x406ab1"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Toggles the flag at 0x5e3532; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0xa becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
   },
-  "parts_accounted": [],
-  "note": "Toggles the flag at 0x5e3522; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x6 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
- },
- {
-  "va": "0x406995",
-  "class": "native_oracle_verified",
-  "reviewer": "implementer Claude Sonnet 5.5, FL-34b; independent review pending",
-  "date": "2026-10-21",
-  "native_source": {
-   "path": "src/original_methods_fl34b.c",
-   "symbol": "m406995_toggle_5e3526"
+  {
+    "va": "0x406ab1",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-34)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl34b.c",
+      "symbol": "m406ab1_toggle_5e3536"
+    },
+    "tests": [
+      {
+        "path": "tests/fl34b_direct_test.c",
+        "test_id": "test_m406ab1_toggle_5e3536"
+      },
+      {
+        "path": "tests/test_fl34b_direct.py",
+        "test_id": "Fl34bDirect.test_406ab1_toggle_5e3536"
+      },
+      {
+        "path": "tests/test_fl34b_differential.py",
+        "test_id": "Fl34bDifferential.test_406ab1_toggle_5e3536"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl34b_original_oracle.py",
+      "window": [
+        "0x406ab1",
+        "0x406af8"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Toggles the flag at 0x5e3536; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0xb becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
   },
-  "tests": [
-   {
-    "path": "tests/fl34b_direct_test.c",
-    "test_id": "test_m406995_toggle_5e3526"
-   },
-   {
-    "path": "tests/test_fl34b_direct.py",
-    "test_id": "Fl34bDirect.test_406995_toggle_5e3526"
-   },
-   {
-    "path": "tests/test_fl34b_differential.py",
-    "test_id": "Fl34bDifferential.test_406995_toggle_5e3526"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl34b_original_oracle.py",
-   "window": [
-    "0x406995",
-    "0x4069dc"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Toggles the flag at 0x5e3526; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x7 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
- },
- {
-  "va": "0x4069dc",
-  "class": "native_oracle_verified",
-  "reviewer": "implementer Claude Sonnet 5.5, FL-34b; independent review pending",
-  "date": "2026-10-21",
-  "native_source": {
-   "path": "src/original_methods_fl34b.c",
-   "symbol": "m4069dc_toggle_5e352a"
-  },
-  "tests": [
-   {
-    "path": "tests/fl34b_direct_test.c",
-    "test_id": "test_m4069dc_toggle_5e352a"
-   },
-   {
-    "path": "tests/test_fl34b_direct.py",
-    "test_id": "Fl34bDirect.test_4069dc_toggle_5e352a"
-   },
-   {
-    "path": "tests/test_fl34b_differential.py",
-    "test_id": "Fl34bDifferential.test_4069dc_toggle_5e352a"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl34b_original_oracle.py",
-   "window": [
-    "0x4069dc",
-    "0x406a23"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Toggles the flag at 0x5e352a; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x8 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
- },
- {
-  "va": "0x406a23",
-  "class": "native_oracle_verified",
-  "reviewer": "implementer Claude Sonnet 5.5, FL-34b; independent review pending",
-  "date": "2026-10-21",
-  "native_source": {
-   "path": "src/original_methods_fl34b.c",
-   "symbol": "m406a23_toggle_5e352e"
-  },
-  "tests": [
-   {
-    "path": "tests/fl34b_direct_test.c",
-    "test_id": "test_m406a23_toggle_5e352e"
-   },
-   {
-    "path": "tests/test_fl34b_direct.py",
-    "test_id": "Fl34bDirect.test_406a23_toggle_5e352e"
-   },
-   {
-    "path": "tests/test_fl34b_differential.py",
-    "test_id": "Fl34bDifferential.test_406a23_toggle_5e352e"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl34b_original_oracle.py",
-   "window": [
-    "0x406a23",
-    "0x406a6a"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Toggles the flag at 0x5e352e; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0x9 becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
- },
- {
-  "va": "0x406a6a",
-  "class": "native_oracle_verified",
-  "reviewer": "implementer Claude Sonnet 5.5, FL-34b; independent review pending",
-  "date": "2026-10-21",
-  "native_source": {
-   "path": "src/original_methods_fl34b.c",
-   "symbol": "m406a6a_toggle_5e3532"
-  },
-  "tests": [
-   {
-    "path": "tests/fl34b_direct_test.c",
-    "test_id": "test_m406a6a_toggle_5e3532"
-   },
-   {
-    "path": "tests/test_fl34b_direct.py",
-    "test_id": "Fl34bDirect.test_406a6a_toggle_5e3532"
-   },
-   {
-    "path": "tests/test_fl34b_differential.py",
-    "test_id": "Fl34bDifferential.test_406a6a_toggle_5e3532"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl34b_original_oracle.py",
-   "window": [
-    "0x406a6a",
-    "0x406ab1"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Toggles the flag at 0x5e3532; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0xa becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
- },
- {
-  "va": "0x406ab1",
-  "class": "native_oracle_verified",
-  "reviewer": "implementer Claude Sonnet 5.5, FL-34b; independent review pending",
-  "date": "2026-10-21",
-  "native_source": {
-   "path": "src/original_methods_fl34b.c",
-   "symbol": "m406ab1_toggle_5e3536"
-  },
-  "tests": [
-   {
-    "path": "tests/fl34b_direct_test.c",
-    "test_id": "test_m406ab1_toggle_5e3536"
-   },
-   {
-    "path": "tests/test_fl34b_direct.py",
-    "test_id": "Fl34bDirect.test_406ab1_toggle_5e3536"
-   },
-   {
-    "path": "tests/test_fl34b_differential.py",
-    "test_id": "Fl34bDifferential.test_406ab1_toggle_5e3536"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl34b_original_oracle.py",
-   "window": [
-    "0x406ab1",
-    "0x406af8"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Toggles the flag at 0x5e3536; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0xb becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
- },
- {
-  "va": "0x406af8",
-  "class": "native_oracle_verified",
-  "reviewer": "implementer Claude Sonnet 5.5, FL-34b; independent review pending",
-  "date": "2026-10-21",
-  "native_source": {
-   "path": "src/original_methods_fl34b.c",
-   "symbol": "m406af8_toggle_5e353a"
-  },
-  "tests": [
-   {
-    "path": "tests/fl34b_direct_test.c",
-    "test_id": "test_m406af8_toggle_5e353a"
-   },
-   {
-    "path": "tests/test_fl34b_direct.py",
-    "test_id": "Fl34bDirect.test_406af8_toggle_5e353a"
-   },
-   {
-    "path": "tests/test_fl34b_differential.py",
-    "test_id": "Fl34bDifferential.test_406af8_toggle_5e353a"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl34b_original_oracle.py",
-   "window": [
-    "0x406af8",
-    "0x406b3f"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Toggles the flag at 0x5e353a; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0xc becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
- }
+  {
+    "va": "0x406af8",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-34)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl34b.c",
+      "symbol": "m406af8_toggle_5e353a"
+    },
+    "tests": [
+      {
+        "path": "tests/fl34b_direct_test.c",
+        "test_id": "test_m406af8_toggle_5e353a"
+      },
+      {
+        "path": "tests/test_fl34b_direct.py",
+        "test_id": "Fl34bDirect.test_406af8_toggle_5e353a"
+      },
+      {
+        "path": "tests/test_fl34b_differential.py",
+        "test_id": "Fl34bDifferential.test_406af8_toggle_5e353a"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl34b_original_oracle.py",
+      "window": [
+        "0x406af8",
+        "0x406b3f"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Toggles the flag at 0x5e353a; when it was not 1 it becomes 1 and the word 0x5e335e equal to 0xc becomes 0xffff; then calls 0x404be1; all 18 instructions run, all four jump directions taken."
+  }
 ]
