@@ -1,0 +1,926 @@
+[
+  {
+    "va": "0x40a5c1",
+    "class": "native_oracle_verified",
+    "reviewer": "pending diff review (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35a.c",
+      "symbol": "m40a5c1_read_tag_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35a_direct_test.c",
+        "test_id": "test_m40a5c1_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_direct.py",
+        "test_id": "Fl35aDirect.test_40a5c1_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_differential.py",
+        "test_id": "Fl35aDifferential.test_40a5c1_read_tag_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35a_original_oracle.py",
+      "window": [
+        "0x40a5c1",
+        "0x40a613"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x8c), compares 4 bytes with the tag at 0x53ec58; if they differ stores the low word of 0x50cb1b(buf) to 0x5ec2d6; returns 0x4090ab(self). je taken both ways."
+  },
+  {
+    "va": "0x40a6b7",
+    "class": "native_oracle_verified",
+    "reviewer": "pending diff review (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35a.c",
+      "symbol": "m40a6b7_read_tag_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35a_direct_test.c",
+        "test_id": "test_m40a6b7_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_direct.py",
+        "test_id": "Fl35aDirect.test_40a6b7_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_differential.py",
+        "test_id": "Fl35aDifferential.test_40a6b7_read_tag_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35a_original_oracle.py",
+      "window": [
+        "0x40a6b7",
+        "0x40a709"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x14c), compares 4 bytes with the tag at 0x53ec64; if they differ stores the low word of 0x50cb1b(buf) to 0x5ec2dc; returns 0x4090ab(self). je taken both ways."
+  },
+  {
+    "va": "0x40a709",
+    "class": "native_oracle_verified",
+    "reviewer": "pending diff review (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35a.c",
+      "symbol": "m40a709_read_tag_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35a_direct_test.c",
+        "test_id": "test_m40a709_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_direct.py",
+        "test_id": "Fl35aDirect.test_40a709_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_differential.py",
+        "test_id": "Fl35aDifferential.test_40a709_read_tag_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35a_original_oracle.py",
+      "window": [
+        "0x40a709",
+        "0x40a75b"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x18c), compares 4 bytes with the tag at 0x53ec68; if they differ stores the low word of 0x50cb1b(buf) to 0x5ec2de; returns 0x4090ab(self). je taken both ways."
+  },
+  {
+    "va": "0x40a75b",
+    "class": "native_oracle_verified",
+    "reviewer": "pending diff review (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35a.c",
+      "symbol": "m40a75b_read_tag_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35a_direct_test.c",
+        "test_id": "test_m40a75b_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_direct.py",
+        "test_id": "Fl35aDirect.test_40a75b_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_differential.py",
+        "test_id": "Fl35aDifferential.test_40a75b_read_tag_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35a_original_oracle.py",
+      "window": [
+        "0x40a75b",
+        "0x40a7ad"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x1cc), compares 4 bytes with the tag at 0x53ec6c; if they differ stores the low word of 0x50cb1b(buf) to 0x5ec2e0; returns 0x4090ab(self). je taken both ways."
+  },
+  {
+    "va": "0x40a7ad",
+    "class": "native_oracle_verified",
+    "reviewer": "pending diff review (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35a.c",
+      "symbol": "m40a7ad_read_tag_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35a_direct_test.c",
+        "test_id": "test_m40a7ad_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_direct.py",
+        "test_id": "Fl35aDirect.test_40a7ad_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_differential.py",
+        "test_id": "Fl35aDifferential.test_40a7ad_read_tag_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35a_original_oracle.py",
+      "window": [
+        "0x40a7ad",
+        "0x40a7ff"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x20c), compares 4 bytes with the tag at 0x53ec70; if they differ stores the low word of 0x50cb1b(buf) to 0x5ec2e2; returns 0x4090ab(self). je taken both ways."
+  },
+  {
+    "va": "0x40a7ff",
+    "class": "native_oracle_verified",
+    "reviewer": "pending diff review (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35a.c",
+      "symbol": "m40a7ff_read_tag_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35a_direct_test.c",
+        "test_id": "test_m40a7ff_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_direct.py",
+        "test_id": "Fl35aDirect.test_40a7ff_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_differential.py",
+        "test_id": "Fl35aDifferential.test_40a7ff_read_tag_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35a_original_oracle.py",
+      "window": [
+        "0x40a7ff",
+        "0x40a851"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x24c), compares 4 bytes with the tag at 0x53ec74; if they differ stores the low word of 0x50cb1b(buf) to 0x5ec2e4; returns 0x4090ab(self). je taken both ways."
+  },
+  {
+    "va": "0x40a851",
+    "class": "native_oracle_verified",
+    "reviewer": "pending diff review (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35a.c",
+      "symbol": "m40a851_read_tag_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35a_direct_test.c",
+        "test_id": "test_m40a851_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_direct.py",
+        "test_id": "Fl35aDirect.test_40a851_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_differential.py",
+        "test_id": "Fl35aDifferential.test_40a851_read_tag_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35a_original_oracle.py",
+      "window": [
+        "0x40a851",
+        "0x40a8a3"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x28c), compares 4 bytes with the tag at 0x53ec78; if they differ stores the low word of 0x50cb1b(buf) to 0x5ec2e6; returns 0x4090ab(self). je taken both ways."
+  },
+  {
+    "va": "0x40a8a3",
+    "class": "native_oracle_verified",
+    "reviewer": "pending diff review (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35a.c",
+      "symbol": "m40a8a3_read_tag_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35a_direct_test.c",
+        "test_id": "test_m40a8a3_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_direct.py",
+        "test_id": "Fl35aDirect.test_40a8a3_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_differential.py",
+        "test_id": "Fl35aDifferential.test_40a8a3_read_tag_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35a_original_oracle.py",
+      "window": [
+        "0x40a8a3",
+        "0x40a8f5"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x2cc), compares 4 bytes with the tag at 0x53ec7c; if they differ stores the low word of 0x50cb1b(buf) to 0x5ec2e8; returns 0x4090ab(self). je taken both ways."
+  },
+  {
+    "va": "0x40a8f5",
+    "class": "native_oracle_verified",
+    "reviewer": "pending diff review (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35a.c",
+      "symbol": "m40a8f5_read_tag_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35a_direct_test.c",
+        "test_id": "test_m40a8f5_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_direct.py",
+        "test_id": "Fl35aDirect.test_40a8f5_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_differential.py",
+        "test_id": "Fl35aDifferential.test_40a8f5_read_tag_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35a_original_oracle.py",
+      "window": [
+        "0x40a8f5",
+        "0x40a947"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x30c), compares 4 bytes with the tag at 0x53ec80; if they differ stores the low word of 0x50cb1b(buf) to 0x5ec2ea; returns 0x4090ab(self). je taken both ways."
+  },
+  {
+    "va": "0x40a947",
+    "class": "native_oracle_verified",
+    "reviewer": "pending diff review (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35a.c",
+      "symbol": "m40a947_read_tag_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35a_direct_test.c",
+        "test_id": "test_m40a947_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_direct.py",
+        "test_id": "Fl35aDirect.test_40a947_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_differential.py",
+        "test_id": "Fl35aDifferential.test_40a947_read_tag_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35a_original_oracle.py",
+      "window": [
+        "0x40a947",
+        "0x40a999"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x34c), compares 4 bytes with the tag at 0x53ec84; if they differ stores the low word of 0x50cb1b(buf) to 0x5ec2ec; returns 0x4090ab(self). je taken both ways."
+  },
+  {
+    "va": "0x40a999",
+    "class": "native_oracle_verified",
+    "reviewer": "pending diff review (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35a.c",
+      "symbol": "m40a999_read_tag_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35a_direct_test.c",
+        "test_id": "test_m40a999_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_direct.py",
+        "test_id": "Fl35aDirect.test_40a999_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_differential.py",
+        "test_id": "Fl35aDifferential.test_40a999_read_tag_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35a_original_oracle.py",
+      "window": [
+        "0x40a999",
+        "0x40a9eb"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x38c), compares 4 bytes with the tag at 0x53ec88; if they differ stores the low word of 0x50cb1b(buf) to 0x5ec2ee; returns 0x4090ab(self). je taken both ways."
+  },
+  {
+    "va": "0x40a9eb",
+    "class": "native_oracle_verified",
+    "reviewer": "pending diff review (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35a.c",
+      "symbol": "m40a9eb_read_tag_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35a_direct_test.c",
+        "test_id": "test_m40a9eb_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_direct.py",
+        "test_id": "Fl35aDirect.test_40a9eb_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_differential.py",
+        "test_id": "Fl35aDifferential.test_40a9eb_read_tag_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35a_original_oracle.py",
+      "window": [
+        "0x40a9eb",
+        "0x40aa3d"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x3cc), compares 4 bytes with the tag at 0x53ec8c; if they differ stores the low word of 0x50cb1b(buf) to 0x5ec2f0; returns 0x4090ab(self). je taken both ways."
+  },
+  {
+    "va": "0x40aa3d",
+    "class": "native_oracle_verified",
+    "reviewer": "pending diff review (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35a.c",
+      "symbol": "m40aa3d_read_tag_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35a_direct_test.c",
+        "test_id": "test_m40aa3d_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_direct.py",
+        "test_id": "Fl35aDirect.test_40aa3d_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_differential.py",
+        "test_id": "Fl35aDifferential.test_40aa3d_read_tag_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35a_original_oracle.py",
+      "window": [
+        "0x40aa3d",
+        "0x40aa8f"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x40c), compares 4 bytes with the tag at 0x53ec90; if they differ stores the low word of 0x50cb1b(buf) to 0x5ec2f2; returns 0x4090ab(self). je taken both ways."
+  },
+  {
+    "va": "0x40aa8f",
+    "class": "native_oracle_verified",
+    "reviewer": "pending diff review (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35a.c",
+      "symbol": "m40aa8f_read_tag_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35a_direct_test.c",
+        "test_id": "test_m40aa8f_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_direct.py",
+        "test_id": "Fl35aDirect.test_40aa8f_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_differential.py",
+        "test_id": "Fl35aDifferential.test_40aa8f_read_tag_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35a_original_oracle.py",
+      "window": [
+        "0x40aa8f",
+        "0x40aae1"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x44c), compares 4 bytes with the tag at 0x53ec94; if they differ stores the low word of 0x50cb1b(buf) to 0x5ec2f4; returns 0x4090ab(self). je taken both ways."
+  },
+  {
+    "va": "0x40aae1",
+    "class": "native_oracle_verified",
+    "reviewer": "pending diff review (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35a.c",
+      "symbol": "m40aae1_read_tag_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35a_direct_test.c",
+        "test_id": "test_m40aae1_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_direct.py",
+        "test_id": "Fl35aDirect.test_40aae1_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_differential.py",
+        "test_id": "Fl35aDifferential.test_40aae1_read_tag_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35a_original_oracle.py",
+      "window": [
+        "0x40aae1",
+        "0x40ab33"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x48c), compares 4 bytes with the tag at 0x53ec98; if they differ stores the low word of 0x50cb1b(buf) to 0x5ec2f6; returns 0x4090ab(self). je taken both ways."
+  },
+  {
+    "va": "0x40ab33",
+    "class": "native_oracle_verified",
+    "reviewer": "pending diff review (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35a.c",
+      "symbol": "m40ab33_read_tag_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35a_direct_test.c",
+        "test_id": "test_m40ab33_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_direct.py",
+        "test_id": "Fl35aDirect.test_40ab33_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_differential.py",
+        "test_id": "Fl35aDifferential.test_40ab33_read_tag_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35a_original_oracle.py",
+      "window": [
+        "0x40ab33",
+        "0x40ab85"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x4cc), compares 4 bytes with the tag at 0x53ec9c; if they differ stores the low word of 0x50cb1b(buf) to 0x5ec2f8; returns 0x4090ab(self). je taken both ways."
+  },
+  {
+    "va": "0x40ab85",
+    "class": "native_oracle_verified",
+    "reviewer": "pending diff review (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35a.c",
+      "symbol": "m40ab85_read_tag_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35a_direct_test.c",
+        "test_id": "test_m40ab85_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_direct.py",
+        "test_id": "Fl35aDirect.test_40ab85_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_differential.py",
+        "test_id": "Fl35aDifferential.test_40ab85_read_tag_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35a_original_oracle.py",
+      "window": [
+        "0x40ab85",
+        "0x40abd7"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x50c), compares 4 bytes with the tag at 0x53eca0; if they differ stores the low word of 0x50cb1b(buf) to 0x5ec2fa; returns 0x4090ab(self). je taken both ways."
+  },
+  {
+    "va": "0x40abd7",
+    "class": "native_oracle_verified",
+    "reviewer": "pending diff review (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35a.c",
+      "symbol": "m40abd7_read_tag_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35a_direct_test.c",
+        "test_id": "test_m40abd7_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_direct.py",
+        "test_id": "Fl35aDirect.test_40abd7_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_differential.py",
+        "test_id": "Fl35aDifferential.test_40abd7_read_tag_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35a_original_oracle.py",
+      "window": [
+        "0x40abd7",
+        "0x40ac29"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x54c), compares 4 bytes with the tag at 0x53eca4; if they differ stores the low word of 0x50cb1b(buf) to 0x5ec2fc; returns 0x4090ab(self). je taken both ways."
+  },
+  {
+    "va": "0x40ac29",
+    "class": "native_oracle_verified",
+    "reviewer": "pending diff review (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35a.c",
+      "symbol": "m40ac29_read_tag_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35a_direct_test.c",
+        "test_id": "test_m40ac29_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_direct.py",
+        "test_id": "Fl35aDirect.test_40ac29_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_differential.py",
+        "test_id": "Fl35aDifferential.test_40ac29_read_tag_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35a_original_oracle.py",
+      "window": [
+        "0x40ac29",
+        "0x40ac7b"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x58c), compares 4 bytes with the tag at 0x53eca8; if they differ stores the low word of 0x50cb1b(buf) to 0x5ec2fe; returns 0x4090ab(self). je taken both ways."
+  },
+  {
+    "va": "0x40ac7b",
+    "class": "native_oracle_verified",
+    "reviewer": "pending diff review (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35a.c",
+      "symbol": "m40ac7b_read_tag_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35a_direct_test.c",
+        "test_id": "test_m40ac7b_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_direct.py",
+        "test_id": "Fl35aDirect.test_40ac7b_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_differential.py",
+        "test_id": "Fl35aDifferential.test_40ac7b_read_tag_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35a_original_oracle.py",
+      "window": [
+        "0x40ac7b",
+        "0x40accd"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x5cc), compares 4 bytes with the tag at 0x53ecac; if they differ stores the low word of 0x50cb1b(buf) to 0x5ec300; returns 0x4090ab(self). je taken both ways."
+  },
+  {
+    "va": "0x40accd",
+    "class": "native_oracle_verified",
+    "reviewer": "pending diff review (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35a.c",
+      "symbol": "m40accd_read_tag_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35a_direct_test.c",
+        "test_id": "test_m40accd_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_direct.py",
+        "test_id": "Fl35aDirect.test_40accd_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_differential.py",
+        "test_id": "Fl35aDifferential.test_40accd_read_tag_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35a_original_oracle.py",
+      "window": [
+        "0x40accd",
+        "0x40ad1f"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x60c), compares 4 bytes with the tag at 0x53ecb0; if they differ stores the low word of 0x50cb1b(buf) to 0x5ec302; returns 0x4090ab(self). je taken both ways."
+  },
+  {
+    "va": "0x40ad1f",
+    "class": "native_oracle_verified",
+    "reviewer": "pending diff review (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35a.c",
+      "symbol": "m40ad1f_read_tag_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35a_direct_test.c",
+        "test_id": "test_m40ad1f_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_direct.py",
+        "test_id": "Fl35aDirect.test_40ad1f_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_differential.py",
+        "test_id": "Fl35aDifferential.test_40ad1f_read_tag_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35a_original_oracle.py",
+      "window": [
+        "0x40ad1f",
+        "0x40ad71"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x64c), compares 4 bytes with the tag at 0x53ecb4; if they differ stores the low word of 0x50cb1b(buf) to 0x5ec304; returns 0x4090ab(self). je taken both ways."
+  },
+  {
+    "va": "0x40ad71",
+    "class": "native_oracle_verified",
+    "reviewer": "pending diff review (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35a.c",
+      "symbol": "m40ad71_read_tag_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35a_direct_test.c",
+        "test_id": "test_m40ad71_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_direct.py",
+        "test_id": "Fl35aDirect.test_40ad71_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_differential.py",
+        "test_id": "Fl35aDifferential.test_40ad71_read_tag_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35a_original_oracle.py",
+      "window": [
+        "0x40ad71",
+        "0x40adc3"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x68c), compares 4 bytes with the tag at 0x53ecb8; if they differ stores the low word of 0x50cb1b(buf) to 0x5ec306; returns 0x4090ab(self). je taken both ways."
+  },
+  {
+    "va": "0x40adc3",
+    "class": "native_oracle_verified",
+    "reviewer": "pending diff review (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35a.c",
+      "symbol": "m40adc3_read_tag_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35a_direct_test.c",
+        "test_id": "test_m40adc3_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_direct.py",
+        "test_id": "Fl35aDirect.test_40adc3_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_differential.py",
+        "test_id": "Fl35aDifferential.test_40adc3_read_tag_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35a_original_oracle.py",
+      "window": [
+        "0x40adc3",
+        "0x40ae15"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x6cc), compares 4 bytes with the tag at 0x53ecbc; if they differ stores the low word of 0x50cb1b(buf) to 0x5ec308; returns 0x4090ab(self). je taken both ways."
+  },
+  {
+    "va": "0x40ae15",
+    "class": "native_oracle_verified",
+    "reviewer": "pending diff review (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35a.c",
+      "symbol": "m40ae15_read_tag_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35a_direct_test.c",
+        "test_id": "test_m40ae15_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_direct.py",
+        "test_id": "Fl35aDirect.test_40ae15_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_differential.py",
+        "test_id": "Fl35aDifferential.test_40ae15_read_tag_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35a_original_oracle.py",
+      "window": [
+        "0x40ae15",
+        "0x40ae67"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x70c), compares 4 bytes with the tag at 0x53ecc0; if they differ stores the low word of 0x50cb1b(buf) to 0x5ec30a; returns 0x4090ab(self). je taken both ways."
+  },
+  {
+    "va": "0x40ae67",
+    "class": "native_oracle_verified",
+    "reviewer": "pending diff review (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35a.c",
+      "symbol": "m40ae67_read_tag_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35a_direct_test.c",
+        "test_id": "test_m40ae67_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_direct.py",
+        "test_id": "Fl35aDirect.test_40ae67_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_differential.py",
+        "test_id": "Fl35aDifferential.test_40ae67_read_tag_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35a_original_oracle.py",
+      "window": [
+        "0x40ae67",
+        "0x40aeb9"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x74c), compares 4 bytes with the tag at 0x53ecc4; if they differ stores the low word of 0x50cb1b(buf) to 0x5ec30c; returns 0x4090ab(self). je taken both ways."
+  },
+  {
+    "va": "0x40aeb9",
+    "class": "native_oracle_verified",
+    "reviewer": "pending diff review (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35a.c",
+      "symbol": "m40aeb9_read_tag_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35a_direct_test.c",
+        "test_id": "test_m40aeb9_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_direct.py",
+        "test_id": "Fl35aDirect.test_40aeb9_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_differential.py",
+        "test_id": "Fl35aDifferential.test_40aeb9_read_tag_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35a_original_oracle.py",
+      "window": [
+        "0x40aeb9",
+        "0x40af0b"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x78c), compares 4 bytes with the tag at 0x53ecc8; if they differ stores the low word of 0x50cb1b(buf) to 0x5ec30e; returns 0x4090ab(self). je taken both ways."
+  },
+  {
+    "va": "0x40af0b",
+    "class": "native_oracle_verified",
+    "reviewer": "pending diff review (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35a.c",
+      "symbol": "m40af0b_read_tag_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35a_direct_test.c",
+        "test_id": "test_m40af0b_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_direct.py",
+        "test_id": "Fl35aDirect.test_40af0b_read_tag_word"
+      },
+      {
+        "path": "tests/test_fl35a_differential.py",
+        "test_id": "Fl35aDifferential.test_40af0b_read_tag_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35a_original_oracle.py",
+      "window": [
+        "0x40af0b",
+        "0x40af5d"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x7cc), compares 4 bytes with the tag at 0x53eccc; if they differ stores the low word of 0x50cb1b(buf) to 0x5ec310; returns 0x4090ab(self). je taken both ways."
+  }
+]
