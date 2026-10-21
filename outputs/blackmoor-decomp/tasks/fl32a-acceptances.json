@@ -1,0 +1,299 @@
+[
+ {
+  "va": "0x40425d",
+  "class": "native_oracle_verified",
+  "reviewer": "slice-reviewer (Claude Sonnet 5.5), FL-32a",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl32a.c",
+   "symbol": "m40425d_read_text_cc"
+  },
+  "tests": [
+   {
+    "path": "tests/fl32a_direct_test.c",
+    "test_id": "test_m40425d_read_text_cc"
+   },
+   {
+    "path": "tests/test_fl32a_direct.py",
+    "test_id": "Fl32aDirect.test_40425d_read_text_cc"
+   },
+   {
+    "path": "tests/test_fl32a_differential.py",
+    "test_id": "Fl32aDifferential.test_40425d_read_text_cc"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl32a_original_oracle.py",
+   "window": [
+    "0x40425d",
+    "0x404298"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Reads the text of the field at self+0xcc through 0x51d5b2 into a local buffer, converts it with 0x50cb1b, stores the low word at 0x5ec33e, then calls 0x4033db; straight line, all executed."
+ },
+ {
+  "va": "0x404298",
+  "class": "native_oracle_verified",
+  "reviewer": "slice-reviewer (Claude Sonnet 5.5), FL-32a",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl32a.c",
+   "symbol": "m404298_read_text_10c"
+  },
+  "tests": [
+   {
+    "path": "tests/fl32a_direct_test.c",
+    "test_id": "test_m404298_read_text_10c"
+   },
+   {
+    "path": "tests/test_fl32a_direct.py",
+    "test_id": "Fl32aDirect.test_404298_read_text_10c"
+   },
+   {
+    "path": "tests/test_fl32a_differential.py",
+    "test_id": "Fl32aDifferential.test_404298_read_text_10c"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl32a_original_oracle.py",
+   "window": [
+    "0x404298",
+    "0x4042d3"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Same as 0x40425d for the field at self+0x10c and the word at 0x5ec340: text through 0x51d5b2, convert with 0x50cb1b, store the low word, call 0x4033db; straight line, all executed."
+ },
+ {
+  "va": "0x4042d3",
+  "class": "native_oracle_verified",
+  "reviewer": "slice-reviewer (Claude Sonnet 5.5), FL-32a",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl32a.c",
+   "symbol": "m4042d3_read_text_1cc"
+  },
+  "tests": [
+   {
+    "path": "tests/fl32a_direct_test.c",
+    "test_id": "test_m4042d3_read_text_1cc"
+   },
+   {
+    "path": "tests/test_fl32a_direct.py",
+    "test_id": "Fl32aDirect.test_4042d3_read_text_1cc"
+   },
+   {
+    "path": "tests/test_fl32a_differential.py",
+    "test_id": "Fl32aDifferential.test_4042d3_read_text_1cc"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl32a_original_oracle.py",
+   "window": [
+    "0x4042d3",
+    "0x40430e"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Same as 0x40425d for the field at self+0x1cc and the word at 0x5e5688: text through 0x51d5b2, convert with 0x50cb1b, store the low word, call 0x4033db; straight line, all executed."
+ },
+ {
+  "va": "0x4029a9",
+  "class": "native_oracle_verified",
+  "reviewer": "slice-reviewer (Claude Sonnet 5.5), FL-32a",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl32a.c",
+   "symbol": "m4029a9_toggle_5e60da"
+  },
+  "tests": [
+   {
+    "path": "tests/fl32a_direct_test.c",
+    "test_id": "test_m4029a9_toggle_5e60da"
+   },
+   {
+    "path": "tests/test_fl32a_direct.py",
+    "test_id": "Fl32aDirect.test_4029a9_toggle_5e60da"
+   },
+   {
+    "path": "tests/test_fl32a_differential.py",
+    "test_id": "Fl32aDifferential.test_4029a9_toggle_5e60da"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl32a_original_oracle.py",
+   "window": [
+    "0x4029a9",
+    "0x4029f0"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Toggles the dword at 0x5e60da+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
+ },
+ {
+  "va": "0x4029f0",
+  "class": "native_oracle_verified",
+  "reviewer": "slice-reviewer (Claude Sonnet 5.5), FL-32a",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl32a.c",
+   "symbol": "m4029f0_toggle_5e60de"
+  },
+  "tests": [
+   {
+    "path": "tests/fl32a_direct_test.c",
+    "test_id": "test_m4029f0_toggle_5e60de"
+   },
+   {
+    "path": "tests/test_fl32a_direct.py",
+    "test_id": "Fl32aDirect.test_4029f0_toggle_5e60de"
+   },
+   {
+    "path": "tests/test_fl32a_differential.py",
+    "test_id": "Fl32aDifferential.test_4029f0_toggle_5e60de"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl32a_original_oracle.py",
+   "window": [
+    "0x4029f0",
+    "0x402a37"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Toggles the dword at 0x5e60de+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
+ },
+ {
+  "va": "0x402a37",
+  "class": "native_oracle_verified",
+  "reviewer": "slice-reviewer (Claude Sonnet 5.5), FL-32a",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl32a.c",
+   "symbol": "m402a37_toggle_5e60e2"
+  },
+  "tests": [
+   {
+    "path": "tests/fl32a_direct_test.c",
+    "test_id": "test_m402a37_toggle_5e60e2"
+   },
+   {
+    "path": "tests/test_fl32a_direct.py",
+    "test_id": "Fl32aDirect.test_402a37_toggle_5e60e2"
+   },
+   {
+    "path": "tests/test_fl32a_differential.py",
+    "test_id": "Fl32aDifferential.test_402a37_toggle_5e60e2"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl32a_original_oracle.py",
+   "window": [
+    "0x402a37",
+    "0x402a7e"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Toggles the dword at 0x5e60e2+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed."
+ },
+ {
+  "va": "0x4067eb",
+  "class": "native_oracle_verified",
+  "reviewer": "slice-reviewer (Claude Sonnet 5.5), FL-32a",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl32a.c",
+   "symbol": "m4067eb_toggle_5e350e"
+  },
+  "tests": [
+   {
+    "path": "tests/fl32a_direct_test.c",
+    "test_id": "test_m4067eb_toggle_5e350e"
+   },
+   {
+    "path": "tests/test_fl32a_direct.py",
+    "test_id": "Fl32aDirect.test_4067eb_toggle_5e350e"
+   },
+   {
+    "path": "tests/test_fl32a_differential.py",
+    "test_id": "Fl32aDifferential.test_4067eb_toggle_5e350e"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl32a_original_oracle.py",
+   "window": [
+    "0x4067eb",
+    "0x406832"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Toggles the flag at 0x5e350e; when it was not 1 it becomes 1 and a word 0x5e335e equal to 1 becomes 0xffff; then calls 0x404be1; all four jump directions taken, all executed."
+ },
+ {
+  "va": "0x406832",
+  "class": "native_oracle_verified",
+  "reviewer": "slice-reviewer (Claude Sonnet 5.5), FL-32a",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl32a.c",
+   "symbol": "m406832_toggle_5e3512"
+  },
+  "tests": [
+   {
+    "path": "tests/fl32a_direct_test.c",
+    "test_id": "test_m406832_toggle_5e3512"
+   },
+   {
+    "path": "tests/test_fl32a_direct.py",
+    "test_id": "Fl32aDirect.test_406832_toggle_5e3512"
+   },
+   {
+    "path": "tests/test_fl32a_differential.py",
+    "test_id": "Fl32aDifferential.test_406832_toggle_5e3512"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl32a_original_oracle.py",
+   "window": [
+    "0x406832",
+    "0x406879"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Toggles the flag at 0x5e3512; when it was not 1 it becomes 1 and a word 0x5e335e equal to 2 becomes 0xffff; then calls 0x404be1; all four jump directions taken, all executed."
+ },
+ {
+  "va": "0x406879",
+  "class": "native_oracle_verified",
+  "reviewer": "slice-reviewer (Claude Sonnet 5.5), FL-32a",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl32a.c",
+   "symbol": "m406879_toggle_5e3516"
+  },
+  "tests": [
+   {
+    "path": "tests/fl32a_direct_test.c",
+    "test_id": "test_m406879_toggle_5e3516"
+   },
+   {
+    "path": "tests/test_fl32a_direct.py",
+    "test_id": "Fl32aDirect.test_406879_toggle_5e3516"
+   },
+   {
+    "path": "tests/test_fl32a_differential.py",
+    "test_id": "Fl32aDifferential.test_406879_toggle_5e3516"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl32a_original_oracle.py",
+   "window": [
+    "0x406879",
+    "0x4068c0"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Toggles the flag at 0x5e3516; when it was not 1 it becomes 1 and a word 0x5e335e equal to 3 becomes 0xffff; then calls 0x404be1; all four jump directions taken, all executed."
+ }
+]

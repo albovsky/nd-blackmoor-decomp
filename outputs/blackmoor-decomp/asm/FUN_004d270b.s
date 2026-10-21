@@ -16,7 +16,7 @@
 # fields:       [eax + n] field_2f, field_3f, field_43, field_c3, field_c7, field_cb, field_cf, field_minus_1, field_minus_30, field_minus_61; [ecx + n] field_2, field_3f, field_43, field_4f, field_55, field_57, field_c3, field_c7, field_cb, field_cf, field_minus_1, field_minus_41; [edx + n] field_3f, field_43, field_51, field_53, field_c3, field_c7, field_cb, field_cf
 # callees:      calls FUN_0052139c, FUN_004c97b4, FUN_004d214b, FUN_0050d651, FUN_0050d67f, FUN_0050d6a7, FUN_0050d6cf, FUN_004c5b3a, FUN_0050ce04
 # track-n:      outputs/blackmoor-decomp/src/original_methods_fl30a.c:m4d270b_draw_text (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 350 instruction(s), 17 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code; function ledger class partial_native is a native-touch record, not a counterpart claim
+# unverified:   machine annotation only: the 350 instruction(s), 17 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

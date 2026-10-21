@@ -2,14 +2,14 @@
  "schema": "blackmoor-function-names/1",
  "note": "Names that committed evidence already states for assembly functions; every other source keeps the machine name fn_<va>. Written and checked by scripts/function_names.py; read by scripts/annotate_machine.py and scripts/audit_tool_assisted.py. A name is not a claim that the function is understood beyond its summary, and nothing here claims original C++ or compiler provenance.",
  "counts": {
-  "entries": 1836,
-  "native_port": 466,
+  "entries": 1861,
+  "native_port": 493,
   "parity_rule": 1,
   "ghidra_name": 83,
   "ghidra_funclet": 570,
   "structural": 258,
   "inferred_prose": 150,
-  "inferred_strings": 289,
+  "inferred_strings": 287,
   "inferred_import": 19
  },
  "entries": [
@@ -76,6 +76,42 @@
    ]
   },
   {
+   "va": "0x004029a9",
+   "name": "m4029a9_toggle_5e60da",
+   "basis": "native_port",
+   "summary": "Toggles the dword at 0x5e60da+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed.",
+   "source": "native port src/original_methods_fl32a.c:m4029a9_toggle_5e60da (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl32a.c",
+    "symbol": "m4029a9_toggle_5e60da",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x004029f0",
+   "name": "m4029f0_toggle_5e60de",
+   "basis": "native_port",
+   "summary": "Toggles the dword at 0x5e60de+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed.",
+   "source": "native port src/original_methods_fl32a.c:m4029f0_toggle_5e60de (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl32a.c",
+    "symbol": "m4029f0_toggle_5e60de",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x00402a37",
+   "name": "m402a37_toggle_5e60e2",
+   "basis": "native_port",
+   "summary": "Toggles the dword at 0x5e60e2+4*[self+0x5c] (exactly 1 becomes 0, anything else becomes 1), then calls 0x40236a; both directions of the compare taken, every instruction executed.",
+   "source": "native port src/original_methods_fl32a.c:m402a37_toggle_5e60e2 (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl32a.c",
+    "symbol": "m402a37_toggle_5e60e2",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
    "va": "0x004030aa",
    "name": "inferred_genproppage_class_getter",
    "basis": "inferred_strings",
@@ -108,6 +144,42 @@
    ]
   },
   {
+   "va": "0x0040425d",
+   "name": "m40425d_read_text_cc",
+   "basis": "native_port",
+   "summary": "Reads the text of the field at self+0xcc through 0x51d5b2 into a local buffer, converts it with 0x50cb1b, stores the low word at 0x5ec33e, then calls 0x4033db; straight line, all executed.",
+   "source": "native port src/original_methods_fl32a.c:m40425d_read_text_cc (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl32a.c",
+    "symbol": "m40425d_read_text_cc",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x00404298",
+   "name": "m404298_read_text_10c",
+   "basis": "native_port",
+   "summary": "Same as 0x40425d for the field at self+0x10c and the word at 0x5ec340: text through 0x51d5b2, convert with 0x50cb1b, store the low word, call 0x4033db; straight line, all executed.",
+   "source": "native port src/original_methods_fl32a.c:m404298_read_text_10c (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl32a.c",
+    "symbol": "m404298_read_text_10c",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x004042d3",
+   "name": "m4042d3_read_text_1cc",
+   "basis": "native_port",
+   "summary": "Same as 0x40425d for the field at self+0x1cc and the word at 0x5e5688: text through 0x51d5b2, convert with 0x50cb1b, store the low word, call 0x4033db; straight line, all executed.",
+   "source": "native port src/original_methods_fl32a.c:m4042d3_read_text_1cc (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl32a.c",
+    "symbol": "m4042d3_read_text_1cc",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
    "va": "0x00404aba",
    "name": "inferred_invproppage_class_getter",
    "basis": "inferred_strings",
@@ -122,6 +194,42 @@
      ]
     }
    ]
+  },
+  {
+   "va": "0x004067eb",
+   "name": "m4067eb_toggle_5e350e",
+   "basis": "native_port",
+   "summary": "Toggles the flag at 0x5e350e; when it was not 1 it becomes 1 and a word 0x5e335e equal to 1 becomes 0xffff; then calls 0x404be1; all four jump directions taken, all executed.",
+   "source": "native port src/original_methods_fl32a.c:m4067eb_toggle_5e350e (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl32a.c",
+    "symbol": "m4067eb_toggle_5e350e",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x00406832",
+   "name": "m406832_toggle_5e3512",
+   "basis": "native_port",
+   "summary": "Toggles the flag at 0x5e3512; when it was not 1 it becomes 1 and a word 0x5e335e equal to 2 becomes 0xffff; then calls 0x404be1; all four jump directions taken, all executed.",
+   "source": "native port src/original_methods_fl32a.c:m406832_toggle_5e3512 (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl32a.c",
+    "symbol": "m406832_toggle_5e3512",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x00406879",
+   "name": "m406879_toggle_5e3516",
+   "basis": "native_port",
+   "summary": "Toggles the flag at 0x5e3516; when it was not 1 it becomes 1 and a word 0x5e335e equal to 3 becomes 0xffff; then calls 0x404be1; all four jump directions taken, all executed.",
+   "source": "native port src/original_methods_fl32a.c:m406879_toggle_5e3516 (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl32a.c",
+    "symbol": "m406879_toggle_5e3516",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x00407baa",
@@ -154,6 +262,30 @@
      ]
     }
    ]
+  },
+  {
+   "va": "0x0040a613",
+   "name": "m40a613_read_tag_word",
+   "basis": "native_port",
+   "summary": "Fills a 0x13-byte local via 0x51d5b2(self+0xcc), compares 4 bytes with the tag at 0x53ec5c; if they differ stores the low word of 0x50cb1b(buf) to 0x5ec2d8; returns 0x4090ab(self). je taken both ways.",
+   "source": "native port src/original_methods_fl32b.c:m40a613_read_tag_word (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl32b.c",
+    "symbol": "m40a613_read_tag_word",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x0040a665",
+   "name": "m40a665_read_tag_word",
+   "basis": "native_port",
+   "summary": "Twin of 0x40a613 on field self+0x10c, tag 0x53ec60 and word 0x5ec2da (own constants checked separately); returns 0x4090ab(self). Every instruction run, je taken both ways.",
+   "source": "native port src/original_methods_fl32b.c:m40a665_read_tag_word (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl32b.c",
+    "symbol": "m40a665_read_tag_word",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x0040b2d0",
@@ -1969,6 +2101,30 @@
    }
   },
   {
+   "va": "0x0043edac",
+   "name": "m43edac_default_after_query",
+   "basis": "native_port",
+   "summary": "Calls 0x437774 with pointers to its three argument slots, keeps three dead copies, returns the result of 0x51ab4b(this); dead frame stores checked on the original only; 23/23 executed.",
+   "source": "native port src/original_methods_fl32c.c:m43edac_default_after_query (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl32c.c",
+    "symbol": "m43edac_default_after_query",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x0043ee69",
+   "name": "m43ee69_filter_message",
+   "basis": "native_port",
+   "summary": "Message filter: 0x14 returns 1, 0x112 with command 0xf140 or 0xf170 returns 0, otherwise forwards (msg, wparam, lparam) to 0x51b461 and returns its result; all 8 jump edges taken; 34/34.",
+   "source": "native port src/original_methods_fl32c.c:m43ee69_filter_message (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl32c.c",
+    "symbol": "m43ee69_filter_message",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
    "va": "0x0043ef00",
    "name": "inferred_memory_class_getter",
    "basis": "inferred_strings",
@@ -3027,6 +3183,30 @@
    ]
   },
   {
+   "va": "0x0044e78e",
+   "name": "m44e78e_release_entry",
+   "basis": "native_port",
+   "summary": "Releases an entry: calls 0x4c2dfb with the address of field +0x20 when it is set, 0x4d3992 with the word +0x1c unless it is -1 (read again), then 0x44e767; 26/26 executed.",
+   "source": "native port src/original_methods_fl32c.c:m44e78e_release_entry (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl32c.c",
+    "symbol": "m44e78e_release_entry",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x0044e7d7",
+   "name": "m44e7d7_mark_entry",
+   "basis": "native_port",
+   "summary": "When the dword at +0x6b is set and the signed word +0x1c is not -1, stores 1 in dword [0x5d15a5 + word*0x4a]; two guards, both directions taken, every instruction executed.",
+   "source": "native port src/original_methods_fl32c.c:m44e7d7_mark_entry (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl32c.c",
+    "symbol": "m44e7d7_mark_entry",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
    "va": "0x0044e8a2",
    "name": "inferred_angletoss_puzzle_action_loader",
    "basis": "inferred_strings",
@@ -3042,6 +3222,18 @@
      ]
     }
    ]
+  },
+  {
+   "va": "0x0044e95b",
+   "name": "m44e95b_offset_rect",
+   "basis": "native_port",
+   "summary": "Adds the origin dwords 0x583186 (x) and 0x58318a (y) to a source rectangle into a destination in the original store order; overlap orders compared; 27/27 executed.",
+   "source": "native port src/original_methods_fl32c.c:m44e95b_offset_rect (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl32c.c",
+    "symbol": "m44e95b_offset_rect",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x0044eab1",
@@ -3182,6 +3374,18 @@
      ]
     }
    ]
+  },
+  {
+   "va": "0x00454565",
+   "name": "m454565_cross_product",
+   "basis": "native_port",
+   "summary": "ret 0xc: for points a, b, c (dword x, y) returns (b.x-a.x)*(c.y-a.y) - (c.x-a.x)*(b.y-a.y) modulo 2^32; points only read; aliased pointers covered. Every instruction executed.",
+   "source": "native port src/original_methods_fl32b.c:m454565_cross_product (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl32b.c",
+    "symbol": "m454565_cross_product",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x004547bc",
@@ -4897,6 +5101,18 @@
      ]
     }
    ]
+  },
+  {
+   "va": "0x004781fa",
+   "name": "m4781fa_reset_fields",
+   "basis": "native_port",
+   "summary": "Straight-line reset: words +0x1e/+0x1c = 0xffff, dwords +0x157a, +0x157e, +0x1576 = 0; returns this. Every instruction executed; no conditional jumps.",
+   "source": "native port src/original_methods_fl32b.c:m4781fa_reset_fields (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl32b.c",
+    "symbol": "m4781fa_reset_fields",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x004782db",
@@ -6952,6 +7168,18 @@
    ]
   },
   {
+   "va": "0x004a638a",
+   "name": "m4a638a_reset_fields",
+   "basis": "native_port",
+   "summary": "Straight-line reset: words +0x1e/+0x1c = 0xffff, dwords +0x21, +0x25, +0x86 = 0, bytes +0x8a, +0x8b = 0; returns this. Every instruction executed; no conditional jumps.",
+   "source": "native port src/original_methods_fl32b.c:m4a638a_reset_fields (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl32b.c",
+    "symbol": "m4a638a_reset_fields",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
    "va": "0x004a64b9",
    "name": "inferred_safedial_action_loader",
    "basis": "inferred_strings",
@@ -7115,6 +7343,18 @@
      ]
     }
    ]
+  },
+  {
+   "va": "0x004a9f27",
+   "name": "m4a9f27_reset_fields",
+   "basis": "native_port",
+   "summary": "Straight-line reset: words +0x21/+0x29 = 0xffff, dword +0x1d = 0, bytes +0x45..+0x47 = 0; returns this. Every instruction executed; no conditional jumps.",
+   "source": "native port src/original_methods_fl32b.c:m4a9f27_reset_fields (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl32b.c",
+    "symbol": "m4a9f27_reset_fields",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x004aa002",
@@ -7372,6 +7612,18 @@
      ]
     }
    ]
+  },
+  {
+   "va": "0x004afd3a",
+   "name": "m4afd3a_reset_fields",
+   "basis": "native_port",
+   "summary": "Straight-line reset: words +0x1e/+0x1c = 0xffff, dwords +0x1515, +0x1519, +0x151d = 0 (own offsets, not the 0x4781fa ones); returns this. Every instruction executed.",
+   "source": "native port src/original_methods_fl32b.c:m4afd3a_reset_fields (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl32b.c",
+    "symbol": "m4afd3a_reset_fields",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x004afe09",
@@ -7672,6 +7924,18 @@
      ]
     }
    ]
+  },
+  {
+   "va": "0x004b71f7",
+   "name": "m4b71f7_reset_fields",
+   "basis": "native_port",
+   "summary": "Straight-line reset: words +0x21/+0x2f = 0xffff, bytes +0x35, +0x36, +0x3b = 0; returns this. Every instruction executed under the original-only oracle; no jumps.",
+   "source": "native port src/original_methods_fl32b.c:m4b71f7_reset_fields (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl32b.c",
+    "symbol": "m4b71f7_reset_fields",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x004b72cf",
@@ -10489,6 +10753,18 @@
    }
   },
   {
+   "va": "0x004db090",
+   "name": "m4db090_normalize_state",
+   "basis": "native_port",
+   "summary": "Sets [self+4] to 1 when it is 0 and [0x5c39e5] != -1, turns [self+0x10] from 1 to 2, clears [self+0xc]; ret 8 pops two unread stack dwords; 21/21 executed, 6/6 edges.",
+   "source": "native port src/original_methods_fl32c.c:m4db090_normalize_state (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl32c.c",
+    "symbol": "m4db090_normalize_state",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
    "va": "0x004db870",
    "name": "m4db870_load_cursor",
    "basis": "native_port",
@@ -10758,19 +11034,15 @@
   },
   {
    "va": "0x004de53e",
-   "name": "inferred_scroll_text_box_restore",
-   "basis": "inferred_strings",
-   "confidence": "low",
-   "summary": "Restores the scroll text box background by blitting a saved surface; tagged CScrollTextBox::RestoreTextBox.",
-   "source": "INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/4de53e.c.txt, not original source) refers to the data labelled s_CScrollTextBox__RestoreTextBox_0055b8d0",
-   "evidence": [
-    {
-     "path": "unverified-pseudocode/4de53e.c.txt",
-     "strings": [
-      "s_CScrollTextBox__RestoreTextBox_0055b8d0"
-     ]
-    }
-   ]
+   "name": "m4de53e_report",
+   "basis": "native_port",
+   "summary": "Calls 0x4ee630; when it returns non-zero calls 0x4c5377 with that value, dword [0x5cf665], self+0x981 and the constants 0x5b0227, 0x55b8d0; both outcomes taken, 23/23 executed.",
+   "source": "native port src/original_methods_fl32c.c:m4de53e_report (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl32c.c",
+    "symbol": "m4de53e_report",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x004de584",
@@ -10869,6 +11141,18 @@
      ]
     }
    ]
+  },
+  {
+   "va": "0x004e04f3",
+   "name": "m4e04f3_reset_fields",
+   "basis": "native_port",
+   "summary": "Straight-line reset: dwords +0xf2a, +0x74f, +0xf2e = 0 and +0xf32, +0xf36 = 0xffffffff; returns this. Every instruction executed under the original-only oracle; no jumps.",
+   "source": "native port src/original_methods_fl32b.c:m4e04f3_reset_fields (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl32b.c",
+    "symbol": "m4e04f3_reset_fields",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x004e053f",
@@ -11545,19 +11829,15 @@
   },
   {
    "va": "0x004ea229",
-   "name": "inferred_inventory_surface_unload",
-   "basis": "inferred_strings",
-   "confidence": "low",
-   "summary": "Frees the inventory bitmap surface, resets a flag and logs UnloadBitmapSurface.",
-   "source": "INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/4ea229.c.txt, not original source) refers to the data labelled s_UnloadBitmapSurface_____UNloaded_0055cb10",
-   "evidence": [
-    {
-     "path": "unverified-pseudocode/4ea229.c.txt",
-     "strings": [
-      "s_UnloadBitmapSurface_____UNloaded_0055cb10"
-     ]
-    }
-   ]
+   "name": "m4ea229_clear_pending",
+   "basis": "native_port",
+   "summary": "Calls 0x4c2dfb with self+0x699, clears dword [0x5d1717], and calls 0x44a2b7(0x55cb10) when the signed debug word [0x63a4cd] is non-zero; store order probed; 19/19 executed.",
+   "source": "native port src/original_methods_fl32c.c:m4ea229_clear_pending (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl32c.c",
+    "symbol": "m4ea229_clear_pending",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x004ea269",
@@ -12564,6 +12844,18 @@
      ]
     }
    ]
+  },
+  {
+   "va": "0x004fb2a6",
+   "name": "m4fb2a6_check_slot",
+   "basis": "native_port",
+   "summary": "When the word at self + (b & 0xffff)*0x5bb + 0x132 is zero calls 0x4faf98 with a and the pushed eax (index upper half plus b low word); both outcomes taken, 21/21 executed.",
+   "source": "native port src/original_methods_fl32c.c:m4fb2a6_check_slot (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl32c.c",
+    "symbol": "m4fb2a6_check_slot",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x004fb2e3",
