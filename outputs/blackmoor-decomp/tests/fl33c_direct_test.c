@@ -1,4 +1,4 @@
-/* FL-33 (batch c) direct tests of the six methods of GAME.EXE in src/original_methods_fl33c.c. Prints "PASS <name>" / "FAIL <name>: <msg>"; the exit status is the
+/* FL-33 (batch c) direct tests of the four methods of GAME.EXE in src/original_methods_fl33c.c. Prints "PASS <name>" / "FAIL <name>: <msg>"; the exit status is the
  * failure count. Fixtures are synthetic (no original bytes). Expected values were derived by hand from the disassembly of GAME.EXE, not from running the native code;
  * tests/test_fl33c_differential.py additionally runs the original bytes on generated fixtures. */
 #include "../src/original_methods_fl33c.h"
@@ -262,7 +262,7 @@ static void test_m4c6929_copy_masked(void)
     CK(cm_call(CM_A, 0x4444) == 0 && L.n == 3 && L.c[0].callee == 0x4c4067);
     /* different x size: format 0x555054 with d and the eight rectangle values, then 0x52139c and 0x4c97b4 */
     cm_setup(8, 0x11);
-    g_w.word_63a4cd = 0x8000;
+    g_w.word_63a4cd = (int16_t)0x8000;
     cm_rect(CM_R2 - RVA(2), 10, 20, 13, 21);
     memcpy(want4, g_r[4], sizeof want4);
     CK(cm_call(CM_A, 0x4444) == 0 && L.n == 3 && memcmp(g_r[4], want4, sizeof want4) == 0);
@@ -279,11 +279,11 @@ static void test_m4c6929_copy_masked(void)
     CK(cm_call(CM_A, 0x4444) == 0 && L.n == 3 && L.c[0].a[1] == 0x555054);
     /* equal sizes, a == 0 or b == 0: format 0x5550e8 */
     cm_setup(8, 0x11);
-    g_w.word_63a4cd = 0xffff;
+    g_w.word_63a4cd = (int16_t)0xffff;
     cm_rect(CM_R2 - RVA(2), 10, 20, 12, 21);
     CK(cm_call(0, 0x4444) == 0 && L.n == 3 && L.c[0].callee == 0x50ca3e && L.c[0].a[1] == 0x5550e8 && L.c[0].a[2] == 0xd00d && L.c[0].a[10] == 21);
     cm_setup(8, 0x11);
-    g_w.word_63a4cd = 0xffff;
+    g_w.word_63a4cd = (int16_t)0xffff;
     cm_rect(CM_R2 - RVA(2), 10, 20, 12, 21);
     CK(cm_call(CM_A, 0) == 0 && L.n == 3 && L.c[0].a[1] == 0x5550e8);
     /* a == 0 with the debug word zero: the original faults after the first callee; the port rejects there and changes nothing */

@@ -10,7 +10,7 @@
 extern "C" {
 #endif
 
-/* FL-33 (batch c): six pending functions of GAME.EXE (SHA-256 afd337a2...5c45) around 0x4c6929, 0x416af3, 0x4db38a, 0x4d2c20, 0x4f379c and 0x4c36b2 ported one to one, in the style of FL-33a (see
+/* FL-33 (batch c): four pending functions of GAME.EXE (SHA-256 afd337a2...5c45), 0x4c6929, 0x416af3, 0x4db38a and 0x4d2c20 (0x4f379c and 0x4c36b2 were dropped, see tasks/fl33c-handoff.md), ported one to one, in the style of FL-33a (see
  * original_methods_fl33a.h, whose conventions apply unchanged, and the Fl18Host of original_methods_fl18.h): each is its own symbol `m<va>_<name>` that cites the original address in its leading
  * comment, `self` is the original object (ecx) as raw bytes at the original offsets, and the effects keep the order of the original. The names are descriptive hints, not recovered source names.
  *

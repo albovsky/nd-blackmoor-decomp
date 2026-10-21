@@ -3,7 +3,7 @@
 tests/fl33c_direct_test.c links src/original_methods_fl33c.c and prints one PASS/FAIL line per case; every test below checks one of
 them. Expected values come from the original's disassembly, not from the native code.
 
-One direct case per function (the eight ported functions of batch a); the Unicorn comparison against the original bytes is in
+One direct case per function (the four ported functions of batch c); the Unicorn comparison against the original bytes is in
 tests/test_fl33c_differential.py.
 """
 import os
@@ -85,7 +85,7 @@ class Fl33cDirect(unittest.TestCase):
     # TESTS-END
 
     def test_sweep_bounded(self):
-        """FL-33b: bounded random sweep over every port (meant for the sanitiser builds; checks that it runs)"""
+        """FL-33c: bounded random sweep over every port (meant for the sanitiser builds; checks that it runs)"""
         self.check('test_sweep_bounded')
 
 

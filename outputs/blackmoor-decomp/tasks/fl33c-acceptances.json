@@ -2,7 +2,7 @@
  {
   "va": "0x4c6929",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-33c implementer; no independent review yet (slice-reviewer pending)",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-33)",
   "date": "2026-10-20",
   "native_source": {
    "path": "src/original_methods_fl33c.c",
@@ -30,12 +30,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Masked rectangle copy with 16-bit stale-upper args; faulting a==0 case is an explicit native rejection; all 239 instructions and both directions of 9 branches executed."
+  "note": "Masked rectangle copy of 16-bit pixels by a byte mask (word at [a+0x2f], word global 0x639895); the faulting a==0 case is an explicit native rejection; 239/239 instructions, 18/18 branch directions."
  },
  {
   "va": "0x416af3",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-33c implementer; no independent review yet (slice-reviewer pending)",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-33)",
   "date": "2026-10-20",
   "native_source": {
    "path": "src/original_methods_fl33c.c",
@@ -63,12 +63,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Patch-stream interpreter (copy/skip/fill opcodes); an unknown opcode loops forever in the original and is a native rejection; 295 instructions, 13 branches both ways."
+  "note": "Patch-stream interpreter: opcode 0x20 block copy, 0x40 word fill via 0x43ef77, 0x80 repeated block copy (no skip); an unknown opcode loops forever in the original and is a native rejection; 295/295, 26/26."
  },
  {
   "va": "0x4db38a",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-33c implementer; no independent review yet (slice-reviewer pending)",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-33)",
   "date": "2026-10-20",
   "native_source": {
    "path": "src/original_methods_fl33c.c",
@@ -92,7 +92,7 @@
    "path": "tests/fl33c_original_oracle.py",
    "window": [
     "0x4db38a",
-    "0x4db770"
+    "0x4db780"
    ]
   },
   "parts_accounted": [],
@@ -101,7 +101,7 @@
  {
   "va": "0x4d2c20",
   "class": "native_oracle_verified",
-  "reviewer": "Claude Sonnet FL-33c implementer; no independent review yet (slice-reviewer pending)",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-33)",
   "date": "2026-10-20",
   "native_source": {
    "path": "src/original_methods_fl33c.c",

@@ -1,6 +1,6 @@
 # FL-33 batch a (`fl33a`) handoff
 
-Branch `worktree-agent-a444b29fc6acb99c4` (worktree `/home/user/nd-blackmoor-decomp/.claude/worktrees/agent-a444b29fc6acb99c4`), based on `a7839503` (the FL-33 packet commit, fast-forwarded in because the worktree was created at `f13a5a72`). Implementer: Claude Sonnet. No independent review has been done: every acceptance entry says so in its `reviewer` field; root must have the `slice-reviewer` confirm before collection. Nothing in `function-ledger*.json`, `function-evidence.json` or `function-execution.json` was edited and no `--write` recorder was run. `tasks/fl33a-acceptances.json` is the proposed `port_acceptances` content (class `native_oracle_verified`, 8 entries; the packet lists no receipt blocker for any of the eight rows, so there is no `blockers_reviewed`; the ledger's `test_area` check was NOT run here, root does it with the merge). The slice claim file was skipped as instructed.
+Branch `worktree-agent-a444b29fc6acb99c4` (worktree `/home/user/nd-blackmoor-decomp/.claude/worktrees/agent-a444b29fc6acb99c4`), based on `a7839503` (the FL-33 packet commit, fast-forwarded in because the worktree was created at `f13a5a72`). Implementer: Claude Sonnet. A Sonnet `slice-reviewer` diff review found no P1; its fixes are applied (the address comments `/* 0x4bf3b8 m4bf3b8_set_text */` and `/* 0x47d24e m47d24e_report_fields */` now sit directly above those two functions, so that `function_ledger.symbol_area` finds the VA in the leading comment; stale boilerplate corrected) and every acceptance entry carries the reviewer string `Sonnet slice-reviewer, diff review, no P1 (FL-33)`. Nothing in `function-ledger*.json`, `function-evidence.json` or `function-execution.json` was edited and no `--write` recorder was run. `tasks/fl33a-acceptances.json` is the proposed `port_acceptances` content (class `native_oracle_verified`, 8 entries; the packet lists no receipt blocker for any of the eight rows, so there is no `blockers_reviewed`; the ledger's `test_area` check was NOT run here, root does it with the merge). The slice claim file was skipped as instructed.
 
 GAME.EXE SHA-256 `afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45` (read only, checked by the oracle's loader on every run).
 
@@ -66,7 +66,7 @@ All callees are recording stubs entered by address (the callee is not run): they
 - Callee calling conventions are read from the call sites only; whether the callee pops its arguments (`ret n`) is unprovable for 0x4c5377, 0x4c4067, 0x4c808f, 0x4c4202, 0x4c952f, 0x4daeb5, 0x42639d, 0x4c97b4 from these bytes (every function here ends in `mov esp, ebp`, so the leak would be hidden). 0x51dc43 / 0x51dc6c are the CRT allocator and free by shape only; 0x50ca3e is strcpy / sprintf by shape only (a different, string-copying use at 0x4234dd with two arguments and a formatting use with three at 0x4bf3b8).
 - 0x4234dd for n >= 0x80: whether 0x4c97b4 and 0x52139c ever return is unknown (the code keeps going, so does the port).
 - Not exercised: a callee that changes `self` or a global that the function reads again afterwards (for example 0x4c5377 changing `[0x61e618]` mid-loop, 0x4daeb5 changing `self`, a callee changing the rectangle behind the 0x4c7623 argument): the ports re-read like the original, but the stubs never change them. 0x4c7623's ecx at the `mov cx, word [ebp+0x10]; push ecx` sites carries whatever 0x4c4067 left in the upper half; the port passes the zero-extended word and the stubs here leave ecx as it was.
-- The meaning of the fields is a description of what the code does, not recovered source names. No independent review; no claim that any family or pool is complete.
+- The meaning of the fields is a description of what the code does, not recovered source names. Sonnet slice-reviewer diff review found no P1; no claim that any family or pool is complete.
 
 ## Mutation check
 
@@ -87,20 +87,21 @@ Known gap of the tool: mutants are single textual edits; multi-line guards, `if 
 - The ports take `Fl18Host` with `call` / `resolve`; `Fl33aWorld` carries the tables as host pointers (`table_5d15a5`, `table_5d1599`, `table_5b3790`, each pointing at the byte the original address names, with slack for a negative index) and the globals by their original address in the field name; the host copies them back to its own storage or points the world at it. The import slots 0x52a488 (SetCursorPos) and 0x52a514 (_BinkGetError@0) are called through `Fl18Host.call` with the slot address as the callee, as 0x52a530 is in FL-29c.
 - `m4bf3b8_set_text` returns the host pointer `self + 0xc0`; the strings it copies come from `Fl18Host.resolve` on the original's data addresses, so the host's data image must serve 0x552494 ... 0x552594.
 - The ports are standalone; no shared parser, dispatcher or app file was edited.
+- 0x4234dd: callers must keep `n` ([self+4]) below 0x80. For n >= 0x80 the report chain runs and then, as in the original, the stores go to `self + n*12 + 0xc/0x10`, outside the object; the port reproduces that out-of-bounds store and has no native rejection.
 
 ## Source and test hashes (sha256, at the commit that closes this batch)
 
 | file | sha256 |
 |---|---|
-| src/original_methods_fl33a.c | f18e3cd3939d09e6fb2afe32888ff20320a7811b606842227e1262ce0789762e |
+| src/original_methods_fl33a.c | 10003b1d5b188678f6a65397c2a95fa334a3887fca4b5ea6ca8a504e0c58dba3 |
 | src/original_methods_fl33a.h | 14f277596b8a7c26d89ab0087cbcf175bb05648a646c0a79f0c329273b3ff252 |
-| tests/fl33a_original_oracle.py | 9a4fef33cb1b3f685dbcc5b9a9d1764a8ef45fb031d09580d8b2637c8962690f |
-| tests/fl33a_fixtures.py | 2915e6fd3764941f3fb1fc8d8be9b8986e021af9c6e1df7e6e144dfffc37f1ff |
+| tests/fl33a_original_oracle.py | d3cdd9f24ce26e45426b69f9df90426844c623649587d931002444c7382ec8e2 |
+| tests/fl33a_fixtures.py | 9d065aa3a1feccac5abced4f4f4fa83a447c5f6d9328f0747530fcb7974c56a2 |
 | tests/fl33a_direct_test.c | 48b2524dc9173cb0ad23e71b5c0da3e4a947bee608e7a6d3d886428f4e553af5 |
-| tests/fl33a_differential_shim.c | 9482477c57c8935f5844482052582bbbf276c51d81c7d213253a560164016fd1 |
+| tests/fl33a_differential_shim.c | 7d0523196ba594a8a04e477c8d975d643bc0c6a8e3d02900574560e6a6de1469 |
 | tests/test_fl33a_differential.py | 0b244d95fb8cf42a09aaf180a84b01a02b189363064091219967af0dc48b7d28 |
-| tests/test_fl33a_direct.py | 60872d13386b66d5a993eeeb0a1d15e8c3302b8df740a2787fdc6f19f55f273a |
-| tests/fl33a_mutation_check.py | f846af0299c67def89b7b0a9deb55613788d71f79e1f64d1cecdadd61e268ff0 |
+| tests/test_fl33a_direct.py | 1b20c940906ed8a3c84169d0c22193bf835e2c895f067a1b62e61e5e305e5a05 |
+| tests/fl33a_mutation_check.py | 59bf8573ee3b1d82ec05f2a5767bceac11204212e6da6687a26790f4cc63ee6b |
 | tests/fl33a_hand_mutants.py | 017e15faca0254b9780469d4fe5b6785f31c24424d00e48de3a572dc534c98bd |
 
 Native library: the differential builds `tests/fl33a_differential_shim.c` + `src/original_methods_fl33a.c` into a throwaway shared object per run (no committed binary).

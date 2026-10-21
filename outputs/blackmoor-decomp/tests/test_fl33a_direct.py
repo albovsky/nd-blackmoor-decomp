@@ -99,7 +99,7 @@ class Fl33aDirect(unittest.TestCase):
         self.check('test_m4c7070_rotate_image')
 
     def test_sweep_bounded(self):
-        """FL-33b: bounded random sweep over every port (meant for the sanitiser builds; checks that it runs)"""
+        """FL-33a: bounded random sweep over every port (meant for the sanitiser builds; checks that it runs)"""
         self.check('test_sweep_bounded')
 
 

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""FL-33 (batch c): original-x86 oracle for the small pending methods of GAME.EXE listed in tasks/FL-33-struct-methods-47b-47d.md (batch c).
+"""FL-33 (batch c): original-x86 oracle for the pending methods of GAME.EXE listed in tasks/FL-33-pending-rows-4c-47d.md (batch c).
 
 Runs ONLY the original bytes (Unicorn, no native library) on the fixtures of tests/fl33c_fixtures.py, the same generator and the same
 original-run function that tests/test_fl33c_differential.py uses against the native port. The hooks are the OS and host boundaries only:
-the recording stubs of the callees (entered by address; they return a scripted value and pop their stack arguments), among them the CRT calls
-0x50cd50 (rand), 0x516530 (string compare) and the allocator 0x51dc43; one callee (0x4181c6) stores a scripted dword through a pointer argument.
+the recording stubs of the callees (entered by address; they return a scripted value and pop their stack arguments), among them the CRT-shaped 0x50ca3e
+and 0x52139c, the cursor helpers 0x4dae88 / 0x4daeb5 and the text helpers 0x4d214b / 0x50d651 ..0x50d6cf; callees that return their pointer argument are scripted the same way.
 Nothing inside a function under test is patched; every guard, compare, index computation, `rep stos` and store of the bodies runs as original
 instructions.
 

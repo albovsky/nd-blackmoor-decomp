@@ -211,9 +211,10 @@ DESC_AT = 5
 
 def gen_4c51a5(rng, n):
     profiles = ([('copy', i) for i in range(len(COPY_CASES))] + [('nodbg', i) for i in range(4)] + [('rows0',), ('rowsneg',), ('wmis',), ('hmis',), ('a0',), ('b0',),
-                ('fault_a',), ('fault_b',), ('wmis_big',)])
+                ('fault_a',), ('fault_b',), ('wmis_big',)]
+                + [('wmis_hi', k, hi) for hi in (0x10000, 0x80000000) for k in range(8)])
     (kind, *rest), variant = prof(n, profiles)
-    bpp, dx, dy, pa, pb = COPY_CASES[rest[0]] if rest else COPY_CASES[(n + variant) % len(COPY_CASES)]
+    bpp, dx, dy, pa, pb = COPY_CASES[rest[0]] if kind in ('copy', 'nodbg') else COPY_CASES[(n + variant) % len(COPY_CASES)]
     x0, y0, tx0, ty0 = rng.choice([0, 1, 3]), rng.choice([0, 1, 2]), rng.choice([0, 2, 5]), rng.choice([0, 1, 3])
     fr = [x0, y0, x0 + dx, y0 + dy]
     tr = [tx0, ty0, tx0 + dx, ty0 + dy]
@@ -230,6 +231,9 @@ def gen_4c51a5(rng, n):
         tr = [rng.randrange(1 << 32) for _ in range(4)]
     if kind == 'hmis':
         tr[3] += rng.choice([1, 3])
+    if kind == 'wmis_hi':       # one coordinate of one rectangle differs by a value with a zero low word: the 16-bit halves of the extents agree, the 32-bit ones do not
+        rect = tr if rest[0] >= 4 else fr
+        rect[rest[0] % 4] = (rect[rest[0] % 4] + rest[1]) & 0xffffffff
     a_va, b_va = od.region_va(1) + DESC_AT, od.region_va(2) + DESC_AT
     fr_va, tr_va = od.region_va(3) + RECT_AT, od.region_va(4) + RECT_AT
     sbase, dbase = SRC_VA + 0x400 + rng.choice([0, 1, 3]), DST_VA + 0x400 + rng.choice([0, 1, 2])
@@ -338,7 +342,7 @@ def gen_4c2898(rng, n):
 RECS_VA, DATA_VA, FILE_VA = od.region_va(1), od.region_va(2), od.region_va(3)
 BASE_AT = 0x700
 READ_PROFILES = [('f95zero',), ('mis3',), ('mis4',), ('neg1', 1), ('neg1', 0), ('full', 1), ('full', 0), ('over',), ('a_neg',), ('a_short',), ('a_ok',), ('b_skip',), ('b_fill8',),
-                 ('b_fill0',), ('lenzero',), ('lenneg',), ('b_fill8', 'one'), ('b_fill0', 'one')]
+                 ('b_fill0',), ('lenzero',), ('lenneg',), ('b_fill8', 'one'), ('b_fill0', 'one'), ('a_zero',)]
 
 
 def rec_area(rng, idx):
@@ -353,18 +357,18 @@ def gen_4f594d(rng, n):
     len_ = rng.choice([8, 11, 6, 9]) if kind != 'lenzero' else 0
     if kind == 'lenneg':
         len_ = -4 & 0xffffffff
-    n1 = {'a_neg': 2, 'a_short': 2, 'a_ok': 3, 'b_skip': 3, 'b_fill8': 2, 'b_fill0': 3, 'over': len_ + 3, 'full': len_, 'lenzero': 0, 'lenneg': 0}.get(kind, 0)
+    n1 = {'a_neg': 2, 'a_short': 2, 'a_zero': 2, 'a_ok': 3, 'b_skip': 3, 'b_fill8': 2, 'b_fill0': 3, 'over': len_ + 3, 'full': len_, 'lenzero': 0, 'lenneg': 0}.get(kind, 0)
     if kind == 'neg1':
         n1 = -1 & 0xffffffff
     if kind in ('b_fill8', 'b_fill0') and rest:
         n1 = len_ - 1                      # one byte left to fill
-    n2 = {'a_neg': -1 & 0xffffffff, 'a_short': len_ - n1 - 1, 'a_ok': len_ - n1}.get(kind, 0)
+    n2 = {'a_neg': -1 & 0xffffffff, 'a_short': len_ - n1 - 1, 'a_ok': len_ - n1, 'a_zero': 0}.get(kind, 0)      # a_zero: the second read returns exactly 0
     recs = rec_area(rng, idx)
     o = BASE_AT + idx * 0x5bb
     base_va = RECS_VA + BASE_AT
     put32(recs, o + 0x15e, len_ if eq else len_ + 1)
     put32(recs, o + 0x28f, rng.randrange(1 << 32))
-    put32(recs, o + 0x130, 0 if kind.startswith('a_') else rng.choice([1, 0x100, 0xdeadbeef]))
+    put32(recs, o + 0x130, 0 if kind.startswith('a_') else [0x00010000, 1, 0x100, 0xdeadbeef][variant % 4])      # 0x10000: zero low word, so a 16-bit read would see 0
     put32(recs, o + 0x18a + 0x10, 0xffffffff if kind == 'b_skip' else rng.choice([0, 5, 0xfffffffe, 0x7fffffff]))
     put32(recs, o + 0x18a + 0xc, rng.choice([0, 7, 0xffffffff]))
     put16(recs, o + 0x2ed, 8 if kind == 'b_fill8' else rng.choice([0, 7, 9, 0x108, 0x8000]))
@@ -499,7 +503,7 @@ FREE_IDX = [0, 2, -1, 3]
 ARR_STRIDES = [(0x793, 0x795, 0x1d1), (0x799, 0x79b, 0x1c), (0x79f, 0x7a1, 0xa)]
 ITEM_AT = 9
 BLOCK_KINDS = ['run', 'cnt0', 'cntneg', 'ptr0']
-ENTRY_STATES = ['go', 'wz', 'wneg', 'dz']
+ENTRY_STATES = ['go', 'wz', 'wneg', 'dz', 'hi']       # 'hi': the entry pointer has a zero low word and a non-zero high word
 
 
 def gen_41db40(rng, n):
@@ -519,12 +523,13 @@ def gen_41db40(rng, n):
             bk = rest[blk]
             count = {'run': 3, 'cnt0': 0, 'cntneg': rng.choice([0x8000, 0xffff, 0x8001]), 'ptr0': 2}[bk]
             put16(item, ITEM_AT + cnt_off, count)
-            put32(item, ITEM_AT + ptr_off, 0 if bk == 'ptr0' else va + 1)
+            off = 0 if (n + blk) % 3 == 0 else 1       # off 0: the table pointer is the region address itself (zero low word, non-zero high word)
+            put32(item, ITEM_AT + ptr_off, 0 if bk == 'ptr0' else va + off)
             for j in range(3):
-                st = ENTRY_STATES[(n + j + blk) % 4]
-                e = 1 + j * stride
-                put16(data, e, {'go': rng.choice([1, 0x7fff, 5]), 'wz': 0, 'wneg': rng.choice([0x8000, 0xffff]), 'dz': rng.choice([1, 2])}[st])
-                put32(data, e + 2, 0 if st == 'dz' else rng.randrange(1, 1 << 32))
+                st = ENTRY_STATES[(n + j + blk) % len(ENTRY_STATES)]
+                e = off + j * stride
+                put16(data, e, {'go': rng.choice([1, 0x7fff, 5]), 'wz': 0, 'wneg': rng.choice([0x8000, 0xffff]), 'dz': rng.choice([1, 2]), 'hi': rng.choice([1, 0x7fff, 5])}[st])
+                put32(data, e + 2, 0 if st == 'dz' else rng.choice([0x50000, 0x10000, 0x80000000, 0xdead0000]) if st == 'hi' else rng.randrange(1, 1 << 32))
     ridx = (idx + 2) * 0x8d
     probe = [('item', ITEM_AT + 0x793, 0x10), ('rec', ridx, 4)]
     stubs = {0x51dc6c: stub(0x51dc6c, CDECL(1), probe=probe), 0x44a2b7: stub(0x44a2b7, CDECL(1), probe=probe)}
@@ -537,7 +542,7 @@ def gen_41db40(rng, n):
 
 SPECS = {
     '47d02d': dict(id=1, va=0x47d02d, size=406, gen=gen_47d02d, cleanup=4, status=True, n=(len(SHOW_CASES) + 2) * 3),
-    '4c51a5': dict(id=2, va=0x4c51a5, size=466, gen=gen_4c51a5, cleanup=0x14, status=True, n=(len(COPY_CASES) + 13) * 3),
+    '4c51a5': dict(id=2, va=0x4c51a5, size=466, gen=gen_4c51a5, cleanup=0x14, status=True, n=(len(COPY_CASES) + 13 + 16) * 3),
     '47df57': dict(id=3, va=0x47df57, size=477, gen=gen_47df57, cleanup=0, n=33 * 2),
     '4c2898': dict(id=4, va=0x4c2898, size=501, gen=gen_4c2898, cleanup=0x14, n=(3 + len(NAME_LENS) * len(WH)) * 2),
     '4f594d': dict(id=5, va=0x4f594d, size=515, gen=gen_4f594d, cleanup=0xc, ret=True, n=len(READ_PROFILES) * 4),

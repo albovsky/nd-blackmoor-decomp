@@ -152,6 +152,7 @@ static void copy_string(uint8_t *dst, const uint8_t *src)
     for (i = 4 * n; i < len; i++) dst[i] = src[i];
 }
 
+/* 0x4bf3b8 m4bf3b8_set_text */
 uint8_t *m4bf3b8_set_text(uint8_t *self, uint32_t code, const Fl18Host *host)
 {
     uint32_t v = rd32(self, 0x2c0) + 6u;
@@ -230,6 +231,7 @@ static uint32_t table_dword(const Fl33aWorld *world)
     return rd32(world->table_5d1599, (ptrdiff_t)((int32_t)world->word_61e39c * 0x4a));
 }
 
+/* 0x47d24e m47d24e_report_fields */
 void m47d24e_report_fields(Fl33aWorld *world, const Fl18Host *host)
 {
     uint32_t p = world->value_61e3a4;

@@ -89,6 +89,7 @@ static void report_4c6929(uint8_t *self, uint32_t format, uint32_t d, uint32_t r
     call0(host, 0x4c97b4, (uintptr_t)self);
 }
 
+/* 0x4c6929 m4c6929_copy_masked */
 int m4c6929_copy_masked(uint8_t *self, uint32_t a, uint32_t b, uint32_t c, uint32_t r1, uint32_t r2, uint32_t r3, uint32_t d, const Fl33cWorld *world, const Fl18Host *host)
 {
     uint8_t desc[0x80];
@@ -158,6 +159,7 @@ static void rep_movs(const Fl18Host *host, uint32_t dst, uint32_t src, uint32_t 
     for (i = 4u * n; i < count; i++) d[i] = s[i];
 }
 
+/* 0x416af3 m416af3_apply_patches */
 int m416af3_apply_patches(uint32_t hdr, uint32_t out, uint32_t size, uint32_t stream, uint32_t base, uint32_t flag, const Fl18Host *host)
 {
     uint32_t count = rdd(host, hdr + 0xa);
@@ -232,6 +234,7 @@ static uint32_t abs_cdq(uint32_t v)
     return (v ^ s) - s;
 }
 
+/* 0x4db38a m4db38a_update_cursor */
 void m4db38a_update_cursor(uint8_t *self, Fl33cWorld *world, const Fl18Host *host)
 {
     uint32_t pair[2] = {0, 0};                   /* the local that 0x4daeb5 is given the address of */
@@ -312,6 +315,7 @@ void m4db38a_update_cursor(uint8_t *self, Fl33cWorld *world, const Fl18Host *hos
 /* ---- 0x4d2c20 layout_text ------------------------------------------------------------------------------------------------------ */
 static uint32_t sdw(const Fl18Host *host, uint32_t a) { return (uint32_t)(int32_t)(int16_t)rdw(host, a); }     /* movsx eax, word ptr [a] */
 
+/* 0x4d2c20 m4d2c20_layout_text */
 uint32_t m4d2c20_layout_text(uint32_t text, uint32_t font, uint32_t metrics, uint32_t x, uint32_t y, uint32_t a, uint32_t b, uint32_t sel, Fl33cWorld *world, const Fl18Host *host)
 {
     uint32_t s = (uint32_t)(int32_t)(int16_t)sel * 8u;

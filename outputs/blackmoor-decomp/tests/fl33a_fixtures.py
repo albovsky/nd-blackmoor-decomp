@@ -1,11 +1,11 @@
 """FL-33 (batch a): the fixtures shared by tests/test_fl33a_differential.py and tests/fl33a_original_oracle.py.
 
-Same shape as tests/fl31b_fixtures.py and tests/fl29a_fixtures.py (whose generic harness pieces come from tests/fl28b_fixtures.py: the Unicorn runner with the code and edge hooks, the recording stub
+Same shape as tests/fl31c_fixtures.py and tests/fl29a_fixtures.py (whose generic harness pieces come from tests/fl28b_fixtures.py: the Unicorn runner with the code and edge hooks, the recording stub
 constructor, the call-log normaliser and the conditional-jump finder). `build(key, rng, n)` makes scenario n of one of the functions of SPECS: the object `this`, the objects behind the
 addresses it keeps, the scripted callees (recording stubs at the call boundary, entered by address) and the globals. The scenarios cycle through profiles (each guard failing in turn, then every
 arm and every scripted answer of the function); the optional parts vary from one pass of the cycle to the next; random bytes fill everything else.
 
-`run_original(sc)` runs ONLY the original bytes (Unicorn) on a scenario: the callees (including the CRT calls 0x50cd50 and 0x516530 and the allocator 0x51dc43) are recording stubs (host boundaries);
+`run_original(sc)` runs ONLY the original bytes (Unicorn) on a scenario: the callees (including the imports SetCursorPos 0x52a488 and _BinkGetError 0x52a514, the CRT-shaped 0x50ca3e and the allocator pair 0x51dc43 / 0x51dc6c) are recording stubs (host boundaries);
 nothing inside the function under test is patched.
 """
 import ctypes
