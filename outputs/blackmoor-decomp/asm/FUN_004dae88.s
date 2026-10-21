@@ -8,15 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_only_call_SetCursorPos
-# naming:       INFERRED (lower confidence, not verified): function-xrefs.json lists USER32.dll!SetCursorPos as the only import of the 45-byte function and no callee
-# name-note:    A 45-byte leaf function with no direct callee whose only external call is USER32.dll!SetCursorPos
+# name:         m4dae88_set_cursor
+# naming:       native port src/original_methods_fl33a.c:m4dae88_set_cursor (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port
+# name-note:    Stores x, y at [self+0x18], [self+0x1c], then calls SetCursorPos(x, y) (slot 0x52a488) and returns its eax; 18/18 instructions, ret 8 checked.
 # arguments:    2 ebp-relative stack slot(s) referenced: arg_8, arg_c; ret 0x8 (callee pops 8 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_18; [edx + n] field_1c
 # callees:      calls USER32.dll!SetCursorPos
-# track-n:      outputs/blackmoor-decomp/src/original_methods_fl31c.c:m4db870_load_cursor (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 18 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl33a.c:m4dae88_set_cursor (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 18 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

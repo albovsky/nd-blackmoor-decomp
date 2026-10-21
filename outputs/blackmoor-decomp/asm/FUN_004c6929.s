@@ -8,15 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_mask_transparent_blit
-# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_d9_runtime.h:199 says "0x4c6929 DFBltMaskTransPlain: copy the pixels whose mask byte is nonzero."
-# name-note:    DFBltMaskTransPlain: copies the pixels whose mask byte is nonzero.
+# name:         m4c6929_copy_masked
+# naming:       native port src/original_methods_fl33c.c:m4c6929_copy_masked (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port
+# name-note:    Masked rectangle copy of 16-bit pixels by a byte mask (word at [a+0x2f], word global 0x639895); the faulting a==0 case is an explicit native rejection; 239/239 instructions, 18/18 branch directions.
 # arguments:    7 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10, arg_14, arg_18, arg_1c, arg_20; ret 0x1c (callee pops 28 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       18 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_68, local_7c, local_8c, local_90, local_94, local_98, local_9c, local_a0 and 6 more
 # fields:       [eax + n] field_1, field_4, field_8, field_c, field_2f; [ecx + n] field_4, field_8, field_c, field_2f; [edx + n] field_4, field_8, field_c
 # callees:      calls FUN_0050ca3e, FUN_0052139c, FUN_004c97b4, FUN_004c4067, FUN_004c4202, FUN_004c952f
-# track-n:      outputs/blackmoor-decomp/src/action_family_d9_runtime.h:d9_blit_mask (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 239 instruction(s), 9 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl33c.c:m4c6929_copy_masked (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 239 instruction(s), 9 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

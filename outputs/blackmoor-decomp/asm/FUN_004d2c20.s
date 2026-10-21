@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004d2c20
+# name:         m4d2c20_layout_text
+# naming:       native port src/original_methods_fl33c.c:m4d2c20_layout_text (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port
+# name-note:    Text layout: per-character class tests, glyph metric rect, advance of world cursor words; 296 instructions and 13 branches both ways, including char 0x80 edge cases.
 # arguments:    8 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10, arg_14, arg_18, arg_1c, arg_20, arg_24; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       6 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18
 # fields:       [eax + n] field_3f, field_43, field_4f, field_55, field_57, field_c3, field_c7, field_cb, field_cf, field_minus_1, field_minus_41; [ecx + n] field_3f, field_43, field_51, field_53, field_c3, field_c7, field_cb, field_cf; [edx + n] field_2, field_3f, field_43, field_c3, field_c7, field_cb, field_cf, field_minus_1, field_minus_30, field_minus_61
 # callees:      calls FUN_0052139c, FUN_004c97b4, FUN_004d214b, FUN_0050d651, FUN_0050d67f, FUN_0050d6a7, FUN_0050d6cf, FUN_004c5d4b
-# track-n:      outputs/blackmoor-decomp/src/blackmoor_app.mm:native_a76_render (function ledger class candidate_port; also native_a76_view_origin, native_ae4_alloc_slot, native_af5_alloc_slot; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 296 instruction(s), 13 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl33c.c:m4d2c20_layout_text (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 296 instruction(s), 13 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

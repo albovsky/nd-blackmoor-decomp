@@ -108,6 +108,7 @@ void m4234dd_push_pair(uint8_t *self, uint32_t a, uint32_t b, const Fl33aWorld *
 
 /* ---- 0x4c7623 draw_frame ------------------------------------------------------------------------------------------------------- */
 #define RECT(off) rd32(res(host, rect), (off))
+/* 0x4c7623 m4c7623_draw_frame */
 void m4c7623_draw_frame(uint8_t *self, uint32_t a, uint32_t rect, uint32_t w, const Fl18Host *host)
 {
     uint8_t desc[0x80];

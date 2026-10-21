@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0041e3c0
+# name:         m41e3c0_build_text
+# naming:       native port src/original_methods_fl33b.c:m41e3c0_build_text (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port
+# name-note:    Builds a text in a 0x3a98 byte buffer from the item string, constants, formatted numbers and the entry strings; rejects a null buffer and writes that would leave the buffer or the 0x34 byte local.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       8 ebp-relative slot(s): local_4, local_8, local_c, local_40, local_44, local_48, local_4c, local_50
 # fields:       [ecx + n] field_7d9; [edi + n] field_minus_1; [edx + n] field_ea5, field_f21
 # callees:      calls FUN_0051e745, FUN_0051ea75, FUN_0050ca3e, FUN_0051eac4
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 203 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl33b.c:m41e3c0_build_text (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 203 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

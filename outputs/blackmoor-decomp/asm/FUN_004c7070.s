@@ -8,15 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_surface_quarter_turn_rotate
-# naming:       INFERRED (lower confidence, not verified): the repository text src/blackmoor_app.mm:5681 says "0x4c7070: a quarter turn clockwise in place."; src/action_family_ea_runtime.h:140 says "0x4c7070: rotate in place; the new width and height."
-# name-note:    Rotates a surface a quarter turn clockwise in place, swapping width and height.
+# name:         m4c7070_rotate_image
+# naming:       native port src/original_methods_fl33a.c:m4c7070_rotate_image (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port
+# name-note:    Copies the image through a 0x51dc43 buffer, rotates it by word (columns, last row first), swaps the width and height words and frees the buffer; the allocator-failure report is taken too; 121/121, 6/6.
 # arguments:    2 ebp-relative stack slot(s) referenced: arg_8, arg_c; ret 0x8 (callee pops 8 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       16 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c, local_20, local_24, local_28, local_2c, local_30 and 4 more
 # fields:       [eax + n] field_23, field_2b, field_2f; [ecx + n] field_2d; [edx + n] field_23, field_2b, field_31
 # callees:      calls FUN_0051dc43, FUN_0042639d, FUN_004c97b4, FUN_0051dc6c
-# track-n:      outputs/blackmoor-decomp/src/blackmoor_app.mm:create_native_session_bindings (function ledger class candidate_port; also native_aea_image, native_aea_rotate_surface; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 121 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl33a.c:m4c7070_rotate_image (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 121 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

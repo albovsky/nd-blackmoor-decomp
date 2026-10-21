@@ -8,15 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_mouselight_render_callback
-# naming:       INFERRED (lower confidence, not verified): the repository text src/blackmoor_app.mm:5054 says "0x47df57: restore the previous window from the saved scene frame"
-# name-note:    Render callback restoring the previous window and blitting the current one.
+# name:         m47df57_update_view
+# naming:       native port src/original_methods_fl33b.c:m47df57_update_view (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port
+# name-note:    Builds two rectangles and an offset pair from globals plus origin and calls 0x4c5377, then 0x4c62f0 or 0x4c6929 by byte [item+0x22]; the signed size/width/height compares are covered.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       16 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c, local_20, local_24, local_28, local_2c, local_30 and 4 more
 # fields:       [edx + n] field_22
 # callees:      calls FUN_004c5377, FUN_004c62f0, FUN_004c6929
-# track-n:      outputs/blackmoor-decomp/src/blackmoor_app.mm:create_native_scene_session (function ledger class candidate_port; also native_ad9_alloc_slot, native_ad9_render; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 124 instruction(s), 6 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl33b.c:m47df57_update_view (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 124 instruction(s), 6 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

@@ -214,6 +214,7 @@ static int cm_call(uint32_t a, uint32_t b)
 }
 static void test_m4c6929_copy_masked(void)
 {
+    (void)m4c6929_copy_masked;
     uint8_t want4[0x300];
     uintptr_t desc;
     cm_setup(8, 0x11);                                    /* sstep = 4 words (8 bytes), dstep = 8 words (16 bytes) */
@@ -337,6 +338,7 @@ static void test_m416af3_apply_patches(void)
 {
     uint8_t want[RSZ];
     int k, i;
+    (void)m416af3_apply_patches;
     for (k = 1; k <= 2; k++) {
         /* x20 (off 3, 5 words a0..a9), x40 (word 0x1234, off 5, 0xdeadbeef), x80 (m = 3 -> e0..e5, K = 2, offsets 4 and -6) */
         pa_setup((uint8_t)k);
@@ -457,6 +459,7 @@ static void uc_setup(uint32_t px, uint32_t py)
 }
 static void test_m4db38a_update_cursor(void)
 {
+    (void)m4db38a_update_cursor;
     uintptr_t pair;
     uc_setup(104, 195);                         /* dx = 4, dy = -5: inside the limits */
     m4db38a_update_cursor(SELF, &g_w, &g_host);
@@ -583,6 +586,7 @@ static uint32_t lt_call(uint32_t x, uint32_t y, uint32_t a, uint32_t b, uint32_t
 }
 static void test_m4d2c20_layout_text(void)
 {
+    (void)m4d2c20_layout_text;
     /* "A" (upper): glyph 5, selector 1; x = 100, y = 300 with garbage in the upper halves of the word arguments */
     lt_setup("A");
     script(0x50d651, 1);
