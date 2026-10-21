@@ -11,7 +11,7 @@ GAME.EXE SHA-256 `afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c
 | 0x4f379c | 1162 | m4f379c_open_entry | 297/297 | 44/44 | 184 | 3b2b930f79a3b863a9e9938dd7d7836c0f473bb32e9e5a185470c87116e2d61d | 73cf0d320d97645da5ea86ba7b25c8cb763ccf26fb4b42afbf075c04f982af59 |
 | 0x4c36b2 | 1451 | m4c36b2_save_region | 314/314 | 37/38 (one edge flagged, see below) | 372 | 2786f6ffa7487986cf4fbe87ac5d64cdfd5903c40438c7f2fb75ae0a697605df | 3be3810a997ed70ad255cbc074570cf923de2644215f7569375f44d51619cdf1 |
 
-Windows end exclusive: `[0x4f379c, 0x4f3c26)` and `[0x4c36b2, 0x4c3c5d)`. Acceptances: `tasks/fl36a-acceptances.json` (class `native_oracle_verified`, reviewer string `Sonnet slice-reviewer, diff review, no P1 (FL-36)`, date 2026-10-21; notes 217 and 224 characters). Each function has the comment `/* 0x<va> m<va>_<name> */` directly above it in `src/original_methods_fl36a.c`.
+Windows end exclusive: `[0x4f379c, 0x4f3c26)` and `[0x4c36b2, 0x4c3c5d)`. Acceptances: `tasks/fl36a-acceptances.json` (class `native_oracle_verified`, reviewer string `Sonnet slice-reviewer, diff review, no P1 (FL-36)`, date 2026-10-21; notes 217 and 226 characters). Each function has the comment `/* 0x<va> m<va>_<name> */` directly above it in `src/original_methods_fl36a.c`.
 
 ## The flagged untaken edge (0x4c36b2)
 
