@@ -1,0 +1,68 @@
+[
+ {
+  "va": "0x4f379c",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl36a.c",
+   "symbol": "m4f379c_open_entry"
+  },
+  "tests": [
+   {
+    "path": "tests/fl36a_direct_test.c",
+    "test_id": "test_m4f379c_open_entry"
+   },
+   {
+    "path": "tests/test_fl36a_direct.py",
+    "test_id": "Fl36aDirect.test_4f379c_open_entry"
+   },
+   {
+    "path": "tests/test_fl36a_differential.py",
+    "test_id": "Fl36aDifferential.test_4f379c_open_entry"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl36a_original_oracle.py",
+   "window": [
+    "0x4f379c",
+    "0x4f3c26"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Opens a record's file and checks its header (magic, two words), normalises the ranges and swaps, then dispatches by size; 297/297 instructions, 44/44 branch directions; an over-long frame string is a native rejection."
+ },
+ {
+  "va": "0x4c36b2",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl36a.c",
+   "symbol": "m4c36b2_save_region"
+  },
+  "tests": [
+   {
+    "path": "tests/fl36a_direct_test.c",
+    "test_id": "test_m4c36b2_save_region"
+   },
+   {
+    "path": "tests/test_fl36a_direct.py",
+    "test_id": "Fl36aDirect.test_4c36b2_save_region"
+   },
+   {
+    "path": "tests/test_fl36a_differential.py",
+    "test_id": "Fl36aDifferential.test_4c36b2_save_region"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl36a_original_oracle.py",
+   "window": [
+    "0x4c36b2",
+    "0x4c3c5d"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Record state machine: allocates, copies a sub-rectangle or the whole buffer, writes a 0x12-byte header file or calls 0x4c334f; 314/314 instructions, 37/38 directions (dead je at 0x4c3baa flagged); first-alloc failure rejected."
+ }
+]

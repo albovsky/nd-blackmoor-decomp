@@ -1,0 +1,4292 @@
+[
+  {
+    "va": "0x401032",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m401032_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m401032_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_401032_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_401032_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x401032",
+        "0x40104e"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52a5d0u at [this], returns 0x521756(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x4014f5",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4014f5_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4014f5_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4014f5_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4014f5_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4014f5",
+        "0x401511"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52ab70u at [this], returns 0x5218ea(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x40168f",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m40168f_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m40168f_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_40168f_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_40168f_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x40168f",
+        "0x4016ac"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x0u in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x4016ac",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4016ac_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4016ac_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4016ac_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4016ac_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4016ac",
+        "0x4016c9"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x1u in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x4016c9",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4016c9_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4016c9_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4016c9_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4016c9_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4016c9",
+        "0x4016e6"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x2u in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x4016e6",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4016e6_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4016e6_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4016e6_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4016e6_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4016e6",
+        "0x401703"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x3u in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x401703",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m401703_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m401703_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_401703_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_401703_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x401703",
+        "0x401720"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x4u in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x401720",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m401720_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m401720_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_401720_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_401720_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x401720",
+        "0x40173d"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x5u in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x40173d",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m40173d_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m40173d_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_40173d_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_40173d_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x40173d",
+        "0x40175a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x6u in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x40175a",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m40175a_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m40175a_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_40175a_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_40175a_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x40175a",
+        "0x401777"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x7u in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x401777",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m401777_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m401777_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_401777_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_401777_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x401777",
+        "0x401794"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x8u in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x401794",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m401794_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m401794_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_401794_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_401794_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x401794",
+        "0x4017b1"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x9u in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x4017b1",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4017b1_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4017b1_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4017b1_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4017b1_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4017b1",
+        "0x4017ce"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0xau in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x4017ce",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4017ce_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4017ce_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4017ce_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4017ce_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4017ce",
+        "0x4017eb"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0xbu in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x4017eb",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4017eb_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4017eb_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4017eb_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4017eb_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4017eb",
+        "0x401808"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0xcu in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x401808",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m401808_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m401808_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_401808_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_401808_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x401808",
+        "0x401825"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0xdu in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x401825",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m401825_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m401825_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_401825_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_401825_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x401825",
+        "0x401842"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0xeu in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x401842",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m401842_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m401842_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_401842_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_401842_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x401842",
+        "0x40185f"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0xfu in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x40185f",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m40185f_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m40185f_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_40185f_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_40185f_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x40185f",
+        "0x40187c"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x10u in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x40187c",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m40187c_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m40187c_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_40187c_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_40187c_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x40187c",
+        "0x401899"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x11u in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x401899",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m401899_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m401899_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_401899_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_401899_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x401899",
+        "0x4018b6"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x12u in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x4018b6",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4018b6_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4018b6_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4018b6_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4018b6_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4018b6",
+        "0x4018d3"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x13u in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x4018d3",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4018d3_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4018d3_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4018d3_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4018d3_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4018d3",
+        "0x4018f0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x14u in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x4018f0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4018f0_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4018f0_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4018f0_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4018f0_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4018f0",
+        "0x40190d"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x15u in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x40190d",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m40190d_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m40190d_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_40190d_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_40190d_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x40190d",
+        "0x40192a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x16u in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x40192a",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m40192a_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m40192a_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_40192a_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_40192a_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x40192a",
+        "0x401947"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x17u in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x401947",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m401947_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m401947_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_401947_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_401947_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x401947",
+        "0x401964"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x18u in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x401964",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m401964_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m401964_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_401964_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_401964_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x401964",
+        "0x401981"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x19u in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x401981",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m401981_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m401981_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_401981_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_401981_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x401981",
+        "0x40199e"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x1au in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x40199e",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m40199e_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m40199e_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_40199e_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_40199e_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x40199e",
+        "0x4019bb"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x1bu in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x4019bb",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4019bb_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4019bb_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4019bb_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4019bb_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4019bb",
+        "0x4019d8"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x1cu in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x4019d8",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4019d8_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4019d8_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4019d8_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4019d8_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4019d8",
+        "0x4019f5"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x1du in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x4019f5",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4019f5_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4019f5_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4019f5_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4019f5_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4019f5",
+        "0x401a12"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x1eu in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x401a12",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m401a12_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m401a12_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_401a12_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_401a12_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x401a12",
+        "0x401a2f"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x1fu in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x401a2f",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m401a2f_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m401a2f_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_401a2f_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_401a2f_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x401a2f",
+        "0x401a4c"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x20u in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x401a4c",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m401a4c_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m401a4c_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_401a4c_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_401a4c_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x401a4c",
+        "0x401a69"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x21u in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x401a69",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m401a69_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m401a69_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_401a69_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_401a69_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x401a69",
+        "0x401a86"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x22u in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x401a86",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m401a86_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m401a86_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_401a86_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_401a86_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x401a86",
+        "0x401aa3"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x23u in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x401aa3",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m401aa3_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m401aa3_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_401aa3_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_401aa3_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x401aa3",
+        "0x401ac0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x24u in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x401ac0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m401ac0_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m401ac0_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_401ac0_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_401ac0_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x401ac0",
+        "0x401add"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x25u in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x401add",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m401add_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m401add_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_401add_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_401add_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x401add",
+        "0x401afa"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x26u in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x401afa",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m401afa_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m401afa_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_401afa_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_401afa_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x401afa",
+        "0x401b17"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x27u in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x401b17",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m401b17_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m401b17_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_401b17_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_401b17_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x401b17",
+        "0x401b34"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x28u in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x401b34",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m401b34_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m401b34_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_401b34_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_401b34_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x401b34",
+        "0x401b51"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x29u in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x401b51",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m401b51_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m401b51_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_401b51_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_401b51_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x401b51",
+        "0x401b6e"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x2au in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x401b6e",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m401b6e_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m401b6e_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_401b6e_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_401b6e_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x401b6e",
+        "0x401b8b"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x2bu in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x401b8b",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m401b8b_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m401b8b_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_401b8b_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_401b8b_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x401b8b",
+        "0x401ba8"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x2cu in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x401ba8",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m401ba8_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m401ba8_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_401ba8_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_401ba8_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x401ba8",
+        "0x401bc5"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x2du in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x401bc5",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m401bc5_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m401bc5_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_401bc5_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_401bc5_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x401bc5",
+        "0x401be2"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x2eu in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x401be2",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m401be2_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m401be2_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_401be2_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_401be2_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x401be2",
+        "0x401bff"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x2fu in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x401bff",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m401bff_set_mode_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m401bff_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_401bff_set_mode_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_401bff_set_mode_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x401bff",
+        "0x401c1c"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x30u in 0x569138, returns 0x401526(this). No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x404af0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m404af0_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m404af0_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_404af0_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_404af0_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x404af0",
+        "0x404b0c"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52ba38u at [this], returns 0x5218ea(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x41458b",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m41458b_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m41458b_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_41458b_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_41458b_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x41458b",
+        "0x4145a7"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52c4f0u at [this], returns 0x51d730(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x414ccf",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m414ccf_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m414ccf_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_414ccf_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_414ccf_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x414ccf",
+        "0x414ceb"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52c540u at [this], returns 0x51d730(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x437710",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m437710_init_vtable_call_ret_self"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m437710_init_vtable_call_ret_self"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_437710_init_vtable_call_ret_self"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_437710_init_vtable_call_ret_self"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x437710",
+        "0x43772f"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52c7bcu at [this], calls 0x437743(this), returns this. No branch; all 12 instructions run."
+  },
+  {
+    "va": "0x43eb59",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m43eb59_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m43eb59_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_43eb59_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_43eb59_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x43eb59",
+        "0x43eb75"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52c900u at [this], returns 0x5228a4(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x445df0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m445df0_init_vtable_call_ret_self"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m445df0_init_vtable_call_ret_self"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_445df0_init_vtable_call_ret_self"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_445df0_init_vtable_call_ret_self"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x445df0",
+        "0x445e0f"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52ca1cu at [this], calls 0x445e2b(this), returns this. No branch; all 12 instructions run."
+  },
+  {
+    "va": "0x445e0f",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m445e0f_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m445e0f_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_445e0f_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_445e0f_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x445e0f",
+        "0x445e2b"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52ca1cu at [this], returns 0x445f40(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x447d10",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m447d10_init_vtable_call_ret_self"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m447d10_init_vtable_call_ret_self"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_447d10_init_vtable_call_ret_self"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_447d10_init_vtable_call_ret_self"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x447d10",
+        "0x447d2f"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52cac8u at [this], calls 0x447d4b(this), returns this. No branch; all 12 instructions run."
+  },
+  {
+    "va": "0x447d2f",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m447d2f_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m447d2f_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_447d2f_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_447d2f_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x447d2f",
+        "0x447d4b"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52cac8u at [this], returns 0x447d60(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x447e46",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m447e46_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m447e46_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_447e46_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_447e46_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x447e46",
+        "0x447e62"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52cb08u at [this], returns 0x51d730(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x448820",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m448820_init_vtable_call_ret_self"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m448820_init_vtable_call_ret_self"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_448820_init_vtable_call_ret_self"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_448820_init_vtable_call_ret_self"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x448820",
+        "0x44883f"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52cb58u at [this], calls 0x448853(this), returns this. No branch; all 12 instructions run."
+  },
+  {
+    "va": "0x449a78",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m449a78_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m449a78_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_449a78_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_449a78_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x449a78",
+        "0x449a94"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52cb5cu at [this], returns 0x449a94(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x44afd6",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m44afd6_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m44afd6_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_44afd6_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_44afd6_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x44afd6",
+        "0x44aff2"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52cb98u at [this], returns 0x51d730(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x44d0eb",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m44d0eb_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m44d0eb_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_44d0eb_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_44d0eb_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x44d0eb",
+        "0x44d107"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52cc38u at [this], returns 0x51d730(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x44e74b",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m44e74b_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m44e74b_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_44e74b_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_44e74b_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x44e74b",
+        "0x44e767"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52ccc0u at [this], returns 0x51d730(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x44f650",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m44f650_init_vtable_call_ret_self"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m44f650_init_vtable_call_ret_self"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_44f650_init_vtable_call_ret_self"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_44f650_init_vtable_call_ret_self"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x44f650",
+        "0x44f66f"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52cd10u at [this], calls 0x44f68b(this), returns this. No branch; all 12 instructions run."
+  },
+  {
+    "va": "0x44f66f",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m44f66f_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m44f66f_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_44f66f_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_44f66f_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x44f66f",
+        "0x44f68b"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52cd10u at [this], returns 0x44f996(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x454d6e",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m454d6e_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m454d6e_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_454d6e_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_454d6e_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x454d6e",
+        "0x454d8a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52cd50u at [this], returns 0x51d730(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x456ceb",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m456ceb_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m456ceb_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_456ceb_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_456ceb_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x456ceb",
+        "0x456d07"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52cdd8u at [this], returns 0x51d730(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x457f5e",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m457f5e_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m457f5e_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_457f5e_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_457f5e_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x457f5e",
+        "0x457f7a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52ce60u at [this], returns 0x51d730(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x459ace",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m459ace_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m459ace_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_459ace_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_459ace_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x459ace",
+        "0x459aea"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52cee8u at [this], returns 0x51d730(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x45b3ce",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m45b3ce_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m45b3ce_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_45b3ce_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_45b3ce_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x45b3ce",
+        "0x45b3ea"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52cf70u at [this], returns 0x51d730(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x45dc6e",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m45dc6e_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m45dc6e_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_45dc6e_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_45dc6e_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x45dc6e",
+        "0x45dc8a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52cff8u at [this], returns 0x51d730(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x46180b",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m46180b_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m46180b_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_46180b_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_46180b_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x46180b",
+        "0x461827"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52d080u at [this], returns 0x51d730(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x463ffe",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m463ffe_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m463ffe_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_463ffe_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_463ffe_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x463ffe",
+        "0x46401a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52d108u at [this], returns 0x51d730(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x465aeb",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m465aeb_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m465aeb_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_465aeb_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_465aeb_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x465aeb",
+        "0x465b07"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52d190u at [this], returns 0x51d730(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x4674e0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4674e0_init_vtable_call_ret_self"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4674e0_init_vtable_call_ret_self"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4674e0_init_vtable_call_ret_self"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4674e0_init_vtable_call_ret_self"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4674e0",
+        "0x4674ff"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52d1e0u at [this], calls 0x467513(this), returns this. No branch; all 12 instructions run."
+  },
+  {
+    "va": "0x468e3e",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m468e3e_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m468e3e_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_468e3e_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_468e3e_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x468e3e",
+        "0x468e5a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52d220u at [this], returns 0x51d730(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x46b56e",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m46b56e_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m46b56e_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_46b56e_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_46b56e_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x46b56e",
+        "0x46b58a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52d2e8u at [this], returns 0x51d730(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x470d5e",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m470d5e_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m470d5e_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_470d5e_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_470d5e_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x470d5e",
+        "0x470d7a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52d3f8u at [this], returns 0x51d730(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x4757be",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4757be_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4757be_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4757be_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4757be_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4757be",
+        "0x4757da"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52d490u at [this], returns 0x51d730(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x4781de",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4781de_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4781de_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4781de_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4781de_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4781de",
+        "0x4781fa"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52d518u at [this], returns 0x51d730(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x47b21f",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m47b21f_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m47b21f_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_47b21f_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_47b21f_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x47b21f",
+        "0x47b23b"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52d568u at [this], returns 0x47b321(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x47d4db",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m47d4db_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m47d4db_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_47d4db_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_47d4db_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x47d4db",
+        "0x47d4f7"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52d5a8u at [this], returns 0x51d730(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x47e23e",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m47e23e_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m47e23e_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_47e23e_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_47e23e_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x47e23e",
+        "0x47e25a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52d630u at [this], returns 0x51d730(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x48215e",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m48215e_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m48215e_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_48215e_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_48215e_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x48215e",
+        "0x48217a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52d6b8u at [this], returns 0x51d730(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x483f4e",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m483f4e_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m483f4e_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_483f4e_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_483f4e_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x483f4e",
+        "0x483f6a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52d740u at [this], returns 0x51d730(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x487afe",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m487afe_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m487afe_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_487afe_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_487afe_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x487afe",
+        "0x487b1a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52d7c8u at [this], returns 0x51d730(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x488d89",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m488d89_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m488d89_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_488d89_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_488d89_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x488d89",
+        "0x488da5"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52d850u at [this], returns 0x51d730(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x48a6ee",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m48a6ee_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m48a6ee_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_48a6ee_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_48a6ee_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x48a6ee",
+        "0x48a70a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52d8d8u at [this], returns 0x51d730(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x48bafb",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m48bafb_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m48bafb_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_48bafb_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_48bafb_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x48bafb",
+        "0x48bb17"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52d960u at [this], returns 0x51d730(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x48d04b",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m48d04b_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m48d04b_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_48d04b_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_48d04b_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x48d04b",
+        "0x48d067"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52d9e8u at [this], returns 0x51d730(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x48e26e",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m48e26e_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m48e26e_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_48e26e_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_48e26e_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x48e26e",
+        "0x48e28a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52da70u at [this], returns 0x51d730(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x4a1c2b",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4a1c2b_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4a1c2b_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4a1c2b_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4a1c2b_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4a1c2b",
+        "0x4a1c47"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52dc58u at [this], returns 0x51d730(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x4a376e",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4a376e_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4a376e_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4a376e_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4a376e_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4a376e",
+        "0x4a378a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52dce0u at [this], returns 0x51d730(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x4a636e",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4a636e_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4a636e_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4a636e_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4a636e_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4a636e",
+        "0x4a638a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52dd68u at [this], returns 0x51d730(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x4a7c5e",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4a7c5e_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4a7c5e_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4a7c5e_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4a7c5e_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4a7c5e",
+        "0x4a7c7a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52ddf0u at [this], returns 0x51d730(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x4a9f0b",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4a9f0b_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4a9f0b_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4a9f0b_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4a9f0b_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4a9f0b",
+        "0x4a9f27"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52de78u at [this], returns 0x51d730(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x4ab38b",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4ab38b_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4ab38b_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4ab38b_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4ab38b_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4ab38b",
+        "0x4ab3a7"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52df00u at [this], returns 0x51d730(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x4ac8be",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4ac8be_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4ac8be_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4ac8be_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4ac8be_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4ac8be",
+        "0x4ac8da"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52df88u at [this], returns 0x51d730(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x4afd1e",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4afd1e_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4afd1e_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4afd1e_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4afd1e_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4afd1e",
+        "0x4afd3a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52e010u at [this], returns 0x51d730(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x4b3c3e",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4b3c3e_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4b3c3e_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4b3c3e_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4b3c3e_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4b3c3e",
+        "0x4b3c5a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52e098u at [this], returns 0x51d730(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x4b5b6e",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4b5b6e_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4b5b6e_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4b5b6e_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4b5b6e_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4b5b6e",
+        "0x4b5b8a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52e120u at [this], returns 0x51d730(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x4b71db",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4b71db_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4b71db_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4b71db_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4b71db_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4b71db",
+        "0x4b71f7"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52e1a8u at [this], returns 0x51d730(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x4b7f00",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4b7f00_init_vtable_call_ret_self"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4b7f00_init_vtable_call_ret_self"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4b7f00_init_vtable_call_ret_self"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4b7f00_init_vtable_call_ret_self"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4b7f00",
+        "0x4b7f1f"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52e1f8u at [this], calls 0x4b7f3b(this), returns this. No branch; all 12 instructions run."
+  },
+  {
+    "va": "0x4b7f1f",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4b7f1f_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4b7f1f_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4b7f1f_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4b7f1f_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4b7f1f",
+        "0x4b7f3b"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52e1f8u at [this], returns 0x4b7ff4(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x4b9e00",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4b9e00_init_vtable_call_ret_self"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4b9e00_init_vtable_call_ret_self"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4b9e00_init_vtable_call_ret_self"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4b9e00_init_vtable_call_ret_self"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4b9e00",
+        "0x4b9e1f"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52e200u at [this], calls 0x4b9e3b(this), returns this. No branch; all 12 instructions run."
+  },
+  {
+    "va": "0x4b9e1f",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4b9e1f_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4b9e1f_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4b9e1f_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4b9e1f_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4b9e1f",
+        "0x4b9e3b"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52e200u at [this], returns 0x4ba07f(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x4bed99",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4bed99_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4bed99_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4bed99_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4bed99_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4bed99",
+        "0x4bedb5"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52e210u at [this], returns 0x4bede7(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x4bf600",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4bf600_init_vtable_call_ret_self"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4bf600_init_vtable_call_ret_self"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4bf600_init_vtable_call_ret_self"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4bf600_init_vtable_call_ret_self"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4bf600",
+        "0x4bf61f"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52e214u at [this], calls 0x4bf63b(this), returns this. No branch; all 12 instructions run."
+  },
+  {
+    "va": "0x4bf61f",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4bf61f_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4bf61f_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4bf61f_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4bf61f_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4bf61f",
+        "0x4bf63b"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52e214u at [this], returns 0x4bf8a7(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x4caed0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4caed0_init_vtable_call_ret_self"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4caed0_init_vtable_call_ret_self"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4caed0_init_vtable_call_ret_self"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4caed0_init_vtable_call_ret_self"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4caed0",
+        "0x4caeef"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52e23cu at [this], calls 0x4caf03(this), returns this. No branch; all 12 instructions run."
+  },
+  {
+    "va": "0x4cc946",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4cc946_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4cc946_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4cc946_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4cc946_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4cc946",
+        "0x4cc962"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52e278u at [this], returns 0x51d730(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x4ccd8f",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4ccd8f_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4ccd8f_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4ccd8f_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4ccd8f_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4ccd8f",
+        "0x4ccdab"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52e2d0u at [this], returns 0x4cd218(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x4d3b6e",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4d3b6e_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4d3b6e_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4d3b6e_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4d3b6e_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4d3b6e",
+        "0x4d3b8a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52e310u at [this], returns 0x51d730(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x4d5260",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4d5260_init_vtable_call_ret_self"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4d5260_init_vtable_call_ret_self"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4d5260_init_vtable_call_ret_self"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4d5260_init_vtable_call_ret_self"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4d5260",
+        "0x4d527f"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52e450u at [this], calls 0x4d529b(this), returns this. No branch; all 12 instructions run."
+  },
+  {
+    "va": "0x4d527f",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4d527f_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4d527f_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4d527f_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4d527f_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4d527f",
+        "0x4d529b"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52e450u at [this], returns 0x4d52a6(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x4d58b0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4d58b0_init_vtable_call_ret_self"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4d58b0_init_vtable_call_ret_self"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4d58b0_init_vtable_call_ret_self"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4d58b0_init_vtable_call_ret_self"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4d58b0",
+        "0x4d58cf"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52e454u at [this], calls 0x4d58eb(this), returns this. No branch; all 12 instructions run."
+  },
+  {
+    "va": "0x4d58cf",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4d58cf_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4d58cf_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4d58cf_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4d58cf_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4d58cf",
+        "0x4d58eb"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52e454u at [this], returns 0x4d5b54(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x4db260",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4db260_init_vtable_call_ret_self"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4db260_init_vtable_call_ret_self"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4db260_init_vtable_call_ret_self"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4db260_init_vtable_call_ret_self"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4db260",
+        "0x4db27f"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52e458u at [this], calls 0x4db29b(this), returns this. No branch; all 12 instructions run."
+  },
+  {
+    "va": "0x4db27f",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4db27f_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4db27f_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4db27f_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4db27f_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4db27f",
+        "0x4db29b"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52e458u at [this], returns 0x4db377(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x4dd3b0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4dd3b0_init_vtable_call_ret_self"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4dd3b0_init_vtable_call_ret_self"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4dd3b0_init_vtable_call_ret_self"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4dd3b0_init_vtable_call_ret_self"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4dd3b0",
+        "0x4dd3cf"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52e4c8u at [this], calls 0x4dd3eb(this), returns this. No branch; all 12 instructions run."
+  },
+  {
+    "va": "0x4dd3cf",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4dd3cf_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4dd3cf_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4dd3cf_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4dd3cf_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4dd3cf",
+        "0x4dd3eb"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52e4c8u at [this], returns 0x4dd3f6(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x4e1c83",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4e1c83_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4e1c83_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4e1c83_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4e1c83_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4e1c83",
+        "0x4e1c9f"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52e4e8u at [this], returns 0x4e1d34(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x4ee980",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4ee980_init_vtable_call_ret_self"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4ee980_init_vtable_call_ret_self"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4ee980_init_vtable_call_ret_self"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4ee980_init_vtable_call_ret_self"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4ee980",
+        "0x4ee99f"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52e500u at [this], calls 0x4ee9bb(this), returns this. No branch; all 12 instructions run."
+  },
+  {
+    "va": "0x4ee99f",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4ee99f_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4ee99f_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4ee99f_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4ee99f_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4ee99f",
+        "0x4ee9bb"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52e500u at [this], returns 0x4eead0(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x4f0000",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4f0000_init_vtable_call_ret_self"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4f0000_init_vtable_call_ret_self"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4f0000_init_vtable_call_ret_self"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4f0000_init_vtable_call_ret_self"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4f0000",
+        "0x4f001f"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52e504u at [this], calls 0x4f003b(this), returns this. No branch; all 12 instructions run."
+  },
+  {
+    "va": "0x4f001f",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4f001f_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4f001f_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4f001f_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4f001f_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4f001f",
+        "0x4f003b"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52e504u at [this], returns 0x4f0046(this). No branch; all 11 instructions run."
+  },
+  {
+    "va": "0x4fa9e7",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36c.c",
+      "symbol": "m4fa9e7_init_vtable_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36c_direct_test.c",
+        "test_id": "test_m4fa9e7_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_direct.py",
+        "test_id": "Fl36cDirect.test_4fa9e7_init_vtable_call"
+      },
+      {
+        "path": "tests/test_fl36c_differential.py",
+        "test_id": "Fl36cDifferential.test_4fa9e7_init_vtable_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36c_original_oracle.py",
+      "window": [
+        "0x4fa9e7",
+        "0x4faa03"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52e518u at [this], returns 0x4fad50(this). No branch; all 11 instructions run."
+  }
+]

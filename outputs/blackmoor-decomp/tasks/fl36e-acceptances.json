@@ -1,0 +1,2642 @@
+[
+  {
+    "va": "0x402945",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m402945_empty_method_args"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m402945_empty_method_args"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_402945_empty_method_args"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_402945_empty_method_args"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x402945",
+        "0x402952"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Does nothing and pops 4 bytes of arguments; the object is not read or written. No branch; all 7 instructions run."
+  },
+  {
+    "va": "0x40338e",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m40338e_empty_method_args"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m40338e_empty_method_args"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_40338e_empty_method_args"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_40338e_empty_method_args"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x40338e",
+        "0x40339b"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Does nothing and pops 4 bytes of arguments; the object is not read or written. No branch; all 7 instructions run."
+  },
+  {
+    "va": "0x4033ab",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4033ab_call_two_return_const"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4033ab_call_two_return_const"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4033ab_call_two_return_const"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4033ab_call_two_return_const"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4033ab",
+        "0x4033cb"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x521b22(this) then 0x4033db(this), returns 0x1u. No branch; all 12 instructions run."
+  },
+  {
+    "va": "0x404b0c",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m404b0c_empty_method_args"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m404b0c_empty_method_args"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_404b0c_empty_method_args"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_404b0c_empty_method_args"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x404b0c",
+        "0x404b19"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Does nothing and pops 4 bytes of arguments; the object is not read or written. No branch; all 7 instructions run."
+  },
+  {
+    "va": "0x404b19",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m404b19_call_two_return_const"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m404b19_call_two_return_const"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_404b19_call_two_return_const"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_404b19_call_two_return_const"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x404b19",
+        "0x404b39"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x521b22(this) then 0x404be1(this), returns 0x1u. No branch; all 12 instructions run."
+  },
+  {
+    "va": "0x407c8a",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m407c8a_empty_method_args"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m407c8a_empty_method_args"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_407c8a_empty_method_args"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_407c8a_empty_method_args"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x407c8a",
+        "0x407c97"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Does nothing and pops 4 bytes of arguments; the object is not read or written. No branch; all 7 instructions run."
+  },
+  {
+    "va": "0x407d70",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m407d70_call_two_return_const"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m407d70_call_two_return_const"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_407d70_call_two_return_const"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_407d70_call_two_return_const"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x407d70",
+        "0x407d90"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x521b22(this) then 0x407ca7(this), returns 0x1u. No branch; all 12 instructions run."
+  },
+  {
+    "va": "0x40905e",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m40905e_empty_method_args"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m40905e_empty_method_args"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_40905e_empty_method_args"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_40905e_empty_method_args"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x40905e",
+        "0x40906b"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Does nothing and pops 4 bytes of arguments; the object is not read or written. No branch; all 7 instructions run."
+  },
+  {
+    "va": "0x40907b",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m40907b_call_two_return_const"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m40907b_call_two_return_const"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_40907b_call_two_return_const"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_40907b_call_two_return_const"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x40907b",
+        "0x40909b"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x521b22(this) then 0x4090ab(this), returns 0x1u. No branch; all 12 instructions run."
+  },
+  {
+    "va": "0x414cb0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m414cb0_destruct_base_set_vtable"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m414cb0_destruct_base_set_vtable"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_414cb0_destruct_base_set_vtable"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_414cb0_destruct_base_set_vtable"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x414cb0",
+        "0x414ccf"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x51d716(this), then stores 0x52c540u at [this], returns this. No branch; all 12 instructions run."
+  },
+  {
+    "va": "0x423450",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m423450_init_vtable_ret_self"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m423450_init_vtable_ret_self"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_423450_init_vtable_ret_self"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_423450_init_vtable_ret_self"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x423450",
+        "0x423467"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52c688u at [this], returns this. No branch; all 10 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x423467",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m423467_init_vtable_ret_self"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m423467_init_vtable_ret_self"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_423467_init_vtable_ret_self"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_423467_init_vtable_ret_self"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x423467",
+        "0x42347b"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52c688u at [this], returns this. No branch; all 9 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x4234b5",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4234b5_forward_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4234b5_forward_call"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4234b5_forward_call"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4234b5_forward_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4234b5",
+        "0x4234c8"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns 0x42347b(this). No branch; all 9 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x426b5d",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m426b5d_call_global_object"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m426b5d_call_global_object"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_426b5d_call_global_object"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_426b5d_call_global_object"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x426b5d",
+        "0x426b6c"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns 0x426520 with ecx = 0x570388. No branch; all 6 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x426b7e",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m426b7e_call_global_object"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m426b7e_call_global_object"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_426b7e_call_global_object"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_426b7e_call_global_object"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x426b7e",
+        "0x426b8d"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns 0x427420 with ecx = 0x570388. No branch; all 6 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x43772f",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m43772f_init_vtable_ret_self"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m43772f_init_vtable_ret_self"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_43772f_init_vtable_ret_self"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_43772f_init_vtable_ret_self"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x43772f",
+        "0x437743"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52c7bcu at [this], returns this. No branch; all 9 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x43eb3a",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m43eb3a_destruct_base_set_vtable"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m43eb3a_destruct_base_set_vtable"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_43eb3a_destruct_base_set_vtable"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_43eb3a_destruct_base_set_vtable"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x43eb3a",
+        "0x43eb59"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x5227c6(this), then stores 0x52c900u at [this], returns this. No branch; all 12 instructions run."
+  },
+  {
+    "va": "0x43ef10",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m43ef10_init_vtable_ret_self"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m43ef10_init_vtable_ret_self"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_43ef10_init_vtable_ret_self"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_43ef10_init_vtable_ret_self"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x43ef10",
+        "0x43ef27"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52ca10u at [this], returns this. No branch; all 10 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x43ef27",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m43ef27_init_vtable_ret_self"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m43ef27_init_vtable_ret_self"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_43ef27_init_vtable_ret_self"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_43ef27_init_vtable_ret_self"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x43ef27",
+        "0x43ef3b"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52ca10u at [this], returns this. No branch; all 9 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x445f40",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m445f40_forward_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m445f40_forward_call"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_445f40_forward_call"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_445f40_forward_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x445f40",
+        "0x445f53"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns 0x445e2b(this). No branch; all 9 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x447d4b",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m447d4b_set_field_const"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m447d4b_set_field_const"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_447d4b_set_field_const"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_447d4b_set_field_const"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x447d4b",
+        "0x447d60"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x0u at [this + 0x4], returns this. No branch; all 9 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x447e27",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m447e27_destruct_base_set_vtable"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m447e27_destruct_base_set_vtable"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_447e27_destruct_base_set_vtable"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_447e27_destruct_base_set_vtable"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x447e27",
+        "0x447e46"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x51d716(this), then stores 0x52cb08u at [this], returns this. No branch; all 12 instructions run."
+  },
+  {
+    "va": "0x447e62",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m447e62_set_field_arg"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m447e62_set_field_arg"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_447e62_set_field_arg"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_447e62_set_field_arg"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x447e62",
+        "0x447e78"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores its argument at [this + 0x1e], returns this. No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x44883f",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m44883f_init_vtable_ret_self"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m44883f_init_vtable_ret_self"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_44883f_init_vtable_ret_self"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_44883f_init_vtable_ret_self"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x44883f",
+        "0x448853"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52cb58u at [this], returns this. No branch; all 9 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x44885e",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m44885e_forward_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m44885e_forward_call"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_44885e_forward_call"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_44885e_forward_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x44885e",
+        "0x448871"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns 0x448853(this). No branch; all 9 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x44afb7",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m44afb7_destruct_base_set_vtable"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m44afb7_destruct_base_set_vtable"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_44afb7_destruct_base_set_vtable"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_44afb7_destruct_base_set_vtable"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x44afb7",
+        "0x44afd6"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x51d716(this), then stores 0x52cb98u at [this], returns this. No branch; all 12 instructions run."
+  },
+  {
+    "va": "0x44be90",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m44be90_init_vtable_ret_self"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m44be90_init_vtable_ret_self"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_44be90_init_vtable_ret_self"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_44be90_init_vtable_ret_self"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x44be90",
+        "0x44bea7"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52cbf0u at [this], returns this. No branch; all 10 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x44bea7",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m44bea7_init_vtable_ret_self"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m44bea7_init_vtable_ret_self"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_44bea7_init_vtable_ret_self"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_44bea7_init_vtable_ret_self"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x44bea7",
+        "0x44bebb"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52cbf0u at [this], returns this. No branch; all 9 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x454d8a",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m454d8a_set_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m454d8a_set_word"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_454d8a_set_word"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_454d8a_set_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x454d8a",
+        "0x454d9e"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores the word 0x0 at 0x5a0541. No branch; all 8 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x456dab",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m456dab_set_two_words"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m456dab_set_two_words"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_456dab_set_two_words"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_456dab_set_two_words"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x456dab",
+        "0x456dc8"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores the word 0x0 at 0x5957c1 and 0x0 at 0x5957c3. No branch; all 9 instructions run."
+  },
+  {
+    "va": "0x46401a",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m46401a_set_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m46401a_set_word"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_46401a_set_word"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_46401a_set_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x46401a",
+        "0x46402e"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores the word 0x0 at 0x5a0543. No branch; all 8 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x4674ff",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4674ff_init_vtable_ret_self"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4674ff_init_vtable_ret_self"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4674ff_init_vtable_ret_self"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4674ff_init_vtable_ret_self"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4674ff",
+        "0x467513"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52d1e0u at [this], returns this. No branch; all 9 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x46b73e",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m46b73e_set_two_words"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m46b73e_set_two_words"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_46b73e_set_two_words"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_46b73e_set_two_words"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x46b73e",
+        "0x46b75b"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores the word 0x0 at 0x5a14db and 0x270f at 0x5a14dd. No branch; all 9 instructions run."
+  },
+  {
+    "va": "0x470e71",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m470e71_set_two_words"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m470e71_set_two_words"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_470e71_set_two_words"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_470e71_set_two_words"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x470e71",
+        "0x470e8e"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores the word 0x0 at 0x5957b5 and 0x0 at 0x5957b7. No branch; all 9 instructions run."
+  },
+  {
+    "va": "0x4712b0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4712b0_empty_method_args"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4712b0_empty_method_args"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4712b0_empty_method_args"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4712b0_empty_method_args"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4712b0",
+        "0x4712bd"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Does nothing and pops 8 bytes of arguments; the object is not read or written. No branch; all 7 instructions run."
+  },
+  {
+    "va": "0x4782be",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4782be_set_two_words"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4782be_set_two_words"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4782be_set_two_words"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4782be_set_two_words"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4782be",
+        "0x4782db"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores the word 0x0 at 0x5957bb and 0x270f at 0x5957bd. No branch; all 9 instructions run."
+  },
+  {
+    "va": "0x488d6a",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m488d6a_destruct_base_set_vtable"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m488d6a_destruct_base_set_vtable"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_488d6a_destruct_base_set_vtable"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_488d6a_destruct_base_set_vtable"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x488d6a",
+        "0x488d89"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x51d716(this), then stores 0x52d850u at [this], returns this. No branch; all 12 instructions run."
+  },
+  {
+    "va": "0x48d119",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m48d119_set_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m48d119_set_word"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_48d119_set_word"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_48d119_set_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x48d119",
+        "0x48d12d"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores the word 0x0 at 0x594daf. No branch; all 8 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x493ad8",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m493ad8_set_field_const"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m493ad8_set_field_const"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_493ad8_set_field_const"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_493ad8_set_field_const"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x493ad8",
+        "0x493af0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x1u at [this + 0x200b], returns this. No branch; all 9 instructions run."
+  },
+  {
+    "va": "0x4a7ddc",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4a7ddc_set_two_words"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4a7ddc_set_two_words"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4a7ddc_set_two_words"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4a7ddc_set_two_words"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4a7ddc",
+        "0x4a7df9"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores the word 0x0 at 0x5a110b and 0x270f at 0x5a110d. No branch; all 9 instructions run."
+  },
+  {
+    "va": "0x4ab459",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4ab459_set_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4ab459_set_word"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4ab459_set_word"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4ab459_set_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4ab459",
+        "0x4ab46d"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores the word 0x0 at 0x5957b9. No branch; all 8 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x4b5c48",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4b5c48_set_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4b5c48_set_word"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4b5c48_set_word"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4b5c48_set_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4b5c48",
+        "0x4b5c5c"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores the word 0x0 at 0x594db1. No branch; all 8 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x4bf3a4",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4bf3a4_get_field"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4bf3a4_get_field"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4bf3a4_get_field"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4bf3a4_get_field"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4bf3a4",
+        "0x4bf3b8"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the dword at [this + 0x2c0]. No branch; all 9 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x4c0c40",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4c0c40_get_field"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4c0c40_get_field"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4c0c40_get_field"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4c0c40_get_field"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4c0c40",
+        "0x4c0c54"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the dword at [this + 0x216]. No branch; all 9 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x4caeef",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4caeef_init_vtable_ret_self"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4caeef_init_vtable_ret_self"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4caeef_init_vtable_ret_self"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4caeef_init_vtable_ret_self"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4caeef",
+        "0x4caf03"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x52e23cu at [this], returns this. No branch; all 9 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x4cc927",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4cc927_destruct_base_set_vtable"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4cc927_destruct_base_set_vtable"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4cc927_destruct_base_set_vtable"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4cc927_destruct_base_set_vtable"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4cc927",
+        "0x4cc946"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x51d716(this), then stores 0x52e278u at [this], returns this. No branch; all 12 instructions run."
+  },
+  {
+    "va": "0x4d3705",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4d3705_call_global_object"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4d3705_call_global_object"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4d3705_call_global_object"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4d3705_call_global_object"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4d3705",
+        "0x4d3714"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns 0x4e79ca with ecx = 0x582711. No branch; all 6 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x4d3714",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4d3714_call_global_object"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4d3714_call_global_object"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4d3714_call_global_object"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4d3714_call_global_object"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4d3714",
+        "0x4d3723"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns 0x4e1157 with ecx = 0x570508. No branch; all 6 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x4d3c1d",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4d3c1d_get_field"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4d3c1d_get_field"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4d3c1d_get_field"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4d3c1d_get_field"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4d3c1d",
+        "0x4d3c31"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the dword at [this + 0x462]. No branch; all 9 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x4d51ea",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4d51ea_empty_method_args"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4d51ea_empty_method_args"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4d51ea_empty_method_args"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4d51ea_empty_method_args"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4d51ea",
+        "0x4d51f7"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Does nothing and pops 4 bytes of arguments; the object is not read or written. No branch; all 7 instructions run."
+  },
+  {
+    "va": "0x4d52a6",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4d52a6_forward_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4d52a6_forward_call"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4d52a6_forward_call"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4d52a6_forward_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4d52a6",
+        "0x4d52b9"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns 0x4d529b(this). No branch; all 9 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x4dae66",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4dae66_get_field"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4dae66_get_field"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4dae66_get_field"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4dae66_get_field"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4dae66",
+        "0x4dae77"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the dword at [this + 0x18]. No branch; all 9 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x4dae77",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4dae77_get_field"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4dae77_get_field"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4dae77_get_field"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4dae77_get_field"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4dae77",
+        "0x4dae88"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the dword at [this + 0x1c]. No branch; all 9 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x4daef1",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4daef1_get_field"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4daef1_get_field"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4daef1_get_field"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4daef1_get_field"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4daef1",
+        "0x4daf02"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the dword at [this + 0xc]. No branch; all 9 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x4daf02",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4daf02_set_field_arg"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4daf02_set_field_arg"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4daf02_set_field_arg"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4daf02_set_field_arg"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4daf02",
+        "0x4daf18"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores its argument at [this + 0xc], returns this. No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x4daf18",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4daf18_get_field"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4daf18_get_field"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4daf18_get_field"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4daf18_get_field"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4daf18",
+        "0x4daf29"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the dword at [this + 0x10]. No branch; all 9 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x4daf29",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4daf29_set_field_arg"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4daf29_set_field_arg"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4daf29_set_field_arg"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4daf29_set_field_arg"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4daf29",
+        "0x4daf3f"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores its argument at [this + 0x10], returns this. No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x4db377",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4db377_forward_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4db377_forward_call"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4db377_forward_call"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4db377_forward_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4db377",
+        "0x4db38a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns 0x4db29b(this). No branch; all 9 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x4dd3f6",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4dd3f6_forward_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4dd3f6_forward_call"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4dd3f6_forward_call"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4dd3f6_forward_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4dd3f6",
+        "0x4dd409"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns 0x4dd3eb(this). No branch; all 9 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x4e0742",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4e0742_set_field_const"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4e0742_set_field_const"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4e0742_set_field_const"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4e0742_set_field_const"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4e0742",
+        "0x4e075a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x1u at [this + 0xf2e], returns this. No branch; all 9 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x4e2940",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4e2940_set_field_arg"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4e2940_set_field_arg"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4e2940_set_field_arg"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4e2940_set_field_arg"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4e2940",
+        "0x4e2956"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores its argument at [this + 0x30], returns this. No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x4e2956",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4e2956_get_field"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4e2956_get_field"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4e2956_get_field"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4e2956_get_field"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4e2956",
+        "0x4e2967"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the dword at [this + 0x30]. No branch; all 9 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x4e2967",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4e2967_get_field"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4e2967_get_field"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4e2967_get_field"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4e2967_get_field"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4e2967",
+        "0x4e2978"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the dword at [this + 0x7a]. No branch; all 9 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x4e2978",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4e2978_set_field_const"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4e2978_set_field_const"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4e2978_set_field_const"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4e2978_set_field_const"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4e2978",
+        "0x4e2990"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x1u at [this + 0x177], returns this. No branch; all 9 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x4e2990",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4e2990_set_field_arg"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4e2990_set_field_arg"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4e2990_set_field_arg"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4e2990_set_field_arg"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4e2990",
+        "0x4e29a6"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores its argument at [this + 0x18], returns this. No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x4e29a6",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4e29a6_get_field"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4e29a6_get_field"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4e29a6_get_field"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4e29a6_get_field"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4e29a6",
+        "0x4e29b7"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the dword at [this + 0x18]. No branch; all 9 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x4e40fb",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4e40fb_forward_call_arg"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4e40fb_forward_call_arg"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4e40fb_forward_call_arg"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4e40fb_forward_call_arg"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4e40fb",
+        "0x4e4114"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns 0x4edfaf(this, its one argument). No branch; all 11 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x4e4114",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4e4114_forward_call_arg"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4e4114_forward_call_arg"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4e4114_forward_call_arg"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4e4114_forward_call_arg"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4e4114",
+        "0x4e412d"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns 0x4ee0d4(this, its one argument). No branch; all 11 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x4e779f",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4e779f_forward_call_arg"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4e779f_forward_call_arg"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4e779f_forward_call_arg"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4e779f_forward_call_arg"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4e779f",
+        "0x4e77b8"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns 0x4ee0d4(this, its one argument). No branch; all 11 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x4e89b9",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4e89b9_forward_call_arg"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4e89b9_forward_call_arg"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4e89b9_forward_call_arg"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4e89b9_forward_call_arg"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4e89b9",
+        "0x4e89d2"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns 0x4edfaf(this, its one argument). No branch; all 11 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x4e89d2",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4e89d2_forward_call_arg"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4e89d2_forward_call_arg"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4e89d2_forward_call_arg"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4e89d2_forward_call_arg"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4e89d2",
+        "0x4e89eb"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns 0x4ee0d4(this, its one argument). No branch; all 11 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x4e9e6c",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4e9e6c_set_field_const"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4e9e6c_set_field_const"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4e9e6c_set_field_const"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4e9e6c_set_field_const"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4e9e6c",
+        "0x4e9e84"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores 0x0u at [this + 0x8256], returns this. No branch; all 9 instructions run."
+  },
+  {
+    "va": "0x4ebd53",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4ebd53_forward_call_arg"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4ebd53_forward_call_arg"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4ebd53_forward_call_arg"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4ebd53_forward_call_arg"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4ebd53",
+        "0x4ebd6c"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns 0x4edfaf(this, its one argument). No branch; all 11 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x4ebd6c",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4ebd6c_forward_call_arg"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4ebd6c_forward_call_arg"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4ebd6c_forward_call_arg"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4ebd6c_forward_call_arg"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4ebd6c",
+        "0x4ebd85"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns 0x4ee0d4(this, its one argument). No branch; all 11 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x4ee602",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4ee602_get_field"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4ee602_get_field"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4ee602_get_field"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4ee602_get_field"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4ee602",
+        "0x4ee616"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the dword at [this + 0x4af]. No branch; all 9 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x4ee630",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4ee630_get_field"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4ee630_get_field"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4ee630_get_field"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4ee630_get_field"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4ee630",
+        "0x4ee644"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the dword at [this + 0x4ab]. No branch; all 9 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x4ef4c9",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4ef4c9_set_field_arg"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4ef4c9_set_field_arg"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4ef4c9_set_field_arg"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4ef4c9_set_field_arg"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4ef4c9",
+        "0x4ef4df"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Stores its argument at [this + 0x10], returns this. No branch; all 10 instructions run."
+  },
+  {
+    "va": "0x4ef4df",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4ef4df_get_field"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4ef4df_get_field"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4ef4df_get_field"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4ef4df_get_field"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4ef4df",
+        "0x4ef4f0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the dword at [this + 0x10]. No branch; all 9 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x4ef516",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4ef516_get_field"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4ef516_get_field"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4ef516_get_field"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4ef516_get_field"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4ef516",
+        "0x4ef52a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the dword at [this + 0x162]. No branch; all 9 instructions run. Nothing else is read or written."
+  },
+  {
+    "va": "0x4f0046",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36e.c",
+      "symbol": "m4f0046_forward_call"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36e_direct_test.c",
+        "test_id": "test_m4f0046_forward_call"
+      },
+      {
+        "path": "tests/test_fl36e_direct.py",
+        "test_id": "Fl36eDirect.test_4f0046_forward_call"
+      },
+      {
+        "path": "tests/test_fl36e_differential.py",
+        "test_id": "Fl36eDifferential.test_4f0046_forward_call"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36e_original_oracle.py",
+      "window": [
+        "0x4f0046",
+        "0x4f0059"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns 0x4f003b(this). No branch; all 9 instructions run. Nothing else is read or written."
+  }
+]

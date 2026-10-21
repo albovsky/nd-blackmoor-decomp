@@ -1,0 +1,4259 @@
+[
+  {
+    "va": "0x40104e",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m40104e_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m40104e_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_40104e_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_40104e_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x40104e",
+        "0x40105e"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52a550u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x4010b0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4010b0_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4010b0_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4010b0_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4010b0_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4010b0",
+        "0x4010c0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x80u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x40148a",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m40148a_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m40148a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_40148a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_40148a_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x40148a",
+        "0x40149a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52a688u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x40167f",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m40167f_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m40167f_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_40167f_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_40167f_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x40167f",
+        "0x40168f"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52a6a0u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x402952",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m402952_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m402952_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_402952_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_402952_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x402952",
+        "0x402962"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52ac60u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x4030aa",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4030aa_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4030aa_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4030aa_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4030aa_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4030aa",
+        "0x4030ba"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52af90u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x40339b",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m40339b_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m40339b_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_40339b_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_40339b_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x40339b",
+        "0x4033ab"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52afa8u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x4033cb",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4033cb_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4033cb_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4033cb_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4033cb_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4033cb",
+        "0x4033db"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x1u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x404aba",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m404aba_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m404aba_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_404aba_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_404aba_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x404aba",
+        "0x404aca"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52b358u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x404b39",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m404b39_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m404b39_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_404b39_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_404b39_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x404b39",
+        "0x404b49"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x1u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x405b62",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m405b62_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m405b62_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_405b62_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_405b62_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x405b62",
+        "0x405b72"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52b370u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x407baa",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m407baa_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m407baa_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_407baa_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_407baa_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x407baa",
+        "0x407bba"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52bb28u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x407c97",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m407c97_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m407c97_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_407c97_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_407c97_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x407c97",
+        "0x407ca7"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52bb40u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x407d90",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m407d90_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m407d90_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_407d90_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_407d90_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x407d90",
+        "0x407da0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x1u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x408a1a",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m408a1a_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m408a1a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_408a1a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_408a1a_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x408a1a",
+        "0x408a2a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52bfc8u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x40906b",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m40906b_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m40906b_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_40906b_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_40906b_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x40906b",
+        "0x40907b"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52bfe0u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x40909b",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m40909b_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m40909b_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_40909b_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_40909b_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x40909b",
+        "0x4090ab"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x1u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x414527",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m414527_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m414527_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_414527_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_414527_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x414527",
+        "0x414537"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52c4b8u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x41a4be",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m41a4be_empty_method"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m41a4be_empty_method"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_41a4be_empty_method"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_41a4be_empty_method"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x41a4be",
+        "0x41a4c9"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Does nothing; the object is not read or written. No branch; all 7 instructions run."
+  },
+  {
+    "va": "0x41be0a",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m41be0a_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m41be0a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_41be0a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_41be0a_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x41be0a",
+        "0x41be1a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52c5f0u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x4229fa",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4229fa_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4229fa_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4229fa_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4229fa_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4229fa",
+        "0x422a0a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52c608u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x426510",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m426510_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m426510_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_426510_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_426510_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x426510",
+        "0x426520"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52c690u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x43eb1a",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m43eb1a_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m43eb1a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_43eb1a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_43eb1a_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x43eb1a",
+        "0x43eb2a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52c7c0u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x43eb2a",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m43eb2a_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m43eb2a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_43eb2a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_43eb2a_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x43eb2a",
+        "0x43eb3a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52c7d8u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x43ef00",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m43ef00_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m43ef00_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_43ef00_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_43ef00_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x43ef00",
+        "0x43ef10"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52c9f8u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x446f67",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m446f67_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m446f67_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_446f67_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_446f67_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x446f67",
+        "0x446f77"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52ca20u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x447e17",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m447e17_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m447e17_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_447e17_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_447e17_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x447e17",
+        "0x447e27"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52cad0u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x447e78",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m447e78_empty_method"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m447e78_empty_method"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_447e78_empty_method"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_447e78_empty_method"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x447e78",
+        "0x447e83"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Does nothing; the object is not read or written. No branch; all 7 instructions run."
+  },
+  {
+    "va": "0x448853",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m448853_empty_method"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m448853_empty_method"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_448853_empty_method"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_448853_empty_method"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x448853",
+        "0x44885e"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Does nothing; the object is not read or written. No branch; all 7 instructions run."
+  },
+  {
+    "va": "0x448871",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m448871_empty_method"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m448871_empty_method"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_448871_empty_method"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_448871_empty_method"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x448871",
+        "0x44887c"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Does nothing; the object is not read or written. No branch; all 7 instructions run."
+  },
+  {
+    "va": "0x44afa7",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m44afa7_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m44afa7_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_44afa7_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_44afa7_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x44afa7",
+        "0x44afb7"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52cb60u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x44d087",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m44d087_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m44d087_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_44d087_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_44d087_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x44d087",
+        "0x44d097"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52cc00u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x44e025",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m44e025_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m44e025_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_44e025_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_44e025_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x44e025",
+        "0x44e035"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52cc18u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x44e6e7",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m44e6e7_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m44e6e7_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_44e6e7_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_44e6e7_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x44e6e7",
+        "0x44e6f7"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52cc88u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x44e80b",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m44e80b_empty_method"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m44e80b_empty_method"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_44e80b_empty_method"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_44e80b_empty_method"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x44e80b",
+        "0x44e816"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Does nothing; the object is not read or written. No branch; all 7 instructions run."
+  },
+  {
+    "va": "0x44f4ea",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m44f4ea_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m44f4ea_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_44f4ea_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_44f4ea_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x44f4ea",
+        "0x44f4fa"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52cca0u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x454d0a",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m454d0a_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m454d0a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_454d0a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_454d0a_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x454d0a",
+        "0x454d1a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52cd18u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x456506",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m456506_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m456506_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_456506_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_456506_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x456506",
+        "0x456516"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52cd30u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x456c87",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m456c87_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m456c87_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_456c87_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_456c87_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x456c87",
+        "0x456c97"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52cda0u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x457bc8",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m457bc8_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m457bc8_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_457bc8_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_457bc8_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x457bc8",
+        "0x457bd8"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52cdb8u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x457efa",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m457efa_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m457efa_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_457efa_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_457efa_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x457efa",
+        "0x457f0a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52ce28u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x4595e1",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4595e1_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4595e1_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4595e1_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4595e1_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4595e1",
+        "0x4595f1"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52ce40u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x459a6a",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m459a6a_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m459a6a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_459a6a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_459a6a_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x459a6a",
+        "0x459a7a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52ceb0u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x45ae5e",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m45ae5e_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m45ae5e_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_45ae5e_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_45ae5e_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x45ae5e",
+        "0x45ae6e"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52cec8u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x45b36a",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m45b36a_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m45b36a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_45b36a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_45b36a_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x45b36a",
+        "0x45b37a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52cf38u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x45d2b6",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m45d2b6_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m45d2b6_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_45d2b6_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_45d2b6_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x45d2b6",
+        "0x45d2c6"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52cf50u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x45dc0a",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m45dc0a_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m45dc0a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_45dc0a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_45dc0a_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x45dc0a",
+        "0x45dc1a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52cfc0u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x460f16",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m460f16_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m460f16_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_460f16_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_460f16_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x460f16",
+        "0x460f26"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52cfd8u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x4617a7",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4617a7_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4617a7_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4617a7_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4617a7_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4617a7",
+        "0x4617b7"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52d048u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x463b00",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m463b00_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m463b00_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_463b00_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_463b00_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x463b00",
+        "0x463b10"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52d060u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x463f9a",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m463f9a_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m463f9a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_463f9a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_463f9a_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x463f9a",
+        "0x463faa"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52d0d0u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x4657d7",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4657d7_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4657d7_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4657d7_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4657d7_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4657d7",
+        "0x4657e7"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52d0e8u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x465a87",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m465a87_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m465a87_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_465a87_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_465a87_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x465a87",
+        "0x465a97"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52d158u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x465bd3",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m465bd3_empty_method"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m465bd3_empty_method"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_465bd3_empty_method"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_465bd3_empty_method"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x465bd3",
+        "0x465bde"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Does nothing; the object is not read or written. No branch; all 7 instructions run."
+  },
+  {
+    "va": "0x466e04",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m466e04_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m466e04_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_466e04_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_466e04_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x466e04",
+        "0x466e14"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52d170u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x468dda",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m468dda_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m468dda_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_468dda_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_468dda_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x468dda",
+        "0x468dea"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52d1e8u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x46ab6f",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m46ab6f_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m46ab6f_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_46ab6f_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_46ab6f_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x46ab6f",
+        "0x46ab7f"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52d200u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x46b50a",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m46b50a_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m46b50a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_46b50a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_46b50a_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x46b50a",
+        "0x46b51a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52d2b0u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x46dea0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m46dea0_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m46dea0_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_46dea0_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_46dea0_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x46dea0",
+        "0x46deb0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52d2c8u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x46e5ea",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m46e5ea_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m46e5ea_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_46e5ea_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_46e5ea_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x46e5ea",
+        "0x46e5fa"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52d338u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x470a63",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m470a63_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m470a63_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_470a63_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_470a63_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x470a63",
+        "0x470a73"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52d350u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x470cfa",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m470cfa_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m470cfa_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_470cfa_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_470cfa_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x470cfa",
+        "0x470d0a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52d3c0u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x472a4c",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m472a4c_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m472a4c_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_472a4c_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_472a4c_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x472a4c",
+        "0x472a5c"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52d3d8u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x47575a",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m47575a_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m47575a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_47575a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_47575a_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x47575a",
+        "0x47576a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52d458u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x4778cf",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4778cf_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4778cf_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4778cf_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4778cf_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4778cf",
+        "0x4778df"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52d470u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x47817a",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m47817a_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m47817a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_47817a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_47817a_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x47817a",
+        "0x47818a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52d4e0u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x47ac23",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m47ac23_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m47ac23_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_47ac23_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_47ac23_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x47ac23",
+        "0x47ac33"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52d4f8u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x47d477",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m47d477_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m47d477_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_47d477_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_47d477_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x47d477",
+        "0x47d487"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52d570u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x47d677",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m47d677_empty_method"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m47d677_empty_method"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_47d677_empty_method"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_47d677_empty_method"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x47d677",
+        "0x47d682"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Does nothing; the object is not read or written. No branch; all 7 instructions run."
+  },
+  {
+    "va": "0x47df47",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m47df47_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m47df47_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_47df47_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_47df47_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x47df47",
+        "0x47df57"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52d588u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x47e1da",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m47e1da_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m47e1da_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_47e1da_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_47e1da_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x47e1da",
+        "0x47e1ea"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52d5f8u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x481ca9",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m481ca9_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m481ca9_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_481ca9_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_481ca9_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x481ca9",
+        "0x481cb9"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52d610u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x4820fa",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4820fa_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4820fa_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4820fa_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4820fa_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4820fa",
+        "0x48210a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52d680u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x483ac9",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m483ac9_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m483ac9_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_483ac9_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_483ac9_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x483ac9",
+        "0x483ad9"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52d698u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x483eea",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m483eea_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m483eea_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_483eea_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_483eea_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x483eea",
+        "0x483efa"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52d708u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x4876dd",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4876dd_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4876dd_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4876dd_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4876dd_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4876dd",
+        "0x4876ed"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52d720u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x487a9a",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m487a9a_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m487a9a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_487a9a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_487a9a_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x487a9a",
+        "0x487aaa"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52d790u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x487bcc",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m487bcc_empty_method"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m487bcc_empty_method"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_487bcc_empty_method"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_487bcc_empty_method"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x487bcc",
+        "0x487bd7"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Does nothing; the object is not read or written. No branch; all 7 instructions run."
+  },
+  {
+    "va": "0x4889e0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4889e0_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4889e0_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4889e0_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4889e0_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4889e0",
+        "0x4889f0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52d7a8u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x488d5a",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m488d5a_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m488d5a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_488d5a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_488d5a_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x488d5a",
+        "0x488d6a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52d818u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x48a3cb",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m48a3cb_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m48a3cb_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_48a3cb_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_48a3cb_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x48a3cb",
+        "0x48a3db"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52d830u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x48a68a",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m48a68a_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m48a68a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_48a68a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_48a68a_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x48a68a",
+        "0x48a69a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52d8a0u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x48b720",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m48b720_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m48b720_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_48b720_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_48b720_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x48b720",
+        "0x48b730"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52d8b8u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x48ba97",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m48ba97_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m48ba97_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_48ba97_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_48ba97_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x48ba97",
+        "0x48baa7"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52d928u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x48bc9b",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m48bc9b_empty_method"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m48bc9b_empty_method"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_48bc9b_empty_method"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_48bc9b_empty_method"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x48bc9b",
+        "0x48bca6"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Does nothing; the object is not read or written. No branch; all 7 instructions run."
+  },
+  {
+    "va": "0x48cc60",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m48cc60_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m48cc60_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_48cc60_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_48cc60_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x48cc60",
+        "0x48cc70"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52d940u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x48cfe7",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m48cfe7_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m48cfe7_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_48cfe7_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_48cfe7_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x48cfe7",
+        "0x48cff7"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52d9b0u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x48dec7",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m48dec7_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m48dec7_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_48dec7_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_48dec7_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x48dec7",
+        "0x48ded7"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52d9c8u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x48e20a",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m48e20a_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m48e20a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_48e20a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_48e20a_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x48e20a",
+        "0x48e21a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52da38u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x49026c",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m49026c_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m49026c_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_49026c_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_49026c_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x49026c",
+        "0x49027c"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52da50u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x4904ea",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4904ea_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4904ea_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4904ea_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4904ea_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4904ea",
+        "0x4904fa"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52dac0u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x494f14",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m494f14_empty_method"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m494f14_empty_method"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_494f14_empty_method"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_494f14_empty_method"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x494f14",
+        "0x494f1f"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Does nothing; the object is not read or written. No branch; all 7 instructions run."
+  },
+  {
+    "va": "0x49c45c",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m49c45c_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m49c45c_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_49c45c_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_49c45c_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x49c45c",
+        "0x49c46c"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52dad8u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x49c52a",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m49c52a_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m49c52a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_49c52a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_49c52a_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x49c52a",
+        "0x49c53a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52db90u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x4a1bc7",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4a1bc7_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4a1bc7_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4a1bc7_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4a1bc7_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4a1bc7",
+        "0x4a1bd7"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52dc20u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x4a35c7",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4a35c7_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4a35c7_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4a35c7_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4a35c7_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4a35c7",
+        "0x4a35d7"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52dc38u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x4a370a",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4a370a_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4a370a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4a370a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4a370a_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4a370a",
+        "0x4a371a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52dca8u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x4a5eda",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4a5eda_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4a5eda_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4a5eda_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4a5eda_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4a5eda",
+        "0x4a5eea"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52dcc0u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x4a630a",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4a630a_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4a630a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4a630a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4a630a_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4a630a",
+        "0x4a631a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52dd30u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x4a64ae",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4a64ae_empty_method"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4a64ae_empty_method"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4a64ae_empty_method"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4a64ae_empty_method"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4a64ae",
+        "0x4a64b9"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Does nothing; the object is not read or written. No branch; all 7 instructions run."
+  },
+  {
+    "va": "0x4a7a19",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4a7a19_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4a7a19_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4a7a19_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4a7a19_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4a7a19",
+        "0x4a7a29"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52dd48u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x4a7bfa",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4a7bfa_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4a7bfa_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4a7bfa_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4a7bfa_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4a7bfa",
+        "0x4a7c0a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52ddb8u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x4a9b1b",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4a9b1b_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4a9b1b_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4a9b1b_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4a9b1b_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4a9b1b",
+        "0x4a9b2b"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52ddd0u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x4a9ea7",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4a9ea7_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4a9ea7_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4a9ea7_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4a9ea7_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4a9ea7",
+        "0x4a9eb7"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52de40u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x4aaef5",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4aaef5_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4aaef5_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4aaef5_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4aaef5_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4aaef5",
+        "0x4aaf05"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52de58u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x4ab327",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4ab327_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4ab327_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4ab327_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4ab327_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4ab327",
+        "0x4ab337"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52dec8u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x4ac488",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4ac488_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4ac488_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4ac488_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4ac488_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4ac488",
+        "0x4ac498"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52dee0u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x4ac85a",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4ac85a_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4ac85a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4ac85a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4ac85a_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4ac85a",
+        "0x4ac86a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52df50u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x4afa0e",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4afa0e_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4afa0e_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4afa0e_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4afa0e_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4afa0e",
+        "0x4afa1e"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52df68u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x4afcba",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4afcba_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4afcba_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4afcba_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4afcba_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4afcba",
+        "0x4afcca"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52dfd8u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x4afdfe",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4afdfe_empty_method"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4afdfe_empty_method"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4afdfe_empty_method"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4afdfe_empty_method"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4afdfe",
+        "0x4afe09"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Does nothing; the object is not read or written. No branch; all 7 instructions run."
+  },
+  {
+    "va": "0x4b371c",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4b371c_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4b371c_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4b371c_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4b371c_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4b371c",
+        "0x4b372c"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52dff0u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x4b3bda",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4b3bda_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4b3bda_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4b3bda_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4b3bda_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4b3bda",
+        "0x4b3bea"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52e060u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x4b5838",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4b5838_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4b5838_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4b5838_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4b5838_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4b5838",
+        "0x4b5848"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52e078u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x4b5b0a",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4b5b0a_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4b5b0a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4b5b0a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4b5b0a_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4b5b0a",
+        "0x4b5b1a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52e0e8u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x4b7041",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4b7041_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4b7041_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4b7041_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4b7041_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4b7041",
+        "0x4b7051"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52e100u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x4b7177",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4b7177_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4b7177_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4b7177_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4b7177_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4b7177",
+        "0x4b7187"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52e170u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x4b7ddd",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4b7ddd_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4b7ddd_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4b7ddd_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4b7ddd_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4b7ddd",
+        "0x4b7ded"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52e188u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x4c0f60",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4c0f60_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4c0f60_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4c0f60_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4c0f60_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4c0f60",
+        "0x4c0f70"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52e218u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x4cc917",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4cc917_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4cc917_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4cc917_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4cc917_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4cc917",
+        "0x4cc927"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52e240u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x4d3b0a",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4d3b0a_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4d3b0a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4d3b0a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4d3b0a_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4d3b0a",
+        "0x4d3b1a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52e2d8u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x4d3b8a",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4d3b8a_empty_method"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4d3b8a_empty_method"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4d3b8a_empty_method"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4d3b8a_empty_method"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4d3b8a",
+        "0x4d3b95"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Does nothing; the object is not read or written. No branch; all 7 instructions run."
+  },
+  {
+    "va": "0x4d3d3d",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4d3d3d_empty_method"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4d3d3d_empty_method"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4d3d3d_empty_method"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4d3d3d_empty_method"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4d3d3d",
+        "0x4d3d48"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Does nothing; the object is not read or written. No branch; all 7 instructions run."
+  },
+  {
+    "va": "0x4d4192",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4d4192_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4d4192_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4d4192_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4d4192_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4d4192",
+        "0x4d41a2"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52e2f0u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x4d51f7",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4d51f7_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4d51f7_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4d51f7_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4d51f7_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4d51f7",
+        "0x4d5207"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52e360u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x4d529b",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4d529b_empty_method"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4d529b_empty_method"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4d529b_empty_method"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4d529b_empty_method"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4d529b",
+        "0x4d52a6"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Does nothing; the object is not read or written. No branch; all 7 instructions run."
+  },
+  {
+    "va": "0x4dbf0a",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4dbf0a_get_constant"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4dbf0a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4dbf0a_get_constant"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4dbf0a_get_constant"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4dbf0a",
+        "0x4dbf1a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Returns the constant 0x52e460u; the object is not read. No branch; all 8 instructions run."
+  },
+  {
+    "va": "0x4dd3eb",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4dd3eb_empty_method"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4dd3eb_empty_method"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4dd3eb_empty_method"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4dd3eb_empty_method"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4dd3eb",
+        "0x4dd3f6"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Does nothing; the object is not read or written. No branch; all 7 instructions run."
+  },
+  {
+    "va": "0x4f003b",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36b.c",
+      "symbol": "m4f003b_empty_method"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36b_direct_test.c",
+        "test_id": "test_m4f003b_empty_method"
+      },
+      {
+        "path": "tests/test_fl36b_direct.py",
+        "test_id": "Fl36bDirect.test_4f003b_empty_method"
+      },
+      {
+        "path": "tests/test_fl36b_differential.py",
+        "test_id": "Fl36bDifferential.test_4f003b_empty_method"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36b_original_oracle.py",
+      "window": [
+        "0x4f003b",
+        "0x4f0046"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Does nothing; the object is not read or written. No branch; all 7 instructions run."
+  }
+]

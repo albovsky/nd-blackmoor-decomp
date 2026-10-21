@@ -1,0 +1,3203 @@
+[
+  {
+    "va": "0x401100",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m401100_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m401100_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_401100_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_401100_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x401100",
+        "0x401130"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x401032(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x401190",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m401190_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m401190_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_401190_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_401190_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x401190",
+        "0x4011c0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x521756(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x401c40",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m401c40_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m401c40_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_401c40_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_401c40_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x401c40",
+        "0x401c70"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x4014f5(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x403010",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m403010_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m403010_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_403010_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_403010_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x403010",
+        "0x403040"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x401c70(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x404a20",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m404a20_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m404a20_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_404a20_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_404a20_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x404a20",
+        "0x404a50"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x403229(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x407b10",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m407b10_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m407b10_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_407b10_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_407b10_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x407b10",
+        "0x407b40"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x404af0(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x408980",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m408980_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m408980_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_408980_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_408980_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x408980",
+        "0x4089b0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x407c29(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x40b2a0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m40b2a0_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m40b2a0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_40b2a0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_40b2a0_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x40b2a0",
+        "0x40b2d0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x408d49(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x414490",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m414490_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m414490_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_414490_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_414490_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x414490",
+        "0x4144c0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x4110d7(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x414c80",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m414c80_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m414c80_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_414c80_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_414c80_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x414c80",
+        "0x414cb0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x41458b(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x416e60",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m416e60_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m416e60_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_416e60_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_416e60_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x416e60",
+        "0x416e90"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x414ccf(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x41a480",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m41a480_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m41a480_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_41a480_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_41a480_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x41a480",
+        "0x41a4b0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x416f2d(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x422fb0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m422fb0_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m422fb0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_422fb0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_422fb0_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x422fb0",
+        "0x422fe0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x41bebc(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x425f70",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m425f70_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m425f70_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_425f70_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_425f70_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x425f70",
+        "0x425fa0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x423467(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4273f0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4273f0_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4273f0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4273f0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4273f0_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4273f0",
+        "0x427420"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x427420(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x434880",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m434880_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m434880_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_434880_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_434880_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x434880",
+        "0x4348b0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x433e63(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x438120",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m438120_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m438120_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_438120_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_438120_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x438120",
+        "0x438150"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x43772f(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x43eed0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m43eed0_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m43eed0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_43eed0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_43eed0_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x43eed0",
+        "0x43ef00"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x43eb59(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x43f1e0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m43f1e0_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m43f1e0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_43f1e0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_43f1e0_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x43f1e0",
+        "0x43f210"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x43ef27(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x446ed0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m446ed0_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m446ed0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_446ed0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_446ed0_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x446ed0",
+        "0x446f00"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x445e0f(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x447ce0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m447ce0_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m447ce0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_447ce0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_447ce0_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x447ce0",
+        "0x447d10"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x446faa(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x447d80",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m447d80_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m447d80_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_447d80_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_447d80_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x447d80",
+        "0x447db0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x447d2f(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4487f0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4487f0_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4487f0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4487f0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4487f0_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4487f0",
+        "0x448820"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x447e46(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x449770",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m449770_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m449770_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_449770_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_449770_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x449770",
+        "0x4497a0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x44883f(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x449d60",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m449d60_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m449d60_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_449d60_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_449d60_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x449d60",
+        "0x449d90"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x449a78(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x44be60",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m44be60_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m44be60_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_44be60_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_44be60_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x44be60",
+        "0x44be90"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x44afd6(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x44c2b0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m44c2b0_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m44c2b0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_44c2b0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_44c2b0_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x44c2b0",
+        "0x44c2e0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x44bea7(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x44e650",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m44e650_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m44e650_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_44e650_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_44e650_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x44e650",
+        "0x44e680"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x44d0eb(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x44f620",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m44f620_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m44f620_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_44f620_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_44f620_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x44f620",
+        "0x44f650"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x44e74b(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x454c70",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m454c70_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m454c70_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_454c70_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_454c70_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x454c70",
+        "0x454ca0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x44f66f(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x456bf0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m456bf0_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m456bf0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_456bf0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_456bf0_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x456bf0",
+        "0x456c20"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x454d6e(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x457e60",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m457e60_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m457e60_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_457e60_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_457e60_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x457e60",
+        "0x457e90"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x456ceb(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4599d0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4599d0_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4599d0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4599d0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4599d0_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4599d0",
+        "0x459a00"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x457f5e(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x45b2d0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m45b2d0_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m45b2d0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_45b2d0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_45b2d0_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x45b2d0",
+        "0x45b300"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x459ace(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x45db70",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m45db70_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m45db70_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_45db70_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_45db70_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x45db70",
+        "0x45dba0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x45b3ce(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x461710",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m461710_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m461710_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_461710_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_461710_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x461710",
+        "0x461740"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x45dc6e(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x463f00",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m463f00_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m463f00_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_463f00_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_463f00_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x463f00",
+        "0x463f30"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x46180b(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4659f0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4659f0_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4659f0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4659f0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4659f0_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4659f0",
+        "0x465a20"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x463ffe(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4674b0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4674b0_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4674b0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4674b0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4674b0_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4674b0",
+        "0x4674e0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x465aeb(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x468d40",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m468d40_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m468d40_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_468d40_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_468d40_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x468d40",
+        "0x468d70"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x4674ff(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x46b470",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m46b470_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m46b470_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_46b470_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_46b470_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x46b470",
+        "0x46b4a0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x468e3e(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x46e550",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m46e550_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m46e550_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_46e550_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_46e550_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x46e550",
+        "0x46e580"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x46b56e(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x470c60",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m470c60_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m470c60_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_470c60_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_470c60_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x470c60",
+        "0x470c90"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x46e66a(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x472ed0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m472ed0_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m472ed0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_472ed0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_472ed0_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x472ed0",
+        "0x472f00"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x470d5e(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4756c0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4756c0_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4756c0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4756c0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4756c0_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4756c0",
+        "0x4756f0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x472f95(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4780e0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4780e0_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4780e0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4780e0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4780e0_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4780e0",
+        "0x478110"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x4757be(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x47b1d0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m47b1d0_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m47b1d0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_47b1d0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_47b1d0_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x47b1d0",
+        "0x47b200"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x4781de(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x47d3e0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m47d3e0_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m47d3e0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_47d3e0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_47d3e0_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x47d3e0",
+        "0x47d410"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x47b21f(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x47e140",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m47e140_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m47e140_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_47e140_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_47e140_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x47e140",
+        "0x47e170"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x47d4db(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x482060",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m482060_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m482060_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_482060_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_482060_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x482060",
+        "0x482090"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x47e23e(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x483e50",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m483e50_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m483e50_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_483e50_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_483e50_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x483e50",
+        "0x483e80"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x48215e(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x487a00",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m487a00_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m487a00_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_487a00_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_487a00_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x487a00",
+        "0x487a30"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x483f4e(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x488cc0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m488cc0_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m488cc0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_488cc0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_488cc0_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x488cc0",
+        "0x488cf0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x487afe(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x48a5f0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m48a5f0_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m48a5f0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_48a5f0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_48a5f0_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x48a5f0",
+        "0x48a620"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x488d89(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x48ba00",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m48ba00_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m48ba00_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_48ba00_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_48ba00_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x48ba00",
+        "0x48ba30"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x48a6ee(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x48cf50",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m48cf50_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m48cf50_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_48cf50_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_48cf50_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x48cf50",
+        "0x48cf80"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x48bafb(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x48e170",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m48e170_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m48e170_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_48e170_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_48e170_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x48e170",
+        "0x48e1a0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x48d04b(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x490450",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m490450_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m490450_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_490450_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_490450_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x490450",
+        "0x490480"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x48e26e(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x49c490",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m49c490_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m49c490_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_49c490_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_49c490_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x49c490",
+        "0x49c4c0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x490547(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4a1b30",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4a1b30_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4a1b30_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4a1b30_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4a1b30_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4a1b30",
+        "0x4a1b60"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x49c59f(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4a3670",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4a3670_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4a3670_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4a3670_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4a3670_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4a3670",
+        "0x4a36a0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x4a1c2b(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4a6270",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4a6270_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4a6270_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4a6270_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4a6270_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4a6270",
+        "0x4a62a0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x4a376e(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4a7b60",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4a7b60_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4a7b60_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4a7b60_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4a7b60_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4a7b60",
+        "0x4a7b90"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x4a636e(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4a9e10",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4a9e10_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4a9e10_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4a9e10_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4a9e10_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4a9e10",
+        "0x4a9e40"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x4a7c5e(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4ab290",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4ab290_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4ab290_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4ab290_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4ab290_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4ab290",
+        "0x4ab2c0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x4a9f0b(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4ac7c0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4ac7c0_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4ac7c0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4ac7c0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4ac7c0_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4ac7c0",
+        "0x4ac7f0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x4ab38b(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4afc20",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4afc20_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4afc20_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4afc20_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4afc20_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4afc20",
+        "0x4afc50"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x4ac8be(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4b3b40",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4b3b40_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4b3b40_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4b3b40_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4b3b40_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4b3b40",
+        "0x4b3b70"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x4afd1e(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4b5a70",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4b5a70_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4b5a70_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4b5a70_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4b5a70_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4b5a70",
+        "0x4b5aa0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x4b3c3e(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4b70e0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4b70e0_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4b70e0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4b70e0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4b70e0_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4b70e0",
+        "0x4b7110"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x4b5b6e(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4b7ed0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4b7ed0_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4b7ed0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4b7ed0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4b7ed0_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4b7ed0",
+        "0x4b7f00"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x4b71db(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4b9dd0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4b9dd0_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4b9dd0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4b9dd0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4b9dd0_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4b9dd0",
+        "0x4b9e00"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x4b7f1f(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4bed40",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4bed40_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4bed40_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4bed40_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4bed40_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4bed40",
+        "0x4bed70"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x4b9e1f(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4bf5d0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4bf5d0_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4bf5d0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4bf5d0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4bf5d0_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4bf5d0",
+        "0x4bf600"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x4bed99(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4c0f30",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4c0f30_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4c0f30_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4c0f30_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4c0f30_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4c0f30",
+        "0x4c0f60"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x4bf61f(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4cae90",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4cae90_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4cae90_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4cae90_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4cae90_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4cae90",
+        "0x4caec0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x4c139a(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4cc880",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4cc880_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4cc880_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4cc880_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4cc880_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4cc880",
+        "0x4cc8b0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x4caeef(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4ccd40",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4ccd40_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4ccd40_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4ccd40_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4ccd40_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4ccd40",
+        "0x4ccd70"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x4cc946(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4cf7b0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4cf7b0_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4cf7b0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4cf7b0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4cf7b0_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4cf7b0",
+        "0x4cf7e0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x4ccd8f(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4d42b0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4d42b0_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4d42b0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4d42b0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4d42b0_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4d42b0",
+        "0x4d42e0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x4d3b6e(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4d5230",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4d5230_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4d5230_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4d5230_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4d5230_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4d5230",
+        "0x4d5260"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x44af20(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4d5880",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4d5880_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4d5880_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4d5880_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4d5880_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4d5880",
+        "0x4d58b0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x4d527f(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4d9d40",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4d9d40_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4d9d40_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4d9d40_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4d9d40_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4d9d40",
+        "0x4d9d70"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x4d58cf(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4dbca0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4dbca0_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4dbca0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4dbca0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4dbca0_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4dbca0",
+        "0x4dbcd0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x4db27f(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4dd380",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4dd380_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4dd380_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4dd380_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4dd380_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4dd380",
+        "0x4dd3b0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x4dbf6e(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4de120",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4de120_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4de120_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4de120_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4de120_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4de120",
+        "0x4de150"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x4dd3cf(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4de5c0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4de5c0_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4de5c0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4de5c0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4de5c0_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4de5c0",
+        "0x4de5f0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x4de1a4(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4e03e0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4e03e0_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4e03e0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4e03e0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4e03e0_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4e03e0",
+        "0x4e0410"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x4de66e(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4e1c20",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4e1c20_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4e1c20_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4e1c20_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4e1c20_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4e1c20",
+        "0x4e1c50"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x4e048f(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4e2cb0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4e2cb0_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4e2cb0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4e2cb0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4e2cb0_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4e2cb0",
+        "0x4e2ce0"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x4e1c83(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4e7600",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4e7600_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4e7600_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4e7600_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4e7600_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4e7600",
+        "0x4e7630"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x4e2d63(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4e7a40",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4e7a40_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4e7a40_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4e7a40_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4e7a40_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4e7a40",
+        "0x4e7a70"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x4e7684(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4eb840",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4eb840_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4eb840_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4eb840_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4eb840_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4eb840",
+        "0x4eb870"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x4e7b37(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4ed9e0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4ed9e0_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4ed9e0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4ed9e0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4ed9e0_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4ed9e0",
+        "0x4eda10"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x4eb8fe(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4ee950",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4ee950_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4ee950_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4ee950_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4ee950_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4ee950",
+        "0x4ee980"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x4eda7c(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4effd0",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4effd0_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4effd0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4effd0_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4effd0_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4effd0",
+        "0x4f0000"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x4ee99f(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  },
+  {
+    "va": "0x4f2610",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-36)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl36d.c",
+      "symbol": "m4f2610_scalar_deleting_dtor"
+    },
+    "tests": [
+      {
+        "path": "tests/fl36d_direct_test.c",
+        "test_id": "test_m4f2610_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_direct.py",
+        "test_id": "Fl36dDirect.test_4f2610_scalar_deleting_dtor"
+      },
+      {
+        "path": "tests/test_fl36d_differential.py",
+        "test_id": "Fl36dDifferential.test_4f2610_scalar_deleting_dtor"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl36d_original_oracle.py",
+      "window": [
+        "0x4f2610",
+        "0x4f2640"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Calls 0x4f001f(this); with bit 0 of the argument also 0x51dc6c(this); returns this. je taken both ways; all 18 instructions run."
+  }
+]

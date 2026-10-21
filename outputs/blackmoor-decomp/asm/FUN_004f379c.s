@@ -8,15 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_his_sound_file_loader
-# naming:       INFERRED (lower confidence, not verified): the repository text his-audio-recovery.md:14 says "`0x4f379c` opens the sound file and reads a 0x1e-byte header."
-# name-note:    Opens the sound file, reads the 0x1e-byte HIS header and checks signature, version, size and marker.
+# name:         m4f379c_open_entry
+# naming:       native port src/original_methods_fl36a.c:m4f379c_open_entry (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port
+# name-note:    Opens a record's file and checks its header (magic, two words), normalises the ranges and swaps, then dispatches by size; 297/297 instructions, 44/44 branch directions; an over-long frame string is a native rejection.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       5 ebp-relative slot(s): local_4, local_22, local_24, local_28, local_2c
 # fields:       [eax + n] field_110, field_156, field_15e, field_162, field_1ae, field_1b2, field_1b6, field_1be, field_1c2, field_1c6, field_1da, field_287 and 2 more; [ecx + n] field_10e, field_122, field_126, field_152, field_156, field_15e, field_19e, field_1aa, field_1ae, field_1b2, field_1b6, field_1ba and 6 more; [edx + n] field_156, field_166, field_1aa, field_1b6, field_1ba, field_1be, field_1c2, field_1c6, field_1d6, field_1da, field_28b, field_3be and 3 more
 # callees:      calls FUN_004f356e, FUN_0050d0a9, FUN_0050cf61, FUN_0050ca3e, FUN_0052139c, FUN_0044a2b7, FUN_004f438f, FUN_004f3c26
-# track-n:      outputs/blackmoor-decomp/src/original_methods_fl28a.c:m4fadc4_set_name (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 297 instruction(s), 22 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl36a.c:m4f379c_open_entry (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 297 instruction(s), 22 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text
