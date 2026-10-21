@@ -19279,7 +19279,7 @@
   ],
   "manifest_sha256": "f2cc8dec29b022d4386fd9c951f75b9c4c1b418ca884d36b7c02da6426c04881",
   "named_functions": 84,
-  "names_sha256": "6b39f99161dcd4380133085aa4654d3d6467905e6cd92299e2d877b8f9015fcb",
+  "names_sha256": "58d10df7ad8cb78eec026e8e2304458a0df21dd92c5b718cdd526034a5428f8b",
   "note": "Accepted functions are candidates for the tool_assisted_reconstructed_assembly class; they count only after root accepts the independent review. No claim is made about original C++ or compiler provenance.",
   "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45"
 }
