@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004db993
+# name:         m4db993_move_cursor
+# naming:       native port src/original_methods_fl33a.c:m4db993_move_cursor (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port
+# name-note:    Reads the cursor pair through 0x4dae88 and 0x4daeb5, stores it in the object and globals, chooses selector 4, 0 or word+0x25 by four signed bounds, and updates the six rectangle globals; 95/95 instructions, 10/10.
 # arguments:    2 ebp-relative stack slot(s) referenced: arg_8, arg_c; ret 0x8 (callee pops 8 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       2 ebp-relative slot(s): local_8, local_c
 # fields:       [eax + n] field_4, field_14, field_18, field_28, field_2c; [ecx + n] field_14, field_18, field_24, field_minus_1; [edx + n] field_14, field_18, field_30, field_minus_1
 # callees:      calls FUN_004dae88, FUN_004daeb5
-# track-n:      outputs/blackmoor-decomp/src/original_methods_fl28b.c:m4edfaf_centre_rect (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 95 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl33a.c:m4db993_move_cursor (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 95 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

@@ -8,15 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_sound_record_caption_player
-# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_ee_runtime.c:292 says "0x47d02d: play the sound record at body offset `id` and show its caption."
-# name-note:    Plays the sound record at a body offset and shows its caption.
+# name:         m47d02d_show_names
+# naming:       native port src/original_methods_fl33b.c:m47d02d_show_names (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port
+# name-note:    Name text for 0x448d11: the 0x423259 (or rec+0x52) string is copied into a 0x68 byte local and 7 bytes are stored over its NUL; texts of 98+ chars (n + 7 > 0x68) are rejected natively, 97 are accepted.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       3 ebp-relative slot(s): local_4, local_6c, local_70
 # fields:       [edi + n] field_4, field_6; [edx + n] field_21
 # callees:      calls FUN_00516530, FUN_004fb77a, FUN_004fb2e3, FUN_00423259, FUN_00448d11
-# track-n:      outputs/blackmoor-decomp/src/action_family_ee_runtime.c:play_record (function ledger class candidate_port; also show_caption; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 136 instruction(s), 7 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl33b.c:m47d02d_show_names (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 136 instruction(s), 7 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

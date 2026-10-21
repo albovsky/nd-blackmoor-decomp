@@ -1,0 +1,134 @@
+[
+ {
+  "va": "0x4c6929",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-33)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl33c.c",
+   "symbol": "m4c6929_copy_masked"
+  },
+  "tests": [
+   {
+    "path": "tests/fl33c_direct_test.c",
+    "test_id": "test_m4c6929_copy_masked"
+   },
+   {
+    "path": "tests/test_fl33c_direct.py",
+    "test_id": "Fl33cDirect.test_4c6929_copy_masked"
+   },
+   {
+    "path": "tests/test_fl33c_differential.py",
+    "test_id": "Fl33cDifferential.test_4c6929_copy_masked"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl33c_original_oracle.py",
+   "window": [
+    "0x4c6929",
+    "0x4c6c2a"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Masked rectangle copy of 16-bit pixels by a byte mask (word at [a+0x2f], word global 0x639895); the faulting a==0 case is an explicit native rejection; 239/239 instructions, 18/18 branch directions."
+ },
+ {
+  "va": "0x416af3",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-33)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl33c.c",
+   "symbol": "m416af3_apply_patches"
+  },
+  "tests": [
+   {
+    "path": "tests/fl33c_direct_test.c",
+    "test_id": "test_m416af3_apply_patches"
+   },
+   {
+    "path": "tests/test_fl33c_direct.py",
+    "test_id": "Fl33cDirect.test_416af3_apply_patches"
+   },
+   {
+    "path": "tests/test_fl33c_differential.py",
+    "test_id": "Fl33cDifferential.test_416af3_apply_patches"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl33c_original_oracle.py",
+   "window": [
+    "0x416af3",
+    "0x416e60"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Patch-stream interpreter: opcode 0x20 block copy, 0x40 word fill via 0x43ef77, 0x80 repeated block copy (no skip); an unknown opcode loops forever in the original and is a native rejection; 295/295, 26/26."
+ },
+ {
+  "va": "0x4db38a",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-33)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl33c.c",
+   "symbol": "m4db38a_update_cursor"
+  },
+  "tests": [
+   {
+    "path": "tests/fl33c_direct_test.c",
+    "test_id": "test_m4db38a_update_cursor"
+   },
+   {
+    "path": "tests/test_fl33c_direct.py",
+    "test_id": "Fl33cDirect.test_4db38a_update_cursor"
+   },
+   {
+    "path": "tests/test_fl33c_differential.py",
+    "test_id": "Fl33cDifferential.test_4db38a_update_cursor"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl33c_original_oracle.py",
+   "window": [
+    "0x4db38a",
+    "0x4db780"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Cursor update from the pointer tables and the 16-bit move word; signed and unsigned compares reproduced; 283 instructions and all 9 branches in both directions executed."
+ },
+ {
+  "va": "0x4d2c20",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-33)",
+  "date": "2026-10-20",
+  "native_source": {
+   "path": "src/original_methods_fl33c.c",
+   "symbol": "m4d2c20_layout_text"
+  },
+  "tests": [
+   {
+    "path": "tests/fl33c_direct_test.c",
+    "test_id": "test_m4d2c20_layout_text"
+   },
+   {
+    "path": "tests/test_fl33c_direct.py",
+    "test_id": "Fl33cDirect.test_4d2c20_layout_text"
+   },
+   {
+    "path": "tests/test_fl33c_differential.py",
+    "test_id": "Fl33cDifferential.test_4d2c20_layout_text"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl33c_original_oracle.py",
+   "window": [
+    "0x4d2c20",
+    "0x4d3073"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Text layout: per-character class tests, glyph metric rect, advance of world cursor words; 296 instructions and 13 branches both ways, including char 0x80 edge cases."
+ }
+]

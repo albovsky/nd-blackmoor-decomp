@@ -8,15 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_memory_puzzle_render_callback
-# naming:       INFERRED (lower confidence, not verified): the repository text src/blackmoor_app.mm:8662 says "0x47d24e: the blits of one render pass onto the back buffer"
-# name-note:    Render callback of the generic type 0xb z entry: blits one render pass onto the back buffer.
+# name:         m47d24e_report_fields
+# naming:       native port src/original_methods_fl33a.c:m47d24e_report_fields (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port
+# name-note:    When 0x61e3bc is set: reports the pending flag, the byte at [obj+0x35b] and one line per entry through 0x4c5377 (5 arguments, entry flag == 1 selects the format); 100/100 instructions, 10/10 directions.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [eax + n] field_21, field_e1, field_35b; [ecx + n] field_4, field_111
 # callees:      calls FUN_004c5377
-# track-n:      outputs/blackmoor-decomp/src/action_family_ee_runtime.h:mp_render_plan (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 100 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl33a.c:m47d24e_report_fields (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 100 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

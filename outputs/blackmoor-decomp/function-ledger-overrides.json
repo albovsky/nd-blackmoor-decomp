@@ -21390,6 +21390,666 @@
    },
    "parts_accounted": [],
    "note": "When the word at self + (b & 0xffff)*0x5bb + 0x132 is zero calls 0x4faf98 with a and the pushed eax (index upper half plus b low word); both outcomes taken, 21/21 executed."
+  },
+  {
+   "va": "0x4dae88",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-33)",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl33a.c",
+    "symbol": "m4dae88_set_cursor"
+   },
+   "tests": [
+    {
+     "path": "tests/fl33a_direct_test.c",
+     "test_id": "test_m4dae88_set_cursor"
+    },
+    {
+     "path": "tests/test_fl33a_direct.py",
+     "test_id": "Fl33aDirect.test_4dae88_set_cursor"
+    },
+    {
+     "path": "tests/test_fl33a_differential.py",
+     "test_id": "Fl33aDifferential.test_4dae88_set_cursor"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl33a_original_oracle.py",
+    "window": [
+     "0x4dae88",
+     "0x4daeb5"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Stores x, y at [self+0x18], [self+0x1c], then calls SetCursorPos(x, y) (slot 0x52a488) and returns its eax; 18/18 instructions, ret 8 checked."
+  },
+  {
+   "va": "0x473117",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-33)",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl33a.c",
+    "symbol": "m473117_mark_entry"
+   },
+   "tests": [
+    {
+     "path": "tests/fl33a_direct_test.c",
+     "test_id": "test_m473117_mark_entry"
+    },
+    {
+     "path": "tests/test_fl33a_direct.py",
+     "test_id": "Fl33aDirect.test_473117_mark_entry"
+    },
+    {
+     "path": "tests/test_fl33a_differential.py",
+     "test_id": "Fl33aDifferential.test_473117_mark_entry"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl33a_original_oracle.py",
+    "window": [
+     "0x473117",
+     "0x47314b"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Sets the dword of record [signed word self+0x14] at 0x5d15a5 (stride 0x4a) to 1 when dword [self+0x7a] is non-zero and the word is not -1; 18/18 instructions, 4/4 directions."
+  },
+  {
+   "va": "0x4234dd",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-33)",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl33a.c",
+    "symbol": "m4234dd_push_pair"
+   },
+   "tests": [
+    {
+     "path": "tests/fl33a_direct_test.c",
+     "test_id": "test_m4234dd_push_pair"
+    },
+    {
+     "path": "tests/test_fl33a_direct.py",
+     "test_id": "Fl33aDirect.test_4234dd_push_pair"
+    },
+    {
+     "path": "tests/test_fl33a_differential.py",
+     "test_id": "Fl33aDifferential.test_4234dd_push_pair"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl33a_original_oracle.py",
+    "window": [
+     "0x4234dd",
+     "0x42356d"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Appends (a, b) at [self + n*12 + 0xc/0x10] and bumps [self+4]; for n >= 0x80 (signed) first runs the 0x50ca3e, 0x52139c, 0x44a2b7, 0x4c97b4 report; 43/43 instructions, 4/4 directions."
+  },
+  {
+   "va": "0x4c7623",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-33)",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl33a.c",
+    "symbol": "m4c7623_draw_frame"
+   },
+   "tests": [
+    {
+     "path": "tests/fl33a_direct_test.c",
+     "test_id": "test_m4c7623_draw_frame"
+    },
+    {
+     "path": "tests/test_fl33a_direct.py",
+     "test_id": "Fl33aDirect.test_4c7623_draw_frame"
+    },
+    {
+     "path": "tests/test_fl33a_differential.py",
+     "test_id": "Fl33aDifferential.test_4c7623_draw_frame"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl33a_original_oracle.py",
+    "window": [
+     "0x4c7623",
+     "0x4c7770"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Calls 0x4c4067 with a local descriptor, four 0x4c808f line draws from the rectangle at the second argument, 0x4c4202 and, when a == [self+0xc], 0x4c952f; 115/115 instructions, 2/2 directions."
+  },
+  {
+   "va": "0x4bf3b8",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-33)",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl33a.c",
+    "symbol": "m4bf3b8_set_text"
+   },
+   "tests": [
+    {
+     "path": "tests/fl33a_direct_test.c",
+     "test_id": "test_m4bf3b8_set_text"
+    },
+    {
+     "path": "tests/test_fl33a_direct.py",
+     "test_id": "Fl33aDirect.test_4bf3b8_set_text"
+    },
+    {
+     "path": "tests/test_fl33a_differential.py",
+     "test_id": "Fl33aDifferential.test_4bf3b8_set_text"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl33a_original_oracle.py",
+    "window": [
+     "0x4bf3b8",
+     "0x4bf542"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Selects by [self+0x2c0]+6 (unsigned, jump table of 6): copies one of five game strings to self+0xc0 or formats it through 0x50ca3e (one case with BinkGetError); returns self+0xc0; 130/130 instructions, 2/2."
+  },
+  {
+   "va": "0x4db993",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-33)",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl33a.c",
+    "symbol": "m4db993_move_cursor"
+   },
+   "tests": [
+    {
+     "path": "tests/fl33a_direct_test.c",
+     "test_id": "test_m4db993_move_cursor"
+    },
+    {
+     "path": "tests/test_fl33a_direct.py",
+     "test_id": "Fl33aDirect.test_4db993_move_cursor"
+    },
+    {
+     "path": "tests/test_fl33a_differential.py",
+     "test_id": "Fl33aDifferential.test_4db993_move_cursor"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl33a_original_oracle.py",
+    "window": [
+     "0x4db993",
+     "0x4dbb13"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Reads the cursor pair through 0x4dae88 and 0x4daeb5, stores it in the object and globals, chooses selector 4, 0 or word+0x25 by four signed bounds, and updates the six rectangle globals; 95/95 instructions, 10/10."
+  },
+  {
+   "va": "0x47d24e",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-33)",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl33a.c",
+    "symbol": "m47d24e_report_fields"
+   },
+   "tests": [
+    {
+     "path": "tests/fl33a_direct_test.c",
+     "test_id": "test_m47d24e_report_fields"
+    },
+    {
+     "path": "tests/test_fl33a_direct.py",
+     "test_id": "Fl33aDirect.test_47d24e_report_fields"
+    },
+    {
+     "path": "tests/test_fl33a_differential.py",
+     "test_id": "Fl33aDifferential.test_47d24e_report_fields"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl33a_original_oracle.py",
+    "window": [
+     "0x47d24e",
+     "0x47d3e0"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "When 0x61e3bc is set: reports the pending flag, the byte at [obj+0x35b] and one line per entry through 0x4c5377 (5 arguments, entry flag == 1 selects the format); 100/100 instructions, 10/10 directions."
+  },
+  {
+   "va": "0x4c7070",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-33)",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl33a.c",
+    "symbol": "m4c7070_rotate_image"
+   },
+   "tests": [
+    {
+     "path": "tests/fl33a_direct_test.c",
+     "test_id": "test_m4c7070_rotate_image"
+    },
+    {
+     "path": "tests/test_fl33a_direct.py",
+     "test_id": "Fl33aDirect.test_4c7070_rotate_image"
+    },
+    {
+     "path": "tests/test_fl33a_differential.py",
+     "test_id": "Fl33aDifferential.test_4c7070_rotate_image"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl33a_original_oracle.py",
+    "window": [
+     "0x4c7070",
+     "0x4c71f9"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Copies the image through a 0x51dc43 buffer, rotates it by word (columns, last row first), swaps the width and height words and frees the buffer; the allocator-failure report is taken too; 121/121, 6/6."
+  },
+  {
+   "va": "0x47d02d",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-33)",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl33b.c",
+    "symbol": "m47d02d_show_names"
+   },
+   "tests": [
+    {
+     "path": "tests/fl33b_direct_test.c",
+     "test_id": "test_m47d02d_show_names"
+    },
+    {
+     "path": "tests/test_fl33b_direct.py",
+     "test_id": "Fl33bDirect.test_47d02d_show_names"
+    },
+    {
+     "path": "tests/test_fl33b_differential.py",
+     "test_id": "Fl33bDifferential.test_47d02d_show_names"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl33b_original_oracle.py",
+    "window": [
+     "0x47d02d",
+     "0x47d1c3"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Name text for 0x448d11: the 0x423259 (or rec+0x52) string is copied into a 0x68 byte local and 7 bytes are stored over its NUL; texts of 98+ chars (n + 7 > 0x68) are rejected natively, 97 are accepted."
+  },
+  {
+   "va": "0x4c51a5",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-33)",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl33b.c",
+    "symbol": "m4c51a5_copy_rows"
+   },
+   "tests": [
+    {
+     "path": "tests/fl33b_direct_test.c",
+     "test_id": "test_m4c51a5_copy_rows"
+    },
+    {
+     "path": "tests/test_fl33b_direct.py",
+     "test_id": "Fl33bDirect.test_4c51a5_copy_rows"
+    },
+    {
+     "path": "tests/test_fl33b_differential.py",
+     "test_id": "Fl33bDifferential.test_4c51a5_copy_rows"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl33b_original_oracle.py",
+    "window": [
+     "0x4c51a5",
+     "0x4c5377"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Copies rows of bytes between two surfaces by rect and pitch (rep movsd/movsb); debug-mismatch report path; null surface on the copy path and a negative byte count are rejected (original faults)."
+  },
+  {
+   "va": "0x47df57",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-33)",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl33b.c",
+    "symbol": "m47df57_update_view"
+   },
+   "tests": [
+    {
+     "path": "tests/fl33b_direct_test.c",
+     "test_id": "test_m47df57_update_view"
+    },
+    {
+     "path": "tests/test_fl33b_direct.py",
+     "test_id": "Fl33bDirect.test_47df57_update_view"
+    },
+    {
+     "path": "tests/test_fl33b_differential.py",
+     "test_id": "Fl33bDifferential.test_47df57_update_view"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl33b_original_oracle.py",
+    "window": [
+     "0x47df57",
+     "0x47e140"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Builds two rectangles and an offset pair from globals plus origin and calls 0x4c5377, then 0x4c62f0 or 0x4c6929 by byte [item+0x22]; the signed size/width/height compares are covered."
+  },
+  {
+   "va": "0x4c2898",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-33)",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl33b.c",
+    "symbol": "m4c2898_alloc_surface"
+   },
+   "tests": [
+    {
+     "path": "tests/fl33b_direct_test.c",
+     "test_id": "test_m4c2898_alloc_surface"
+    },
+    {
+     "path": "tests/test_fl33b_direct.py",
+     "test_id": "Fl33bDirect.test_4c2898_alloc_surface"
+    },
+    {
+     "path": "tests/test_fl33b_differential.py",
+     "test_id": "Fl33bDifferential.test_4c2898_alloc_surface"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl33b_original_oracle.py",
+    "window": [
+     "0x4c2898",
+     "0x4c2a8d"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Allocates a 0x59 byte surface record and its pixel buffer through 0x51dc43, fills the fields and copies the name (cut to 0x18 chars); three report arms for existing cell or failed allocations."
+  },
+  {
+   "va": "0x4f594d",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-33)",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl33b.c",
+    "symbol": "m4f594d_read_checked"
+   },
+   "tests": [
+    {
+     "path": "tests/fl33b_direct_test.c",
+     "test_id": "test_m4f594d_read_checked"
+    },
+    {
+     "path": "tests/test_fl33b_direct.py",
+     "test_id": "Fl33bDirect.test_4f594d_read_checked"
+    },
+    {
+     "path": "tests/test_fl33b_differential.py",
+     "test_id": "Fl33bDifferential.test_4f594d_read_checked"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl33b_original_oracle.py",
+    "window": [
+     "0x4f594d",
+     "0x4f5b50"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Checked block read: fills a local 7 dword struct, calls 0x4f5e95, 0x4f5b50 (again for the remainder), pads the rest with 0x80 or 0 and calls 0x4f5e35; sets status 0x405 to 0x407 on each failure."
+  },
+  {
+   "va": "0x41e3c0",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-33)",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl33b.c",
+    "symbol": "m41e3c0_build_text"
+   },
+   "tests": [
+    {
+     "path": "tests/fl33b_direct_test.c",
+     "test_id": "test_m41e3c0_build_text"
+    },
+    {
+     "path": "tests/test_fl33b_direct.py",
+     "test_id": "Fl33bDirect.test_41e3c0_build_text"
+    },
+    {
+     "path": "tests/test_fl33b_differential.py",
+     "test_id": "Fl33bDifferential.test_41e3c0_build_text"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl33b_original_oracle.py",
+    "window": [
+     "0x41e3c0",
+     "0x41e647"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Builds a text in a 0x3a98 byte buffer from the item string, constants, formatted numbers and the entry strings; rejects a null buffer and writes that would leave the buffer or the 0x34 byte local."
+  },
+  {
+   "va": "0x4f5b50",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-33)",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl33b.c",
+    "symbol": "m4f5b50_read_block"
+   },
+   "tests": [
+    {
+     "path": "tests/fl33b_direct_test.c",
+     "test_id": "test_m4f5b50_read_block"
+    },
+    {
+     "path": "tests/test_fl33b_direct.py",
+     "test_id": "Fl33bDirect.test_4f5b50_read_block"
+    },
+    {
+     "path": "tests/test_fl33b_differential.py",
+     "test_id": "Fl33bDifferential.test_4f5b50_read_block"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl33b_original_oracle.py",
+    "window": [
+     "0x4f5b50",
+     "0x4f5e35"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Reads a block by record mode: mode 2 loops 0x4fe2d0 with flag and zero-read handling, mode 1 calls 0x50cf61 with the 0x10/0x20 file flag test, other modes set status 0x3f9; returns count or -1."
+  },
+  {
+   "va": "0x41db40",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-33)",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl33b.c",
+    "symbol": "m41db40_free_record"
+   },
+   "tests": [
+    {
+     "path": "tests/fl33b_direct_test.c",
+     "test_id": "test_m41db40_free_record"
+    },
+    {
+     "path": "tests/test_fl33b_direct.py",
+     "test_id": "Fl33bDirect.test_41db40_free_record"
+    },
+    {
+     "path": "tests/test_fl33b_differential.py",
+     "test_id": "Fl33bDifferential.test_41db40_free_record"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl33b_original_oracle.py",
+    "window": [
+     "0x41db40",
+     "0x41de29"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Frees a record: three counted tables of entries (strides 0x1d1, 0x1c, 0xa) free each non-null pointer of a positive entry, then the table pointer is freed and cleared, then the record; debug traces."
+  },
+  {
+   "va": "0x4c6929",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-33)",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl33c.c",
+    "symbol": "m4c6929_copy_masked"
+   },
+   "tests": [
+    {
+     "path": "tests/fl33c_direct_test.c",
+     "test_id": "test_m4c6929_copy_masked"
+    },
+    {
+     "path": "tests/test_fl33c_direct.py",
+     "test_id": "Fl33cDirect.test_4c6929_copy_masked"
+    },
+    {
+     "path": "tests/test_fl33c_differential.py",
+     "test_id": "Fl33cDifferential.test_4c6929_copy_masked"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl33c_original_oracle.py",
+    "window": [
+     "0x4c6929",
+     "0x4c6c2a"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Masked rectangle copy of 16-bit pixels by a byte mask (word at [a+0x2f], word global 0x639895); the faulting a==0 case is an explicit native rejection; 239/239 instructions, 18/18 branch directions."
+  },
+  {
+   "va": "0x416af3",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-33)",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl33c.c",
+    "symbol": "m416af3_apply_patches"
+   },
+   "tests": [
+    {
+     "path": "tests/fl33c_direct_test.c",
+     "test_id": "test_m416af3_apply_patches"
+    },
+    {
+     "path": "tests/test_fl33c_direct.py",
+     "test_id": "Fl33cDirect.test_416af3_apply_patches"
+    },
+    {
+     "path": "tests/test_fl33c_differential.py",
+     "test_id": "Fl33cDifferential.test_416af3_apply_patches"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl33c_original_oracle.py",
+    "window": [
+     "0x416af3",
+     "0x416e60"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Patch-stream interpreter: opcode 0x20 block copy, 0x40 word fill via 0x43ef77, 0x80 repeated block copy (no skip); an unknown opcode loops forever in the original and is a native rejection; 295/295, 26/26."
+  },
+  {
+   "va": "0x4db38a",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-33)",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl33c.c",
+    "symbol": "m4db38a_update_cursor"
+   },
+   "tests": [
+    {
+     "path": "tests/fl33c_direct_test.c",
+     "test_id": "test_m4db38a_update_cursor"
+    },
+    {
+     "path": "tests/test_fl33c_direct.py",
+     "test_id": "Fl33cDirect.test_4db38a_update_cursor"
+    },
+    {
+     "path": "tests/test_fl33c_differential.py",
+     "test_id": "Fl33cDifferential.test_4db38a_update_cursor"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl33c_original_oracle.py",
+    "window": [
+     "0x4db38a",
+     "0x4db780"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Cursor update from the pointer tables and the 16-bit move word; signed and unsigned compares reproduced; 283 instructions and all 9 branches in both directions executed."
+  },
+  {
+   "va": "0x4d2c20",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-33)",
+   "date": "2026-10-20",
+   "native_source": {
+    "path": "src/original_methods_fl33c.c",
+    "symbol": "m4d2c20_layout_text"
+   },
+   "tests": [
+    {
+     "path": "tests/fl33c_direct_test.c",
+     "test_id": "test_m4d2c20_layout_text"
+    },
+    {
+     "path": "tests/test_fl33c_direct.py",
+     "test_id": "Fl33cDirect.test_4d2c20_layout_text"
+    },
+    {
+     "path": "tests/test_fl33c_differential.py",
+     "test_id": "Fl33cDifferential.test_4d2c20_layout_text"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl33c_original_oracle.py",
+    "window": [
+     "0x4d2c20",
+     "0x4d3073"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Text layout: per-character class tests, glyph metric rect, advance of world cursor words; 296 instructions and 13 branches both ways, including char 0x80 edge cases."
   }
  ],
  "not_needed_entries": [

@@ -2,15 +2,15 @@
  "schema": "blackmoor-function-names/1",
  "note": "Names that committed evidence already states for assembly functions; every other source keeps the machine name fn_<va>. Written and checked by scripts/function_names.py; read by scripts/annotate_machine.py and scripts/audit_tool_assisted.py. A name is not a claim that the function is understood beyond its summary, and nothing here claims original C++ or compiler provenance.",
  "counts": {
-  "entries": 1861,
-  "native_port": 493,
+  "entries": 1869,
+  "native_port": 512,
   "parity_rule": 1,
   "ghidra_name": 83,
   "ghidra_funclet": 570,
   "structural": 258,
-  "inferred_prose": 150,
-  "inferred_strings": 287,
-  "inferred_import": 19
+  "inferred_prose": 141,
+  "inferred_strings": 286,
+  "inferred_import": 18
  },
  "entries": [
   {
@@ -680,18 +680,15 @@
   },
   {
    "va": "0x00416af3",
-   "name": "inferred_avf_command_expander",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "AVF type-1/type-2 command expansion, using fill helper 0x43ef77.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/avf_decoder.h:17 says \"0x416af3 type-1 / type-2 command expansion\"",
-   "evidence": [
-    {
-     "path": "src/avf_decoder.h",
-     "line": 17,
-     "quote": "0x416af3 type-1 / type-2 command expansion"
-    }
-   ]
+   "name": "m416af3_apply_patches",
+   "basis": "native_port",
+   "summary": "Patch-stream interpreter: opcode 0x20 block copy, 0x40 word fill via 0x43ef77, 0x80 repeated block copy (no skip); an unknown opcode loops forever in the original and is a native rejection; 295/295, 26/26.",
+   "source": "native port src/original_methods_fl33c.c:m416af3_apply_patches (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl33c.c",
+    "symbol": "m416af3_apply_patches",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x00417b04",
@@ -834,18 +831,15 @@
   },
   {
    "va": "0x0041db40",
-   "name": "inferred_conversation_object_release",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Releases the conversation object image after it finishes.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_3f_runtime.h:402 says \"0x41db40: the object image must not be used again\"",
-   "evidence": [
-    {
-     "path": "src/action_family_3f_runtime.h",
-     "line": 402,
-     "quote": "0x41db40: the object image must not be used again"
-    }
-   ]
+   "name": "m41db40_free_record",
+   "basis": "native_port",
+   "summary": "Frees a record: three counted tables of entries (strides 0x1d1, 0x1c, 0xa) free each non-null pointer of a positive entry, then the table pointer is freed and cleared, then the record; debug traces.",
+   "source": "native port src/original_methods_fl33b.c:m41db40_free_record (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl33b.c",
+    "symbol": "m41db40_free_record",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x0041de29",
@@ -916,6 +910,18 @@
    "native_source": {
     "path": "src/original_methods_fl28b.c",
     "symbol": "m41e250_release_slot",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x0041e3c0",
+   "name": "m41e3c0_build_text",
+   "basis": "native_port",
+   "summary": "Builds a text in a 0x3a98 byte buffer from the item string, constants, formatted numbers and the entry strings; rejects a null buffer and writes that would leave the buffer or the 0x34 byte local.",
+   "source": "native port src/original_methods_fl33b.c:m41e3c0_build_text (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl33b.c",
+    "symbol": "m41e3c0_build_text",
     "class": "native_oracle_verified"
    }
   },
@@ -1128,19 +1134,15 @@
   },
   {
    "va": "0x004234dd",
-   "name": "inferred_dependency_stack_push",
-   "basis": "inferred_strings",
-   "confidence": "low",
-   "summary": "CDependency::PushStack: errors out if the stack count reaches 0x80, otherwise stores two values and increments the count.",
-   "source": "INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/4234dd.c.txt, not original source) refers to the data labelled s_CDependency__PushStack_____ERROR_005444cc",
-   "evidence": [
-    {
-     "path": "unverified-pseudocode/4234dd.c.txt",
-     "strings": [
-      "s_CDependency__PushStack_____ERROR_005444cc"
-     ]
-    }
-   ]
+   "name": "m4234dd_push_pair",
+   "basis": "native_port",
+   "summary": "Appends (a, b) at [self + n*12 + 0xc/0x10] and bumps [self+4]; for n >= 0x80 (signed) first runs the 0x50ca3e, 0x52139c, 0x44a2b7, 0x4c97b4 report; 43/43 instructions, 4/4 directions.",
+   "source": "native port src/original_methods_fl33a.c:m4234dd_push_pair (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl33a.c",
+    "symbol": "m4234dd_push_pair",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x0042356d",
@@ -4839,6 +4841,18 @@
    ]
   },
   {
+   "va": "0x00473117",
+   "name": "m473117_mark_entry",
+   "basis": "native_port",
+   "summary": "Sets the dword of record [signed word self+0x14] at 0x5d15a5 (stride 0x4a) to 1 when dword [self+0x7a] is non-zero and the word is not -1; 18/18 instructions, 4/4 directions.",
+   "source": "native port src/original_methods_fl33a.c:m473117_mark_entry (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl33a.c",
+    "symbol": "m473117_mark_entry",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
    "va": "0x0047314b",
    "name": "inferred_magnetmaze_puzzle_action_loader",
    "basis": "inferred_strings",
@@ -5361,18 +5375,15 @@
   },
   {
    "va": "0x0047d02d",
-   "name": "inferred_sound_record_caption_player",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Plays the sound record at a body offset and shows its caption.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_ee_runtime.c:292 says \"0x47d02d: play the sound record at body offset `id` and show its caption.\"",
-   "evidence": [
-    {
-     "path": "src/action_family_ee_runtime.c",
-     "line": 292,
-     "quote": "0x47d02d: play the sound record at body offset `id` and show its caption."
-    }
-   ]
+   "name": "m47d02d_show_names",
+   "basis": "native_port",
+   "summary": "Name text for 0x448d11: the 0x423259 (or rec+0x52) string is copied into a 0x68 byte local and 7 bytes are stored over its NUL; texts of 98+ chars (n + 7 > 0x68) are rejected natively, 97 are accepted.",
+   "source": "native port src/original_methods_fl33b.c:m47d02d_show_names (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl33b.c",
+    "symbol": "m47d02d_show_names",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x0047d1c3",
@@ -5388,18 +5399,15 @@
   },
   {
    "va": "0x0047d24e",
-   "name": "inferred_memory_puzzle_render_callback",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Render callback of the generic type 0xb z entry: blits one render pass onto the back buffer.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/blackmoor_app.mm:8662 says \"0x47d24e: the blits of one render pass onto the back buffer\"",
-   "evidence": [
-    {
-     "path": "src/blackmoor_app.mm",
-     "line": 8662,
-     "quote": "0x47d24e: the blits of one render pass onto the back buffer"
-    }
-   ]
+   "name": "m47d24e_report_fields",
+   "basis": "native_port",
+   "summary": "When 0x61e3bc is set: reports the pending flag, the byte at [obj+0x35b] and one line per entry through 0x4c5377 (5 arguments, entry flag == 1 selects the format); 100/100 instructions, 10/10 directions.",
+   "source": "native port src/original_methods_fl33a.c:m47d24e_report_fields (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl33a.c",
+    "symbol": "m47d24e_report_fields",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x0047d477",
@@ -5494,18 +5502,15 @@
   },
   {
    "va": "0x0047df57",
-   "name": "inferred_mouselight_render_callback",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Render callback restoring the previous window and blitting the current one.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/blackmoor_app.mm:5054 says \"0x47df57: restore the previous window from the saved scene frame\"",
-   "evidence": [
-    {
-     "path": "src/blackmoor_app.mm",
-     "line": 5054,
-     "quote": "0x47df57: restore the previous window from the saved scene frame"
-    }
-   ]
+   "name": "m47df57_update_view",
+   "basis": "native_port",
+   "summary": "Builds two rectangles and an offset pair from globals plus origin and calls 0x4c5377, then 0x4c62f0 or 0x4c6929 by byte [item+0x22]; the signed size/width/height compares are covered.",
+   "source": "native port src/original_methods_fl33b.c:m47df57_update_view (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl33b.c",
+    "symbol": "m47df57_update_view",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x0047e1da",
@@ -8532,6 +8537,18 @@
    }
   },
   {
+   "va": "0x004bf3b8",
+   "name": "m4bf3b8_set_text",
+   "basis": "native_port",
+   "summary": "Selects by [self+0x2c0]+6 (unsigned, jump table of 6): copies one of five game strings to self+0xc0 or formats it through 0x50ca3e (one case with BinkGetError); returns self+0xc0; 130/130 instructions, 2/2.",
+   "source": "native port src/original_methods_fl33a.c:m4bf3b8_set_text (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl33a.c",
+    "symbol": "m4bf3b8_set_text",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
    "va": "0x004bf542",
    "name": "inferred_bink_allocate_memory",
    "basis": "inferred_strings",
@@ -8781,6 +8798,18 @@
    "native_source": {
     "path": "src/original_methods_fl31c.c",
     "symbol": "m4c2790_new_record",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x004c2898",
+   "name": "m4c2898_alloc_surface",
+   "basis": "native_port",
+   "summary": "Allocates a 0x59 byte surface record and its pixel buffer through 0x51dc43, fills the fields and copies the name (cut to 0x18 chars); three report arms for existing cell or failed allocations.",
+   "source": "native port src/original_methods_fl33b.c:m4c2898_alloc_surface (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl33b.c",
+    "symbol": "m4c2898_alloc_surface",
     "class": "native_oracle_verified"
    }
   },
@@ -9122,23 +9151,15 @@
   },
   {
    "va": "0x004c51a5",
-   "name": "inferred_surface_rect_copy",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Copies a rectangle between two surfaces (equally sized rectangles, inclusive edges).",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_ea_runtime.h:136 says \"0x4c51a5(src, dst, src rect, dst rect, tag): rects are left, top, right, bottom.\"; src/blackmoor_app.mm:5644 says \"0x4c51a5: copy between two surfaces (equally sized rectangles, inclusive edges).\"",
-   "evidence": [
-    {
-     "path": "src/action_family_ea_runtime.h",
-     "line": 136,
-     "quote": "0x4c51a5(src, dst, src rect, dst rect, tag): rects are left, top, right, bottom."
-    },
-    {
-     "path": "src/blackmoor_app.mm",
-     "line": 5644,
-     "quote": "0x4c51a5: copy between two surfaces (equally sized rectangles, inclusive edges)."
-    }
-   ]
+   "name": "m4c51a5_copy_rows",
+   "basis": "native_port",
+   "summary": "Copies rows of bytes between two surfaces by rect and pitch (rep movsd/movsb); debug-mismatch report path; null surface on the copy path and a negative byte count are rejected (original faults).",
+   "source": "native port src/original_methods_fl33b.c:m4c51a5_copy_rows (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl33b.c",
+    "symbol": "m4c51a5_copy_rows",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x004c5377",
@@ -9244,18 +9265,15 @@
   },
   {
    "va": "0x004c6929",
-   "name": "inferred_mask_transparent_blit",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "DFBltMaskTransPlain: copies the pixels whose mask byte is nonzero.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_d9_runtime.h:199 says \"0x4c6929 DFBltMaskTransPlain: copy the pixels whose mask byte is nonzero.\"",
-   "evidence": [
-    {
-     "path": "src/action_family_d9_runtime.h",
-     "line": 199,
-     "quote": "0x4c6929 DFBltMaskTransPlain: copy the pixels whose mask byte is nonzero."
-    }
-   ]
+   "name": "m4c6929_copy_masked",
+   "basis": "native_port",
+   "summary": "Masked rectangle copy of 16-bit pixels by a byte mask (word at [a+0x2f], word global 0x639895); the faulting a==0 case is an explicit native rejection; 239/239 instructions, 18/18 branch directions.",
+   "source": "native port src/original_methods_fl33c.c:m4c6929_copy_masked (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl33c.c",
+    "symbol": "m4c6929_copy_masked",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x004c6c2a",
@@ -9291,23 +9309,15 @@
   },
   {
    "va": "0x004c7070",
-   "name": "inferred_surface_quarter_turn_rotate",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Rotates a surface a quarter turn clockwise in place, swapping width and height.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/blackmoor_app.mm:5681 says \"0x4c7070: a quarter turn clockwise in place.\"; src/action_family_ea_runtime.h:140 says \"0x4c7070: rotate in place; the new width and height.\"",
-   "evidence": [
-    {
-     "path": "src/blackmoor_app.mm",
-     "line": 5681,
-     "quote": "0x4c7070: a quarter turn clockwise in place."
-    },
-    {
-     "path": "src/action_family_ea_runtime.h",
-     "line": 140,
-     "quote": "0x4c7070: rotate in place; the new width and height."
-    }
-   ]
+   "name": "m4c7070_rotate_image",
+   "basis": "native_port",
+   "summary": "Copies the image through a 0x51dc43 buffer, rotates it by word (columns, last row first), swaps the width and height words and frees the buffer; the allocator-failure report is taken too; 121/121, 6/6.",
+   "source": "native port src/original_methods_fl33a.c:m4c7070_rotate_image (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl33a.c",
+    "symbol": "m4c7070_rotate_image",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x004c71f9",
@@ -9327,18 +9337,15 @@
   },
   {
    "va": "0x004c7623",
-   "name": "inferred_surface_rect_fill",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Rectangle fill on the surface manager, called with a surface, a rectangle and a word value.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_1c_runtime.h:47 says \"the rectangle fill 0x4c7623 are the host\"",
-   "evidence": [
-    {
-     "path": "src/action_family_1c_runtime.h",
-     "line": 47,
-     "quote": "the rectangle fill 0x4c7623 are the host"
-    }
-   ]
+   "name": "m4c7623_draw_frame",
+   "basis": "native_port",
+   "summary": "Calls 0x4c4067 with a local descriptor, four 0x4c808f line draws from the rectangle at the second argument, 0x4c4202 and, when a == [self+0xc], 0x4c952f; 115/115 instructions, 2/2 directions.",
+   "source": "native port src/original_methods_fl33a.c:m4c7623_draw_frame (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl33a.c",
+    "symbol": "m4c7623_draw_frame",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x004c7770",
@@ -10233,6 +10240,18 @@
    }
   },
   {
+   "va": "0x004d2c20",
+   "name": "m4d2c20_layout_text",
+   "basis": "native_port",
+   "summary": "Text layout: per-character class tests, glyph metric rect, advance of world cursor words; 296 instructions and 13 branches both ways, including char 0x80 edge cases.",
+   "source": "native port src/original_methods_fl33c.c:m4d2c20_layout_text (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl33c.c",
+    "symbol": "m4d2c20_layout_text",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
    "va": "0x004d3073",
    "name": "m4d3073_session_tick",
    "basis": "native_port",
@@ -10715,18 +10734,15 @@
   },
   {
    "va": "0x004dae88",
-   "name": "inferred_only_call_SetCursorPos",
-   "basis": "inferred_import",
-   "confidence": "low",
-   "summary": "A 45-byte leaf function with no direct callee whose only external call is USER32.dll!SetCursorPos",
-   "source": "INFERRED (lower confidence, not verified): function-xrefs.json lists USER32.dll!SetCursorPos as the only import of the 45-byte function and no callee",
-   "evidence": [
-    {
-     "path": "function-xrefs.json",
-     "import": "USER32.dll!SetCursorPos",
-     "body_size": 45
-    }
-   ]
+   "name": "m4dae88_set_cursor",
+   "basis": "native_port",
+   "summary": "Stores x, y at [self+0x18], [self+0x1c], then calls SetCursorPos(x, y) (slot 0x52a488) and returns its eax; 18/18 instructions, ret 8 checked.",
+   "source": "native port src/original_methods_fl33a.c:m4dae88_set_cursor (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl33a.c",
+    "symbol": "m4dae88_set_cursor",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x004daeb5",
@@ -10765,6 +10781,18 @@
    }
   },
   {
+   "va": "0x004db38a",
+   "name": "m4db38a_update_cursor",
+   "basis": "native_port",
+   "summary": "Cursor update from the pointer tables and the 16-bit move word; signed and unsigned compares reproduced; 283 instructions and all 9 branches in both directions executed.",
+   "source": "native port src/original_methods_fl33c.c:m4db38a_update_cursor (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl33c.c",
+    "symbol": "m4db38a_update_cursor",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
    "va": "0x004db870",
    "name": "m4db870_load_cursor",
    "basis": "native_port",
@@ -10773,6 +10801,18 @@
    "native_source": {
     "path": "src/original_methods_fl31c.c",
     "symbol": "m4db870_load_cursor",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x004db993",
+   "name": "m4db993_move_cursor",
+   "basis": "native_port",
+   "summary": "Reads the cursor pair through 0x4dae88 and 0x4daeb5, stores it in the object and globals, chooses selector 4, 0 or word+0x25 by four signed bounds, and updates the six rectangle globals; 95/95 instructions, 10/10.",
+   "source": "native port src/original_methods_fl33a.c:m4db993_move_cursor (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl33a.c",
+    "symbol": "m4db993_move_cursor",
     "class": "native_oracle_verified"
    }
   },
@@ -12336,6 +12376,18 @@
      ]
     }
    ]
+  },
+  {
+   "va": "0x004f594d",
+   "name": "m4f594d_read_checked",
+   "basis": "native_port",
+   "summary": "Checked block read: fills a local 7 dword struct, calls 0x4f5e95, 0x4f5b50 (again for the remainder), pads the rest with 0x80 or 0 and calls 0x4f5e35; sets status 0x405 to 0x407 on each failure.",
+   "source": "native port src/original_methods_fl33b.c:m4f594d_read_checked (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl33b.c",
+    "symbol": "m4f594d_read_checked",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x004f61e7",

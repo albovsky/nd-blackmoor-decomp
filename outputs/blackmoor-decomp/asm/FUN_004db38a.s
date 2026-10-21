@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004db38a
+# name:         m4db38a_update_cursor
+# naming:       native port src/original_methods_fl33c.c:m4db38a_update_cursor (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port
+# name-note:    Cursor update from the pointer tables and the 16-bit move word; signed and unsigned compares reproduced; 283 instructions and all 9 branches in both directions executed.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       5 ebp-relative slot(s): local_4, local_8, local_10, local_14, local_18
 # fields:       [eax + n] field_4, field_8, field_c, field_14, field_18, field_28, field_34, field_38, field_3c, field_40, field_a0, field_minus_1; [ecx + n] field_14, field_18, field_1c, field_20, field_24, field_28, field_2c, field_30, field_34, field_38, field_40, field_94 and 1 more; [edx + n] field_4, field_8, field_c, field_14, field_18, field_24, field_30, field_34, field_38, field_3c, field_40, field_44 and 7 more
 # callees:      calls FUN_004dadff, FUN_004daeb5, FUN_004dbb13, FUN_004d57e8, FUN_004db780, FUN_004d5834, FUN_004db817, FUN_004d5316, FUN_004d56e2, FUN_0050ca3e, FUN_0044a2b7, FUN_004dae88
-# track-n:      outputs/blackmoor-decomp/src/original_methods_fl26a.c:m4d3073_session_tick (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 283 instruction(s), 9 conditional branch(es) and 1 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl33c.c:m4db38a_update_cursor (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 283 instruction(s), 9 conditional branch(es) and 1 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

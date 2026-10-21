@@ -8,15 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_surface_rect_fill
-# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_1c_runtime.h:47 says "the rectangle fill 0x4c7623 are the host"
-# name-note:    Rectangle fill on the surface manager, called with a surface, a rectangle and a word value.
+# name:         m4c7623_draw_frame
+# naming:       native port src/original_methods_fl33a.c:m4c7623_draw_frame (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-20); the note is the acceptance note, a statement about the native port
+# name-note:    Calls 0x4c4067 with a local descriptor, four 0x4c808f line draws from the rectangle at the second argument, 0x4c4202 and, when a == [self+0xc], 0x4c952f; 115/115 instructions, 2/2 directions.
 # arguments:    3 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10; ret 0xc (callee pops 12 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       6 ebp-relative slot(s): local_4, local_5c, local_70, local_80, local_84, local_88
 # fields:       [eax + n] field_4, field_8, field_c; [ecx + n] field_4, field_8, field_c; [edx + n] field_4, field_8, field_c
 # callees:      calls FUN_004c4067, FUN_004c808f, FUN_004c4202, FUN_004c952f
-# track-n:      outputs/blackmoor-decomp/src/original_methods_fl18.c:m4cc79a_draw_rects (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 115 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl33a.c:m4c7623_draw_frame (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 115 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text
