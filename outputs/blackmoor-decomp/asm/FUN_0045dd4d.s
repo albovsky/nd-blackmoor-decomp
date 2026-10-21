@@ -8,15 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_card_puzzle_cleanup
-# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_f6_runtime.h:280 says "0x45dd4d: release the surface and the slot, then the 0x45dc8a reset."
-# name-note:    Cleanup of the card puzzle: releases the surface and the slot, then runs the reset.
+# name:         m45dd4d_release_surface_call_tail
+# naming:       native port src/original_methods_fl38a.c:m45dd4d_release_surface_call_tail (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port
+# name-note:    Calls 0x4c2dfb(this+0x20) if dword [this+0x20] is set, 0x4d3992(word [this+0x1c]) if not -1, then 0x45dc8a(this). 26/26 instructions, 4/4 branch directions.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_20; [ecx + n] field_1c; [edx + n] field_1c
 # callees:      calls FUN_004c2dfb, FUN_004d3992, FUN_0045dc8a
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 26 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class partial_native is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl38a.c:m45dd4d_release_surface_call_tail (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 26 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

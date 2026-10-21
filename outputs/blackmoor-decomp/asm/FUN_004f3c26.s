@@ -15,7 +15,7 @@
 # locals:       5 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14
 # fields:       [eax + n] field_4, field_8, field_c, field_10, field_144, field_156, field_15e, field_28f, field_293, field_297, field_29b, field_2ab and 3 more; [ecx + n] field_4, field_8, field_c, field_116, field_122, field_126, field_156, field_15e, field_28f, field_293, field_297, field_29b and 8 more; [edx + n] field_4, field_8, field_c, field_10, field_156, field_28f, field_297, field_29f, field_2a3, field_2b3, field_2be, field_2d3 and 4 more
 # callees:      calls FUN_004f5f69, FUN_004f356e, FUN_0050ca3e, FUN_0044a2b7, FUN_004f95a4, FUN_0051dc43, FUN_004fdb90, FUN_0052139c, FUN_004f594d, FUN_004fcef0, FUN_0050cee4, FUN_004f684a; plus 5 indirect transfer(s) whose target is not resolved
-# track-n:      host-adapter: none
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl36a.c:m4f379c_open_entry (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
 # unverified:   machine annotation only: the 482 instruction(s), 17 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; indirect transfers are not followed
 .intel_syntax noprefix
 .code32

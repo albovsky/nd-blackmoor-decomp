@@ -2,9 +2,9 @@
 the original side is fl38b_fixtures.run_original, the same function that tests/fl38b_original_oracle.py uses).
 
 Every case compares all the memory the function can write (the three cells, the source and destination buffers and the globals), the status (0, or 1 where the original reaches the callee
-0x4c97b4 that ends the program), and the ordered calls out: callee, ecx, stack arguments. The callees are recording stubs; the function under test runs as the original bytes. A case also
+0x4c97b4, after which the original would fault), and the ordered calls out: callee, ecx, stack arguments. The callees are recording stubs; the function under test runs as the original bytes. A case also
 requires that its scenarios reached every instruction of the original function and took both directions of every conditional jump of it (fl38b_fixtures.UNTAKEN_ALLOWED is empty).
-Where the original reaches 0x4c97b4 the run stops there (the real callee ends the program): the native port must make the same calls up to it and leave everything but the three cells
+Where the original reaches 0x4c97b4 the run stops there (the real callee returns and the original then faults copying into address 0): the native port must make the same calls up to it and leave everything but the three cells
 unchanged.
 """
 import ctypes
@@ -64,7 +64,7 @@ class Fl38bDifferential(DiffBase):
         result = ctypes.c_int32(-1)
         stack_args = (ctypes.c_uint64 * 8)(*[v & 0xffffffffffffffff for v in sc.args])
         self.lib.shim_fl38b(sc.fn, None, ctypes.byref(stack_args), ctypes.byref(sw), ctypes.byref(result))
-        self.assertEqual(result.value, 0 if sc.partial is None else 1, 'status (1 = the port stops at the callee that ends the program)')
+        self.assertEqual(result.value, 0 if sc.partial is None else 1, 'status (1 = the port stops at the failure-branch callee 0x4c97b4)')
         if sc.partial is None:
             for a, arr in arrays:
                 if a.compare:

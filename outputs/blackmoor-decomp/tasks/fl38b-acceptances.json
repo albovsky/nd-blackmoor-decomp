@@ -2,7 +2,7 @@
   {
     "va": "0x44d1d1",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet 5.5 implementer, self-checked, independent review pending (FL-38b)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38b.c",
@@ -30,12 +30,18 @@
       ]
     },
     "parts_accounted": [],
-    "note": "p = 0x51dc43(0x2fb) stored at *out; copies 0x2fb bytes (movsw+movsb) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (no return). 58/58 instructions, both jne/je ways."
+    "note": "p = 0x51dc43(0x2fb) stored at *out; copies 0x2fb bytes (movsw+movsb) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (returns; post-call null copy not modelled). 58/58 instructions, both jne/je ways.",
+    "blockers_reviewed": [
+      {
+        "id": "A-AA.1:14318b8284efed27",
+        "rationale": "The unverified branch at 0x44d26c lies inside this function; the original-only oracle ran every instruction and took both directions of every conditional jump of the function, so the branch is verified here."
+      }
+    ]
   },
   {
     "va": "0x456fb6",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet 5.5 implementer, self-checked, independent review pending (FL-38b)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38b.c",
@@ -63,12 +69,12 @@
       ]
     },
     "parts_accounted": [],
-    "note": "p = 0x51dc43(0x27b) stored at *out; copies 0x27b bytes (movsw+movsb) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (no return). 58/58 instructions, both jne/je ways."
+    "note": "p = 0x51dc43(0x27b) stored at *out; copies 0x27b bytes (movsw+movsb) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (returns; post-call null copy not modelled). 58/58 instructions, both jne/je ways."
   },
   {
     "va": "0x45807c",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet 5.5 implementer, self-checked, independent review pending (FL-38b)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38b.c",
@@ -96,12 +102,12 @@
       ]
     },
     "parts_accounted": [],
-    "note": "p = 0x51dc43(0x663) stored at *out; copies 0x663 bytes (movsw+movsb) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (no return). 58/58 instructions, both jne/je ways."
+    "note": "p = 0x51dc43(0x663) stored at *out; copies 0x663 bytes (movsw+movsb) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (returns; post-call null copy not modelled). 58/58 instructions, both jne/je ways."
   },
   {
     "va": "0x464100",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet 5.5 implementer, self-checked, independent review pending (FL-38b)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38b.c",
@@ -129,12 +135,12 @@
       ]
     },
     "parts_accounted": [],
-    "note": "p = 0x51dc43(0x43f) stored at *out; copies 0x43f bytes (movsw+movsb) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (no return). 58/58 instructions, both jne/je ways."
+    "note": "p = 0x51dc43(0x43f) stored at *out; copies 0x43f bytes (movsw+movsb) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (returns; post-call null copy not modelled). 58/58 instructions, both jne/je ways."
   },
   {
     "va": "0x465bde",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet 5.5 implementer, self-checked, independent review pending (FL-38b)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38b.c",
@@ -162,12 +168,12 @@
       ]
     },
     "parts_accounted": [],
-    "note": "p = 0x51dc43(0x55f) stored at *out; copies 0x55f bytes (movsw+movsb) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (no return). 58/58 instructions, both jne/je ways."
+    "note": "p = 0x51dc43(0x55f) stored at *out; copies 0x55f bytes (movsw+movsb) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (returns; post-call null copy not modelled). 58/58 instructions, both jne/je ways."
   },
   {
     "va": "0x46b79a",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet 5.5 implementer, self-checked, independent review pending (FL-38b)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38b.c",
@@ -195,12 +201,12 @@
       ]
     },
     "parts_accounted": [],
-    "note": "p = 0x51dc43(0x6e3) stored at *out; copies 0x6e3 bytes (movsw+movsb) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (no return). 58/58 instructions, both jne/je ways."
+    "note": "p = 0x51dc43(0x6e3) stored at *out; copies 0x6e3 bytes (movsw+movsb) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (returns; post-call null copy not modelled). 58/58 instructions, both jne/je ways."
   },
   {
     "va": "0x47314b",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet 5.5 implementer, self-checked, independent review pending (FL-38b)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38b.c",
@@ -228,12 +234,12 @@
       ]
     },
     "parts_accounted": [],
-    "note": "p = 0x51dc43(0x4ff) stored at *out; copies 0x4ff bytes (movsw+movsb) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (no return). 58/58 instructions, both jne/je ways."
+    "note": "p = 0x51dc43(0x4ff) stored at *out; copies 0x4ff bytes (movsw+movsb) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (returns; post-call null copy not modelled). 58/58 instructions, both jne/je ways."
   },
   {
     "va": "0x4782db",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet 5.5 implementer, self-checked, independent review pending (FL-38b)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38b.c",
@@ -261,12 +267,12 @@
       ]
     },
     "parts_accounted": [],
-    "note": "p = 0x51dc43(0x29b) stored at *out; copies 0x29b bytes (movsw+movsb) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (no return). 58/58 instructions, both jne/je ways."
+    "note": "p = 0x51dc43(0x29b) stored at *out; copies 0x29b bytes (movsw+movsb) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (returns; post-call null copy not modelled). 58/58 instructions, both jne/je ways."
   },
   {
     "va": "0x475964",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet 5.5 implementer, self-checked, independent review pending (FL-38b)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38b.c",
@@ -294,12 +300,18 @@
       ]
     },
     "parts_accounted": [],
-    "note": "p = 0x51dc43(0x7f2) stored at *out; copies 0x7f2 bytes (movsw) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (no return). 57/57 instructions, both jne/je ways."
+    "note": "p = 0x51dc43(0x7f2) stored at *out; copies 0x7f2 bytes (movsw) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (returns; post-call null copy not modelled). 57/57 instructions, both jne/je ways.",
+    "blockers_reviewed": [
+      {
+        "id": "A-E4.1:f3b9ffde94fd3c0b",
+        "rationale": "The unverified branch at 0x475a09 lies inside this function; the original-only oracle ran every instruction and took both directions of every conditional jump of the function, so the branch is verified here."
+      }
+    ]
   },
   {
     "va": "0x44fbe3",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet 5.5 implementer, self-checked, independent review pending (FL-38b)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38b.c",
@@ -327,12 +339,12 @@
       ]
     },
     "parts_accounted": [],
-    "note": "p = 0x51dc43(0x4e8) stored at *out; copies 0x4e8 bytes (none) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (no return). 56/56 instructions, both jne/je ways."
+    "note": "p = 0x51dc43(0x4e8) stored at *out; copies 0x4e8 bytes (none) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (returns; post-call null copy not modelled). 56/56 instructions, both jne/je ways."
   },
   {
     "va": "0x467688",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet 5.5 implementer, self-checked, independent review pending (FL-38b)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38b.c",
@@ -360,12 +372,12 @@
       ]
     },
     "parts_accounted": [],
-    "note": "p = 0x51dc43(0x408) stored at *out; copies 0x408 bytes (none) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (no return). 56/56 instructions, both jne/je ways."
+    "note": "p = 0x51dc43(0x408) stored at *out; copies 0x408 bytes (none) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (returns; post-call null copy not modelled). 56/56 instructions, both jne/je ways."
   },
   {
     "va": "0x468f9f",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet 5.5 implementer, self-checked, independent review pending (FL-38b)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38b.c",
@@ -393,12 +405,12 @@
       ]
     },
     "parts_accounted": [],
-    "note": "p = 0x51dc43(0x5d8) stored at *out; copies 0x5d8 bytes (none) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (no return). 56/56 instructions, both jne/je ways."
+    "note": "p = 0x51dc43(0x5d8) stored at *out; copies 0x5d8 bytes (none) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (returns; post-call null copy not modelled). 56/56 instructions, both jne/je ways."
   },
   {
     "va": "0x47e477",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet 5.5 implementer, self-checked, independent review pending (FL-38b)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38b.c",
@@ -426,12 +438,18 @@
       ]
     },
     "parts_accounted": [],
-    "note": "p = 0x51dc43(0xa34) stored at *out; copies 0xa34 bytes (none) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (no return). 56/56 instructions, both jne/je ways."
+    "note": "p = 0x51dc43(0xa34) stored at *out; copies 0xa34 bytes (none) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (returns; post-call null copy not modelled). 56/56 instructions, both jne/je ways.",
+    "blockers_reviewed": [
+      {
+        "id": "A-EB.1:ed74ef626eb3e9c9",
+        "rationale": "The unverified branch at 0x47e51f lies inside this function; the original-only oracle ran every instruction and took both directions of every conditional jump of the function, so the branch is verified here."
+      }
+    ]
   },
   {
     "va": "0x44e8a2",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet 5.5 implementer, self-checked, independent review pending (FL-38b)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38b.c",
@@ -459,12 +477,12 @@
       ]
     },
     "parts_accounted": [],
-    "note": "p = 0x51dc43(0x269) stored at *out; copies 0x269 bytes (movsb) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (no return). 57/57 instructions, both jne/je ways."
+    "note": "p = 0x51dc43(0x269) stored at *out; copies 0x269 bytes (movsb) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (returns; post-call null copy not modelled). 57/57 instructions, both jne/je ways."
   },
   {
     "va": "0x454e70",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet 5.5 implementer, self-checked, independent review pending (FL-38b)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38b.c",
@@ -492,12 +510,12 @@
       ]
     },
     "parts_accounted": [],
-    "note": "p = 0x51dc43(0xd01) stored at *out; copies 0xd01 bytes (movsb) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (no return). 57/57 instructions, both jne/je ways."
+    "note": "p = 0x51dc43(0xd01) stored at *out; copies 0xd01 bytes (movsb) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (returns; post-call null copy not modelled). 57/57 instructions, both jne/je ways."
   },
   {
     "va": "0x459c10",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet 5.5 implementer, self-checked, independent review pending (FL-38b)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38b.c",
@@ -525,12 +543,12 @@
       ]
     },
     "parts_accounted": [],
-    "note": "p = 0x51dc43(0x2b1) stored at *out; copies 0x2b1 bytes (movsb) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (no return). 57/57 instructions, both jne/je ways."
+    "note": "p = 0x51dc43(0x2b1) stored at *out; copies 0x2b1 bytes (movsb) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (returns; post-call null copy not modelled). 57/57 instructions, both jne/je ways."
   },
   {
     "va": "0x45ddd0",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet 5.5 implementer, self-checked, independent review pending (FL-38b)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38b.c",
@@ -558,12 +576,22 @@
       ]
     },
     "parts_accounted": [],
-    "note": "p = 0x51dc43(0x1346) stored at *out; copies 0x1346 bytes (movsw) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (no return). 57/57 instructions, both jne/je ways."
+    "note": "p = 0x51dc43(0x1346) stored at *out; copies 0x1346 bytes (movsw) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (returns; post-call null copy not modelled). 57/57 instructions, both jne/je ways.",
+    "blockers_reviewed": [
+      {
+        "id": "A-F6.1:bb44b238534be791",
+        "rationale": "The unverified branch at 0x45ddf3 lies inside this function; the original-only oracle ran every instruction and took both directions of every conditional jump of the function, so the branch is verified here."
+      },
+      {
+        "id": "A-F6.1:3890e91470564d78",
+        "rationale": "The unverified branch at 0x45de6a lies inside this function; the original-only oracle ran every instruction and took both directions of every conditional jump of the function, so the branch is verified here."
+      }
+    ]
   },
   {
     "va": "0x47b3f0",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet 5.5 implementer, self-checked, independent review pending (FL-38b)",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38b.c",
@@ -591,6 +619,12 @@
       ]
     },
     "parts_accounted": [],
-    "note": "p = 0x51dc43(0x16c2) stored at *out; copies 0x16c2 bytes (movsw) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (no return). 57/57 instructions, both jne/je ways."
+    "note": "p = 0x51dc43(0x16c2) stored at *out; copies 0x16c2 bytes (movsw) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (returns; post-call null copy not modelled). 57/57 instructions, both jne/je ways.",
+    "blockers_reviewed": [
+      {
+        "id": "A-EE.1:5e97da0a342538de",
+        "rationale": "The unverified branch at 0x47b49f lies inside this function; the original-only oracle ran every instruction and took both directions of every conditional jump of the function, so the branch is verified here."
+      }
+    ]
   }
 ]

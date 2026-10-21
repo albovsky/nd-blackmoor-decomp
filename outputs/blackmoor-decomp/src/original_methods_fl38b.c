@@ -69,7 +69,7 @@ static int clone_record(uint32_t out, uint32_t src, uint32_t adv, const Fl38bWor
         a2[0] = msg; a2[1] = 0x63888b;
         callv(host, 0x42639d, 0x583979, a2, 2);
         call0(host, 0x4c97b4, 0x5cf659);
-        return 1;                       /* 0x4c97b4 ends the program; the original would go on to copy into address 0 */
+        return 1;                       /* 0x4c97b4 posts WM_QUIT and returns; the original then copies S bytes through *out = 0 (access violation); not modelled */
     }
     copy_forward(res(host, rd32(res(host, out))), res(host, rd32(res(host, src))), size);
     wr32(res(host, adv), rd32(res(host, adv)) + size);

@@ -2,7 +2,7 @@
   {
     "va": "0x414c6d",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet implementer (FL-38a), no independent review yet",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38a.c",
@@ -35,7 +35,7 @@
   {
     "va": "0x447cc4",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet implementer (FL-38a), no independent review yet",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38a.c",
@@ -68,7 +68,7 @@
   {
     "va": "0x4487de",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet implementer (FL-38a), no independent review yet",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38a.c",
@@ -101,7 +101,7 @@
   {
     "va": "0x44be44",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet implementer (FL-38a), no independent review yet",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38a.c",
@@ -134,7 +134,7 @@
   {
     "va": "0x4542b5",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet implementer (FL-38a), no independent review yet",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38a.c",
@@ -167,7 +167,7 @@
   {
     "va": "0x4542f2",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet implementer (FL-38a), no independent review yet",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38a.c",
@@ -200,7 +200,7 @@
   {
     "va": "0x45441d",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet implementer (FL-38a), no independent review yet",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38a.c",
@@ -233,7 +233,7 @@
   {
     "va": "0x454de6",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet implementer (FL-38a), no independent review yet",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38a.c",
@@ -266,7 +266,7 @@
   {
     "va": "0x454e39",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet implementer (FL-38a), no independent review yet",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38a.c",
@@ -299,7 +299,7 @@
   {
     "va": "0x456d2e",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet implementer (FL-38a), no independent review yet",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38a.c",
@@ -332,7 +332,7 @@
   {
     "va": "0x456d77",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet implementer (FL-38a), no independent review yet",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38a.c",
@@ -365,7 +365,7 @@
   {
     "va": "0x457fc2",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet implementer (FL-38a), no independent review yet",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38a.c",
@@ -398,7 +398,7 @@
   {
     "va": "0x458045",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet implementer (FL-38a), no independent review yet",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38a.c",
@@ -431,7 +431,7 @@
   {
     "va": "0x459b87",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet implementer (FL-38a), no independent review yet",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38a.c",
@@ -464,7 +464,7 @@
   {
     "va": "0x45dd4d",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet implementer (FL-38a), no independent review yet",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38a.c",
@@ -497,7 +497,7 @@
   {
     "va": "0x464076",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet implementer (FL-38a), no independent review yet",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38a.c",
@@ -530,7 +530,7 @@
   {
     "va": "0x4640c9",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet implementer (FL-38a), no independent review yet",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38a.c",
@@ -563,7 +563,7 @@
   {
     "va": "0x465b9f",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet implementer (FL-38a), no independent review yet",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38a.c",
@@ -596,7 +596,7 @@
   {
     "va": "0x467651",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet implementer (FL-38a), no independent review yet",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38a.c",
@@ -629,7 +629,7 @@
   {
     "va": "0x468f19",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet implementer (FL-38a), no independent review yet",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38a.c",
@@ -662,7 +662,7 @@
   {
     "va": "0x468f68",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet implementer (FL-38a), no independent review yet",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38a.c",
@@ -695,7 +695,7 @@
   {
     "va": "0x46b707",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet implementer (FL-38a), no independent review yet",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38a.c",
@@ -728,7 +728,7 @@
   {
     "va": "0x46e7a6",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet implementer (FL-38a), no independent review yet",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38a.c",
@@ -761,7 +761,7 @@
   {
     "va": "0x46e7ef",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet implementer (FL-38a), no independent review yet",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38a.c",
@@ -794,7 +794,7 @@
   {
     "va": "0x470ddc",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet implementer (FL-38a), no independent review yet",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38a.c",
@@ -827,7 +827,7 @@
   {
     "va": "0x47823e",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet implementer (FL-38a), no independent review yet",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38a.c",
@@ -860,7 +860,7 @@
   {
     "va": "0x478287",
     "class": "native_oracle_verified",
-    "reviewer": "Sonnet implementer (FL-38a), no independent review yet",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-38)",
     "date": "2026-10-21",
     "native_source": {
       "path": "src/original_methods_fl38a.c",

@@ -6,7 +6,7 @@ buffer, a destination buffer (the block the scripted allocator returns), the scr
 cycle through profiles (the debug word values, unaligned cells and buffers, the cells aliasing each other, overlapping source and destination, a wrapping advance, and the failed allocation).
 
 `run_original(sc)` runs ONLY the original bytes (Unicorn) on a scenario: the callees are recording stubs (host boundaries); nothing inside the function under test is patched. The callee
-0x4c97b4 (called when the allocation failed) ends the program in the real game; its stub stops the run there (`halt`), and the native port stops at the same call and returns 1
+0x4c97b4 (called when the allocation failed) posts WM_QUIT and returns, after which the original faults copying into address 0; its stub stops the run there (`halt`), and the native port stops at the same call and returns 1
 (`partial`: the calls up to and including it are compared and every byte of every area except the three cells must be unchanged).
 """
 import ctypes
@@ -53,7 +53,7 @@ GLOBALS = {n: (int(n.rsplit('_', 1)[1], 16), ctypes.sizeof(t)) for n, t, p in WO
 
 
 class Original38b(Original27):
-    """Original27 whose stub with `halt` set does not return: the run stops there (the callee ends the program)."""
+    """Original27 whose stub with `halt` set stops the run there (0x4c97b4 really returns, then the original faults copying into address 0; behaviour after the call is not modelled)."""
     halted = False
 
     def _stub_hook(self, uc, address, size, user):
@@ -77,7 +77,7 @@ def run_original(sc):
     orig = runner.run(sc.va, sc.size, ecx=sc.ecx, stack_args=sc.stack, read=read)
     orig.edges = getattr(runner, 'edges', set())      # (address, next address) of the instructions executed in a row
     if runner.halted != (sc.partial is not None):
-        raise AssertionError('the callee that ends the program was %sreached' % ('not ' if sc.partial is not None else ''))
+        raise AssertionError('the failure-branch callee 0x4c97b4 was %sreached' % ('not ' if sc.partial is not None else ''))
     if not runner.halted and orig.cleanup != 0xc:
         raise AssertionError('the function popped %d bytes' % orig.cleanup)
     calls = normalize(orig.calls, sc.stubs, {}, {})

@@ -20,8 +20,8 @@ extern "C" {
  *   in2 = [esp+8]: *in2 is the source pointer; S bytes are copied from *in2 to *out (rep movsd, then movsw and/or movsb for the S mod 4 tail), forward, dword by dword;
  *   adv = [esp+12]: *adv += S, then *in2 += S (the cells may alias; each is read again before it is stored).
  * When p is 0 the original formats a message (0x50ca3e(0x63888b, fmt, dword [0x5bb57b], (int16)[0x5c39e3])), reports it with 0x42639d (thiscall on 0x583979, two arguments:
- * the second string, then 0x63888b) and calls 0x4c97b4 on 0x5cf659, which does not return (a fatal error): the original would otherwise copy into address 0. The port stops there and
- * returns 1 (the model of a callee that ends the program); it returns 0 otherwise. At the end, when the debug word [0x63a4cd] is non-zero, 0x44a2b7(debug message) is called.
+ * the second string, then 0x63888b) and calls 0x4c97b4 on 0x5cf659, which posts WM_QUIT (PostQuitMessage) and returns; the original then copies into address 0 (access violation), which is not modelled. The port stops there and
+ * returns 1 (a bounded model of the failure branch; behaviour after the call is not claimed); it returns 0 otherwise. At the end, when the debug word [0x63a4cd] is non-zero, 0x44a2b7(debug message) is called.
  * The three arguments are original addresses of cells (`host->resolve`); the dwords stored in the cells are original addresses too. Nothing is bounds checked. */
 
 typedef struct Fl38bWorld {

@@ -99,7 +99,7 @@ static uint32_t host_call(void *context, uint32_t callee, uintptr_t this_ptr, co
 
 enum { F38B_44D1D1 = 1, F38B_456FB6, F38B_45807C, F38B_464100, F38B_465BDE, F38B_46B79A, F38B_47314B, F38B_4782DB, F38B_475964, F38B_44FBE3, F38B_467688, F38B_468F9F, F38B_47E477, F38B_44E8A2, F38B_454E70, F38B_459C10, F38B_45DDD0, F38B_47B3F0 };
 
-/* Runs one port on the three cell addresses a[0..2]. `result` is the return value of the port (0 normal, 1 stopped after the callee that ends the program). */
+/* Runs one port on the three cell addresses a[0..2]. `result` is the return value of the port (0 normal, 1 stopped at the failure-branch callee 0x4c97b4). */
 void shim_fl38b(int fn, uint8_t *self, const uintptr_t *a, void *w, int32_t *result)
 {
     Fl18Host host;
