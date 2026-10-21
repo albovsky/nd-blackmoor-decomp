@@ -1579,3 +1579,5 @@ Oracle: every instruction and both directions of every conditional jump for all 
 Names: `function_names.py write`, `annotate_machine.py annotate --named` and `--derived --named`, `refresh` and a re-audit of all ten batches (10 of 10 accepted, pinned binutils 2.43.1 rebuilt in this container from the Ubuntu old-releases orig tarball with `bootstrap_matching_s08_2_gas.sh`; `annotate_machine.py check` 4,700 sources, 0 differ).
 
 Next pool: pending game rows 1,184; see `tasks/fl38-handoff.md`.
+
+Verification (FL-38): `extract_function_evidence.py --check`, `build_function_ledger.py --check`, `function_names.py check`, `annotate_machine.py check` and the six FL-38 modules pass on the final tree (145 tests with the batch oracles). Full suite on Linux (342 files, 4 at a time): 134 failing files; rerunning exactly those on clean main (`d0103aaf`) leaves 133 failing there too (the Mac-bound set), and the one extra, `test_action_family_ee_runtime`, timed out under load and passes alone (8 tests, 1 skipped, 330 s). No new failure.
