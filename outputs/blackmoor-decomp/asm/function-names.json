@@ -2,14 +2,14 @@
  "schema": "blackmoor-function-names/1",
  "note": "Names that committed evidence already states for assembly functions; every other source keeps the machine name fn_<va>. Written and checked by scripts/function_names.py; read by scripts/annotate_machine.py and scripts/audit_tool_assisted.py. A name is not a claim that the function is understood beyond its summary, and nothing here claims original C++ or compiler provenance.",
  "counts": {
-  "entries": 2489,
-  "native_port": 1199,
+  "entries": 2533,
+  "native_port": 1268,
   "parity_rule": 1,
   "ghidra_name": 83,
   "ghidra_funclet": 570,
   "structural": 258,
-  "inferred_prose": 133,
-  "inferred_strings": 227,
+  "inferred_prose": 126,
+  "inferred_strings": 209,
   "inferred_import": 18
  },
  "entries": [
@@ -1212,6 +1212,150 @@
    "native_source": {
     "path": "src/original_methods_fl32a.c",
     "symbol": "m4042d3_read_text_1cc",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x0040430e",
+   "name": "m40430e_read_word_setting",
+   "basis": "native_port",
+   "summary": "String read by 0x51d5b2 (this+0x18c) into a local, converted by 0x50cb1b, low word stored at [0x5e5686], then 0x4033db(this). 20/20 instructions, no jumps.",
+   "source": "native port src/original_methods_fl38c.c:m40430e_read_word_setting (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38c.c",
+    "symbol": "m40430e_read_word_setting",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x00404349",
+   "name": "m404349_read_word_setting",
+   "basis": "native_port",
+   "summary": "String read by 0x51d5b2 (this+0x14c) into a local, converted by 0x50cb1b, low word stored at [0x5e5684], then 0x4033db(this). 20/20 instructions, no jumps.",
+   "source": "native port src/original_methods_fl38c.c:m404349_read_word_setting (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38c.c",
+    "symbol": "m404349_read_word_setting",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x004043b6",
+   "name": "m4043b6_read_time_setting",
+   "basis": "native_port",
+   "summary": "String via 0x51d5b2 (this+0x24c), 0x50cb1b result to entry field 0x5e56aa; field 0x5e569e = h*3600000+m*60000+s*1000, then 0x4033db(this). 39/39 instructions.",
+   "source": "native port src/original_methods_fl38c.c:m4043b6_read_time_setting (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38c.c",
+    "symbol": "m4043b6_read_time_setting",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x0040445a",
+   "name": "m40445a_read_time_setting",
+   "basis": "native_port",
+   "summary": "String via 0x51d5b2 (this+0x20c), 0x50cb1b result to entry field 0x5e56a6; field 0x5e569e = h*3600000+m*60000+s*1000, then 0x4033db(this). 39/39 instructions.",
+   "source": "native port src/original_methods_fl38c.c:m40445a_read_time_setting (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38c.c",
+    "symbol": "m40445a_read_time_setting",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x004044fe",
+   "name": "m4044fe_read_time_setting",
+   "basis": "native_port",
+   "summary": "String via 0x51d5b2 (this+0x28c), 0x50cb1b result to entry field 0x5e56a2; field 0x5e569e = h*3600000+m*60000+s*1000, then 0x4033db(this). 39/39 instructions.",
+   "source": "native port src/original_methods_fl38c.c:m4044fe_read_time_setting (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38c.c",
+    "symbol": "m4044fe_read_time_setting",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x004045a2",
+   "name": "m4045a2_read_time_setting",
+   "basis": "native_port",
+   "summary": "String via 0x51d5b2 (this+0x30c), 0x50cb1b result to entry field 0x5e56be; field 0x5e56b2 = h*3600000+m*60000+s*1000, then 0x4033db(this). 39/39 instructions.",
+   "source": "native port src/original_methods_fl38c.c:m4045a2_read_time_setting (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38c.c",
+    "symbol": "m4045a2_read_time_setting",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x00404646",
+   "name": "m404646_read_time_setting",
+   "basis": "native_port",
+   "summary": "String via 0x51d5b2 (this+0x2cc), 0x50cb1b result to entry field 0x5e56ba; field 0x5e56b2 = h*3600000+m*60000+s*1000, then 0x4033db(this). 39/39 instructions.",
+   "source": "native port src/original_methods_fl38c.c:m404646_read_time_setting (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38c.c",
+    "symbol": "m404646_read_time_setting",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x004046ea",
+   "name": "m4046ea_read_time_setting",
+   "basis": "native_port",
+   "summary": "String via 0x51d5b2 (this+0x34c), 0x50cb1b result to entry field 0x5e56b6; field 0x5e56b2 = h*3600000+m*60000+s*1000, then 0x4033db(this). 39/39 instructions.",
+   "source": "native port src/original_methods_fl38c.c:m4046ea_read_time_setting (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38c.c",
+    "symbol": "m4046ea_read_time_setting",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x0040492f",
+   "name": "m40492f_read_word_setting",
+   "basis": "native_port",
+   "summary": "String read by 0x51d5b2 (this+0x38c) into a local, converted by 0x50cb1b, low word stored at [0x5ec33a], then 0x4033db(this). 20/20 instructions, no jumps.",
+   "source": "native port src/original_methods_fl38c.c:m40492f_read_word_setting (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38c.c",
+    "symbol": "m40492f_read_word_setting",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x0040496a",
+   "name": "m40496a_read_word_setting",
+   "basis": "native_port",
+   "summary": "String read by 0x51d5b2 (this+0x3cc) into a local, converted by 0x50cb1b, low word stored at [0x5ec284], then 0x4033db(this). 20/20 instructions, no jumps.",
+   "source": "native port src/original_methods_fl38c.c:m40496a_read_word_setting (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38c.c",
+    "symbol": "m40496a_read_word_setting",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x004049a5",
+   "name": "m4049a5_read_word_setting",
+   "basis": "native_port",
+   "summary": "String read by 0x51d5b2 (this+0x44c) into a local, converted by 0x50cb1b, low word stored at [0x5ec288], then 0x4033db(this). 20/20 instructions, no jumps.",
+   "source": "native port src/original_methods_fl38c.c:m4049a5_read_word_setting (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38c.c",
+    "symbol": "m4049a5_read_word_setting",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x004049e0",
+   "name": "m4049e0_read_word_setting",
+   "basis": "native_port",
+   "summary": "String read by 0x51d5b2 (this+0x40c) into a local, converted by 0x50cb1b, low word stored at [0x5ec286], then 0x4033db(this). 20/20 instructions, no jumps.",
+   "source": "native port src/original_methods_fl38c.c:m4049e0_read_word_setting (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38c.c",
+    "symbol": "m4049e0_read_word_setting",
     "class": "native_oracle_verified"
    }
   },
@@ -2668,6 +2812,18 @@
    }
   },
   {
+   "va": "0x0040893f",
+   "name": "m40893f_read_word_setting",
+   "basis": "native_port",
+   "summary": "String read by 0x51d5b2 (this+0x94c) into a local, converted by 0x50cb1b, low word stored at [0x5ec2d4], then 0x407ca7(this). 20/20 instructions, no jumps.",
+   "source": "native port src/original_methods_fl38c.c:m40893f_read_word_setting (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38c.c",
+    "symbol": "m40893f_read_word_setting",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
    "va": "0x00408980",
    "name": "m408980_scalar_deleting_dtor",
    "basis": "native_port",
@@ -3365,6 +3521,18 @@
    "native_source": {
     "path": "src/action_family_1b_runtime.c",
     "symbol": "action1b_step",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x00414c6d",
+   "name": "m414c6d_get_constant",
+   "basis": "native_port",
+   "summary": "Returns the constant 0x52c4d0u; the object is not read. No branch; all 8 instructions run (the span adds 0x3 int3 padding bytes).",
+   "source": "native port src/original_methods_fl38a.c:m414c6d_get_constant (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38a.c",
+    "symbol": "m414c6d_get_constant",
     "class": "native_oracle_verified"
    }
   },
@@ -5668,19 +5836,15 @@
   },
   {
    "va": "0x004465fd",
-   "name": "inferred_score_time_display_buffer_allocator",
-   "basis": "inferred_strings",
-   "confidence": "low",
-   "summary": "CScoreTimeDisplay::AllocateMemory: allocates a buffer of the given size into a pointer and zeroes it, with an error message and abort on failure.",
-   "source": "INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/4465fd.c.txt, not original source) refers to the data labelled s_CScoreTimeDisplay__AllocateMemor_0054824c",
-   "evidence": [
-    {
-     "path": "unverified-pseudocode/4465fd.c.txt",
-     "strings": [
-      "s_CScoreTimeDisplay__AllocateMemor_0054824c"
-     ]
-    }
-   ]
+   "name": "m4465fd_new_zeroed",
+   "basis": "native_port",
+   "summary": "p = 0x51dc43(size) stored at *out; p == 0: report with fmt 0x54824c, 0x4264e8, debug 0x44a2b7, 0x4c97b4 (returns); else size bytes zeroed. 45/45 instructions, 4/4 jump ways.",
+   "source": "native port src/original_methods_fl38c.c:m4465fd_new_zeroed (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38c.c",
+    "symbol": "m4465fd_new_zeroed",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x00446688",
@@ -5908,6 +6072,18 @@
    }
   },
   {
+   "va": "0x00447cc4",
+   "name": "m447cc4_get_constant",
+   "basis": "native_port",
+   "summary": "Returns the constant 0x52ca38u; the object is not read. No branch; all 8 instructions run (the span adds 0xc int3 padding bytes).",
+   "source": "native port src/original_methods_fl38a.c:m447cc4_get_constant (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38a.c",
+    "symbol": "m447cc4_get_constant",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
    "va": "0x00447ce0",
    "name": "m447ce0_scalar_deleting_dtor",
    "basis": "native_port",
@@ -6089,6 +6265,18 @@
      ]
     }
    ]
+  },
+  {
+   "va": "0x004487de",
+   "name": "m4487de_get_constant",
+   "basis": "native_port",
+   "summary": "Returns the constant 0x52cae8u; the object is not read. No branch; all 8 instructions run (the span adds 0x2 int3 padding bytes).",
+   "source": "native port src/original_methods_fl38a.c:m4487de_get_constant (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38a.c",
+    "symbol": "m4487de_get_constant",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x004487f0",
@@ -6432,6 +6620,18 @@
    }
   },
   {
+   "va": "0x0044be44",
+   "name": "m44be44_get_constant",
+   "basis": "native_port",
+   "summary": "Returns the constant 0x52cb78u; the object is not read. No branch; all 8 instructions run (the span adds 0xc int3 padding bytes).",
+   "source": "native port src/original_methods_fl38a.c:m44be44_get_constant (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38a.c",
+    "symbol": "m44be44_get_constant",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
    "va": "0x0044be60",
    "name": "m44be60_scalar_deleting_dtor",
    "basis": "native_port",
@@ -6679,18 +6879,15 @@
   },
   {
    "va": "0x0044d1d1",
-   "name": "inferred_raw_aa_loader",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Loader for raw 0xaa rows: copies the 763-byte typed body into a fresh row allocation.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_aa_runtime.h:17 says \"0x44d1d1 loader (0x40b34a, 0x4107df): copies the 763-byte typed body\"",
-   "evidence": [
-    {
-     "path": "src/action_family_aa_runtime.h",
-     "line": 17,
-     "quote": "0x44d1d1 loader (0x40b34a, 0x4107df): copies the 763-byte typed body"
-    }
-   ]
+   "name": "m44d1d1_clone_record",
+   "basis": "native_port",
+   "summary": "p = 0x51dc43(0x2fb) stored at *out; copies 0x2fb bytes (movsw+movsb) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (returns; post-call null copy not modelled). 58/58 instructions, both jne/je ways.",
+   "source": "native port src/original_methods_fl38b.c:m44d1d1_clone_record (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38b.c",
+    "symbol": "m44d1d1_clone_record",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x0044d28c",
@@ -6898,20 +7095,15 @@
   },
   {
    "va": "0x0044e8a2",
-   "name": "inferred_angletoss_puzzle_action_loader",
-   "basis": "inferred_strings",
-   "confidence": "low",
-   "summary": "Allocates a fixed-size scene action-record buffer (SCENE pData for ACTION message on failure), copies the record in and logs Loaded AT_ANGLETOSS_PUZZLE.",
-   "source": "INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/44e8a2.c.txt, not original source) refers to the data labelled s_Loaded_AT_ANGLETOSS_PUZZLE_actio_005497f0, s_for_SCENE__d__pData_for_ACTION_R_005497a8",
-   "evidence": [
-    {
-     "path": "unverified-pseudocode/44e8a2.c.txt",
-     "strings": [
-      "s_Loaded_AT_ANGLETOSS_PUZZLE_actio_005497f0",
-      "s_for_SCENE__d__pData_for_ACTION_R_005497a8"
-     ]
-    }
-   ]
+   "name": "m44e8a2_clone_record",
+   "basis": "native_port",
+   "summary": "p = 0x51dc43(0x269) stored at *out; copies 0x269 bytes (movsb) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (returns; post-call null copy not modelled). 57/57 instructions, both jne/je ways.",
+   "source": "native port src/original_methods_fl38b.c:m44e8a2_clone_record (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38b.c",
+    "symbol": "m44e8a2_clone_record",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x0044e95b",
@@ -7017,20 +7209,15 @@
   },
   {
    "va": "0x0044fbe3",
-   "name": "inferred_arcadegame_puzzle_action_loader",
-   "basis": "inferred_strings",
-   "confidence": "low",
-   "summary": "Allocates a fixed-size scene action-record buffer (SCENE pData for ACTION message on failure), copies the record in and logs Loaded AT_ARCADEGAME_PUZZLE.",
-   "source": "INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/44fbe3.c.txt, not original source) refers to the data labelled s_Loaded_AT_ARCADEGAME_PUZZLE_acti_00549964, s_for_SCENE__d__pData_for_ACTION_R_0054991c",
-   "evidence": [
-    {
-     "path": "unverified-pseudocode/44fbe3.c.txt",
-     "strings": [
-      "s_Loaded_AT_ARCADEGAME_PUZZLE_acti_00549964",
-      "s_for_SCENE__d__pData_for_ACTION_R_0054991c"
-     ]
-    }
-   ]
+   "name": "m44fbe3_clone_record",
+   "basis": "native_port",
+   "summary": "p = 0x51dc43(0x4e8) stored at *out; copies 0x4e8 bytes (none) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (returns; post-call null copy not modelled). 56/56 instructions, both jne/je ways.",
+   "source": "native port src/original_methods_fl38b.c:m44fbe3_clone_record (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38b.c",
+    "symbol": "m44fbe3_clone_record",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x00453ce2",
@@ -7050,35 +7237,27 @@
   },
   {
    "va": "0x004542b5",
-   "name": "inferred_play_sound_unless_no_sound",
-   "basis": "inferred_strings",
-   "confidence": "low",
-   "summary": "If the name field is not NO_SOUND, calls FUN_004fb2e3 (CSound::PlaySound) with the sound id field.",
-   "source": "INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/4542b5.c.txt, not original source) refers to the data labelled s_NO_SOUND_00549de0",
-   "evidence": [
-    {
-     "path": "unverified-pseudocode/4542b5.c.txt",
-     "strings": [
-      "s_NO_SOUND_00549de0"
-     ]
-    }
-   ]
+   "name": "m4542b5_check_no_sound_call",
+   "basis": "native_port",
+   "summary": "repe cmpsb of 9 bytes at this+0x550 against \"NO SOUND\\0\" (0x549de0); when different calls 0x4fb2e3(word [this+0x571]). 23/23 instructions, 2/2 branch directions.",
+   "source": "native port src/original_methods_fl38a.c:m4542b5_check_no_sound_call (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38a.c",
+    "symbol": "m4542b5_check_no_sound_call",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x004542f2",
-   "name": "inferred_play_sound_unless_no_sound_b",
-   "basis": "inferred_strings",
-   "confidence": "low",
-   "summary": "If the name field is not NO_SOUND, calls FUN_004fb2e3 (CSound::PlaySound) with the sound id field.",
-   "source": "INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/4542f2.c.txt, not original source) refers to the data labelled s_NO_SOUND_00549dec",
-   "evidence": [
-    {
-     "path": "unverified-pseudocode/4542f2.c.txt",
-     "strings": [
-      "s_NO_SOUND_00549dec"
-     ]
-    }
-   ]
+   "name": "m4542f2_check_no_sound_call",
+   "basis": "native_port",
+   "summary": "repe cmpsb of 9 bytes at this+0x581 against \"NO SOUND\\0\" (0x549dec); when different calls 0x4fb2e3(word [this+0x5a2]). 23/23 instructions, 2/2 branch directions.",
+   "source": "native port src/original_methods_fl38a.c:m4542f2_check_no_sound_call (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38a.c",
+    "symbol": "m4542f2_check_no_sound_call",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x0045432f",
@@ -7099,19 +7278,15 @@
   },
   {
    "va": "0x0045441d",
-   "name": "inferred_play_sound_unless_no_sound_c",
-   "basis": "inferred_strings",
-   "confidence": "low",
-   "summary": "If the name field is not NO_SOUND, calls FUN_004fb2e3 (CSound::PlaySound) with the sound id field.",
-   "source": "INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/45441d.c.txt, not original source) refers to the data labelled s_NO_SOUND_00549e1c",
-   "evidence": [
-    {
-     "path": "unverified-pseudocode/45441d.c.txt",
-     "strings": [
-      "s_NO_SOUND_00549e1c"
-     ]
-    }
-   ]
+   "name": "m45441d_check_no_sound_call",
+   "basis": "native_port",
+   "summary": "repe cmpsb of 9 bytes at this+0x676 against \"NO SOUND\\0\" (0x549e1c); when different calls 0x4fb2e3(word [this+0x697]). 23/23 instructions, 2/2 branch directions.",
+   "source": "native port src/original_methods_fl38a.c:m45441d_check_no_sound_call (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38a.c",
+    "symbol": "m45441d_check_no_sound_call",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x00454565",
@@ -7127,19 +7302,15 @@
   },
   {
    "va": "0x004547bc",
-   "name": "inferred_arcade_puzzle_buffer_allocator",
-   "basis": "inferred_strings",
-   "confidence": "low",
-   "summary": "CArcadePuzzle::AllocateMemory: allocates a zero-filled buffer of the given size, with an error message and abort on failure.",
-   "source": "INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/4547bc.c.txt, not original source) refers to the data labelled s_CArcadePuzzle__AllocateMemory_____00549e28",
-   "evidence": [
-    {
-     "path": "unverified-pseudocode/4547bc.c.txt",
-     "strings": [
-      "s_CArcadePuzzle__AllocateMemory_____00549e28"
-     ]
-    }
-   ]
+   "name": "m4547bc_new_zeroed",
+   "basis": "native_port",
+   "summary": "p = 0x51dc43(size) stored at *out; p == 0: report with fmt 0x549e28, 0x4264e8, debug 0x44a2b7, 0x4c97b4 (returns); else size bytes zeroed. 45/45 instructions, 4/4 jump ways.",
+   "source": "native port src/original_methods_fl38c.c:m4547bc_new_zeroed (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38c.c",
+    "symbol": "m4547bc_new_zeroed",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x00454c70",
@@ -7214,21 +7385,64 @@
    }
   },
   {
+   "va": "0x00454de6",
+   "name": "m454de6_release_surface_clear_call_tail",
+   "basis": "native_port",
+   "summary": "As the release rows, and stores 0 at [this+0x20] after the 0x4c2dfb call; tail 0x454d9e(this). 28/28 instructions, 4/4 branch directions.",
+   "source": "native port src/original_methods_fl38a.c:m454de6_release_surface_clear_call_tail (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38a.c",
+    "symbol": "m454de6_release_surface_clear_call_tail",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x00454e39",
+   "name": "m454e39_guard_set_table_flag",
+   "basis": "native_port",
+   "summary": "Stores dword 1 at 0x5d15a5+0x4a*int16[this+0x1c] when dword [this+0x150] is set and the word is not -1; returns this. 18/18 instructions, 4/4 branch directions.",
+   "source": "native port src/original_methods_fl38a.c:m454e39_guard_set_table_flag (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38a.c",
+    "symbol": "m454e39_guard_set_table_flag",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
    "va": "0x00454e70",
-   "name": "inferred_assembly_puzzle_action_loader",
-   "basis": "inferred_strings",
-   "confidence": "low",
-   "summary": "Allocates a fixed-size scene action-record buffer (SCENE pData for ACTION message on failure), copies the record in and logs Loaded AT_ASSEMBLY_PUZZLE.",
-   "source": "INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/454e70.c.txt, not original source) refers to the data labelled s_Loaded_AT_ASSEMBLY_PUZZLE_action_0054a004, s_for_SCENE__d__pData_for_ACTION_R_00549fbc",
-   "evidence": [
-    {
-     "path": "unverified-pseudocode/454e70.c.txt",
-     "strings": [
-      "s_Loaded_AT_ASSEMBLY_PUZZLE_action_0054a004",
-      "s_for_SCENE__d__pData_for_ACTION_R_00549fbc"
-     ]
-    }
-   ]
+   "name": "m454e70_clone_record",
+   "basis": "native_port",
+   "summary": "p = 0x51dc43(0xd01) stored at *out; copies 0xd01 bytes (movsb) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (returns; post-call null copy not modelled). 57/57 instructions, both jne/je ways.",
+   "source": "native port src/original_methods_fl38b.c:m454e70_clone_record (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38b.c",
+    "symbol": "m454e70_clone_record",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x00454f29",
+   "name": "m454f29_shift_rect",
+   "basis": "native_port",
+   "summary": "Copies rect src to dst: +4 and +0xc plus [0x58318a], +0 and +8 plus [0x583186] (32-bit wrap), ret 8. 27/27 instructions, no jumps.",
+   "source": "native port src/original_methods_fl38c.c:m454f29_shift_rect (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38c.c",
+    "symbol": "m454f29_shift_rect",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x00454f7c",
+   "name": "m454f7c_clamp_to_bounds",
+   "basis": "native_port",
+   "summary": "Clamps self[0x4e,0x56] and self[0x4a,0x52] into global bounds [0x58319a,0x5831a2], [0x583196,0x58319e], extents int16 +0x16c, +0x16a. 63/63 instructions, 8/8 jump ways.",
+   "source": "native port src/original_methods_fl38c.c:m454f7c_clamp_to_bounds (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38c.c",
+    "symbol": "m454f7c_clamp_to_bounds",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x00455180",
@@ -7327,6 +7541,30 @@
    }
   },
   {
+   "va": "0x00456d2e",
+   "name": "m456d2e_release_surface_call_tail",
+   "basis": "native_port",
+   "summary": "Calls 0x4c2dfb(this+0x20) if dword [this+0x20] is set, 0x4d3992(word [this+0x1c]) if not -1, then 0x456d07(this). 26/26 instructions, 4/4 branch directions.",
+   "source": "native port src/original_methods_fl38a.c:m456d2e_release_surface_call_tail (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38a.c",
+    "symbol": "m456d2e_release_surface_call_tail",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x00456d77",
+   "name": "m456d77_guard_set_table_flag",
+   "basis": "native_port",
+   "summary": "Stores dword 1 at 0x5d15a5+0x4a*int16[this+0x1c] when dword [this+0x3e] is set and the word is not -1; returns this. 18/18 instructions, 4/4 branch directions.",
+   "source": "native port src/original_methods_fl38a.c:m456d77_guard_set_table_flag (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38a.c",
+    "symbol": "m456d77_guard_set_table_flag",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
    "va": "0x00456dab",
    "name": "m456dab_set_two_words",
    "basis": "native_port",
@@ -7340,20 +7578,27 @@
   },
   {
    "va": "0x00456fb6",
-   "name": "inferred_bball_puzzle_action_loader",
-   "basis": "inferred_strings",
-   "confidence": "low",
-   "summary": "Allocates a fixed-size scene action-record buffer (SCENE pData for ACTION message on failure), copies the record in and logs Loaded AT_BBALL_PUZZLE.",
-   "source": "INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/456fb6.c.txt, not original source) refers to the data labelled s_Loaded_AT_BBALL_PUZZLE_action_re_0054a378, s_for_SCENE__d__pData_for_ACTION_R_0054a330",
-   "evidence": [
-    {
-     "path": "unverified-pseudocode/456fb6.c.txt",
-     "strings": [
-      "s_Loaded_AT_BBALL_PUZZLE_action_re_0054a378",
-      "s_for_SCENE__d__pData_for_ACTION_R_0054a330"
-     ]
-    }
-   ]
+   "name": "m456fb6_clone_record",
+   "basis": "native_port",
+   "summary": "p = 0x51dc43(0x27b) stored at *out; copies 0x27b bytes (movsw+movsb) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (returns; post-call null copy not modelled). 58/58 instructions, both jne/je ways.",
+   "source": "native port src/original_methods_fl38b.c:m456fb6_clone_record (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38b.c",
+    "symbol": "m456fb6_clone_record",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x00457071",
+   "name": "m457071_shift_rect",
+   "basis": "native_port",
+   "summary": "Copies rect src to dst: +4 and +0xc plus [0x58318a], +0 and +8 plus [0x583186] (32-bit wrap), ret 8. 27/27 instructions, no jumps.",
+   "source": "native port src/original_methods_fl38c.c:m457071_shift_rect (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38c.c",
+    "symbol": "m457071_shift_rect",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x004571e1",
@@ -7469,21 +7714,52 @@
    }
   },
   {
+   "va": "0x00457fc2",
+   "name": "m457fc2_release_surface_clear_call_tail",
+   "basis": "native_port",
+   "summary": "As the release rows, and stores 0 at [this+0x1c] after the 0x4c2dfb call; tail 0x457f7a(this). 28/28 instructions, 4/4 branch directions.",
+   "source": "native port src/original_methods_fl38a.c:m457fc2_release_surface_clear_call_tail (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38a.c",
+    "symbol": "m457fc2_release_surface_clear_call_tail",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x00458045",
+   "name": "m458045_guard_set_table_flag",
+   "basis": "native_port",
+   "summary": "Stores dword 1 at 0x5d15a5+0x4a*int16[this+0x24] when dword [this+0x98] is set and the word is not -1; returns this. 18/18 instructions, 4/4 branch directions.",
+   "source": "native port src/original_methods_fl38a.c:m458045_guard_set_table_flag (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38a.c",
+    "symbol": "m458045_guard_set_table_flag",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
    "va": "0x0045807c",
-   "name": "inferred_bead_puzzle_action_loader",
-   "basis": "inferred_strings",
-   "confidence": "low",
-   "summary": "Allocates a fixed-size scene action-record buffer (SCENE pData for ACTION message on failure), copies the record in and logs Loaded AT_BEAD_PUZZLE.",
-   "source": "INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/45807c.c.txt, not original source) refers to the data labelled s_Loaded_AT_BEAD_PUZZLE_action_rec_0054a5c0, s_for_SCENE__d__pData_for_ACTION_R_0054a578",
-   "evidence": [
-    {
-     "path": "unverified-pseudocode/45807c.c.txt",
-     "strings": [
-      "s_Loaded_AT_BEAD_PUZZLE_action_rec_0054a5c0",
-      "s_for_SCENE__d__pData_for_ACTION_R_0054a578"
-     ]
-    }
-   ]
+   "name": "m45807c_clone_record",
+   "basis": "native_port",
+   "summary": "p = 0x51dc43(0x663) stored at *out; copies 0x663 bytes (movsw+movsb) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (returns; post-call null copy not modelled). 58/58 instructions, both jne/je ways.",
+   "source": "native port src/original_methods_fl38b.c:m45807c_clone_record (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38b.c",
+    "symbol": "m45807c_clone_record",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x00458137",
+   "name": "m458137_shift_rect",
+   "basis": "native_port",
+   "summary": "Copies rect src to dst: +4 and +0xc plus [0x58318a], +0 and +8 plus [0x583186] (32-bit wrap), ret 8. 27/27 instructions, no jumps.",
+   "source": "native port src/original_methods_fl38c.c:m458137_shift_rect (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38c.c",
+    "symbol": "m458137_shift_rect",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x0045841e",
@@ -7599,21 +7875,28 @@
    }
   },
   {
+   "va": "0x00459b87",
+   "name": "m459b87_release_surface_call_tail",
+   "basis": "native_port",
+   "summary": "Calls 0x4c2dfb(this+0xc8) if dword [this+0xc8] is set, 0x4d3992(word [this+0x22]) if not -1, then 0x459aea(this). 26/26 instructions, 4/4 branch directions.",
+   "source": "native port src/original_methods_fl38a.c:m459b87_release_surface_call_tail (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38a.c",
+    "symbol": "m459b87_release_surface_call_tail",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
    "va": "0x00459c10",
-   "name": "inferred_bomb_puzzle_action_loader",
-   "basis": "inferred_strings",
-   "confidence": "low",
-   "summary": "Allocates a fixed-size scene action-record buffer (SCENE pData for ACTION message on failure), copies the record in and logs Loaded AT_BOMB_PUZZLE.",
-   "source": "INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/459c10.c.txt, not original source) refers to the data labelled s_Loaded_AT_BOMB_PUZZLE_action_rec_0054a794, s_for_SCENE__d__pData_for_ACTION_R_0054a74c",
-   "evidence": [
-    {
-     "path": "unverified-pseudocode/459c10.c.txt",
-     "strings": [
-      "s_Loaded_AT_BOMB_PUZZLE_action_rec_0054a794",
-      "s_for_SCENE__d__pData_for_ACTION_R_0054a74c"
-     ]
-    }
-   ]
+   "name": "m459c10_clone_record",
+   "basis": "native_port",
+   "summary": "p = 0x51dc43(0x2b1) stored at *out; copies 0x2b1 bytes (movsb) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (returns; post-call null copy not modelled). 57/57 instructions, both jne/je ways.",
+   "source": "native port src/original_methods_fl38b.c:m459c10_clone_record (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38b.c",
+    "symbol": "m459c10_clone_record",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x00459cc9",
@@ -7971,18 +8254,15 @@
   },
   {
    "va": "0x0045dd4d",
-   "name": "inferred_card_puzzle_cleanup",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Cleanup of the card puzzle: releases the surface and the slot, then runs the reset.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_f6_runtime.h:280 says \"0x45dd4d: release the surface and the slot, then the 0x45dc8a reset.\"",
-   "evidence": [
-    {
-     "path": "src/action_family_f6_runtime.h",
-     "line": 280,
-     "quote": "0x45dd4d: release the surface and the slot, then the 0x45dc8a reset."
-    }
-   ]
+   "name": "m45dd4d_release_surface_call_tail",
+   "basis": "native_port",
+   "summary": "Calls 0x4c2dfb(this+0x20) if dword [this+0x20] is set, 0x4d3992(word [this+0x1c]) if not -1, then 0x45dc8a(this). 26/26 instructions, 4/4 branch directions.",
+   "source": "native port src/original_methods_fl38a.c:m45dd4d_release_surface_call_tail (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38a.c",
+    "symbol": "m45dd4d_release_surface_call_tail",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x0045dd96",
@@ -8001,18 +8281,15 @@
   },
   {
    "va": "0x0045ddd0",
-   "name": "inferred_raw_f6_loader",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Loader allocation copying the 4,934-byte typed body of raw 0xf6 rows.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_f6_runtime.h:17 says \"copies the 4,934-byte typed body into a fresh row allocation (0x45ddd0)\"",
-   "evidence": [
-    {
-     "path": "src/action_family_f6_runtime.h",
-     "line": 17,
-     "quote": "copies the 4,934-byte typed body into a fresh row allocation (0x45ddd0)"
-    }
-   ]
+   "name": "m45ddd0_clone_record",
+   "basis": "native_port",
+   "summary": "p = 0x51dc43(0x1346) stored at *out; copies 0x1346 bytes (movsw) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (returns; post-call null copy not modelled). 57/57 instructions, both jne/je ways.",
+   "source": "native port src/original_methods_fl38b.c:m45ddd0_clone_record (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38b.c",
+    "symbol": "m45ddd0_clone_record",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x0045de8a",
@@ -8537,21 +8814,64 @@
    }
   },
   {
+   "va": "0x00464076",
+   "name": "m464076_release_surface_clear_call_tail",
+   "basis": "native_port",
+   "summary": "As the release rows, and stores 0 at [this+0x20] after the 0x4c2dfb call; tail 0x46402e(this). 28/28 instructions, 4/4 branch directions.",
+   "source": "native port src/original_methods_fl38a.c:m464076_release_surface_clear_call_tail (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38a.c",
+    "symbol": "m464076_release_surface_clear_call_tail",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x004640c9",
+   "name": "m4640c9_guard_set_table_flag",
+   "basis": "native_port",
+   "summary": "Stores dword 1 at 0x5d15a5+0x4a*int16[this+0x1c] when dword [this+0xb8] is set and the word is not -1; returns this. 18/18 instructions, 4/4 branch directions.",
+   "source": "native port src/original_methods_fl38a.c:m4640c9_guard_set_table_flag (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38a.c",
+    "symbol": "m4640c9_guard_set_table_flag",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
    "va": "0x00464100",
-   "name": "inferred_cube_puzzle_action_loader",
-   "basis": "inferred_strings",
-   "confidence": "low",
-   "summary": "Allocates a fixed-size scene action-record buffer (SCENE pData for ACTION message on failure), copies the record in and logs Loaded AT_CUBE_PUZZLE.",
-   "source": "INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/464100.c.txt, not original source) refers to the data labelled s_Loaded_AT_CUBE_PUZZLE_action_rec_0054b308, s_for_SCENE__d__pData_for_ACTION_R_0054b2c0",
-   "evidence": [
-    {
-     "path": "unverified-pseudocode/464100.c.txt",
-     "strings": [
-      "s_Loaded_AT_CUBE_PUZZLE_action_rec_0054b308",
-      "s_for_SCENE__d__pData_for_ACTION_R_0054b2c0"
-     ]
-    }
-   ]
+   "name": "m464100_clone_record",
+   "basis": "native_port",
+   "summary": "p = 0x51dc43(0x43f) stored at *out; copies 0x43f bytes (movsw+movsb) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (returns; post-call null copy not modelled). 58/58 instructions, both jne/je ways.",
+   "source": "native port src/original_methods_fl38b.c:m464100_clone_record (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38b.c",
+    "symbol": "m464100_clone_record",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x0046453b",
+   "name": "m46453b_shift_rect",
+   "basis": "native_port",
+   "summary": "Copies rect src to dst: +4 and +0xc plus [0x58318a], +0 and +8 plus [0x583186] (32-bit wrap), ret 8. 27/27 instructions, no jumps.",
+   "source": "native port src/original_methods_fl38c.c:m46453b_shift_rect (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38c.c",
+    "symbol": "m46453b_shift_rect",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x0046458e",
+   "name": "m46458e_clamp_to_bounds",
+   "basis": "native_port",
+   "summary": "Clamps self[0x4e,0x56] and self[0x4a,0x52] into global bounds [0x58319a,0x5831a2], [0x583196,0x58319e], extents int16 +0xd4, +0xd2. 63/63 instructions, 8/8 jump ways.",
+   "source": "native port src/original_methods_fl38c.c:m46458e_clamp_to_bounds (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38c.c",
+    "symbol": "m46458e_clamp_to_bounds",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x00464792",
@@ -8667,6 +8987,18 @@
    }
   },
   {
+   "va": "0x00465b9f",
+   "name": "m465b9f_guard_set_table_flag",
+   "basis": "native_port",
+   "summary": "Stores dword 1 at 0x5d15a5+0x4a*int16[this+0x1c] when dword [this+0x49] is set and the word is not -1; returns this. 18/18 instructions, 4/4 branch directions.",
+   "source": "native port src/original_methods_fl38a.c:m465b9f_guard_set_table_flag (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38a.c",
+    "symbol": "m465b9f_guard_set_table_flag",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
    "va": "0x00465bd3",
    "name": "m465bd3_empty_method",
    "basis": "native_port",
@@ -8680,20 +9012,15 @@
   },
   {
    "va": "0x00465bde",
-   "name": "inferred_cutting_puzzle_action_loader",
-   "basis": "inferred_strings",
-   "confidence": "low",
-   "summary": "Allocates a fixed-size scene action-record buffer (SCENE pData for ACTION message on failure), copies the record in and logs Loaded AT_CUTTING_PUZZLE.",
-   "source": "INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/465bde.c.txt, not original source) refers to the data labelled s_Loaded_AT_CUTTING_PUZZLE_action_r_0054b518, s_for_SCENE__d__pData_for_ACTION_R_0054b4d0",
-   "evidence": [
-    {
-     "path": "unverified-pseudocode/465bde.c.txt",
-     "strings": [
-      "s_Loaded_AT_CUTTING_PUZZLE_action_r_0054b518",
-      "s_for_SCENE__d__pData_for_ACTION_R_0054b4d0"
-     ]
-    }
-   ]
+   "name": "m465bde_clone_record",
+   "basis": "native_port",
+   "summary": "p = 0x51dc43(0x55f) stored at *out; copies 0x55f bytes (movsw+movsb) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (returns; post-call null copy not modelled). 58/58 instructions, both jne/je ways.",
+   "source": "native port src/original_methods_fl38b.c:m465bde_clone_record (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38b.c",
+    "symbol": "m465bde_clone_record",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x00465c99",
@@ -8716,6 +9043,18 @@
    "native_source": {
     "path": "src/original_methods_fl24b.c",
     "symbol": "m466073_click_27d2_27d3",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x00466db1",
+   "name": "m466db1_shift_rect",
+   "basis": "native_port",
+   "summary": "Copies rect src to dst: +4 and +0xc plus [0x58318a], +0 and +8 plus [0x583186] (32-bit wrap), ret 8. 27/27 instructions, no jumps.",
+   "source": "native port src/original_methods_fl38c.c:m466db1_shift_rect (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38c.c",
+    "symbol": "m466db1_shift_rect",
     "class": "native_oracle_verified"
    }
   },
@@ -8768,21 +9107,28 @@
    }
   },
   {
+   "va": "0x00467651",
+   "name": "m467651_guard_set_table_flag",
+   "basis": "native_port",
+   "summary": "Stores dword 1 at 0x5d15a5+0x4a*int16[this+0x10] when dword [this+0x1ae] is set and the word is not -1; returns this. 18/18 instructions, 4/4 branch directions.",
+   "source": "native port src/original_methods_fl38a.c:m467651_guard_set_table_flag (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38a.c",
+    "symbol": "m467651_guard_set_table_flag",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
    "va": "0x00467688",
-   "name": "inferred_dotconnect_puzzle_action_loader",
-   "basis": "inferred_strings",
-   "confidence": "low",
-   "summary": "Allocates a fixed-size scene action-record buffer (SCENE pData for ACTION message on failure), copies the record in and logs Loaded AT_DOTCONNECT_PUZZLE.",
-   "source": "INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/467688.c.txt, not original source) refers to the data labelled s_Loaded_AT_DOTCONNECT_PUZZLE_acti_0054b820, s_for_SCENE__d__pData_for_ACTION_R_0054b7d8",
-   "evidence": [
-    {
-     "path": "unverified-pseudocode/467688.c.txt",
-     "strings": [
-      "s_Loaded_AT_DOTCONNECT_PUZZLE_acti_0054b820",
-      "s_for_SCENE__d__pData_for_ACTION_R_0054b7d8"
-     ]
-    }
-   ]
+   "name": "m467688_clone_record",
+   "basis": "native_port",
+   "summary": "p = 0x51dc43(0x408) stored at *out; copies 0x408 bytes (none) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (returns; post-call null copy not modelled). 56/56 instructions, both jne/je ways.",
+   "source": "native port src/original_methods_fl38b.c:m467688_clone_record (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38b.c",
+    "symbol": "m467688_clone_record",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x00467740",
@@ -8887,21 +9233,40 @@
    }
   },
   {
+   "va": "0x00468f19",
+   "name": "m468f19_release_surface_call_tail",
+   "basis": "native_port",
+   "summary": "Calls 0x4c2dfb(this+0x52c) if dword [this+0x52c] is set, 0x4d3992(word [this+0x7c]) if not -1, then 0x468e5a(this). 26/26 instructions, 4/4 branch directions.",
+   "source": "native port src/original_methods_fl38a.c:m468f19_release_surface_call_tail (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38a.c",
+    "symbol": "m468f19_release_surface_call_tail",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x00468f68",
+   "name": "m468f68_guard_set_table_flag",
+   "basis": "native_port",
+   "summary": "Stores dword 1 at 0x5d15a5+0x4a*int16[this+0x7c] when dword [this+0x55c] is set and the word is not -1; returns this. 18/18 instructions, 4/4 branch directions.",
+   "source": "native port src/original_methods_fl38a.c:m468f68_guard_set_table_flag (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38a.c",
+    "symbol": "m468f68_guard_set_table_flag",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
    "va": "0x00468f9f",
-   "name": "inferred_equalizer_puzzle_action_loader",
-   "basis": "inferred_strings",
-   "confidence": "low",
-   "summary": "Allocates a fixed-size scene action-record buffer (SCENE pData for ACTION message on failure), copies the record in and logs Loaded AT_SOUND_EQUALIZER_PUZZLE.",
-   "source": "INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/468f9f.c.txt, not original source) refers to the data labelled s_Loaded_AT_SOUND_EQUALIZER_PUZZLE_0054b9bc, s_for_SCENE__d__pData_for_ACTION_R_0054b974",
-   "evidence": [
-    {
-     "path": "unverified-pseudocode/468f9f.c.txt",
-     "strings": [
-      "s_Loaded_AT_SOUND_EQUALIZER_PUZZLE_0054b9bc",
-      "s_for_SCENE__d__pData_for_ACTION_R_0054b974"
-     ]
-    }
-   ]
+   "name": "m468f9f_clone_record",
+   "basis": "native_port",
+   "summary": "p = 0x51dc43(0x5d8) stored at *out; copies 0x5d8 bytes (none) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (returns; post-call null copy not modelled). 56/56 instructions, both jne/je ways.",
+   "source": "native port src/original_methods_fl38b.c:m468f9f_clone_record (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38b.c",
+    "symbol": "m468f9f_clone_record",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x00469057",
@@ -9000,6 +9365,18 @@
    }
   },
   {
+   "va": "0x0046b707",
+   "name": "m46b707_guard_set_table_flag",
+   "basis": "native_port",
+   "summary": "Stores dword 1 at 0x5d15a5+0x4a*int16[this+0x1c] when dword [this+0x4a48] is set and the word is not -1; returns this. 18/18 instructions, 4/4 branch directions.",
+   "source": "native port src/original_methods_fl38a.c:m46b707_guard_set_table_flag (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38a.c",
+    "symbol": "m46b707_guard_set_table_flag",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
    "va": "0x0046b73e",
    "name": "m46b73e_set_two_words",
    "basis": "native_port",
@@ -9013,20 +9390,27 @@
   },
   {
    "va": "0x0046b79a",
-   "name": "inferred_gridmap_puzzle_action_loader",
-   "basis": "inferred_strings",
-   "confidence": "low",
-   "summary": "Allocates a fixed-size scene action-record buffer (SCENE pData for ACTION message on failure), copies the record in and logs Loaded AT_GRIDMAP_PUZZLE.",
-   "source": "INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/46b79a.c.txt, not original source) refers to the data labelled s_Loaded_AT_GRIDMAP_PUZZLE_action_r_0054bccc, s_for_SCENE__d__pData_for_ACTION_R_0054bc84",
-   "evidence": [
-    {
-     "path": "unverified-pseudocode/46b79a.c.txt",
-     "strings": [
-      "s_Loaded_AT_GRIDMAP_PUZZLE_action_r_0054bccc",
-      "s_for_SCENE__d__pData_for_ACTION_R_0054bc84"
-     ]
-    }
-   ]
+   "name": "m46b79a_clone_record",
+   "basis": "native_port",
+   "summary": "p = 0x51dc43(0x6e3) stored at *out; copies 0x6e3 bytes (movsw+movsb) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (returns; post-call null copy not modelled). 58/58 instructions, both jne/je ways.",
+   "source": "native port src/original_methods_fl38b.c:m46b79a_clone_record (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38b.c",
+    "symbol": "m46b79a_clone_record",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x0046b855",
+   "name": "m46b855_clamp_to_bounds",
+   "basis": "native_port",
+   "summary": "Clamps self[0x49f8,0x4a00] and self[0x49f4,0x49fc] into global bounds [0x58319a,0x5831a2], [0x583196,0x58319e], extents int16 +0x816c, +0x816a. 63/63 instructions, 8/8 jump ways.",
+   "source": "native port src/original_methods_fl38c.c:m46b855_clamp_to_bounds (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38c.c",
+    "symbol": "m46b855_clamp_to_bounds",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x0046bca9",
@@ -9097,6 +9481,30 @@
    "native_source": {
     "path": "src/original_methods_fl36b.c",
     "symbol": "m46e5ea_get_constant",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x0046e7a6",
+   "name": "m46e7a6_release_surface_call_tail",
+   "basis": "native_port",
+   "summary": "Calls 0x4c2dfb(this+0x20) if dword [this+0x20] is set, 0x4d3992(word [this+0x1c]) if not -1, then 0x46e6c1(this). 26/26 instructions, 4/4 branch directions.",
+   "source": "native port src/original_methods_fl38a.c:m46e7a6_release_surface_call_tail (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38a.c",
+    "symbol": "m46e7a6_release_surface_call_tail",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x0046e7ef",
+   "name": "m46e7ef_guard_set_table_flag",
+   "basis": "native_port",
+   "summary": "Stores dword 1 at 0x5d15a5+0x4a*int16[this+0x1c] when dword [this+0x46] is set and the word is not -1; returns this. 18/18 instructions, 4/4 branch directions.",
+   "source": "native port src/original_methods_fl38a.c:m46e7ef_guard_set_table_flag (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38a.c",
+    "symbol": "m46e7ef_guard_set_table_flag",
     "class": "native_oracle_verified"
    }
   },
@@ -9249,18 +9657,15 @@
   },
   {
    "va": "0x00470ddc",
-   "name": "inferred_keypad_puzzle_cleanup",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Cleanup of the keypad puzzle: releases the surface and the slot, then resets.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_e0_runtime.h:247 says \"0x470ddc: release the surface and the slot, then the 0x470d7a reset.\"",
-   "evidence": [
-    {
-     "path": "src/action_family_e0_runtime.h",
-     "line": 247,
-     "quote": "0x470ddc: release the surface and the slot, then the 0x470d7a reset."
-    }
-   ]
+   "name": "m470ddc_release_surface_call_tail",
+   "basis": "native_port",
+   "summary": "Calls 0x4c2dfb(this+0xd24) if dword [this+0xd24] is set, 0x4d3992(word [this+0xd38]) if not -1, then 0x470d7a(this). 26/26 instructions, 4/4 branch directions.",
+   "source": "native port src/original_methods_fl38a.c:m470ddc_release_surface_call_tail (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38a.c",
+    "symbol": "m470ddc_release_surface_call_tail",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x00470e31",
@@ -9411,20 +9816,15 @@
   },
   {
    "va": "0x0047314b",
-   "name": "inferred_magnetmaze_puzzle_action_loader",
-   "basis": "inferred_strings",
-   "confidence": "low",
-   "summary": "Allocates a fixed-size scene action-record buffer (SCENE pData for ACTION message on failure), copies the record in and logs Loaded AT_MAGNETMAZE_PUZZLE.",
-   "source": "INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/47314b.c.txt, not original source) refers to the data labelled s_Loaded_AT_MAGNETMAZE_PUZZLE_acti_0054c5e8, s___for_SCENE__d__pData_for_ACTION_0054c59e",
-   "evidence": [
-    {
-     "path": "unverified-pseudocode/47314b.c.txt",
-     "strings": [
-      "s_Loaded_AT_MAGNETMAZE_PUZZLE_acti_0054c5e8",
-      "s___for_SCENE__d__pData_for_ACTION_0054c59e"
-     ]
-    }
-   ]
+   "name": "m47314b_clone_record",
+   "basis": "native_port",
+   "summary": "p = 0x51dc43(0x4ff) stored at *out; copies 0x4ff bytes (movsw+movsb) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (returns; post-call null copy not modelled). 58/58 instructions, both jne/je ways.",
+   "source": "native port src/original_methods_fl38b.c:m47314b_clone_record (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38b.c",
+    "symbol": "m47314b_clone_record",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x00473206",
@@ -9577,18 +9977,15 @@
   },
   {
    "va": "0x00475964",
-   "name": "inferred_raw_e4_loader",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Loader for raw 0xe4 rows: copies the 2034-byte typed body into a fresh row allocation.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_e4_runtime.h:18 says \"0x475964 loader (0x40b34a, 0x4105f0): copies the 2034-byte typed body\"",
-   "evidence": [
-    {
-     "path": "src/action_family_e4_runtime.h",
-     "line": 18,
-     "quote": "0x475964 loader (0x40b34a, 0x4105f0): copies the 2034-byte typed body"
-    }
-   ]
+   "name": "m475964_clone_record",
+   "basis": "native_port",
+   "summary": "p = 0x51dc43(0x7f2) stored at *out; copies 0x7f2 bytes (movsw) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (returns; post-call null copy not modelled). 57/57 instructions, both jne/je ways.",
+   "source": "native port src/original_methods_fl38b.c:m475964_clone_record (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38b.c",
+    "symbol": "m475964_clone_record",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x00475a1e",
@@ -9786,6 +10183,30 @@
    }
   },
   {
+   "va": "0x0047823e",
+   "name": "m47823e_release_surface_call_tail",
+   "basis": "native_port",
+   "summary": "Calls 0x4c2dfb(this+0x20) if dword [this+0x20] is set, 0x4d3992(word [this+0x1c]) if not -1, then 0x4781fa(this). 26/26 instructions, 4/4 branch directions.",
+   "source": "native port src/original_methods_fl38a.c:m47823e_release_surface_call_tail (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38a.c",
+    "symbol": "m47823e_release_surface_call_tail",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x00478287",
+   "name": "m478287_guard_set_table_flag",
+   "basis": "native_port",
+   "summary": "Stores dword 1 at 0x5d15a5+0x4a*int16[this+0x1c] when dword [this+0x157a] is set and the word is not -1; returns this. 18/18 instructions, 4/4 branch directions.",
+   "source": "native port src/original_methods_fl38a.c:m478287_guard_set_table_flag (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38a.c",
+    "symbol": "m478287_guard_set_table_flag",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
    "va": "0x004782be",
    "name": "m4782be_set_two_words",
    "basis": "native_port",
@@ -9799,20 +10220,27 @@
   },
   {
    "va": "0x004782db",
-   "name": "inferred_mazechase_puzzle_action_loader",
-   "basis": "inferred_strings",
-   "confidence": "low",
-   "summary": "Allocates a fixed-size scene action-record buffer (SCENE pData for ACTION message on failure), copies the record in and logs Loaded AT_MAZECHASE_PUZZLE.",
-   "source": "INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/4782db.c.txt, not original source) refers to the data labelled s_Loaded_AT_MAZECHASE_PUZZLE_actio_0054cb58, s_for_SCENE__d__pData_for_ACTION_R_0054cb10",
-   "evidence": [
-    {
-     "path": "unverified-pseudocode/4782db.c.txt",
-     "strings": [
-      "s_Loaded_AT_MAZECHASE_PUZZLE_actio_0054cb58",
-      "s_for_SCENE__d__pData_for_ACTION_R_0054cb10"
-     ]
-    }
-   ]
+   "name": "m4782db_clone_record",
+   "basis": "native_port",
+   "summary": "p = 0x51dc43(0x29b) stored at *out; copies 0x29b bytes (movsw+movsb) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (returns; post-call null copy not modelled). 58/58 instructions, both jne/je ways.",
+   "source": "native port src/original_methods_fl38b.c:m4782db_clone_record (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38b.c",
+    "symbol": "m4782db_clone_record",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x00479d98",
+   "name": "m479d98_shift_rect",
+   "basis": "native_port",
+   "summary": "Copies rect src to dst: +4 and +0xc plus [0x58318a], +0 and +8 plus [0x583186] (32-bit wrap), ret 8. 27/27 instructions, no jumps.",
+   "source": "native port src/original_methods_fl38c.c:m479d98_shift_rect (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38c.c",
+    "symbol": "m479d98_shift_rect",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x00479deb",
@@ -9936,18 +10364,15 @@
   },
   {
    "va": "0x0047b3f0",
-   "name": "inferred_raw_ee_loader",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Loader arm for raw 0xee rows: copies the 5,826-byte typed body.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_ee_runtime.h:18 says \"0x47b3f0 loader arm (0x410785): copies the 5,826-byte typed body\"",
-   "evidence": [
-    {
-     "path": "src/action_family_ee_runtime.h",
-     "line": 18,
-     "quote": "0x47b3f0 loader arm (0x410785): copies the 5,826-byte typed body"
-    }
-   ]
+   "name": "m47b3f0_clone_record",
+   "basis": "native_port",
+   "summary": "p = 0x51dc43(0x16c2) stored at *out; copies 0x16c2 bytes (movsw) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (returns; post-call null copy not modelled). 57/57 instructions, both jne/je ways.",
+   "source": "native port src/original_methods_fl38b.c:m47b3f0_clone_record (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38b.c",
+    "symbol": "m47b3f0_clone_record",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x0047b4aa",
@@ -10407,18 +10832,15 @@
   },
   {
    "va": "0x0047e477",
-   "name": "inferred_raw_eb_loader",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Loader for raw 0xeb rows: copies the 2,612-byte typed body.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_eb_runtime.h:16 says \"0x47e477 loader (0x40b34a arm 0x4108c0): copies the 2,612-byte typed body\"",
-   "evidence": [
-    {
-     "path": "src/action_family_eb_runtime.h",
-     "line": 16,
-     "quote": "0x47e477 loader (0x40b34a arm 0x4108c0): copies the 2,612-byte typed body"
-    }
-   ]
+   "name": "m47e477_clone_record",
+   "basis": "native_port",
+   "summary": "p = 0x51dc43(0xa34) stored at *out; copies 0xa34 bytes (none) from *in2 and advances *adv and *in2 by it; p == 0 ends in 0x4c97b4 (returns; post-call null copy not modelled). 56/56 instructions, both jne/je ways.",
+   "source": "native port src/original_methods_fl38b.c:m47e477_clone_record (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl38b.c",
+    "symbol": "m47e477_clone_record",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x0047e52f",

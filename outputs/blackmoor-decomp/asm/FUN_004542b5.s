@@ -8,15 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_play_sound_unless_no_sound
-# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/4542b5.c.txt, not original source) refers to the data labelled s_NO_SOUND_00549de0
-# name-note:    If the name field is not NO_SOUND, calls FUN_004fb2e3 (CSound::PlaySound) with the sound id field.
+# name:         m4542b5_check_no_sound_call
+# naming:       native port src/original_methods_fl38a.c:m4542b5_check_no_sound_call (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port
+# name-note:    repe cmpsb of 9 bytes at this+0x550 against "NO SOUND\0" (0x549de0); when different calls 0x4fb2e3(word [this+0x571]). 23/23 instructions, 2/2 branch directions.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [ecx + n] field_571
 # callees:      calls FUN_004fb2e3
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 23 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl38a.c:m4542b5_check_no_sound_call (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 23 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text
