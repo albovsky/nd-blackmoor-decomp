@@ -1,0 +1,1190 @@
+[
+  {
+    "va": "0x4080fc",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35b.c",
+      "symbol": "m4080fc_toggle_5ec28c"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35b_direct_test.c",
+        "test_id": "test_m4080fc_toggle_5ec28c"
+      },
+      {
+        "path": "tests/test_fl35b_direct.py",
+        "test_id": "Fl35bDirect.test_4080fc_toggle_5ec28c"
+      },
+      {
+        "path": "tests/test_fl35b_differential.py",
+        "test_id": "Fl35bDifferential.test_4080fc_toggle_5ec28c"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35b_original_oracle.py",
+      "window": [
+        "0x4080fc",
+        "0x40812e"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Toggles the signed 16-bit word at 0x5ec28c (non-zero becomes 0, zero becomes 1), then returns 0x407ca7(self). je taken both ways; all 15 instructions run."
+  },
+  {
+    "va": "0x40812e",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35b.c",
+      "symbol": "m40812e_read_text_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35b_direct_test.c",
+        "test_id": "test_m40812e_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_direct.py",
+        "test_id": "Fl35bDirect.test_40812e_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_differential.py",
+        "test_id": "Fl35bDifferential.test_40812e_read_text_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35b_original_oracle.py",
+      "window": [
+        "0x40812e",
+        "0x408169"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x8c), stores the low word of 0x50cb1b(buf) to 0x5ec28e, returns 0x407ca7(self). No branch; all 20 instructions run."
+  },
+  {
+    "va": "0x408169",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35b.c",
+      "symbol": "m408169_read_text_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35b_direct_test.c",
+        "test_id": "test_m408169_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_direct.py",
+        "test_id": "Fl35bDirect.test_408169_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_differential.py",
+        "test_id": "Fl35bDifferential.test_408169_read_text_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35b_original_oracle.py",
+      "window": [
+        "0x408169",
+        "0x4081a4"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0xcc), stores the low word of 0x50cb1b(buf) to 0x5ec290, returns 0x407ca7(self). No branch; all 20 instructions run."
+  },
+  {
+    "va": "0x4081a4",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35b.c",
+      "symbol": "m4081a4_read_text_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35b_direct_test.c",
+        "test_id": "test_m4081a4_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_direct.py",
+        "test_id": "Fl35bDirect.test_4081a4_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_differential.py",
+        "test_id": "Fl35bDifferential.test_4081a4_read_text_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35b_original_oracle.py",
+      "window": [
+        "0x4081a4",
+        "0x4081df"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x10c), stores the low word of 0x50cb1b(buf) to 0x5ec292, returns 0x407ca7(self). No branch; all 20 instructions run."
+  },
+  {
+    "va": "0x4081df",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35b.c",
+      "symbol": "m4081df_read_text_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35b_direct_test.c",
+        "test_id": "test_m4081df_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_direct.py",
+        "test_id": "Fl35bDirect.test_4081df_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_differential.py",
+        "test_id": "Fl35bDifferential.test_4081df_read_text_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35b_original_oracle.py",
+      "window": [
+        "0x4081df",
+        "0x40821a"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x14c), stores the low word of 0x50cb1b(buf) to 0x5ec294, returns 0x407ca7(self). No branch; all 20 instructions run."
+  },
+  {
+    "va": "0x40821a",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35b.c",
+      "symbol": "m40821a_read_text_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35b_direct_test.c",
+        "test_id": "test_m40821a_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_direct.py",
+        "test_id": "Fl35bDirect.test_40821a_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_differential.py",
+        "test_id": "Fl35bDifferential.test_40821a_read_text_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35b_original_oracle.py",
+      "window": [
+        "0x40821a",
+        "0x408255"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x18c), stores the low word of 0x50cb1b(buf) to 0x5ec296, returns 0x407ca7(self). No branch; all 20 instructions run."
+  },
+  {
+    "va": "0x408255",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35b.c",
+      "symbol": "m408255_read_text_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35b_direct_test.c",
+        "test_id": "test_m408255_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_direct.py",
+        "test_id": "Fl35bDirect.test_408255_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_differential.py",
+        "test_id": "Fl35bDifferential.test_408255_read_text_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35b_original_oracle.py",
+      "window": [
+        "0x408255",
+        "0x408290"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x1cc), stores the low word of 0x50cb1b(buf) to 0x5ec298, returns 0x407ca7(self). No branch; all 20 instructions run."
+  },
+  {
+    "va": "0x408290",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35b.c",
+      "symbol": "m408290_read_text_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35b_direct_test.c",
+        "test_id": "test_m408290_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_direct.py",
+        "test_id": "Fl35bDirect.test_408290_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_differential.py",
+        "test_id": "Fl35bDifferential.test_408290_read_text_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35b_original_oracle.py",
+      "window": [
+        "0x408290",
+        "0x4082cb"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x20c), stores the low word of 0x50cb1b(buf) to 0x5ec29a, returns 0x407ca7(self). No branch; all 20 instructions run."
+  },
+  {
+    "va": "0x4082cb",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35b.c",
+      "symbol": "m4082cb_read_text_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35b_direct_test.c",
+        "test_id": "test_m4082cb_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_direct.py",
+        "test_id": "Fl35bDirect.test_4082cb_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_differential.py",
+        "test_id": "Fl35bDifferential.test_4082cb_read_text_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35b_original_oracle.py",
+      "window": [
+        "0x4082cb",
+        "0x408306"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x24c), stores the low word of 0x50cb1b(buf) to 0x5ec29c, returns 0x407ca7(self). No branch; all 20 instructions run."
+  },
+  {
+    "va": "0x408306",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35b.c",
+      "symbol": "m408306_read_text_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35b_direct_test.c",
+        "test_id": "test_m408306_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_direct.py",
+        "test_id": "Fl35bDirect.test_408306_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_differential.py",
+        "test_id": "Fl35bDifferential.test_408306_read_text_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35b_original_oracle.py",
+      "window": [
+        "0x408306",
+        "0x408341"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x28c), stores the low word of 0x50cb1b(buf) to 0x5ec29e, returns 0x407ca7(self). No branch; all 20 instructions run."
+  },
+  {
+    "va": "0x408341",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35b.c",
+      "symbol": "m408341_read_text_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35b_direct_test.c",
+        "test_id": "test_m408341_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_direct.py",
+        "test_id": "Fl35bDirect.test_408341_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_differential.py",
+        "test_id": "Fl35bDifferential.test_408341_read_text_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35b_original_oracle.py",
+      "window": [
+        "0x408341",
+        "0x40837c"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x2cc), stores the low word of 0x50cb1b(buf) to 0x5ec2a0, returns 0x407ca7(self). No branch; all 20 instructions run."
+  },
+  {
+    "va": "0x40837c",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35b.c",
+      "symbol": "m40837c_read_text_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35b_direct_test.c",
+        "test_id": "test_m40837c_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_direct.py",
+        "test_id": "Fl35bDirect.test_40837c_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_differential.py",
+        "test_id": "Fl35bDifferential.test_40837c_read_text_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35b_original_oracle.py",
+      "window": [
+        "0x40837c",
+        "0x4083b7"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x30c), stores the low word of 0x50cb1b(buf) to 0x5ec2a2, returns 0x407ca7(self). No branch; all 20 instructions run."
+  },
+  {
+    "va": "0x4083b7",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35b.c",
+      "symbol": "m4083b7_read_text_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35b_direct_test.c",
+        "test_id": "test_m4083b7_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_direct.py",
+        "test_id": "Fl35bDirect.test_4083b7_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_differential.py",
+        "test_id": "Fl35bDifferential.test_4083b7_read_text_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35b_original_oracle.py",
+      "window": [
+        "0x4083b7",
+        "0x4083f2"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x34c), stores the low word of 0x50cb1b(buf) to 0x5ec2a4, returns 0x407ca7(self). No branch; all 20 instructions run."
+  },
+  {
+    "va": "0x4083f2",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35b.c",
+      "symbol": "m4083f2_read_text_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35b_direct_test.c",
+        "test_id": "test_m4083f2_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_direct.py",
+        "test_id": "Fl35bDirect.test_4083f2_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_differential.py",
+        "test_id": "Fl35bDifferential.test_4083f2_read_text_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35b_original_oracle.py",
+      "window": [
+        "0x4083f2",
+        "0x40842d"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x38c), stores the low word of 0x50cb1b(buf) to 0x5ec2a6, returns 0x407ca7(self). No branch; all 20 instructions run."
+  },
+  {
+    "va": "0x40842d",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35b.c",
+      "symbol": "m40842d_read_text_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35b_direct_test.c",
+        "test_id": "test_m40842d_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_direct.py",
+        "test_id": "Fl35bDirect.test_40842d_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_differential.py",
+        "test_id": "Fl35bDifferential.test_40842d_read_text_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35b_original_oracle.py",
+      "window": [
+        "0x40842d",
+        "0x408468"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x3cc), stores the low word of 0x50cb1b(buf) to 0x5ec2a8, returns 0x407ca7(self). No branch; all 20 instructions run."
+  },
+  {
+    "va": "0x408468",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35b.c",
+      "symbol": "m408468_read_text_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35b_direct_test.c",
+        "test_id": "test_m408468_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_direct.py",
+        "test_id": "Fl35bDirect.test_408468_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_differential.py",
+        "test_id": "Fl35bDifferential.test_408468_read_text_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35b_original_oracle.py",
+      "window": [
+        "0x408468",
+        "0x4084a3"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x40c), stores the low word of 0x50cb1b(buf) to 0x5ec2aa, returns 0x407ca7(self). No branch; all 20 instructions run."
+  },
+  {
+    "va": "0x4084a3",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35b.c",
+      "symbol": "m4084a3_read_text_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35b_direct_test.c",
+        "test_id": "test_m4084a3_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_direct.py",
+        "test_id": "Fl35bDirect.test_4084a3_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_differential.py",
+        "test_id": "Fl35bDifferential.test_4084a3_read_text_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35b_original_oracle.py",
+      "window": [
+        "0x4084a3",
+        "0x4084de"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x44c), stores the low word of 0x50cb1b(buf) to 0x5ec2ac, returns 0x407ca7(self). No branch; all 20 instructions run."
+  },
+  {
+    "va": "0x4084de",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35b.c",
+      "symbol": "m4084de_read_text_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35b_direct_test.c",
+        "test_id": "test_m4084de_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_direct.py",
+        "test_id": "Fl35bDirect.test_4084de_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_differential.py",
+        "test_id": "Fl35bDifferential.test_4084de_read_text_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35b_original_oracle.py",
+      "window": [
+        "0x4084de",
+        "0x408519"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x48c), stores the low word of 0x50cb1b(buf) to 0x5ec2ae, returns 0x407ca7(self). No branch; all 20 instructions run."
+  },
+  {
+    "va": "0x408519",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35b.c",
+      "symbol": "m408519_read_text_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35b_direct_test.c",
+        "test_id": "test_m408519_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_direct.py",
+        "test_id": "Fl35bDirect.test_408519_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_differential.py",
+        "test_id": "Fl35bDifferential.test_408519_read_text_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35b_original_oracle.py",
+      "window": [
+        "0x408519",
+        "0x408554"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x4cc), stores the low word of 0x50cb1b(buf) to 0x5ec2b0, returns 0x407ca7(self). No branch; all 20 instructions run."
+  },
+  {
+    "va": "0x408554",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35b.c",
+      "symbol": "m408554_read_text_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35b_direct_test.c",
+        "test_id": "test_m408554_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_direct.py",
+        "test_id": "Fl35bDirect.test_408554_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_differential.py",
+        "test_id": "Fl35bDifferential.test_408554_read_text_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35b_original_oracle.py",
+      "window": [
+        "0x408554",
+        "0x40858f"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x50c), stores the low word of 0x50cb1b(buf) to 0x5ec2b2, returns 0x407ca7(self). No branch; all 20 instructions run."
+  },
+  {
+    "va": "0x40858f",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35b.c",
+      "symbol": "m40858f_read_text_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35b_direct_test.c",
+        "test_id": "test_m40858f_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_direct.py",
+        "test_id": "Fl35bDirect.test_40858f_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_differential.py",
+        "test_id": "Fl35bDifferential.test_40858f_read_text_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35b_original_oracle.py",
+      "window": [
+        "0x40858f",
+        "0x4085ca"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x54c), stores the low word of 0x50cb1b(buf) to 0x5ec2b4, returns 0x407ca7(self). No branch; all 20 instructions run."
+  },
+  {
+    "va": "0x4085ca",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35b.c",
+      "symbol": "m4085ca_read_text_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35b_direct_test.c",
+        "test_id": "test_m4085ca_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_direct.py",
+        "test_id": "Fl35bDirect.test_4085ca_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_differential.py",
+        "test_id": "Fl35bDifferential.test_4085ca_read_text_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35b_original_oracle.py",
+      "window": [
+        "0x4085ca",
+        "0x408605"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x58c), stores the low word of 0x50cb1b(buf) to 0x5ec2b6, returns 0x407ca7(self). No branch; all 20 instructions run."
+  },
+  {
+    "va": "0x408605",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35b.c",
+      "symbol": "m408605_read_text_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35b_direct_test.c",
+        "test_id": "test_m408605_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_direct.py",
+        "test_id": "Fl35bDirect.test_408605_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_differential.py",
+        "test_id": "Fl35bDifferential.test_408605_read_text_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35b_original_oracle.py",
+      "window": [
+        "0x408605",
+        "0x408640"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x5cc), stores the low word of 0x50cb1b(buf) to 0x5ec2b8, returns 0x407ca7(self). No branch; all 20 instructions run."
+  },
+  {
+    "va": "0x408640",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35b.c",
+      "symbol": "m408640_read_text_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35b_direct_test.c",
+        "test_id": "test_m408640_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_direct.py",
+        "test_id": "Fl35bDirect.test_408640_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_differential.py",
+        "test_id": "Fl35bDifferential.test_408640_read_text_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35b_original_oracle.py",
+      "window": [
+        "0x408640",
+        "0x40867b"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x60c), stores the low word of 0x50cb1b(buf) to 0x5ec2ba, returns 0x407ca7(self). No branch; all 20 instructions run."
+  },
+  {
+    "va": "0x40867b",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35b.c",
+      "symbol": "m40867b_read_text_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35b_direct_test.c",
+        "test_id": "test_m40867b_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_direct.py",
+        "test_id": "Fl35bDirect.test_40867b_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_differential.py",
+        "test_id": "Fl35bDifferential.test_40867b_read_text_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35b_original_oracle.py",
+      "window": [
+        "0x40867b",
+        "0x4086b6"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x64c), stores the low word of 0x50cb1b(buf) to 0x5ec2bc, returns 0x407ca7(self). No branch; all 20 instructions run."
+  },
+  {
+    "va": "0x4086b6",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35b.c",
+      "symbol": "m4086b6_read_text_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35b_direct_test.c",
+        "test_id": "test_m4086b6_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_direct.py",
+        "test_id": "Fl35bDirect.test_4086b6_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_differential.py",
+        "test_id": "Fl35bDifferential.test_4086b6_read_text_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35b_original_oracle.py",
+      "window": [
+        "0x4086b6",
+        "0x4086f1"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x68c), stores the low word of 0x50cb1b(buf) to 0x5ec2be, returns 0x407ca7(self). No branch; all 20 instructions run."
+  },
+  {
+    "va": "0x4086f1",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35b.c",
+      "symbol": "m4086f1_read_text_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35b_direct_test.c",
+        "test_id": "test_m4086f1_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_direct.py",
+        "test_id": "Fl35bDirect.test_4086f1_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_differential.py",
+        "test_id": "Fl35bDifferential.test_4086f1_read_text_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35b_original_oracle.py",
+      "window": [
+        "0x4086f1",
+        "0x40872c"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x6cc), stores the low word of 0x50cb1b(buf) to 0x5ec2c0, returns 0x407ca7(self). No branch; all 20 instructions run."
+  },
+  {
+    "va": "0x40872c",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35b.c",
+      "symbol": "m40872c_read_text_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35b_direct_test.c",
+        "test_id": "test_m40872c_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_direct.py",
+        "test_id": "Fl35bDirect.test_40872c_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_differential.py",
+        "test_id": "Fl35bDifferential.test_40872c_read_text_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35b_original_oracle.py",
+      "window": [
+        "0x40872c",
+        "0x408767"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x70c), stores the low word of 0x50cb1b(buf) to 0x5ec2c2, returns 0x407ca7(self). No branch; all 20 instructions run."
+  },
+  {
+    "va": "0x408767",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35b.c",
+      "symbol": "m408767_read_text_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35b_direct_test.c",
+        "test_id": "test_m408767_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_direct.py",
+        "test_id": "Fl35bDirect.test_408767_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_differential.py",
+        "test_id": "Fl35bDifferential.test_408767_read_text_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35b_original_oracle.py",
+      "window": [
+        "0x408767",
+        "0x4087a2"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x74c), stores the low word of 0x50cb1b(buf) to 0x5ec2c4, returns 0x407ca7(self). No branch; all 20 instructions run."
+  },
+  {
+    "va": "0x4087a2",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35b.c",
+      "symbol": "m4087a2_read_text_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35b_direct_test.c",
+        "test_id": "test_m4087a2_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_direct.py",
+        "test_id": "Fl35bDirect.test_4087a2_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_differential.py",
+        "test_id": "Fl35bDifferential.test_4087a2_read_text_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35b_original_oracle.py",
+      "window": [
+        "0x4087a2",
+        "0x4087dd"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x78c), stores the low word of 0x50cb1b(buf) to 0x5ec2c6, returns 0x407ca7(self). No branch; all 20 instructions run."
+  },
+  {
+    "va": "0x4087dd",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35b.c",
+      "symbol": "m4087dd_read_text_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35b_direct_test.c",
+        "test_id": "test_m4087dd_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_direct.py",
+        "test_id": "Fl35bDirect.test_4087dd_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_differential.py",
+        "test_id": "Fl35bDifferential.test_4087dd_read_text_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35b_original_oracle.py",
+      "window": [
+        "0x4087dd",
+        "0x408818"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x7cc), stores the low word of 0x50cb1b(buf) to 0x5ec2c8, returns 0x407ca7(self). No branch; all 20 instructions run."
+  },
+  {
+    "va": "0x408818",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35b.c",
+      "symbol": "m408818_read_text_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35b_direct_test.c",
+        "test_id": "test_m408818_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_direct.py",
+        "test_id": "Fl35bDirect.test_408818_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_differential.py",
+        "test_id": "Fl35bDifferential.test_408818_read_text_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35b_original_oracle.py",
+      "window": [
+        "0x408818",
+        "0x408853"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x80c), stores the low word of 0x50cb1b(buf) to 0x5ec2ca, returns 0x407ca7(self). No branch; all 20 instructions run."
+  },
+  {
+    "va": "0x408853",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35b.c",
+      "symbol": "m408853_read_text_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35b_direct_test.c",
+        "test_id": "test_m408853_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_direct.py",
+        "test_id": "Fl35bDirect.test_408853_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_differential.py",
+        "test_id": "Fl35bDifferential.test_408853_read_text_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35b_original_oracle.py",
+      "window": [
+        "0x408853",
+        "0x40888e"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x84c), stores the low word of 0x50cb1b(buf) to 0x5ec2cc, returns 0x407ca7(self). No branch; all 20 instructions run."
+  },
+  {
+    "va": "0x40888e",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35b.c",
+      "symbol": "m40888e_read_text_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35b_direct_test.c",
+        "test_id": "test_m40888e_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_direct.py",
+        "test_id": "Fl35bDirect.test_40888e_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_differential.py",
+        "test_id": "Fl35bDifferential.test_40888e_read_text_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35b_original_oracle.py",
+      "window": [
+        "0x40888e",
+        "0x4088c9"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x88c), stores the low word of 0x50cb1b(buf) to 0x5ec2ce, returns 0x407ca7(self). No branch; all 20 instructions run."
+  },
+  {
+    "va": "0x4088c9",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35b.c",
+      "symbol": "m4088c9_read_text_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35b_direct_test.c",
+        "test_id": "test_m4088c9_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_direct.py",
+        "test_id": "Fl35bDirect.test_4088c9_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_differential.py",
+        "test_id": "Fl35bDifferential.test_4088c9_read_text_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35b_original_oracle.py",
+      "window": [
+        "0x4088c9",
+        "0x408904"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x8cc), stores the low word of 0x50cb1b(buf) to 0x5ec2d0, returns 0x407ca7(self). No branch; all 20 instructions run."
+  },
+  {
+    "va": "0x408904",
+    "class": "native_oracle_verified",
+    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-35)",
+    "date": "2026-10-21",
+    "native_source": {
+      "path": "src/original_methods_fl35b.c",
+      "symbol": "m408904_read_text_word"
+    },
+    "tests": [
+      {
+        "path": "tests/fl35b_direct_test.c",
+        "test_id": "test_m408904_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_direct.py",
+        "test_id": "Fl35bDirect.test_408904_read_text_word"
+      },
+      {
+        "path": "tests/test_fl35b_differential.py",
+        "test_id": "Fl35bDifferential.test_408904_read_text_word"
+      }
+    ],
+    "oracle": {
+      "path": "tests/fl35b_original_oracle.py",
+      "window": [
+        "0x408904",
+        "0x40893f"
+      ]
+    },
+    "parts_accounted": [],
+    "note": "Fills a 0x13-byte local via 0x51d5b2(self+0x90c), stores the low word of 0x50cb1b(buf) to 0x5ec2d2, returns 0x407ca7(self). No branch; all 20 instructions run."
+  }
+]
