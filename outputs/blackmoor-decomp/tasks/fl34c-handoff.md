@@ -1,5 +1,7 @@
 # FL-34 batch c (`fl34c`) handoff
 
+> Collection note (root): one Sonnet slice-reviewer diff review found no P1; the acceptances' `reviewer` field was set to `Sonnet slice-reviewer, diff review, no P1 (FL-34)` and the batch was merged into `claude/project-thread-mokacw`. The branch and commit named below are the implementer's worktree.
+
 Branch `worktree-agent-a02505cddccfeb4fe` (worktree `/home/user/nd-blackmoor-decomp/.claude/worktrees/agent-a02505cddccfeb4fe`), based on `917c6ca5` (the FL-34 packet commit, fast-forwarded in; the worktree started at `425d4bad`). Implementer: Claude Sonnet. No independent review has been done (every acceptance entry says so in its `reviewer` field); root must have the `slice-reviewer` confirm before collection. Nothing in `function-ledger*.json`, `function-evidence.json` or `function-execution.json` was edited. `tasks/fl34c-acceptances.json` is the proposed `port_acceptances` content (class `native_oracle_verified`, 8 entries, no receipt blocker, so no `blockers_reviewed`; the oracle window of each is its ledger span `[va, va+span)`).
 
 GAME.EXE SHA-256 `afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45` (read only, checked by the oracle's loader on every run).

@@ -1,5 +1,7 @@
 # FL-34 batch a (`fl34a`) handoff
 
+> Collection note (root): one Sonnet slice-reviewer diff review found no P1; the acceptances' `reviewer` field was set to `Sonnet slice-reviewer, diff review, no P1 (FL-34)` and the batch was merged into `claude/project-thread-mokacw`. The branch and commit named below are the implementer's worktree.
+
 Branch `worktree-agent-acae58f1e1083a036` (worktree `/home/user/nd-blackmoor-decomp/.claude/worktrees/agent-acae58f1e1083a036`), based on `917c6ca5` (the FL-34 packet commit; the worktree was created at its parent `425d4bad` and fast-forwarded). Code commit `a81e350c`. Implementer: Claude Sonnet. No independent review has been done: every acceptance entry says so in its `reviewer` field; root must have the `slice-reviewer` confirm before collection. Nothing in `function-ledger*.json`, `function-evidence.json` or `function-execution.json` was edited. `tasks/fl34a-acceptances.json` is the proposed `port_acceptances` content (class `native_oracle_verified`, 21 entries; none of the rows has a receipt blocker in the packet, so there is no `blockers_reviewed`). `FL.test_area` (decomp-progress/function_ledger.py) resolves all 63 test ids and `FL.symbol_area`/`addresses_in` finds each row's address in its symbol's leading comment (checked by a scratch script, not committed).
 
 GAME.EXE SHA-256 `afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45` (read only, checked by the oracle's loader on every run).
