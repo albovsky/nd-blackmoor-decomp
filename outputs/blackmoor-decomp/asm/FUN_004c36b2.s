@@ -8,15 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_screen_file_94_handler
-# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_94_runtime.h:11 says "Handler 0x4c36b2 (thiscall on the"; src/blackmoor_app.mm:11543 says "handler 0x4c36b2: three phases, a screen file"
-# name-note:    Handler of raw 0x94 "make a screen file" (AT_MAKE_SCREEN_FILE), three phases.
+# name:         m4c36b2_save_region
+# naming:       native port src/original_methods_fl36a.c:m4c36b2_save_region (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port
+# name-note:    Record state machine: allocates, copies a sub-rectangle or the whole buffer, writes a 0x12-byte header file or calls 0x4c334f; 314/314 instructions, 37/38 directions (dead je at 0x4c3baa flagged); first-alloc failure rejected.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       32 ebp-relative slot(s): local_4, local_5c, local_70, local_80, local_84, local_88, local_8b, local_8c, local_8e, local_90, local_92, local_94 and 20 more
 # fields:       [eax + n] field_21, field_25, field_2d, field_31; [ecx + n] field_8, field_21; [edx + n] field_8, field_21, field_25, field_29, field_2d
 # callees:      calls FUN_004d36ed, FUN_0051dc43, FUN_0044a2b7, FUN_004c4067, FUN_0043f04b, FUN_004c4202, FUN_004c334f, FUN_0050cd72, FUN_0050d0a9, FUN_0050e493, FUN_004c7481, FUN_0050cee4, FUN_0051dc6c, FUN_0042ba3a
-# track-n:      outputs/blackmoor-decomp/src/blackmoor_app.mm:create_native_scene_session (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 314 instruction(s), 19 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl36a.c:m4c36b2_save_region (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 314 instruction(s), 19 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text
