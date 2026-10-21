@@ -3,7 +3,7 @@
   "all_accepted": true,
   "assembler": {
     "binutils_archive_sha512": "20977ad17729141a2c26d358628f44a0944b84dcfefdec2ba029c2d02f40dfc41cc91c0631044560d2bd6f9a51e1f15846b4b311befbe14f1239f14ff7d57824",
-    "path": "wp/tools/s08-binutils-2.43.1/prefix/bin/i686-w64-mingw32-as",
+    "path": "work/tools/s08-binutils-2.43.1/prefix/bin/i686-w64-mingw32-as",
     "self_test": "passed",
     "sha256": "e098415986a220be7e4b2d14f3b0894cf065a8f21d6aaf117140d2966039e5c4",
     "version_line": "GNU assembler (GNU Binutils) 2.43.1"
@@ -19279,7 +19279,7 @@
   ],
   "manifest_sha256": "f2cc8dec29b022d4386fd9c951f75b9c4c1b418ca884d36b7c02da6426c04881",
   "named_functions": 84,
-  "names_sha256": "0355d6caf2df6e76d9f495be4e493cb05e184269f592ed2aefb1dc9b5c957636",
+  "names_sha256": "6b39f99161dcd4380133085aa4654d3d6467905e6cd92299e2d877b8f9015fcb",
   "note": "Accepted functions are candidates for the tool_assisted_reconstructed_assembly class; they count only after root accepts the independent review. No claim is made about original C++ or compiler provenance.",
   "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45"
 }
