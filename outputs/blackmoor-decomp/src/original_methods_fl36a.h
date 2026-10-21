@@ -39,7 +39,7 @@ typedef struct Fl36aWorld {
  * and [+0x1da] <= 1 (signed) becomes [self+0x46a]; [+0x287] = 0, [+0x19e] = 0, [+0x28b] = 0; size = dword [entry+0x122] is stored at [+0x15e].
  * size < 0 (signed): when the signed word 0x63a4cd != 0: 0x4f356e(this self, id), 0x50ca3e(0x63888b, 0x55dab8, entry + 4) (cdecl, THREE arguments) and 0x52139c(0x63888b, 0, 0) (stdcall); return 0 (also with the
  * debug word zero). Otherwise, when signed word [entry+0x126] == 2: the NUL-terminated string at 0x55dafc is copied with its NUL to the start of the frame area (dwords first, then bytes): the original's
- * area is 0x20 bytes plus a 4-byte temporary below it, so a string of 0x24 bytes or more with its NUL would run over the saved registers: the port returns status 1 right there (everything before has
+ * area is 0x20 bytes plus a 4-byte temporary below it, so a string of more than 0x24 bytes with its NUL (36 characters or more) would run over the saved registers: the port returns status 1 right there (everything before has
  * happened). size > 0x56220 (signed): [+0x166] = 1; debug word != 0: 0x50ca3e(0x63888b, 0x55db08, the address of the frame area (a host
  * pointer), id, entry + 4) (cdecl, FIVE arguments) and 0x44a2b7(0x63888b) (cdecl); 0x4f438f(this self, id) (thiscall, 1 argument; the original pushes the word from cx with a stale upper half, the port
  * passes it zero extended) == 0: return 0; else return dword [self+0x3be] (read again). Otherwise (size <= 0x56220): [+0x166] = 0; debug word != 0: 0x50ca3e(0x63888b, 0x55db40, id, entry + 4) (cdecl, FOUR

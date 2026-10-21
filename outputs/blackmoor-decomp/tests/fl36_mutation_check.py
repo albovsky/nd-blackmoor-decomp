@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""FL-36 mutation check for the tiny-family batches (b, c, d).  usage (from outputs/blackmoor-decomp): python3 tests/fl36_mutation_check.py <batch letter> [--differential]
+"""FL-36 mutation check for the tiny-family batches (b to f).  usage (from outputs/blackmoor-decomp): python3 tests/fl36_mutation_check.py <batch letter> [--differential]
 
 Each round applies ONE mutation of one type to EVERY function of the batch at once (the mutations are local to a function body, so the per-function tests tell them apart),
 rebuilds, runs tests.test_fl36<x>_direct (and, with --differential, tests.test_fl36<x>_differential) and lists the functions whose test did NOT fail: the survivors.
