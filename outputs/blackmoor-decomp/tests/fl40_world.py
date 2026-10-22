@@ -339,7 +339,7 @@ class Mem:
             self.image[address - IMAGE_BASE:address - IMAGE_BASE + len(data)] = data
         self.image_end = IMAGE_BASE + len(self.image)
         self.stack = bytearray(b'\x71' * STACK_SIZE)
-        self.pages = {}
+        self.pages = {STUB_BASE >> 12: bytearray(b'\x90' * PAGE), STOP >> 12: bytearray(b'\x90' * 16 + bytes(PAGE - 16))}      # the pages the original run maps for the call stubs and the return address (FL-42: a pointer into them reads the same)
         self.seed, self.magic = seed, magic
 
     def _cell(self, address, size):
@@ -347,8 +347,6 @@ class Mem:
             return self.image, address - IMAGE_BASE
         if STACK_BASE <= address and address + size <= STACK_BASE + STACK_SIZE:
             return self.stack, address - STACK_BASE
-        if STOP <= address < STOP + 16:
-            return bytearray(b'\x90' * 16), 0
         if address >= 0xfff00000:
             raise Fault('access at 0x%x' % address)
         if (address >> 12) != ((address + size - 1) >> 12):
