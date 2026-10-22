@@ -10,7 +10,7 @@
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         m4b3f98_lifted
 # naming:       native port src/original_methods_fl39d.c:m4b3f98_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port
-# name-note:    Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken.
+# name-note:    Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [eax + n] field_6dc, field_6e0, field_6e4, field_6e8, field_6fc, field_700, field_704, field_708, field_71e, field_722, field_750, field_752; [ecx + n] field_6e4, field_6e8, field_6fc, field_700, field_704, field_708, field_70c, field_710, field_714, field_718, field_762; [edx + n] field_6dc, field_6e0, field_6e4, field_6e8, field_6ec, field_6f0, field_6f4, field_6f8, field_70c, field_710, field_714, field_718 and 4 more

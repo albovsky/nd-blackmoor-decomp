@@ -10,7 +10,7 @@
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         m4a8007_lifted
 # naming:       native port src/original_methods_fl39d.c:m4a8007_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port
-# name-note:    Machine-translated from the instruction stream by the FL-39 lifter (41 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken.
+# name-note:    Machine-translated from the instruction stream by the FL-39 lifter (41 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [eax + n] field_e2e, field_e32, field_e36, field_e3a, field_e3e, field_e42, field_e46, field_e4a, field_e4e, field_e52, field_e76, field_e8c and 1 more; [ecx + n] field_e16, field_e1a, field_e1e, field_e22, field_e26, field_e2a, field_e2e, field_e32, field_e36, field_e3a, field_e3e, field_e42 and 5 more; [edx + n] field_e26, field_e2a, field_e2e, field_e32, field_e46, field_e4a, field_e4e, field_e52, field_e84, field_e88, field_13a4, field_13a6

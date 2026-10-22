@@ -10,7 +10,7 @@
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         m4d37af_log_three
 # naming:       native port src/original_methods_fl39e.c:m4d37af_log_three (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port
-# name-note:    Two five-argument log calls 0x4c5377 and 0x4c5d4b (this 0x5cf659) with globals and string addresses read in the original order. All instructions run; both jump directions taken.
+# name-note:    Two five-argument log calls 0x4c5377 and 0x4c5d4b (this 0x5cf659), then a third 0x4c5d4b when the signed word [0x5b5104] is non-zero. All instructions run; both jump directions taken.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       none: no [ebp-n] slot referenced
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots

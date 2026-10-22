@@ -10,7 +10,7 @@
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         m4be2c6_lifted
 # naming:       native port src/original_methods_fl39d.c:m4be2c6_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port
-# name-note:    Machine-translated from the instruction stream by the FL-39 lifter (51 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken.
+# name-note:    Machine-translated from the instruction stream by the FL-39 lifter (51 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [eax + n] field_38, field_1a4, field_1a8; [ecx + n] field_1a4, field_1a8; [edx + n] field_1a4, field_1a8

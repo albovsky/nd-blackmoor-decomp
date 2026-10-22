@@ -294,7 +294,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Calls 0x4bf38c(this); a0 == 0 clears 0xe dwords at [this+0x84] and stores 0xfffffffd at [this+0x2c0] (result 0); All instructions run; both jump directions taken."
+  "note": "Calls 0x4bf38c(this); a0 == 0 clears 0xe dwords at [this+0x84] and stores 0xfffffffd at [this+0x2c0] (result 0); All instructions run; both jump directions taken; returns a host pointer."
  },
  {
   "va": "0x4c9cdd",
@@ -558,7 +558,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Copies 0x74b bytes from the pointer argument to [self+0x4] (rep movsd, movsw, movsb), pops 8 bytes; nothing else is written, nothing is called. No jumps; All instructions run; both jump directions taken."
+  "note": "Copies 0x74b bytes from the pointer argument to [self+0x4] (rep movsd, movsw, movsb), pops 8 bytes; nothing else is written, nothing is called. No jumps;"
  },
  {
   "va": "0x4e1c50",
@@ -591,7 +591,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Straight-line initialiser in the order of the original: dword [this+0x0] = 0x52e4e8, then zero 0xef bytes at [this+0x38] (rep stosd, stosw, stosb), then 0x4e1c9f(this) (thiscall. All instructions run; both jump directions taken."
+  "note": "Straight-line initialiser in the order of the original: dword [this+0x0] = 0x52e4e8, then zero 0xef bytes at [this+0x38] (rep stosd, stosw, stosb), then 0x4e1c9f(this) (thiscall). All instructions run; both jump directions taken."
  },
  {
   "va": "0x4e4428",
@@ -624,7 +624,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Copies 0x10ed bytes from the pointer argument to [self+0x54df] (rep movsd, movsb), pops 8 bytes; nothing else is written, nothing is called. No jumps; All instructions run; both jump directions taken."
+  "note": "Copies 0x10ed bytes from the pointer argument to [self+0x54df] (rep movsd, movsb), pops 8 bytes; nothing else is written, nothing is called. No jumps;"
  },
  {
   "va": "0x4e498d",
@@ -690,7 +690,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Straight-line initialiser in the order of the original: 0x4eda10(this) (thiscall, 0 arguments), then 0x50cb26(this + 0x7654, 0x18f, 0x6, 0x4e1c50, 0x4e1c83) (stdcall: the callee pops them. All instructions run; both jump directions taken."
+  "note": "Straight-line initialiser in the order of the original: 0x4eda10(this) (thiscall, 0 arguments), then 0x50cb26(this + 0x7654, 0x18f, 0x6, 0x4e1c50, 0x4e1c83) (stdcall: the callee pops them). All instructions run; both jump directions taken."
  },
  {
   "va": "0x4eb77d",
@@ -723,7 +723,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Fills 70 records of stride 0x6e at 0x583f1f (flag byte, the name string at [self+0x712] by repne scasb / rep movsd / rep movsb. All instructions run; both jump directions taken."
+  "note": "Fills 70 records of stride 0x6e at 0x583f1f (flag byte, the name string at [self+0x712] by repne scasb / rep movsd / rep movsb). All instructions run; both jump directions taken."
  },
  {
   "va": "0x4eb870",
@@ -756,7 +756,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Straight-line initialiser in the order of the original: 0x4eda10(this) (thiscall, 0 arguments), then 0x50cb26(this + 0xca8, 0x18f, 0x2, 0x4e1c50, 0x4e1c83) (stdcall: the callee pops them. All instructions run; both jump directions taken."
+  "note": "Straight-line initialiser in the order of the original: 0x4eda10(this) (thiscall, 0 arguments), then 0x50cb26(this + 0xca8, 0x18f, 0x2, 0x4e1c50, 0x4e1c83) (stdcall: the callee pops them). All instructions run; both jump directions taken."
  },
  {
   "va": "0x4ec005",

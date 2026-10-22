@@ -10,7 +10,7 @@
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         m4d0c57_log_loop
 # naming:       native port src/original_methods_fl39e.c:m4d0c57_log_loop (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port
-# name-note:    Loops i = 0..0 (signed word counter) and for each i calls 0x4c5377 with the first argument set (global [0x5d2d03], strings 0x55a0f8 / i*16 + table 0x5affd2. All instructions run; both jump directions taken.
+# name-note:    Loops i = 0..0 (signed word counter) and for each i calls 0x4c5377 with the first argument set (global [0x5d2d03], strings 0x55a0f8 / i*16 + table 0x5affd2). All instructions run; both jump directions taken.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots

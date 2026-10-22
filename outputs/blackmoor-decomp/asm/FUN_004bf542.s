@@ -10,7 +10,7 @@
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         m4bf542_alloc_zero
 # naming:       native port src/original_methods_fl39c.c:m4bf542_alloc_zero (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port
-# name-note:    Allocates `size` bytes through 0x51dc43, stores the address at [out]; on 0 runs the diagnostic path (0x50ca3e, 0x4264e8, 0x44a2b7 when the debug word is set. All instructions run; both jump directions taken.
+# name-note:    Allocates `size` bytes through 0x51dc43, stores the address at [out]; on 0 runs the diagnostic path (0x50ca3e, 0x4264e8, 0x44a2b7 when the debug word is set). All instructions run; both jump directions taken.
 # arguments:    2 ebp-relative stack slot(s) referenced: arg_8, arg_c; ret 0x8 (callee pops 8 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       2 ebp-relative slot(s): local_4, local_8
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots

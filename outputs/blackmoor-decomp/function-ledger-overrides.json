@@ -48847,7 +48847,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Allocates 0x16 bytes with 0x51dc43, stores the block to [p0], reports a null block (0x50ca3e, 0x42639d, dword 0x63a58a = 5, 0x4c97b4), otherwise copies 0x16 bytes (rep movsd. All instructions run; both jump directions taken."
+   "note": "Allocates 0x16 bytes with 0x51dc43, stores the block to [p0], reports a null block (0x50ca3e, 0x42639d, dword 0x63a58a = 5, 0x4c97b4), otherwise copies 0x16 bytes (rep movsd). All instructions run; both jump directions taken."
   },
   {
    "va": "0x4a3aec",
@@ -49243,7 +49243,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Allocates `size` bytes through 0x51dc43, stores the address at [out]; on 0 runs the diagnostic path (0x50ca3e, 0x4264e8, 0x44a2b7 when the debug word is set. All instructions run; both jump directions taken."
+   "note": "Allocates `size` bytes through 0x51dc43, stores the address at [out]; on 0 runs the diagnostic path (0x50ca3e, 0x4264e8, 0x44a2b7 when the debug word is set). All instructions run; both jump directions taken."
   },
   {
    "va": "0x4bf542",
@@ -49276,7 +49276,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Allocates `size` bytes through 0x51dc43, stores the address at [out]; on 0 runs the diagnostic path (0x50ca3e, 0x4264e8, 0x44a2b7 when the debug word is set. All instructions run; both jump directions taken."
+   "note": "Allocates `size` bytes through 0x51dc43, stores the address at [out]; on 0 runs the diagnostic path (0x50ca3e, 0x4264e8, 0x44a2b7 when the debug word is set). All instructions run; both jump directions taken."
   },
   {
    "va": "0x4cb8d5",
@@ -49408,7 +49408,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Allocates `size` bytes through 0x51dc43, stores the address at [out]; on 0 runs the diagnostic path (0x50ca3e, 0x4264e8, 0x44a2b7 when the debug word is set. All instructions run; both jump directions taken.",
+   "note": "Allocates `size` bytes through 0x51dc43, stores the address at [out]; on 0 runs the diagnostic path (0x50ca3e, 0x4264e8, 0x44a2b7 when the debug word is set). All instructions run; both jump directions taken.",
    "blockers_reviewed": [
     {
      "id": "A-1C.1:bbc72ea9374f083e",
@@ -49447,7 +49447,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Allocates `size` bytes through 0x51dc43, stores the address at [out]; on 0 runs the diagnostic path (0x50ca3e, 0x4264e8, 0x44a2b7 when the debug word is set. All instructions run; both jump directions taken."
+   "note": "Allocates `size` bytes through 0x51dc43, stores the address at [out]; on 0 runs the diagnostic path (0x50ca3e, 0x4264e8, 0x44a2b7 when the debug word is set). All instructions run; both jump directions taken."
   },
   {
    "va": "0x4de394",
@@ -49975,7 +49975,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
    "va": "0x4821ab",
@@ -50008,7 +50008,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (75 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (75 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x487dcf",
@@ -50041,7 +50041,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (35 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (35 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x48a70a",
@@ -50074,7 +50074,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x48aa66",
@@ -50107,7 +50107,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (34 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (34 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x48e28a",
@@ -50140,7 +50140,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
    "va": "0x4911ca",
@@ -50173,7 +50173,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (18 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (18 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x491422",
@@ -50206,7 +50206,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (37 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (37 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x491885",
@@ -50239,7 +50239,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (13 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (13 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4921a1",
@@ -50272,7 +50272,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
    "va": "0x493a54",
@@ -50305,7 +50305,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (24 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (24 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x493af0",
@@ -50338,7 +50338,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
    "va": "0x493b2e",
@@ -50371,7 +50371,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x493c34",
@@ -50404,7 +50404,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
    "va": "0x495a5b",
@@ -50437,7 +50437,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x49c46c",
@@ -50470,7 +50470,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
    "va": "0x49c68a",
@@ -50503,7 +50503,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (26 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (26 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4a1d14",
@@ -50536,7 +50536,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
    "va": "0x4a378a",
@@ -50569,7 +50569,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4a39c4",
@@ -50602,7 +50602,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
    "va": "0x4a3beb",
@@ -50635,7 +50635,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (16 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (16 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4a63dc",
@@ -50668,7 +50668,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (39 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (39 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4a7994",
@@ -50701,7 +50701,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (29 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (29 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4a7c7a",
@@ -50734,7 +50734,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
    "va": "0x4a7d1d",
@@ -50767,7 +50767,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (28 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (28 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4a7df9",
@@ -50800,7 +50800,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
    "va": "0x4a8007",
@@ -50833,7 +50833,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (41 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (41 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4a9f63",
@@ -50866,7 +50866,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (15 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (15 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4ab706",
@@ -50899,7 +50899,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4accab",
@@ -50932,7 +50932,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4ad1e5",
@@ -50965,7 +50965,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (52 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (52 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4b3c5a",
@@ -50998,7 +50998,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
    "va": "0x4b3f98",
@@ -51031,7 +51031,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4b72a9",
@@ -51064,7 +51064,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
    "va": "0x4b9e3b",
@@ -51097,7 +51097,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
    "va": "0x4ba07f",
@@ -51130,7 +51130,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (20 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (20 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4ba486",
@@ -51163,7 +51163,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
    "va": "0x4be2c6",
@@ -51196,7 +51196,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (51 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (51 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4bed70",
@@ -51229,7 +51229,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
    "va": "0x4bf63b",
@@ -51262,7 +51262,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
    "va": "0x4bf8a7",
@@ -51295,7 +51295,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
    "va": "0x4c139a",
@@ -51328,7 +51328,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (16 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (16 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4c4b12",
@@ -51361,7 +51361,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (25 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (25 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4c4c2b",
@@ -51394,7 +51394,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (14 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (14 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4c9428",
@@ -51427,7 +51427,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4c9b66",
@@ -51460,7 +51460,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4c9c10",
@@ -51493,7 +51493,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4ca92e",
@@ -51526,7 +51526,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (13 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (13 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4caec0",
@@ -51559,7 +51559,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
    "va": "0x4caff5",
@@ -51592,7 +51592,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (8 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken.",
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (8 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken.",
    "blockers_reviewed": [
     {
      "id": "A-1C.1:bbc72ea9374f083e",
@@ -51631,7 +51631,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
    "va": "0x4ccc50",
@@ -51664,7 +51664,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
    "va": "0x4cd645",
@@ -51697,7 +51697,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (23 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken.",
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (23 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken.",
    "blockers_reviewed": [
     {
      "id": "A-2E.1:98d39096d37b0362",
@@ -51736,7 +51736,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
    "va": "0x4d3723",
@@ -51769,7 +51769,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
    "va": "0x4d3b95",
@@ -51802,7 +51802,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
    "va": "0x4d3c9a",
@@ -51835,7 +51835,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4d3cba",
@@ -51868,7 +51868,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (25 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (25 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4d3ced",
@@ -51901,7 +51901,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (15 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (15 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4d4043",
@@ -51934,7 +51934,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
    "va": "0x4d4645",
@@ -51967,7 +51967,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (29 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (29 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4d47b0",
@@ -52000,7 +52000,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (16 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (16 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4d56e2",
@@ -52033,7 +52033,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (21 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (21 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4d5834",
@@ -52066,7 +52066,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (16 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (16 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4d6787",
@@ -52099,11 +52099,11 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken.",
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken.",
    "blockers_reviewed": [
     {
      "id": "RT-14:16358bcf024bb808",
-     "rationale": "The receipt blocker concerns the interleaving of the UI draws with the render layers in the runtime; this port is the single function 0x4de584 proven against the original bytes with every instruction run, and the render order stays with the integration."
+     "rationale": "The receipt blocker concerns the interleaving of the UI draws with the render layers in the runtime slice; this port is the single function 0x4d6787 proven against the original bytes with every instruction run, and that wiring stays with the integration."
     }
    ]
   },
@@ -52138,7 +52138,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (250 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (250 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4d79c7",
@@ -52171,7 +52171,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
    "va": "0x4d8f8d",
@@ -52204,7 +52204,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (25 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (25 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4d912a",
@@ -52237,7 +52237,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (35 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (35 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4d920c",
@@ -52270,7 +52270,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (14 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (14 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4d9d70",
@@ -52303,7 +52303,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (60 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (60 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4db066",
@@ -52336,7 +52336,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (19 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (19 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4db780",
@@ -52369,7 +52369,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (18 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (18 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4db817",
@@ -52402,7 +52402,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (34 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (34 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4dbc77",
@@ -52435,7 +52435,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
    "va": "0x4dbfbf",
@@ -52468,7 +52468,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
    "va": "0x4dd28d",
@@ -52501,7 +52501,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (44 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (44 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4dd409",
@@ -52534,7 +52534,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (27 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (27 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4de009",
@@ -52567,7 +52567,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (13 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (13 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4de0cf",
@@ -52600,7 +52600,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4de4f9",
@@ -52633,11 +52633,11 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (65 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken.",
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (65 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken.",
    "blockers_reviewed": [
     {
      "id": "S05:cbac757a041d45e6",
-     "rationale": "The receipt blocker concerns the frame text-box lifecycle and the taskbar presentation wired around 0x4e1157; this port is that one function proven against the original bytes with every instruction run, and the lifecycle wiring stays with the integration."
+     "rationale": "The receipt blocker concerns the frame text-box lifecycle and the taskbar presentation in the runtime slice; this port is the single function 0x4de4f9 proven against the original bytes with every instruction run, and that wiring stays with the integration."
     }
    ]
   },
@@ -52672,7 +52672,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
    "va": "0x4de6fc",
@@ -52705,7 +52705,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (34 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (34 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4e01b3",
@@ -52738,7 +52738,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (14 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (14 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4e0377",
@@ -52771,7 +52771,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4e0619",
@@ -52804,7 +52804,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (12 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (12 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4e119b",
@@ -52837,7 +52837,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (30 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (30 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4e1c9f",
@@ -52870,7 +52870,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
    "va": "0x4e2913",
@@ -52903,7 +52903,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (31 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (31 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4e29b7",
@@ -52936,7 +52936,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (39 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (39 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4e2dd3",
@@ -52969,7 +52969,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
    "va": "0x4e35e8",
@@ -53002,7 +53002,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (14 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (14 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4e364a",
@@ -53035,7 +53035,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4e3691",
@@ -53068,7 +53068,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
    "va": "0x4e36fc",
@@ -53101,7 +53101,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4e3772",
@@ -53134,7 +53134,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
    "va": "0x4e3a64",
@@ -53167,7 +53167,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
    "va": "0x4e40a6",
@@ -53200,7 +53200,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
    "va": "0x4e49e2",
@@ -53233,7 +53233,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
    "va": "0x4e7970",
@@ -53266,7 +53266,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (28 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (28 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4e79ca",
@@ -53299,7 +53299,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4e7c72",
@@ -53332,7 +53332,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (22 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (22 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4e7dad",
@@ -53365,7 +53365,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4ea1cb",
@@ -53398,7 +53398,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (18 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (18 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4ea361",
@@ -53431,11 +53431,11 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken.",
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken.",
    "blockers_reviewed": [
     {
      "id": "S05:cbac757a041d45e6",
-     "rationale": "The receipt blocker concerns the frame text-box lifecycle and the taskbar presentation wired around 0x4e1157; this port is that one function proven against the original bytes with every instruction run, and the lifecycle wiring stays with the integration."
+     "rationale": "The receipt blocker concerns the frame text-box lifecycle and the taskbar presentation in the runtime slice; this port is the single function 0x4ea361 proven against the original bytes with every instruction run, and that wiring stays with the integration."
     }
    ]
   },
@@ -53470,7 +53470,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (213 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken.",
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (213 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken.",
    "blockers_reviewed": [
     {
      "id": "A-7D.1:5d24397a6e53b9bb",
@@ -53509,7 +53509,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4eda10",
@@ -53542,7 +53542,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
    "va": "0x4edae5",
@@ -53575,11 +53575,11 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken.",
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps.",
    "blockers_reviewed": [
     {
      "id": "RT-5:ed9a5f7b76382c9c",
-     "rationale": "The receipt blocker says the writers of DAT_0055cd94 (including 0x4ee5b8) are not reproduced by the runtime; this port is that writer, proven against the original bytes (the stored value and the argument pop), and the runtime wiring stays with the integration."
+     "rationale": "The receipt blocker concerns the writers of DAT_0055cd94 that the runtime does not reproduce in the runtime slice; this port is the single function 0x4edae5 proven against the original bytes with every instruction run, and that wiring stays with the integration."
     }
    ]
   },
@@ -53614,7 +53614,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (36 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken.",
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (36 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken.",
    "blockers_reviewed": [
     {
      "id": "RT-22:8e70fcc0b86b44cf",
@@ -53653,7 +53653,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (26 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (26 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4ee5f2",
@@ -53686,7 +53686,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
    "va": "0x4ee9bb",
@@ -53719,7 +53719,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
    "va": "0x4eead0",
@@ -53752,7 +53752,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (515 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (515 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4ef3ed",
@@ -53785,7 +53785,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (455 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (455 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4ef4f0",
@@ -53818,7 +53818,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
    "va": "0x4f67be",
@@ -53851,7 +53851,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (17 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (17 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4f6810",
@@ -53884,7 +53884,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4f8a17",
@@ -53917,7 +53917,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
    "va": "0x4fafc7",
@@ -53950,7 +53950,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (13 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken.",
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (13 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken.",
    "blockers_reviewed": [
     {
      "id": "RT-11.1:69a6a5277ff4b95a",
@@ -53989,7 +53989,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken.",
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken.",
    "blockers_reviewed": [
     {
      "id": "A-6D.1:489443acb9dc6613",
@@ -54005,7 +54005,7 @@
     },
     {
      "id": "RT-5:b85fc26293d512ec",
-     "rationale": "The receipt blocker says the writers of DAT_0055cd94 (including 0x4ee5b8) are not reproduced by the runtime; this port is that writer, proven against the original bytes (the stored value and the argument pop), and the runtime wiring stays with the integration."
+     "rationale": "The receipt blocker concerns the writers of DAT_0055cd94 that the runtime does not reproduce in the runtime slice; this port is the single function 0x4fb018 proven against the original bytes with every instruction run, and that wiring stays with the integration."
     }
    ]
   },
@@ -54040,7 +54040,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
    "va": "0x4fb086",
@@ -54073,7 +54073,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken.",
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken.",
    "blockers_reviewed": [
     {
      "id": "RT-11.1:69a6a5277ff4b95a",
@@ -54116,7 +54116,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4fba86",
@@ -54149,7 +54149,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
    "va": "0x4fbd7e",
@@ -54182,7 +54182,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
    "va": "0x4fce90",
@@ -54223,7 +54223,7 @@
     "0x4fcedc",
     "0x4fcee2"
    ],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken."
+   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x487b1a",
@@ -54322,7 +54322,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Stores 11 immediates into the object (dword +0xde0, dword +0xdec, dword +0xde4, dword +0xe30, dword +0xe34, dword +0xe38, dword +0xe3c, dword +0xe40, dword +0xe44, dword +0xe48. All instructions run; both jump directions taken."
+   "note": "Stores 11 immediates into the object (dword +0xde0, dword +0xdec, dword +0xde4, dword +0xe30, dword +0xe34, dword +0xe38, dword +0xe3c, dword +0xe40, dword +0xe44, dword +0xe48). All instructions run; both jump directions taken."
   },
   {
    "va": "0x4a1b12",
@@ -54388,7 +54388,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Stores 11 immediates into the object (word +0x1e, word +0x1c, dword +0x60, byte +0x4b, byte +0x58, byte +0x59, byte +0x5a, dword +0x20, dword +0x24, dword +0x5b. All instructions run; both jump directions taken."
+   "note": "Stores 11 immediates into the object (word +0x1e, word +0x1c, dword +0x60, byte +0x4b, byte +0x58, byte +0x59, byte +0x5a, dword +0x20, dword +0x24, dword +0x5b). All instructions run; both jump directions taken."
   },
   {
    "va": "0x4a1cb1",
@@ -54718,7 +54718,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Loops i = 0..8 (signed word counter) and for each i calls 0x4c5377 with the first argument set (global [0x5d2b47], strings 0x55a098 / i*16 + table 0x5afd05. All instructions run; both jump directions taken."
+   "note": "Loops i = 0..8 (signed word counter) and for each i calls 0x4c5377 with the first argument set (global [0x5d2b47], strings 0x55a098 / i*16 + table 0x5afd05). All instructions run; both jump directions taken."
   },
   {
    "va": "0x4d0c57",
@@ -54751,7 +54751,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Loops i = 0..0 (signed word counter) and for each i calls 0x4c5377 with the first argument set (global [0x5d2d03], strings 0x55a0f8 / i*16 + table 0x5affd2. All instructions run; both jump directions taken."
+   "note": "Loops i = 0..0 (signed word counter) and for each i calls 0x4c5377 with the first argument set (global [0x5d2d03], strings 0x55a0f8 / i*16 + table 0x5affd2). All instructions run; both jump directions taken."
   },
   {
    "va": "0x4d3728",
@@ -54784,7 +54784,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Two five-argument log calls 0x4c5377 and 0x4c5d4b (this 0x5cf659) with globals and string addresses read in the original order. All instructions run; both jump directions taken."
+   "note": "Two five-argument log calls 0x4c5377 and 0x4c5d4b (this 0x5cf659), then a third 0x4c5d4b when the signed word [0x5b4e8d] is non-zero. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4d37af",
@@ -54817,7 +54817,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Two five-argument log calls 0x4c5377 and 0x4c5d4b (this 0x5cf659) with globals and string addresses read in the original order. All instructions run; both jump directions taken."
+   "note": "Two five-argument log calls 0x4c5377 and 0x4c5d4b (this 0x5cf659), then a third 0x4c5d4b when the signed word [0x5b5104] is non-zero. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4de227",
@@ -55693,7 +55693,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Calls 0x4bf38c(this); a0 == 0 clears 0xe dwords at [this+0x84] and stores 0xfffffffd at [this+0x2c0] (result 0); All instructions run; both jump directions taken."
+   "note": "Calls 0x4bf38c(this); a0 == 0 clears 0xe dwords at [this+0x84] and stores 0xfffffffd at [this+0x2c0] (result 0); All instructions run; both jump directions taken; returns a host pointer."
   },
   {
    "va": "0x4c9cdd",
@@ -55957,7 +55957,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Copies 0x74b bytes from the pointer argument to [self+0x4] (rep movsd, movsw, movsb), pops 8 bytes; nothing else is written, nothing is called. No jumps; All instructions run; both jump directions taken."
+   "note": "Copies 0x74b bytes from the pointer argument to [self+0x4] (rep movsd, movsw, movsb), pops 8 bytes; nothing else is written, nothing is called. No jumps;"
   },
   {
    "va": "0x4e1c50",
@@ -55990,7 +55990,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Straight-line initialiser in the order of the original: dword [this+0x0] = 0x52e4e8, then zero 0xef bytes at [this+0x38] (rep stosd, stosw, stosb), then 0x4e1c9f(this) (thiscall. All instructions run; both jump directions taken."
+   "note": "Straight-line initialiser in the order of the original: dword [this+0x0] = 0x52e4e8, then zero 0xef bytes at [this+0x38] (rep stosd, stosw, stosb), then 0x4e1c9f(this) (thiscall). All instructions run; both jump directions taken."
   },
   {
    "va": "0x4e4428",
@@ -56023,7 +56023,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Copies 0x10ed bytes from the pointer argument to [self+0x54df] (rep movsd, movsb), pops 8 bytes; nothing else is written, nothing is called. No jumps; All instructions run; both jump directions taken."
+   "note": "Copies 0x10ed bytes from the pointer argument to [self+0x54df] (rep movsd, movsb), pops 8 bytes; nothing else is written, nothing is called. No jumps;"
   },
   {
    "va": "0x4e498d",
@@ -56089,7 +56089,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Straight-line initialiser in the order of the original: 0x4eda10(this) (thiscall, 0 arguments), then 0x50cb26(this + 0x7654, 0x18f, 0x6, 0x4e1c50, 0x4e1c83) (stdcall: the callee pops them. All instructions run; both jump directions taken."
+   "note": "Straight-line initialiser in the order of the original: 0x4eda10(this) (thiscall, 0 arguments), then 0x50cb26(this + 0x7654, 0x18f, 0x6, 0x4e1c50, 0x4e1c83) (stdcall: the callee pops them). All instructions run; both jump directions taken."
   },
   {
    "va": "0x4eb77d",
@@ -56122,7 +56122,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Fills 70 records of stride 0x6e at 0x583f1f (flag byte, the name string at [self+0x712] by repne scasb / rep movsd / rep movsb. All instructions run; both jump directions taken."
+   "note": "Fills 70 records of stride 0x6e at 0x583f1f (flag byte, the name string at [self+0x712] by repne scasb / rep movsd / rep movsb). All instructions run; both jump directions taken."
   },
   {
    "va": "0x4eb870",
@@ -56155,7 +56155,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Straight-line initialiser in the order of the original: 0x4eda10(this) (thiscall, 0 arguments), then 0x50cb26(this + 0xca8, 0x18f, 0x2, 0x4e1c50, 0x4e1c83) (stdcall: the callee pops them. All instructions run; both jump directions taken."
+   "note": "Straight-line initialiser in the order of the original: 0x4eda10(this) (thiscall, 0 arguments), then 0x50cb26(this + 0xca8, 0x18f, 0x2, 0x4e1c50, 0x4e1c83) (stdcall: the callee pops them). All instructions run; both jump directions taken."
   },
   {
    "va": "0x4ec005",

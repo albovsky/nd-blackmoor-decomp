@@ -10,7 +10,7 @@
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         m4fcda1_clone_record
 # naming:       native port src/original_methods_fl39b.c:m4fcda1_clone_record (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port
-# name-note:    Allocates 0x16 bytes with 0x51dc43, stores the block to [p0], reports a null block (0x50ca3e, 0x42639d, dword 0x63a58a = 5, 0x4c97b4), otherwise copies 0x16 bytes (rep movsd. All instructions run; both jump directions taken.
+# name-note:    Allocates 0x16 bytes with 0x51dc43, stores the block to [p0], reports a null block (0x50ca3e, 0x42639d, dword 0x63a58a = 5, 0x4c97b4), otherwise copies 0x16 bytes (rep movsd). All instructions run; both jump directions taken.
 # arguments:    3 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10; ret 0xc (callee pops 12 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       2 ebp-relative slot(s): local_4, local_8
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots

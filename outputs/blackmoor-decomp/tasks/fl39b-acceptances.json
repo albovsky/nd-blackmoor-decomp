@@ -685,6 +685,6 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Allocates 0x16 bytes with 0x51dc43, stores the block to [p0], reports a null block (0x50ca3e, 0x42639d, dword 0x63a58a = 5, 0x4c97b4), otherwise copies 0x16 bytes (rep movsd. All instructions run; both jump directions taken."
+  "note": "Allocates 0x16 bytes with 0x51dc43, stores the block to [p0], reports a null block (0x50ca3e, 0x42639d, dword 0x63a58a = 5, 0x4c97b4), otherwise copies 0x16 bytes (rep movsd). All instructions run; both jump directions taken."
  }
 ]

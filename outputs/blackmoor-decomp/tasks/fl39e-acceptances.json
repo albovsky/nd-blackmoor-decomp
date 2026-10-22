@@ -96,7 +96,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Stores 11 immediates into the object (dword +0xde0, dword +0xdec, dword +0xde4, dword +0xe30, dword +0xe34, dword +0xe38, dword +0xe3c, dword +0xe40, dword +0xe44, dword +0xe48. All instructions run; both jump directions taken."
+  "note": "Stores 11 immediates into the object (dword +0xde0, dword +0xdec, dword +0xde4, dword +0xe30, dword +0xe34, dword +0xe38, dword +0xe3c, dword +0xe40, dword +0xe44, dword +0xe48). All instructions run; both jump directions taken."
  },
  {
   "va": "0x4a1b12",
@@ -162,7 +162,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Stores 11 immediates into the object (word +0x1e, word +0x1c, dword +0x60, byte +0x4b, byte +0x58, byte +0x59, byte +0x5a, dword +0x20, dword +0x24, dword +0x5b. All instructions run; both jump directions taken."
+  "note": "Stores 11 immediates into the object (word +0x1e, word +0x1c, dword +0x60, byte +0x4b, byte +0x58, byte +0x59, byte +0x5a, dword +0x20, dword +0x24, dword +0x5b). All instructions run; both jump directions taken."
  },
  {
   "va": "0x4a1cb1",
@@ -492,7 +492,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Loops i = 0..8 (signed word counter) and for each i calls 0x4c5377 with the first argument set (global [0x5d2b47], strings 0x55a098 / i*16 + table 0x5afd05. All instructions run; both jump directions taken."
+  "note": "Loops i = 0..8 (signed word counter) and for each i calls 0x4c5377 with the first argument set (global [0x5d2b47], strings 0x55a098 / i*16 + table 0x5afd05). All instructions run; both jump directions taken."
  },
  {
   "va": "0x4d0c57",
@@ -525,7 +525,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Loops i = 0..0 (signed word counter) and for each i calls 0x4c5377 with the first argument set (global [0x5d2d03], strings 0x55a0f8 / i*16 + table 0x5affd2. All instructions run; both jump directions taken."
+  "note": "Loops i = 0..0 (signed word counter) and for each i calls 0x4c5377 with the first argument set (global [0x5d2d03], strings 0x55a0f8 / i*16 + table 0x5affd2). All instructions run; both jump directions taken."
  },
  {
   "va": "0x4d3728",
@@ -558,7 +558,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Two five-argument log calls 0x4c5377 and 0x4c5d4b (this 0x5cf659) with globals and string addresses read in the original order. All instructions run; both jump directions taken."
+  "note": "Two five-argument log calls 0x4c5377 and 0x4c5d4b (this 0x5cf659), then a third 0x4c5d4b when the signed word [0x5b4e8d] is non-zero. All instructions run; both jump directions taken."
  },
  {
   "va": "0x4d37af",
@@ -591,7 +591,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Two five-argument log calls 0x4c5377 and 0x4c5d4b (this 0x5cf659) with globals and string addresses read in the original order. All instructions run; both jump directions taken."
+  "note": "Two five-argument log calls 0x4c5377 and 0x4c5d4b (this 0x5cf659), then a third 0x4c5d4b when the signed word [0x5b5104] is non-zero. All instructions run; both jump directions taken."
  },
  {
   "va": "0x4de227",

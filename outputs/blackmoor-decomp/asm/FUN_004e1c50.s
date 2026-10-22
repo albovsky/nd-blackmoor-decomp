@@ -10,7 +10,7 @@
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         m4e1c50_construct_record
 # naming:       native port src/original_methods_fl39f.c:m4e1c50_construct_record (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port
-# name-note:    Straight-line initialiser in the order of the original: dword [this+0x0] = 0x52e4e8, then zero 0xef bytes at [this+0x38] (rep stosd, stosw, stosb), then 0x4e1c9f(this) (thiscall. All instructions run; both jump directions taken.
+# name-note:    Straight-line initialiser in the order of the original: dword [this+0x0] = 0x52e4e8, then zero 0xef bytes at [this+0x38] (rep stosd, stosw, stosb), then 0x4e1c9f(this) (thiscall). All instructions run; both jump directions taken.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots

@@ -23,9 +23,9 @@ Method: every row is proved against the original bytes with the Unicorn differen
 
 - Batch `fl39d` is machine-translated, not hand-ported (see above). FL-40 labels its lifted rows the same way. A single owner ruling is needed on whether machine-translated rows count as ported.
 - `fl39b` clone-record rows: when the allocation returns null the native port returns 1 after the same call prefix (`0x50ca3e`, `0x42639d`, `0x4c97b4`); the original then goes on and stores through the null pointer, which is not modelled or claimed. The acceptance note was cut to the ledger's 240-character limit, so the full wording is in the per-row source comments of `src/original_methods_fl39b.c`.
-- Receipt blockers on 19 rows (`A-2E.1`, `A-7D.1`, `RT-22`, `RT-11`, `RT-11.1`, `A-6D.1`, `A-70.1` and earlier diagnostics ones) are cleared with `blockers_reviewed` rationales: each concerns what the runtime slice models, not the single function, which the oracle proves instruction by instruction.
+- Receipt blockers on 19 rows (`A-2E.1`, `A-7D.1`, `RT-22`, `RT-11`, `RT-11.1`, `RT-14`, `RT-5`, `S05`, `A-6D.1`, `A-70.1` and the diagnostics blockers such as `A-EA.1`) are cleared with `blockers_reviewed` rationales: each concerns what the runtime slice models, not the single function, which the oracle proves instruction by instruction.
 - Acceptance windows are the ledger span for each row. `0x4fce90` carries seven `parts_accounted` addresses inside its window.
 
 ## Next pool
 
-428 pending game rows at or above 0x480000. Still pending by ruling and not attempted: `0x4e0978`, `0x4b5d17`, `0x4cdfd3`, `0x4fc62d` (unreachable code), `0x4c334f`, `0x4cf687`, `0x4bf9bb`, `0x4f0059`, `0x4e45be`, `0x4de2d8`, `0x50de00`.
+428 pending game rows at or above 0x480000. Still pending by ruling and not attempted: `0x4e0978`, `0x4b5d17`, `0x4cdfd3`, `0x4fc62d` (unreachable code), `0x4c334f`, `0x4cf687`, `0x4bf9bb`, `0x4f0059`, `0x4e45be`, `0x4de2d8` (and the library row `0x50de00`, which is not a game row).

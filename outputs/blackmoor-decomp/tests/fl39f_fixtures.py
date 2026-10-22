@@ -1,4 +1,4 @@
-"""FL-39 (batch %s): the fixtures shared by tests/test_fl39f_differential.py and tests/fl39f_original_oracle.py.
+"""FL-39 (batch f): the fixtures shared by tests/test_fl39f_differential.py and tests/fl39f_original_oracle.py.
 
 Same shape as tests/fl35b_fixtures.py (whose generic harness pieces come from tests/fl28b_fixtures.py: the Unicorn runner with the code and edge hooks, the recording
 stub constructor, the call-log normaliser and the conditional-jump finder). `build(key, rng, n)` makes scenario n of one of the functions of SPECS: the object `this`,

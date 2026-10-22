@@ -393,7 +393,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Allocates `size` bytes through 0x51dc43, stores the address at [out]; on 0 runs the diagnostic path (0x50ca3e, 0x4264e8, 0x44a2b7 when the debug word is set. All instructions run; both jump directions taken."
+  "note": "Allocates `size` bytes through 0x51dc43, stores the address at [out]; on 0 runs the diagnostic path (0x50ca3e, 0x4264e8, 0x44a2b7 when the debug word is set). All instructions run; both jump directions taken."
  },
  {
   "va": "0x4bf542",
@@ -426,7 +426,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Allocates `size` bytes through 0x51dc43, stores the address at [out]; on 0 runs the diagnostic path (0x50ca3e, 0x4264e8, 0x44a2b7 when the debug word is set. All instructions run; both jump directions taken."
+  "note": "Allocates `size` bytes through 0x51dc43, stores the address at [out]; on 0 runs the diagnostic path (0x50ca3e, 0x4264e8, 0x44a2b7 when the debug word is set). All instructions run; both jump directions taken."
  },
  {
   "va": "0x4cb8d5",
@@ -558,7 +558,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Allocates `size` bytes through 0x51dc43, stores the address at [out]; on 0 runs the diagnostic path (0x50ca3e, 0x4264e8, 0x44a2b7 when the debug word is set. All instructions run; both jump directions taken.",
+  "note": "Allocates `size` bytes through 0x51dc43, stores the address at [out]; on 0 runs the diagnostic path (0x50ca3e, 0x4264e8, 0x44a2b7 when the debug word is set). All instructions run; both jump directions taken.",
   "blockers_reviewed": [
    {
     "id": "A-1C.1:bbc72ea9374f083e",
@@ -597,7 +597,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Allocates `size` bytes through 0x51dc43, stores the address at [out]; on 0 runs the diagnostic path (0x50ca3e, 0x4264e8, 0x44a2b7 when the debug word is set. All instructions run; both jump directions taken."
+  "note": "Allocates `size` bytes through 0x51dc43, stores the address at [out]; on 0 runs the diagnostic path (0x50ca3e, 0x4264e8, 0x44a2b7 when the debug word is set). All instructions run; both jump directions taken."
  },
  {
   "va": "0x4de394",
