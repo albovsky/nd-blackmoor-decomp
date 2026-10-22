@@ -19,6 +19,19 @@ CORPUS = PROJECT / 'tests/fl40_corpus.json'
 DATE = '2026-10-22'
 
 
+def recorded_windows():
+    """window of the fl40 oracle per row, from function-evidence.json (empty before the first evidence run)"""
+    out = {}
+    path = PROJECT / 'function-evidence.json'
+    if not path.is_file():
+        return out
+    for f in json.loads(path.read_text())['functions']:
+        for p in f['evidence']:
+            if p['kind'] == 'oracle' and (p['path'] or '').endswith('tests/fl40_original_oracle.py') and p['window'][0] == f['va']:
+                out[f['va']] = p['window']
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--reviewer', required=True)
@@ -28,6 +41,13 @@ def main():
     blockers = json.loads(Path(a.blockers_reviewed).read_text()) if a.blockers_reviewed else {}
     doc = json.loads(OVERRIDES.read_text())
     have = {e['va'] for e in doc['port_acceptances']}
+    windows = recorded_windows()
+    # the window is the one the recorded run saw: the end of the function's span (alignment padding included), not va + translated body
+    for e in doc['port_acceptances']:
+        if (e.get('oracle') or {}).get('path') == 'tests/fl40_original_oracle.py' and e['va'] in windows:
+            e['oracle']['window'] = windows[e['va']]
+            if e['va'] in blockers:
+                e['blockers_reviewed'] = blockers[e['va']]
     new = []
     for key in sorted(corpus, key=lambda k: int(k, 16)):
         if key in have:
@@ -37,7 +57,7 @@ def main():
         entry = {'va': key, 'class': 'native_oracle_verified', 'reviewer': a.reviewer, 'date': DATE,
                  'native_source': {'path': 'src/original_methods_fl40.c', 'symbol': 'm%x_lifted' % va},
                  'tests': [{'path': 'tests/test_fl40_differential.py', 'test_id': 'Fl40Differential.test_%x_lifted' % va}],
-                 'oracle': {'path': 'tests/fl40_original_oracle.py', 'window': [key, '0x%x' % (va + c['body'])]},
+                 'oracle': {'path': 'tests/fl40_original_oracle.py', 'window': windows.get(key, [key, '0x%x' % (va + c['body'])])},
                  'parts_accounted': [],
                  'note': 'Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, %d seeds; oracle: %d/%d instructions '
                          'executed, %d/%d conditional-jump directions taken, callees as recording stubs.' % (

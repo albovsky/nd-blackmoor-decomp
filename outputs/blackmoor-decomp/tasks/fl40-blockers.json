@@ -1,0 +1,172 @@
+{
+ "0x423ff9": [
+  {
+   "id": "RT-4:f6ab4e757efaab2f",
+   "rationale": "The item says the opcode-11 leaf chain is not reproduced by the native runtime and has no consumer yet; that is a caller-side gap. This accessor's own instructions and both jump directions run in the oracle and match the translation."
+  }
+ ],
+ "0x4264e8": [
+  {
+   "id": "A-1C.1:de979ac2fa03d836",
+   "rationale": "The unverified path is the malloc-failure branch and its fatal cleanup. The oracle takes both directions of every jump of this function, including the failure branch, with the diagnostic callee as a recording stub; what stays unverified is the callee's own fatal cleanup, which is a separate row."
+  },
+  {
+   "id": "A-2D.1:5233b9cf3ff0d404",
+   "rationale": "The unverified path is the malloc-failure branch and its fatal cleanup. The oracle takes both directions of every jump of this function, including the failure branch, with the diagnostic callee as a recording stub; what stays unverified is the callee's own fatal cleanup, which is a separate row."
+  }
+ ],
+ "0x42ae0a": [
+  {
+   "id": "S05:cbac757a041d45e6",
+   "rationale": "The item concerns the frame text-box UI lifecycle and the taskbar presentation around this caption clear; it is a native-runtime gap. This function's own instructions and jump directions run in the oracle and match the translation."
+  }
+ ],
+ "0x438150": [
+  {
+   "id": "RT-5:b85fc26293d512ec",
+   "rationale": "The item says state 2 calls two sound-channel setup callees that the runtime treats as a no-op. In the oracle they are recording stubs and the call sequence is compared; the callees themselves are separate rows."
+  }
+ ],
+ "0x43e776": [
+  {
+   "id": "RT-15:6b1c3f1b49470cdb",
+   "rationale": "The item says the producers of the action-active dword are not modelled by the runtime; it concerns the executor, not whether this function's instructions match. All instructions and both jump directions run in the oracle."
+  },
+  {
+   "id": "RT-3:68a1cbe007fd9216",
+   "rationale": "The item says the producers of the action-active dword are not modelled by the runtime; it concerns the executor, not whether this function's instructions match. All instructions and both jump directions run in the oracle."
+  }
+ ],
+ "0x43e8b8": [
+  {
+   "id": "A-20.1:b2c7ee29ac609413",
+   "rationale": "The item records a static reading of the dispatcher arm and its callees; this function's own instructions and both jump directions now run in the oracle against the translation, with the callees as recording stubs."
+  }
+ ],
+ "0x43e96c": [
+  {
+   "id": "A-20.1:b2c7ee29ac609413",
+   "rationale": "The item records a static reading of the dispatcher arm and the unmodelled producers of the action-active dword; it concerns the executor and the callees. All instructions and both jump directions of this function run in the oracle."
+  },
+  {
+   "id": "RT-15:6b1c3f1b49470cdb",
+   "rationale": "The item records a static reading of the dispatcher arm and the unmodelled producers of the action-active dword; it concerns the executor and the callees. All instructions and both jump directions of this function run in the oracle."
+  },
+  {
+   "id": "RT-3:68a1cbe007fd9216",
+   "rationale": "The item records a static reading of the dispatcher arm and the unmodelled producers of the action-active dword; it concerns the executor and the callees. All instructions and both jump directions of this function run in the oracle."
+  }
+ ],
+ "0x44a2b7": [
+  {
+   "id": "A-1B.1:c89136500e0f8d0e",
+   "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
+  },
+  {
+   "id": "A-1C.1:bbc72ea9374f083e",
+   "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
+  },
+  {
+   "id": "A-20.1:66c96efe1fbb8744",
+   "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
+  },
+  {
+   "id": "A-6D.1:fca1baff690d5509",
+   "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
+  },
+  {
+   "id": "A-70.1:d443f4700c5472b5",
+   "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
+  },
+  {
+   "id": "A-76.1:4254928a328064e0",
+   "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
+  },
+  {
+   "id": "A-80.1:5cabcd0814603be3",
+   "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
+  },
+  {
+   "id": "A-83.1:36be17758c07670c",
+   "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
+  },
+  {
+   "id": "A-9A.1:4898523193e00aaf",
+   "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
+  },
+  {
+   "id": "A-AA.1:14318b8284efed27",
+   "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
+  },
+  {
+   "id": "A-D0.1:fc7b809f133f3e60",
+   "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
+  },
+  {
+   "id": "A-D3.1:174da950eb5c5c07",
+   "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
+  },
+  {
+   "id": "A-D6.1:6ad354188ac5758c",
+   "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
+  },
+  {
+   "id": "A-DA.1:8aee27258a1edd03",
+   "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
+  },
+  {
+   "id": "A-E0.1:905f768b6cee9127",
+   "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
+  },
+  {
+   "id": "A-E4.1:f3b9ffde94fd3c0b",
+   "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
+  },
+  {
+   "id": "A-EA.1:854db2cae9db0e99",
+   "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
+  },
+  {
+   "id": "A-EB.1:ed74ef626eb3e9c9",
+   "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
+  },
+  {
+   "id": "A-EE.1:5e97da0a342538de",
+   "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
+  },
+  {
+   "id": "A-F5.1:174da950eb5c5c07",
+   "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
+  },
+  {
+   "id": "A-F6.1:3890e91470564d78",
+   "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
+  }
+ ],
+ "0x44b102": [
+  {
+   "id": "A-4E.1:5142ceadcc5c1e41",
+   "rationale": "The item is the allocation-failure path with its fatal cleanup and the nonzero constructor-diagnostics branch. The oracle executes every instruction and takes both directions of every jump, with the callees as recording stubs; the callees' own behaviour is separate rows."
+  }
+ ],
+ "0x470e8e": [
+  {
+   "id": "A-D6.1:6ad354188ac5758c",
+   "rationale": "The item is the nonzero diagnostics branch and the flag-0 variant that older slices did not run. The oracle sets the flags both ways, executes every instruction and takes both directions of every jump, with callees as recording stubs."
+  },
+  {
+   "id": "A-E0.1:905f768b6cee9127",
+   "rationale": "The item is the nonzero diagnostics branch and the flag-0 variant that older slices did not run. The oracle sets the flags both ways, executes every instruction and takes both directions of every jump, with callees as recording stubs."
+  },
+  {
+   "id": "A-E0.1:badb421f484b548b",
+   "rationale": "The item is the nonzero diagnostics branch and the flag-0 variant that older slices did not run. The oracle sets the flags both ways, executes every instruction and takes both directions of every jump, with callees as recording stubs."
+  }
+ ],
+ "0x4730a6": [
+  {
+   "id": "RT-11:f7524f45a690aca7",
+   "rationale": "The item says dialogue-object-owned sound cleanup is unbound in the native runtime because the dialogue object is unimplemented; that is a caller-side gap. This function's own instructions and jump directions run in the oracle and match the translation."
+  }
+ ]
+}
