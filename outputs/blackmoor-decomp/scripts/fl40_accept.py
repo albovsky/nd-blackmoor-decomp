@@ -67,7 +67,8 @@ def main():
         new.append(entry)
     doc['port_acceptances'].extend(new)
     OVERRIDES.write_text(json.dumps(doc, indent=1, ensure_ascii=False) + '\n')
-    (PROJECT / 'tasks/fl40-acceptances.json').write_text(json.dumps(new, indent=1, ensure_ascii=False) + '\n')
+    mine = [e for e in doc['port_acceptances'] if (e.get('oracle') or {}).get('path') == 'tests/fl40_original_oracle.py']
+    (PROJECT / 'tasks/fl40-acceptances.json').write_text(json.dumps(mine, indent=1, ensure_ascii=False) + '\n')
     print('added %d acceptances' % len(new))
 
 
