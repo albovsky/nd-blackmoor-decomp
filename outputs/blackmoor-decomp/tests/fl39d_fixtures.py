@@ -170,6 +170,8 @@ def lift_scenario(key, c, rec):
     va = {rid: od.region_va(rg['index']) for rid, rg in regs.items()}
     nargs = c['nargs']
     args = [rng.randrange(1 << 32) for _ in range(nargs)]
+    for i, v in rec.get('args', {}).items():       # FL-41: stack arguments at the edges of their width (tests/fl39d_boundary_recipes.json)
+        args[int(i)] = v & 0xffffffff
     g = {name: (rng.choice([0xffffffff, 0xa5a5a5a5, rng.randrange(1, 1 << 32)]) & ((1 << (8 * w)) - 1)) or 1 for name, _a, w, _wr in c['globals']}
     res = {}
     for f, (nargs_f, _this, _cl) in c['calls'].items():
@@ -517,6 +519,24 @@ for _i, (_k, (_kind, _c)) in enumerate(ROWS.items()):
     _spec.update(SPECFLAGS[_k])
     NAMES[_k] = KIND_NAMES[_kind]
 KEYS = list(SPECS)
+
+
+def _add_boundary_recipes():
+    """FL-41: append the boundary-value recipes of tests/fl39d_boundary_recipes.json (made by tests/fl41_boundary_recipes.py; the original bytes run each of them)."""
+    import json
+    path = Path(__file__).resolve().parent / 'fl39d_boundary_recipes.json'
+    if not path.is_file():
+        return
+    for key, recs in json.loads(path.read_text()).items():
+        if key not in ROWS:
+            continue
+        c = ROWS[key][1]
+        for r in recs:
+            c['recipes'].append({'seed': r['seed'], 'set': {int(k): v for k, v in r['set'].items()}, 'args': {int(k): v for k, v in r['args'].items()}, 'res': {}})
+        SPECS[key]['n'] += len(recs)
+
+
+_add_boundary_recipes()
 
 
 def build(key, rng, n):

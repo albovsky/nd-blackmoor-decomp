@@ -1,0 +1,2028 @@
+{
+ "method": "tests/fl41_operator_mutation_check.py: one mutation per function per round at EVERY site of the lifted code: binary operators (+ - & | ^ << >> == != < > <= >=), sign casts (int8/16/32 <-> unsigned), and the constant operand of compares and of add/sub immediates (cmpconst, aluimm). The direct C test and the Unicorn differential test (fixtures extended with 40 boundary-value recipes per row, tests/fl39d_boundary_recipes.json) are both run; a mutant is killed when either fails. A survivor is explained when gcc -O2 compiles the mutant function to the same instructions as the port (counted in survived_identical_gcc_O2) or when a per-survivor reason is written (explained). Anything else is unexplained and the row is pending.",
+ "literal_pass": "the pass over every other integer literal (store values, offsets) was still running when this file was written; its survivors are handled in the next slice",
+ "totals": {
+  "rows": 139,
+  "mutants": 2320,
+  "killed": 1749,
+  "identical_gcc_O2": 433,
+  "explained": 7,
+  "unexplained": 131,
+  "credited_rows_sent_back_to_pending": [
+   "48a70a",
+   "495a5b",
+   "4a378a",
+   "4a3beb",
+   "4a8007",
+   "4a9f63",
+   "4accab",
+   "4b3f98",
+   "4be2c6",
+   "4c4b12",
+   "4c4c2b",
+   "4c9428",
+   "4cd645",
+   "4d912a",
+   "4dd28d",
+   "4de009",
+   "4e0619",
+   "4e35e8",
+   "4e364a",
+   "4e40a6",
+   "4eb9c8",
+   "4f67be",
+   "4f6810",
+   "4fafc7",
+   "4fb018",
+   "4fb086",
+   "4fb737"
+  ]
+ },
+ "rows": {
+  "48217a": {
+   "mutants": 3,
+   "killed": 0,
+   "survived_identical_gcc_O2": 3,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4821ab": {
+   "mutants": 10,
+   "killed": 9,
+   "survived_identical_gcc_O2": 1,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "487dcf": {
+   "mutants": 40,
+   "killed": 29,
+   "survived_identical_gcc_O2": 9,
+   "explained": [
+    {
+     "line": 278,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "eax = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)A0 & 0xffffu)));",
+     "scenario_search": "indistinguishable",
+     "reason": "sign extension of a 16-bit value that is only compared for equality with 0x2789 (below 0x8000): the same result for both extensions; eax is redefined at line 298 before any other use"
+    },
+    {
+     "line": 322,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "ecx = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)A0 & 0xffffu)));",
+     "scenario_search": "indistinguishable",
+     "reason": "sign extension of a 16-bit value that is only compared for equality with 0x2788 (below 0x8000): the same result for both extensions; ecx is redefined at line 342 before any other use"
+    }
+   ],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "488e54": {
+   "mutants": 23,
+   "killed": 15,
+   "survived_identical_gcc_O2": 2,
+   "explained": [],
+   "unexplained": [
+    {
+     "line": 436,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "wr32(self, 44 + (ptrdiff_t)(int32_t)((uint32_t)edx * 4u), (uint32_t)(0x0u));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 430,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "if ((int32_t)fa >= (int32_t)fb) goto L488e8b;",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 432,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "edx = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)L4 & 0xffffu)));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 425,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "ecx = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)L4 & 0xffffu)));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 430,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "if ((int32_t)fa >= (int32_t)fb) goto L488e8b;",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 428,
+     "mutation": "cmpconst 0x28u ^ 1",
+     "statement": "fb = 0x28u;",
+     "scenario_search": "indistinguishable"
+    }
+   ],
+   "decision": "pending (already)"
+  },
+  "48a70a": {
+   "mutants": 48,
+   "killed": 22,
+   "survived_identical_gcc_O2": 15,
+   "explained": [],
+   "unexplained": [
+    {
+     "line": 546,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "wr16(self, 46 + (ptrdiff_t)(int32_t)((uint32_t)eax * 2u), (uint16_t)(0xffffu));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 558,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "wr16(self, 402 + (ptrdiff_t)(int32_t)((uint32_t)ecx * 2u), (uint16_t)(0xffffu));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 529,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "eax = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)L4 & 0xffffu)));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 534,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "if ((int32_t)fa >= (int32_t)fb) goto L48a7e1;",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 542,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "eax = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)L4 & 0xffffu)));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 554,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "ecx = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)L4 & 0xffffu)));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 540,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "(self)[36 + (ptrdiff_t)(int32_t)((uint32_t)ecx)] = (uint8_t)(0x0u);",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 552,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "wr16(self, 442 + (ptrdiff_t)(int32_t)((uint32_t)edx * 2u), (uint16_t)(0xffffu));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 534,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "if ((int32_t)fa >= (int32_t)fb) goto L48a7e1;",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 536,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "ecx = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)L4 & 0xffffu)));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 548,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "edx = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)L4 & 0xffffu)));",
+     "scenario_search": "indistinguishable"
+    }
+   ],
+   "decision": "pending"
+  },
+  "48aa66": {
+   "mutants": 34,
+   "killed": 28,
+   "survived_identical_gcc_O2": 5,
+   "explained": [
+    {
+     "line": 594,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "eax = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)A0 & 0xffffu)));",
+     "scenario_search": "indistinguishable",
+     "reason": "sign extension of a 16-bit value that is only compared for equality with 0x2757 (below 0x8000): the same result for both extensions; eax is redefined at line 614 before any other use"
+    }
+   ],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "48e28a": {
+   "mutants": 7,
+   "killed": 0,
+   "survived_identical_gcc_O2": 7,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4911ca": {
+   "mutants": 45,
+   "killed": 45,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "491422": {
+   "mutants": 18,
+   "killed": 18,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "491885": {
+   "mutants": 6,
+   "killed": 4,
+   "survived_identical_gcc_O2": 2,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4921a1": {
+   "mutants": 44,
+   "killed": 44,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "493a54": {
+   "mutants": 18,
+   "killed": 18,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "493af0": {
+   "mutants": 0,
+   "killed": 0,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "493b2e": {
+   "mutants": 2,
+   "killed": 2,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "493c34": {
+   "mutants": 14,
+   "killed": 14,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "495a5b": {
+   "mutants": 11,
+   "killed": 7,
+   "survived_identical_gcc_O2": 1,
+   "explained": [],
+   "unexplained": [
+    {
+     "line": 2033,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "if ((int32_t)fa < (int32_t)fb) goto L495acb;",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 2033,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "if ((int32_t)fa < (int32_t)fb) goto L495acb;",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 2031,
+     "mutation": "cmpconst 0x6u ^ 1",
+     "statement": "fb = 0x6u;",
+     "scenario_search": "indistinguishable"
+    }
+   ],
+   "decision": "pending"
+  },
+  "49c46c": {
+   "mutants": 0,
+   "killed": 0,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "49c68a": {
+   "mutants": 20,
+   "killed": 20,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4a1d14": {
+   "mutants": 6,
+   "killed": 1,
+   "survived_identical_gcc_O2": 5,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4a1e93": {
+   "mutants": 13,
+   "killed": 12,
+   "survived_identical_gcc_O2": 1,
+   "explained": [],
+   "unexplained": [],
+   "decision": "pending (already)"
+  },
+  "4a1fd1": {
+   "mutants": 32,
+   "killed": 18,
+   "survived_identical_gcc_O2": 9,
+   "explained": [],
+   "unexplained": [
+    {
+     "line": 2535,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "edx = (uint32_t)((uint32_t)(int32_t)(int16_t)((uint32_t)rd16(res(host, (uint32_t)ecx), 335)));",
+     "scenario_search": "killed by a new scenario"
+    },
+    {
+     "line": 2554,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "eax = (uint32_t)((uint32_t)(int32_t)(int16_t)((uint32_t)rd16(res(host, (uint32_t)edx), 335)));",
+     "scenario_search": "killed by a new scenario"
+    },
+    {
+     "line": 2585,
+     "mutation": "op & -> |",
+     "statement": "fa = ((uint32_t)((((uint32_t)edx) + (0x1u)))) & 0xffffffffu;",
+     "scenario_search": "killed by a new scenario"
+    },
+    {
+     "line": 2585,
+     "mutation": "aluimm 0x1u ^ 1",
+     "statement": "fa = ((uint32_t)((((uint32_t)edx) + (0x1u)))) & 0xffffffffu;",
+     "scenario_search": "killed by a new scenario"
+    },
+    {
+     "line": 2579,
+     "mutation": "cmpconst 0x1u ^ 1",
+     "statement": "fb = 0x1u;",
+     "scenario_search": "distinguished only where the port and the original disagree or fault ("
+    }
+   ],
+   "decision": "pending (already)"
+  },
+  "4a378a": {
+   "mutants": 33,
+   "killed": 16,
+   "survived_identical_gcc_O2": 12,
+   "explained": [],
+   "unexplained": [
+    {
+     "line": 2718,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "edx = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)L4 & 0xffffu)));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 2723,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "if ((int32_t)fa >= (int32_t)fb) goto L4a3880;",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 2729,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "wr32(self, 512 + (ptrdiff_t)(int32_t)((uint32_t)eax * 4u), (uint32_t)(0x0u));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 2723,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "if ((int32_t)fa >= (int32_t)fb) goto L4a3880;",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 2725,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "eax = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)L4 & 0xffffu)));",
+     "scenario_search": "indistinguishable"
+    }
+   ],
+   "decision": "pending"
+  },
+  "4a39c4": {
+   "mutants": 4,
+   "killed": 1,
+   "survived_identical_gcc_O2": 3,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4a3beb": {
+   "mutants": 82,
+   "killed": 72,
+   "survived_identical_gcc_O2": 8,
+   "explained": [],
+   "unexplained": [
+    {
+     "line": 3075,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "edx = (uint32_t)((uint32_t)(int32_t)(int16_t)((uint32_t)rd16(self, 2100)));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 3088,
+     "mutation": "cast uint16_t -> int16_t",
+     "statement": "eax = (uint32_t)((uint32_t)(int32_t)(int16_t)((uint32_t)rd16(self, 2096)));",
+     "scenario_search": "indistinguishable"
+    }
+   ],
+   "decision": "pending"
+  },
+  "4a63dc": {
+   "mutants": 13,
+   "killed": 12,
+   "survived_identical_gcc_O2": 1,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4a7994": {
+   "mutants": 11,
+   "killed": 9,
+   "survived_identical_gcc_O2": 2,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4a7c7a": {
+   "mutants": 7,
+   "killed": 0,
+   "survived_identical_gcc_O2": 7,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4a7d1d": {
+   "mutants": 10,
+   "killed": 9,
+   "survived_identical_gcc_O2": 1,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4a7df9": {
+   "mutants": 2,
+   "killed": 0,
+   "survived_identical_gcc_O2": 2,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4a8007": {
+   "mutants": 82,
+   "killed": 73,
+   "survived_identical_gcc_O2": 8,
+   "explained": [],
+   "unexplained": [
+    {
+     "line": 3970,
+     "mutation": "cast uint16_t -> int16_t",
+     "statement": "eax = (uint32_t)((uint32_t)(int32_t)(int16_t)((uint32_t)rd16(self, 5028)));",
+     "scenario_search": "indistinguishable"
+    }
+   ],
+   "decision": "pending"
+  },
+  "4a9f63": {
+   "mutants": 15,
+   "killed": 7,
+   "survived_identical_gcc_O2": 7,
+   "explained": [],
+   "unexplained": [
+    {
+     "line": 4181,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "ecx = (uint32_t)((uint32_t)(int32_t)(int16_t)((uint32_t)rd16(self, 41)));",
+     "scenario_search": "indistinguishable"
+    }
+   ],
+   "decision": "pending"
+  },
+  "4ab706": {
+   "mutants": 57,
+   "killed": 45,
+   "survived_identical_gcc_O2": 10,
+   "explained": [
+    {
+     "line": 4274,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "ecx = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)A0 & 0xffffu)));",
+     "scenario_search": "indistinguishable",
+     "reason": "sign extension of a 16-bit value that is only compared for equality with 0x27cf (below 0x8000): the same result for both extensions; ecx is redefined at line 4294 before any other use"
+    },
+    {
+     "line": 4316,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "edx = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)A0 & 0xffffu)));",
+     "scenario_search": "indistinguishable",
+     "reason": "sign extension of a 16-bit value that is only compared for equality with 0x27d0 (below 0x8000): the same result for both extensions; edx is redefined at line 4336 before any other use"
+    }
+   ],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4accab": {
+   "mutants": 42,
+   "killed": 39,
+   "survived_identical_gcc_O2": 1,
+   "explained": [],
+   "unexplained": [
+    {
+     "line": 4392,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "ecx = (uint32_t)((uint32_t)(int32_t)(int16_t)((uint32_t)rd16(self, 36)));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 4398,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "eax = (uintptr_t)((uint8_t *)edx + (ptrdiff_t)(int32_t)((uint32_t)ecx * 1u) + (ptrdiff_t)(110));",
+     "scenario_search": "indistinguishable"
+    }
+   ],
+   "decision": "pending"
+  },
+  "4ad1e5": {
+   "mutants": 39,
+   "killed": 32,
+   "survived_identical_gcc_O2": 5,
+   "explained": [
+    {
+     "line": 4641,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "edx = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)A0 & 0xffffu)));",
+     "scenario_search": "indistinguishable",
+     "reason": "sign extension of a 16-bit value that is only compared for equality with 0x2774 (below 0x8000): the same result for both extensions; edx is redefined at line 4661 before any other use"
+    },
+    {
+     "line": 4677,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "ecx = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)A0 & 0xffffu)));",
+     "scenario_search": "indistinguishable",
+     "reason": "sign extension of a 16-bit value that is only compared for equality with 0x2776 (below 0x8000): the same result for both extensions; ecx is redefined at line 4697 before any other use"
+    }
+   ],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4b3c5a": {
+   "mutants": 15,
+   "killed": 0,
+   "survived_identical_gcc_O2": 15,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4b3f98": {
+   "mutants": 65,
+   "killed": 49,
+   "survived_identical_gcc_O2": 15,
+   "explained": [],
+   "unexplained": [
+    {
+     "line": 5138,
+     "mutation": "op - -> +",
+     "statement": "fa = ((uint32_t)((((uint32_t)eax) + (world->value_58318a)))) & 0xffffffffu;",
+     "scenario_search": "indistinguishable"
+    }
+   ],
+   "decision": "pending"
+  },
+  "4b450f": {
+   "mutants": 38,
+   "killed": 28,
+   "survived_identical_gcc_O2": 8,
+   "explained": [],
+   "unexplained": [
+    {
+     "line": 5262,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "ecx = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)A0 & 0xffffu)));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 5265,
+     "mutation": "cmpconst 0x3u ^ 1",
+     "statement": "fb = 0x3u;",
+     "scenario_search": "indistinguishable"
+    }
+   ],
+   "decision": "pending (already)"
+  },
+  "4b72a9": {
+   "mutants": 3,
+   "killed": 0,
+   "survived_identical_gcc_O2": 3,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4b9e3b": {
+   "mutants": 19,
+   "killed": 5,
+   "survived_identical_gcc_O2": 14,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4ba07f": {
+   "mutants": 18,
+   "killed": 17,
+   "survived_identical_gcc_O2": 1,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4ba262": {
+   "mutants": 18,
+   "killed": 18,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "pending (already)"
+  },
+  "4ba486": {
+   "mutants": 11,
+   "killed": 9,
+   "survived_identical_gcc_O2": 2,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4be2c6": {
+   "mutants": 21,
+   "killed": 19,
+   "survived_identical_gcc_O2": 1,
+   "explained": [],
+   "unexplained": [
+    {
+     "line": 6009,
+     "mutation": "cmpconst 0x0u ^ 1",
+     "statement": "fb = 0x0u;",
+     "scenario_search": "indistinguishable"
+    }
+   ],
+   "decision": "pending"
+  },
+  "4bed70": {
+   "mutants": 0,
+   "killed": 0,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4bf63b": {
+   "mutants": 4,
+   "killed": 0,
+   "survived_identical_gcc_O2": 4,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4bf8a7": {
+   "mutants": 0,
+   "killed": 0,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4c139a": {
+   "mutants": 9,
+   "killed": 5,
+   "survived_identical_gcc_O2": 4,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4c4b12": {
+   "mutants": 62,
+   "killed": 51,
+   "survived_identical_gcc_O2": 7,
+   "explained": [],
+   "unexplained": [
+    {
+     "line": 6587,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "ecx = (uint32_t)((uint32_t)(int32_t)(int16_t)((uint32_t)rd16(a0, 47)));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 6426,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "eax = (uint32_t)((uint32_t)(int32_t)(int16_t)((uint32_t)rd16(a0, 47)));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 6555,
+     "mutation": "op | -> &",
+     "statement": "ecx = (uint32_t)(((uint32_t)ecx & 0xffff0000u) | (((((uint32_t)A1 & 0xffffu)) & 0xffffu) << 0));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 6438,
+     "mutation": "op + -> -",
+     "statement": "fa = ((uint32_t)((((uint32_t)ecx) + ((uint32_t)edx)))) & 0xffffffffu;",
+     "scenario_search": "indistinguishable"
+    }
+   ],
+   "decision": "pending"
+  },
+  "4c4c2b": {
+   "mutants": 116,
+   "killed": 81,
+   "survived_identical_gcc_O2": 19,
+   "explained": [],
+   "unexplained": [
+    {
+     "line": 6696,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "edx = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)L8 & 0xffffu)));",
+     "scenario_search": "distinguished only where the port and the original disagree or fault ("
+    },
+    {
+     "line": 6759,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "ecx = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)L4 & 0xffffu)));",
+     "scenario_search": "distinguished only where the port and the original disagree or fault ("
+    },
+    {
+     "line": 6772,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "edx = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)L4 & 0xffffu)));",
+     "scenario_search": "distinguished only where the port and the original disagree or fault ("
+    },
+    {
+     "line": 6707,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "edx = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)L8 & 0xffffu)));",
+     "scenario_search": "distinguished only where the port and the original disagree or fault ("
+    },
+    {
+     "line": 6718,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "edx = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)L8 & 0xffffu)));",
+     "scenario_search": "distinguished only where the port and the original disagree or fault ("
+    },
+    {
+     "line": 6772,
+     "mutation": "op & -> |",
+     "statement": "edx = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)L4 & 0xffffu)));",
+     "scenario_search": "distinguished only where the port and the original disagree or fault ("
+    },
+    {
+     "line": 6781,
+     "mutation": "op & -> |",
+     "statement": "ecx = (uint32_t)(((uint32_t)ecx & 0xffff0000u) | ((((uint32_t)rd16(self, 3718)) & 0xffffu) << 0));",
+     "scenario_search": "distinguished only where the port and the original disagree or fault ("
+    },
+    {
+     "line": 6799,
+     "mutation": "op & -> |",
+     "statement": "edx = (uint32_t)(((uint32_t)edx & 0xffff0000u) | (((((uint32_t)L4 & 0xffffu)) & 0xffffu) << 0));",
+     "scenario_search": "distinguished only where the port and the original disagree or fault ("
+    },
+    {
+     "line": 6669,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "edx = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)L8 & 0xffffu)));",
+     "scenario_search": "distinguished only where the port and the original disagree or fault ("
+    },
+    {
+     "line": 6680,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "edx = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)L8 & 0xffffu)));",
+     "scenario_search": "distinguished only where the port and the original disagree or fault ("
+    },
+    {
+     "line": 6703,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "ecx = (uintptr_t)((uint8_t *)eax + (ptrdiff_t)(int32_t)((uint32_t)edx * 1u) + (ptrdiff_t)(3972));",
+     "scenario_search": "distinguished only where the port and the original disagree or fault ("
+    },
+    {
+     "line": 6687,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "ecx = (uint32_t)(((uint32_t)ecx & 0xffffff00u) | ((((uint32_t)(self)[3722 + (ptrdiff_t)(int32_t)((uint32_t)edx)]) & 0xffu) << 0));",
+     "scenario_search": "distinguished only where the port and the original disagree or fault ("
+    },
+    {
+     "line": 6714,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "ecx = (uint32_t)(rd32(self, 3976 + (ptrdiff_t)(int32_t)((uint32_t)edx)));",
+     "scenario_search": "distinguished only where the port and the original disagree or fault ("
+    },
+    {
+     "line": 6725,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "ecx = (uint32_t)(rd32(self, 3972 + (ptrdiff_t)(int32_t)((uint32_t)edx)));",
+     "scenario_search": "distinguished only where the port and the original disagree or fault ("
+    },
+    {
+     "line": 6761,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "edx = (uint32_t)((uint32_t)(int32_t)(int16_t)((uint32_t)world->word_63a8d8));",
+     "scenario_search": "distinguished only where the port and the original disagree or fault ("
+    },
+    {
+     "line": 6788,
+     "mutation": "op & -> |",
+     "statement": "edx = (uint32_t)(((uint32_t)edx & 0xffff0000u) | (((((uint32_t)L4 & 0xffffu)) & 0xffffu) << 0));",
+     "scenario_search": "distinguished only where the port and the original disagree or fault ("
+    }
+   ],
+   "decision": "pending"
+  },
+  "4c9428": {
+   "mutants": 30,
+   "killed": 21,
+   "survived_identical_gcc_O2": 4,
+   "explained": [],
+   "unexplained": [
+    {
+     "line": 6850,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "ecx = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)L4 & 0xffffu)));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 6855,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "if ((int32_t)fa >= (int32_t)fb) goto L4c9467;",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 6861,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "ecx = (uintptr_t)((uint8_t *)eax + (ptrdiff_t)(int32_t)((uint32_t)edx * 4u) + (ptrdiff_t)(3186));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 6855,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "if ((int32_t)fa >= (int32_t)fb) goto L4c9467;",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 6857,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "edx = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)L4 & 0xffffu)));",
+     "scenario_search": "indistinguishable"
+    }
+   ],
+   "decision": "pending"
+  },
+  "4c9b66": {
+   "mutants": 4,
+   "killed": 4,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4c9c10": {
+   "mutants": 4,
+   "killed": 4,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4ca92e": {
+   "mutants": 160,
+   "killed": 120,
+   "survived_identical_gcc_O2": 40,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4caec0": {
+   "mutants": 0,
+   "killed": 0,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4caff5": {
+   "mutants": 14,
+   "killed": 9,
+   "survived_identical_gcc_O2": 5,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4cca0e": {
+   "mutants": 0,
+   "killed": 0,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4ccc50": {
+   "mutants": 0,
+   "killed": 0,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4cd645": {
+   "mutants": 26,
+   "killed": 16,
+   "survived_identical_gcc_O2": 9,
+   "explained": [],
+   "unexplained": [
+    {
+     "line": 8309,
+     "mutation": "op & -> |",
+     "statement": "ecx = (uint32_t)(((uint32_t)ecx & 0xffffff00u) | ((((uint32_t)res(host, (uint32_t)ecx)[14]) & 0xffu) << 0));",
+     "scenario_search": "indistinguishable"
+    }
+   ],
+   "decision": "pending"
+  },
+  "4d00d2": {
+   "mutants": 1,
+   "killed": 0,
+   "survived_identical_gcc_O2": 1,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4d3723": {
+   "mutants": 0,
+   "killed": 0,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4d3b95": {
+   "mutants": 1,
+   "killed": 0,
+   "survived_identical_gcc_O2": 1,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4d3c9a": {
+   "mutants": 6,
+   "killed": 4,
+   "survived_identical_gcc_O2": 2,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4d3cba": {
+   "mutants": 2,
+   "killed": 2,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4d3ced": {
+   "mutants": 2,
+   "killed": 2,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4d4043": {
+   "mutants": 0,
+   "killed": 0,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4d4645": {
+   "mutants": 4,
+   "killed": 4,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4d47b0": {
+   "mutants": 7,
+   "killed": 7,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4d56e2": {
+   "mutants": 47,
+   "killed": 47,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4d57e8": {
+   "mutants": 16,
+   "killed": 16,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "pending (already)"
+  },
+  "4d5834": {
+   "mutants": 16,
+   "killed": 16,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4d6787": {
+   "mutants": 10,
+   "killed": 6,
+   "survived_identical_gcc_O2": 4,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4d794d": {
+   "mutants": 8,
+   "killed": 8,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4d79c7": {
+   "mutants": 5,
+   "killed": 4,
+   "survived_identical_gcc_O2": 1,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4d8f8d": {
+   "mutants": 2,
+   "killed": 2,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4d912a": {
+   "mutants": 31,
+   "killed": 26,
+   "survived_identical_gcc_O2": 4,
+   "explained": [],
+   "unexplained": [
+    {
+     "line": 9526,
+     "mutation": "op | -> &",
+     "statement": "eax = (uint32_t)(((uint32_t)eax & 0xffff0000u) | (((fa) & 0xffffu) << 0));",
+     "scenario_search": "indistinguishable"
+    }
+   ],
+   "decision": "pending"
+  },
+  "4d920c": {
+   "mutants": 9,
+   "killed": 9,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4d9d70": {
+   "mutants": 15,
+   "killed": 9,
+   "survived_identical_gcc_O2": 6,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4db066": {
+   "mutants": 2,
+   "killed": 2,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4db780": {
+   "mutants": 12,
+   "killed": 9,
+   "survived_identical_gcc_O2": 3,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4db817": {
+   "mutants": 4,
+   "killed": 1,
+   "survived_identical_gcc_O2": 3,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4dbc77": {
+   "mutants": 0,
+   "killed": 0,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4dbfbf": {
+   "mutants": 0,
+   "killed": 0,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4dd28d": {
+   "mutants": 54,
+   "killed": 35,
+   "survived_identical_gcc_O2": 14,
+   "explained": [],
+   "unexplained": [
+    {
+     "line": 10229,
+     "mutation": "op & -> |",
+     "statement": "eax = (uint32_t)(((uint32_t)eax & 0xffff0000u) | ((((uint32_t)rd16(res(host, (uint32_t)eax), 398)) & 0xffffu) << 0));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 10231,
+     "mutation": "op & -> |",
+     "statement": "wr16(res(host, (uint32_t)edx), 450, (uint16_t)(((uint32_t)eax & 0xffffu)));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 10277,
+     "mutation": "op | -> &",
+     "statement": "edx = (uint32_t)(((uint32_t)edx & 0xffff0000u) | ((((uint32_t)rd16(res(host, (uint32_t)edx), 396)) & 0xffffu) << 0));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 10229,
+     "mutation": "op & -> |",
+     "statement": "eax = (uint32_t)(((uint32_t)eax & 0xffff0000u) | ((((uint32_t)rd16(res(host, (uint32_t)eax), 398)) & 0xffffu) << 0));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 10193,
+     "mutation": "op & -> |",
+     "statement": "ecx = (uint32_t)(((uint32_t)ecx & 0xffff0000u) | ((((uint32_t)rd16(res(host, (uint32_t)eax), 450)) & 0xffffu) << 0));",
+     "scenario_search": "indistinguishable"
+    }
+   ],
+   "decision": "pending"
+  },
+  "4dd409": {
+   "mutants": 7,
+   "killed": 7,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4de009": {
+   "mutants": 64,
+   "killed": 45,
+   "survived_identical_gcc_O2": 9,
+   "explained": [],
+   "unexplained": [
+    {
+     "line": 10448,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "ecx = (uint32_t)((uint32_t)(int32_t)(int16_t)((uint32_t)world->word_616872));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 10414,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "eax = (uint32_t)((uint32_t)(int32_t)(int16_t)((uint32_t)world->word_63a4cd));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 10444,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "if ((int32_t)fa >= (int32_t)fb) goto L4de0cb;",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 10446,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "eax = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)L4 & 0xffffu)));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 10439,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "edx = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)L4 & 0xffffu)));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 10444,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "if ((int32_t)fa >= (int32_t)fb) goto L4de0cb;",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 10457,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "edx = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)L4 & 0xffffu)));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 10467,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "eax = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)L4 & 0xffffu)));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 10497,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "eax = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)L4 & 0xffffu)));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 10507,
+     "mutation": "cast uint16_t -> int16_t",
+     "statement": "ecx = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)L4 & 0xffffu)));",
+     "scenario_search": "indistinguishable"
+    }
+   ],
+   "decision": "pending"
+  },
+  "4de0cf": {
+   "mutants": 4,
+   "killed": 1,
+   "survived_identical_gcc_O2": 3,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4de4f9": {
+   "mutants": 10,
+   "killed": 7,
+   "survived_identical_gcc_O2": 3,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4de6d7": {
+   "mutants": 0,
+   "killed": 0,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4de6fc": {
+   "mutants": 4,
+   "killed": 4,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4e01b3": {
+   "mutants": 2,
+   "killed": 2,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4e023b": {
+   "mutants": 42,
+   "killed": 34,
+   "survived_identical_gcc_O2": 3,
+   "explained": [],
+   "unexplained": [
+    {
+     "line": 11000,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "if ((int32_t)fa >= (int32_t)fb) goto L4e0373;",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 11004,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "eax = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)L4 & 0xffffu)));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 11014,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "ecx = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)L4 & 0xffffu)));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 10995,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "edx = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)L4 & 0xffffu)));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 11000,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "if ((int32_t)fa >= (int32_t)fb) goto L4e0373;",
+     "scenario_search": "indistinguishable"
+    }
+   ],
+   "decision": "pending (already)"
+  },
+  "4e0377": {
+   "mutants": 4,
+   "killed": 2,
+   "survived_identical_gcc_O2": 2,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4e0619": {
+   "mutants": 13,
+   "killed": 10,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [
+    {
+     "line": 11195,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "if ((int32_t)fa >= (int32_t)fb) goto L4e0690;",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 11205,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "ecx = (uintptr_t)((uint8_t *)eax + (ptrdiff_t)(int32_t)((uint32_t)edx * 1u) + (ptrdiff_t)(1879));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 11195,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "if ((int32_t)fa >= (int32_t)fb) goto L4e0690;",
+     "scenario_search": "indistinguishable"
+    }
+   ],
+   "decision": "pending"
+  },
+  "4e06c0": {
+   "mutants": 13,
+   "killed": 9,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [
+    {
+     "line": 11272,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "if ((int32_t)fa >= (int32_t)fb) goto L4e0736;",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 11294,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "ecx = (uintptr_t)((uint8_t *)edx + (ptrdiff_t)(int32_t)((uint32_t)ecx * 1u) + (ptrdiff_t)(1879));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 11272,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "if ((int32_t)fa >= (int32_t)fb) goto L4e0736;",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 11282,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "edx = (uintptr_t)((uint8_t *)ecx + (ptrdiff_t)(int32_t)((uint32_t)eax * 1u) + (ptrdiff_t)(101));",
+     "scenario_search": "indistinguishable"
+    }
+   ],
+   "decision": "pending (already)"
+  },
+  "4e119b": {
+   "mutants": 4,
+   "killed": 4,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4e1c9f": {
+   "mutants": 0,
+   "killed": 0,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4e2913": {
+   "mutants": 2,
+   "killed": 2,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4e29b7": {
+   "mutants": 2,
+   "killed": 2,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4e2dd3": {
+   "mutants": 0,
+   "killed": 0,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4e35e8": {
+   "mutants": 33,
+   "killed": 24,
+   "survived_identical_gcc_O2": 4,
+   "explained": [],
+   "unexplained": [
+    {
+     "line": 11662,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "ecx = (uintptr_t)((uint8_t *)eax + (ptrdiff_t)(int32_t)((uint32_t)edx * 1u) + (ptrdiff_t)(7330));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 11652,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "if ((int32_t)fa > (int32_t)fb) goto L4e3646;",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 11656,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "edx = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)L4 & 0xffffu)));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 11647,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "ecx = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)L4 & 0xffffu)));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 11652,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "if ((int32_t)fa > (int32_t)fb) goto L4e3646;",
+     "scenario_search": "indistinguishable"
+    }
+   ],
+   "decision": "pending"
+  },
+  "4e364a": {
+   "mutants": 30,
+   "killed": 21,
+   "survived_identical_gcc_O2": 4,
+   "explained": [],
+   "unexplained": [
+    {
+     "line": 11711,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "ecx = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)L4 & 0xffffu)));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 11716,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "if ((int32_t)fa > (int32_t)fb) goto L4e368d;",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 11726,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "ecx = (uintptr_t)((uint8_t *)eax + (ptrdiff_t)(int32_t)((uint32_t)edx * 1u) + (ptrdiff_t)(7330));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 11716,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "if ((int32_t)fa > (int32_t)fb) goto L4e368d;",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 11720,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "edx = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)L4 & 0xffffu)));",
+     "scenario_search": "indistinguishable"
+    }
+   ],
+   "decision": "pending"
+  },
+  "4e3691": {
+   "mutants": 6,
+   "killed": 6,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4e36fc": {
+   "mutants": 8,
+   "killed": 8,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4e3772": {
+   "mutants": 4,
+   "killed": 4,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4e3a64": {
+   "mutants": 12,
+   "killed": 8,
+   "survived_identical_gcc_O2": 4,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4e40a6": {
+   "mutants": 28,
+   "killed": 22,
+   "survived_identical_gcc_O2": 5,
+   "explained": [],
+   "unexplained": [
+    {
+     "line": 12059,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "ecx = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)A6 & 0xffffu)));",
+     "scenario_search": "indistinguishable"
+    }
+   ],
+   "decision": "pending"
+  },
+  "4e49e2": {
+   "mutants": 6,
+   "killed": 2,
+   "survived_identical_gcc_O2": 4,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4e7970": {
+   "mutants": 8,
+   "killed": 6,
+   "survived_identical_gcc_O2": 2,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4e79ca": {
+   "mutants": 3,
+   "killed": 3,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4e7c72": {
+   "mutants": 9,
+   "killed": 9,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4e7dad": {
+   "mutants": 12,
+   "killed": 9,
+   "survived_identical_gcc_O2": 3,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4e8d72": {
+   "mutants": 1,
+   "killed": 1,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "pending (already)"
+  },
+  "4e94a9": {
+   "mutants": 4,
+   "killed": 3,
+   "survived_identical_gcc_O2": 1,
+   "explained": [],
+   "unexplained": [],
+   "decision": "pending (already)"
+  },
+  "4ea1cb": {
+   "mutants": 6,
+   "killed": 3,
+   "survived_identical_gcc_O2": 3,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4ea361": {
+   "mutants": 3,
+   "killed": 3,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4eb5f2": {
+   "mutants": 43,
+   "killed": 22,
+   "survived_identical_gcc_O2": 21,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4eb9c8": {
+   "mutants": 28,
+   "killed": 20,
+   "survived_identical_gcc_O2": 3,
+   "explained": [],
+   "unexplained": [
+    {
+     "line": 12923,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "eax = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)L4 & 0xffffu)));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 12928,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "if ((int32_t)fa >= (int32_t)fb) goto L4eba50;",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 12940,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "edx = (uintptr_t)((uint8_t *)eax + (ptrdiff_t)(int32_t)((uint32_t)edx * 1u) + (ptrdiff_t)(4058));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 12928,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "if ((int32_t)fa >= (int32_t)fb) goto L4eba50;",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 12933,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "edx = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)L4 & 0xffffu)));",
+     "scenario_search": "indistinguishable"
+    }
+   ],
+   "decision": "pending"
+  },
+  "4eda10": {
+   "mutants": 6,
+   "killed": 2,
+   "survived_identical_gcc_O2": 4,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4edae5": {
+   "mutants": 3,
+   "killed": 1,
+   "survived_identical_gcc_O2": 2,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4ee517": {
+   "mutants": 9,
+   "killed": 8,
+   "survived_identical_gcc_O2": 1,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4ee572": {
+   "mutants": 4,
+   "killed": 3,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [
+    {
+     "line": 13211,
+     "mutation": "cmpconst 0x0u ^ 1",
+     "statement": "fb = 0x0u;",
+     "scenario_search": "indistinguishable"
+    }
+   ],
+   "decision": "pending (already)"
+  },
+  "4ee598": {
+   "mutants": 2,
+   "killed": 2,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4ee5f2": {
+   "mutants": 0,
+   "killed": 0,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4ee9bb": {
+   "mutants": 7,
+   "killed": 3,
+   "survived_identical_gcc_O2": 4,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4eead0": {
+   "mutants": 8,
+   "killed": 8,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4ef3ed": {
+   "mutants": 23,
+   "killed": 22,
+   "survived_identical_gcc_O2": 1,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4ef4f0": {
+   "mutants": 0,
+   "killed": 0,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4f67be": {
+   "mutants": 11,
+   "killed": 6,
+   "survived_identical_gcc_O2": 3,
+   "explained": [],
+   "unexplained": [
+    {
+     "line": 13740,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "if ((int32_t)fa >= (int32_t)fb) goto L4f6807;",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 13740,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "if ((int32_t)fa >= (int32_t)fb) goto L4f6807;",
+     "scenario_search": "indistinguishable"
+    }
+   ],
+   "decision": "pending"
+  },
+  "4f6810": {
+   "mutants": 7,
+   "killed": 5,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [
+    {
+     "line": 13804,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "if ((int32_t)fa >= (int32_t)fb) goto L4f6841;",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 13804,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "if ((int32_t)fa >= (int32_t)fb) goto L4f6841;",
+     "scenario_search": "indistinguishable"
+    }
+   ],
+   "decision": "pending"
+  },
+  "4f8a17": {
+   "mutants": 0,
+   "killed": 0,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4fafc7": {
+   "mutants": 27,
+   "killed": 19,
+   "survived_identical_gcc_O2": 5,
+   "explained": [],
+   "unexplained": [
+    {
+     "line": 13959,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "if ((int32_t)fa >= (int32_t)fb) goto L4fb014;",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 13954,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "edx = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)L4 & 0xffffu)));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 13959,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "if ((int32_t)fa >= (int32_t)fb) goto L4fb014;",
+     "scenario_search": "indistinguishable"
+    }
+   ],
+   "decision": "pending"
+  },
+  "4fb018": {
+   "mutants": 27,
+   "killed": 19,
+   "survived_identical_gcc_O2": 5,
+   "explained": [],
+   "unexplained": [
+    {
+     "line": 14036,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "if ((int32_t)fa >= (int32_t)fb) goto L4fb06d;",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 14031,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "edx = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)L4 & 0xffffu)));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 14036,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "if ((int32_t)fa >= (int32_t)fb) goto L4fb06d;",
+     "scenario_search": "indistinguishable"
+    }
+   ],
+   "decision": "pending"
+  },
+  "4fb071": {
+   "mutants": 0,
+   "killed": 0,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4fb086": {
+   "mutants": 26,
+   "killed": 20,
+   "survived_identical_gcc_O2": 3,
+   "explained": [],
+   "unexplained": [
+    {
+     "line": 14122,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "ecx = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)L4 & 0xffffu)));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 14127,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "if ((int32_t)fa >= (int32_t)fb) goto L4fb0bb;",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 14127,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "if ((int32_t)fa >= (int32_t)fb) goto L4fb0bb;",
+     "scenario_search": "indistinguishable"
+    }
+   ],
+   "decision": "pending"
+  },
+  "4fb1c6": {
+   "mutants": 27,
+   "killed": 17,
+   "survived_identical_gcc_O2": 8,
+   "explained": [],
+   "unexplained": [
+    {
+     "line": 14275,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "wr16(self, 306 + (ptrdiff_t)(int32_t)((uint32_t)edx), (uint16_t)(0x2u));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 14251,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "wr32(self, 300 + (ptrdiff_t)(int32_t)((uint32_t)edx), (uint32_t)(0x1u));",
+     "scenario_search": "indistinguishable"
+    }
+   ],
+   "decision": "pending (already)"
+  },
+  "4fb737": {
+   "mutants": 30,
+   "killed": 20,
+   "survived_identical_gcc_O2": 5,
+   "explained": [],
+   "unexplained": [
+    {
+     "line": 14321,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "ecx = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)L4 & 0xffffu)));",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 14326,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "if ((int32_t)fa >= (int32_t)fb) goto L4fb776;",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 14332,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "eax = (uint32_t)(((uint32_t)rd16(world->table_583381, (ptrdiff_t)(int32_t)((uint32_t)edx + 0u))) & 0xffffu);",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 14326,
+     "mutation": "cast int32_t -> uint32_t",
+     "statement": "if ((int32_t)fa >= (int32_t)fb) goto L4fb776;",
+     "scenario_search": "indistinguishable"
+    },
+    {
+     "line": 14328,
+     "mutation": "cast int16_t -> uint16_t",
+     "statement": "edx = (uint32_t)((uint32_t)(int32_t)(int16_t)(((uint32_t)L4 & 0xffffu)));",
+     "scenario_search": "indistinguishable"
+    }
+   ],
+   "decision": "pending"
+  },
+  "4fba86": {
+   "mutants": 1,
+   "killed": 1,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4fbd7e": {
+   "mutants": 1,
+   "killed": 1,
+   "survived_identical_gcc_O2": 0,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  },
+  "4fce90": {
+   "mutants": 4,
+   "killed": 3,
+   "survived_identical_gcc_O2": 1,
+   "explained": [],
+   "unexplained": [],
+   "decision": "credited"
+  }
+ }
+}
