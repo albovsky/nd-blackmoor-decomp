@@ -31,3 +31,24 @@ To credit a row again, either write the per-survivor reason into the row's `expl
 ## Not done in this part
 
 The pass over every other integer literal (store values, offsets; 3,200 sites) was still running when this was written. Its survivors are handled in part 2.
+
+# FL-41 handoff, part 2: new rows at or above 0x480000 (`src/original_methods_fl41.c`)
+
+Cloud thread, 2026-10-22 PDT. Ledger: 1,854 (main after FL-40, PR 165) -> **1,920 ported** (+66). Glib's ruling (2026-10-22): machine-translated ports count, labelled "Machine-translated", only rows that pass the strict mutation check; the bar was kept.
+
+## What was built
+- `scripts/lift_fl41.py` (FL-40's instruction-level lifter, census flipped to rows at or above 0x480000), `src/original_methods_fl41.h`, `tests/fl41_world.py` (deterministic world, recording stubs for callees), `scripts/fl41_generate.py` (seed search on the ORIGINAL bytes under Unicorn until every instruction runs and both directions of every conditional jump are taken; resumable with `--cache`), `tests/fl41_original_oracle.py` (original bytes only), `tests/test_fl41_differential.py` (translation against the original on every seed).
+- `tests/fl41_mutation_check.py`: mutants of the translation (flipped jumps, changed literals, add/sub and shift swaps, operand swaps, access widths, dropped statements, wrong registers), 30 per row; killed by the corpus, then 40 extra seeds, then hardening seeds (`--harden` adds the killing seed to the corpus).
+- `scripts/fl41_o2_classify.py` and `scripts/fl41_survivors.py`: a survivor is explained only if (a) `gcc -O2` gives identical assembly for the mutant and the translation, (b) a same-value reload of a frame slot (straight line, no call, no aliasing store), (c) a callee-pop adjustment or frame adjustment that every return path undoes. Anything else keeps the row out. (My first classifier also accepted a "local width" class, a narrower read of a frame local that the seeds never show; it is evidence, not an equivalence, and was dropped.)
+- `scripts/fl41_prune.py` takes the unexplained, unhardened and diverging rows out of the source, corpus and tests (listed in `tests/fl41_pending.json`); `scripts/fl41_accept.py` writes the acceptances (class `native_oracle_verified`, note starts "Machine-translated"; it also drops the acceptance of a row that left the set); `tasks/fl41-blockers.json` holds the written reasons for the 6 accepted rows that had old slice blockers (all of them: the blocker concerns callers, runtime wiring or other functions; the row's own instructions and jump directions run in the oracle).
+
+## Numbers
+- Pool: 418 pending game rows at or above 0x480000; the lifter handled 323 (the others use floating point, indirect calls and the like), 20 of those stay out (the coordinator's exclusions and the 12 FL-39 rows whose ports stay in `src/original_methods_fl39d.c`). The input search on the remaining 303 gave **197 complete** (every instruction, both jump directions) and 106 not complete (104 coverage, 2 emulator errors).
+- Mutation check on the 197 (5,680 mutants): 5,105 killed by the corpus or hardening seeds; 575 survivors. 7 rows could not be hardened (emulator memory error, `UC_ERR_NOMEM`, left for a later slice), 3 rows differ between translation and original on a hardening seed (`0x482248`, `0x4ac498`, `0x4adae8`: real divergences, held), 121 rows have a survivor that no rule above explains. **66 rows accepted.**
+- Of the 66, 9 are rows FL-41 part 1 had withdrawn from the FL-39 batch (`0x4a3beb 0x4a8007 0x4a9f63 0x4accab 0x4b3f98 0x4c4b12 0x4cd645 0x4d912a 0x4fafc7`): they now pass the stricter pipeline (their FL-39 ports stay in the repo; both sources define `m<va>_lifted`, in separate test libraries).
+- Held rows with the surviving statements: `tasks/fl41-survivors.json`; identical -O2 survivors: `tasks/fl41-o2-identical.json`. To accept a held row, regenerate it with `scripts/fl41_generate.py --rows`, make the survivor explained, and run `scripts/fl41_accept.py`.
+
+## Not done
+- The pass over every other integer literal of the 100 FL-39 batch d rows that stay credited (store values and offsets, about 3,200 sites) was not finished; those rows were checked on operators, sign casts and compare/add/sub constants (part 1). It is the next recheck if Glib wants one.
+- Callees are recording stubs and their bytes-popped comes from the callee's own `ret N`, used by both sides; callee flags are not modelled. Some undefined flags follow Unicorn, not hardware; no accepted branch consumes one directly.
+- Old slice blockers on 6 accepted rows were cleared by written rationale; Glib may overturn them.

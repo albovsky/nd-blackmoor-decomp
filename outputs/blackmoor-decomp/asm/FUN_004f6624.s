@@ -8,15 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_direct_sound_resume
-# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/4f6624.c.txt, not original source) refers to the data labelled s_CDirectSound__Resume_____Resumed_0055e89c, s_CDirectSound__Resume_____Time_de_0055e858
-# name-note:    Resumes a paused sound channel if the pause owner matches; logs CDirectSound::Resume.
+# name:         m4f6624_lifted
+# naming:       native port src/original_methods_fl41.c:m4f6624_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port
+# name-note:    Machine-translated (scripts/lift_fl41.py), 10 seeds; oracle: 99/99 instructions, 18/18 jump directions; every mutant killed, identical -O2 code, or explained.
 # arguments:    2 ebp-relative stack slot(s) referenced: arg_8, arg_c; ret 0x8 (callee pops 8 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       2 ebp-relative slot(s): local_4, local_8
 # fields:       [eax + n] field_16e, field_3be, field_3c2; [ecx + n] field_162, field_172, field_3be, field_3c2; [edx + n] field_19e, field_28f, field_3be, field_3ce
 # callees:      calls FUN_004f709c, FUN_0050ca3e, FUN_0044a2b7, FUN_004f6059
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 99 instruction(s), 9 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class partial_native is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl41.c:m4f6624_lifted (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 99 instruction(s), 9 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

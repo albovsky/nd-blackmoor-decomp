@@ -8,15 +8,13 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_df_blt_no_trans_copy
-# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/4c558b.c.txt, not original source) refers to the data labelled s_CDirectDraw__DFBltNoTrans_____pS_00554a58, s_ERROR___DFBltNoTrans_____Src_and_005549b4
-# name-note:    Locks the source surface and copies a rectangle row by row into a destination surface, with a size check reporting DFBltNoTrans errors.
+# name:         fn_004c558b
 # arguments:    5 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10, arg_14, arg_18; ret 0x14 (callee pops 20 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       14 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_6c, local_80, local_90, local_94, local_190, local_194, local_198 and 2 more
 # fields:       [eax + n] field_4, field_c, field_2f; [ecx + n] field_4, field_8, field_c; [edx + n] field_4, field_8, field_c
 # callees:      calls FUN_0050ca3e, FUN_0052139c, FUN_004c97b4, FUN_004c4067, FUN_004c4202
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 157 instruction(s), 6 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
+# unverified:   machine annotation only: the 157 instruction(s), 6 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

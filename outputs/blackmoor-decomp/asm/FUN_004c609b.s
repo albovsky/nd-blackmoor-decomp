@@ -8,15 +8,13 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_color_keyed_layer_blit
-# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_3f_runtime.h:421 says "CONVO3F_BLIT_TRANSPARENT = 2, / * 0x4c609b: colour keyed layer * /"
-# name-note:    Colour-keyed (transparent) layer blit variant used by the 0x3f conversation renderer.
+# name:         fn_004c609b
 # arguments:    6 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10, arg_14, arg_18, arg_1c; ret 0x18 (callee pops 24 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       17 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_68, local_7c, local_8c, local_90, local_94, local_98, local_9c, local_a0 and 5 more
 # fields:       [eax + n] field_4, field_c; [ecx + n] field_4, field_8, field_c; [edx + n] field_4, field_8, field_c, field_38d0
 # callees:      calls FUN_0050ca3e, FUN_0052139c, FUN_004c97b4, FUN_004c4067, FUN_004c4202, FUN_004c952f
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 173 instruction(s), 9 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class partial_native is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl28b.c:m422a0a_draw_marked (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 173 instruction(s), 9 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32
 .text

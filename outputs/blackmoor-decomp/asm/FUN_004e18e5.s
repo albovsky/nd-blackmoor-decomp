@@ -8,15 +8,13 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_taskbar_apply_locks
-# naming:       INFERRED (lower confidence, not verified): the repository text src/inventory_button_runtime.h:151 says "0x4e18e5: apply the lock table for the word 0x5bb57b (scene request)."
-# name-note:    Applies the lock table for the scene-request word 0x5bb57b to the five task bar buttons.
+# name:         fn_004e18e5
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       4 ebp-relative slot(s): local_4, local_8, local_c, local_10
 # fields:       [eax + n] field_757; [ecx + n] field_757; [edx + n] field_757
 # callees:      calls FUN_004e2940, FUN_004e2956
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 97 instruction(s), 11 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class partial_native is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/inventory_button_runtime.h:taskbar_apply_locks (function ledger class candidate_port; also taskbar_process; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 97 instruction(s), 11 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32
 .text
