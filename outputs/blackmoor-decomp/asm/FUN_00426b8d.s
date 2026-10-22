@@ -15,7 +15,7 @@
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [ecx + n] field_ca202
 # callees:      calls KERNEL32.dll!GetCurrentThreadId, USER32.dll!GetKeyboardLayout, FUN_0051d97f, FUN_00524da3, FUN_00524fe7, FUN_00435015, FUN_0043f0fb, FUN_004c1572, FUN_004264e8, FUN_0042639d, FUN_00426d0f
-# track-n:      host-adapter: none
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl40.c:m426b8d_lifted (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
 # unverified:   machine annotation only: the 54 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32

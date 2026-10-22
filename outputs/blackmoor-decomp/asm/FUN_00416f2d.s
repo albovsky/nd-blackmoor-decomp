@@ -13,8 +13,8 @@
 # locals:       4 ebp-relative slot(s): local_4, local_c, local_10, local_14
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      calls FUN_0041a336, FUN_0041a4be, FUN_0051d730
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 37 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl36d.c:m41a480_scalar_deleting_dtor (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 37 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32
 .text

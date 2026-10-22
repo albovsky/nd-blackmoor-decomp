@@ -14,7 +14,7 @@
 # fields:       [eax + n] field_4; [ebx + n] field_5c; [edi + n] field_minus_28; [esi + n] field_1c, field_5c, field_64, field_6c; [esp + n] stk_8; [scaled index + n] field_minus_28
 # callees:      calls FUN_0051a267, FUN_0051dc43, FUN_0050fa90, FUN_0051dc6c, FUN_00521de7, FUN_00521a86, COMCTL32.dll!CreatePropertySheetPageA, FUN_00519cc0, USER32.dll!SendMessageA, COMCTL32.dll!DestroyPropertySheetPage
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 67 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 67 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
 # note:         further_unindexed_code_at:0x005223ff
 .intel_syntax noprefix
 .code32
