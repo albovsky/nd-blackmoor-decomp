@@ -8,7 +8,7 @@ usage (from outputs/blackmoor-decomp):  python3 tests/fl41_operator_mutation_che
 tests/test_<batch>_differential.py.
 
 FL-39 batch d sampled up to three mutants per function and did not mutate the arithmetic and comparison instructions of the lifted code. This check
-mutates EVERY operator site of every lifted function, one mutation per function per round (a mutation is local to one function body, so the per-function
+mutates every site of the operators listed below (not `*`, not `?:`) in every lifted function, one mutation per function per round (a mutation is local to one function body, so the per-function
 test results tell them apart), rebuilds and reruns the direct test binary and the Unicorn differential test:
 
   arithmetic  + - & | ^ << >>   (sub<->add, and<->or, xor->or, shl<->shr)
@@ -17,7 +17,7 @@ test results tell them apart), rebuilds and reruns the direct test binary and th
   constants   every integer literal ^ 1 (shift counts and masks included)
 
 A mutant is KILLED when the direct test result of its function is FAIL or the differential test of its function fails (or the program crashes or hangs).
-Survivors are classified afterwards (see --classify in the FL-41 handoff): gcc -O2 code identical to the original port means dead or masked code.
+Survivors are classified afterwards (`--classify F1,F2` compiles each function alone with gcc -O2 -S): gcc -O2 code identical to the original port means dead or masked code.
 Builds that fail (warnings are errors) are bisected down to the single mutation. A worker runs in its own copy of the tree and restores the source file.
 """
 import importlib
@@ -101,13 +101,13 @@ def sites(text, a, b):
 
 
 class Batch:
-    def __init__(self, name, kinds=('op', 'cast', 'literal')):
+    def __init__(self, name, kinds=('op', 'cast', 'literal', 'cmpconst', 'aluimm')):
         self.name = name
         self.src = PROJECT / ('src/original_methods_%s.c' % name)
         self.direct = importlib.import_module('test_%s_direct' % name)
         self.original = self.src.read_text()
         self.blocks = function_blocks(self.original)
-        self.sites = {va: [x for x in sites(self.original, a, b) if x[3].split()[0] in kinds or (x[3].split()[0] in ('cmpconst', 'aluimm') and 'literal' in kinds and False)] for va, a, b in self.blocks}
+        self.sites = {va: [x for x in sites(self.original, a, b) if x[3].split()[0] in kinds] for va, a, b in self.blocks}
         self.span = {va: (a, b) for va, a, b in self.blocks}
 
     def mutate(self, group):
@@ -256,7 +256,7 @@ def main():
     global OPT
     if '--opt' in argv:
         OPT = argv[argv.index('--opt') + 1]
-    kinds = tuple(argv[argv.index('--kinds') + 1].split(',')) if '--kinds' in argv else ('op', 'cast', 'literal')
+    kinds = tuple(argv[argv.index('--kinds') + 1].split(',')) if '--kinds' in argv else ('op', 'cast', 'literal', 'cmpconst', 'aluimm')
     batch = Batch(argv[0], kinds)
     worker, workers, outfile, only, replay = 0, 1, None, None, None
     if '--worker' in argv:
