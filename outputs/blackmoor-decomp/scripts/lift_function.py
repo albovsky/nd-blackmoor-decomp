@@ -338,6 +338,9 @@ def lift_one(c, i):
             raise Unsupported("16-bit push at 0x%x" % a)
         if ops[0].type == X.X86_OP_REG and reg_name(i, ops[0].reg) == "esp":
             raise Unsupported("push esp at 0x%x" % a)
+        if ops[0].type == X.X86_OP_MEM and reg_name(i, ops[0].mem.base) == "esp":   # the operand is read before esp drops
+            e("{ uint32_t v_ = %s; esp -= 4u; WR32(esp, v_); }" % get(i, ops[0], 32))
+            return
         e("esp -= 4u; WR32(esp, %s);" % get(i, ops[0], 32))
         return
     if mn == "pop":

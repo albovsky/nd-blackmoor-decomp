@@ -8,11 +8,11 @@
  "0x4264e8": [
   {
    "id": "A-1C.1:de979ac2fa03d836",
-   "rationale": "The unverified path is the malloc-failure branch and its fatal cleanup. The oracle takes both directions of every jump of this function, including the failure branch, with the diagnostic callee as a recording stub; what stays unverified is the callee's own fatal cleanup, which is a separate row."
+   "rationale": "The old item concerns the malloc-failure branch and fatal cleanup behind the diagnostic call. This function is a straight-line wrapper (three pushes and one call, no conditional jump); any failure branch lives in the callee, which is a separate row. The oracle runs every instruction of the wrapper and compares the call it makes."
   },
   {
    "id": "A-2D.1:5233b9cf3ff0d404",
-   "rationale": "The unverified path is the malloc-failure branch and its fatal cleanup. The oracle takes both directions of every jump of this function, including the failure branch, with the diagnostic callee as a recording stub; what stays unverified is the callee's own fatal cleanup, which is a separate row."
+   "rationale": "The old item concerns the malloc-failure branch and fatal cleanup behind the diagnostic call. This function is a straight-line wrapper (three pushes and one call, no conditional jump); any failure branch lives in the callee, which is a separate row. The oracle runs every instruction of the wrapper and compares the call it makes."
   }
  ],
  "0x42ae0a": [
@@ -60,87 +60,87 @@
  "0x44a2b7": [
   {
    "id": "A-1B.1:c89136500e0f8d0e",
-   "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
+   "rationale": "The old item is the caller-side branch taken when the diagnostics flag at 0x63a4cd is nonzero (the callers read the flag and call this function). This function is a straight-line print helper with no conditional jump that reads the flag; every instruction of it runs in the oracle and matches the translation, but the callers' branch is not executed or claimed by this port."
   },
   {
    "id": "A-1C.1:bbc72ea9374f083e",
-   "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
+   "rationale": "The old item is the caller-side branch taken when the diagnostics flag at 0x63a4cd is nonzero (the callers read the flag and call this function). This function is a straight-line print helper with no conditional jump that reads the flag; every instruction of it runs in the oracle and matches the translation, but the callers' branch is not executed or claimed by this port."
   },
   {
    "id": "A-20.1:66c96efe1fbb8744",
-   "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
+   "rationale": "The old item is the caller-side branch taken when the diagnostics flag at 0x63a4cd is nonzero (the callers read the flag and call this function). This function is a straight-line print helper with no conditional jump that reads the flag; every instruction of it runs in the oracle and matches the translation, but the callers' branch is not executed or claimed by this port."
   },
   {
    "id": "A-6D.1:fca1baff690d5509",
-   "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
+   "rationale": "The old item is the caller-side branch taken when the diagnostics flag at 0x63a4cd is nonzero (the callers read the flag and call this function). This function is a straight-line print helper with no conditional jump that reads the flag; every instruction of it runs in the oracle and matches the translation, but the callers' branch is not executed or claimed by this port."
   },
   {
    "id": "A-70.1:d443f4700c5472b5",
-   "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
+   "rationale": "The old item is the caller-side branch taken when the diagnostics flag at 0x63a4cd is nonzero (the callers read the flag and call this function). This function is a straight-line print helper with no conditional jump that reads the flag; every instruction of it runs in the oracle and matches the translation, but the callers' branch is not executed or claimed by this port."
   },
   {
    "id": "A-76.1:4254928a328064e0",
-   "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
+   "rationale": "The old item is the caller-side branch taken when the diagnostics flag at 0x63a4cd is nonzero (the callers read the flag and call this function). This function is a straight-line print helper with no conditional jump that reads the flag; every instruction of it runs in the oracle and matches the translation, but the callers' branch is not executed or claimed by this port."
   },
   {
    "id": "A-80.1:5cabcd0814603be3",
-   "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
+   "rationale": "The old item is the caller-side branch taken when the diagnostics flag at 0x63a4cd is nonzero (the callers read the flag and call this function). This function is a straight-line print helper with no conditional jump that reads the flag; every instruction of it runs in the oracle and matches the translation, but the callers' branch is not executed or claimed by this port."
   },
   {
    "id": "A-83.1:36be17758c07670c",
-   "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
+   "rationale": "The old item is the caller-side branch taken when the diagnostics flag at 0x63a4cd is nonzero (the callers read the flag and call this function). This function is a straight-line print helper with no conditional jump that reads the flag; every instruction of it runs in the oracle and matches the translation, but the callers' branch is not executed or claimed by this port."
   },
   {
    "id": "A-9A.1:4898523193e00aaf",
-   "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
+   "rationale": "The old item is the caller-side branch taken when the diagnostics flag at 0x63a4cd is nonzero (the callers read the flag and call this function). This function is a straight-line print helper with no conditional jump that reads the flag; every instruction of it runs in the oracle and matches the translation, but the callers' branch is not executed or claimed by this port."
   },
   {
    "id": "A-AA.1:14318b8284efed27",
-   "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
+   "rationale": "The old item is the caller-side branch taken when the diagnostics flag at 0x63a4cd is nonzero (the callers read the flag and call this function). This function is a straight-line print helper with no conditional jump that reads the flag; every instruction of it runs in the oracle and matches the translation, but the callers' branch is not executed or claimed by this port."
   },
   {
    "id": "A-D0.1:fc7b809f133f3e60",
-   "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
+   "rationale": "The old item is the caller-side branch taken when the diagnostics flag at 0x63a4cd is nonzero (the callers read the flag and call this function). This function is a straight-line print helper with no conditional jump that reads the flag; every instruction of it runs in the oracle and matches the translation, but the callers' branch is not executed or claimed by this port."
   },
   {
    "id": "A-D3.1:174da950eb5c5c07",
-   "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
+   "rationale": "The old item is the caller-side branch taken when the diagnostics flag at 0x63a4cd is nonzero (the callers read the flag and call this function). This function is a straight-line print helper with no conditional jump that reads the flag; every instruction of it runs in the oracle and matches the translation, but the callers' branch is not executed or claimed by this port."
   },
   {
    "id": "A-D6.1:6ad354188ac5758c",
-   "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
+   "rationale": "The old item is the caller-side branch taken when the diagnostics flag at 0x63a4cd is nonzero (the callers read the flag and call this function). This function is a straight-line print helper with no conditional jump that reads the flag; every instruction of it runs in the oracle and matches the translation, but the callers' branch is not executed or claimed by this port."
   },
   {
    "id": "A-DA.1:8aee27258a1edd03",
-   "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
+   "rationale": "The old item is the caller-side branch taken when the diagnostics flag at 0x63a4cd is nonzero (the callers read the flag and call this function). This function is a straight-line print helper with no conditional jump that reads the flag; every instruction of it runs in the oracle and matches the translation, but the callers' branch is not executed or claimed by this port."
   },
   {
    "id": "A-E0.1:905f768b6cee9127",
-   "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
+   "rationale": "The old item is the caller-side branch taken when the diagnostics flag at 0x63a4cd is nonzero (the callers read the flag and call this function). This function is a straight-line print helper with no conditional jump that reads the flag; every instruction of it runs in the oracle and matches the translation, but the callers' branch is not executed or claimed by this port."
   },
   {
    "id": "A-E4.1:f3b9ffde94fd3c0b",
-   "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
+   "rationale": "The old item is the caller-side branch taken when the diagnostics flag at 0x63a4cd is nonzero (the callers read the flag and call this function). This function is a straight-line print helper with no conditional jump that reads the flag; every instruction of it runs in the oracle and matches the translation, but the callers' branch is not executed or claimed by this port."
   },
   {
    "id": "A-EA.1:854db2cae9db0e99",
-   "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
+   "rationale": "The old item is the caller-side branch taken when the diagnostics flag at 0x63a4cd is nonzero (the callers read the flag and call this function). This function is a straight-line print helper with no conditional jump that reads the flag; every instruction of it runs in the oracle and matches the translation, but the callers' branch is not executed or claimed by this port."
   },
   {
    "id": "A-EB.1:ed74ef626eb3e9c9",
-   "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
+   "rationale": "The old item is the caller-side branch taken when the diagnostics flag at 0x63a4cd is nonzero (the callers read the flag and call this function). This function is a straight-line print helper with no conditional jump that reads the flag; every instruction of it runs in the oracle and matches the translation, but the callers' branch is not executed or claimed by this port."
   },
   {
    "id": "A-EE.1:5e97da0a342538de",
-   "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
+   "rationale": "The old item is the caller-side branch taken when the diagnostics flag at 0x63a4cd is nonzero (the callers read the flag and call this function). This function is a straight-line print helper with no conditional jump that reads the flag; every instruction of it runs in the oracle and matches the translation, but the callers' branch is not executed or claimed by this port."
   },
   {
    "id": "A-F5.1:174da950eb5c5c07",
-   "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
+   "rationale": "The old item is the caller-side branch taken when the diagnostics flag at 0x63a4cd is nonzero (the callers read the flag and call this function). This function is a straight-line print helper with no conditional jump that reads the flag; every instruction of it runs in the oracle and matches the translation, but the callers' branch is not executed or claimed by this port."
   },
   {
    "id": "A-F6.1:3890e91470564d78",
-   "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
+   "rationale": "The old item is the caller-side branch taken when the diagnostics flag at 0x63a4cd is nonzero (the callers read the flag and call this function). This function is a straight-line print helper with no conditional jump that reads the flag; every instruction of it runs in the oracle and matches the translation, but the callers' branch is not executed or claimed by this port."
   }
  ],
  "0x44b102": [

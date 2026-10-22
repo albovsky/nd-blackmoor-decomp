@@ -41,16 +41,21 @@ def main():
     blockers = json.loads(Path(a.blockers_reviewed).read_text()) if a.blockers_reviewed else {}
     doc = json.loads(OVERRIDES.read_text())
     have = {e['va'] for e in doc['port_acceptances']}
+    held = set(json.loads((PROJECT / 'tasks/fl40-held-rows.json').read_text())['rows']) if (PROJECT / 'tasks/fl40-held-rows.json').is_file() else set()
+    doc['port_acceptances'] = [e for e in doc['port_acceptances']
+                               if not ((e.get('oracle') or {}).get('path') == 'tests/fl40_original_oracle.py' and e['va'] in held)]
+    have = {e['va'] for e in doc['port_acceptances']}
     windows = recorded_windows()
     # the window is the one the recorded run saw: the end of the function's span (alignment padding included), not va + translated body
     for e in doc['port_acceptances']:
         if (e.get('oracle') or {}).get('path') == 'tests/fl40_original_oracle.py' and e['va'] in windows:
+            e['note'] = e['note'].replace('Machine translation of the original instructions', 'Machine-translated from the original instructions')
             e['oracle']['window'] = windows[e['va']]
             if e['va'] in blockers:
                 e['blockers_reviewed'] = blockers[e['va']]
     new = []
     for key in sorted(corpus, key=lambda k: int(k, 16)):
-        if key in have:
+        if key in have or key in held:
             continue
         c = corpus[key]
         va = int(key, 16)
@@ -59,7 +64,7 @@ def main():
                  'tests': [{'path': 'tests/test_fl40_differential.py', 'test_id': 'Fl40Differential.test_%x_lifted' % va}],
                  'oracle': {'path': 'tests/fl40_original_oracle.py', 'window': windows.get(key, [key, '0x%x' % (va + c['body'])])},
                  'parts_accounted': [],
-                 'note': 'Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, %d seeds; oracle: %d/%d instructions '
+                 'note': 'Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, %d seeds; oracle: %d/%d instructions '
                          'executed, %d/%d conditional-jump directions taken, callees as recording stubs.' % (
                              len(c['seeds']), c['instructions'][0], c['instructions'][1], c['directions'][0], c['directions'][1])}
         if key in blockers:

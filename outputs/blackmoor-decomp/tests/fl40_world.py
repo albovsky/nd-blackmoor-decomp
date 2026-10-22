@@ -10,7 +10,7 @@ what it returns and which bytes it stores through its pointer arguments or throu
   run_native(lib, row, seed)  runs the translated C `m<va>_lifted` over the same world; returns a Trace.
 
 A Trace holds the final registers (callee-saved ones included), every write of the function in order (address, size, value; the stack included), the ordered
-stub calls (callee, ecx, six stack dwords, what the stub returned and stored) and, for the original, the executed instructions and the (instruction, next
+stub calls (callee, ecx, eax edx ebx esi edi ebp as the call sees them, six stack dwords, what the stub returned and stored) and, for the original, the executed instructions and the (instruction, next
 instruction) pairs. `Trace.digest()` hashes everything that is compared.
 """
 from __future__ import annotations
@@ -52,6 +52,13 @@ def magic_of(row):
     return row['magic']
 
 
+HI_SEEDS = 7000        # seeds from here on use style 5 only
+
+
+def style_of(seed):
+    return 5 if seed >= HI_SEEDS else seed % 5
+
+
 def mixture(rng, style, magic):
     """One dword. The five styles weigh the sources differently so that some scenarios are mostly zeros and pointers, others mostly large random values."""
     weights = [(28, 'zero'), (10, 'one'), (10, 'small'), (5, 'neg'), (10, 'magic'), (17, 'ptr'), (14, 'rand')]
@@ -63,6 +70,8 @@ def mixture(rng, style, magic):
         weights = [(15, 'zero'), (25, 'one'), (25, 'small'), (3, 'neg'), (12, 'magic'), (15, 'ptr'), (5, 'rand')]
     elif style == 4:
         weights = [(40, 'zero'), (3, 'one'), (3, 'small'), (3, 'neg'), (36, 'magic'), (10, 'ptr'), (5, 'rand')]
+    else:       # style 5 (seeds from HI_SEEDS on): values whose low half is small or zero and whose upper bytes are not, so that a narrower read of a 32-bit value differs
+        weights = [(12, 'zero'), (8, 'one'), (8, 'small'), (28, 'hi16'), (14, 'hi8'), (10, 'ptr'), (10, 'rand'), (10, 'magic')]
     total = sum(w for w, _ in weights)
     pick = rng.randrange(total)
     for w, kind in weights:
@@ -75,6 +84,10 @@ def mixture(rng, style, magic):
         return 1
     if kind == 'small':
         return rng.randrange(2, 0x41)
+    if kind == 'hi16':
+        return (1 + rng.randrange(0xffff)) << 16 | rng.choice((0, 0, 0, 1))
+    if kind == 'hi8':
+        return (1 + rng.randrange(0xff)) << 8 | rng.choice((0, 0, 1))
     if kind == 'neg':
         return (-rng.randrange(1, 0x41)) & 0xffffffff
     if kind == 'magic' and magic:
@@ -87,7 +100,7 @@ def mixture(rng, style, magic):
 
 def page_fill(seed, magic, page):
     rng = random.Random(seed * 1000003 + page)
-    style = seed % 5
+    style = style_of(seed)
     words = [mixture(rng, style, magic) for _ in range(PAGE // 4)]
     return struct.pack('<%dI' % (PAGE // 4), *words)
 
@@ -95,7 +108,7 @@ def page_fill(seed, magic, page):
 def initial_state(row, seed):
     """(registers dict, stack arguments, image patches [(address, bytes)]) of the scenario."""
     rng = random.Random(seed * 7919 + row['va'])
-    style = seed % 5
+    style = style_of(seed)
     magic = row['magic']
     this = REGION_BASE + rng.choice((0, 0, 0, 0x40, 0x100, 0x480, 0x1000))
     r = rng.random()
@@ -250,7 +263,8 @@ def run_original(row, seed, overrides=(), observe=False):
             ensure(at + len(data) - 1)
             uc.mem_write(at, data)
         ident, cleanup = stubs[address]
-        trace.calls.append((ident, ecx, words, eax, ecx_out, edx, writes))
+        held = tuple(uc.reg_read(getattr(X, 'UC_X86_REG_' + n)) for n in ('EAX', 'EDX', 'EBX', 'ESI', 'EDI', 'EBP'))
+        trace.calls.append((ident, ecx, held, words, eax, ecx_out, edx, writes))
         ret = struct.unpack('<I', uc.mem_read(esp, 4))[0]
         uc.reg_write(X.UC_X86_REG_EAX, eax)
         uc.reg_write(X.UC_X86_REG_ECX, ecx_out)
@@ -384,7 +398,8 @@ def run_native(lib, row, seed, overrides=()):
         eax, ecx_out, edx, writes = stub_effect(stub_rng, magic, ecx, words)
         for at, data in writes:
             mem.write_bytes(at, data)
-        trace.calls.append((callee, ecx, words, eax, ecx_out, edx, writes))
+        held = tuple(getattr(rr.contents, n) for n in ('eax', 'edx', 'ebx', 'esi', 'edi', 'ebp'))
+        trace.calls.append((callee, ecx, held, words, eax, ecx_out, edx, writes))
         rr.contents.eax = eax
         rr.contents.ecx = ecx_out
         rr.contents.edx = edx

@@ -1,30 +1,5 @@
 [
  {
-  "va": "0x401000",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m401000_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_401000_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x401000",
-    "0x401032"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 16/16 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
- },
- {
   "va": "0x4010c0",
   "class": "native_oracle_verified",
   "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
@@ -47,7 +22,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 9/9 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 9/9 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x4010d5",
@@ -72,7 +47,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 11/11 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 11/11 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x401130",
@@ -97,7 +72,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 7/7 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 7/7 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x401140",
@@ -122,7 +97,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 7/7 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 7/7 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x401150",
@@ -147,7 +122,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 12/12 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 12/12 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x401170",
@@ -172,32 +147,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 12/12 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x4011c0",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m4011c0_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_4011c0_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x4011c0",
-    "0x4011f7"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 20/20 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 12/12 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x4011f7",
@@ -222,7 +172,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 24/24 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 24/24 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x401249",
@@ -247,7 +197,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 85/85 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 85/85 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x4013cc",
@@ -272,7 +222,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 23/23 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 23/23 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x40149a",
@@ -297,7 +247,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 25/25 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 25/25 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x401511",
@@ -322,7 +272,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 8/8 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 8/8 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x401526",
@@ -347,7 +297,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 23/23 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 23/23 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x401589",
@@ -372,57 +322,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 29/29 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x4015fb",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m4015fb_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_4015fb_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x4015fb",
-    "0x40167f"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 32/32 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x401c1c",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m401c1c_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_401c1c_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x401c1c",
-    "0x401c40"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 10/10 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 29/29 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x401c70",
@@ -447,7 +347,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 9/9 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 9/9 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x401c90",
@@ -472,7 +372,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 8/8 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 8/8 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x401cb0",
@@ -497,32 +397,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 15/15 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x401cda",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m401cda_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_401cda_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x401cda",
-    "0x402322"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 502/502 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 15/15 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x402322",
@@ -547,32 +422,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 23/23 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x40236a",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m40236a_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_40236a_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x40236a",
-    "0x402945"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 18 seeds; oracle: 415/415 instructions executed, 48/48 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 23/23 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x4030ba",
@@ -597,7 +447,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 86/86 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 86/86 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x403229",
@@ -622,7 +472,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 83/83 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 83/83 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x4033db",
@@ -647,32 +497,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 8 seeds; oracle: 648/648 instructions executed, 14/14 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x403ea4",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m403ea4_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_403ea4_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x403ea4",
-    "0x404186"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 191/191 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 8 seeds; oracle: 648/648 instructions executed, 14/14 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x404186",
@@ -697,7 +522,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 11/11 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 11/11 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x4041a3",
@@ -722,7 +547,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 19/19 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 19/19 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x4041d7",
@@ -747,7 +572,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 9/9 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 9/9 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x4041ec",
@@ -772,7 +597,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 9/9 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 9/9 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x404201",
@@ -797,182 +622,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 27/27 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x404384",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m404384_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_404384_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x404384",
-    "0x4043b6"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 14/14 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x40478e",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m40478e_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_40478e_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x40478e",
-    "0x404812"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 33/33 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x404812",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m404812_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_404812_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x404812",
-    "0x40483a"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 12/12 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x40483a",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m40483a_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_40483a_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x40483a",
-    "0x404862"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 12/12 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x404862",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m404862_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_404862_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x404862",
-    "0x40488a"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 12/12 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x40488a",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m40488a_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_40488a_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x40488a",
-    "0x4048b2"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 12/12 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x4048b2",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m4048b2_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_4048b2_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x4048b2",
-    "0x4048da"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 12/12 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 27/27 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x4048da",
@@ -997,32 +647,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 20/20 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x404aca",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m404aca_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_404aca_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x404aca",
-    "0x404af0"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 14/14 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 20/20 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x405b72",
@@ -1047,7 +672,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 673/673 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 673/673 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x406739",
@@ -1072,7 +697,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 31/31 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 31/31 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x407bba",
@@ -1097,7 +722,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 31/31 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 31/31 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x407c29",
@@ -1122,7 +747,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 27/27 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 27/27 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x407ca7",
@@ -1147,7 +772,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 60/60 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 60/60 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x407da0",
@@ -1172,7 +797,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 228/228 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 228/228 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x408a2a",
@@ -1197,7 +822,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 182/182 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 182/182 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x408d49",
@@ -1222,7 +847,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 179/179 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 179/179 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x40a209",
@@ -1247,7 +872,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 252/252 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 252/252 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x411080",
@@ -1272,7 +897,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 24/24 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 24/24 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x4110d7",
@@ -1297,82 +922,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 12/12 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x4110f6",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m4110f6_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_4110f6_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x4110f6",
-    "0x41114f"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 24/24 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x41114f",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m41114f_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_41114f_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x41114f",
-    "0x4111a0"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 25/25 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x4111a0",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m4111a0_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_4111a0_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x4111a0",
-    "0x411215"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 38/38 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 12/12 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x41195c",
@@ -1397,7 +947,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 57/57 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 57/57 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x4145a7",
@@ -1422,7 +972,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 13/13 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 13/13 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x4150af",
@@ -1447,7 +997,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 29/29 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 29/29 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x415113",
@@ -1472,32 +1022,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 29/29 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x415a61",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m415a61_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_415a61_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x415a61",
-    "0x415aea"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 44/44 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 29/29 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x415aea",
@@ -1522,57 +1047,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 5 seeds; oracle: 201/201 instructions executed, 14/14 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x41608b",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m41608b_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_41608b_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x41608b",
-    "0x416122"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 41/41 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x416122",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m416122_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_416122_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x416122",
-    "0x4161d1"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 46/46 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 5 seeds; oracle: 201/201 instructions executed, 14/14 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x416e90",
@@ -1597,57 +1072,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 45/45 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x416f2d",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m416f2d_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_416f2d_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x416f2d",
-    "0x416fb6"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 37/37 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x41a102",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m41a102_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_41a102_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x41a102",
-    "0x41a140"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 22/22 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 45/45 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x41a140",
@@ -1672,32 +1097,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 33/33 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x41a2e9",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m41a2e9_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_41a2e9_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x41a2e9",
-    "0x41a336"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 24/24 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 33/33 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x41a336",
@@ -1722,7 +1122,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 75/75 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 75/75 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x41a4b0",
@@ -1747,7 +1147,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 8/8 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 8/8 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x41aaa1",
@@ -1772,7 +1172,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 281/281 instructions executed, 36/36 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 281/281 instructions executed, 36/36 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x41aeaa",
@@ -1797,7 +1197,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 7 seeds; oracle: 294/294 instructions executed, 40/40 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 7 seeds; oracle: 294/294 instructions executed, 40/40 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x41b2e6",
@@ -1822,7 +1222,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 274/274 instructions executed, 36/36 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 274/274 instructions executed, 36/36 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x41b925",
@@ -1847,7 +1247,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 29/29 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 29/29 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x41b992",
@@ -1872,7 +1272,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 5 seeds; oracle: 130/130 instructions executed, 16/16 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 5 seeds; oracle: 130/130 instructions executed, 16/16 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x41be1a",
@@ -1897,7 +1297,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 43/43 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 43/43 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x41bebc",
@@ -1922,57 +1322,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 38/38 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x41bf4d",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m41bf4d_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_41bf4d_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x41bf4d",
-    "0x41c133"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 92/92 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x41c29a",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m41c29a_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_41c29a_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x41c29a",
-    "0x41c3ba"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 78/78 instructions executed, 10/10 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 38/38 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x41df05",
@@ -1997,213 +1347,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 58/58 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x422fe0",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m422fe0_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_422fe0_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x422fe0",
-    "0x423000"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 11/11 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x42347b",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m42347b_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_42347b_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x42347b",
-    "0x4234b5"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 15/15 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x423634",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m423634_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_423634_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x423634",
-    "0x4236d6"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 6 seeds; oracle: 52/52 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x423755",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m423755_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_423755_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x423755",
-    "0x4237f7"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 52/52 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x423af1",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m423af1_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_423af1_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x423af1",
-    "0x423b51"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 29/29 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x423c2b",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m423c2b_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_423c2b_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x423c2b",
-    "0x423d33"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 61/61 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x423ff9",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m423ff9_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_423ff9_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x423ff9",
-    "0x424035"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 22/22 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs.",
-  "blockers_reviewed": [
-   {
-    "id": "RT-4:f6ab4e757efaab2f",
-    "rationale": "The item says the opcode-11 leaf chain is not reproduced by the native runtime and has no consumer yet; that is a caller-side gap. This accessor's own instructions and both jump directions run in the oracle and match the translation."
-   }
-  ]
- },
- {
-  "va": "0x425f25",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m425f25_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_425f25_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x425f25",
-    "0x425f70"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 22/22 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 58/58 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x425fa0",
@@ -2228,32 +1372,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 9/9 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x425fc0",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m425fc0_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_425fc0_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x425fc0",
-    "0x426063"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 37/37 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 9/9 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x4262ac",
@@ -2278,7 +1397,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 21/21 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 21/21 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x426300",
@@ -2303,7 +1422,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 23/23 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 23/23 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x426346",
@@ -2328,7 +1447,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 14/14 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 14/14 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x426367",
@@ -2353,32 +1472,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 20/20 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x426428",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m426428_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_426428_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x426428",
-    "0x4264e8"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 75/75 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 20/20 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x4264e8",
@@ -2403,15 +1497,15 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 12/12 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs.",
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 12/12 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs.",
   "blockers_reviewed": [
    {
     "id": "A-1C.1:de979ac2fa03d836",
-    "rationale": "The unverified path is the malloc-failure branch and its fatal cleanup. The oracle takes both directions of every jump of this function, including the failure branch, with the diagnostic callee as a recording stub; what stays unverified is the callee's own fatal cleanup, which is a separate row."
+    "rationale": "The old item concerns the malloc-failure branch and fatal cleanup behind the diagnostic call. This function is a straight-line wrapper (three pushes and one call, no conditional jump); any failure branch lives in the callee, which is a separate row. The oracle runs every instruction of the wrapper and compares the call it makes."
    },
    {
     "id": "A-2D.1:5233b9cf3ff0d404",
-    "rationale": "The unverified path is the malloc-failure branch and its fatal cleanup. The oracle takes both directions of every jump of this function, including the failure branch, with the diagnostic callee as a recording stub; what stays unverified is the callee's own fatal cleanup, which is a separate row."
+    "rationale": "The old item concerns the malloc-failure branch and fatal cleanup behind the diagnostic call. This function is a straight-line wrapper (three pushes and one call, no conditional jump); any failure branch lives in the callee, which is a separate row. The oracle runs every instruction of the wrapper and compares the call it makes."
    }
   ]
  },
@@ -2438,32 +1532,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 356/356 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x426b8d",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m426b8d_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_426b8d_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x426b8d",
-    "0x426c51"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 54/54 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 356/356 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x426c51",
@@ -2488,7 +1557,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 45/45 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 45/45 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x426cf4",
@@ -2513,7 +1582,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 12/12 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 12/12 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x427420",
@@ -2538,113 +1607,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 349/349 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x42acad",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m42acad_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_42acad_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x42acad",
-    "0x42ad27"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 23/23 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x42ad27",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m42ad27_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_42ad27_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x42ad27",
-    "0x42ad90"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 20/20 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x42ad90",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m42ad90_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_42ad90_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x42ad90",
-    "0x42ae0a"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 23/23 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x42ae0a",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m42ae0a_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_42ae0a_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x42ae0a",
-    "0x42ae73"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 20/20 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs.",
-  "blockers_reviewed": [
-   {
-    "id": "S05:cbac757a041d45e6",
-    "rationale": "The item concerns the frame text-box UI lifecycle and the taskbar presentation around this caption clear; it is a native-runtime gap. This function's own instructions and jump directions run in the oracle and match the translation."
-   }
-  ]
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 349/349 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x42db5b",
@@ -2669,7 +1632,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 5 seeds; oracle: 42/42 instructions executed, 10/10 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 5 seeds; oracle: 42/42 instructions executed, 10/10 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x42e006",
@@ -2694,82 +1657,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 9 seeds; oracle: 197/197 instructions executed, 16/16 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x42e5c6",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m42e5c6_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_42e5c6_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x42e5c6",
-    "0x42e693"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 38/38 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x42e7b8",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m42e7b8_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_42e7b8_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x42e7b8",
-    "0x42e844"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 6 seeds; oracle: 36/36 instructions executed, 8/8 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x433c60",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m433c60_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_433c60_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x433c60",
-    "0x433e63"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 126/126 instructions executed, 8/8 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 9 seeds; oracle: 197/197 instructions executed, 16/16 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x433e63",
@@ -2794,7 +1682,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 21/21 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 21/21 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x434d56",
@@ -2819,88 +1707,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 8 seeds; oracle: 216/216 instructions executed, 22/22 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x437743",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m437743_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_437743_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x437743",
-    "0x437774"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 18/18 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x438150",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m438150_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_438150_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x438150",
-    "0x4381f4"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 8 seeds; oracle: 36/36 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs.",
-  "blockers_reviewed": [
-   {
-    "id": "RT-5:b85fc26293d512ec",
-    "rationale": "The item says state 2 calls two sound-channel setup callees that the runtime treats as a no-op. In the oracle they are recording stubs and the call sequence is compared; the callees themselves are separate rows."
-   }
-  ]
- },
- {
-  "va": "0x43d6be",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m43d6be_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_43d6be_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x43d6be",
-    "0x43d7c4"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 5 seeds; oracle: 52/52 instructions executed, 8/8 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 8 seeds; oracle: 216/216 instructions executed, 22/22 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x43d7c4",
@@ -2925,73 +1732,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 15/15 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x43e776",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m43e776_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_43e776_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x43e776",
-    "0x43e8b8"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 70/70 instructions executed, 10/10 conditional-jump directions taken, callees as recording stubs.",
-  "blockers_reviewed": [
-   {
-    "id": "RT-15:6b1c3f1b49470cdb",
-    "rationale": "The item says the producers of the action-active dword are not modelled by the runtime; it concerns the executor, not whether this function's instructions match. All instructions and both jump directions run in the oracle."
-   },
-   {
-    "id": "RT-3:68a1cbe007fd9216",
-    "rationale": "The item says the producers of the action-active dword are not modelled by the runtime; it concerns the executor, not whether this function's instructions match. All instructions and both jump directions run in the oracle."
-   }
-  ]
- },
- {
-  "va": "0x43e8b8",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m43e8b8_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_43e8b8_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x43e8b8",
-    "0x43e96c"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 47/47 instructions executed, 10/10 conditional-jump directions taken, callees as recording stubs.",
-  "blockers_reviewed": [
-   {
-    "id": "A-20.1:b2c7ee29ac609413",
-    "rationale": "The item records a static reading of the dispatcher arm and its callees; this function's own instructions and both jump directions now run in the oracle against the translation, with the callees as recording stubs."
-   }
-  ]
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 15/15 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x43e96c",
@@ -3016,7 +1757,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 6 seeds; oracle: 71/71 instructions executed, 8/8 conditional-jump directions taken, callees as recording stubs.",
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 6 seeds; oracle: 71/71 instructions executed, 8/8 conditional-jump directions taken, callees as recording stubs.",
   "blockers_reviewed": [
    {
     "id": "A-20.1:b2c7ee29ac609413",
@@ -3055,7 +1796,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 26/26 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 26/26 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x43ecfb",
@@ -3080,7 +1821,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 21/21 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 21/21 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x43ed36",
@@ -3105,7 +1846,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 21/21 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 21/21 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x43edeb",
@@ -3130,7 +1871,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 23/23 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 23/23 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x43ee2a",
@@ -3155,57 +1896,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 23/23 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x43ef3b",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m43ef3b_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_43ef3b_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x43ef3b",
-    "0x43ef77"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 22/22 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x43efb6",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m43efb6_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_43efb6_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x43efb6",
-    "0x43eff3"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 22/22 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 23/23 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x43eff3",
@@ -3230,457 +1921,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 35/35 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x43f0a3",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m43f0a3_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_43f0a3_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x43f0a3",
-    "0x43f0fb"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 35/35 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x43f210",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m43f210_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_43f210_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x43f210",
-    "0x43f31a"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 5 seeds; oracle: 86/86 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x43f31a",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m43f31a_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_43f31a_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x43f31a",
-    "0x43ff18"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 44 seeds; oracle: 722/722 instructions executed, 82/82 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x4416a2",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m4416a2_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_4416a2_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x4416a2",
-    "0x441931"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 7 seeds; oracle: 162/162 instructions executed, 12/12 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x441931",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m441931_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_441931_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x441931",
-    "0x441d74"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 22 seeds; oracle: 256/256 instructions executed, 36/36 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x443ad8",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m443ad8_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_443ad8_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x443ad8",
-    "0x443ecd"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 17 seeds; oracle: 244/244 instructions executed, 24/24 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x443ecd",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m443ecd_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_443ecd_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x443ecd",
-    "0x44423f"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 11 seeds; oracle: 211/211 instructions executed, 26/26 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x44499c",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m44499c_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_44499c_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x44499c",
-    "0x44512a"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 27 seeds; oracle: 453/453 instructions executed, 58/58 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x44512a",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m44512a_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_44512a_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x44512a",
-    "0x445253"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 6 seeds; oracle: 75/75 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x445253",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m445253_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_445253_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x445253",
-    "0x4453b7"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 6 seeds; oracle: 82/82 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x4453b7",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m4453b7_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_4453b7_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x4453b7",
-    "0x44551b"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 5 seeds; oracle: 82/82 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x44551b",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m44551b_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_44551b_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x44551b",
-    "0x4455b8"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 45/45 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x4455b8",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m4455b8_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_4455b8_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x4455b8",
-    "0x4456e1"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 6 seeds; oracle: 75/75 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x4456e1",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m4456e1_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_4456e1_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x4456e1",
-    "0x4458d4"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 8 seeds; oracle: 104/104 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x4459fd",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m4459fd_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_4459fd_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x4459fd",
-    "0x445b26"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 5 seeds; oracle: 75/75 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x445b26",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m445b26_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_445b26_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x445b26",
-    "0x445c8a"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 5 seeds; oracle: 82/82 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x445c8a",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m445c8a_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_445c8a_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x445c8a",
-    "0x445df0"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 5 seeds; oracle: 82/82 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x445e2b",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m445e2b_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_445e2b_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x445e2b",
-    "0x445f40"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 69/69 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 35/35 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x446075",
@@ -3705,7 +1946,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 6 seeds; oracle: 27/27 instructions executed, 8/8 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 6 seeds; oracle: 27/27 instructions executed, 8/8 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x446faa",
@@ -3730,32 +1971,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 22/22 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x446ffb",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m446ffb_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_446ffb_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x446ffb",
-    "0x447166"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 104/104 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 22/22 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x447c1c",
@@ -3780,7 +1996,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 11/11 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 11/11 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x447d60",
@@ -3805,82 +2021,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 9/9 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x448354",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m448354_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_448354_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x448354",
-    "0x4484ba"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 7 seeds; oracle: 126/126 instructions executed, 8/8 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x449ba5",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m449ba5_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_449ba5_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x449ba5",
-    "0x449bff"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 28/28 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x449cfc",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m449cfc_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_449cfc_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x449cfc",
-    "0x449d37"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 22/22 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 9/9 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x449d37",
@@ -3905,7 +2046,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 16/16 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 16/16 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x44a0c5",
@@ -3930,268 +2071,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 22/22 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x44a116",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m44a116_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_44a116_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x44a116",
-    "0x44a177"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 35/35 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x44a2b7",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m44a2b7_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_44a2b7_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x44a2b7",
-    "0x44a32c"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 37/37 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs.",
-  "blockers_reviewed": [
-   {
-    "id": "A-1B.1:c89136500e0f8d0e",
-    "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
-   },
-   {
-    "id": "A-1C.1:bbc72ea9374f083e",
-    "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
-   },
-   {
-    "id": "A-20.1:66c96efe1fbb8744",
-    "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
-   },
-   {
-    "id": "A-6D.1:fca1baff690d5509",
-    "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
-   },
-   {
-    "id": "A-70.1:d443f4700c5472b5",
-    "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
-   },
-   {
-    "id": "A-76.1:4254928a328064e0",
-    "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
-   },
-   {
-    "id": "A-80.1:5cabcd0814603be3",
-    "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
-   },
-   {
-    "id": "A-83.1:36be17758c07670c",
-    "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
-   },
-   {
-    "id": "A-9A.1:4898523193e00aaf",
-    "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
-   },
-   {
-    "id": "A-AA.1:14318b8284efed27",
-    "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
-   },
-   {
-    "id": "A-D0.1:fc7b809f133f3e60",
-    "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
-   },
-   {
-    "id": "A-D3.1:174da950eb5c5c07",
-    "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
-   },
-   {
-    "id": "A-D6.1:6ad354188ac5758c",
-    "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
-   },
-   {
-    "id": "A-DA.1:8aee27258a1edd03",
-    "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
-   },
-   {
-    "id": "A-E0.1:905f768b6cee9127",
-    "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
-   },
-   {
-    "id": "A-E4.1:f3b9ffde94fd3c0b",
-    "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
-   },
-   {
-    "id": "A-EA.1:854db2cae9db0e99",
-    "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
-   },
-   {
-    "id": "A-EB.1:ed74ef626eb3e9c9",
-    "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
-   },
-   {
-    "id": "A-EE.1:5e97da0a342538de",
-    "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
-   },
-   {
-    "id": "A-F5.1:174da950eb5c5c07",
-    "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
-   },
-   {
-    "id": "A-F6.1:3890e91470564d78",
-    "rationale": "The item is the branch taken when the diagnostics flag at 0x63a4cd is nonzero. The oracle sets that flag both ways (all instructions executed, both directions of every jump taken), with the logging callee as a recording stub, so the branch is now executed."
-   }
-  ]
- },
- {
-  "va": "0x44a412",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m44a412_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_44a412_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x44a412",
-    "0x44a488"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 7 seeds; oracle: 46/46 instructions executed, 10/10 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x44a488",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m44a488_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_44a488_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x44a488",
-    "0x44a554"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 7 seeds; oracle: 64/64 instructions executed, 10/10 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x44a554",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m44a554_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_44a554_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x44a554",
-    "0x44a5ca"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 6 seeds; oracle: 46/46 instructions executed, 10/10 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x44a696",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m44a696_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_44a696_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x44a696",
-    "0x44a6f2"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 5 seeds; oracle: 22/22 instructions executed, 8/8 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x44aa79",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m44aa79_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_44aa79_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x44aa79",
-    "0x44ac3a"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 134/134 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 22/22 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x44af20",
@@ -4216,7 +2096,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 9/9 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 9/9 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x44b05a",
@@ -4241,63 +2121,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 52/52 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x44b102",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m44b102_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_44b102_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x44b102",
-    "0x44b1b4"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 58/58 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs.",
-  "blockers_reviewed": [
-   {
-    "id": "A-4E.1:5142ceadcc5c1e41",
-    "rationale": "The item is the allocation-failure path with its fatal cleanup and the nonzero constructor-diagnostics branch. The oracle executes every instruction and takes both directions of every jump, with the callees as recording stubs; the callees' own behaviour is separate rows."
-   }
-  ]
- },
- {
-  "va": "0x44b1b4",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m44b1b4_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_44b1b4_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x44b1b4",
-    "0x44b26a"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 56/56 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 52/52 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x44bebb",
@@ -4322,57 +2146,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 12/12 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x44c2e0",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m44c2e0_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_44c2e0_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x44c2e0",
-    "0x44c384"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 7 seeds; oracle: 44/44 instructions executed, 12/12 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x44c384",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m44c384_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_44c384_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x44c384",
-    "0x44c44c"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 49/49 instructions executed, 10/10 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 12/12 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x44c44c",
@@ -4397,32 +2171,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 8/8 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x44c9db",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m44c9db_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_44c9db_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x44c9db",
-    "0x44cb7d"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 7 seeds; oracle: 102/102 instructions executed, 26/26 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 8/8 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x44e767",
@@ -4447,32 +2196,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 13/13 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x44e816",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m44e816_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_44e816_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x44e816",
-    "0x44e8a2"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 27/27 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 13/13 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x44f4fa",
@@ -4497,32 +2221,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 79/79 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x44f68b",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m44f68b_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_44f68b_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x44f68b",
-    "0x44f996"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 174/174 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 79/79 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x44f996",
@@ -4547,182 +2246,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 6 seeds; oracle: 72/72 instructions executed, 14/14 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x44fa8e",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m44fa8e_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_44fa8e_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x44fa8e",
-    "0x44fb54"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 47/47 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x44fb54",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m44fb54_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_44fb54_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x44fb54",
-    "0x44fb88"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 18/18 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x44fb88",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m44fb88_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_44fb88_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x44fb88",
-    "0x44fbe3"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 6 seeds; oracle: 31/31 instructions executed, 10/10 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x4511d2",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m4511d2_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_4511d2_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x4511d2",
-    "0x45133d"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 8 seeds; oracle: 91/91 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x45150e",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m45150e_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_45150e_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x45150e",
-    "0x4516c7"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 8 seeds; oracle: 133/133 instructions executed, 14/14 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x453f4f",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m453f4f_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_453f4f_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x453f4f",
-    "0x454065"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 80/80 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x454065",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m454065_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_454065_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x454065",
-    "0x4540bd"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 30/30 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 6 seeds; oracle: 72/72 instructions executed, 14/14 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x4540bd",
@@ -4747,7 +2271,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 7 seeds; oracle: 69/69 instructions executed, 18/18 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 7 seeds; oracle: 69/69 instructions executed, 18/18 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x4541a6",
@@ -4772,7 +2296,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 16/16 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 16/16 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x4541cf",
@@ -4797,32 +2321,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 47/47 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x454268",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m454268_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_454268_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x454268",
-    "0x4542b5"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 28/28 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 47/47 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x45445a",
@@ -4847,157 +2346,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 8 seeds; oracle: 83/83 instructions executed, 20/20 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x4545b0",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m4545b0_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_4545b0_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x4545b0",
-    "0x45468e"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 5 seeds; oracle: 66/66 instructions executed, 8/8 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x454d9e",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m454d9e_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_454d9e_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x454d9e",
-    "0x454de6"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 19/19 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x45504b",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m45504b_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_45504b_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x45504b",
-    "0x455180"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 101/101 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x455a63",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m455a63_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_455a63_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x455a63",
-    "0x455ab8"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 28/28 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x455b2e",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m455b2e_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_455b2e_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x455b2e",
-    "0x455c4f"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 78/78 instructions executed, 8/8 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x455c4f",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m455c4f_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_455c4f_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x455c4f",
-    "0x455cc3"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 33/33 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 8 seeds; oracle: 83/83 instructions executed, 20/20 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x456d07",
@@ -5022,82 +2371,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 13/13 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x456dc8",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m456dc8_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_456dc8_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x456dc8",
-    "0x456fb6"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 7 seeds; oracle: 83/83 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x457bd8",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m457bd8_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_457bd8_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x457bd8",
-    "0x457e60"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 6 seeds; oracle: 177/177 instructions executed, 10/10 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x457f7a",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m457f7a_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_457f7a_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x457f7a",
-    "0x457fc2"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 19/19 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 13/13 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x458015",
@@ -5122,182 +2396,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 16/16 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x45818a",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m45818a_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_45818a_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x45818a",
-    "0x458262"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 69/69 instructions executed, 8/8 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x458262",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m458262_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_458262_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x458262",
-    "0x45839e"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 104/104 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x45839e",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m45839e_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_45839e_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x45839e",
-    "0x45841e"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 7 seeds; oracle: 50/50 instructions executed, 16/16 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x458c32",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m458c32_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_458c32_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x458c32",
-    "0x458c9b"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 28/28 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x45dc8a",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m45dc8a_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_45dc8a_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x45dc8a",
-    "0x45dd4d"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 43/43 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x45e4d4",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m45e4d4_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_45e4d4_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x45e4d4",
-    "0x45e587"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 35/35 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x45e9db",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m45e9db_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_45e9db_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x45e9db",
-    "0x45ea4a"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 33/33 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 16/16 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x45ea4a",
@@ -5322,82 +2421,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 40/40 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x45ed60",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m45ed60_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_45ed60_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x45ed60",
-    "0x45ef5a"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 121/121 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x45ef5a",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m45ef5a_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_45ef5a_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x45ef5a",
-    "0x45f0e6"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 98/98 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x46402e",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m46402e_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_46402e_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x46402e",
-    "0x464076"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 19/19 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 40/40 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x4641bb",
@@ -5422,82 +2446,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 12 seeds; oracle: 235/235 instructions executed, 30/30 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x46465d",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m46465d_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_46465d_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x46465d",
-    "0x464792"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 101/101 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x464f55",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m464f55_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_464f55_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x464f55",
-    "0x464faa"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 28/28 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x465075",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m465075_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_465075_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x465075",
-    "0x4650db"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 29/29 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 12 seeds; oracle: 235/235 instructions executed, 30/30 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x4657e7",
@@ -5522,32 +2471,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 7 seeds; oracle: 136/136 instructions executed, 16/16 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x465b07",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m465b07_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_465b07_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x465b07",
-    "0x465b3c"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 17/17 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 7 seeds; oracle: 136/136 instructions executed, 16/16 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x465b3c",
@@ -5572,332 +2496,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 34/34 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x466247",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m466247_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_466247_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x466247",
-    "0x4662d8"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 5 seeds; oracle: 42/42 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x467513",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m467513_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_467513_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x467513",
-    "0x467608"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 51/51 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x467608",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m467608_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_467608_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x467608",
-    "0x467651"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 26/26 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x467b9e",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m467b9e_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_467b9e_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x467b9e",
-    "0x467c0e"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 36/36 instructions executed, 8/8 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x467d5f",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m467d5f_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_467d5f_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x467d5f",
-    "0x467e23"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 8 seeds; oracle: 49/49 instructions executed, 14/14 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x468aeb",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m468aeb_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_468aeb_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x468aeb",
-    "0x468d40"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 5 seeds; oracle: 162/162 instructions executed, 14/14 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x468e5a",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m468e5a_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_468e5a_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x468e5a",
-    "0x468f19"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 41/41 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x469505",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m469505_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_469505_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x469505",
-    "0x46957d"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 5 seeds; oracle: 30/30 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x46b58a",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m46b58a_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_46b58a_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x46b58a",
-    "0x46b67f"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 51/51 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x46b67f",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m46b67f_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_46b67f_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x46b67f",
-    "0x46b707"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 38/38 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x46b75b",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m46b75b_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_46b75b_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x46b75b",
-    "0x46b79a"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 15/15 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x46b954",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m46b954_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_46b954_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x46b954",
-    "0x46bca9"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 197/197 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x46cc8b",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m46cc8b_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_46cc8b_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x46cc8b",
-    "0x46cda0"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 6 seeds; oracle: 71/71 instructions executed, 14/14 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 34/34 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x46e5fa",
@@ -5922,7 +2521,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 30/30 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 30/30 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x46e66a",
@@ -5947,32 +2546,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 23/23 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x46e6c1",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m46e6c1_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_46e6c1_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x46e6c1",
-    "0x46e7a6"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 58/58 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 23/23 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x46e823",
@@ -5997,107 +2571,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 5 seeds; oracle: 122/122 instructions executed, 10/10 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x46e9c0",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m46e9c0_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_46e9c0_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x46e9c0",
-    "0x46ea16"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 28/28 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x46ebbd",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m46ebbd_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_46ebbd_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x46ebbd",
-    "0x46ebff"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 6 seeds; oracle: 23/23 instructions executed, 8/8 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x46f6c5",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m46f6c5_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_46f6c5_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x46f6c5",
-    "0x46f77c"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 54/54 instructions executed, 8/8 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x46f77c",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m46f77c_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_46f77c_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x46f77c",
-    "0x46f8ae"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 83/83 instructions executed, 10/10 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 5 seeds; oracle: 122/122 instructions executed, 10/10 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x46f907",
@@ -6122,7 +2596,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 7 seeds; oracle: 42/42 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 7 seeds; oracle: 42/42 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x4709bb",
@@ -6147,82 +2621,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 14/14 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x4709de",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m4709de_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_4709de_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x4709de",
-    "0x470a63"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 7 seeds; oracle: 36/36 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x470a73",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m470a73_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_470a73_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x470a73",
-    "0x470c60"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 6 seeds; oracle: 130/130 instructions executed, 8/8 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x470d7a",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m470d7a_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_470d7a_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x470d7a",
-    "0x470ddc"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 23/23 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 14/14 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x470e8e",
@@ -6247,7 +2646,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 6 seeds; oracle: 106/106 instructions executed, 10/10 conditional-jump directions taken, callees as recording stubs.",
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 6 seeds; oracle: 106/106 instructions executed, 10/10 conditional-jump directions taken, callees as recording stubs.",
   "blockers_reviewed": [
    {
     "id": "A-D6.1:6ad354188ac5758c",
@@ -6286,7 +2685,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 31/31 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 31/31 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x472f95",
@@ -6311,32 +2710,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 12/12 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x472fb7",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m472fb7_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_472fb7_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x472fb7",
-    "0x4730a6"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 53/53 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 12/12 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x4730a6",
@@ -6361,362 +2735,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 37/37 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs.",
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 37/37 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs.",
   "blockers_reviewed": [
    {
     "id": "RT-11:f7524f45a690aca7",
     "rationale": "The item says dialogue-object-owned sound cleanup is unbound in the native runtime because the dialogue object is unimplemented; that is a caller-side gap. This function's own instructions and jump directions run in the oracle and match the translation."
    }
   ]
- },
- {
-  "va": "0x473651",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m473651_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_473651_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x473651",
-    "0x473ac5"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 6 seeds; oracle: 311/311 instructions executed, 14/14 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x473e8a",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m473e8a_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_473e8a_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x473e8a",
-    "0x473f7d"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 76/76 instructions executed, 8/8 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x473f7d",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m473f7d_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_473f7d_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x473f7d",
-    "0x473ffc"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 33/33 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x47409e",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m47409e_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_47409e_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x47409e",
-    "0x4740e5"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 16/16 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x4740e5",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m4740e5_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_4740e5_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x4740e5",
-    "0x4741eb"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 70/70 instructions executed, 12/12 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x475470",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m475470_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_475470_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x475470",
-    "0x4754a1"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 17/17 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x4754a1",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m4754a1_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_4754a1_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x4754a1",
-    "0x4754d2"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 17/17 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x4754d2",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m4754d2_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_4754d2_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x4754d2",
-    "0x4756c0"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 7 seeds; oracle: 130/130 instructions executed, 16/16 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x478656",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m478656_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_478656_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x478656",
-    "0x478684"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 18/18 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x478915",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m478915_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_478915_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x478915",
-    "0x4789d6"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 50/50 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x4789d6",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m4789d6_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_4789d6_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x4789d6",
-    "0x478a2c"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 5 seeds; oracle: 27/27 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x478e7b",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m478e7b_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_478e7b_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x478e7b",
-    "0x478f91"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 73/73 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x479cd7",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m479cd7_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_479cd7_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x479cd7",
-    "0x479d98"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 54/54 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
- },
- {
-  "va": "0x47d682",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m47d682_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_47d682_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x47d682",
-    "0x47d734"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 58/58 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
  }
 ]

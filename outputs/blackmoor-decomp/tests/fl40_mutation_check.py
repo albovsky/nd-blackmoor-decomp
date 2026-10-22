@@ -9,7 +9,7 @@ For each row it takes the committed C of `m<va>_lifted` (src/original_methods_fl
   register   the source register of a move or a push is another register
   drop       a stack adjustment, a store or a register update statement is removed
 A mutant is killed when the translation of the mutant differs from the ORIGINAL bytes' recorded behaviour (final registers, ordered writes, ordered stub calls) on
-any seed of the row. A survivor is retried on 120 more seeds that are not in the corpus; one that still survives is listed (it may be an equivalent mutant: a
+any seed of the row. A survivor is retried on 40 more seeds that are not in the corpus (WIDE more with --harden); one that still survives is listed (it may be an equivalent mutant: a
 statement whose effect no seed can see, such as the flags of an instruction whose flags nothing reads).
 
   fl40_mutation_check.py [--rows 0x401000,...] [--per-row 30] [--jobs 4]      (run from outputs/blackmoor-decomp)
@@ -38,6 +38,7 @@ SOURCE = PROJECT / 'src/original_methods_fl40.c'
 CORPUS = HERE / 'fl40_corpus.json'
 REGS = ['eax', 'ecx', 'edx', 'ebx', 'esi', 'edi']
 EXTRA_SEEDS = range(5000, 5040)
+WIDE = 300          # --harden: seeds tried on a survivor after the extra ones
 
 
 def split_functions(text):
@@ -59,7 +60,7 @@ def mutants(text, va, rng, limit):
     for n, line in enumerate(lines):
         code, comment = COMMENT.match(line).groups()
         comment = comment or ''
-        if not code.strip() or code.strip().startswith(('/*', 'void ', '{', '}', 'FL40_', 'done:', 'L_', 'while', 'switch', 'case', 'default', 'break', 'if (!zf)', 'if (zf)')):
+        if not code.strip() or code.strip() in ('{', '}') or code.strip().startswith(('/*', 'void ', 'FL40_', 'done:', 'L_', 'while', 'switch', 'case', 'default', 'break')):
             continue
 
         def add(kind, new_code):
@@ -74,6 +75,13 @@ def mutants(text, va, rng, limit):
             add('alu', code.replace('FL40_ADD(', 'FL40_SUB('))
         if 'FL40_SUB(' in code:
             add('alu', code.replace('FL40_SUB(', 'FL40_ADD('))
+        for old, new in (('FL40_SHL(', 'FL40_SHR('), ('FL40_SHR(', 'FL40_SAR('), ('FL40_SAR(', 'FL40_SHR('), ('FL40_ROL(', 'FL40_ROR('), ('FL40_ROR(', 'FL40_ROL(')):
+            if old in code:
+                add('alu', code.replace(old, new, 1))
+        if re.search(r'FL40_(ADD|SUB)\(a_, b_, ([01])u,', code):
+            add('literal', re.sub(r'(FL40_(?:ADD|SUB)\(a_, b_, )([01])u,', lambda m: '%s%du,' % (m.group(1), 1 - int(m.group(2))), code, count=1))
+        if 'FL40_SUB(' in code and 'a_ = ' in code and 'b_ = ' in code:        # the other operators of a block are commutative: swapping them is no mutant
+            add('register', re.sub(r'a_ = ([^,]+), b_ = ([^,;]+),', r'a_ = \2, b_ = \1,', code, count=1))
         if 'FL40_CALL' not in code:
             for old, new in (('RD32(', 'RD16('), ('RD16(', 'RD8('), ('RD8(', 'RD16('), ('WR32(', 'WR16('), ('WR16(', 'WR8('), ('WR8(', 'WR16(')):
                 if old in code:
@@ -116,6 +124,20 @@ def mutants(text, va, rng, limit):
 
 
 def check_row(args):
+    try:
+        return check_row_inner(args)
+    except Exception as exc:        # a worker that raises something unpicklable would hang the pool
+        return args[0], {'error': 'worker crashed: %s' % repr(exc)[:300]}
+
+
+def safe_original(row, sd, ov=()):
+    try:
+        return W.run_original(row, sd, ov)
+    except Exception:
+        return None
+
+
+def check_row_inner(args):
     key, entry, text, helper, per_row, harden = args
     va = int(key, 16)
     row = W.row_info(va, entry['body'], {int(k, 16): v for k, v in entry['callees'].items()}, {int(k, 16): v for k, v in entry['imports'].items()}, entry['fs'])
@@ -160,14 +182,18 @@ def check_row(args):
                             found = i
                             break
                     os.write(w_fd, str(found).encode())
+                except Exception as exc:        # a harness bug is not a kill
+                    os.write(w_fd, b'E' + repr(exc).encode()[:200])
                 finally:
                     os._exit(0)
             os.close(w_fd)
             data = os.read(r_fd, 32)
             os.close(r_fd)
-            os.waitpid(pid, 0)
+            _, status = os.waitpid(pid, 0)
+            if data.startswith(b'E'):
+                raise RuntimeError('mutation harness error on %s mutant %d: %s' % (key, k, data[1:].decode()))
             if not data:
-                return 'timeout'
+                return 'timeout'          # the alarm, or the mutant crashed the process: the original does neither
             i = int(data)
             return None if i < 0 else i
 
@@ -178,8 +204,8 @@ def check_row(args):
                 if extra is None:
                     extra = []
                     for sd in EXTRA_SEEDS:
-                        t = W.run_original(row, sd)
-                        if not t.fault:
+                        t = safe_original(row, sd)
+                        if t is not None and not t.fault:
                             extra.append((sd, (), t.digest()))
                 hit = first_mismatch(k, extra)
                 if hit is not None:
@@ -193,7 +219,7 @@ def check_row(args):
             else:
                 if harden:
                     if wide is None:
-                        wide = [(sd, (), t.digest()) for sd in range(6000, 6080) for t in [W.run_original(row, sd)] if not t.fault]
+                        wide = [(sd, (), t.digest()) for sd in list(range(6000, 6000 + WIDE)) + list(range(W.HI_SEEDS, W.HI_SEEDS + WIDE)) for t in [safe_original(row, sd)] if t is not None and not t.fault]
                     hit = first_mismatch(k, wide)
                     if hit is not None:
                         if hit != 'timeout':
@@ -209,7 +235,7 @@ class Shim:
     """Looks like the ctypes library but maps `m<va>_lifted` to the k-th mutant symbol."""
 
     def __init__(self, lib, va, k):
-        self.lib, self.name = lib, 'm%x_mut%d' % (va, k)
+        self.lib, self.name = lib, ('m%x_lifted' % va) if k is None else 'm%x_mut%d' % (va, k)
 
     def __getattr__(self, name):
         return getattr(self.lib, self.name)
@@ -237,6 +263,8 @@ def main():
                 continue
             if res['killers']:
                 corpus[key]['seeds'].extend([sd, []] for sd in res['killers'])
+                if a.harden:        # kept as it goes: a long run that dies still leaves its seeds
+                    CORPUS.write_text(json.dumps(corpus, indent=1, sort_keys=True) + '\n')
             total += res['mutants']
             killed += res['killed']
             hard = [s for s in res['survivors'] if s[2] == 'survives']
