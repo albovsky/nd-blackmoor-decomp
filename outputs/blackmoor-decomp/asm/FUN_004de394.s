@@ -8,15 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_scroll_text_box_load_chunk
-# naming:       INFERRED (lower confidence, not verified): the repository text src/caption_lifecycle.h:243 says "0x4de394 CScrollTextBox::LoadChunk: copy SCTB (needs >= 0x300 bytes)."
-# name-note:    CScrollTextBox::LoadChunk: copies the SCTB chunk (needs at least 0x300 bytes).
+# name:         m4de394_copy_block
+# naming:       native port src/original_methods_fl39c.c:m4de394_copy_block (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port
+# name-note:    Copies 0x300 bytes from src to [self+0x691]; when 0x300 > limit (signed) runs the diagnostic calls 0x50ca3e, 0x4264e8, 0x4c97b4. Limits below, at and above the size, negative and 0x7fffffff; All instructions run; both jump directions taken.
 # arguments:    2 ebp-relative stack slot(s) referenced: arg_8, arg_c; ret 0x8 (callee pops 8 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       2 ebp-relative slot(s): local_4, local_8
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      calls FUN_0050ca3e, FUN_004264e8, FUN_004c97b4
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 39 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class partial_native is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl39c.c:m4de394_copy_block (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 39 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

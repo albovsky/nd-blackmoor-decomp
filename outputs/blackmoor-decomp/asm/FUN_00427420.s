@@ -14,7 +14,7 @@
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      calls FUN_00445e0f, FUN_0041458b, FUN_004caeef, FUN_004ccd8f, FUN_004bf61f, FUN_0044afd6, FUN_00447e46, FUN_004dbf6e, FUN_00423467, FUN_004ac8be, FUN_0049c59f, FUN_00490547, FUN_004cc946, FUN_004a9f0b, FUN_0046b56e, FUN_004a7c5e and 68 more
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 349 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 349 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

@@ -8,15 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_direct_sound_enumerate_callback
-# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/4fa8d2.c.txt, not original source) refers to the data labelled s_DirectSoundEnumerateCallback_____00560424, s_Primary_Sound_Driver_0056040c
-# name-note:    DirectSoundEnumerate callback: accepts the Primary Sound Driver entry or stores a device GUID; logs DirectSoundEnumerateCallback.
+# name:         m4fa8d2_check_name
+# naming:       native port src/original_methods_fl39f.c:m4fa8d2_check_name (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port
+# name-note:    Compares the 21 bytes of the name with those at 0x56040c (repe cmpsb) when a0 == 0, and otherwise stores a0 at [cell]; All instructions run; both jump directions taken.
 # arguments:    4 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10, arg_14; ret 0x10 (callee pops 16 bytes); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      calls FUN_0050ca3e, FUN_0044a2b7
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 56 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl39f.c:m4fa8d2_check_name (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 56 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

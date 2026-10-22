@@ -1,0 +1,1254 @@
+{
+ "method": "tests/ mutants: up to 3 mutants per function (constants, comparison operators, statement deletion; declarations and (void) lines excluded) applied one per function per round, direct and differential tests rerun; a surviving mutant is equivalent only when gcc -O2 emits identical code or the changed value is unobservable. Rows with an unexplained survivor stay pending.",
+ "rows": {
+  "0x48217a": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4821ab": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x487dcf": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 1,
+     "mutant": "const 0 -> 1",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x488e54": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 1,
+     "mutant": "const 0xffffu -> 0xfffeu",
+     "verdict": "unexplained"
+    }
+   ],
+   "credited": false
+  },
+  "0x48a70a": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x48aa66": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 1,
+     "mutant": "const 0xffff0000u -> 0xffff0001u",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x48e28a": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4911ca": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 1,
+     "mutant": "const 0xffffffffu -> 0xfffffffeu",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    },
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x491422": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x491885": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4921a1": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x493a54": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x493af0": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x493b2e": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x493c34": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x495a5b": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x49c46c": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x49c68a": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4a1d14": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 1,
+     "mutant": "const 0 -> 1",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4a1e93": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "unexplained"
+    }
+   ],
+   "credited": false
+  },
+  "0x4a1fd1": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "unexplained"
+    }
+   ],
+   "credited": false
+  },
+  "0x4a378a": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4a39c4": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4a3beb": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4a63dc": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4a7994": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4a7c7a": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4a7d1d": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4a7df9": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4a8007": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4a9f63": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4ab706": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 1,
+     "mutant": "const 0xffffffffu -> 0xfffffffeu",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4accab": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 1,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4ad1e5": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 1,
+     "mutant": "const 0xffffffffu -> 0xfffffffeu",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4b3c5a": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4b3f98": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4b450f": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 0,
+     "mutant": "const 0xffffu -> 0xfffeu",
+     "verdict": "unexplained"
+    },
+    {
+     "round": 1,
+     "mutant": "const 0xffffffffu -> 0xfffffffeu",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": false
+  },
+  "0x4b72a9": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 1,
+     "mutant": "const 0 -> 1",
+     "verdict": "return value is not part of the contract: the function never sets eax and the oracle does not compare it"
+    }
+   ],
+   "credited": true
+  },
+  "0x4b9e3b": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4ba07f": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4ba262": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 0,
+     "mutant": "const 52 -> 53",
+     "verdict": "unexplained"
+    }
+   ],
+   "credited": false
+  },
+  "0x4ba486": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4be2c6": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 1,
+     "mutant": "const 0 -> 1",
+     "verdict": "return value is not part of the contract: the function never sets eax and the oracle does not compare it"
+    }
+   ],
+   "credited": true
+  },
+  "0x4bed70": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4bf63b": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4bf8a7": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 1,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4c139a": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 0,
+     "mutant": "const 0xffffffffu -> 0xfffffffeu",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    },
+    {
+     "round": 1,
+     "mutant": "const 0x0u -> 0x1u",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4c4b12": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4c4c2b": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4c9428": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4c9b66": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4c9c10": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4ca92e": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4caec0": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 0,
+     "mutant": "const 0 -> 1",
+     "verdict": "return value is not part of the contract: the function never sets eax and the oracle does not compare it"
+    },
+    {
+     "round": 1,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    },
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4caff5": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4cca0e": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4ccc50": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 1,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    },
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4cd645": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4d00d2": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4d3723": {
+   "mutants_tested": 1,
+   "survivors": [
+    {
+     "round": 0,
+     "mutant": "const 0 -> 1",
+     "verdict": "return value is not part of the contract: the function never sets eax and the oracle does not compare it"
+    }
+   ],
+   "credited": true
+  },
+  "0x4d3b95": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4d3c9a": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 0,
+     "mutant": "const 0xffffff00u -> 0xffffff01u",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    },
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4d3cba": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4d3ced": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4d4043": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4d4645": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4d47b0": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4d56e2": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4d57e8": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 0,
+     "mutant": "const 0 -> 1",
+     "verdict": "unexplained"
+    },
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": false
+  },
+  "0x4d5834": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4d6787": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 0,
+     "mutant": "const 0xffffff00u -> 0xffffff01u",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4d794d": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4d79c7": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4d8f8d": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4d912a": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4d920c": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4d9d70": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4db066": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4db780": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4db817": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 0,
+     "mutant": "const 52 -> 53",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4dbc77": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4dbfbf": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4dd28d": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4dd409": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4de009": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4de0cf": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4de4f9": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4de6d7": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4de6fc": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4e01b3": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4e023b": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "unexplained"
+    }
+   ],
+   "credited": false
+  },
+  "0x4e0377": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4e0619": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4e06c0": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "unexplained"
+    }
+   ],
+   "credited": false
+  },
+  "0x4e119b": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4e1c9f": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4e2913": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4e29b7": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4e2dd3": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4e35e8": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4e364a": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4e3691": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4e36fc": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4e3772": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4e3a64": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4e40a6": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4e49e2": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4e7970": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 1,
+     "mutant": "const 0 -> 1",
+     "verdict": "return value is not part of the contract: the function never sets eax and the oracle does not compare it"
+    }
+   ],
+   "credited": true
+  },
+  "0x4e79ca": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4e7c72": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4e7dad": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 1,
+     "mutant": "const 0 -> 1",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    },
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4e8d72": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 0,
+     "mutant": "const 27420 -> 27421",
+     "verdict": "unexplained"
+    },
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "unexplained"
+    }
+   ],
+   "credited": false
+  },
+  "0x4e94a9": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 0,
+     "mutant": "const 0xffffff00u -> 0xffffff01u",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    },
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "unexplained"
+    }
+   ],
+   "credited": false
+  },
+  "0x4ea1cb": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4ea361": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4eb5f2": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 1,
+     "mutant": "const 0xffffff00u -> 0xffffff01u",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4eb9c8": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4eda10": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 0,
+     "mutant": "const 0xffffffffu -> 0xfffffffeu",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    },
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4edae5": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4ee517": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4ee572": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 0,
+     "mutant": "const 0x0u -> 0x1u",
+     "verdict": "unexplained"
+    }
+   ],
+   "credited": false
+  },
+  "0x4ee598": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 1,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4ee5f2": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 0,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    },
+    {
+     "round": 1,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4ee9bb": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4eead0": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4ef3ed": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4ef4f0": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 1,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4f67be": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4f6810": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4f8a17": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 1,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    },
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4fafc7": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4fb018": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4fb071": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 1,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    },
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4fb086": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4fb1c6": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 1,
+     "mutant": "const 0xffffu -> 0xfffeu",
+     "verdict": "unexplained"
+    }
+   ],
+   "credited": false
+  },
+  "0x4fb737": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  },
+  "0x4fba86": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 1,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    },
+    {
+     "round": 2,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4fbd7e": {
+   "mutants_tested": 3,
+   "survivors": [
+    {
+     "round": 1,
+     "mutant": "delete statement",
+     "verdict": "compiled with gcc -O2 the mutant function is instruction-for-instruction identical to the original port (dead or masked code)"
+    }
+   ],
+   "credited": true
+  },
+  "0x4fce90": {
+   "mutants_tested": 3,
+   "survivors": [],
+   "credited": true
+  }
+ }
+}

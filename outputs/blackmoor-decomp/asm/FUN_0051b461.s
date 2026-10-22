@@ -14,7 +14,7 @@
 # fields:       [eax + n] field_80; [esi + n] field_1c, field_28
 # callees:      calls USER32.dll!DefWindowProcA, USER32.dll!CallWindowProcA; plus 1 indirect transfer(s) whose target is not resolved
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 27 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; indirect transfers are not followed
+# unverified:   machine annotation only: the 27 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; indirect transfers are not followed; function ledger class partial_native is a native-touch record, not a counterpart claim
 # note:         further_unindexed_code_at:0x0051b4a8
 .intel_syntax noprefix
 .code32

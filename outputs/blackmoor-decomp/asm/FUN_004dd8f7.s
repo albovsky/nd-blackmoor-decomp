@@ -14,7 +14,7 @@
 # fields:       [eax + n] field_4, field_39, field_3d, field_ad, field_b1, field_dd, field_f3, field_101, field_109, field_10d, field_32f; [ecx + n] field_39, field_3d, field_41, field_b5, field_e1, field_f1, field_f3, field_f5, field_111, field_32f; [edx + n] field_45, field_a9, field_d9, field_e1, field_f1, field_f3, field_f9, field_fd, field_105, field_minus_1
 # callees:      calls FUN_004daeb5, FUN_004dae88, FUN_004dad60, FUN_004daef1, KERNEL32.dll!GetTickCount, FUN_004fb2e3, FUN_004f6334, FUN_0043dbd5, FUN_004c97b4, FUN_004db870, FUN_0052139c, FUN_004c2dfb, FUN_004cf7e0
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 373 instruction(s), 30 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 373 instruction(s), 30 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text
