@@ -41,7 +41,7 @@ def note_of(c):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('--reviewer', required=True)
+    ap.add_argument('--reviewer', required=True)    # "Sonnet slice-reviewer, diff review, findings addressed (FL-40)"
     ap.add_argument('--blockers-reviewed')
     a = ap.parse_args()
     corpus = json.loads(CORPUS.read_text())
