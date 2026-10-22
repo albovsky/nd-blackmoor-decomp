@@ -14,7 +14,7 @@
 # fields:       [eax + n] field_94ca, field_94cc, field_98a8; [ecx + n] field_94d0, field_98a8; [edx + n] field_9414, field_9418, field_94ce, field_94d2, field_98a8
 # callees:      calls FUN_004e9e84, KERNEL32.dll!GetTickCount
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 124 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class static_navigation_only is a native-touch record, not a counterpart claim
+# unverified:   machine annotation only: the 124 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

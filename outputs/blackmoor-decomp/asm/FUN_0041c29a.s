@@ -13,7 +13,7 @@
 # locals:       4 ebp-relative slot(s): local_4, local_8, local_c, local_10
 # fields:       [eax + n] field_1c, field_f73, field_f75, field_fa9; [ecx + n] field_6, field_f75, field_fa5; [edx + n] field_f73, field_fa5
 # callees:      calls FUN_004c946b, FUN_004c2dfb, FUN_0051dc6c
-# track-n:      host-adapter: none
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl40.c:m41bebc_lifted (function ledger class candidate_port; also m41c29a_lifted; this machine pass does not re-verify the equivalence)
 # unverified:   machine annotation only: the 78 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32

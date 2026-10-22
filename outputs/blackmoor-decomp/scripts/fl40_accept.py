@@ -32,6 +32,13 @@ def recorded_windows():
     return out
 
 
+def note_of(c):
+    note = ('Machine-translated from the original instructions (scripts/lift_function.py); %d seeds; oracle %d/%d instructions, %d/%d jump directions; '
+            'mutation survivors: tasks/fl40-survivors.json.' % (len(c['seeds']), c['instructions'][0], c['instructions'][1], c['directions'][0], c['directions'][1]))
+    assert len(note) <= 240
+    return note
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--reviewer', required=True)
@@ -49,7 +56,7 @@ def main():
     # the window is the one the recorded run saw: the end of the function's span (alignment padding included), not va + translated body
     for e in doc['port_acceptances']:
         if (e.get('oracle') or {}).get('path') == 'tests/fl40_original_oracle.py' and e['va'] in windows:
-            e['note'] = e['note'].replace('Machine translation of the original instructions', 'Machine-translated from the original instructions')
+            e['note'] = note_of(corpus[e['va']])
             e['oracle']['window'] = windows[e['va']]
             if e['va'] in blockers:
                 e['blockers_reviewed'] = blockers[e['va']]
@@ -64,9 +71,7 @@ def main():
                  'tests': [{'path': 'tests/test_fl40_differential.py', 'test_id': 'Fl40Differential.test_%x_lifted' % va}],
                  'oracle': {'path': 'tests/fl40_original_oracle.py', 'window': windows.get(key, [key, '0x%x' % (va + c['body'])])},
                  'parts_accounted': [],
-                 'note': 'Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, %d seeds; oracle: %d/%d instructions '
-                         'executed, %d/%d conditional-jump directions taken, callees as recording stubs.' % (
-                             len(c['seeds']), c['instructions'][0], c['instructions'][1], c['directions'][0], c['directions'][1])}
+                 'note': note_of(c)}
         if key in blockers:
             entry['blockers_reviewed'] = blockers[key]
         new.append(entry)

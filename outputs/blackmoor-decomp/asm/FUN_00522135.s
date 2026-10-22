@@ -14,7 +14,7 @@
 # fields:       [eax + n] field_4, field_1c, field_58, field_70, field_bc; [edi + n] field_5, field_8; [esi + n] field_1c, field_24, field_2c, field_7c; [esp + n] stk_10, stk_14, stk_18
 # callees:      calls FUN_0051d0b9, FUN_00525371, FUN_00521287, FUN_0052142d, FUN_00521de7, USER32.dll!IsWindowEnabled, USER32.dll!EnableWindow, USER32.dll!GetCapture, USER32.dll!SendMessageA, FUN_0051b097, COMCTL32.dll!PropertySheetA, FUN_0051b0e3, FUN_0051d526, FUN_0051ce72, FUN_0051d5e1, USER32.dll!GetActiveWindow and 1 more; plus 3 indirect transfer(s) whose target is not resolved
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 133 instruction(s), 15 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; indirect transfers are not followed
+# unverified:   machine annotation only: the 133 instruction(s), 15 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; indirect transfers are not followed; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

@@ -13,8 +13,8 @@
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_4, field_8, field_c, field_2d3, field_2d5, field_31d, field_39e, field_62b; [ecx + n] field_4, field_8, field_c, field_2d9, field_305, field_31d, field_379, field_62b, field_62d, field_723; [edx + n] field_4, field_8, field_c, field_6b, field_2d5, field_2d7, field_2fd, field_31d, field_62b, field_62d, field_62f
 # callees:      calls KERNEL32.dll!GetTickCount
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 98 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/action_family_f6_runtime.c:slide_common (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 98 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32
 .text
