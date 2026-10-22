@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004de66e
+# name:         m4de66e_destroy_subobjects
+# naming:       native port src/original_methods_fl39e.c:m4de66e_destroy_subobjects (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port
+# name-note:    Stores the dword 0x52e4d0u at [this], calls 0x4de6fc(this), 0x4ee99f(this+0x57e) and returns 0x4e1c83(this+0x3ef); the SEH frame is not modelled. No jumps; all 27 instructions run.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       3 ebp-relative slot(s): local_4, local_c, local_10
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      calls FUN_004de6fc, FUN_004ee99f, FUN_004e1c83
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 27 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl39e.c:m4de66e_destroy_subobjects (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 27 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

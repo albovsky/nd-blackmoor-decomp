@@ -1,0 +1,690 @@
+[
+ {
+  "va": "0x484110",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39b.c",
+   "symbol": "m484110_clone_record"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39b_direct_test.c",
+    "test_id": "test_m484110_clone_record"
+   },
+   {
+    "path": "tests/test_fl39b_direct.py",
+    "test_id": "Fl39bDirect.test_484110_clone_record"
+   },
+   {
+    "path": "tests/test_fl39b_differential.py",
+    "test_id": "Fl39bDifferential.test_484110_clone_record"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39b_original_oracle.py",
+   "window": [
+    "0x484110",
+    "0x4841cb"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Allocates 0xf07 bytes with 0x51dc43, stores the block to [p0], reports a null block (0x50ca3e, 0x42639d, 0x4c97b4), otherwise copies 0xf07 bytes (rep movsd, movsw, movsb) from [p1] to [p0]. All instructions run; both jump directions taken.",
+  "blockers_reviewed": [
+   {
+    "id": "A-EA.1:854db2cae9db0e99",
+    "rationale": "The receipt lists the non-zero diagnostics branch (call 0x44a2b7 at 0x4841b6) as unverified for the runtime slice; this port reproduces that branch and the oracle runs it against the original bytes with non-zero values of the debug word (every instruction executed, both outcomes of the test), the runtime wiring stays with the integration."
+   }
+  ]
+ },
+ {
+  "va": "0x487bd7",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39b.c",
+   "symbol": "m487bd7_clone_record"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39b_direct_test.c",
+    "test_id": "test_m487bd7_clone_record"
+   },
+   {
+    "path": "tests/test_fl39b_direct.py",
+    "test_id": "Fl39bDirect.test_487bd7_clone_record"
+   },
+   {
+    "path": "tests/test_fl39b_differential.py",
+    "test_id": "Fl39bDifferential.test_487bd7_clone_record"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39b_original_oracle.py",
+   "window": [
+    "0x487bd7",
+    "0x487c92"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Allocates 0x5b3 bytes with 0x51dc43, stores the block to [p0], reports a null block (0x50ca3e, 0x42639d, 0x4c97b4), otherwise copies 0x5b3 bytes (rep movsd, movsw, movsb) from [p1] to [p0]. All instructions run; both jump directions taken."
+ },
+ {
+  "va": "0x48a865",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39b.c",
+   "symbol": "m48a865_clone_record"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39b_direct_test.c",
+    "test_id": "test_m48a865_clone_record"
+   },
+   {
+    "path": "tests/test_fl39b_direct.py",
+    "test_id": "Fl39bDirect.test_48a865_clone_record"
+   },
+   {
+    "path": "tests/test_fl39b_differential.py",
+    "test_id": "Fl39bDifferential.test_48a865_clone_record"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39b_original_oracle.py",
+   "window": [
+    "0x48a865",
+    "0x48a920"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Allocates 0x41b bytes with 0x51dc43, stores the block to [p0], reports a null block (0x50ca3e, 0x42639d, 0x4c97b4), otherwise copies 0x41b bytes (rep movsd, movsw, movsb) from [p1] to [p0]. All instructions run; both jump directions taken."
+ },
+ {
+  "va": "0x48d12d",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39b.c",
+   "symbol": "m48d12d_clone_record"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39b_direct_test.c",
+    "test_id": "test_m48d12d_clone_record"
+   },
+   {
+    "path": "tests/test_fl39b_direct.py",
+    "test_id": "Fl39bDirect.test_48d12d_clone_record"
+   },
+   {
+    "path": "tests/test_fl39b_differential.py",
+    "test_id": "Fl39bDifferential.test_48d12d_clone_record"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39b_original_oracle.py",
+   "window": [
+    "0x48d12d",
+    "0x48d1e8"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Allocates 0x7bb bytes with 0x51dc43, stores the block to [p0], reports a null block (0x50ca3e, 0x42639d, 0x4c97b4), otherwise copies 0x7bb bytes (rep movsd, movsw, movsb) from [p1] to [p0]. All instructions run; both jump directions taken.",
+  "blockers_reviewed": [
+   {
+    "id": "A-D0.1:fc7b809f133f3e60",
+    "rationale": "The receipt lists the non-zero diagnostics branch (call 0x44a2b7 at 0x48d1d3) as unverified for the runtime slice; this port reproduces that branch and the oracle runs it against the original bytes with non-zero values of the debug word (every instruction executed, both outcomes of the test), the runtime wiring stays with the integration."
+   }
+  ]
+ },
+ {
+  "va": "0x493b7a",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39b.c",
+   "symbol": "m493b7a_clone_record"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39b_direct_test.c",
+    "test_id": "test_m493b7a_clone_record"
+   },
+   {
+    "path": "tests/test_fl39b_direct.py",
+    "test_id": "Fl39bDirect.test_493b7a_clone_record"
+   },
+   {
+    "path": "tests/test_fl39b_differential.py",
+    "test_id": "Fl39bDifferential.test_493b7a_clone_record"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39b_original_oracle.py",
+   "window": [
+    "0x493b7a",
+    "0x493c34"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Allocates 0xc6 bytes with 0x51dc43, stores the block to [p0], reports a null block (0x50ca3e, 0x42639d, 0x4c97b4), otherwise copies 0xc6 bytes (rep movsd, movsw) from [p1] to [p0]. All instructions run; both jump directions taken."
+ },
+ {
+  "va": "0x4a3a33",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39b.c",
+   "symbol": "m4a3a33_clone_record"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39b_direct_test.c",
+    "test_id": "test_m4a3a33_clone_record"
+   },
+   {
+    "path": "tests/test_fl39b_direct.py",
+    "test_id": "Fl39bDirect.test_4a3a33_clone_record"
+   },
+   {
+    "path": "tests/test_fl39b_differential.py",
+    "test_id": "Fl39bDifferential.test_4a3a33_clone_record"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39b_original_oracle.py",
+   "window": [
+    "0x4a3a33",
+    "0x4a3aec"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Allocates 0x6c1 bytes with 0x51dc43, stores the block to [p0], reports a null block (0x50ca3e, 0x42639d, 0x4c97b4), otherwise copies 0x6c1 bytes (rep movsd, movsb) from [p1] to [p0]. All instructions run; both jump directions taken."
+ },
+ {
+  "va": "0x4a64b9",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39b.c",
+   "symbol": "m4a64b9_clone_record"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39b_direct_test.c",
+    "test_id": "test_m4a64b9_clone_record"
+   },
+   {
+    "path": "tests/test_fl39b_direct.py",
+    "test_id": "Fl39bDirect.test_4a64b9_clone_record"
+   },
+   {
+    "path": "tests/test_fl39b_differential.py",
+    "test_id": "Fl39bDifferential.test_4a64b9_clone_record"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39b_original_oracle.py",
+   "window": [
+    "0x4a64b9",
+    "0x4a6574"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Allocates 0x3d7 bytes with 0x51dc43, stores the block to [p0], reports a null block (0x50ca3e, 0x42639d, 0x4c97b4), otherwise copies 0x3d7 bytes (rep movsd, movsw, movsb) from [p1] to [p0]. All instructions run; both jump directions taken."
+ },
+ {
+  "va": "0x4a7e50",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39b.c",
+   "symbol": "m4a7e50_clone_record"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39b_direct_test.c",
+    "test_id": "test_m4a7e50_clone_record"
+   },
+   {
+    "path": "tests/test_fl39b_direct.py",
+    "test_id": "Fl39bDirect.test_4a7e50_clone_record"
+   },
+   {
+    "path": "tests/test_fl39b_differential.py",
+    "test_id": "Fl39bDifferential.test_4a7e50_clone_record"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39b_original_oracle.py",
+   "window": [
+    "0x4a7e50",
+    "0x4a7f08"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Allocates 0x44c bytes with 0x51dc43, stores the block to [p0], reports a null block (0x50ca3e, 0x42639d, 0x4c97b4), otherwise copies 0x44c bytes (rep movsd) from [p1] to [p0]. All instructions run; both jump directions taken."
+ },
+ {
+  "va": "0x4ab46d",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39b.c",
+   "symbol": "m4ab46d_clone_record"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39b_direct_test.c",
+    "test_id": "test_m4ab46d_clone_record"
+   },
+   {
+    "path": "tests/test_fl39b_direct.py",
+    "test_id": "Fl39bDirect.test_4ab46d_clone_record"
+   },
+   {
+    "path": "tests/test_fl39b_differential.py",
+    "test_id": "Fl39bDifferential.test_4ab46d_clone_record"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39b_original_oracle.py",
+   "window": [
+    "0x4ab46d",
+    "0x4ab528"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Allocates 0xbbf bytes with 0x51dc43, stores the block to [p0], reports a null block (0x50ca3e, 0x42639d, 0x4c97b4), otherwise copies 0xbbf bytes (rep movsd, movsw, movsb) from [p1] to [p0]. All instructions run; both jump directions taken."
+ },
+ {
+  "va": "0x4acbf1",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39b.c",
+   "symbol": "m4acbf1_clone_record"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39b_direct_test.c",
+    "test_id": "test_m4acbf1_clone_record"
+   },
+   {
+    "path": "tests/test_fl39b_direct.py",
+    "test_id": "Fl39bDirect.test_4acbf1_clone_record"
+   },
+   {
+    "path": "tests/test_fl39b_differential.py",
+    "test_id": "Fl39bDifferential.test_4acbf1_clone_record"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39b_original_oracle.py",
+   "window": [
+    "0x4acbf1",
+    "0x4accab"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Allocates 0x33a bytes with 0x51dc43, stores the block to [p0], reports a null block (0x50ca3e, 0x42639d, 0x4c97b4), otherwise copies 0x33a bytes (rep movsd, movsw) from [p1] to [p0]. All instructions run; both jump directions taken."
+ },
+ {
+  "va": "0x4afe09",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39b.c",
+   "symbol": "m4afe09_clone_record"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39b_direct_test.c",
+    "test_id": "test_m4afe09_clone_record"
+   },
+   {
+    "path": "tests/test_fl39b_direct.py",
+    "test_id": "Fl39bDirect.test_4afe09_clone_record"
+   },
+   {
+    "path": "tests/test_fl39b_differential.py",
+    "test_id": "Fl39bDifferential.test_4afe09_clone_record"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39b_original_oracle.py",
+   "window": [
+    "0x4afe09",
+    "0x4afec1"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Allocates 0x37c bytes with 0x51dc43, stores the block to [p0], reports a null block (0x50ca3e, 0x42639d, 0x4c97b4), otherwise copies 0x37c bytes (rep movsd) from [p1] to [p0]. All instructions run; both jump directions taken."
+ },
+ {
+  "va": "0x4b3ddf",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39b.c",
+   "symbol": "m4b3ddf_clone_record"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39b_direct_test.c",
+    "test_id": "test_m4b3ddf_clone_record"
+   },
+   {
+    "path": "tests/test_fl39b_direct.py",
+    "test_id": "Fl39bDirect.test_4b3ddf_clone_record"
+   },
+   {
+    "path": "tests/test_fl39b_differential.py",
+    "test_id": "Fl39bDifferential.test_4b3ddf_clone_record"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39b_original_oracle.py",
+   "window": [
+    "0x4b3ddf",
+    "0x4b3e99"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Allocates 0x8ae bytes with 0x51dc43, stores the block to [p0], reports a null block (0x50ca3e, 0x42639d, 0x4c97b4), otherwise copies 0x8ae bytes (rep movsd, movsw) from [p1] to [p0]. All instructions run; both jump directions taken."
+ },
+ {
+  "va": "0x4b72cf",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39b.c",
+   "symbol": "m4b72cf_clone_record"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39b_direct_test.c",
+    "test_id": "test_m4b72cf_clone_record"
+   },
+   {
+    "path": "tests/test_fl39b_direct.py",
+    "test_id": "Fl39bDirect.test_4b72cf_clone_record"
+   },
+   {
+    "path": "tests/test_fl39b_differential.py",
+    "test_id": "Fl39bDifferential.test_4b72cf_clone_record"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39b_original_oracle.py",
+   "window": [
+    "0x4b72cf",
+    "0x4b7389"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Allocates 0x3c6 bytes with 0x51dc43, stores the block to [p0], reports a null block (0x50ca3e, 0x42639d, 0x4c97b4), otherwise copies 0x3c6 bytes (rep movsd, movsw) from [p1] to [p0]. All instructions run; both jump directions taken."
+ },
+ {
+  "va": "0x4b80d9",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39b.c",
+   "symbol": "m4b80d9_clone_record"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39b_direct_test.c",
+    "test_id": "test_m4b80d9_clone_record"
+   },
+   {
+    "path": "tests/test_fl39b_direct.py",
+    "test_id": "Fl39bDirect.test_4b80d9_clone_record"
+   },
+   {
+    "path": "tests/test_fl39b_differential.py",
+    "test_id": "Fl39bDifferential.test_4b80d9_clone_record"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39b_original_oracle.py",
+   "window": [
+    "0x4b80d9",
+    "0x4b8193"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Allocates 0x56e bytes with 0x51dc43, stores the block to [p0], reports a null block (0x50ca3e, 0x42639d, 0x4c97b4), otherwise copies 0x56e bytes (rep movsd, movsw) from [p1] to [p0]. All instructions run; both jump directions taken.",
+  "blockers_reviewed": [
+   {
+    "id": "A-D3.1:174da950eb5c5c07",
+    "rationale": "The receipt lists the non-zero diagnostics branch (call 0x44a2b7 at 0x4b8173) as unverified for the runtime slice; this port reproduces that branch and the oracle runs it against the original bytes with non-zero values of the debug word (every instruction executed, both outcomes of the test), the runtime wiring stays with the integration."
+   },
+   {
+    "id": "A-F5.1:174da950eb5c5c07",
+    "rationale": "The receipt lists the non-zero diagnostics branch (call 0x44a2b7 at 0x4b8173) as unverified for the runtime slice; this port reproduces that branch and the oracle runs it against the original bytes with non-zero values of the debug word (every instruction executed, both outcomes of the test), the runtime wiring stays with the integration."
+   }
+  ]
+ },
+ {
+  "va": "0x4ba2bd",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39b.c",
+   "symbol": "m4ba2bd_clone_record"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39b_direct_test.c",
+    "test_id": "test_m4ba2bd_clone_record"
+   },
+   {
+    "path": "tests/test_fl39b_direct.py",
+    "test_id": "Fl39bDirect.test_4ba2bd_clone_record"
+   },
+   {
+    "path": "tests/test_fl39b_differential.py",
+    "test_id": "Fl39bDifferential.test_4ba2bd_clone_record"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39b_original_oracle.py",
+   "window": [
+    "0x4ba2bd",
+    "0x4ba377"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Allocates 0xae2 bytes with 0x51dc43, stores the block to [p0], reports a null block (0x50ca3e, 0x42639d, 0x4c97b4), otherwise copies 0xae2 bytes (rep movsd, movsw) from [p1] to [p0]. All instructions run; both jump directions taken."
+ },
+ {
+  "va": "0x4e9a2c",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39b.c",
+   "symbol": "m4e9a2c_clone_record"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39b_direct_test.c",
+    "test_id": "test_m4e9a2c_clone_record"
+   },
+   {
+    "path": "tests/test_fl39b_direct.py",
+    "test_id": "Fl39bDirect.test_4e9a2c_clone_record"
+   },
+   {
+    "path": "tests/test_fl39b_differential.py",
+    "test_id": "Fl39bDifferential.test_4e9a2c_clone_record"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39b_original_oracle.py",
+   "window": [
+    "0x4e9a2c",
+    "0x4e9add"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Allocates 0x72 bytes with 0x51dc43, stores the block to [p0], reports a null block (0x50ca3e, 0x42639d, 0x4c97b4), otherwise copies 0x72 bytes (rep movsd, movsw) from [p1] to [p0]. All instructions run; both jump directions taken."
+ },
+ {
+  "va": "0x4e9add",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39b.c",
+   "symbol": "m4e9add_clone_record"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39b_direct_test.c",
+    "test_id": "test_m4e9add_clone_record"
+   },
+   {
+    "path": "tests/test_fl39b_direct.py",
+    "test_id": "Fl39bDirect.test_4e9add_clone_record"
+   },
+   {
+    "path": "tests/test_fl39b_differential.py",
+    "test_id": "Fl39bDifferential.test_4e9add_clone_record"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39b_original_oracle.py",
+   "window": [
+    "0x4e9add",
+    "0x4e9b87"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Allocates 0x2 bytes with 0x51dc43, stores the block to [p0], reports a null block (0x50ca3e, 0x42639d, 0x4c97b4), otherwise copies 0x2 bytes (one word move) from [p1] to [p0]. All instructions run; both jump directions taken.",
+  "blockers_reviewed": [
+   {
+    "id": "A-79.1:2a2edd867bbff84c",
+    "rationale": "The receipt lists the allocation-failure logging path and the non-zero diagnostic flag of 0x4e9add as unverified for the runtime slice; this port reproduces both and the oracle runs them against the original bytes (every instruction executed, both outcomes of each test), the runtime wiring stays with the integration."
+   }
+  ]
+ },
+ {
+  "va": "0x4e9b87",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39b.c",
+   "symbol": "m4e9b87_clone_record"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39b_direct_test.c",
+    "test_id": "test_m4e9b87_clone_record"
+   },
+   {
+    "path": "tests/test_fl39b_direct.py",
+    "test_id": "Fl39bDirect.test_4e9b87_clone_record"
+   },
+   {
+    "path": "tests/test_fl39b_differential.py",
+    "test_id": "Fl39bDifferential.test_4e9b87_clone_record"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39b_original_oracle.py",
+   "window": [
+    "0x4e9b87",
+    "0x4e9c2f"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Allocates 0x4 bytes with 0x51dc43, stores the block to [p0], reports a null block (0x50ca3e, 0x42639d, 0x4c97b4), otherwise copies 0x4 bytes (one dword move) from [p1] to [p0]. All instructions run; both jump directions taken."
+ },
+ {
+  "va": "0x4e9cdf",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39b.c",
+   "symbol": "m4e9cdf_clone_record"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39b_direct_test.c",
+    "test_id": "test_m4e9cdf_clone_record"
+   },
+   {
+    "path": "tests/test_fl39b_direct.py",
+    "test_id": "Fl39bDirect.test_4e9cdf_clone_record"
+   },
+   {
+    "path": "tests/test_fl39b_differential.py",
+    "test_id": "Fl39bDifferential.test_4e9cdf_clone_record"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39b_original_oracle.py",
+   "window": [
+    "0x4e9cdf",
+    "0x4e9d8f"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Allocates 0x6 bytes with 0x51dc43, stores the block to [p0], reports a null block (0x50ca3e, 0x42639d, 0x4c97b4), otherwise copies 0x6 bytes. All instructions run; both jump directions taken."
+ },
+ {
+  "va": "0x4fcda1",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39b.c",
+   "symbol": "m4fcda1_clone_record"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39b_direct_test.c",
+    "test_id": "test_m4fcda1_clone_record"
+   },
+   {
+    "path": "tests/test_fl39b_direct.py",
+    "test_id": "Fl39bDirect.test_4fcda1_clone_record"
+   },
+   {
+    "path": "tests/test_fl39b_differential.py",
+    "test_id": "Fl39bDifferential.test_4fcda1_clone_record"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39b_original_oracle.py",
+   "window": [
+    "0x4fcda1",
+    "0x4fce5e"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Allocates 0x16 bytes with 0x51dc43, stores the block to [p0], reports a null block (0x50ca3e, 0x42639d, dword 0x63a58a = 5, 0x4c97b4), otherwise copies 0x16 bytes (rep movsd. All instructions run; both jump directions taken."
+ }
+]

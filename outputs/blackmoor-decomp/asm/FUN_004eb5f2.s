@@ -8,15 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_examined_scene_return_pop
-# naming:       INFERRED (lower confidence, not verified): the repository text src/session_bindings_a7d.h:33 says "The original calls 0x4eb5f2 (restore the second saved-scene record, re-add the item taken along, request the"; src/action_family_7d_runtime.h:22 says "0x4eb5f2 is the pop that pairs with 0x4eb70f"
-# name-note:    Returns from the examined item scene: restores the second saved-scene record, re-adds the item, requests the inventory screen.
+# name:         m4eb5f2_lifted
+# naming:       native port src/original_methods_fl39d.c:m4eb5f2_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port
+# name-note:    Machine-translated from the instruction stream by the FL-39 lifter (213 recipes, original bytes run under Unicorn; golden vectors in the direct test); Not original source structure. All instructions run; both jump directions taken.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_7011
 # callees:      calls FUN_0052139c, FUN_004e9e84, FUN_004e0559
-# track-n:      outputs/blackmoor-decomp/src/action_family_7d_runtime.h:scene_restore_slot_pop (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 61 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl39d.c:m4eb5f2_lifted (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 61 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text
