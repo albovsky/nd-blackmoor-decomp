@@ -2275,6 +2275,10 @@
   "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
   "status": "mutation survivor"
  },
+ "0x48ad26": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
+ },
  "0x48ae05": {
   "directions": [
    52,
@@ -2556,6 +2560,10 @@
   "status": "mutation survivor"
  },
  "0x48e324": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
+ },
+ "0x48e3ca": {
   "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
   "status": "mutation survivor"
  },
@@ -3053,6 +3061,10 @@
    ]
   ]
  },
+ "0x49027c": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
+ },
  "0x491972": {
   "directions": [
    0,
@@ -3259,6 +3271,10 @@
     "fall-through"
    ]
   ]
+ },
+ "0x494f1f": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
  },
  "0x495536": {
   "directions": [
@@ -3684,6 +3700,10 @@
   ]
  },
  "0x4a10f1": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
+ },
+ "0x4a1358": {
   "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
   "status": "mutation survivor"
  },
@@ -4319,6 +4339,10 @@
   "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
   "status": "mutation survivor"
  },
+ "0x4a3beb": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
+ },
  "0x4a42c0": {
   "directions": [
    6,
@@ -4365,6 +4389,10 @@
     "fall-through"
    ]
   ]
+ },
+ "0x4a4c15": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
  },
  "0x4a4d55": {
   "directions": [
@@ -5159,6 +5187,10 @@
   "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
   "status": "mutation survivor"
  },
+ "0x4a8007": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
+ },
  "0x4a8697": {
   "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
   "status": "mutation survivor"
@@ -5508,6 +5540,14 @@
    ]
   ]
  },
+ "0x4a9f63": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
+ },
+ "0x4aa002": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
+ },
  "0x4aa81e": {
   "directions": [
    38,
@@ -5715,6 +5755,10 @@
   ]
  },
  "0x4aaf05": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
+ },
+ "0x4ab9fa": {
   "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
   "status": "mutation survivor"
  },
@@ -6085,6 +6129,10 @@
    ]
   ]
  },
+ "0x4accab": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
+ },
  "0x4acdc2": {
   "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
   "status": "mutation survivor"
@@ -6388,6 +6436,10 @@
     "taken"
    ]
   ]
+ },
+ "0x4ae96c": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
  },
  "0x4aec35": {
   "directions": [
@@ -6951,6 +7003,10 @@
     "taken"
    ]
   ]
+ },
+ "0x4b0f9f": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
  },
  "0x4b10e3": {
   "directions": [
@@ -7730,6 +7786,18 @@
     "fall-through"
    ]
   ]
+ },
+ "0x4b3f98": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
+ },
+ "0x4b4676": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
+ },
+ "0x4b4913": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
  },
  "0x4b49d4": {
   "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
@@ -8983,6 +9051,14 @@
   "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
   "status": "mutation survivor"
  },
+ "0x4be18b": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
+ },
+ "0x4be1dd": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
+ },
  "0x4be2c6": {
   "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
   "status": "mutation survivor"
@@ -9279,11 +9355,19 @@
    ]
   ]
  },
+ "0x4bf1f0": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
+ },
  "0x4bf8c2": {
   "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
   "status": "mutation survivor"
  },
  "0x4c0b8b": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
+ },
+ "0x4c0f70": {
   "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
   "status": "mutation survivor"
  },
@@ -9329,11 +9413,19 @@
    ]
   ]
  },
+ "0x4c4b12": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
+ },
  "0x4c4c2b": {
   "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
   "status": "mutation survivor"
  },
  "0x4c558b": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
+ },
+ "0x4c5770": {
   "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
   "status": "mutation survivor"
  },
@@ -9549,6 +9641,10 @@
     "taken"
    ]
   ]
+ },
+ "0x4cd645": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
  },
  "0x4cd6ff": {
   "directions": [
@@ -9997,6 +10093,10 @@
    ]
   ]
  },
+ "0x4d0275": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
+ },
  "0x4d040a": {
   "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
   "status": "mutation survivor"
@@ -10244,6 +10344,10 @@
   "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
   "status": "mutation survivor"
  },
+ "0x4d3fa9": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
+ },
  "0x4d4074": {
   "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
   "status": "mutation survivor"
@@ -10252,11 +10356,19 @@
   "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
   "status": "mutation survivor"
  },
+ "0x4d42e0": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
+ },
  "0x4d4377": {
   "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
   "status": "mutation survivor"
  },
  "0x4d4410": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
+ },
+ "0x4d46b3": {
   "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
   "status": "mutation survivor"
  },
@@ -10480,6 +10592,14 @@
    ]
   ]
  },
+ "0x4d5316": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
+ },
+ "0x4d5661": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
+ },
  "0x4d5b54": {
   "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
   "status": "mutation survivor"
@@ -10489,6 +10609,14 @@
   "status": "mutation survivor"
  },
  "0x4d5f91": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
+ },
+ "0x4d65e9": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
+ },
+ "0x4d6705": {
   "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
   "status": "mutation survivor"
  },
@@ -11377,6 +11505,10 @@
   "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
   "status": "mutation survivor"
  },
+ "0x4d912a": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
+ },
  "0x4d940a": {
   "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
   "status": "mutation survivor"
@@ -11758,6 +11890,14 @@
     "fall-through"
    ]
   ]
+ },
+ "0x4db29b": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
+ },
+ "0x4dbb13": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
  },
  "0x4dbcd0": {
   "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
@@ -12561,6 +12701,14 @@
   "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
   "status": "mutation survivor"
  },
+ "0x4de24f": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
+ },
+ "0x4de322": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
+ },
  "0x4de743": {
   "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
   "status": "mutation survivor"
@@ -13097,6 +13245,10 @@
   "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
   "status": "mutation survivor"
  },
+ "0x4e1d34": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
+ },
  "0x4e1db3": {
   "directions": [
    6,
@@ -13478,6 +13630,14 @@
    ]
   ]
  },
+ "0x4e2b99": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
+ },
+ "0x4e3093": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
+ },
  "0x4e354a": {
   "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
   "status": "mutation survivor"
@@ -13774,6 +13934,10 @@
     "fall-through"
    ]
   ]
+ },
+ "0x4e4a3a": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
  },
  "0x4e4bc4": {
   "directions": [
@@ -14780,6 +14944,10 @@
    ]
   ]
  },
+ "0x4e8622": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
+ },
  "0x4e8bb4": {
   "directions": [
    15,
@@ -15195,6 +15363,14 @@
   ]
  },
  "0x4e97ad": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
+ },
+ "0x4e9d8f": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
+ },
+ "0x4ea3a0": {
   "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
   "status": "mutation survivor"
  },
@@ -16254,6 +16430,10 @@
    ]
   ]
  },
+ "0x4ef2d1": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
+ },
  "0x4ef52a": {
   "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
   "status": "mutation survivor"
@@ -16271,6 +16451,10 @@
   "status": "mutation survivor"
  },
  "0x4f57e3": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
+ },
+ "0x4f6624": {
   "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
   "status": "mutation survivor"
  },
@@ -16322,6 +16506,10 @@
   ]
  },
  "0x4faa03": {
+  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "status": "mutation survivor"
+ },
+ "0x4fafc7": {
   "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
   "status": "mutation survivor"
  },

@@ -138,10 +138,10 @@ def main():
         items = []
         for kind, n, why in eval(m.group(2)[:m.group(2).rindex(']') + 1]):
             if why == 'survives':
-                items.append((kind, classify(kind, text, n, equiv.get(m.group(1), {}).get((kind, n), False)), text[n].strip()[:160]))
+                items.append((kind, classify(kind, text, n, equiv.get(m.group(1), {}).get((kind, n), False)), text[n].strip()[:160], n))
         if items:
             out['rows_with_survivors'][m.group(1)] = items
-            if any(c is None for _, c, _ in items):
+            if any(c is None for _, c, _, _ in items):
                 out['unexplained_rows'].append(m.group(1))
     out['unexplained_rows'].sort(key=lambda k: int(k, 16))
     if '--out' in sys.argv:

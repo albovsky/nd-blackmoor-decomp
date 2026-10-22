@@ -8,15 +8,13 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         m4a8007_lifted
-# naming:       native port src/original_methods_fl41.c:m4a8007_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port
-# name-note:    Machine-translated (scripts/lift_fl41.py), 7 seeds; oracle: 197/197 instructions, 2/2 jump directions; every mutant killed, identical -O2 code, or explained.
+# name:         fn_004a8007
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [eax + n] field_e2e, field_e32, field_e36, field_e3a, field_e3e, field_e42, field_e46, field_e4a, field_e4e, field_e52, field_e76, field_e8c and 1 more; [ecx + n] field_e16, field_e1a, field_e1e, field_e22, field_e26, field_e2a, field_e2e, field_e32, field_e36, field_e3a, field_e3e, field_e42 and 5 more; [edx + n] field_e26, field_e2a, field_e2e, field_e32, field_e46, field_e4a, field_e4e, field_e52, field_e84, field_e88, field_13a4, field_13a6
 # callees:      calls FUN_004a7f08
-# track-n:      outputs/blackmoor-decomp/src/original_methods_fl41.c:m4a8007_lifted (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 197 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl25a.c:m4a835c_hit_test (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 197 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32
 .text
