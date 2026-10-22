@@ -13,7 +13,7 @@
 # locals:       10 ebp-relative slot(s): local_8, local_c, local_18, local_1c, local_20, local_24, local_28, local_38, local_9c, local_a0
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      calls FUN_0044a2b7, KERNEL32.dll!GetComputerNameA, KERNEL32.dll!WritePrivateProfileStringA, FUN_0050ca3e, KERNEL32.dll!GetSystemInfo
-# track-n:      host-adapter: none
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl40.c:m44a6f2_lifted (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
 # unverified:   machine annotation only: the 248 instruction(s), 11 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32

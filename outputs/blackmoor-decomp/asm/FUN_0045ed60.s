@@ -8,15 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_card_slide_starter
-# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_f6_runtime.c:373 says "0x45ed60 / 0x45ef5a: start a card slide."
-# name-note:    Starts a card slide/animation.
+# name:         m45ed60_lifted
+# naming:       native port src/original_methods_fl40.c:m45ed60_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port
+# name-note:    Machine-translated from the original instructions (scripts/lift_function.py); 7 seeds; oracle 121/121 instructions, 4/4 jump directions; mutation survivors: tasks/fl40-survivors.json.
 # arguments:    3 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10; ret 0xc (callee pops 12 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_4, field_8, field_c, field_2ad, field_2d4, field_2d5, field_2d7, field_2d9, field_2fd, field_305, field_31d, field_62b and 2 more; [ecx + n] field_4, field_8, field_c, field_2a4, field_2ab, field_2d7, field_2dd, field_62b, field_62f; [edx + n] field_4, field_8, field_c, field_2d3, field_2d5, field_2d7, field_2fd, field_305, field_31d, field_379, field_39e
 # callees:      calls KERNEL32.dll!GetTickCount
-# track-n:      outputs/blackmoor-decomp/src/action_family_f6_runtime.c:slide_common (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 121 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl40.c:m45ed60_lifted (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 121 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

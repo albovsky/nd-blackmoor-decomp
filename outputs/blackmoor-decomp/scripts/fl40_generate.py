@@ -89,9 +89,15 @@ def children(row, o, overrides, untaken, rng):
             continue
         inputs.append((a, n, v))
     wanted = jcc_cmp_addresses(row, untaken)
-    events = [e for e in o.events if e[0] in wanted] if wanted else []
+    strings = []
+    for e in o.events:
+        if e[1] == 'str' and e[3]:          # FL-42: make the whole string at esi equal to the one it is compared with, or equal but for the last byte
+            strings.append([(e[2] + k, 1, b) for k, b in enumerate(e[3])])
+            strings.append([(e[2] + k, 1, b if k < len(e[3]) - 1 else b ^ 1) for k, b in enumerate(e[3])])
+    o_events = [e for e in o.events if e[1] != 'str']
+    events = [e for e in o_events if e[0] in wanted] if wanted else []
     if not events or rng.random() < 0.3:
-        events = o.events
+        events = o_events
     out = []
     for e in rng.sample(events, min(len(events), 6)):
         address, bits, a, b, ca, cb, wc = e
@@ -110,7 +116,7 @@ def children(row, o, overrides, untaken, rng):
         x, n, v = rng.choice(inputs)
         out.append((x, n, rng.choice([0, 1, 2, 0xff, 0x7fffffff, 0x80000000, 0xffffffff, rng.getrandbits(32), rng.randrange(0x100)]) & ((1 << (8 * n)) - 1)))
     rng.shuffle(out)
-    return out[:14]
+    return strings[:6] + out[:14]
 
 
 def search(args):
@@ -169,7 +175,8 @@ def search(args):
                 untaken = covers(row, ex, ed)[5]
                 for cell in children(row, o, overrides, untaken, rng):
                     merged = {(a, n): v for a, n, v in overrides}
-                    merged[(cell[0], cell[1])] = cell[2]
+                    for c_ in (cell if isinstance(cell, list) else [cell]):
+                        merged[(c_[0], c_[1])] = c_[2]
                     new = tuple(sorted((a, n, v) for (a, n), v in merged.items()))
                     key = scenario_key(seed, new)
                     if key in tried:

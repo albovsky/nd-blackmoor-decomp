@@ -4581,7 +4581,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_00527266.s",
-        "sha256": "d42ae6e5abaebe4f52e8913e86523c59603665c151c3f1360208d3cb45bb256b"
+        "sha256": "0aebad827f431f4a6ba8ec1c345f8ff884dbdb3fd0519bd6f66b483ea76215e4"
       },
       "status": "accepted",
       "va": 5403238
@@ -5001,7 +5001,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_00527396.s",
-        "sha256": "3f55b95711d53ce656e5043cf3e07a8e67a834f8455998fbee3eeea48aaa3361"
+        "sha256": "c215b842a94e81cec8c8c01c1a656aab1908a037346a1a7f23983380ba21ee61"
       },
       "status": "accepted",
       "va": 5403542
@@ -16543,9 +16543,9 @@
       "va": 5411400
     }
   ],
-  "manifest_sha256": "488cabdb61e593b5c61e66defbb087e4fcafb94df23ce02fa7ebb5102644899c",
+  "manifest_sha256": "a645feb6228b42f60bdd438c90230e02fb98e31ae66e1c579d9722aeae75a894",
   "named_functions": 560,
-  "names_sha256": "a50f7b9d310ff2b4e565f9bfdb3d9ebf88dd1d7a7c21fa8b5bd1952813032c5f",
+  "names_sha256": "a47a17f12f1776f8c04675ab0aca98d63c5e07ca5e4df2136d89a457bb358da3",
   "note": "Accepted functions are candidates for the tool_assisted_reconstructed_assembly class; they count only after root accepts the independent review. No claim is made about original C++ or compiler provenance.",
   "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45"
 }
