@@ -2,8 +2,8 @@
  "schema": "blackmoor-function-names/1",
  "note": "Names that committed evidence already states for assembly functions; every other source keeps the machine name fn_<va>. Written and checked by scripts/function_names.py; read by scripts/annotate_machine.py and scripts/audit_tool_assisted.py. A name is not a claim that the function is understood beyond its summary, and nothing here claims original C++ or compiler provenance.",
  "counts": {
-  "entries": 2730,
-  "native_port": 1536,
+  "entries": 2703,
+  "native_port": 1509,
   "parity_rule": 1,
   "ghidra_name": 83,
   "ghidra_funclet": 570,
@@ -12001,18 +12001,6 @@
    }
   },
   {
-   "va": "0x0048a70a",
-   "name": "m48a70a_lifted",
-   "basis": "native_port",
-   "summary": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken.",
-   "source": "native port src/original_methods_fl39d.c:m48a70a_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m48a70a_lifted",
-    "class": "native_oracle_verified"
-   }
-  },
-  {
    "va": "0x0048a7e5",
    "name": "m48a7e5_release_entry",
    "basis": "native_port",
@@ -12972,18 +12960,6 @@
    }
   },
   {
-   "va": "0x00495a5b",
-   "name": "m495a5b_lifted",
-   "basis": "native_port",
-   "summary": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken.",
-   "source": "native port src/original_methods_fl39d.c:m495a5b_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m495a5b_lifted",
-    "class": "native_oracle_verified"
-   }
-  },
-  {
    "va": "0x0049c45c",
    "name": "m49c45c_get_constant",
    "basis": "native_port",
@@ -13430,18 +13406,6 @@
    }
   },
   {
-   "va": "0x004a378a",
-   "name": "m4a378a_lifted",
-   "basis": "native_port",
-   "summary": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken.",
-   "source": "native port src/original_methods_fl39d.c:m4a378a_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4a378a_lifted",
-    "class": "native_oracle_verified"
-   }
-  },
-  {
    "va": "0x004a3910",
    "name": "m4a3910_mark_entry",
    "basis": "native_port",
@@ -13486,18 +13450,6 @@
    "native_source": {
     "path": "src/original_methods_fl39c.c",
     "symbol": "m4a3aec_clamp_rect",
-    "class": "native_oracle_verified"
-   }
-  },
-  {
-   "va": "0x004a3beb",
-   "name": "m4a3beb_lifted",
-   "basis": "native_port",
-   "summary": "Machine-translated from the instruction stream by the FL-39 lifter (16 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken.",
-   "source": "native port src/original_methods_fl39d.c:m4a3beb_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4a3beb_lifted",
     "class": "native_oracle_verified"
    }
   },
@@ -13884,18 +13836,6 @@
    }
   },
   {
-   "va": "0x004a8007",
-   "name": "m4a8007_lifted",
-   "basis": "native_port",
-   "summary": "Machine-translated from the instruction stream by the FL-39 lifter (41 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken.",
-   "source": "native port src/original_methods_fl39d.c:m4a8007_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4a8007_lifted",
-    "class": "native_oracle_verified"
-   }
-  },
-  {
    "va": "0x004a835c",
    "name": "m4a835c_hit_test",
    "basis": "native_port",
@@ -14017,18 +13957,6 @@
    "native_source": {
     "path": "src/original_methods_fl32b.c",
     "symbol": "m4a9f27_reset_fields",
-    "class": "native_oracle_verified"
-   }
-  },
-  {
-   "va": "0x004a9f63",
-   "name": "m4a9f63_lifted",
-   "basis": "native_port",
-   "summary": "Machine-translated from the instruction stream by the FL-39 lifter (15 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken.",
-   "source": "native port src/original_methods_fl39d.c:m4a9f63_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4a9f63_lifted",
     "class": "native_oracle_verified"
    }
   },
@@ -14394,18 +14322,6 @@
    "native_source": {
     "path": "src/original_methods_fl39b.c",
     "symbol": "m4acbf1_clone_record",
-    "class": "native_oracle_verified"
-   }
-  },
-  {
-   "va": "0x004accab",
-   "name": "m4accab_lifted",
-   "basis": "native_port",
-   "summary": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken.",
-   "source": "native port src/original_methods_fl39d.c:m4accab_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4accab_lifted",
     "class": "native_oracle_verified"
    }
   },
@@ -14842,18 +14758,6 @@
    "native_source": {
     "path": "src/original_methods_fl39c.c",
     "symbol": "m4b3e99_clamp_rect",
-    "class": "native_oracle_verified"
-   }
-  },
-  {
-   "va": "0x004b3f98",
-   "name": "m4b3f98_lifted",
-   "basis": "native_port",
-   "summary": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken.",
-   "source": "native port src/original_methods_fl39d.c:m4b3f98_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4b3f98_lifted",
     "class": "native_oracle_verified"
    }
   },
@@ -15662,18 +15566,6 @@
    "native_source": {
     "path": "src/original_methods_fl23b.c",
     "symbol": "m4ba4f2_click_276a",
-    "class": "native_oracle_verified"
-   }
-  },
-  {
-   "va": "0x004be2c6",
-   "name": "m4be2c6_lifted",
-   "basis": "native_port",
-   "summary": "Machine-translated from the instruction stream by the FL-39 lifter (51 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken.",
-   "source": "native port src/original_methods_fl39d.c:m4be2c6_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4be2c6_lifted",
     "class": "native_oracle_verified"
    }
   },
@@ -16561,30 +16453,6 @@
    ]
   },
   {
-   "va": "0x004c4b12",
-   "name": "m4c4b12_lifted",
-   "basis": "native_port",
-   "summary": "Machine-translated from the instruction stream by the FL-39 lifter (25 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken.",
-   "source": "native port src/original_methods_fl39d.c:m4c4b12_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4c4b12_lifted",
-    "class": "native_oracle_verified"
-   }
-  },
-  {
-   "va": "0x004c4c2b",
-   "name": "m4c4c2b_lifted",
-   "basis": "native_port",
-   "summary": "Machine-translated from the instruction stream by the FL-39 lifter (14 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken.",
-   "source": "native port src/original_methods_fl39d.c:m4c4c2b_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4c4c2b_lifted",
-    "class": "native_oracle_verified"
-   }
-  },
-  {
    "va": "0x004c4d4a",
    "name": "inferred_direct_draw_flip",
    "basis": "inferred_strings",
@@ -16938,18 +16806,6 @@
    "native_source": {
     "path": "src/original_methods_fl29a.c",
     "symbol": "m4c9340_scan_surface",
-    "class": "native_oracle_verified"
-   }
-  },
-  {
-   "va": "0x004c9428",
-   "name": "m4c9428_lifted",
-   "basis": "native_port",
-   "summary": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken.",
-   "source": "native port src/original_methods_fl39d.c:m4c9428_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4c9428_lifted",
     "class": "native_oracle_verified"
    }
   },
@@ -17585,18 +17441,6 @@
    "native_source": {
     "path": "src/original_methods_fl28c.c",
     "symbol": "m4cd243_read_tables",
-    "class": "native_oracle_verified"
-   }
-  },
-  {
-   "va": "0x004cd645",
-   "name": "m4cd645_lifted",
-   "basis": "native_port",
-   "summary": "Machine-translated from the instruction stream by the FL-39 lifter (23 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken.",
-   "source": "native port src/original_methods_fl39d.c:m4cd645_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4cd645_lifted",
     "class": "native_oracle_verified"
    }
   },
@@ -18807,18 +18651,6 @@
    }
   },
   {
-   "va": "0x004d912a",
-   "name": "m4d912a_lifted",
-   "basis": "native_port",
-   "summary": "Machine-translated from the instruction stream by the FL-39 lifter (35 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken.",
-   "source": "native port src/original_methods_fl39d.c:m4d912a_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4d912a_lifted",
-    "class": "native_oracle_verified"
-   }
-  },
-  {
    "va": "0x004d920c",
    "name": "m4d920c_lifted",
    "basis": "native_port",
@@ -19247,18 +19079,6 @@
    ]
   },
   {
-   "va": "0x004dd28d",
-   "name": "m4dd28d_lifted",
-   "basis": "native_port",
-   "summary": "Machine-translated from the instruction stream by the FL-39 lifter (44 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken.",
-   "source": "native port src/original_methods_fl39d.c:m4dd28d_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4dd28d_lifted",
-    "class": "native_oracle_verified"
-   }
-  },
-  {
    "va": "0x004dd380",
    "name": "m4dd380_scalar_deleting_dtor",
    "basis": "native_port",
@@ -19327,18 +19147,6 @@
    "native_source": {
     "path": "src/original_methods_fl39d.c",
     "symbol": "m4dd409_lifted",
-    "class": "native_oracle_verified"
-   }
-  },
-  {
-   "va": "0x004de009",
-   "name": "m4de009_lifted",
-   "basis": "native_port",
-   "summary": "Machine-translated from the instruction stream by the FL-39 lifter (13 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken.",
-   "source": "native port src/original_methods_fl39d.c:m4de009_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4de009_lifted",
     "class": "native_oracle_verified"
    }
   },
@@ -19719,18 +19527,6 @@
    ]
   },
   {
-   "va": "0x004e0619",
-   "name": "m4e0619_lifted",
-   "basis": "native_port",
-   "summary": "Machine-translated from the instruction stream by the FL-39 lifter (12 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken.",
-   "source": "native port src/original_methods_fl39d.c:m4e0619_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4e0619_lifted",
-    "class": "native_oracle_verified"
-   }
-  },
-  {
    "va": "0x004e069c",
    "name": "m4e069c_copy_in",
    "basis": "native_port",
@@ -20092,30 +19888,6 @@
    }
   },
   {
-   "va": "0x004e35e8",
-   "name": "m4e35e8_lifted",
-   "basis": "native_port",
-   "summary": "Machine-translated from the instruction stream by the FL-39 lifter (14 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken.",
-   "source": "native port src/original_methods_fl39d.c:m4e35e8_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4e35e8_lifted",
-    "class": "native_oracle_verified"
-   }
-  },
-  {
-   "va": "0x004e364a",
-   "name": "m4e364a_lifted",
-   "basis": "native_port",
-   "summary": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken.",
-   "source": "native port src/original_methods_fl39d.c:m4e364a_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4e364a_lifted",
-    "class": "native_oracle_verified"
-   }
-  },
-  {
    "va": "0x004e3691",
    "name": "m4e3691_lifted",
    "basis": "native_port",
@@ -20223,18 +19995,6 @@
    "native_source": {
     "path": "src/action_ui.c",
     "symbol": "sort_phone_records",
-    "class": "native_oracle_verified"
-   }
-  },
-  {
-   "va": "0x004e40a6",
-   "name": "m4e40a6_lifted",
-   "basis": "native_port",
-   "summary": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps.",
-   "source": "native port src/original_methods_fl39d.c:m4e40a6_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4e40a6_lifted",
     "class": "native_oracle_verified"
    }
   },
@@ -21108,18 +20868,6 @@
    }
   },
   {
-   "va": "0x004eb9c8",
-   "name": "m4eb9c8_lifted",
-   "basis": "native_port",
-   "summary": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken.",
-   "source": "native port src/original_methods_fl39d.c:m4eb9c8_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4eb9c8_lifted",
-    "class": "native_oracle_verified"
-   }
-  },
-  {
    "va": "0x004eba54",
    "name": "m4eba54_retarget_words",
    "basis": "native_port",
@@ -21912,30 +21660,6 @@
    ]
   },
   {
-   "va": "0x004f67be",
-   "name": "m4f67be_lifted",
-   "basis": "native_port",
-   "summary": "Machine-translated from the instruction stream by the FL-39 lifter (17 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken.",
-   "source": "native port src/original_methods_fl39d.c:m4f67be_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4f67be_lifted",
-    "class": "native_oracle_verified"
-   }
-  },
-  {
-   "va": "0x004f6810",
-   "name": "m4f6810_lifted",
-   "basis": "native_port",
-   "summary": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken.",
-   "source": "native port src/original_methods_fl39d.c:m4f6810_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4f6810_lifted",
-    "class": "native_oracle_verified"
-   }
-  },
-  {
    "va": "0x004f6cdc",
    "name": "inferred_sound_start_with_frame_sync",
    "basis": "inferred_prose",
@@ -22378,30 +22102,6 @@
    }
   },
   {
-   "va": "0x004fafc7",
-   "name": "m4fafc7_lifted",
-   "basis": "native_port",
-   "summary": "Machine-translated from the instruction stream by the FL-39 lifter (13 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken.",
-   "source": "native port src/original_methods_fl39d.c:m4fafc7_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4fafc7_lifted",
-    "class": "native_oracle_verified"
-   }
-  },
-  {
-   "va": "0x004fb018",
-   "name": "m4fb018_lifted",
-   "basis": "native_port",
-   "summary": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken.",
-   "source": "native port src/original_methods_fl39d.c:m4fb018_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4fb018_lifted",
-    "class": "native_oracle_verified"
-   }
-  },
-  {
    "va": "0x004fb071",
    "name": "m4fb071_lifted",
    "basis": "native_port",
@@ -22410,18 +22110,6 @@
    "native_source": {
     "path": "src/original_methods_fl39d.c",
     "symbol": "m4fb071_lifted",
-    "class": "native_oracle_verified"
-   }
-  },
-  {
-   "va": "0x004fb086",
-   "name": "m4fb086_lifted",
-   "basis": "native_port",
-   "summary": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken.",
-   "source": "native port src/original_methods_fl39d.c:m4fb086_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4fb086_lifted",
     "class": "native_oracle_verified"
    }
   },
@@ -22462,18 +22150,6 @@
    "native_source": {
     "path": "src/original_methods_fl28a.c",
     "symbol": "m4fb2e3_start_slot",
-    "class": "native_oracle_verified"
-   }
-  },
-  {
-   "va": "0x004fb737",
-   "name": "m4fb737_lifted",
-   "basis": "native_port",
-   "summary": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken.",
-   "source": "native port src/original_methods_fl39d.c:m4fb737_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4fb737_lifted",
     "class": "native_oracle_verified"
    }
   },
