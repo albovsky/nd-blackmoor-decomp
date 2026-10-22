@@ -70,7 +70,7 @@ def mixture(rng, style, magic):
         weights = [(15, 'zero'), (25, 'one'), (25, 'small'), (3, 'neg'), (12, 'magic'), (15, 'ptr'), (5, 'rand')]
     elif style == 4:
         weights = [(40, 'zero'), (3, 'one'), (3, 'small'), (3, 'neg'), (36, 'magic'), (10, 'ptr'), (5, 'rand')]
-    else:       # style 5 (seeds from HI_SEEDS on): values whose low half is small or zero and whose upper bytes are not, so that a narrower read of a 32-bit value differs
+    elif style == 5:       # style 5 (seeds from HI_SEEDS on): values whose low half is small or zero and whose upper bytes are not, so that a narrower read of a 32-bit value differs
         weights = [(12, 'zero'), (8, 'one'), (8, 'small'), (28, 'hi16'), (14, 'hi8'), (10, 'ptr'), (10, 'rand'), (10, 'magic')]
     total = sum(w for w, _ in weights)
     pick = rng.randrange(total)
@@ -256,6 +256,7 @@ def run_original(row, seed, overrides=(), observe=False):
     def stub(uc_, address, size_, user):
         esp = uc.reg_read(X.UC_X86_REG_ESP)
         ecx = uc.reg_read(X.UC_X86_REG_ECX)
+        held = tuple(uc.reg_read(getattr(X, 'UC_X86_REG_' + n)) for n in ('EAX', 'EDX', 'EBX', 'ESI', 'EDI', 'EBP'))
         words = struct.unpack('<%dI' % LOGGED, uc.mem_read(esp + 4, 4 * LOGGED))
         eax, ecx_out, edx, writes = stub_effect(stub_rng, magic, ecx, words)
         for at, data in writes:
@@ -263,7 +264,6 @@ def run_original(row, seed, overrides=(), observe=False):
             ensure(at + len(data) - 1)
             uc.mem_write(at, data)
         ident, cleanup = stubs[address]
-        held = tuple(uc.reg_read(getattr(X, 'UC_X86_REG_' + n)) for n in ('EAX', 'EDX', 'EBX', 'ESI', 'EDI', 'EBP'))
         trace.calls.append((ident, ecx, held, words, eax, ecx_out, edx, writes))
         ret = struct.unpack('<I', uc.mem_read(esp, 4))[0]
         uc.reg_write(X.UC_X86_REG_EAX, eax)

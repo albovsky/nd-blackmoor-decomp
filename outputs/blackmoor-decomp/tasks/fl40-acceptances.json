@@ -2,7 +2,7 @@
  {
   "va": "0x4010c0",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -27,7 +27,7 @@
  {
   "va": "0x4010d5",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -43,7 +43,7 @@
    "path": "tests/fl40_original_oracle.py",
    "window": [
     "0x4010d5",
-    "0x401100"
+    "0x4010f4"
    ]
   },
   "parts_accounted": [],
@@ -52,7 +52,7 @@
  {
   "va": "0x401130",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -68,7 +68,7 @@
    "path": "tests/fl40_original_oracle.py",
    "window": [
     "0x401130",
-    "0x401140"
+    "0x40113d"
    ]
   },
   "parts_accounted": [],
@@ -77,7 +77,7 @@
  {
   "va": "0x401140",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -93,7 +93,7 @@
    "path": "tests/fl40_original_oracle.py",
    "window": [
     "0x401140",
-    "0x401150"
+    "0x40114d"
    ]
   },
   "parts_accounted": [],
@@ -102,7 +102,7 @@
  {
   "va": "0x401150",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -118,16 +118,16 @@
    "path": "tests/fl40_original_oracle.py",
    "window": [
     "0x401150",
-    "0x401170"
+    "0x40116a"
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 12/12 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 12/12 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x401170",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -143,7 +143,7 @@
    "path": "tests/fl40_original_oracle.py",
    "window": [
     "0x401170",
-    "0x401190"
+    "0x40118a"
    ]
   },
   "parts_accounted": [],
@@ -152,7 +152,7 @@
  {
   "va": "0x4011f7",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -172,12 +172,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 24/24 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 24/24 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x401249",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -202,7 +202,7 @@
  {
   "va": "0x4013cc",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -218,7 +218,7 @@
    "path": "tests/fl40_original_oracle.py",
    "window": [
     "0x4013cc",
-    "0x401420"
+    "0x40141f"
    ]
   },
   "parts_accounted": [],
@@ -227,7 +227,7 @@
  {
   "va": "0x40149a",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -252,7 +252,7 @@
  {
   "va": "0x401511",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -277,7 +277,7 @@
  {
   "va": "0x401526",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -302,7 +302,7 @@
  {
   "va": "0x401589",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -322,12 +322,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 29/29 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 29/29 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x401c70",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -343,7 +343,7 @@
    "path": "tests/fl40_original_oracle.py",
    "window": [
     "0x401c70",
-    "0x401c90"
+    "0x401c83"
    ]
   },
   "parts_accounted": [],
@@ -352,7 +352,7 @@
  {
   "va": "0x401c90",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -368,7 +368,7 @@
    "path": "tests/fl40_original_oracle.py",
    "window": [
     "0x401c90",
-    "0x401cb0"
+    "0x401ca3"
    ]
   },
   "parts_accounted": [],
@@ -377,7 +377,7 @@
  {
   "va": "0x401cb0",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -402,7 +402,7 @@
  {
   "va": "0x402322",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -422,12 +422,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 23/23 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 23/23 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x4030ba",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -452,7 +452,7 @@
  {
   "va": "0x403229",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -477,7 +477,7 @@
  {
   "va": "0x4033db",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -497,12 +497,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 8 seeds; oracle: 648/648 instructions executed, 14/14 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 9 seeds; oracle: 648/648 instructions executed, 14/14 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x404186",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -527,7 +527,7 @@
  {
   "va": "0x4041a3",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -547,12 +547,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 19/19 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 19/19 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x4041d7",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -577,7 +577,7 @@
  {
   "va": "0x4041ec",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -602,7 +602,7 @@
  {
   "va": "0x404201",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -622,12 +622,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 27/27 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 5 seeds; oracle: 27/27 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x4048da",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -647,12 +647,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 20/20 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 5 seeds; oracle: 20/20 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x405b72",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -677,7 +677,7 @@
  {
   "va": "0x406739",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -697,12 +697,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 31/31 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 31/31 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x407bba",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -727,7 +727,7 @@
  {
   "va": "0x407c29",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -752,7 +752,7 @@
  {
   "va": "0x407ca7",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -772,12 +772,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 60/60 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 60/60 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x407da0",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -802,7 +802,7 @@
  {
   "va": "0x408a2a",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -827,7 +827,7 @@
  {
   "va": "0x408d49",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -852,7 +852,7 @@
  {
   "va": "0x40a209",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -877,7 +877,7 @@
  {
   "va": "0x411080",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -902,7 +902,7 @@
  {
   "va": "0x4110d7",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -927,7 +927,7 @@
  {
   "va": "0x41195c",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -952,7 +952,7 @@
  {
   "va": "0x4145a7",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -977,7 +977,7 @@
  {
   "va": "0x4150af",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -997,12 +997,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 29/29 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 29/29 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x415113",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -1022,12 +1022,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 29/29 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 5 seeds; oracle: 29/29 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x415aea",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -1052,7 +1052,7 @@
  {
   "va": "0x416e90",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -1077,7 +1077,7 @@
  {
   "va": "0x41a140",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -1097,12 +1097,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 33/33 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 33/33 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x41a336",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -1118,16 +1118,16 @@
    "path": "tests/fl40_original_oracle.py",
    "window": [
     "0x41a336",
-    "0x41a480"
+    "0x41a471"
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 75/75 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 5 seeds; oracle: 75/75 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x41a4b0",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -1152,7 +1152,7 @@
  {
   "va": "0x41aaa1",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -1172,12 +1172,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 281/281 instructions executed, 36/36 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 5 seeds; oracle: 281/281 instructions executed, 36/36 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x41aeaa",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -1197,12 +1197,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 7 seeds; oracle: 294/294 instructions executed, 40/40 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 9 seeds; oracle: 294/294 instructions executed, 40/40 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x41b2e6",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -1222,12 +1222,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 274/274 instructions executed, 36/36 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 7 seeds; oracle: 274/274 instructions executed, 36/36 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x41b925",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -1252,7 +1252,7 @@
  {
   "va": "0x41b992",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -1272,12 +1272,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 5 seeds; oracle: 130/130 instructions executed, 16/16 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 10 seeds; oracle: 130/130 instructions executed, 16/16 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x41be1a",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -1297,12 +1297,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 43/43 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 43/43 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x41bebc",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -1327,7 +1327,7 @@
  {
   "va": "0x41df05",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -1352,7 +1352,7 @@
  {
   "va": "0x425fa0",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -1377,7 +1377,7 @@
  {
   "va": "0x4262ac",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -1402,7 +1402,7 @@
  {
   "va": "0x426300",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -1422,12 +1422,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 23/23 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 23/23 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x426346",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -1452,7 +1452,7 @@
  {
   "va": "0x426367",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -1477,7 +1477,7 @@
  {
   "va": "0x4264e8",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -1493,11 +1493,11 @@
    "path": "tests/fl40_original_oracle.py",
    "window": [
     "0x4264e8",
-    "0x426510"
+    "0x426502"
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 12/12 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs.",
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 12/12 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs.",
   "blockers_reviewed": [
    {
     "id": "A-1C.1:de979ac2fa03d836",
@@ -1512,7 +1512,7 @@
  {
   "va": "0x426520",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -1537,7 +1537,7 @@
  {
   "va": "0x426c51",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -1557,12 +1557,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 45/45 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 45/45 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x426cf4",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -1587,7 +1587,7 @@
  {
   "va": "0x427420",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -1603,7 +1603,7 @@
    "path": "tests/fl40_original_oracle.py",
    "window": [
     "0x427420",
-    "0x427a40"
+    "0x427a32"
    ]
   },
   "parts_accounted": [],
@@ -1612,7 +1612,7 @@
  {
   "va": "0x42db5b",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -1632,12 +1632,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 5 seeds; oracle: 42/42 instructions executed, 10/10 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 8 seeds; oracle: 42/42 instructions executed, 10/10 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x42e006",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -1657,12 +1657,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 9 seeds; oracle: 197/197 instructions executed, 16/16 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 15 seeds; oracle: 197/197 instructions executed, 16/16 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x433e63",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -1682,12 +1682,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 21/21 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 21/21 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x434d56",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -1712,7 +1712,7 @@
  {
   "va": "0x43d7c4",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -1737,7 +1737,7 @@
  {
   "va": "0x43e96c",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -1776,7 +1776,7 @@
  {
   "va": "0x43eb75",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -1801,7 +1801,7 @@
  {
   "va": "0x43ecfb",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -1821,12 +1821,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 21/21 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 21/21 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x43ed36",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -1846,12 +1846,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 21/21 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 21/21 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x43edeb",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -1871,12 +1871,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 23/23 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 23/23 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x43ee2a",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -1896,12 +1896,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 23/23 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 23/23 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x43eff3",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -1921,12 +1921,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 35/35 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 6 seeds; oracle: 35/35 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x446075",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -1946,12 +1946,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 6 seeds; oracle: 27/27 instructions executed, 8/8 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 8 seeds; oracle: 27/27 instructions executed, 8/8 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x446faa",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -1976,7 +1976,7 @@
  {
   "va": "0x447c1c",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -2001,7 +2001,7 @@
  {
   "va": "0x447d60",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -2017,7 +2017,7 @@
    "path": "tests/fl40_original_oracle.py",
    "window": [
     "0x447d60",
-    "0x447d80"
+    "0x447d73"
    ]
   },
   "parts_accounted": [],
@@ -2026,7 +2026,7 @@
  {
   "va": "0x449d37",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -2051,7 +2051,7 @@
  {
   "va": "0x44a0c5",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -2076,7 +2076,7 @@
  {
   "va": "0x44af20",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -2092,7 +2092,7 @@
    "path": "tests/fl40_original_oracle.py",
    "window": [
     "0x44af20",
-    "0x44af40"
+    "0x44af33"
    ]
   },
   "parts_accounted": [],
@@ -2101,7 +2101,7 @@
  {
   "va": "0x44b05a",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -2121,12 +2121,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 52/52 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 5 seeds; oracle: 52/52 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x44bebb",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -2151,7 +2151,7 @@
  {
   "va": "0x44c44c",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -2176,7 +2176,7 @@
  {
   "va": "0x44e767",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -2201,7 +2201,7 @@
  {
   "va": "0x44f4fa",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -2217,16 +2217,16 @@
    "path": "tests/fl40_original_oracle.py",
    "window": [
     "0x44f4fa",
-    "0x44f620"
+    "0x44f615"
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 79/79 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 6 seeds; oracle: 79/79 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x44f996",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -2246,12 +2246,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 6 seeds; oracle: 72/72 instructions executed, 14/14 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 8 seeds; oracle: 72/72 instructions executed, 14/14 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x4540bd",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -2271,12 +2271,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 7 seeds; oracle: 69/69 instructions executed, 18/18 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 9 seeds; oracle: 69/69 instructions executed, 18/18 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x4541a6",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -2296,12 +2296,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 16/16 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 5 seeds; oracle: 16/16 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x4541cf",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -2321,12 +2321,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 47/47 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 5 seeds; oracle: 47/47 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x45445a",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -2346,12 +2346,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 8 seeds; oracle: 83/83 instructions executed, 20/20 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 9 seeds; oracle: 83/83 instructions executed, 20/20 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x456d07",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -2376,7 +2376,7 @@
  {
   "va": "0x458015",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -2401,7 +2401,7 @@
  {
   "va": "0x45ea4a",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -2421,12 +2421,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 3 seeds; oracle: 40/40 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 6 seeds; oracle: 40/40 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x4641bb",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -2446,12 +2446,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 12 seeds; oracle: 235/235 instructions executed, 30/30 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 17 seeds; oracle: 235/235 instructions executed, 30/30 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x4657e7",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -2471,12 +2471,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 7 seeds; oracle: 136/136 instructions executed, 16/16 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 9 seeds; oracle: 136/136 instructions executed, 16/16 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x465b3c",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -2496,12 +2496,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 34/34 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 10 seeds; oracle: 34/34 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x46e5fa",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -2521,12 +2521,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 1 seeds; oracle: 30/30 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 30/30 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x46e66a",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -2551,7 +2551,7 @@
  {
   "va": "0x46e823",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -2571,12 +2571,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 5 seeds; oracle: 122/122 instructions executed, 10/10 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 7 seeds; oracle: 122/122 instructions executed, 10/10 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x46f907",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -2601,7 +2601,7 @@
  {
   "va": "0x4709bb",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -2621,12 +2621,12 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 14/14 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 14/14 instructions executed, 2/2 conditional-jump directions taken, callees as recording stubs."
  },
  {
   "va": "0x470e8e",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -2646,7 +2646,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 6 seeds; oracle: 106/106 instructions executed, 10/10 conditional-jump directions taken, callees as recording stubs.",
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 10 seeds; oracle: 106/106 instructions executed, 10/10 conditional-jump directions taken, callees as recording stubs.",
   "blockers_reviewed": [
    {
     "id": "A-D6.1:6ad354188ac5758c",
@@ -2665,7 +2665,7 @@
  {
   "va": "0x472f21",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -2690,7 +2690,7 @@
  {
   "va": "0x472f95",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -2715,7 +2715,7 @@
  {
   "va": "0x4730a6",
   "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, no P1 after fix (FL-40)",
+  "reviewer": "pending diff review (FL-40)",
   "date": "2026-10-22",
   "native_source": {
    "path": "src/original_methods_fl40.c",
@@ -2735,7 +2735,7 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 37/37 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs.",
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 5 seeds; oracle: 37/37 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs.",
   "blockers_reviewed": [
    {
     "id": "RT-11:f7524f45a690aca7",

@@ -3,10 +3,10 @@
 
 A survivor is explained only when one of these holds for the mutated statement; everything else leaves its row pending:
   identical code   `cc -O2 -S` of the mutant and of the translation give the same assembly (tests/fl40_equiv_check.py): a flag nothing reads, a dead store
-  same value       a register reload `reg = RD(ebp +- k)` right after the store `WR(ebp +- k, reg)` of the same register, on straight-line code with no call, label, jump or
+  same value       a register reload `reg = RD(ebp +- k)` right after the store `WR(ebp +- k, reg)` or the load `reg = RD(ebp +- k)` of the same register, on straight-line code with no call, label, jump or
                    store that could hit the slot in between (a store through another register is assumed not to point into the function's own frame): the register already holds the value, so dropping the reload changes nothing
   cleanup          the bytes a played callee pops after a call (`esp += n`) when the next statement that touches esp is `esp = ebp` on straight-line code
-  frame            `ebp = esp` / `esp = ebp` where nothing reads ebp between that statement and the next `esp = ebp`
+  frame            `ebp = esp` / `esp = ebp` where nothing reads ebp between that statement and the next `esp = ebp`, or a `sub esp, N` whose next esp-touching statement is `esp = ebp`
 The earlier "local width" class (a narrower read of a frame local that the corpus never shows) is NOT an equivalence and is gone: those rows stay pending.
 
   fl40_survivors.py <mutation log> [--equiv tasks/fl40-equivalence.json] [--out tasks/fl40-survivors.json]
@@ -42,6 +42,8 @@ def aliasing_write(t, k):
         sa = a - (1 << 32) if a >= 1 << 31 else a
         sb = b - (1 << 32) if b >= 1 << 31 else b
         return abs(sa - sb) < 4 or abs(sa - sb) < int(width) // 8
+    if re.match(r'^0x[0-9a-f]+u$', base):
+        return False                                                  # an absolute address of the image: not the stack
     return base not in ('eax', 'ecx', 'edx', 'ebx', 'esi', 'edi')      # another register + offset: assumed not to point into this function's own frame
 
 
@@ -57,7 +59,7 @@ def same_value(lines, n):
         t = stmt(lines[j])
         if not t:
             continue
-        if t.startswith(want):
+        if t.startswith(want) or t.startswith('%s = RD32((uint32_t)(ebp + %su));' % (reg, k)):
             return True
         if BARRIER.search(t) or t.startswith('{') or re.match(r'^%s\b' % reg, t) or re.search(r'\b%s = ' % reg, t) or aliasing_write(t, k):
             return False
@@ -88,6 +90,22 @@ def frame_ok(lines, n):
     return forward(lines, n, lambda x: x.startswith('esp = ebp;'), lambda x: 'ebp' in x or BARRIER.search(x))
 
 
+def esp_adjust_ok(lines, n):
+    """`sub esp, N` of a frame allocation in a function whose only other uses of esp are the prologue push, the epilogue (`esp = ebp`, the pop of ebp, the ret
+    adjustment) and the pushes/calls of no statement: every return path restores esp from ebp, so the allocated size never shows"""
+    if not re.search(r'\besp = r_;', stmt(lines[n])):
+        return False
+    body = [stmt(l) for l in lines]
+    uses = [t for i, t in enumerate(body) if i != n and re.search(r'\besp\b', t) and not (i < n and t.startswith('ebp = esp;'))]
+    plain = ('esp -= 4u; WR32(esp, ebp);', 'esp = ebp;', 'ebp = RD32(esp); esp += 4u;')
+    for t in uses:
+        if t.startswith(plain) or re.match(r'^esp \+= \d+u; goto done;', t):
+            continue
+        return False
+    rets = sum(1 for t in body if 'goto done;' in t)
+    return rets > 0 and sum(1 for t in body if t.startswith('esp = ebp;')) >= rets
+
+
 def classify(kind, lines, n, equivalent):
     if equivalent:
         return 'identical code'
@@ -96,6 +114,8 @@ def classify(kind, lines, n, equivalent):
     if kind == 'literal' and cleanup_ok(lines, n):
         return 'cleanup'
     if kind == 'register' and frame_ok(lines, n):
+        return 'frame'
+    if kind in ('alu', 'literal', 'register', 'drop') and esp_adjust_ok(lines, n):
         return 'frame'
     return None
 

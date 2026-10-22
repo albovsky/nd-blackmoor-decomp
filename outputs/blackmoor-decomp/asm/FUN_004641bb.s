@@ -10,13 +10,13 @@
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         m4641bb_lifted
 # naming:       native port src/original_methods_fl40.c:m4641bb_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port
-# name-note:    Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 12 seeds; oracle: 235/235 instructions executed, 30/30 conditional-jump directions taken, callees as recording stubs.
+# name-note:    Machine-translated from the original instructions (scripts/lift_function.py) over the 32-bit address space, 17 seeds; oracle: 235/235 instructions executed, 30/30 conditional-jump directions taken, callees as recording stubs.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       5 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14
 # fields:       [eax + n] field_4, field_8, field_c, field_1e, field_8a, field_98, field_121, field_131, field_141, field_161; [ecx + n] field_4, field_8, field_c, field_8a, field_90, field_98, field_101, field_151; [edx + n] field_4, field_8, field_c, field_8a, field_8c, field_98, field_f1, field_111, field_171
 # callees:      none: no call or outward jump
 # track-n:      outputs/blackmoor-decomp/src/original_methods_fl40.c:m4641bb_lifted (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 235 instruction(s), 15 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
+# unverified:   machine annotation only: the 235 instruction(s), 15 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

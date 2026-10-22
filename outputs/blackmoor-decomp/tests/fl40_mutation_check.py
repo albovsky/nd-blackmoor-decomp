@@ -182,6 +182,8 @@ def check_row_inner(args):
                             found = i
                             break
                     os.write(w_fd, str(found).encode())
+                except MemoryError:             # the mutant ran away with memory: the original does not
+                    pass
                 except Exception as exc:        # a harness bug is not a kill
                     os.write(w_fd, b'E' + repr(exc).encode()[:200])
                 finally:
@@ -255,7 +257,7 @@ def main():
     work = [(k, corpus[k], funcs[k], helper if 'FL40_CALL_LIFTED' in funcs[k] else '', a.per_row, a.harden) for k in keys]
     total = killed = 0
     bad = []
-    with mp.Pool(a.jobs) as pool:
+    with mp.Pool(a.jobs, maxtasksperchild=1) as pool:        # a fresh process per row: the emulator instances of a long run add up
         for key, res in pool.imap_unordered(check_row, work):
             if 'error' in res:
                 print('%s COMPILE ERROR %s' % (key, res['error']))

@@ -8,15 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         m446ffb_lifted
-# naming:       native port src/original_methods_fl40.c:m446ffb_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port
-# name-note:    Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 104/104 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs.
+# name:         inferred_special_effect_initializer
+# naming:       INFERRED (lower confidence, not verified): the repository text tasks/A-28.3.2-sequence-loop.md:9 says "The original `0x446ffb` initializer sets object `+0x39 = width*height`"
+# name-note:    Initializer of the A-28 special-effect object: sets sizes and allocates capture buffers.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [eax + n] field_1c, field_21, field_39, field_45; [ecx + n] field_4, field_8, field_c, field_10, field_14, field_25, field_35, field_39, field_3d; [edx + n] field_1d, field_29, field_31, field_39, field_41
 # callees:      calls FUN_004473a9, FUN_0051dc43, FUN_0050ca3e, FUN_0042639d, FUN_004c97b4
-# track-n:      outputs/blackmoor-decomp/src/original_methods_fl40.c:m446ffb_lifted (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 104 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
+# track-n:      host-adapter: none
+# unverified:   machine annotation only: the 104 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text
