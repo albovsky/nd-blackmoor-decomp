@@ -8,15 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_dependency_clear_all
-# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/423c2b.c.txt, not original source) refers to the data labelled s_CDependency__ClearAll___00544874
-# name-note:    CDependency::ClearAll: resets the dependency fields of all 0xf0 scene entries to zero (or -1 for one field).
+# name:         m423c2b_lifted
+# naming:       native port src/original_methods_fl40.c:m423c2b_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port
+# name-note:    Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 61/61 instructions executed, 4/4 conditional-jump directions taken, callees as recording stubs.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       4 ebp-relative slot(s): local_4, local_8, local_c, local_10
 # fields:       [eax + n] field_c, field_18, field_24, field_30; [ecx + n] field_4, field_10, field_1c, field_28, field_34; [edx + n] field_8, field_14, field_20, field_2c, field_38
 # callees:      calls FUN_0050ca3e, FUN_0044a2b7
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 61 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class partial_native is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl40.c:m423c2b_lifted (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 61 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

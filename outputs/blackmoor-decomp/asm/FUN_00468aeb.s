@@ -8,15 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_dotconnect_puzzle_refresh_renderer
-# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/468aeb.c.txt, not original source) refers to the data labelled s_DOTCONNECTPUZZLE___active_point_0054b940, s_DOTCONNECTPUZZLE___refresh_entir_0054b8e0, s_DOTCONNECTPUZZLE___refresh_point_0054b910
-# name-note:    Redraws the DotConnect puzzle: refreshes the whole area, connecting lines pixel by pixel, the points and the active point.
+# name:         m468aeb_lifted
+# naming:       native port src/original_methods_fl40.c:m468aeb_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port
+# name-note:    Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 5 seeds; oracle: 162/162 instructions executed, 14/14 conditional-jump directions taken, callees as recording stubs.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       18 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c, local_20, local_24, local_28, local_2c, local_30 and 6 more
 # fields:       [eax + n] field_244; [ecx + n] field_21, field_131
 # callees:      calls FUN_004c5377, FUN_004c7770
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 162 instruction(s), 7 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl40.c:m468aeb_lifted (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 162 instruction(s), 7 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

@@ -8,15 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_play_sound_unless_no_sound_d
-# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/46f907.c.txt, not original source) refers to the data labelled s_NO_SOUND_0054c180
-# name-note:    If the name field is not NO_SOUND and FUN_004f6334 reports the sound not active, plays it via FUN_004fb2e3; then calls FUN_00448d11 if a global flag is set.
+# name:         m46f907_lifted
+# naming:       native port src/original_methods_fl40.c:m46f907_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port
+# name-note:    Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 7 seeds; oracle: 42/42 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       2 ebp-relative slot(s): local_4, local_8
 # fields:       [ecx + n] field_85
 # callees:      calls FUN_004f6334, FUN_004fb2e3, FUN_00448d11
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 42 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl40.c:m46f907_lifted (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 42 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

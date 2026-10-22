@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_00426520
+# name:         m426520_lifted
+# naming:       native port src/original_methods_fl40.c:m426520_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port
+# name-note:    Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 2 seeds; oracle: 356/356 instructions executed, 0/0 conditional-jump directions taken, callees as recording stubs.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       3 ebp-relative slot(s): local_4, local_c, local_10
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      calls FUN_00524c59, FUN_004d5260, FUN_004e0410, FUN_004e7a70, FUN_004e2ce0, FUN_004eb870, FUN_004e7630, FUN_004db260, FUN_004f0000, FUN_00447d10, FUN_00437710, FUN_004de5f0, FUN_00426300, FUN_004fa980, FUN_004f2640, FUN_004c0f70 and 69 more
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 356 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class static_navigation_only is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl40.c:m426520_lifted (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 356 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

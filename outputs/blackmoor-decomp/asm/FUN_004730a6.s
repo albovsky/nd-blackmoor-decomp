@@ -8,15 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_dialogue_object_cleanup
-# naming:       INFERRED (lower confidence, not verified): the repository text src/session_exit.h:188 says "Dialogue-object cleanup (0x4730a6 -> 0x4e1d34)"
-# name-note:    Dialogue-object cleanup, which leads on to 0x4e1d34.
+# name:         m4730a6_lifted
+# naming:       native port src/original_methods_fl40.c:m4730a6_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port
+# name-note:    Machine translation of the original instructions (scripts/lift_function.py) over the 32-bit address space, 4 seeds; oracle: 37/37 instructions executed, 6/6 conditional-jump directions taken, callees as recording stubs.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_4, field_14; [ecx + n] field_14; [edx + n] field_8
 # callees:      calls FUN_004e1d34, FUN_004c2dfb, FUN_004d3992, FUN_00472fb7
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 37 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl40.c:m4730a6_lifted (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 37 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text
