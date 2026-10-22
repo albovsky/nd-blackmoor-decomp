@@ -50044,39 +50044,6 @@
    "note": "Machine-translated from the instruction stream by the FL-39 lifter (35 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
-   "va": "0x48a70a",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
-   "date": "2026-10-21",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m48a70a_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/fl39d_direct_test.c",
-     "test_id": "test_m48a70a_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_direct.py",
-     "test_id": "Fl39dDirect.test_48a70a_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_differential.py",
-     "test_id": "Fl39dDifferential.test_48a70a_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl39d_original_oracle.py",
-    "window": [
-     "0x48a70a",
-     "0x48a7e5"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
-  },
-  {
    "va": "0x48aa66",
    "class": "native_oracle_verified",
    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
@@ -50407,39 +50374,6 @@
    "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
-   "va": "0x495a5b",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
-   "date": "2026-10-21",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m495a5b_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/fl39d_direct_test.c",
-     "test_id": "test_m495a5b_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_direct.py",
-     "test_id": "Fl39dDirect.test_495a5b_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_differential.py",
-     "test_id": "Fl39dDifferential.test_495a5b_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl39d_original_oracle.py",
-    "window": [
-     "0x495a5b",
-     "0x495af3"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
-  },
-  {
    "va": "0x49c46c",
    "class": "native_oracle_verified",
    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
@@ -50539,39 +50473,6 @@
    "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
-   "va": "0x4a378a",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
-   "date": "2026-10-21",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4a378a_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/fl39d_direct_test.c",
-     "test_id": "test_m4a378a_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_direct.py",
-     "test_id": "Fl39dDirect.test_4a378a_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_differential.py",
-     "test_id": "Fl39dDifferential.test_4a378a_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl39d_original_oracle.py",
-    "window": [
-     "0x4a378a",
-     "0x4a3884"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
-  },
-  {
    "va": "0x4a39c4",
    "class": "native_oracle_verified",
    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
@@ -50603,39 +50504,6 @@
    },
    "parts_accounted": [],
    "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
-  },
-  {
-   "va": "0x4a3beb",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
-   "date": "2026-10-21",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4a3beb_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/fl39d_direct_test.c",
-     "test_id": "test_m4a3beb_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_direct.py",
-     "test_id": "Fl39dDirect.test_4a3beb_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_differential.py",
-     "test_id": "Fl39dDifferential.test_4a3beb_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl39d_original_oracle.py",
-    "window": [
-     "0x4a3beb",
-     "0x4a3f40"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (16 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4a63dc",
@@ -50803,72 +50671,6 @@
    "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
-   "va": "0x4a8007",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
-   "date": "2026-10-21",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4a8007_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/fl39d_direct_test.c",
-     "test_id": "test_m4a8007_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_direct.py",
-     "test_id": "Fl39dDirect.test_4a8007_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_differential.py",
-     "test_id": "Fl39dDifferential.test_4a8007_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl39d_original_oracle.py",
-    "window": [
-     "0x4a8007",
-     "0x4a835c"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (41 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
-  },
-  {
-   "va": "0x4a9f63",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
-   "date": "2026-10-21",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4a9f63_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/fl39d_direct_test.c",
-     "test_id": "test_m4a9f63_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_direct.py",
-     "test_id": "Fl39dDirect.test_4a9f63_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_differential.py",
-     "test_id": "Fl39dDifferential.test_4a9f63_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl39d_original_oracle.py",
-    "window": [
-     "0x4a9f63",
-     "0x4a9fcb"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (15 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
-  },
-  {
    "va": "0x4ab706",
    "class": "native_oracle_verified",
    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
@@ -50896,39 +50698,6 @@
     "window": [
      "0x4ab706",
      "0x4ab85a"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
-  },
-  {
-   "va": "0x4accab",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
-   "date": "2026-10-21",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4accab_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/fl39d_direct_test.c",
-     "test_id": "test_m4accab_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_direct.py",
-     "test_id": "Fl39dDirect.test_4accab_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_differential.py",
-     "test_id": "Fl39dDifferential.test_4accab_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl39d_original_oracle.py",
-    "window": [
-     "0x4accab",
-     "0x4acdc2"
     ]
    },
    "parts_accounted": [],
@@ -50999,39 +50768,6 @@
    },
    "parts_accounted": [],
    "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
-  },
-  {
-   "va": "0x4b3f98",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
-   "date": "2026-10-21",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4b3f98_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/fl39d_direct_test.c",
-     "test_id": "test_m4b3f98_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_direct.py",
-     "test_id": "Fl39dDirect.test_4b3f98_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_differential.py",
-     "test_id": "Fl39dDifferential.test_4b3f98_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl39d_original_oracle.py",
-    "window": [
-     "0x4b3f98",
-     "0x4b42d3"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4b72a9",
@@ -51166,39 +50902,6 @@
    "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
-   "va": "0x4be2c6",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
-   "date": "2026-10-21",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4be2c6_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/fl39d_direct_test.c",
-     "test_id": "test_m4be2c6_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_direct.py",
-     "test_id": "Fl39dDirect.test_4be2c6_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_differential.py",
-     "test_id": "Fl39dDifferential.test_4be2c6_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl39d_original_oracle.py",
-    "window": [
-     "0x4be2c6",
-     "0x4be367"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (51 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
-  },
-  {
    "va": "0x4bed70",
    "class": "native_oracle_verified",
    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
@@ -51329,105 +51032,6 @@
    },
    "parts_accounted": [],
    "note": "Machine-translated from the instruction stream by the FL-39 lifter (16 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
-  },
-  {
-   "va": "0x4c4b12",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
-   "date": "2026-10-21",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4c4b12_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/fl39d_direct_test.c",
-     "test_id": "test_m4c4b12_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_direct.py",
-     "test_id": "Fl39dDirect.test_4c4b12_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_differential.py",
-     "test_id": "Fl39dDifferential.test_4c4b12_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl39d_original_oracle.py",
-    "window": [
-     "0x4c4b12",
-     "0x4c4c2b"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (25 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
-  },
-  {
-   "va": "0x4c4c2b",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
-   "date": "2026-10-21",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4c4c2b_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/fl39d_direct_test.c",
-     "test_id": "test_m4c4c2b_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_direct.py",
-     "test_id": "Fl39dDirect.test_4c4c2b_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_differential.py",
-     "test_id": "Fl39dDifferential.test_4c4c2b_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl39d_original_oracle.py",
-    "window": [
-     "0x4c4c2b",
-     "0x4c4d4a"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (14 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
-  },
-  {
-   "va": "0x4c9428",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
-   "date": "2026-10-21",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4c9428_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/fl39d_direct_test.c",
-     "test_id": "test_m4c9428_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_direct.py",
-     "test_id": "Fl39dDirect.test_4c9428_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_differential.py",
-     "test_id": "Fl39dDifferential.test_4c9428_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl39d_original_oracle.py",
-    "window": [
-     "0x4c9428",
-     "0x4c946b"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4c9b66",
@@ -51665,45 +51269,6 @@
    },
    "parts_accounted": [],
    "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
-  },
-  {
-   "va": "0x4cd645",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
-   "date": "2026-10-21",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4cd645_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/fl39d_direct_test.c",
-     "test_id": "test_m4cd645_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_direct.py",
-     "test_id": "Fl39dDirect.test_4cd645_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_differential.py",
-     "test_id": "Fl39dDifferential.test_4cd645_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl39d_original_oracle.py",
-    "window": [
-     "0x4cd645",
-     "0x4cd6ff"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (23 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken.",
-   "blockers_reviewed": [
-    {
-     "id": "A-2E.1:98d39096d37b0362",
-     "rationale": "The receipt lists the allocation-failure diagnostics and cleanup path as unverified for the runtime slice; this port is the single function proven against the original bytes, including that path, so the receipt gap does not apply to it."
-    }
-   ]
   },
   {
    "va": "0x4d00d2",
@@ -52207,39 +51772,6 @@
    "note": "Machine-translated from the instruction stream by the FL-39 lifter (25 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
-   "va": "0x4d912a",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
-   "date": "2026-10-21",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4d912a_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/fl39d_direct_test.c",
-     "test_id": "test_m4d912a_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_direct.py",
-     "test_id": "Fl39dDirect.test_4d912a_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_differential.py",
-     "test_id": "Fl39dDifferential.test_4d912a_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl39d_original_oracle.py",
-    "window": [
-     "0x4d912a",
-     "0x4d920c"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (35 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
-  },
-  {
    "va": "0x4d920c",
    "class": "native_oracle_verified",
    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
@@ -52471,39 +52003,6 @@
    "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
-   "va": "0x4dd28d",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
-   "date": "2026-10-21",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4dd28d_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/fl39d_direct_test.c",
-     "test_id": "test_m4dd28d_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_direct.py",
-     "test_id": "Fl39dDirect.test_4dd28d_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_differential.py",
-     "test_id": "Fl39dDifferential.test_4dd28d_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl39d_original_oracle.py",
-    "window": [
-     "0x4dd28d",
-     "0x4dd380"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (44 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
-  },
-  {
    "va": "0x4dd409",
    "class": "native_oracle_verified",
    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
@@ -52535,39 +52034,6 @@
    },
    "parts_accounted": [],
    "note": "Machine-translated from the instruction stream by the FL-39 lifter (27 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
-  },
-  {
-   "va": "0x4de009",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
-   "date": "2026-10-21",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4de009_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/fl39d_direct_test.c",
-     "test_id": "test_m4de009_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_direct.py",
-     "test_id": "Fl39dDirect.test_4de009_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_differential.py",
-     "test_id": "Fl39dDifferential.test_4de009_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl39d_original_oracle.py",
-    "window": [
-     "0x4de009",
-     "0x4de0cf"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (13 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4de0cf",
@@ -52774,39 +52240,6 @@
    "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
-   "va": "0x4e0619",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
-   "date": "2026-10-21",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4e0619_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/fl39d_direct_test.c",
-     "test_id": "test_m4e0619_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_direct.py",
-     "test_id": "Fl39dDirect.test_4e0619_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_differential.py",
-     "test_id": "Fl39dDifferential.test_4e0619_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl39d_original_oracle.py",
-    "window": [
-     "0x4e0619",
-     "0x4e069c"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (12 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
-  },
-  {
    "va": "0x4e119b",
    "class": "native_oracle_verified",
    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
@@ -52972,72 +52405,6 @@
    "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
-   "va": "0x4e35e8",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
-   "date": "2026-10-21",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4e35e8_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/fl39d_direct_test.c",
-     "test_id": "test_m4e35e8_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_direct.py",
-     "test_id": "Fl39dDirect.test_4e35e8_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_differential.py",
-     "test_id": "Fl39dDifferential.test_4e35e8_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl39d_original_oracle.py",
-    "window": [
-     "0x4e35e8",
-     "0x4e364a"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (14 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
-  },
-  {
-   "va": "0x4e364a",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
-   "date": "2026-10-21",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4e364a_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/fl39d_direct_test.c",
-     "test_id": "test_m4e364a_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_direct.py",
-     "test_id": "Fl39dDirect.test_4e364a_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_differential.py",
-     "test_id": "Fl39dDifferential.test_4e364a_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl39d_original_oracle.py",
-    "window": [
-     "0x4e364a",
-     "0x4e3691"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
-  },
-  {
    "va": "0x4e3691",
    "class": "native_oracle_verified",
    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
@@ -53164,39 +52531,6 @@
     "window": [
      "0x4e3a64",
      "0x4e3ade"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
-  },
-  {
-   "va": "0x4e40a6",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
-   "date": "2026-10-21",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4e40a6_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/fl39d_direct_test.c",
-     "test_id": "test_m4e40a6_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_direct.py",
-     "test_id": "Fl39dDirect.test_4e40a6_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_differential.py",
-     "test_id": "Fl39dDifferential.test_4e40a6_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl39d_original_oracle.py",
-    "window": [
-     "0x4e40a6",
-     "0x4e40fb"
     ]
    },
    "parts_accounted": [],
@@ -53477,39 +52811,6 @@
      "rationale": "The receipt says the host and scene descendants of handler 0x4eb5f2 were only discovered statically; this port is the handler function itself, proven instruction by instruction against the original bytes by the differential oracle."
     }
    ]
-  },
-  {
-   "va": "0x4eb9c8",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
-   "date": "2026-10-21",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4eb9c8_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/fl39d_direct_test.c",
-     "test_id": "test_m4eb9c8_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_direct.py",
-     "test_id": "Fl39dDirect.test_4eb9c8_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_differential.py",
-     "test_id": "Fl39dDifferential.test_4eb9c8_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl39d_original_oracle.py",
-    "window": [
-     "0x4eb9c8",
-     "0x4eba54"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4eda10",
@@ -53821,72 +53122,6 @@
    "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
-   "va": "0x4f67be",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
-   "date": "2026-10-21",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4f67be_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/fl39d_direct_test.c",
-     "test_id": "test_m4f67be_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_direct.py",
-     "test_id": "Fl39dDirect.test_4f67be_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_differential.py",
-     "test_id": "Fl39dDifferential.test_4f67be_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl39d_original_oracle.py",
-    "window": [
-     "0x4f67be",
-     "0x4f6810"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (17 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
-  },
-  {
-   "va": "0x4f6810",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
-   "date": "2026-10-21",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4f6810_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/fl39d_direct_test.c",
-     "test_id": "test_m4f6810_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_direct.py",
-     "test_id": "Fl39dDirect.test_4f6810_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_differential.py",
-     "test_id": "Fl39dDifferential.test_4f6810_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl39d_original_oracle.py",
-    "window": [
-     "0x4f6810",
-     "0x4f684a"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
-  },
-  {
    "va": "0x4f8a17",
    "class": "native_oracle_verified",
    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
@@ -53920,96 +53155,6 @@
    "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
   },
   {
-   "va": "0x4fafc7",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
-   "date": "2026-10-21",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4fafc7_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/fl39d_direct_test.c",
-     "test_id": "test_m4fafc7_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_direct.py",
-     "test_id": "Fl39dDirect.test_4fafc7_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_differential.py",
-     "test_id": "Fl39dDifferential.test_4fafc7_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl39d_original_oracle.py",
-    "window": [
-     "0x4fafc7",
-     "0x4fb018"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (13 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken.",
-   "blockers_reviewed": [
-    {
-     "id": "RT-11.1:69a6a5277ff4b95a",
-     "rationale": "The receipt lists the key-driven fade-stop callers as not modelled by the runtime; this port is the single function proven against the original bytes, so the runtime modelling gap does not affect its proof."
-    }
-   ]
-  },
-  {
-   "va": "0x4fb018",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
-   "date": "2026-10-21",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4fb018_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/fl39d_direct_test.c",
-     "test_id": "test_m4fb018_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_direct.py",
-     "test_id": "Fl39dDirect.test_4fb018_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_differential.py",
-     "test_id": "Fl39dDifferential.test_4fb018_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl39d_original_oracle.py",
-    "window": [
-     "0x4fb018",
-     "0x4fb071"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken.",
-   "blockers_reviewed": [
-    {
-     "id": "A-6D.1:489443acb9dc6613",
-     "rationale": "The receipt lists dispatcher arm callees as static only; this port is the callee function 0x4fb018 itself, proven against the original bytes with its own callees recorded, so the static-only note does not apply."
-    },
-    {
-     "id": "A-70.1:2550fd40524a43ce",
-     "rationale": "The receipt lists the dispatcher arm effects of 0x4fb018 as static navigation only; this port is that function proven against the original bytes by the differential oracle, so the navigation gap is closed for it."
-    },
-    {
-     "id": "RT-11:bbd107b5f000b7dd",
-     "rationale": "The receipt says other callers of 0x4fb018 and 0x4fb086 are not modelled by the runtime; this port is each function proven alone against the original bytes, independent of which callers the runtime models."
-    },
-    {
-     "id": "RT-5:b85fc26293d512ec",
-     "rationale": "The receipt blocker concerns the writers of DAT_0055cd94 that the runtime does not reproduce in the runtime slice; this port is the single function 0x4fb018 proven against the original bytes with every instruction run, and that wiring stays with the integration."
-    }
-   ]
-  },
-  {
    "va": "0x4fb071",
    "class": "native_oracle_verified",
    "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
@@ -54041,82 +53186,6 @@
    },
    "parts_accounted": [],
    "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; no conditional jumps."
-  },
-  {
-   "va": "0x4fb086",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
-   "date": "2026-10-21",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4fb086_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/fl39d_direct_test.c",
-     "test_id": "test_m4fb086_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_direct.py",
-     "test_id": "Fl39dDirect.test_4fb086_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_differential.py",
-     "test_id": "Fl39dDifferential.test_4fb086_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl39d_original_oracle.py",
-    "window": [
-     "0x4fb086",
-     "0x4fb0bf"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken.",
-   "blockers_reviewed": [
-    {
-     "id": "RT-11.1:69a6a5277ff4b95a",
-     "rationale": "The receipt lists the key-driven fade-stop callers as not modelled by the runtime; this port is the single function proven against the original bytes, so the runtime modelling gap does not affect its proof."
-    },
-    {
-     "id": "RT-11:bbd107b5f000b7dd",
-     "rationale": "The receipt says other callers of 0x4fb018 and 0x4fb086 are not modelled by the runtime; this port is each function proven alone against the original bytes, independent of which callers the runtime models."
-    }
-   ]
-  },
-  {
-   "va": "0x4fb737",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
-   "date": "2026-10-21",
-   "native_source": {
-    "path": "src/original_methods_fl39d.c",
-    "symbol": "m4fb737_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/fl39d_direct_test.c",
-     "test_id": "test_m4fb737_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_direct.py",
-     "test_id": "Fl39dDirect.test_4fb737_lifted"
-    },
-    {
-     "path": "tests/test_fl39d_differential.py",
-     "test_id": "Fl39dDifferential.test_4fb737_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl39d_original_oracle.py",
-    "window": [
-     "0x4fb737",
-     "0x4fb77a"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the instruction stream by the FL-39 lifter (11 recipes, original bytes run under Unicorn; golden vectors in the direct test). Not original source structure. All instructions run; both jump directions taken."
   },
   {
    "va": "0x4fba86",

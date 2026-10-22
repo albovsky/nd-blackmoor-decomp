@@ -1,5 +1,7 @@
 # FL-39 handoff: pending game rows at or above 0x480000 (batches `fl39a` to `fl39f`)
 
+> **Update (FL-41, 2026-10-22):** the batch d mutation check below was too weak (it sampled three mutants per function and did not mutate arithmetic and compares). The operator-level recheck in `tasks/fl41-handoff.md` sent 27 more batch d rows back to pending; the ledger now shows 1,744 ported. The counts in this file are FL-39's at its merge.
+
 Cloud thread, 2026-10-21 to 22 PDT. Pool rule (coordinator, Oct 21): FL-39 takes pending game rows at or above 0x480000, FL-40 takes rows below. GAME.EXE SHA-256 `afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45` (read only, never committed). Ledger after this slice: **1,771 ported** (1,502 on main after PR 162, +269 `native_oracle_verified`), 128 not needed, 2,289 pending; pending game rows 915, of them 428 at or above 0x480000.
 
 Method: every row is proved against the original bytes with the Unicorn differential oracle (`tests/fl39<x>_original_oracle.py`: original code only, callees as recording stubs, every instruction run and both directions of every conditional jump taken), then compared with the native port by a ctypes differential test (memory, calls, return value, cleanup) and by an exact-size heap direct test. Generators for the batches were throwaway scripts outside the repo.
