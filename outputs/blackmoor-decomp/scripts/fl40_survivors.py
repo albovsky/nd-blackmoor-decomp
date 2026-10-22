@@ -5,6 +5,9 @@ A survivor is explained only when one of these holds for the mutated statement; 
   identical code   `cc -O2 -S` of the mutant and of the translation give the same assembly (tests/fl40_equiv_check.py): a flag nothing reads, a dead store
   same value       a register reload `reg = RD(ebp +- k)` right after the store `WR(ebp +- k, reg)` or the load `reg = RD(ebp +- k)` of the same register, on straight-line code with no call, label, jump or
                    store that could hit the slot in between (a store through another register is assumed not to point into the function's own frame): the register already holds the value, so dropping the reload changes nothing
+  available copy   (FL-42) the same reload, across labels and jumps: a forward dataflow over the statements of the function (intersection at joins) tracks which register
+                   equals which frame slot; a reload of a register that equals the slot on every path to it changes nothing. A call kills eax, ecx, edx; a function that takes
+                   the address of a frame slot, or addresses its frame through esp, kills all slot facts at every call and every store through a register
   cleanup          the bytes a played callee pops after a call (`esp += n`) when the next statement that touches esp is `esp = ebp` on straight-line code
   frame            `ebp = esp` / `esp = ebp` where nothing reads ebp between that statement and the next `esp = ebp`, or a `sub esp, N` whose next esp-touching statement is `esp = ebp`
 The earlier "local width" class (a narrower read of a frame local that the corpus never shows) is NOT an equivalence and is gone: those rows stay pending.
@@ -66,6 +69,130 @@ def same_value(lines, n):
     return False
 
 
+SLOT_READ = re.compile(r'^(e[a-z]{2}) = RD32\(\(uint32_t\)\(ebp \+ (0x[0-9a-f]+)u\)\);')
+SLOT_WRITE = re.compile(r'\bWR32\(\(uint32_t\)\(ebp \+ (0x[0-9a-f]+)u\), (e[a-z]{2})\);')
+SLOT_ACCESS = re.compile(r'\b(?:RD|WR)(\d+)\(\(uint32_t\)\(ebp \+ (0x[0-9a-f]+)u\)')
+GP = ('eax', 'ecx', 'edx', 'ebx', 'esi', 'edi')
+LABEL = re.compile(r'^(L_[0-9a-f]+|done):$')
+
+
+def slot_range(k, width):
+    k = int(k, 16)
+    k = k - (1 << 32) if k >= 1 << 31 else k
+    return k, k + width
+
+
+def available_copies(lines):
+    """for every statement index, the set of (register, slot) pairs that hold on every path reaching it (None for a statement no path reaches); None when the function is not analysable"""
+    texts = [stmt(l) for l in lines]
+    start = next((i for i, t in enumerate(texts) if t.startswith('FL40_PROLOGUE')), None)
+    stop = next((i for i, t in enumerate(texts) if t.startswith('FL40_EPILOGUE')), None)
+    if start is None or stop is None:
+        return None
+    ids = [i for i in range(start + 1, stop) if texts[i] and not texts[i].startswith('/*')]
+    whole = '\n'.join(texts[i] for i in ids)
+    if re.search(r'switch|\bcase\b|\bwhile\b|\bfor\b', whole):
+        return None
+    if re.search(r'\besp \+ ', whole) or re.search(r'\bebp = (?!esp;|RD32\(esp\);)', whole):
+        return None                 # the frame is addressed through esp, or ebp is rebuilt
+    if 'ebp = esp;' not in whole:
+        return None                 # ebp is not this function's own frame pointer
+    first_epilogue = whole.find('esp = ebp;')
+    if first_epilogue >= 0 and re.search(r'\bWR\d+\(esp\b', whole[first_epilogue:]):
+        return None                 # a push after the frame is released could land on a slot
+    rest = SLOT_ACCESS.sub('', whole)
+    for allowed in ('ebp = esp;', 'esp = ebp;', 'ebp = RD32(esp);'):
+        rest = rest.replace(allowed, '')
+    rest = rest.replace('WR32(esp, ebp);', '', 1)           # the prologue push only
+    # the address of a slot (lea, push of ebp +- k, a copy of esp) leaves the function's own accesses: a callee or a store through a register may reach it
+    escapes = 'ebp' in rest or bool(re.search(r'= esp;|\(esp\)\);', rest.replace('esp = ebp;', '')))
+    labels, pending = {}, []
+    for i in ids:
+        if LABEL.match(texts[i]):
+            pending.append(texts[i][:-1])
+            continue
+        for lab in pending:
+            labels[lab] = i
+        pending = []
+    stmts = [i for i in ids if not LABEL.match(texts[i]) and texts[i] not in ('{', '}')]
+    succ = {}
+    for pos, i in enumerate(stmts):
+        t = texts[i]
+        nxt = stmts[pos + 1] if pos + 1 < len(stmts) else None
+        outs = []
+        m = re.search(r'goto (L_[0-9a-f]+|done);', t)
+        if m:
+            if labels.get(m.group(1)) is not None:
+                outs.append(labels[m.group(1)])
+            if t.startswith('if (') and nxt is not None:
+                outs.append(nxt)
+        elif nxt is not None:
+            outs.append(nxt)
+        succ[i] = outs
+
+    def transfer(i, facts):
+        t = texts[i]
+        out = set(facts)
+        written = {r for r in GP + ('ebp', 'esp') if re.search(r'(?<![\w.])%s (?:[-+*/&|^]|<<|>>)?= |(?<![\w.])%s(?:\+\+|--)|(?:\+\+|--)%s\b' % (r, r, r), t)}
+        if 'FL40_CALL_LIFTED' in t or 'FL40_TRAP' in t:
+            return set()
+        if 'FL40_CALL' in t:
+            written |= {'eax', 'ecx', 'edx'}
+            if escapes:
+                out = set()
+        if 'ebp' in written:
+            return set()
+        out = {f for f in out if f[0] not in written}
+        for m in SLOT_ACCESS.finditer(t):
+            if t[m.start():m.start() + 2] == 'WR':
+                lo, hi = slot_range(m.group(2), int(m.group(1)) // 8)
+                out = {f for f in out if not (lo < slot_range(f[1], 4)[1] and slot_range(f[1], 4)[0] < hi)}
+        for m in re.finditer(r'\bWR\d+\(([^;]*)', t):                 # a store whose address is built from ebp in any other way (indexed) may hit any slot
+            if 'ebp' in m.group(1).split(',')[0] and not SLOT_ACCESS.match(m.group(0)):
+                out = set()
+        if escapes and re.search(r'\bWR\d+\((?!\(uint32_t\)\(ebp \+ 0x[0-9a-f]+u\)|esp,)', t):
+            out = set()
+        m = SLOT_WRITE.search(t)
+        if m and not written and not t.startswith('if ('):
+            out.add((m.group(2), m.group(1)))
+        m = SLOT_READ.match(t)
+        if m and t.count('RD') == 1 and not t.startswith('if ('):
+            out.add((m.group(1), m.group(2)))
+        return out
+
+    IN = {i: None for i in stmts}
+    if not stmts:
+        return None
+    IN[stmts[0]] = set()
+    changed = True
+    while changed:
+        changed = False
+        for i in stmts:
+            if IN[i] is None:
+                continue
+            out = transfer(i, IN[i])
+            for j in succ[i]:
+                new = set(out) if IN[j] is None else IN[j] & out
+                if new != IN[j]:
+                    IN[j] = new
+                    changed = True
+    return IN
+
+
+_AVAILABLE = [None, None]
+
+
+def available_copy_ok(lines, n):
+    """lines[n] is `reg = RD32(slot)` and reg already equals the slot on every path to it"""
+    m = SLOT_READ.match(stmt(lines[n]))
+    if not m:
+        return False
+    if _AVAILABLE[0] is not lines:
+        _AVAILABLE[:] = [lines, available_copies(lines)]
+    facts = _AVAILABLE[1]
+    return facts is not None and facts.get(n) is not None and (m.group(1), m.group(2)) in facts[n]
+
+
 def forward(lines, n, ok, stop):
     for j in range(n + 1, len(lines)):
         t = stmt(lines[j])
@@ -109,7 +236,7 @@ def esp_adjust_ok(lines, n):
 def classify(kind, lines, n, equivalent):
     if equivalent:
         return 'identical code'
-    if kind == 'drop' and same_value(lines, n):
+    if kind == 'drop' and (same_value(lines, n) or available_copy_ok(lines, n)):
         return 'same value'
     if kind == 'literal' and cleanup_ok(lines, n):
         return 'cleanup'
@@ -136,10 +263,10 @@ def main():
         items = []
         for kind, n, why in eval(m.group(2)[:m.group(2).rindex(']') + 1]):
             if why == 'survives':
-                items.append((kind, classify(kind, text, n, equiv.get(m.group(1), {}).get((kind, n), False)), text[n].strip()[:160]))
+                items.append((kind, classify(kind, text, n, equiv.get(m.group(1), {}).get((kind, n), False)), text[n].strip()[:160], n))
         if items:
             out['rows_with_survivors'][m.group(1)] = items
-            if any(c is None for _, c, _ in items):
+            if any(c is None for _, c, _, _ in items):
                 out['unexplained_rows'].append(m.group(1))
     out['unexplained_rows'].sort(key=lambda k: int(k, 16))
     if '--out' in sys.argv:

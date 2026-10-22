@@ -14,7 +14,7 @@
 # fields:       [esp + n] stk_4
 # callees:      calls FUN_0050d6f7
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 8 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 8 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
 # note:         further_unindexed_code_at:0x0050d787
 .intel_syntax noprefix
 .code32

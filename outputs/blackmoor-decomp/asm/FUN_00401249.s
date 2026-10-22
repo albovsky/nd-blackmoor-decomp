@@ -8,15 +8,13 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         m401249_lifted
-# naming:       native port src/original_methods_fl40.c:m401249_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port
-# name-note:    Machine-translated from the original instructions (scripts/lift_function.py); 2 seeds; oracle 85/85 instructions, 2/2 jump directions; mutation survivors: tasks/fl40-survivors.json.
+# name:         fn_00401249
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       9 ebp-relative slot(s): local_4, local_c, local_998, local_e4c, local_e50, local_ed8, local_1964, local_2744, local_27d0
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      calls FUN_0050c920, FUN_00521ef1, FUN_00407bba, FUN_00404aca, FUN_004030ba, FUN_0040149a, FUN_00408a2a, FUN_0052233d, FUN_00522135, FUN_004d940a, FUN_00408d49, FUN_004014f5, FUN_00403229, FUN_00404af0, FUN_00407c29, FUN_00521fa5
-# track-n:      outputs/blackmoor-decomp/src/original_methods_fl40.c:m401249_lifted (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 85 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl40.c:m4011c0_lifted (function ledger class candidate_port; also m401249_lifted; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 85 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32
 .text

@@ -38,6 +38,7 @@ SOURCE = PROJECT / 'src/original_methods_fl40.c'
 CORPUS = HERE / 'fl40_corpus.json'
 REGS = ['eax', 'ecx', 'edx', 'ebx', 'esi', 'edi']
 EXTRA_SEEDS = range(5000, 5040)
+WINDOW = None       # --window lo:hi: only the picked mutants lo..hi-1 (a row with more mutants than one compiler run can hold)
 WIDE = 300          # --harden: seeds tried on a survivor after the extra ones
 
 
@@ -54,7 +55,7 @@ def split_functions(text):
 COMMENT = re.compile(r'^(.*?)(\s*/\* 0x[0-9a-f]+: .*\*/)?$')
 
 
-def mutants(text, va, rng, limit):
+def mutants(text, va, rng, limit, only=None):
     lines = text.split('\n')
     found = []
     for n, line in enumerate(lines):
@@ -115,7 +116,11 @@ def mutants(text, va, rng, limit):
             if by_kind[kind] and len(picked) < limit:
                 picked.append(by_kind[kind].pop())
     out = []
+    if WINDOW:
+        picked = picked[WINDOW[0]:WINDOW[1]]
     for kind, n, replacement in picked:
+        if only is not None and (kind, n) not in only:
+            continue
         mutated = list(lines)
         mutated[n] = replacement
         text2 = '\n'.join(mutated).replace('m%x_lifted' % va, 'm%x_mut%d' % (va, len(out)), 1)
@@ -138,11 +143,11 @@ def safe_original(row, sd, ov=()):
 
 
 def check_row_inner(args):
-    key, entry, text, helper, per_row, harden = args
+    key, entry, text, helper, per_row, harden, rescue = args
     va = int(key, 16)
     row = W.row_info(va, entry['body'], {int(k, 16): v for k, v in entry['callees'].items()}, {int(k, 16): v for k, v in entry['imports'].items()}, entry['fs'])
     rng = random.Random(va)
-    muts = mutants(text, va, rng, per_row)
+    muts = mutants(text, va, rng, per_row, rescue['only'] if rescue else None)     # FL-42 rescue: only the mutants that survived an earlier run, against a long list of new seeds
     scenarios = [(sd, [tuple(o) for o in ov]) for sd, ov in entry['seeds']]
     with tempfile.TemporaryDirectory() as tmp:
         src = Path(tmp) / 'm.c'
@@ -166,6 +171,7 @@ def check_row_inner(args):
         extra = None
         wide = None
         killed, survivors, killers = 0, [], set()
+        fresh_by_stage = []
         def first_mismatch(k, items):
             """Index of the first scenario on which mutant k differs from the recorded original, 'timeout' when it hangs, None when it agrees everywhere.
             Runs in a forked child with an alarm: a mutant that loops forever is dead."""
@@ -219,9 +225,25 @@ def check_row_inner(args):
             if dead:
                 killed += 1
             else:
+                if rescue:
+                    hit = None
+                    for stage in range(len(rescue['stages'])):        # new seeds in growing batches: most killable mutants die in the first
+                        while len(fresh_by_stage) <= stage:
+                            fresh_by_stage.append([(sd, (), t.digest()) for sd in rescue['stages'][len(fresh_by_stage)] for t in [safe_original(row, sd)] if t is not None and not t.fault])
+                        hit = first_mismatch(k, fresh_by_stage[stage])
+                        if hit is not None:
+                            if hit != 'timeout':
+                                killers.add(fresh_by_stage[stage][hit][0])
+                            break
+                    if hit is not None:
+                        killed += 1
+                        survivors.append((kind, n, 'killed by rescue seed'))
+                    else:
+                        survivors.append((kind, n, 'survives'))
+                    continue
                 if harden:
                     if wide is None:
-                        wide = [(sd, (), t.digest()) for sd in list(range(6000, 6000 + WIDE)) + list(range(W.HI_SEEDS, W.HI_SEEDS + WIDE)) for t in [safe_original(row, sd)] if t is not None and not t.fault]
+                        wide = [(sd, (), t.digest()) for sd in list(range(6000, 6000 + WIDE)) + list(range(W.HI_SEEDS, W.HI_SEEDS + WIDE)) + list(range(W.TGT_SEEDS, W.TGT_SEEDS + WIDE)) for t in [safe_original(row, sd)] if t is not None and not t.fault]
                     hit = first_mismatch(k, wide)
                     if hit is not None:
                         if hit != 'timeout':
@@ -248,13 +270,31 @@ def main():
     ap.add_argument('--rows')
     ap.add_argument('--per-row', type=int, default=30)
     ap.add_argument('--jobs', type=int, default=4)
+    ap.add_argument('--rescue', help='FL-42: a survivors file; retry only the mutants it lists as surviving, against --seeds new seeds (the extra and hardening ones are skipped)')
+    ap.add_argument('--seeds', type=int, default=1500)
     ap.add_argument('--harden', action='store_true', help='add to the corpus a seed that kills each survivor, where one of 300 more seeds does')
+    ap.add_argument('--window', help='lo:hi, only the picked mutants lo..hi-1 of each row')
     a = ap.parse_args()
+    global WINDOW
+    WINDOW = tuple(int(x) for x in a.window.split(':')) if a.window else None
     corpus = json.loads(CORPUS.read_text())
     funcs = split_functions(SOURCE.read_text())
     helper = funcs.get('0x50c920', '')
     keys = a.rows.split(',') if a.rows else sorted(corpus, key=lambda k: int(k, 16))
-    work = [(k, corpus[k], funcs[k], helper if 'FL40_CALL_LIFTED' in funcs[k] else '', a.per_row, a.harden) for k in keys]
+    rescue = {}
+    if a.rescue:        # a survivors file of scripts/fl40_survivors.py: the unexplained survivors of its rows
+        for row, items in json.loads(Path(a.rescue).read_text())['rows_with_survivors'].items():
+            only = {(kind, n) for kind, cls, _, n in items if cls is None}
+            if only:
+                rescue[row] = {'only': only}
+        keys = [k for k in keys if k in rescue]
+        stages, lo = [], W.TGT_SEEDS
+        for size in (60, 240, a.seeds):
+            stages.append(list(range(lo, lo + size)) + list(range(7300 + lo - W.TGT_SEEDS, 7300 + lo - W.TGT_SEEDS + size // 6)))
+            lo += size
+        for v in rescue.values():
+            v['stages'] = stages
+    work = [(k, corpus[k], funcs[k], helper if 'FL40_CALL_LIFTED' in funcs[k] else '', a.per_row, a.harden or bool(a.rescue), rescue.get(k)) for k in keys]
     total = killed = 0
     bad = []
     with mp.Pool(a.jobs, maxtasksperchild=1) as pool:        # a fresh process per row: the emulator instances of a long run add up
@@ -265,7 +305,7 @@ def main():
                 continue
             if res['killers']:
                 corpus[key]['seeds'].extend([sd, []] for sd in res['killers'])
-                if a.harden:        # kept as it goes: a long run that dies still leaves its seeds
+                if a.harden or a.rescue:        # kept as it goes: a long run that dies still leaves its seeds
                     CORPUS.write_text(json.dumps(corpus, indent=1, sort_keys=True) + '\n')
             total += res['mutants']
             killed += res['killed']
@@ -273,7 +313,7 @@ def main():
             print('%s mutants %d killed %d survivors %s' % (key, res['mutants'], res['killed'], res['survivors']), flush=True)
             if hard:
                 bad.append(key)
-    if a.harden:
+    if a.harden or a.rescue:
         CORPUS.write_text(json.dumps(corpus, indent=1, sort_keys=True) + '\n')
     print('TOTAL mutants %d killed %d rows with a survivor %d' % (total, killed, len(bad)))
     return 1 if bad else 0
