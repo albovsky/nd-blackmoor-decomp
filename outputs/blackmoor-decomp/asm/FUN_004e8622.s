@@ -8,15 +8,13 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_inventory_view_setup
-# naming:       INFERRED (lower confidence, not verified): the repository text src/inventory_view_runtime.h:20 says "then runs 0x4e8622 (view setup: reset 0x4e7ba7, slot rectangles from"
-# name-note:    View setup: resets state via 0x4e7ba7, sets slot rectangles from the UIIV chunk and selects the tab.
+# name:         fn_004e8622
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_4, field_8, field_c, field_6f10, field_6f18, field_7016, field_7fb6, field_7fc6, field_7fd2, field_822e, field_8232; [ecx + n] field_4, field_8, field_c, field_6b87, field_6e10, field_6f10, field_6f1c, field_7012, field_7016, field_701a, field_7654, field_7fca and 1 more; [edx + n] field_4, field_8, field_c, field_6f14, field_7654, field_7fc6, field_7fce, field_822e, field_8236
 # callees:      calls FUN_004ee572, FUN_004ee5f2, FUN_0050ca3e, FUN_004264e8, FUN_0044a2b7, FUN_004c97b4, FUN_004e7ba7, FUN_004edcb1, FUN_004ee6c7, FUN_004ee673, FUN_004e1db3, FUN_004e2990, FUN_004e29b7
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 209 instruction(s), 7 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class partial_native is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/inventory_view_runtime.c:inventory_view_open (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 209 instruction(s), 7 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32
 .text

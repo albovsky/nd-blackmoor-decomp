@@ -8,15 +8,13 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_frame_text_box_open
-# naming:       INFERRED (lower confidence, not verified): the repository text src/caption_lifecycle.h:248 says "0x4de24f(mode, text). The text is the caller's mutable C string."; src/action_family_51.h:63 says "0x4de24f(2, text) on the 0x61f864 frame text-box object."
-# name-note:    Opens the frame text box with a mode and a mutable text string.
+# name:         fn_004de24f
 # arguments:    2 ebp-relative stack slot(s) referenced: arg_8, arg_c; ret 0x8 (callee pops 8 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [edx + n] field_991
 # callees:      calls FUN_00448d11, FUN_0043dbd5, FUN_004ee673, FUN_004edf96, FUN_004e053f
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 42 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class partial_native is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/caption_lifecycle.h:caption_ctb_open (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 42 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32
 .text

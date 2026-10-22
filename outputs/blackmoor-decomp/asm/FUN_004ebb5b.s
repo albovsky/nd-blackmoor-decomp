@@ -8,15 +8,13 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_notebook_create
-# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/4ebb5b.c.txt, not original source) refers to the data labelled s_CNotebook__Create_____ERROR___Sc_0055cbfc
-# name-note:    Sets up the notebook UI (popup, tabs and per-tab setup); a failed pre-check reports a CNotebook::Create error.
+# name:         fn_004ebb5b
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_985, field_989, field_98d, field_ca8, field_fc6; [ecx + n] field_ca8, field_fc6, field_fce; [edx + n] field_989, field_fc6, field_fca
 # callees:      calls FUN_004ee572, FUN_004ee5f2, FUN_0050ca3e, FUN_004264e8, FUN_0044a2b7, FUN_004c97b4, FUN_004edcb1, FUN_004ee6c7, FUN_004ee673, FUN_004e1db3, FUN_004e2990, FUN_004e29b7
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 111 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
+# unverified:   machine annotation only: the 111 instruction(s), 5 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text
