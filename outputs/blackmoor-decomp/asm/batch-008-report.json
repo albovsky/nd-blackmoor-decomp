@@ -4581,7 +4581,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_00527266.s",
-        "sha256": "0aebad827f431f4a6ba8ec1c345f8ff884dbdb3fd0519bd6f66b483ea76215e4"
+        "sha256": "d42ae6e5abaebe4f52e8913e86523c59603665c151c3f1360208d3cb45bb256b"
       },
       "status": "accepted",
       "va": 5403238
@@ -5001,7 +5001,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_00527396.s",
-        "sha256": "c215b842a94e81cec8c8c01c1a656aab1908a037346a1a7f23983380ba21ee61"
+        "sha256": "3f55b95711d53ce656e5043cf3e07a8e67a834f8455998fbee3eeea48aaa3361"
       },
       "status": "accepted",
       "va": 5403542
@@ -13317,7 +13317,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_00528975.s",
-        "sha256": "54e3271d01b2d581096735491d49434965c64a8da3a4db84b7cccda23d3d9eb1"
+        "sha256": "cbb48e4c35c77e112e4246ddd0594f6331c4aabc2f28d22fd9bed2efad1b9ce9"
       },
       "status": "accepted",
       "va": 5409141
@@ -13373,7 +13373,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_005289a9.s",
-        "sha256": "f3a298d5d55e33d720755e2d70e8b788e783460f2d36c1b4e3e598df2864dd5b"
+        "sha256": "ceed824440bf46d2927a837d1122d7b17f4163df4aa5ee45e81fe38e8ef1369d"
       },
       "status": "accepted",
       "va": 5409193
@@ -16543,9 +16543,9 @@
       "va": 5411400
     }
   ],
-  "manifest_sha256": "a645feb6228b42f60bdd438c90230e02fb98e31ae66e1c579d9722aeae75a894",
+  "manifest_sha256": "874c1ee217fed4f62a4336d96af4a7e479a1d61bee3b796692e980f4bee79bf9",
   "named_functions": 560,
-  "names_sha256": "a47a17f12f1776f8c04675ab0aca98d63c5e07ca5e4df2136d89a457bb358da3",
+  "names_sha256": "67bcfa959d03eae094c89318a6fc2f9af9579a13fdb3dea4d2a93750b17a2954",
   "note": "Accepted functions are candidates for the tool_assisted_reconstructed_assembly class; they count only after root accepts the independent review. No claim is made about original C++ or compiler provenance.",
   "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45"
 }

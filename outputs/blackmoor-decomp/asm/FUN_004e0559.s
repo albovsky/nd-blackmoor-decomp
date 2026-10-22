@@ -8,15 +8,13 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_taskbar_ui_animation_request
-# naming:       INFERRED (lower confidence, not verified): the repository text src/action_family_7d_runtime.h:31 says "0x4e0559(1, 0, 0) on the task bar object 0x570508 (the UI"; src/session_bindings_a7d.h:26 says "the UI animation request 0x4e0559(index 1, enable 0, sub 0)"
-# name-note:    UI animation request on the task bar object 0x570508, setting the new-entry flags of a page.
+# name:         fn_004e0559
 # arguments:    3 ebp-relative stack slot(s) referenced: arg_8, arg_c, arg_10; ret 0xc (callee pops 12 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_753; [edx + n] field_753
 # callees:      none: no call or outward jump
 # track-n:      outputs/blackmoor-decomp/src/action_family_47_runtime.c:a47_step (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 43 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
+# unverified:   machine annotation only: the 43 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32
 .text
