@@ -1581,3 +1581,15 @@ Names: `function_names.py write`, `annotate_machine.py annotate --named` and `--
 Next pool: pending game rows 1,184; see `tasks/fl38-handoff.md`.
 
 Verification (FL-38): `extract_function_evidence.py --check`, `build_function_ledger.py --check`, `function_names.py check`, `annotate_machine.py check` and the six FL-38 modules pass on the final tree (145 tests with the batch oracles). Full suite on Linux (342 files, 4 at a time): 134 failing files; rerunning exactly those on clean main (`d0103aaf`) leaves 133 failing there too (the Mac-bound set), and the one extra, `test_action_family_ee_runtime`, timed out under load and passes alone (8 tests, 1 skipped, 330 s). No new failure.
+
+## Handoff: FL-39 pending game rows at or above 0x480000, 269 ports (2026-10-21 PDT, cloud thread)
+
+Ledger: **1,771 ported, 128 not needed, 2,289 pending** (1,502 on main after FL-38, PR 162). 269 new `native_oracle_verified` rows in six batches `fl39a` to `fl39f` (28, 20, 33, 127, 35, 26); pending game rows 915, of them 428 at or above 0x480000. Full handoff, row lists, mutation results and the owner notes: `tasks/fl39-handoff.md`.
+
+Oracle: original bytes under Unicorn, every instruction run and both directions of every conditional jump taken for all 269 rows; no untaken-edge allowlist. **Batch `fl39d` (127 rows) is machine-translated** by a throwaway lifter into instruction-level C; every acceptance note starts "Machine-translated", so one owner ruling covers it and the FL-40 rows of the same kind. 12 more lifter rows stay pending because a mutation survivor is unexplained (`tasks/fl39d-mutation.json`).
+
+Names: `function_names.py write`, `annotate_machine.py annotate` (indexed, then `--derived --named`), `refresh` and a re-audit of all ten batches (10 of 10 accepted with the pinned binutils 2.43.1 built from the Ubuntu old-releases orig tarball; SHA-512 matches the script's), `annotate_machine.py check` 0 differ.
+
+One Sonnet diff review: one P1 (five copied `blockers_reviewed` rationales named the wrong function) and wording P2s, all fixed.
+
+Verification (FL-39): `extract_function_evidence.py --check`, `build_function_ledger.py --check`, `function_names.py check`, `annotate_machine.py check` and `tests.test_function_names` pass; the 12 batch oracles exit 0. Full suite on Linux (354 files, 4 at a time): 135 failing files on the branch; rerunning exactly those on clean main (`fda2f229`) leaves 134 failing there too (the Mac-bound set); the one extra, `test_action_family_ee_runtime`, timed out at 900 s under load on the branch and passes alone (8 tests, 1 skipped, 313 s). No new failure.

@@ -1,0 +1,926 @@
+[
+ {
+  "va": "0x48220e",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39a.c",
+   "symbol": "m48220e_mark_entry"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39a_direct_test.c",
+    "test_id": "test_m48220e_mark_entry"
+   },
+   {
+    "path": "tests/test_fl39a_direct.py",
+    "test_id": "Fl39aDirect.test_48220e_mark_entry"
+   },
+   {
+    "path": "tests/test_fl39a_differential.py",
+    "test_id": "Fl39aDifferential.test_48220e_mark_entry"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39a_original_oracle.py",
+   "window": [
+    "0x48220e",
+    "0x482248"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Returns when byte [self+0xa8] is 0 or the signed word [self+0x1c] is -1; otherwise stores dword 1 at [0x5d15a5 + i*0x4a]. Both jumps taken both ways; all 18 instructions run."
+ },
+ {
+  "va": "0x487b4f",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39a.c",
+   "symbol": "m487b4f_release_entry"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39a_direct_test.c",
+    "test_id": "test_m487b4f_release_entry"
+   },
+   {
+    "path": "tests/test_fl39a_direct.py",
+    "test_id": "Fl39aDirect.test_487b4f_release_entry"
+   },
+   {
+    "path": "tests/test_fl39a_differential.py",
+    "test_id": "Fl39aDifferential.test_487b4f_release_entry"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39a_original_oracle.py",
+   "window": [
+    "0x487b4f",
+    "0x487b98"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "When dword [self+0x20] != 0 calls 0x4c2dfb(0x5cf659, self+0x20); when the signed word [self+0x1c] != -1 calls 0x4d3992(word); then returns 0x487b1a(self). Both jumps taken both ways; all 27 instructions run."
+ },
+ {
+  "va": "0x487b98",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39a.c",
+   "symbol": "m487b98_mark_entry"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39a_direct_test.c",
+    "test_id": "test_m487b98_mark_entry"
+   },
+   {
+    "path": "tests/test_fl39a_direct.py",
+    "test_id": "Fl39aDirect.test_487b98_mark_entry"
+   },
+   {
+    "path": "tests/test_fl39a_differential.py",
+    "test_id": "Fl39aDifferential.test_487b98_mark_entry"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39a_original_oracle.py",
+   "window": [
+    "0x487b98",
+    "0x487bcc"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Returns when dword [self+0x71] is 0 or the signed word [self+0x1c] is -1; otherwise stores dword 1 at [0x5d15a5 + i*0x4a]. Both jumps taken both ways; all 18 instructions run."
+ },
+ {
+  "va": "0x48a7e5",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39a.c",
+   "symbol": "m48a7e5_release_entry"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39a_direct_test.c",
+    "test_id": "test_m48a7e5_release_entry"
+   },
+   {
+    "path": "tests/test_fl39a_direct.py",
+    "test_id": "Fl39aDirect.test_48a7e5_release_entry"
+   },
+   {
+    "path": "tests/test_fl39a_differential.py",
+    "test_id": "Fl39aDifferential.test_48a7e5_release_entry"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39a_original_oracle.py",
+   "window": [
+    "0x48a7e5",
+    "0x48a82e"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "When dword [self+0x20] != 0 calls 0x4c2dfb(0x5cf659, self+0x20); when the signed word [self+0x1c] != -1 calls 0x4d3992(word); then returns 0x48a70a(self). Both jumps taken both ways; all 27 instructions run."
+ },
+ {
+  "va": "0x48a82e",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39a.c",
+   "symbol": "m48a82e_mark_entry"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39a_direct_test.c",
+    "test_id": "test_m48a82e_mark_entry"
+   },
+   {
+    "path": "tests/test_fl39a_direct.py",
+    "test_id": "Fl39aDirect.test_48a82e_mark_entry"
+   },
+   {
+    "path": "tests/test_fl39a_differential.py",
+    "test_id": "Fl39aDifferential.test_48a82e_mark_entry"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39a_original_oracle.py",
+   "window": [
+    "0x48a82e",
+    "0x48a865"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Returns when dword [self+0x1aa] is 0 or the signed word [self+0x1c] is -1; otherwise stores dword 1 at [0x5d15a5 + i*0x4a]. Both jumps taken both ways; all 18 instructions run."
+ },
+ {
+  "va": "0x48e393",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39a.c",
+   "symbol": "m48e393_mark_entry"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39a_direct_test.c",
+    "test_id": "test_m48e393_mark_entry"
+   },
+   {
+    "path": "tests/test_fl39a_direct.py",
+    "test_id": "Fl39aDirect.test_48e393_mark_entry"
+   },
+   {
+    "path": "tests/test_fl39a_differential.py",
+    "test_id": "Fl39aDifferential.test_48e393_mark_entry"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39a_original_oracle.py",
+   "window": [
+    "0x48e393",
+    "0x48e3ca"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Returns when dword [self+0x462] is 0 or the signed word [self+0x1c] is -1; otherwise stores dword 1 at [0x5d15a5 + i*0x4a]. Both jumps taken both ways; all 18 instructions run."
+ },
+ {
+  "va": "0x490547",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39a.c",
+   "symbol": "m490547_destroy_with_frame"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39a_direct_test.c",
+    "test_id": "test_m490547_destroy_with_frame"
+   },
+   {
+    "path": "tests/test_fl39a_direct.py",
+    "test_id": "Fl39aDirect.test_490547_destroy_with_frame"
+   },
+   {
+    "path": "tests/test_fl39a_differential.py",
+    "test_id": "Fl39aDifferential.test_490547_destroy_with_frame"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39a_original_oracle.py",
+   "window": [
+    "0x490547",
+    "0x490598"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Stores the dword 0x52daf8u at [this], calls 0x490d50(this) then 0x51d730(this) and returns the eax of the second; the SEH frame is not modelled. No jumps; all 22 instructions run."
+ },
+ {
+  "va": "0x493a10",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39a.c",
+   "symbol": "m493a10_mark_entry"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39a_direct_test.c",
+    "test_id": "test_m493a10_mark_entry"
+   },
+   {
+    "path": "tests/test_fl39a_direct.py",
+    "test_id": "Fl39aDirect.test_493a10_mark_entry"
+   },
+   {
+    "path": "tests/test_fl39a_differential.py",
+    "test_id": "Fl39aDifferential.test_493a10_mark_entry"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39a_original_oracle.py",
+   "window": [
+    "0x493a10",
+    "0x493a47"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Returns when dword [self+0x1f77] is 0 or the signed word [self+0x1c] is -1; otherwise stores dword 1 at [0x5d15a5 + i*0x4a]. Both jumps taken both ways; all 18 instructions run."
+ },
+ {
+  "va": "0x49c59f",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39a.c",
+   "symbol": "m49c59f_destroy_with_frame"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39a_direct_test.c",
+    "test_id": "test_m49c59f_destroy_with_frame"
+   },
+   {
+    "path": "tests/test_fl39a_direct.py",
+    "test_id": "Fl39aDirect.test_49c59f_destroy_with_frame"
+   },
+   {
+    "path": "tests/test_fl39a_differential.py",
+    "test_id": "Fl39aDifferential.test_49c59f_destroy_with_frame"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39a_original_oracle.py",
+   "window": [
+    "0x49c59f",
+    "0x49c5f0"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Stores the dword 0x52dbc8u at [this], calls 0x49c68a(this) then 0x51d730(this) and returns the eax of the second; the SEH frame is not modelled. No jumps; all 22 instructions run."
+ },
+ {
+  "va": "0x4a1ce0",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39a.c",
+   "symbol": "m4a1ce0_mark_entry"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39a_direct_test.c",
+    "test_id": "test_m4a1ce0_mark_entry"
+   },
+   {
+    "path": "tests/test_fl39a_direct.py",
+    "test_id": "Fl39aDirect.test_4a1ce0_mark_entry"
+   },
+   {
+    "path": "tests/test_fl39a_differential.py",
+    "test_id": "Fl39aDifferential.test_4a1ce0_mark_entry"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39a_original_oracle.py",
+   "window": [
+    "0x4a1ce0",
+    "0x4a1d14"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Returns when dword [self+0x60] is 0 or the signed word [self+0x1c] is -1; otherwise stores dword 1 at [0x5d15a5 + i*0x4a]. Both jumps taken both ways; all 18 instructions run."
+ },
+ {
+  "va": "0x4a3910",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39a.c",
+   "symbol": "m4a3910_mark_entry"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39a_direct_test.c",
+    "test_id": "test_m4a3910_mark_entry"
+   },
+   {
+    "path": "tests/test_fl39a_direct.py",
+    "test_id": "Fl39aDirect.test_4a3910_mark_entry"
+   },
+   {
+    "path": "tests/test_fl39a_differential.py",
+    "test_id": "Fl39aDifferential.test_4a3910_mark_entry"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39a_original_oracle.py",
+   "window": [
+    "0x4a3910",
+    "0x4a3947"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Returns when dword [self+0x26e] is 0 or the signed word [self+0x1c] is -1; otherwise stores dword 1 at [0x5d15a5 + i*0x4a]. Both jumps taken both ways; all 18 instructions run."
+ },
+ {
+  "va": "0x4a6477",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39a.c",
+   "symbol": "m4a6477_mark_entry"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39a_direct_test.c",
+    "test_id": "test_m4a6477_mark_entry"
+   },
+   {
+    "path": "tests/test_fl39a_direct.py",
+    "test_id": "Fl39aDirect.test_4a6477_mark_entry"
+   },
+   {
+    "path": "tests/test_fl39a_differential.py",
+    "test_id": "Fl39aDifferential.test_4a6477_mark_entry"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39a_original_oracle.py",
+   "window": [
+    "0x4a6477",
+    "0x4a64ae"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Returns when dword [self+0x86] is 0 or the signed word [self+0x1c] is -1; otherwise stores dword 1 at [0x5d15a5 + i*0x4a]. Both jumps taken both ways; all 18 instructions run."
+ },
+ {
+  "va": "0x4a7da5",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39a.c",
+   "symbol": "m4a7da5_mark_entry"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39a_direct_test.c",
+    "test_id": "test_m4a7da5_mark_entry"
+   },
+   {
+    "path": "tests/test_fl39a_direct.py",
+    "test_id": "Fl39aDirect.test_4a7da5_mark_entry"
+   },
+   {
+    "path": "tests/test_fl39a_differential.py",
+    "test_id": "Fl39aDifferential.test_4a7da5_mark_entry"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39a_original_oracle.py",
+   "window": [
+    "0x4a7da5",
+    "0x4a7ddc"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Returns when dword [self+0xe72] is 0 or the signed word [self+0x1c] is -1; otherwise stores dword 1 at [0x5d15a5 + i*0x4a]. Both jumps taken both ways; all 18 instructions run."
+ },
+ {
+  "va": "0x4a9fcb",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39a.c",
+   "symbol": "m4a9fcb_mark_entry"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39a_direct_test.c",
+    "test_id": "test_m4a9fcb_mark_entry"
+   },
+   {
+    "path": "tests/test_fl39a_direct.py",
+    "test_id": "Fl39aDirect.test_4a9fcb_mark_entry"
+   },
+   {
+    "path": "tests/test_fl39a_differential.py",
+    "test_id": "Fl39aDifferential.test_4a9fcb_mark_entry"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39a_original_oracle.py",
+   "window": [
+    "0x4a9fcb",
+    "0x4aa002"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Returns when byte [self+0x45] is 0 or the signed word [self+0x29] is -1; otherwise stores dword 1 at [0x5d15a5 + i*0x4a]. Both jumps taken both ways; all 18 instructions run."
+ },
+ {
+  "va": "0x4ab3dc",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39a.c",
+   "symbol": "m4ab3dc_release_entry"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39a_direct_test.c",
+    "test_id": "test_m4ab3dc_release_entry"
+   },
+   {
+    "path": "tests/test_fl39a_direct.py",
+    "test_id": "Fl39aDirect.test_4ab3dc_release_entry"
+   },
+   {
+    "path": "tests/test_fl39a_differential.py",
+    "test_id": "Fl39aDifferential.test_4ab3dc_release_entry"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39a_original_oracle.py",
+   "window": [
+    "0x4ab3dc",
+    "0x4ab425"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "When dword [self+0x20] != 0 calls 0x4c2dfb(0x5cf659, self+0x20); when the signed word [self+0x1c] != -1 calls 0x4d3992(word); then returns 0x4ab3a7(self). Both jumps taken both ways; all 27 instructions run."
+ },
+ {
+  "va": "0x4ab425",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39a.c",
+   "symbol": "m4ab425_mark_entry"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39a_direct_test.c",
+    "test_id": "test_m4ab425_mark_entry"
+   },
+   {
+    "path": "tests/test_fl39a_direct.py",
+    "test_id": "Fl39aDirect.test_4ab425_mark_entry"
+   },
+   {
+    "path": "tests/test_fl39a_differential.py",
+    "test_id": "Fl39aDifferential.test_4ab425_mark_entry"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39a_original_oracle.py",
+   "window": [
+    "0x4ab425",
+    "0x4ab459"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Returns when dword [self+0x54] is 0 or the signed word [self+0x1c] is -1; otherwise stores dword 1 at [0x5d15a5 + i*0x4a]. Both jumps taken both ways; all 18 instructions run."
+ },
+ {
+  "va": "0x4acbba",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39a.c",
+   "symbol": "m4acbba_mark_entry"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39a_direct_test.c",
+    "test_id": "test_m4acbba_mark_entry"
+   },
+   {
+    "path": "tests/test_fl39a_direct.py",
+    "test_id": "Fl39aDirect.test_4acbba_mark_entry"
+   },
+   {
+    "path": "tests/test_fl39a_differential.py",
+    "test_id": "Fl39aDifferential.test_4acbba_mark_entry"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39a_original_oracle.py",
+   "window": [
+    "0x4acbba",
+    "0x4acbf1"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Returns when dword [self+0xc1b] is 0 or the signed word [self+0x1c] is -1; otherwise stores dword 1 at [0x5d15a5 + i*0x4a]. Both jumps taken both ways; all 18 instructions run."
+ },
+ {
+  "va": "0x4afd7e",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39a.c",
+   "symbol": "m4afd7e_release_entry"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39a_direct_test.c",
+    "test_id": "test_m4afd7e_release_entry"
+   },
+   {
+    "path": "tests/test_fl39a_direct.py",
+    "test_id": "Fl39aDirect.test_4afd7e_release_entry"
+   },
+   {
+    "path": "tests/test_fl39a_differential.py",
+    "test_id": "Fl39aDifferential.test_4afd7e_release_entry"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39a_original_oracle.py",
+   "window": [
+    "0x4afd7e",
+    "0x4afdc7"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "When dword [self+0x20] != 0 calls 0x4c2dfb(0x5cf659, self+0x20); when the signed word [self+0x1c] != -1 calls 0x4d3992(word); then returns 0x4afd3a(self). Both jumps taken both ways; all 27 instructions run."
+ },
+ {
+  "va": "0x4afdc7",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39a.c",
+   "symbol": "m4afdc7_mark_entry"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39a_direct_test.c",
+    "test_id": "test_m4afdc7_mark_entry"
+   },
+   {
+    "path": "tests/test_fl39a_direct.py",
+    "test_id": "Fl39aDirect.test_4afdc7_mark_entry"
+   },
+   {
+    "path": "tests/test_fl39a_differential.py",
+    "test_id": "Fl39aDifferential.test_4afdc7_mark_entry"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39a_original_oracle.py",
+   "window": [
+    "0x4afdc7",
+    "0x4afdfe"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Returns when dword [self+0x1515] is 0 or the signed word [self+0x1c] is -1; otherwise stores dword 1 at [0x5d15a5 + i*0x4a]. Both jumps taken both ways; all 18 instructions run."
+ },
+ {
+  "va": "0x4b3d4d",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39a.c",
+   "symbol": "m4b3d4d_release_entry"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39a_direct_test.c",
+    "test_id": "test_m4b3d4d_release_entry"
+   },
+   {
+    "path": "tests/test_fl39a_direct.py",
+    "test_id": "Fl39aDirect.test_4b3d4d_release_entry"
+   },
+   {
+    "path": "tests/test_fl39a_differential.py",
+    "test_id": "Fl39aDifferential.test_4b3d4d_release_entry"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39a_original_oracle.py",
+   "window": [
+    "0x4b3d4d",
+    "0x4b3da2"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "When dword [self+0x754] != 0 calls 0x4c2dfb(0x5cf659, self+0x754); when the signed word [self+0x726] != -1 calls 0x4d3992(word); then returns 0x4b3c5a(self). Both jumps taken both ways; all 27 instructions run."
+ },
+ {
+  "va": "0x4b3da2",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39a.c",
+   "symbol": "m4b3da2_mark_entry"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39a_direct_test.c",
+    "test_id": "test_m4b3da2_mark_entry"
+   },
+   {
+    "path": "tests/test_fl39a_direct.py",
+    "test_id": "Fl39aDirect.test_4b3da2_mark_entry"
+   },
+   {
+    "path": "tests/test_fl39a_differential.py",
+    "test_id": "Fl39aDifferential.test_4b3da2_mark_entry"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39a_original_oracle.py",
+   "window": [
+    "0x4b3da2",
+    "0x4b3ddf"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Returns when dword [self+0x76e] is 0 or the signed word [self+0x726] is -1; otherwise stores dword 1 at [0x5d15a5 + i*0x4a]. Both jumps taken both ways; all 18 instructions run."
+ },
+ {
+  "va": "0x4b7229",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39a.c",
+   "symbol": "m4b7229_release_entry"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39a_direct_test.c",
+    "test_id": "test_m4b7229_release_entry"
+   },
+   {
+    "path": "tests/test_fl39a_direct.py",
+    "test_id": "Fl39aDirect.test_4b7229_release_entry"
+   },
+   {
+    "path": "tests/test_fl39a_differential.py",
+    "test_id": "Fl39aDifferential.test_4b7229_release_entry"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39a_original_oracle.py",
+   "window": [
+    "0x4b7229",
+    "0x4b7272"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "When dword [self+0x1d] != 0 calls 0x4c2dfb(0x5cf659, self+0x1d); when the signed word [self+0x2f] != -1 calls 0x4d3992(word); then returns 0x4b71f7(self). Both jumps taken both ways; all 27 instructions run."
+ },
+ {
+  "va": "0x4b7272",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39a.c",
+   "symbol": "m4b7272_mark_entry"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39a_direct_test.c",
+    "test_id": "test_m4b7272_mark_entry"
+   },
+   {
+    "path": "tests/test_fl39a_direct.py",
+    "test_id": "Fl39aDirect.test_4b7272_mark_entry"
+   },
+   {
+    "path": "tests/test_fl39a_differential.py",
+    "test_id": "Fl39aDifferential.test_4b7272_mark_entry"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39a_original_oracle.py",
+   "window": [
+    "0x4b7272",
+    "0x4b72a9"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Returns when byte [self+0x35] is 0 or the signed word [self+0x2f] is -1; otherwise stores dword 1 at [0x5d15a5 + i*0x4a]. Both jumps taken both ways; all 18 instructions run."
+ },
+ {
+  "va": "0x4ba22e",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39a.c",
+   "symbol": "m4ba22e_mark_entry"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39a_direct_test.c",
+    "test_id": "test_m4ba22e_mark_entry"
+   },
+   {
+    "path": "tests/test_fl39a_direct.py",
+    "test_id": "Fl39aDirect.test_4ba22e_mark_entry"
+   },
+   {
+    "path": "tests/test_fl39a_differential.py",
+    "test_id": "Fl39aDifferential.test_4ba22e_mark_entry"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39a_original_oracle.py",
+   "window": [
+    "0x4ba22e",
+    "0x4ba262"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Returns when dword [self+0x34] is 0 or the signed word [self+0x4] is -1; otherwise stores dword 1 at [0x5d15a5 + i*0x4a]. Both jumps taken both ways; all 18 instructions run."
+ },
+ {
+  "va": "0x4cafc1",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39a.c",
+   "symbol": "m4cafc1_mark_entry"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39a_direct_test.c",
+    "test_id": "test_m4cafc1_mark_entry"
+   },
+   {
+    "path": "tests/test_fl39a_direct.py",
+    "test_id": "Fl39aDirect.test_4cafc1_mark_entry"
+   },
+   {
+    "path": "tests/test_fl39a_differential.py",
+    "test_id": "Fl39aDifferential.test_4cafc1_mark_entry"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39a_original_oracle.py",
+   "window": [
+    "0x4cafc1",
+    "0x4caff5"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Returns when dword [self+0xe] is 0 or the signed word [self+0xc] is -1; otherwise stores dword 1 at [0x5d15a5 + i*0x4a]. Both jumps taken both ways; all 18 instructions run."
+ },
+ {
+  "va": "0x4dbf6e",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39a.c",
+   "symbol": "m4dbf6e_destroy_with_frame"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39a_direct_test.c",
+    "test_id": "test_m4dbf6e_destroy_with_frame"
+   },
+   {
+    "path": "tests/test_fl39a_direct.py",
+    "test_id": "Fl39aDirect.test_4dbf6e_destroy_with_frame"
+   },
+   {
+    "path": "tests/test_fl39a_differential.py",
+    "test_id": "Fl39aDifferential.test_4dbf6e_destroy_with_frame"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39a_original_oracle.py",
+   "window": [
+    "0x4dbf6e",
+    "0x4dbfbf"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Stores the dword 0x52e478u at [this], calls 0x4dc043(this) then 0x51d730(this) and returns the eax of the second; the SEH frame is not modelled. No jumps; all 22 instructions run."
+ },
+ {
+  "va": "0x4de1a4",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39a.c",
+   "symbol": "m4de1a4_destroy_with_frame"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39a_direct_test.c",
+    "test_id": "test_m4de1a4_destroy_with_frame"
+   },
+   {
+    "path": "tests/test_fl39a_direct.py",
+    "test_id": "Fl39aDirect.test_4de1a4_destroy_with_frame"
+   },
+   {
+    "path": "tests/test_fl39a_differential.py",
+    "test_id": "Fl39aDifferential.test_4de1a4_destroy_with_frame"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39a_original_oracle.py",
+   "window": [
+    "0x4de1a4",
+    "0x4de1f5"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Stores the dword 0x52e4ccu at [this], calls 0x4de214(this) then 0x4eda7c(this) and returns the eax of the second; the SEH frame is not modelled. No jumps; all 22 instructions run."
+ },
+ {
+  "va": "0x4e7684",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39a.c",
+   "symbol": "m4e7684_destroy_with_frame"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39a_direct_test.c",
+    "test_id": "test_m4e7684_destroy_with_frame"
+   },
+   {
+    "path": "tests/test_fl39a_direct.py",
+    "test_id": "Fl39aDirect.test_4e7684_destroy_with_frame"
+   },
+   {
+    "path": "tests/test_fl39a_differential.py",
+    "test_id": "Fl39aDifferential.test_4e7684_destroy_with_frame"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39a_original_oracle.py",
+   "window": [
+    "0x4e7684",
+    "0x4e76d5"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Stores the dword 0x52e4f0u at [this], calls 0x4e76ed(this) then 0x4eda7c(this) and returns the eax of the second; the SEH frame is not modelled. No jumps; all 22 instructions run."
+ }
+]

@@ -1,0 +1,1097 @@
+[
+ {
+  "va": "0x4a3aec",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39c.c",
+   "symbol": "m4a3aec_clamp_rect"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39c_direct_test.c",
+    "test_id": "test_m4a3aec_clamp_rect"
+   },
+   {
+    "path": "tests/test_fl39c_direct.py",
+    "test_id": "Fl39cDirect.test_4a3aec_clamp_rect"
+   },
+   {
+    "path": "tests/test_fl39c_differential.py",
+    "test_id": "Fl39cDifferential.test_4a3aec_clamp_rect"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39c_original_oracle.py",
+   "window": [
+    "0x4a3aec",
+    "0x4a3beb"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Clamps the signed dwords [self+0x22c]/[self+0x234] against the globals 0x58319a/0x5831a2 (word [self+0x832] keeps the width) and [self+0x228]/[self+0x230] against 0x583196/0x58319e. All instructions run; both jump directions taken."
+ },
+ {
+  "va": "0x4a7f08",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39c.c",
+   "symbol": "m4a7f08_clamp_rect"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39c_direct_test.c",
+    "test_id": "test_m4a7f08_clamp_rect"
+   },
+   {
+    "path": "tests/test_fl39c_direct.py",
+    "test_id": "Fl39cDirect.test_4a7f08_clamp_rect"
+   },
+   {
+    "path": "tests/test_fl39c_differential.py",
+    "test_id": "Fl39cDifferential.test_4a7f08_clamp_rect"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39c_original_oracle.py",
+   "window": [
+    "0x4a7f08",
+    "0x4a8007"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Clamps the signed dwords [self+0xe2a]/[self+0xe32] against the globals 0x58319a/0x5831a2 (word [self+0x13a6] keeps the width) and [self+0xe26]/[self+0xe2e] against 0x583196/0x58319e. All instructions run; both jump directions taken."
+ },
+ {
+  "va": "0x4ada0d",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39c.c",
+   "symbol": "m4ada0d_check_bytes"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39c_direct_test.c",
+    "test_id": "test_m4ada0d_check_bytes"
+   },
+   {
+    "path": "tests/test_fl39c_direct.py",
+    "test_id": "Fl39cDirect.test_4ada0d_check_bytes"
+   },
+   {
+    "path": "tests/test_fl39c_differential.py",
+    "test_id": "Fl39cDifferential.test_4ada0d_check_bytes"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39c_original_oracle.py",
+   "window": [
+    "0x4ada0d",
+    "0x4ada56"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Compares the nine bytes at [[self+0xc17]+0x296] with the nine at 0x5511d4 (repe cmpsb, stops at the first difference); when they differ calls 0x4fb2e3(word [[self+0xc17]+0x2b7]) on 0x5c3a67. All instructions run; both jump directions taken."
+ },
+ {
+  "va": "0x4ada56",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39c.c",
+   "symbol": "m4ada56_check_bytes"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39c_direct_test.c",
+    "test_id": "test_m4ada56_check_bytes"
+   },
+   {
+    "path": "tests/test_fl39c_direct.py",
+    "test_id": "Fl39cDirect.test_4ada56_check_bytes"
+   },
+   {
+    "path": "tests/test_fl39c_differential.py",
+    "test_id": "Fl39cDifferential.test_4ada56_check_bytes"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39c_original_oracle.py",
+   "window": [
+    "0x4ada56",
+    "0x4ada9f"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Compares the nine bytes at [[self+0xc17]+0x234] with the nine at 0x5511e0 (repe cmpsb, stops at the first difference); when they differ calls 0x4fb2e3(word [[self+0xc17]+0x255]) on 0x5c3a67. All instructions run; both jump directions taken."
+ },
+ {
+  "va": "0x4ada9f",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39c.c",
+   "symbol": "m4ada9f_check_bytes"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39c_direct_test.c",
+    "test_id": "test_m4ada9f_check_bytes"
+   },
+   {
+    "path": "tests/test_fl39c_direct.py",
+    "test_id": "Fl39cDirect.test_4ada9f_check_bytes"
+   },
+   {
+    "path": "tests/test_fl39c_differential.py",
+    "test_id": "Fl39cDifferential.test_4ada9f_check_bytes"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39c_original_oracle.py",
+   "window": [
+    "0x4ada9f",
+    "0x4adae8"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Compares the nine bytes at [[self+0xc17]+0x265] with the nine at 0x5511ec (repe cmpsb, stops at the first difference); when they differ calls 0x4fb2e3(word [[self+0xc17]+0x286]) on 0x5c3a67. All instructions run; both jump directions taken."
+ },
+ {
+  "va": "0x4b3e99",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39c.c",
+   "symbol": "m4b3e99_clamp_rect"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39c_direct_test.c",
+    "test_id": "test_m4b3e99_clamp_rect"
+   },
+   {
+    "path": "tests/test_fl39c_direct.py",
+    "test_id": "Fl39cDirect.test_4b3e99_clamp_rect"
+   },
+   {
+    "path": "tests/test_fl39c_differential.py",
+    "test_id": "Fl39cDifferential.test_4b3e99_clamp_rect"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39c_original_oracle.py",
+   "window": [
+    "0x4b3e99",
+    "0x4b3f98"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Clamps the signed dwords [self+0x6e0]/[self+0x6e8] against the globals 0x58319a/0x5831a2 (word [self+0x722] keeps the width) and [self+0x6dc]/[self+0x6e4] against 0x583196/0x58319e. All instructions run; both jump directions taken."
+ },
+ {
+  "va": "0x4be3d3",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39c.c",
+   "symbol": "m4be3d3_check_bytes"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39c_direct_test.c",
+    "test_id": "test_m4be3d3_check_bytes"
+   },
+   {
+    "path": "tests/test_fl39c_direct.py",
+    "test_id": "Fl39cDirect.test_4be3d3_check_bytes"
+   },
+   {
+    "path": "tests/test_fl39c_differential.py",
+    "test_id": "Fl39cDifferential.test_4be3d3_check_bytes"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39c_original_oracle.py",
+   "window": [
+    "0x4be3d3",
+    "0x4be410"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Compares the nine bytes at [self+0x31c] with the nine at 0x55214c (repe cmpsb, stops at the first difference); when they differ calls 0x4fb2e3(word [self+0x33d]) on 0x5c3a67. All instructions run; both jump directions taken."
+ },
+ {
+  "va": "0x4be410",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39c.c",
+   "symbol": "m4be410_check_bytes"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39c_direct_test.c",
+    "test_id": "test_m4be410_check_bytes"
+   },
+   {
+    "path": "tests/test_fl39c_direct.py",
+    "test_id": "Fl39cDirect.test_4be410_check_bytes"
+   },
+   {
+    "path": "tests/test_fl39c_differential.py",
+    "test_id": "Fl39cDifferential.test_4be410_check_bytes"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39c_original_oracle.py",
+   "window": [
+    "0x4be410",
+    "0x4be44d"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Compares the nine bytes at [self+0x34d] with the nine at 0x552158 (repe cmpsb, stops at the first difference); when they differ calls 0x4fb2e3(word [self+0x36e]) on 0x5c3a67. All instructions run; both jump directions taken."
+ },
+ {
+  "va": "0x4be44d",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39c.c",
+   "symbol": "m4be44d_check_bytes"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39c_direct_test.c",
+    "test_id": "test_m4be44d_check_bytes"
+   },
+   {
+    "path": "tests/test_fl39c_direct.py",
+    "test_id": "Fl39cDirect.test_4be44d_check_bytes"
+   },
+   {
+    "path": "tests/test_fl39c_differential.py",
+    "test_id": "Fl39cDifferential.test_4be44d_check_bytes"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39c_original_oracle.py",
+   "window": [
+    "0x4be44d",
+    "0x4be48a"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Compares the nine bytes at [self+0x37e] with the nine at 0x552164 (repe cmpsb, stops at the first difference); when they differ calls 0x4fb2e3(word [self+0x39f]) on 0x5c3a67. All instructions run; both jump directions taken."
+ },
+ {
+  "va": "0x4be48a",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39c.c",
+   "symbol": "m4be48a_check_bytes"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39c_direct_test.c",
+    "test_id": "test_m4be48a_check_bytes"
+   },
+   {
+    "path": "tests/test_fl39c_direct.py",
+    "test_id": "Fl39cDirect.test_4be48a_check_bytes"
+   },
+   {
+    "path": "tests/test_fl39c_differential.py",
+    "test_id": "Fl39cDifferential.test_4be48a_check_bytes"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39c_original_oracle.py",
+   "window": [
+    "0x4be48a",
+    "0x4be4c7"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Compares the nine bytes at [self+0x3af] with the nine at 0x552170 (repe cmpsb, stops at the first difference); when they differ calls 0x4fb2e3(word [self+0x3d0]) on 0x5c3a67. All instructions run; both jump directions taken."
+ },
+ {
+  "va": "0x4be4c7",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39c.c",
+   "symbol": "m4be4c7_check_bytes"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39c_direct_test.c",
+    "test_id": "test_m4be4c7_check_bytes"
+   },
+   {
+    "path": "tests/test_fl39c_direct.py",
+    "test_id": "Fl39cDirect.test_4be4c7_check_bytes"
+   },
+   {
+    "path": "tests/test_fl39c_differential.py",
+    "test_id": "Fl39cDifferential.test_4be4c7_check_bytes"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39c_original_oracle.py",
+   "window": [
+    "0x4be4c7",
+    "0x4be504"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Compares the nine bytes at [self+0x411] with the nine at 0x55217c (repe cmpsb, stops at the first difference); when they differ calls 0x4fb2e3(word [self+0x432]) on 0x5c3a67. All instructions run; both jump directions taken."
+ },
+ {
+  "va": "0x4be619",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39c.c",
+   "symbol": "m4be619_alloc_zero"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39c_direct_test.c",
+    "test_id": "test_m4be619_alloc_zero"
+   },
+   {
+    "path": "tests/test_fl39c_direct.py",
+    "test_id": "Fl39cDirect.test_4be619_alloc_zero"
+   },
+   {
+    "path": "tests/test_fl39c_differential.py",
+    "test_id": "Fl39cDifferential.test_4be619_alloc_zero"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39c_original_oracle.py",
+   "window": [
+    "0x4be619",
+    "0x4be6a4"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Allocates `size` bytes through 0x51dc43, stores the address at [out]; on 0 runs the diagnostic path (0x50ca3e, 0x4264e8, 0x44a2b7 when the debug word is set). All instructions run; both jump directions taken."
+ },
+ {
+  "va": "0x4bf542",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39c.c",
+   "symbol": "m4bf542_alloc_zero"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39c_direct_test.c",
+    "test_id": "test_m4bf542_alloc_zero"
+   },
+   {
+    "path": "tests/test_fl39c_direct.py",
+    "test_id": "Fl39cDirect.test_4bf542_alloc_zero"
+   },
+   {
+    "path": "tests/test_fl39c_differential.py",
+    "test_id": "Fl39cDifferential.test_4bf542_alloc_zero"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39c_original_oracle.py",
+   "window": [
+    "0x4bf542",
+    "0x4bf5d0"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Allocates `size` bytes through 0x51dc43, stores the address at [out]; on 0 runs the diagnostic path (0x50ca3e, 0x4264e8, 0x44a2b7 when the debug word is set). All instructions run; both jump directions taken."
+ },
+ {
+  "va": "0x4cb8d5",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39c.c",
+   "symbol": "m4cb8d5_get_via_out"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39c_direct_test.c",
+    "test_id": "test_m4cb8d5_get_via_out"
+   },
+   {
+    "path": "tests/test_fl39c_direct.py",
+    "test_id": "Fl39cDirect.test_4cb8d5_get_via_out"
+   },
+   {
+    "path": "tests/test_fl39c_differential.py",
+    "test_id": "Fl39cDifferential.test_4cb8d5_get_via_out"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39c_original_oracle.py",
+   "window": [
+    "0x4cb8d5",
+    "0x4cb8fa"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Clears a dword local, calls 0x4cc70f(this = self, &local, 0x18) and returns the local (what the callee stored through the pointer, not its eax). No jumps; all 14 instructions run."
+ },
+ {
+  "va": "0x4cb8fa",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39c.c",
+   "symbol": "m4cb8fa_get_via_out"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39c_direct_test.c",
+    "test_id": "test_m4cb8fa_get_via_out"
+   },
+   {
+    "path": "tests/test_fl39c_direct.py",
+    "test_id": "Fl39cDirect.test_4cb8fa_get_via_out"
+   },
+   {
+    "path": "tests/test_fl39c_differential.py",
+    "test_id": "Fl39cDifferential.test_4cb8fa_get_via_out"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39c_original_oracle.py",
+   "window": [
+    "0x4cb8fa",
+    "0x4cb91f"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Clears a dword local, calls 0x4cc70f(this = self, &local, 0xd) and returns the local (what the callee stored through the pointer, not its eax). No jumps; all 14 instructions run."
+ },
+ {
+  "va": "0x4cb91f",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39c.c",
+   "symbol": "m4cb91f_get_via_out"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39c_direct_test.c",
+    "test_id": "test_m4cb91f_get_via_out"
+   },
+   {
+    "path": "tests/test_fl39c_direct.py",
+    "test_id": "Fl39cDirect.test_4cb91f_get_via_out"
+   },
+   {
+    "path": "tests/test_fl39c_differential.py",
+    "test_id": "Fl39cDifferential.test_4cb91f_get_via_out"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39c_original_oracle.py",
+   "window": [
+    "0x4cb91f",
+    "0x4cb944"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Clears a dword local, calls 0x4cc70f(this = self, &local, 0x29) and returns the local (what the callee stored through the pointer, not its eax). No jumps; all 14 instructions run."
+ },
+ {
+  "va": "0x4cc70f",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39c.c",
+   "symbol": "m4cc70f_alloc_zero"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39c_direct_test.c",
+    "test_id": "test_m4cc70f_alloc_zero"
+   },
+   {
+    "path": "tests/test_fl39c_direct.py",
+    "test_id": "Fl39cDirect.test_4cc70f_alloc_zero"
+   },
+   {
+    "path": "tests/test_fl39c_differential.py",
+    "test_id": "Fl39cDifferential.test_4cc70f_alloc_zero"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39c_original_oracle.py",
+   "window": [
+    "0x4cc70f",
+    "0x4cc79a"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Allocates `size` bytes through 0x51dc43, stores the address at [out]; on 0 runs the diagnostic path (0x50ca3e, 0x4264e8, 0x44a2b7 when the debug word is set). All instructions run; both jump directions taken.",
+  "blockers_reviewed": [
+   {
+    "id": "A-1C.1:bbc72ea9374f083e",
+    "rationale": "The receipt lists the non-zero diagnostics branch (call 0x44a2b7 at 0x4cc767) as unverified for the runtime slice; this port reproduces that branch and the oracle runs it against the original bytes with non-zero values of the debug word (every instruction executed, both outcomes of the test), the runtime wiring stays with the integration."
+   }
+  ]
+ },
+ {
+  "va": "0x4d9910",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39c.c",
+   "symbol": "m4d9910_alloc_zero"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39c_direct_test.c",
+    "test_id": "test_m4d9910_alloc_zero"
+   },
+   {
+    "path": "tests/test_fl39c_direct.py",
+    "test_id": "Fl39cDirect.test_4d9910_alloc_zero"
+   },
+   {
+    "path": "tests/test_fl39c_differential.py",
+    "test_id": "Fl39cDifferential.test_4d9910_alloc_zero"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39c_original_oracle.py",
+   "window": [
+    "0x4d9910",
+    "0x4d999b"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Allocates `size` bytes through 0x51dc43, stores the address at [out]; on 0 runs the diagnostic path (0x50ca3e, 0x4264e8, 0x44a2b7 when the debug word is set). All instructions run; both jump directions taken."
+ },
+ {
+  "va": "0x4de394",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39c.c",
+   "symbol": "m4de394_copy_block"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39c_direct_test.c",
+    "test_id": "test_m4de394_copy_block"
+   },
+   {
+    "path": "tests/test_fl39c_direct.py",
+    "test_id": "Fl39cDirect.test_4de394_copy_block"
+   },
+   {
+    "path": "tests/test_fl39c_differential.py",
+    "test_id": "Fl39cDifferential.test_4de394_copy_block"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39c_original_oracle.py",
+   "window": [
+    "0x4de394",
+    "0x4de413"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Copies 0x300 bytes from src to [self+0x691]; when 0x300 > limit (signed) runs the diagnostic calls 0x50ca3e, 0x4264e8, 0x4c97b4. Limits below, at and above the size, negative and 0x7fffffff; All instructions run; both jump directions taken."
+ },
+ {
+  "va": "0x4e2d63",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39c.c",
+   "symbol": "m4e2d63_destroy_vector"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39c_direct_test.c",
+    "test_id": "test_m4e2d63_destroy_vector"
+   },
+   {
+    "path": "tests/test_fl39c_direct.py",
+    "test_id": "Fl39cDirect.test_4e2d63_destroy_vector"
+   },
+   {
+    "path": "tests/test_fl39c_differential.py",
+    "test_id": "Fl39cDifferential.test_4e2d63_destroy_vector"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39c_original_oracle.py",
+   "window": [
+    "0x4e2d63",
+    "0x4e2dd3"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Stores the dword 0x52e4ecu at [this], calls 0x4e2faa(this), the vector iterator 0x50cba8(this+0x1ca2, 0x18f, 26, 0x4e1c83) and returns 0x4eda7c(this); the SEH frame is not modelled. No jumps; all 30 instructions run."
+ },
+ {
+  "va": "0x4e3525",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39c.c",
+   "symbol": "m4e3525_set_field_forward"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39c_direct_test.c",
+    "test_id": "test_m4e3525_set_field_forward"
+   },
+   {
+    "path": "tests/test_fl39c_direct.py",
+    "test_id": "Fl39cDirect.test_4e3525_set_field_forward"
+   },
+   {
+    "path": "tests/test_fl39c_differential.py",
+    "test_id": "Fl39cDifferential.test_4e3525_set_field_forward"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39c_original_oracle.py",
+   "window": [
+    "0x4e3525",
+    "0x4e354a"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Stores the stack argument in dword [self+0x452c] and returns 0x4edf96(this = self, argument); pops 4 bytes. No jumps; all 14 instructions run."
+ },
+ {
+  "va": "0x4e37bd",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39c.c",
+   "symbol": "m4e37bd_call_three_zero"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39c_direct_test.c",
+    "test_id": "test_m4e37bd_call_three_zero"
+   },
+   {
+    "path": "tests/test_fl39c_direct.py",
+    "test_id": "Fl39cDirect.test_4e37bd_call_three_zero"
+   },
+   {
+    "path": "tests/test_fl39c_differential.py",
+    "test_id": "Fl39cDifferential.test_4e37bd_call_three_zero"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39c_original_oracle.py",
+   "window": [
+    "0x4e37bd",
+    "0x4e37f8"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Calls 0x4e2940 three times with this = self+0x3d5d, self+0x3eec, self+0x4399 and argument 0 and returns the eax of the third. No jumps; all 19 instructions run."
+ },
+ {
+  "va": "0x4e37f8",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39c.c",
+   "symbol": "m4e37f8_call_three_zero"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39c_direct_test.c",
+    "test_id": "test_m4e37f8_call_three_zero"
+   },
+   {
+    "path": "tests/test_fl39c_direct.py",
+    "test_id": "Fl39cDirect.test_4e37f8_call_three_zero"
+   },
+   {
+    "path": "tests/test_fl39c_differential.py",
+    "test_id": "Fl39cDifferential.test_4e37f8_call_three_zero"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39c_original_oracle.py",
+   "window": [
+    "0x4e37f8",
+    "0x4e3833"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Calls 0x4e2940 three times with this = self+0x3d5d, self+0x3eec, self+0x4399 and argument 0 and returns the eax of the third. No jumps; all 19 instructions run."
+ },
+ {
+  "va": "0x4e3833",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39c.c",
+   "symbol": "m4e3833_call_three_zero"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39c_direct_test.c",
+    "test_id": "test_m4e3833_call_three_zero"
+   },
+   {
+    "path": "tests/test_fl39c_direct.py",
+    "test_id": "Fl39cDirect.test_4e3833_call_three_zero"
+   },
+   {
+    "path": "tests/test_fl39c_differential.py",
+    "test_id": "Fl39cDifferential.test_4e3833_call_three_zero"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39c_original_oracle.py",
+   "window": [
+    "0x4e3833",
+    "0x4e386e"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Calls 0x4e2940 three times with this = self+0x3d5d, self+0x3eec, self+0x407b and argument 0 and returns the eax of the third. No jumps; all 19 instructions run."
+ },
+ {
+  "va": "0x4e7843",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39c.c",
+   "symbol": "m4e7843_copy_block"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39c_direct_test.c",
+    "test_id": "test_m4e7843_copy_block"
+   },
+   {
+    "path": "tests/test_fl39c_direct.py",
+    "test_id": "Fl39cDirect.test_4e7843_copy_block"
+   },
+   {
+    "path": "tests/test_fl39c_differential.py",
+    "test_id": "Fl39cDifferential.test_4e7843_copy_block"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39c_original_oracle.py",
+   "window": [
+    "0x4e7843",
+    "0x4e78c2"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Copies 0x300 bytes from src to [self+0x691]; when 0x300 > limit (signed) runs the diagnostic calls 0x50ca3e, 0x4264e8, 0x4c97b4. Limits below, at and above the size, negative and 0x7fffffff; All instructions run; both jump directions taken."
+ },
+ {
+  "va": "0x4e7b37",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39c.c",
+   "symbol": "m4e7b37_destroy_vector"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39c_direct_test.c",
+    "test_id": "test_m4e7b37_destroy_vector"
+   },
+   {
+    "path": "tests/test_fl39c_direct.py",
+    "test_id": "Fl39cDirect.test_4e7b37_destroy_vector"
+   },
+   {
+    "path": "tests/test_fl39c_differential.py",
+    "test_id": "Fl39cDifferential.test_4e7b37_destroy_vector"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39c_original_oracle.py",
+   "window": [
+    "0x4e7b37",
+    "0x4e7ba7"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Stores the dword 0x52e4f4u at [this], calls 0x4e7bf3(this), the vector iterator 0x50cba8(this+0x7654, 0x18f, 6, 0x4e1c83) and returns 0x4eda7c(this); the SEH frame is not modelled. No jumps; all 30 instructions run."
+ },
+ {
+  "va": "0x4e7d2e",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39c.c",
+   "symbol": "m4e7d2e_copy_block"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39c_direct_test.c",
+    "test_id": "test_m4e7d2e_copy_block"
+   },
+   {
+    "path": "tests/test_fl39c_direct.py",
+    "test_id": "Fl39cDirect.test_4e7d2e_copy_block"
+   },
+   {
+    "path": "tests/test_fl39c_differential.py",
+    "test_id": "Fl39cDifferential.test_4e7d2e_copy_block"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39c_original_oracle.py",
+   "window": [
+    "0x4e7d2e",
+    "0x4e7dad"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Copies 0xb2c bytes from src to [self+0x6b20]; when 0xb2c > limit (signed) runs the diagnostic calls 0x50ca3e, 0x4264e8, 0x4c97b4. All instructions run; both jump directions taken."
+ },
+ {
+  "va": "0x4e8994",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39c.c",
+   "symbol": "m4e8994_set_field_forward"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39c_direct_test.c",
+    "test_id": "test_m4e8994_set_field_forward"
+   },
+   {
+    "path": "tests/test_fl39c_direct.py",
+    "test_id": "Fl39cDirect.test_4e8994_set_field_forward"
+   },
+   {
+    "path": "tests/test_fl39c_differential.py",
+    "test_id": "Fl39cDifferential.test_4e8994_set_field_forward"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39c_original_oracle.py",
+   "window": [
+    "0x4e8994",
+    "0x4e89b9"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Stores the stack argument in dword [self+0x7650] and returns 0x4edf96(this = self, argument); pops 4 bytes. No jumps; all 14 instructions run."
+ },
+ {
+  "va": "0x4eb8fe",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39c.c",
+   "symbol": "m4eb8fe_destroy_vector"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39c_direct_test.c",
+    "test_id": "test_m4eb8fe_destroy_vector"
+   },
+   {
+    "path": "tests/test_fl39c_direct.py",
+    "test_id": "Fl39cDirect.test_4eb8fe_destroy_vector"
+   },
+   {
+    "path": "tests/test_fl39c_differential.py",
+    "test_id": "Fl39cDifferential.test_4eb8fe_destroy_vector"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39c_original_oracle.py",
+   "window": [
+    "0x4eb8fe",
+    "0x4eb96e"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Stores the dword 0x52e4f8u at [this], calls 0x4eba54(this), the vector iterator 0x50cba8(this+0xca8, 0x18f, 2, 0x4e1c83) and returns 0x4eda7c(this); the SEH frame is not modelled. No jumps; all 30 instructions run."
+ },
+ {
+  "va": "0x4ebd2e",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39c.c",
+   "symbol": "m4ebd2e_set_field_forward"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39c_direct_test.c",
+    "test_id": "test_m4ebd2e_set_field_forward"
+   },
+   {
+    "path": "tests/test_fl39c_direct.py",
+    "test_id": "Fl39cDirect.test_4ebd2e_set_field_forward"
+   },
+   {
+    "path": "tests/test_fl39c_differential.py",
+    "test_id": "Fl39cDifferential.test_4ebd2e_set_field_forward"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39c_original_oracle.py",
+   "window": [
+    "0x4ebd2e",
+    "0x4ebd53"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Stores the stack argument in dword [self+0xca4] and returns 0x4edf96(this = self, argument); pops 4 bytes. No jumps; all 14 instructions run."
+ },
+ {
+  "va": "0x4fcd4d",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39c.c",
+   "symbol": "m4fcd4d_forward_word"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39c_direct_test.c",
+    "test_id": "test_m4fcd4d_forward_word"
+   },
+   {
+    "path": "tests/test_fl39c_direct.py",
+    "test_id": "Fl39cDirect.test_4fcd4d_forward_word"
+   },
+   {
+    "path": "tests/test_fl39c_differential.py",
+    "test_id": "Fl39cDifferential.test_4fcd4d_forward_word"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39c_original_oracle.py",
+   "window": [
+    "0x4fcd4d",
+    "0x4fcd69"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Calls 0x4fccf2(this = self, stack word argument (low 16 bits meaningful), 0) and returns its eax; pops 4 bytes. No jumps; all 12 instructions run."
+ },
+ {
+  "va": "0x4fcd69",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39c.c",
+   "symbol": "m4fcd69_forward_word"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39c_direct_test.c",
+    "test_id": "test_m4fcd69_forward_word"
+   },
+   {
+    "path": "tests/test_fl39c_direct.py",
+    "test_id": "Fl39cDirect.test_4fcd69_forward_word"
+   },
+   {
+    "path": "tests/test_fl39c_differential.py",
+    "test_id": "Fl39cDifferential.test_4fcd69_forward_word"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39c_original_oracle.py",
+   "window": [
+    "0x4fcd69",
+    "0x4fcd85"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Calls 0x4fccf2(this = self, stack word argument (low 16 bits meaningful), 1) and returns its eax; pops 4 bytes. No jumps; all 12 instructions run."
+ },
+ {
+  "va": "0x4fcd85",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, no P1 (FL-39)",
+  "date": "2026-10-21",
+  "native_source": {
+   "path": "src/original_methods_fl39c.c",
+   "symbol": "m4fcd85_forward_word"
+  },
+  "tests": [
+   {
+    "path": "tests/fl39c_direct_test.c",
+    "test_id": "test_m4fcd85_forward_word"
+   },
+   {
+    "path": "tests/test_fl39c_direct.py",
+    "test_id": "Fl39cDirect.test_4fcd85_forward_word"
+   },
+   {
+    "path": "tests/test_fl39c_differential.py",
+    "test_id": "Fl39cDifferential.test_4fcd85_forward_word"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl39c_original_oracle.py",
+   "window": [
+    "0x4fcd85",
+    "0x4fcda1"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Calls 0x4fccf2(this = self, stack word argument (low 16 bits meaningful), 2) and returns its eax; pops 4 bytes. No jumps; all 12 instructions run."
+ }
+]

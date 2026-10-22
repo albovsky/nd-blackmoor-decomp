@@ -8,15 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_zero_filling_allocator
-# naming:       INFERRED (lower confidence, not verified): the repository text COORDINATION-STATUS.md:576 says "over the zero-filling allocator 0x4cc70f"; src/action_family_1c.h:44 says "FUN_004cc70f(slot, 0x69) mallocs 0x69 bytes"
-# name-note:    Zero-filling allocator used by the 0x1c constructor to allocate its 0x69-byte block.
+# name:         m4cc70f_alloc_zero
+# naming:       native port src/original_methods_fl39c.c:m4cc70f_alloc_zero (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-21); the note is the acceptance note, a statement about the native port
+# name-note:    Allocates `size` bytes through 0x51dc43, stores the address at [out]; on 0 runs the diagnostic path (0x50ca3e, 0x4264e8, 0x44a2b7 when the debug word is set). All instructions run; both jump directions taken.
 # arguments:    2 ebp-relative stack slot(s) referenced: arg_8, arg_c; ret 0x8 (callee pops 8 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       2 ebp-relative slot(s): local_4, local_8
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      calls FUN_0051dc43, FUN_0050ca3e, FUN_004264e8, FUN_0044a2b7, FUN_004c97b4
-# track-n:      outputs/blackmoor-decomp/src/action_family_1c.c:action_family_1c_construct (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 45 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl39c.c:m4cc70f_alloc_zero (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 45 instruction(s), 2 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

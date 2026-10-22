@@ -8,15 +8,13 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_sound_save_and_stop_channel
-# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/4fb1c6.c.txt, not original source) refers to the data labelled s_CSound__SaveAndStopChannel_____c_00560720
-# name-note:    Marks a playing channel saved and pauses it; logs CSound::SaveAndStopChannel.
+# name:         fn_004fb1c6
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_12c, field_132
 # callees:      calls FUN_0050ca3e, FUN_0044a2b7, FUN_004f6334, FUN_004f646c
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 56 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl39d.c:m4fafc7_lifted (function ledger class candidate_port; also m4fb1c6_lifted; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 56 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32
 .text
