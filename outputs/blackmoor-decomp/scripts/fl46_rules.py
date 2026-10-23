@@ -140,6 +140,8 @@ def flag_effect(t):
     """-> (flags read, flags killed)"""
     reads = set(FLAG_READ.findall(t))
     kills = set(FLAGS) if re.search(r'FL40_(ADD|SUB|LOGIC|SHL|SHR|SAR)\(', t) else set()
+    if t.startswith('while (') or t.startswith('{ uint32_t a_ = ') and 'if (n_ != 0u)' in t and not re.search(r'n_ = 0x[1-9a-f][0-9a-f]*u,', t):
+        kills = set()       # a rep loop that may run zero times, a shift whose count may be zero: the flags may stay as they were
     return reads, kills
 
 

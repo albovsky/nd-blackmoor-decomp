@@ -41,8 +41,35 @@ CORPUS = HERE / 'fl40_corpus.json'
 REGS = ['eax', 'ecx', 'edx', 'ebx', 'esi', 'edi']
 EXTRA_SEEDS = range(5000, 5040)
 WINDOW = None       # --window lo:hi: only the picked mutants lo..hi-1 (a row with more mutants than one compiler run can hold)
-ALARM = int(os.environ.get('FL46_ALARM', '10'))     # seconds a scenario may run; FL-46 strict mode uses a short one
-STRICT = os.environ.get('FL46_STRICT_HANG') == '1'
+ALARM = float(os.environ.get('FL46_ALARM', '10'))     # seconds a scenario may run; FL-46 strict mode uses a short one
+BUDGET = os.environ.get('FL46_BUDGET') == '1'       # FL-46 (Glib's ruling of 2026-10-23): a mutant that runs more than 100 times the original's instructions counts as killed, labelled 'killed by step budget'
+STRICT = os.environ.get('FL46_STRICT_HANG') == '1' or BUDGET
+BUDGET_FLOOR = 100          # the search for a mismatch skips a scenario once the mutant has made 100 times the original's instructions in taken jumps and loop turns, at least this many
+CONFIRM_FLOOR = 200000      # a hang kill is confirmed on one scenario by the budget max(100 x the original's instructions, this many taken jumps and loop turns) (the same definition as FL-47)
+PRELUDE = '''#include <signal.h>
+static unsigned long long fl46_steps, fl46_limit = ~0ull;
+void fl46_set_limit(unsigned long long limit) { fl46_steps = 0; fl46_limit = limit; }
+unsigned long long fl46_get_steps(void) { return fl46_steps; }
+#define FL46_STEP() do { if (++fl46_steps > fl46_limit) raise(SIGUSR1); } while (0)
+'''
+
+
+class Ref(str):
+    steps = 0
+
+
+def dig(t):
+    r = Ref(t.digest())
+    r.steps = t.steps
+    return r
+
+
+def instrument(code):
+    """count the taken jumps and the turns of the rep loops: a straight line of statements is bounded, so any run that does not end makes unboundedly many"""
+    code = re.sub(r'\bgoto (L_[0-9a-f]+|done);', r'{ FL46_STEP(); goto \1; }', code)
+    return code.replace('while (ecx != 0u) {', 'while (ecx != 0u) { FL46_STEP();')
+
+
 WIDE = 300          # --harden: seeds tried on a survivor after the extra ones
 
 
@@ -156,7 +183,7 @@ def check_row_inner(args):
     with tempfile.TemporaryDirectory() as tmp:
         src = Path(tmp) / 'm.c'
         for _ in range(4):
-            src.write_text('#include "original_methods_fl40.h"\n' + helper + text + '\n'.join(m[2] for m in muts))
+            src.write_text('#include "original_methods_fl40.h"\n' + (PRELUDE if BUDGET else '') + (instrument if BUDGET else str)(helper + text + '\n'.join(m[2] for m in muts)))
             cmd = ['cc', '-std=c11', '-O0', '-shared', '-fPIC', '-w', '-I%s' % (PROJECT / 'src'), str(src), '-o', str(Path(tmp) / 'm.so')]
             built = subprocess.run(cmd, capture_output=True, text=True)
             if built.returncode == 0:
@@ -171,20 +198,26 @@ def check_row_inner(args):
             return key, {'error': 'mutants do not compile'}
         import ctypes
         lib = ctypes.CDLL(str(Path(tmp) / 'm.so'))
-        reference = [(sd, ov, W.run_original(row, sd, ov).digest()) for sd, ov in scenarios]
+        if BUDGET:
+            lib.fl46_set_limit.argtypes = [ctypes.c_ulonglong]
+            lib.fl46_get_steps.restype = ctypes.c_ulonglong
+        reference = [(sd, ov, dig(W.run_original(row, sd, ov))) for sd, ov in scenarios]
         extra = None
         wide = None
         killed, survivors, killers = 0, [], set()
         fresh_by_stage = []
         end_kind = [None]       # FL-46: how the last scan child ended when it did not finish: 'alarm' (a hang), 'crash' (another signal) or 'nonend' (it left without finishing, an out-of-memory)
 
-        def scan(k, items, every=False):
+        port_steps = []         # FL-46: after scan(None, ...), the taken jumps and loop turns of the unmutated port on each of its items
+
+        def scan(k, items, every=False, floor=BUDGET_FLOOR):
             """Run mutant k (None: the unmutated translation) on the scenarios against the recorded original, in a forked child.
             -> (indices of the scenarios on which it differs, the one a hang or crash stopped it on last; only the first unless `every`; and True when it hung or crashed).
             Every scenario has its own alarm (a mutant that loops forever is dead on that seed). The child leaves the index it is on and a flag per scenario in shared memory,
             so a hang names its seed and the mismatches found before it are not lost."""
             cur = mmap.mmap(-1, 8)
             flags = mmap.mmap(-1, len(items) + 1)
+            stepmm = mmap.mmap(-1, 8 * len(items) + 8)
             r_fd, w_fd = os.pipe()
             pid = os.fork()
             if pid == 0:
@@ -192,9 +225,13 @@ def check_row_inner(args):
                     os.close(r_fd)
                     for i, (sd, ov, ref) in enumerate(items):
                         cur[:8] = struct.pack('<q', i)
-                        signal.alarm(ALARM)
+                        if BUDGET:
+                            lib.fl46_set_limit(~0 & 0xffffffffffffffff if k is None else max(100 * ref.steps, floor))
+                        signal.setitimer(signal.ITIMER_REAL, ALARM)
                         t = W.run_native(Shim(lib, va, k), row, sd, ov)
-                        signal.alarm(0)
+                        signal.setitimer(signal.ITIMER_REAL, 0)
+                        if BUDGET and k is None:
+                            struct.pack_into('<Q', stepmm, 8 * i, lib.fl46_get_steps())
                         if (t.digest() if not t.fault else 'fault') != ref:
                             flags[i] = 1
                             if not every:
@@ -215,7 +252,8 @@ def check_row_inner(args):
                 chunks.append(c)
             os.close(r_fd)
             _, status = os.waitpid(pid, 0)
-            end_kind[0] = 'alarm' if os.WIFSIGNALED(status) and os.WTERMSIG(status) == signal.SIGALRM else 'crash' if os.WIFSIGNALED(status) else 'nonend'
+            end_kind[0] = 'alarm' if os.WIFSIGNALED(status) and os.WTERMSIG(status) == signal.SIGALRM else 'budget' if os.WIFSIGNALED(status) and os.WTERMSIG(status) == signal.SIGUSR1 else 'crash' if os.WIFSIGNALED(status) else 'nonend'
+            port_steps[:] = [struct.unpack_from('<Q', stepmm, 8 * i)[0] for i in range(len(items))]
             data = b''.join(chunks)
             if data.startswith(b'E'):
                 raise RuntimeError('mutation harness error on %s mutant %s: %s' % (key, k, data[1:].decode()))
@@ -232,6 +270,10 @@ def check_row_inner(args):
             while items and start < len(items):
                 found, hung = scan(None, items[start:], every=True)
                 bad |= {start + i for i in found}
+                if BUDGET:
+                    for i in range(len(port_steps)):
+                        if start + i not in bad:
+                            items[start + i][2].steps = port_steps[i]       # the unit of the budget is the port's own: taken jumps and loop turns
                 if not hung:
                     break
                 start += found[-1] + 1
@@ -249,18 +291,26 @@ def check_row_inner(args):
                 if hung:
                     hangs.append(k)
                 return min(found) if found else None
-            start = 0
+            start, first_hit = 0, None
             while start < len(items):
                 found, hung = scan(k, items[start:])
                 if not hung:
                     return start + min(found) if found else None
                 if end_kind[0] == 'crash':
                     return start + min(found)
-                hangs.append(k)
+                if end_kind[0] == 'budget':
+                    first_hit = first_hit or items[start + found[-1]]
+                else:
+                    hangs.append(k)
                 start += found[-1] + 1
+            if first_hit is not None and BUDGET:        # no mismatch anywhere: the hang kill must hold up on the full definition of the budget
+                found, hung = scan(k, [first_hit], floor=CONFIRM_FLOOR)
+                if hung and end_kind[0] == 'budget':
+                    budget_hit.add(k)
             return None
 
         dropped = [0]
+        budget_hit = set()      # FL-46: mutants that went over the step budget on a scenario and are not killed by a mismatch
         hangs = []          # mutants killed by a hang or crash (a scenario over its 10 s alarm); logged, and the port itself ran the same scenarios inside the same alarm
         reference = guard(reference, 'corpus')
         for k, (kind, n, _) in enumerate(muts):
@@ -272,7 +322,7 @@ def check_row_inner(args):
                     for sd in EXTRA_SEEDS:
                         t = safe_original(row, sd)
                         if t is not None and not t.fault:
-                            extra.append((sd, (), t.digest()))
+                            extra.append((sd, (), dig(t)))
                     extra = guard(extra, 'extra')
                 hit = first_mismatch(k, extra)
                 if hit is not None:
@@ -288,7 +338,7 @@ def check_row_inner(args):
                     hit = None
                     for stage in range(len(rescue['stages'])):        # new seeds in growing batches: most killable mutants die in the first
                         while len(fresh_by_stage) <= stage:
-                            fresh_by_stage.append(guard([(sd, (), t.digest()) for sd in rescue['stages'][len(fresh_by_stage)] for t in [safe_original(row, sd)] if t is not None and not t.fault], 'rescue'))
+                            fresh_by_stage.append(guard([(sd, (), dig(t)) for sd in rescue['stages'][len(fresh_by_stage)] for t in [safe_original(row, sd)] if t is not None and not t.fault], 'rescue'))
                         hit = first_mismatch(k, fresh_by_stage[stage])
                         if hit is not None:
                             killers.add(fresh_by_stage[stage][hit][0])
@@ -297,19 +347,19 @@ def check_row_inner(args):
                         killed += 1
                         survivors.append((kind, n, 'killed by rescue seed'))
                     else:
-                        survivors.append((kind, n, 'survives'))
+                        survivors.append((kind, n, 'killed by step budget' if k in budget_hit else 'survives'))
                     continue
                 if harden:
                     if wide is None:
-                        wide = guard([(sd, (), t.digest()) for sd in list(range(6000, 6000 + WIDE)) + list(range(W.HI_SEEDS, W.HI_SEEDS + WIDE)) + list(range(W.TGT_SEEDS, W.TGT_SEEDS + WIDE)) for t in [safe_original(row, sd)] if t is not None and not t.fault], 'wide')
+                        wide = guard([(sd, (), dig(t)) for sd in list(range(6000, 6000 + WIDE)) + list(range(W.HI_SEEDS, W.HI_SEEDS + WIDE)) + list(range(W.TGT_SEEDS, W.TGT_SEEDS + WIDE)) for t in [safe_original(row, sd)] if t is not None and not t.fault], 'wide')
                     hit = first_mismatch(k, wide)
                     if hit is not None:
                         killers.add(wide[hit][0])
                         killed += 1
                         survivors.append((kind, n, 'killed by hardening seed'))
                         continue
-                survivors.append((kind, n, 'survives'))
-        return key, {'mutants': len(muts), 'killed': killed, 'survivors': survivors, 'killers': sorted(killers), 'guard_dropped': dropped[0], 'hang_kills': len(set(hangs))}
+                survivors.append((kind, n, 'killed by step budget' if k in budget_hit else 'survives'))
+        return key, {'mutants': len(muts), 'killed': killed, 'survivors': survivors, 'killers': sorted(killers), 'guard_dropped': dropped[0], 'hang_kills': len(set(hangs)), 'budget_kills': len(budget_hit)}
 
 
 class Shim:
@@ -371,7 +421,7 @@ def main():
             total += res['mutants']
             killed += res['killed']
             hard = [s for s in res['survivors'] if s[2] == 'survives']
-            print('%s mutants %d killed %d survivors %s%s' % (key, res['mutants'], res['killed'], res['survivors'], ((' guard-dropped-scenarios %d' % res['guard_dropped']) if res['guard_dropped'] else '') + ((' hang-kills %d' % res['hang_kills']) if res['hang_kills'] else '')), flush=True)
+            print('%s mutants %d killed %d survivors %s%s' % (key, res['mutants'], res['killed'], res['survivors'], ((' guard-dropped-scenarios %d' % res['guard_dropped']) if res['guard_dropped'] else '') + ((' hang-kills %d' % res['hang_kills']) if res['hang_kills'] else '') + ((' budget-kills %d' % res['budget_kills']) if res['budget_kills'] else '')), flush=True)
             if hard:
                 bad.append(key)
     if a.harden or a.rescue:
