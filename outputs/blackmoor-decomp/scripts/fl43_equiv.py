@@ -112,7 +112,10 @@ def overlap(a, b):
 
 
 class Function:
-    def __init__(self, va, size):
+    feasible = None      # FL-45: the set of (instruction, successor) edges that the interval analysis (scripts/fl45_ranges.py) shows can be taken; None = every edge
+
+    def __init__(self, va, size, feasible=None):
+        self.feasible = feasible
         self.va, self.size = va, size
         self.ins = L.disasm(va, size)
         self.at = {i.address: i for i in self.ins}
@@ -127,7 +130,8 @@ class Function:
             elif m == 'jmp' or m.startswith('j'):
                 op = i.operands[0]
                 if op.type != IMM_OP:
-                    raise NoProof('indirect jump at 0x%x' % i.address)
+                    self.succ[i.address] = self.indirect_targets(i, k)       # FL-45: a subclass may know the targets of a jump table; the default gives no proof
+                    continue
                 s = [] if m == 'jmp' or not nxt else [nxt]
                 if op.imm in self.at:
                     s.append(op.imm)
@@ -143,6 +147,9 @@ class Function:
                 if not nxt:
                     self.exits.add(i.address)
         self._check_frame()
+
+    def indirect_targets(self, i, k):
+        raise NoProof('indirect jump at 0x%x' % i.address)
 
     def _check_frame(self):
         ins = self.ins
@@ -179,6 +186,8 @@ class Function:
                 continue
             new = self.transfer(self.at[a], IN[a])
             for s in self.succ[a]:
+                if self.feasible is not None and (a, s) not in self.feasible:
+                    continue
                 merged = new if IN[s] is None else IN[s] & new
                 if merged != IN[s]:
                     IN[s] = merged
@@ -260,6 +269,8 @@ class Function:
     def live_out(self, a, live_in, flags_in):
         out, fout = set(), False
         for s in self.succ[a]:
+            if self.feasible is not None and (a, s) not in self.feasible:
+                continue
             out |= live_in[s]
             fout = fout or flags_in[s]
         if a in self.exits:
@@ -280,9 +291,9 @@ class Function:
         return bool(wr or wp or fwr)
 
 
-def prove(va, size, addrs):
+def prove(va, size, addrs, feasible=None, factory=None):
     """{instruction address: reason, or None when there is no proof}; raises NoProof for a function the analysis does not cover"""
-    f = Function(va, size)
+    f = (factory or Function)(va, size, feasible)
     IN = f.facts()
     live = f.liveness()
     res = {}

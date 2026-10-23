@@ -299,8 +299,11 @@ def main():
                 print('%s COMPILE ERROR %s' % (key, res['error']))
                 bad.append(key)
                 continue
-            if res['killers']:
-                corpus[key]['seeds'].extend([sd, []] for sd in res['killers'])
+            if res['killers'] and a.harden:
+                fresh = json.loads(CORPUS.read_text())               # FL-45: add the killers to the corpus on disk, not to the copy loaded at the start (other tools may have added seeds since)
+                have = {(sd, json.dumps(ov)) for sd, ov in fresh[key]['seeds']}
+                fresh[key]['seeds'].extend([sd, []] for sd in res['killers'] if (sd, json.dumps([])) not in have)
+                CORPUS.write_text(json.dumps(fresh, indent=1, sort_keys=True) + '\n')
             if res.get('divergent'):
                 print('%s divergent seeds (the unmutated translation differs from the original) %s' % (key, res['divergent']), flush=True)
             if res.get('hangs'):
@@ -309,12 +312,8 @@ def main():
             killed += res['killed']
             hard = [s for s in res['survivors'] if s[2] == 'survives']
             print('%s mutants %d killed %d survivors %s' % (key, res['mutants'], res['killed'], res['survivors']), flush=True)
-            if a.harden and res['killers']:
-                CORPUS.write_text(json.dumps(corpus, indent=1, sort_keys=True) + '\n')
             if hard:
                 bad.append(key)
-    if a.harden:
-        CORPUS.write_text(json.dumps(corpus, indent=1, sort_keys=True) + '\n')
     print('TOTAL mutants %d killed %d rows with a survivor %d' % (total, killed, len(bad)))
     return 1 if bad else 0
 
