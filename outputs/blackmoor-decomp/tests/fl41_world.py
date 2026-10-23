@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import ctypes
 import hashlib
+import os
 from pathlib import Path
 import random
 import struct
@@ -39,6 +40,8 @@ TIB, GDT = 0x7d000000, 0x7d010000        # the thread information block behind f
 STUB_BASE = od.STUB_BASE
 DATA_START = 0x537000          # first writable page of .data (the .rdata ends before it): globals below it are constants and tables
 INSTRUCTION_LIMIT = 200000
+FIXED = os.environ.get('FL43_WORLD_FIXED', '1') != '0'      # FL-43: closes two gaps of the model that only show on rare seeds (see Mem and stub_filter); the recorded runs of the corpus seeds are identical with and without it (FL43_WORLD_FIXED=0)
+ORDER = None                   # set to a list to get the executed instruction addresses of run_original in order (debugging aid, FL-43)
 ARGS = 8                       # stack dwords above the return address
 LOGGED = 6                     # stack dwords of a stub call that are logged
 SENTINELS = dict(eax=0x11111111, ebx=0x22222222, edx=0x44444444, esi=0x55555555, edi=0x66666666, ebp=0x77777777)
@@ -112,6 +115,14 @@ def initial_state(row, seed):
         if rng.random() < 0.3:
             patches.append((address + 4, struct.pack('<I', mixture(rng, style, magic))))
     return regs, args, patches
+
+
+def stub_filter(row, writes):
+    """FL-43 (FIXED worlds): a callee stub does not write into the code of the function under test (the original would then execute the changed bytes, which the translation cannot)"""
+    if not FIXED:
+        return writes
+    lo, hi = row['va'], row['va'] + row['body']
+    return [(at, data) for at, data in writes if not (at < hi and at + len(data) > lo)]
 
 
 def stub_effect(rng, magic, ecx, args):
@@ -221,6 +232,8 @@ def run_original(row, seed, overrides=(), observe=False):
 
     def count(uc_, address, size_, user):
         trace.executed.add(address)
+        if ORDER is not None:
+            ORDER.append(address)
         if prev[0] is not None:
             trace.edges.add((prev[0], address))
         prev[0] = address
@@ -245,6 +258,7 @@ def run_original(row, seed, overrides=(), observe=False):
         ecx = uc.reg_read(X.UC_X86_REG_ECX)
         words = struct.unpack('<%dI' % LOGGED, uc.mem_read(esp + 4, 4 * LOGGED))
         eax, ecx_out, edx, writes = stub_effect(stub_rng, magic, ecx, words)
+        writes = stub_filter(row, writes)
         for at, data in writes:
             ensure(at)
             ensure(at + len(data) - 1)
@@ -312,13 +326,18 @@ class Mem:
         self.stack = bytearray(b'\x71' * STACK_SIZE)
         self.pages = {}
         self.seed, self.magic = seed, magic
+        if FIXED:       # the original maps these pages: the stub entries (nops) and the stop address (nops, then zeros)
+            self.pages[STUB_BASE >> 12] = bytearray(b'\x90' * PAGE)
+            stop = bytearray(PAGE)
+            stop[STOP & 0xfff:(STOP & 0xfff) + 16] = b'\x90' * 16
+            self.pages[STOP >> 12] = stop
 
     def _cell(self, address, size):
         if IMAGE_BASE <= address and address + size <= self.image_end:
             return self.image, address - IMAGE_BASE
         if STACK_BASE <= address and address + size <= STACK_BASE + STACK_SIZE:
             return self.stack, address - STACK_BASE
-        if STOP <= address < STOP + 16:
+        if STOP <= address < STOP + 16 and not FIXED:
             return bytearray(b'\x90' * 16), 0
         if address >= 0xfff00000:
             raise Fault('access at 0x%x' % address)
@@ -383,6 +402,7 @@ def run_native(lib, row, seed, overrides=()):
             trace.fault = 'divide error'
             return
         eax, ecx_out, edx, writes = stub_effect(stub_rng, magic, ecx, words)
+        writes = stub_filter(row, writes)
         for at, data in writes:
             mem.write_bytes(at, data)
         held = tuple(getattr(rr.contents, n) for n in ('eax', 'edx', 'ebx', 'esi', 'edi', 'ebp'))

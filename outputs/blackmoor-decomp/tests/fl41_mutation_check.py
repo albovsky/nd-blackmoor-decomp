@@ -17,6 +17,7 @@ statement whose effect no seed can see, such as the flags of an instruction whos
 Prints one line per row (mutants, killed, survivors) and a total; exits 1 when a survivor remains after the extra seeds.
 """
 import argparse
+import hashlib
 import json
 import multiprocessing as mp
 import os
@@ -51,10 +52,16 @@ def split_functions(text):
     return out
 
 
+# --extended: a jump condition also becomes the neighbouring one (signed <-> unsigned, strict <-> or-equal)
+CC_NEIGHBOURS = {
+    'cf': ('(cf || zf)', '(sf != of)'), '!cf': ('(!cf && !zf)', '(sf == of)'), '(cf || zf)': ('cf', '(zf || sf != of)'), '(!cf && !zf)': ('!cf', '(!zf && sf == of)'),
+    '(sf != of)': ('cf', '(zf || sf != of)'), '(sf == of)': ('!cf', '(!zf && sf == of)'), '(zf || sf != of)': ('(cf || zf)', '(sf != of)'), '(!zf && sf == of)': ('(!cf && !zf)', '(sf == of)'),
+    'zf': ('(cf || zf)', '(zf || sf != of)'), '!zf': ('(!cf && !zf)', '(!zf && sf == of)'), 'sf': ('of',), '!sf': ('!of',),
+}
 COMMENT = re.compile(r'^(.*?)(\s*/\* 0x[0-9a-f]+: .*\*/)?$')
 
 
-def mutants(text, va, rng, limit):
+def mutants(text, va, rng, limit, extended=False):
     lines = text.split('\n')
     found = []
     for n, line in enumerate(lines):
@@ -68,6 +75,9 @@ def mutants(text, va, rng, limit):
         m = re.match(r'^(\s*)if \((.*)\) goto (L_[0-9a-f]+);\s*$', code)
         if m:
             add('jump', '%sif (!(%s)) goto %s;' % (m.group(1), m.group(2), m.group(3)))
+            if extended:
+                for other in CC_NEIGHBOURS.get(m.group(2), ()):
+                    add('jump', '%sif (%s) goto %s;' % (m.group(1), other, m.group(3)))
             continue
         if 'goto' in code or 'case ' in code or 'switch' in code:
             continue
@@ -78,6 +88,10 @@ def mutants(text, va, rng, limit):
         for old, new in (('FL41_SHL(', 'FL41_SHR('), ('FL41_SHR(', 'FL41_SAR('), ('FL41_SAR(', 'FL41_SHR('), ('FL41_ROL(', 'FL41_ROR('), ('FL41_ROR(', 'FL41_ROL(')):
             if old in code:
                 add('alu', code.replace(old, new, 1))
+        if extended:
+            for old, new in ((' r_ = a_ & b_;', ' r_ = a_ | b_;'), (' r_ = a_ | b_;', ' r_ = a_ & b_;'), (' r_ = a_ ^ b_;', ' r_ = a_ | b_;'), (' r_ = a_ & b_;', ' r_ = a_ ^ b_;'), (' r_ = a_ | b_;', ' r_ = a_ ^ b_;'), (' r_ = a_ ^ b_;', ' r_ = a_ & b_;')):
+                if old in code:
+                    add('alu', code.replace(old, new, 1))
         if re.search(r'FL41_(ADD|SUB)\(a_, b_, ([01])u,', code):
             add('literal', re.sub(r'(FL41_(?:ADD|SUB)\(a_, b_, )([01])u,', lambda m: '%s%du,' % (m.group(1), 1 - int(m.group(2))), code, count=1))
         if 'FL41_SUB(' in code and 'a_ = ' in code and 'b_ = ' in code:        # the other operators of a block are commutative: swapping them is no mutant
@@ -86,6 +100,9 @@ def mutants(text, va, rng, limit):
             for old, new in (('RD32(', 'RD16('), ('RD16(', 'RD8('), ('RD8(', 'RD16('), ('WR32(', 'WR16('), ('WR16(', 'WR8('), ('WR8(', 'WR16(')):
                 if old in code:
                     add('width', code.replace(old, new, 1))
+                    if extended:        # every access of the statement, not only the first
+                        for k2 in [x.start() for x in re.finditer(re.escape(old), code)][1:]:
+                            add('width', code[:k2] + new + code[k2 + len(old):])
         m = re.match(r'^(\s*)(\w{3}) = (eax|ecx|edx|ebx|esi|edi|ebp|esp);\s*$', code)
         if m:
             other = rng.choice([r for r in REGS + ['ebp', 'esp'] if r != m.group(3)])
@@ -101,7 +118,8 @@ def mutants(text, va, rng, limit):
                 continue
             v = int(lit.group(1), 16)
             add('literal', code[:lit.start()] + '0x%xu' % ((v + 1) & 0xffffffff) + code[lit.end():])
-            break
+            if not extended:
+                break
         m = re.search(r'esp \+= (\d+)u;', code)
         if m and 'FL41_CALL' in code and int(m.group(1)) > 4:
             add('literal', code.replace(m.group(0), 'esp += %du;' % (int(m.group(1)) - 4), 1))
@@ -123,6 +141,11 @@ def mutants(text, va, rng, limit):
     return out
 
 
+def line_hash(text, n):
+    """short identity of the mutated line (FL-43: survivors name their mutant, so that a (kind, line) with several mutants is judged mutant by mutant)"""
+    return hashlib.md5(text.split('\n')[n].strip().encode()).hexdigest()[:8]
+
+
 def check_row(args):
     try:
         return check_row_inner(args)
@@ -131,16 +154,16 @@ def check_row(args):
 
 
 def check_row_inner(args):
-    key, entry, text, helper, per_row, harden = args
+    key, entry, text, helper, per_row, harden, extended = args
     va = int(key, 16)
     row = W.row_info(va, entry['body'], {int(k, 16): v for k, v in entry['callees'].items()}, {int(k, 16): v for k, v in entry['imports'].items()}, entry['fs'])
     rng = random.Random(va)
-    muts = mutants(text, va, rng, per_row)
+    muts = mutants(text, va, rng, per_row, extended)
     scenarios = [(sd, [tuple(o) for o in ov]) for sd, ov in entry['seeds']]
     with tempfile.TemporaryDirectory() as tmp:
         src = Path(tmp) / 'm.c'
         for _ in range(4):
-            src.write_text('#include "original_methods_fl41.h"\n' + helper + '\n'.join(m[2] for m in muts))
+            src.write_text('#include "original_methods_fl41.h"\n' + helper + text + '\n' + '\n'.join(m[2] for m in muts))
             cmd = ['cc', '-std=c11', '-O0', '-shared', '-fPIC', '-w', '-I%s' % (PROJECT / 'src'), str(src), '-o', str(Path(tmp) / 'm.so')]
             built = subprocess.run(cmd, capture_output=True, text=True)
             if built.returncode == 0:
@@ -158,6 +181,19 @@ def check_row_inner(args):
         reference = [(sd, ov, W.run_original(row, sd, ov).digest()) for sd, ov in scenarios]
         extra = None
         wide = None
+        hangs = []          # mutants killed by a hang or a crash (FL-43: listed, not hidden)
+        divergent = []      # seeds on which the UNMUTATED translation already differs from the original (FL-43): a mutant is not killed by such a seed
+
+        def agrees(sd):
+            """the original's digest on seed `sd`, or None when it faults or the unmutated translation differs from it (then the seed kills nothing)"""
+            o = W.run_original(row, sd)
+            if o.fault:
+                return None
+            t = W.run_native(lib, row, sd)
+            if t.fault or t.digest() != o.digest():
+                divergent.append(sd)
+                return None
+            return o.digest()
         killed, survivors, killers = 0, [], set()
         def first_mismatch(k, items):
             """Index of the first scenario on which mutant k differs from the recorded original, 'timeout' when it hangs, None when it agrees everywhere.
@@ -166,11 +202,12 @@ def check_row_inner(args):
             pid = os.fork()
             if pid == 0:
                 try:
-                    signal.alarm(20)
                     os.close(r_fd)
                     found = -1
                     for i, (sd, ov, ref) in enumerate(items):
+                        signal.alarm(20)         # per scenario (FL-43): one alarm over the whole list killed slow rows' mutants and counted that as a kill
                         t = W.run_native(Shim(lib, va, k), row, sd, ov)
+                        signal.alarm(0)
                         if (t.digest() if not t.fault else 'fault') != ref:
                             found = i
                             break
@@ -190,21 +227,26 @@ def check_row_inner(args):
             i = int(data)
             return None if i < 0 else i
 
-        for k, (kind, n, _) in enumerate(muts):
+        for k, (kind, n, mtext) in enumerate(muts):
+            ident = line_hash(mtext, n)
             hit = first_mismatch(k, reference)
             dead = hit is not None
+            if hit == 'timeout':
+                hangs.append((kind, n, ident))
             if not dead:
                 if extra is None:
                     extra = []
                     for sd in EXTRA_SEEDS:
-                        t = W.run_original(row, sd)
-                        if not t.fault:
-                            extra.append((sd, (), t.digest()))
+                        d = agrees(sd)
+                        if d is not None:
+                            extra.append((sd, (), d))
                 hit = first_mismatch(k, extra)
+                if hit == 'timeout':
+                    hangs.append((kind, n, ident))
                 if hit is not None:
                     if harden and hit != 'timeout':
                         killers.add(extra[hit][0])
-                    survivors.append((kind, n, 'killed only by an extra seed'))
+                    survivors.append((kind, n, 'killed only by an extra seed', ident))
                     killed += 1
                     continue
             if dead:
@@ -212,16 +254,18 @@ def check_row_inner(args):
             else:
                 if harden:
                     if wide is None:
-                        wide = [(sd, (), t.digest()) for sd in range(6000, 6000 + WIDE) for t in [W.run_original(row, sd)] if not t.fault]
+                        wide = [(sd, (), d) for sd in range(6000, 6000 + WIDE) for d in [agrees(sd)] if d is not None]
                     hit = first_mismatch(k, wide)
+                    if hit == 'timeout':
+                        hangs.append((kind, n, ident))
                     if hit is not None:
                         if hit != 'timeout':
                             killers.add(wide[hit][0])
                         killed += 1
-                        survivors.append((kind, n, 'killed by hardening seed'))
+                        survivors.append((kind, n, 'killed by hardening seed', ident))
                         continue
-                survivors.append((kind, n, 'survives'))
-        return key, {'mutants': len(muts), 'killed': killed, 'survivors': survivors, 'killers': sorted(killers)}
+                survivors.append((kind, n, 'survives', ident))
+        return key, {'mutants': len(muts), 'killed': killed, 'survivors': survivors, 'killers': sorted(killers), 'divergent': sorted(set(divergent)), 'hangs': hangs}
 
 
 class Shim:
@@ -240,12 +284,13 @@ def main():
     ap.add_argument('--per-row', type=int, default=30)
     ap.add_argument('--jobs', type=int, default=4)
     ap.add_argument('--harden', action='store_true', help='add to the corpus a seed that kills each survivor, where one of 300 more seeds does')
+    ap.add_argument('--extended', action='store_true', help='FL-43: every literal and every access of a statement, logic operators, neighbouring jump conditions')
     a = ap.parse_args()
     corpus = json.loads(CORPUS.read_text())
     funcs = split_functions(SOURCE.read_text())
     helper = funcs.get('0x50c920', '')
     keys = a.rows.split(',') if a.rows else sorted(corpus, key=lambda k: int(k, 16))
-    work = [(k, corpus[k], funcs[k], helper if 'FL41_CALL_LIFTED' in funcs[k] else '', a.per_row, a.harden) for k in keys]
+    work = [(k, corpus[k], funcs[k], helper if 'FL41_CALL_LIFTED' in funcs[k] else '', a.per_row, a.harden, a.extended) for k in keys]
     total = killed = 0
     bad = []
     with mp.Pool(a.jobs, maxtasksperchild=1) as pool:
@@ -256,6 +301,10 @@ def main():
                 continue
             if res['killers']:
                 corpus[key]['seeds'].extend([sd, []] for sd in res['killers'])
+            if res.get('divergent'):
+                print('%s divergent seeds (the unmutated translation differs from the original) %s' % (key, res['divergent']), flush=True)
+            if res.get('hangs'):
+                print('%s mutants killed by a hang or crash %s' % (key, res['hangs']), flush=True)
             total += res['mutants']
             killed += res['killed']
             hard = [s for s in res['survivors'] if s[2] == 'survives']

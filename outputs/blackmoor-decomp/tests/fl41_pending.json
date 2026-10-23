@@ -404,11 +404,11 @@
   ]
  },
  "0x482248": {
-  "detail": "seed 6358 (a hardening seed): the original and the translation end with different ecx",
-  "status": "translation differs from the original"
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
+  "status": "mutation survivor"
  },
  "0x482595": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x482a08": {
@@ -2201,16 +2201,16 @@
   ]
  },
  "0x488da5": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x48905b": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x489722": {
-  "detail": "the hardening run of the mutation check died with UC_ERR_NOMEM on this row (tasks/fl41-survivors.json, unhardened_rows)",
-  "status": "mutation check incomplete"
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
+  "status": "mutation survivor"
  },
  "0x48a3db": {
   "directions": [
@@ -2268,11 +2268,11 @@
   ]
  },
  "0x48a70a": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x48ac92": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x48ad26": {
@@ -2552,15 +2552,15 @@
   ]
  },
  "0x48b730": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x48bca6": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x48e324": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x48e3ca": {
@@ -2568,7 +2568,7 @@
   "status": "mutation survivor"
  },
  "0x48e776": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x48e93e": {
@@ -2624,11 +2624,11 @@
   ]
  },
  "0x48e9bf": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x48ea24": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x48ec4a": {
@@ -2702,7 +2702,7 @@
   ]
  },
  "0x48efe8": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x48f181": {
@@ -3540,19 +3540,19 @@
   ]
  },
  "0x4959ea": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x495a5b": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x49d1be": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x49d55d": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x49d945": {
@@ -3637,23 +3637,23 @@
   ]
  },
  "0x49e24d": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4a0ac4": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4a0bbd": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4a0cea": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4a0d73": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4a0ec3": {
@@ -3708,7 +3708,7 @@
   "status": "mutation survivor"
  },
  "0x4a140b": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4a14c6": {
@@ -4328,19 +4328,15 @@
   ]
  },
  "0x4a378a": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4a3884": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4a3947": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
-  "status": "mutation survivor"
- },
- "0x4a3beb": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4a42c0": {
@@ -4701,7 +4697,7 @@
   ]
  },
  "0x4a6bde": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4a6c61": {
@@ -5184,15 +5180,11 @@
   ]
  },
  "0x4a7a29": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
-  "status": "mutation survivor"
- },
- "0x4a8007": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4a8697": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4a8bf2": {
@@ -5539,10 +5531,6 @@
     "taken"
    ]
   ]
- },
- "0x4a9f63": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
-  "status": "mutation survivor"
  },
  "0x4aa002": {
   "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
@@ -6087,13 +6075,9 @@
    ]
   ]
  },
- "0x4ac37f": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
-  "status": "mutation survivor"
- },
  "0x4ac498": {
-  "detail": "seed 6032 (a hardening seed): the stack write at 0x1010cdc differs",
-  "status": "translation differs from the original"
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
+  "status": "mutation survivor"
  },
  "0x4ac97d": {
   "directions": [
@@ -6129,12 +6113,8 @@
    ]
   ]
  },
- "0x4accab": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
-  "status": "mutation survivor"
- },
  "0x4acdc2": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4ad590": {
@@ -6290,11 +6270,11 @@
   ]
  },
  "0x4adae8": {
-  "detail": "seed 6334 (a hardening seed): eax, ecx and edx differ at the end",
-  "status": "translation differs from the original"
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
+  "status": "mutation survivor"
  },
  "0x4adb6c": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4ae178": {
@@ -6556,7 +6536,7 @@
   ]
  },
  "0x4aef4a": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4af225": {
@@ -6786,8 +6766,8 @@
   ]
  },
  "0x4af96e": {
-  "detail": "the hardening run of the mutation check died with UC_ERR_NOMEM on this row (tasks/fl41-survivors.json, unhardened_rows)",
-  "status": "mutation check incomplete"
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
+  "status": "mutation survivor"
  },
  "0x4afa1e": {
   "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
@@ -7787,20 +7767,12 @@
    ]
   ]
  },
- "0x4b3f98": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
-  "status": "mutation survivor"
- },
  "0x4b4676": {
   "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
   "status": "mutation survivor"
  },
- "0x4b4913": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
-  "status": "mutation survivor"
- },
  "0x4b49d4": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4b4a68": {
@@ -9048,11 +9020,7 @@
   ]
  },
  "0x4bb3de": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
-  "status": "mutation survivor"
- },
- "0x4be18b": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4be1dd": {
@@ -9064,11 +9032,11 @@
   "status": "mutation survivor"
  },
  "0x4be367": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4be504": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4be6a4": {
@@ -9360,11 +9328,11 @@
   "status": "mutation survivor"
  },
  "0x4bf8c2": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4c0b8b": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4c0f70": {
@@ -9418,11 +9386,11 @@
   "status": "mutation survivor"
  },
  "0x4c4c2b": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4c558b": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4c5770": {
@@ -9430,7 +9398,7 @@
   "status": "mutation survivor"
  },
  "0x4c5976": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4c5d4b": {
@@ -9442,15 +9410,15 @@
   "status": "mutation survivor"
  },
  "0x4c6c2a": {
-  "detail": "the hardening run of the mutation check died with UC_ERR_NOMEM on this row (tasks/fl41-survivors.json, unhardened_rows)",
-  "status": "mutation check incomplete"
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
+  "status": "mutation survivor"
  },
  "0x4c6e4d": {
-  "detail": "the hardening run of the mutation check died with UC_ERR_NOMEM on this row (tasks/fl41-survivors.json, unhardened_rows)",
-  "status": "mutation check incomplete"
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
+  "status": "mutation survivor"
  },
  "0x4c71f9": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4c7770": {
@@ -9459,8 +9427,8 @@
   "trace": "Traceback (most recent call last):\n  File \"/home/user/nd-blackmoor-decomp/outputs/blackmoor-decomp/scripts/fl41_generate.py\", line 121, in search\n    return search_row(args)\n  File \"/home/user/nd-blackmoor-decomp/outputs/blackmoor-decomp/scripts/fl41_generate.py\", line 164, in search_row\n    o = run(seed, ())\n  File \"/home/user/nd-blackmoor-decomp/outputs/blackmoor-decomp/scripts/fl41_generate.py\", line 137, in run\n    o = W.run_original(row, seed, overrides)\n  File \"/home/user/nd-blackmoor-decomp/outputs/blackmoor-decomp/tests/fl41_world.py\", line 171, in run_original\n    uc.mem_map(pe.image_base, (pe.size_of_image + 0xfff) & ~0xfff)\n    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.13/dist-packages/unicorn/unicorn_py3/unicorn.py\", line 834, in mem_map\n    raise UcError(status)\nunicorn.unicorn_py3.unicorn.UcError: No memory available or memory not present (UC_ERR_NOMEM)\n"
  },
  "0x4c7ce8": {
-  "detail": "the hardening run of the mutation check died with UC_ERR_NOMEM on this row (tasks/fl41-survivors.json, unhardened_rows)",
-  "status": "mutation check incomplete"
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
+  "status": "mutation survivor"
  },
  "0x4c808f": {
   "detail": "UcError: No memory available or memory not present (UC_ERR_NOMEM)",
@@ -9468,16 +9436,16 @@
   "trace": "Traceback (most recent call last):\n  File \"/home/user/nd-blackmoor-decomp/outputs/blackmoor-decomp/scripts/fl41_generate.py\", line 121, in search\n    return search_row(args)\n  File \"/home/user/nd-blackmoor-decomp/outputs/blackmoor-decomp/scripts/fl41_generate.py\", line 164, in search_row\n    o = run(seed, ())\n  File \"/home/user/nd-blackmoor-decomp/outputs/blackmoor-decomp/scripts/fl41_generate.py\", line 137, in run\n    o = W.run_original(row, seed, overrides)\n  File \"/home/user/nd-blackmoor-decomp/outputs/blackmoor-decomp/tests/fl41_world.py\", line 171, in run_original\n    uc.mem_map(pe.image_base, (pe.size_of_image + 0xfff) & ~0xfff)\n    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.13/dist-packages/unicorn/unicorn_py3/unicorn.py\", line 834, in mem_map\n    raise UcError(status)\nunicorn.unicorn_py3.unicorn.UcError: No memory available or memory not present (UC_ERR_NOMEM)\n"
  },
  "0x4c8408": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4c8757": {
-  "detail": "the hardening run of the mutation check died with UC_ERR_NOMEM on this row (tasks/fl41-survivors.json, unhardened_rows)",
-  "status": "mutation check incomplete"
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
+  "status": "mutation survivor"
  },
  "0x4c880f": {
-  "detail": "the hardening run of the mutation check died with UC_ERR_NOMEM on this row (tasks/fl41-survivors.json, unhardened_rows)",
-  "status": "mutation check incomplete"
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
+  "status": "mutation survivor"
  },
  "0x4c9428": {
   "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
@@ -9488,7 +9456,7 @@
   "status": "mutation survivor"
  },
  "0x4c952f": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4ca81e": {
@@ -10328,28 +10296,20 @@
   "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
   "status": "mutation survivor"
  },
- "0x4d3a52": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
-  "status": "mutation survivor"
- },
  "0x4d3d48": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4d3da7": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4d3eba": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
-  "status": "mutation survivor"
- },
- "0x4d3fa9": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4d4074": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4d41a2": {
@@ -10369,7 +10329,7 @@
   "status": "mutation survivor"
  },
  "0x4d46b3": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4d4803": {
@@ -10596,8 +10556,8 @@
   "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
   "status": "mutation survivor"
  },
- "0x4d5661": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+ "0x4d58eb": {
+  "detail": "FL-43: with the guard that a mutant is killed only on seeds where the translation agrees with the original, 11 survivors (reads of [this + 0x98a8] at other widths, neighbouring jump conditions after its compares, one repeated load through a register) are neither identical -O2 code nor proven no-ops; its earlier kills came from seeds on which the translation itself differed from the original (a model gap, see tests/fl43_wide_check.py)",
   "status": "mutation survivor"
  },
  "0x4d5b54": {
@@ -10605,11 +10565,11 @@
   "status": "mutation survivor"
  },
  "0x4d5c54": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4d5f91": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4d65e9": {
@@ -10621,7 +10581,7 @@
   "status": "mutation survivor"
  },
  "0x4d6824": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4d696d": {
@@ -11698,7 +11658,7 @@
   "untaken": []
  },
  "0x4d9df3": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4da430": {
@@ -11890,10 +11850,6 @@
     "fall-through"
    ]
   ]
- },
- "0x4db29b": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
-  "status": "mutation survivor"
  },
  "0x4dbb13": {
   "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
@@ -12714,7 +12670,7 @@
   "status": "mutation survivor"
  },
  "0x4e0559": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4e0619": {
@@ -13760,7 +13716,7 @@
   ]
  },
  "0x4e3ede": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4e40a6": {
@@ -14899,7 +14855,7 @@
   "status": "mutation survivor"
  },
  "0x4e7512": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4e77b8": {
@@ -15521,11 +15477,11 @@
   "status": "mutation survivor"
  },
  "0x4eb9c8": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4ebb5b": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4ebd85": {
@@ -15891,7 +15847,7 @@
   ]
  },
  "0x4ec44b": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4ec9a2": {
@@ -16262,7 +16218,7 @@
   "status": "mutation survivor"
  },
  "0x4ee6c7": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4ee86f": {
@@ -16435,11 +16391,11 @@
   "status": "mutation survivor"
  },
  "0x4ef52a": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4eff03": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4f2640": {
@@ -16451,7 +16407,7 @@
   "status": "mutation survivor"
  },
  "0x4f57e3": {
-  "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4f6624": {
