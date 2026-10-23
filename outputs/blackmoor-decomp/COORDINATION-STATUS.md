@@ -1619,3 +1619,7 @@ Details: `tasks/fl43-handoff.md`. `src/original_methods_fl41.c` 19 -> 27 rows, 1
 ## FL-44 handoff (2026-10-23, PDT): rows below 0x480000, third round
 
 Details: `tasks/fl44-handoff.md`. Mutation harness guarded (per-scenario alarm, kills only on seeds where the port equals the original, hangs never kill); FL-40/FL-42 credits rechecked exhaustively; new seed ranges and survivor rules (rep count, masked read, interval ranges, flow). 337 translated rows, 155 credited, 182 held; 1,917 (main after PR 168) -> **1,926 ported**. Next: windowed runs for the large held rows, the four rows with ~100 unexplained width survivors, the ~28 incomplete rows, dead-direction jumps.
+
+## FL-45 handoff (2026-10-23, PDT): rows at or above 0x480000, fourth round
+
+Details: `tasks/fl45-handoff.md`. `src/original_methods_fl41.c` 27 -> 35 rows, 1,926 (main after PR 169) -> **1,934 ported**. New: interval analysis of registers and frame slots (`scripts/fl45_ranges.py`, with a soundness test against Unicorn), survivor classes `range`, `masked read`, `copy count`, `flags` and relation-based jump equivalence, targeted hardening seeds, stub-return overrides, and a strict rerun mode that never counts a hang as a kill. 36 rows were clean, but 28 of them rest on mutants that only a hang kills, so they are held (translations kept in `tasks/fl45-hang-dependent-rows.json`; open question for Glib whether non-termination may count: +28). Next: 47 rows with unexplained survivors (store-to-load forwarding, `width` on arguments), 80 unchecked larger rows.

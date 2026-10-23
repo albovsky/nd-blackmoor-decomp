@@ -117,6 +117,24 @@ def initial_state(row, seed):
     return regs, args, patches
 
 
+STUB_OVR = 0xfff00000      # FL-45: an override at STUB_OVR + 16*k + {0, 4, 8} sets eax, ecx, edx that the k-th callee stub returns (instead of the seeded draw); both sides honour it
+
+
+def split_stub_overrides(overrides):
+    """(memory overrides, {(k, register index): value}) from a scenario's override list"""
+    mem, stub = [], {}
+    for a, n, v in overrides:
+        if STUB_OVR <= a < STUB_OVR + 0x10000:
+            stub[((a - STUB_OVR) // 16, ((a - STUB_OVR) % 16) // 4)] = v & 0xffffffff
+        else:
+            mem.append((a, n, v))
+    return mem, stub
+
+
+def apply_stub_overrides(stub, k, eax, ecx_out, edx):
+    return stub.get((k, 0), eax), stub.get((k, 1), ecx_out), stub.get((k, 2), edx)
+
+
 def stub_filter(row, writes):
     """FL-43 (FIXED worlds): a callee stub does not write into the code of the function under test (the original would then execute the changed bytes, which the translation cannot)"""
     if not FIXED:
@@ -160,7 +178,8 @@ class Trace:
 # ---- the original, under Unicorn ----------------------------------------------------------------------------------------------------
 
 
-def run_original(row, seed, overrides=(), observe=False):
+def run_original(row, seed, overrides=(), observe=False, probes=None):
+    overrides, stub_ovr = split_stub_overrides(overrides)
     import unicorn
     from unicorn import x86_const as X
     pe = od.load_image()
@@ -251,6 +270,8 @@ def run_original(row, seed, overrides=(), observe=False):
         uc.hook_add(unicorn.UC_HOOK_MEM_READ, seen_read)
         for address, decode in cmp_decoders(row).items():
             uc.hook_add(unicorn.UC_HOOK_CODE, seen_cmp, decode, begin=address, end=address)
+    for address, fn in (probes or {}).items():             # FL-45: a callback at an instruction, called as fn(uc, ensure, write count) just before it runs
+        uc.hook_add(unicorn.UC_HOOK_CODE, lambda uc_, a, s, u, fn=fn: fn(uc, ensure, len(trace.writes)), begin=address, end=address)
     stub_rng = random.Random(seed * 104729 + 13)
 
     def stub(uc_, address, size_, user):
@@ -258,6 +279,7 @@ def run_original(row, seed, overrides=(), observe=False):
         ecx = uc.reg_read(X.UC_X86_REG_ECX)
         words = struct.unpack('<%dI' % LOGGED, uc.mem_read(esp + 4, 4 * LOGGED))
         eax, ecx_out, edx, writes = stub_effect(stub_rng, magic, ecx, words)
+        eax, ecx_out, edx = apply_stub_overrides(stub_ovr, len(trace.calls), eax, ecx_out, edx)
         writes = stub_filter(row, writes)
         for at, data in writes:
             ensure(at)
@@ -372,6 +394,7 @@ class Mem:
 
 
 def run_native(lib, row, seed, overrides=()):
+    overrides, stub_ovr = split_stub_overrides(overrides)
     va = row['va']
     regs, args, patches = initial_state(row, seed)
     magic = row['magic']
@@ -402,6 +425,7 @@ def run_native(lib, row, seed, overrides=()):
             trace.fault = 'divide error'
             return
         eax, ecx_out, edx, writes = stub_effect(stub_rng, magic, ecx, words)
+        eax, ecx_out, edx = apply_stub_overrides(stub_ovr, len(trace.calls), eax, ecx_out, edx)
         writes = stub_filter(row, writes)
         for at, data in writes:
             mem.write_bytes(at, data)

@@ -673,5 +673,227 @@
   },
   "parts_accounted": [],
   "note": "Machine-translated (scripts/lift_fl41.py), 1 seeds; oracle: 77/77 instructions, 0/0 jump directions; every mutant killed, identical -O2 code, or explained."
+ },
+ {
+  "va": "0x4cd645",
+  "class": "native_oracle_verified",
+  "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
+  "date": "2026-10-22",
+  "native_source": {
+   "path": "src/original_methods_fl41.c",
+   "symbol": "m4cd645_lifted"
+  },
+  "tests": [
+   {
+    "path": "tests/test_fl41_differential.py",
+    "test_id": "Fl41Differential.test_4cd645_lifted"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl41_original_oracle.py",
+   "window": [
+    "0x4cd645",
+    "0x4cd6ff"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Machine-translated (scripts/lift_fl41.py), 11 seeds; oracle: 59/59 instructions, 4/4 jump directions; every mutant killed, identical -O2 code, or explained.",
+  "blockers_reviewed": [
+   {
+    "id": "A-2E.1:98d39096d37b0362",
+    "rationale": "The item concerns the allocation-failure branch and the fatal diagnostics/cleanup behind it. The oracle runs every instruction of this function and both directions of each jump, with the allocator and logging callees as recording stubs; the translation makes the same stub calls and stores."
+   }
+  ]
+ },
+ {
+  "va": "0x4d3d48",
+  "class": "native_oracle_verified",
+  "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
+  "date": "2026-10-22",
+  "native_source": {
+   "path": "src/original_methods_fl41.c",
+   "symbol": "m4d3d48_lifted"
+  },
+  "tests": [
+   {
+    "path": "tests/test_fl41_differential.py",
+    "test_id": "Fl41Differential.test_4d3d48_lifted"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl41_original_oracle.py",
+   "window": [
+    "0x4d3d48",
+    "0x4d3da7"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Machine-translated (scripts/lift_fl41.py), 7 seeds; oracle: 25/25 instructions, 2/2 jump directions; every mutant killed, identical -O2 code, or explained."
+ },
+ {
+  "va": "0x4d42e0",
+  "class": "native_oracle_verified",
+  "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
+  "date": "2026-10-22",
+  "native_source": {
+   "path": "src/original_methods_fl41.c",
+   "symbol": "m4d42e0_lifted"
+  },
+  "tests": [
+   {
+    "path": "tests/test_fl41_differential.py",
+    "test_id": "Fl41Differential.test_4d42e0_lifted"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl41_original_oracle.py",
+   "window": [
+    "0x4d42e0",
+    "0x4d4377"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Machine-translated (scripts/lift_fl41.py), 10 seeds; oracle: 30/30 instructions, 2/2 jump directions; every mutant killed, identical -O2 code, or explained.",
+  "blockers_reviewed": [
+   {
+    "id": "RT-11:bbd107b5f000b7dd",
+    "rationale": "The item lists other callers of the sound-stop helpers that the native scene runtime does not model; that is a caller-side gap. This function's own instructions and jump directions all run in the oracle and match the translation."
+   }
+  ]
+ },
+ {
+  "va": "0x4d4377",
+  "class": "native_oracle_verified",
+  "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
+  "date": "2026-10-22",
+  "native_source": {
+   "path": "src/original_methods_fl41.c",
+   "symbol": "m4d4377_lifted"
+  },
+  "tests": [
+   {
+    "path": "tests/test_fl41_differential.py",
+    "test_id": "Fl41Differential.test_4d4377_lifted"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl41_original_oracle.py",
+   "window": [
+    "0x4d4377",
+    "0x4d4410"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Machine-translated (scripts/lift_fl41.py), 3 seeds; oracle: 33/33 instructions, 2/2 jump directions; every mutant killed, identical -O2 code, or explained."
+ },
+ {
+  "va": "0x4d46b3",
+  "class": "native_oracle_verified",
+  "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
+  "date": "2026-10-22",
+  "native_source": {
+   "path": "src/original_methods_fl41.c",
+   "symbol": "m4d46b3_lifted"
+  },
+  "tests": [
+   {
+    "path": "tests/test_fl41_differential.py",
+    "test_id": "Fl41Differential.test_4d46b3_lifted"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl41_original_oracle.py",
+   "window": [
+    "0x4d46b3",
+    "0x4d47b0"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Machine-translated (scripts/lift_fl41.py), 7 seeds; oracle: 49/49 instructions, 2/2 jump directions; every mutant killed, identical -O2 code, or explained."
+ },
+ {
+  "va": "0x4de743",
+  "class": "native_oracle_verified",
+  "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
+  "date": "2026-10-22",
+  "native_source": {
+   "path": "src/original_methods_fl41.c",
+   "symbol": "m4de743_lifted"
+  },
+  "tests": [
+   {
+    "path": "tests/test_fl41_differential.py",
+    "test_id": "Fl41Differential.test_4de743_lifted"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl41_original_oracle.py",
+   "window": [
+    "0x4de743",
+    "0x4de7c4"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Machine-translated (scripts/lift_fl41.py), 9 seeds; oracle: 29/29 instructions, 2/2 jump directions; every mutant killed, identical -O2 code, or explained."
+ },
+ {
+  "va": "0x4e1d34",
+  "class": "native_oracle_verified",
+  "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
+  "date": "2026-10-22",
+  "native_source": {
+   "path": "src/original_methods_fl41.c",
+   "symbol": "m4e1d34_lifted"
+  },
+  "tests": [
+   {
+    "path": "tests/test_fl41_differential.py",
+    "test_id": "Fl41Differential.test_4e1d34_lifted"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl41_original_oracle.py",
+   "window": [
+    "0x4e1d34",
+    "0x4e1db3"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Machine-translated (scripts/lift_fl41.py), 18 seeds; oracle: 39/39 instructions, 10/10 jump directions; every mutant killed, identical -O2 code, or explained.",
+  "blockers_reviewed": [
+   {
+    "id": "RT-11:f7524f45a690aca7",
+    "rationale": "The item lists other callers of the sound-stop helpers that the native scene runtime does not model; that is a caller-side gap. This function's own instructions and jump directions all run in the oracle and match the translation."
+   },
+   {
+    "id": "RT-11.1:2c9f169d7c9c21f7",
+    "rationale": "The item concerns who owns or triggers this routine (dialogue-object sounds, key-driven fade-stop) in the native runtime; it is a caller-side gap. The function's own instructions and jump directions run in the oracle and match the translation."
+   }
+  ]
+ },
+ {
+  "va": "0x4eff03",
+  "class": "native_oracle_verified",
+  "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
+  "date": "2026-10-22",
+  "native_source": {
+   "path": "src/original_methods_fl41.c",
+   "symbol": "m4eff03_lifted"
+  },
+  "tests": [
+   {
+    "path": "tests/test_fl41_differential.py",
+    "test_id": "Fl41Differential.test_4eff03_lifted"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl41_original_oracle.py",
+   "window": [
+    "0x4eff03",
+    "0x4effd0"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Machine-translated (scripts/lift_fl41.py), 12 seeds; oracle: 63/63 instructions, 4/4 jump directions; every mutant killed, identical -O2 code, or explained."
  }
 ]
