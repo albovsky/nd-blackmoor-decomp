@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_00454268
+# name:         m454268_lifted
+# naming:       native port src/original_methods_fl40.c:m454268_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port
+# name-note:    Machine-translated from the original instructions (scripts/lift_function.py); 10 seeds; oracle 28/28 instructions, 6/6 jump directions; mutation survivors: tasks/fl40-survivors.json.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       2 ebp-relative slot(s): local_4, local_8
 # fields:       [eax + n] field_6a7; [ecx + n] field_6a7; [edx + n] field_8
 # callees:      none: no call or outward jump
-# track-n:      outputs/blackmoor-decomp/src/original_methods_fl40.c:m4541cf_lifted (function ledger class candidate_port; also m454268_lifted; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 28 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl40.c:m454268_lifted (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 28 instruction(s), 3 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

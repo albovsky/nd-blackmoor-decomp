@@ -16,7 +16,7 @@
 # fields:       [eax + n] field_2b; [edx + n] field_2d
 # callees:      calls FUN_004c2dfb, FUN_004c2790
 # track-n:      outputs/blackmoor-decomp/src/original_methods_fl41.c:m4d46b3_lifted (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 49 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code; function ledger class partial_native is a native-touch record, not a counterpart claim
+# unverified:   machine annotation only: the 49 instruction(s), 1 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

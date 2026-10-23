@@ -13,8 +13,8 @@
 # locals:       14 ebp-relative slot(s): local_64, local_68, local_6c, local_70, local_74, local_88, local_8c, local_90, local_94, local_98, local_9c, local_a0 and 2 more
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      calls FUN_0050d0a9, FUN_0050ca3e, FUN_0052139c, FUN_004c97b4, FUN_0041b925, FUN_0050d536, FUN_0041b992, FUN_0050d4f5, FUN_0041bbd9, FUN_0050cee4
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 326 instruction(s), 20 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl40.c:m41a4c9_lifted (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 326 instruction(s), 20 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 .intel_syntax noprefix
 .code32
 .text

@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_0044a2b7
+# name:         m44a2b7_lifted
+# naming:       native port src/original_methods_fl40.c:m44a2b7_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port
+# name-note:    Machine-translated from the original instructions (scripts/lift_function.py); 5 seeds; oracle 37/37 instructions, 0/0 jump directions; mutation survivors: tasks/fl40-survivors.json.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       5 ebp-relative slot(s): local_2, local_4, local_6, local_8, local_10
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      calls KERNEL32.dll!GetSystemTime, FUN_0050ddb9, FUN_0050dc53
-# track-n:      outputs/blackmoor-decomp/src/original_methods_fl24a.c:store_flag_and_print (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 37 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl40.c:m44a2b7_lifted (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 37 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

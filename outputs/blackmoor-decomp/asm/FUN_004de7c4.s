@@ -14,7 +14,7 @@
 # fields:       [eax + n] field_4, field_399, field_3a3, field_72c, field_738, field_minus_1; [ecx + n] field_391, field_39d, field_3a5, field_3a9, field_72c, field_738, field_73c, field_minus_1; [edx + n] field_11b, field_11d, field_395, field_3a1, field_72c, field_730, field_734, field_738, field_740
 # callees:      calls FUN_00425fc0, FUN_004dad60, FUN_0043da93, FUN_004c2790, FUN_004dae88, FUN_004daeb5, FUN_0043dbd5, FUN_004e1db3, FUN_004eeb23, FUN_0050ce04, FUN_004ef4f0
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 385 instruction(s), 8 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class static_navigation_only is a native-touch record, not a counterpart claim
+# unverified:   machine annotation only: the 385 instruction(s), 8 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

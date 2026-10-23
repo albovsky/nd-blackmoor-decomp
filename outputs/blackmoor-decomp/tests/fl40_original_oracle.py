@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""FL-40 and FL-42: original-x86 oracle for the pending game rows of GAME.EXE translated in src/original_methods_fl40.c (FL-42 added 65 rows to the corpus).
+"""FL-40 and FL-42: original-x86 oracle for the pending game rows of GAME.EXE translated in src/original_methods_fl40.c (FL-42 added 65 rows to the corpus, FL-44 8 more; FL-46 credits the rows that pass the exhaustive check, tasks/fl40-held-rows.json holds the rest).
 
 Runs ONLY the original bytes (Unicorn, no native library) on the seeds of tests/fl40_corpus.json, the same seeds and the same world (tests/fl40_world.py) that
 tests/test_fl40_differential.py runs the translation on. The hooks are the OS and host boundaries only: a recording stub at the entry of each callee (it
