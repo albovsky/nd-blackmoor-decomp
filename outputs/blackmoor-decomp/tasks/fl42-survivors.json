@@ -1,0 +1,2307 @@
+{
+ "rows_with_survivors": {
+  "0x45432f": [
+   [
+    "literal",
+    null,
+    "ecx = 0x9u;  /* 0x45436b: mov ecx, 9 */",
+    24
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xfffffff8u)), b_ = 0x1u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x45434c: cmp dword ptr [ebp - 8], 1 */",
+    15
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xfffffff8u)), b_ = 0x1u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x45434c: cmp dword ptr [ebp - 8], 1 */",
+    15
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xfffffff8u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x454346: cmp dword ptr [ebp - 8], 0 */",
+    13
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = RD8(esi), b_ = RD8(edi), r_;",
+    70
+   ],
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xfffffff8u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x454346: cmp dword ptr [ebp - 8], 0 */",
+    13
+   ],
+   [
+    "drop",
+    null,
+    "ecx = 0x9u;  /* 0x45439b: mov ecx, 9 */",
+    46
+   ]
+  ],
+  "0x43ff18": [
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(0x587705u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x440746: cmp dword ptr [0x587705], 0 */",
+    707
+   ],
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(0x586de1u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x440c04: cmp dword ptr [0x586de1], 0 */",
+    1114
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = RD32((uint32_t)(0x586e41u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x44052d: cmp dword ptr [0x586e41], 0 */",
+    530
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = ecx, n_ = 0x2u, r_; if (n_ != 0u) { FL40_SHR(r_, a_, n_, 32); ecx = r_; } }  /* 0x440612: shr ecx, 2 */",
+    612
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(0x586df5u)), b_ = 0x1u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x4401d5: cmp dword ptr [0x586df5], 1 */",
+    241
+   ],
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(0x586df5u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x44007c: cmp dword ptr [0x586df5], 0 */",
+    125
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = RD32((uint32_t)(0x586e19u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x440b51: cmp dword ptr [0x586e19], 0 */",
+    1055
+   ],
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(0x586cd5u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x44013c: cmp dword ptr [0x586cd5], 0 */",
+    186
+   ],
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(0x5873b9u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x44089f: cmp dword ptr [0x5873b9], 0 */",
+    823
+   ]
+  ],
+  "0x45e67d": [
+   [
+    "literal",
+    "identical code",
+    "{ uint32_t a_ = eax & 0xffu, b_ = RD8(edi), r_;",
+    28
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = RD8(esi), b_ = RD8(edi), r_;",
+    16
+   ],
+   [
+    "literal",
+    null,
+    "ecx = 0x9u;  /* 0x45e68e: mov ecx, 9 */",
+    12
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = eax & 0xffu, b_ = RD8(edi), r_;",
+    28
+   ],
+   [
+    "drop",
+    null,
+    "{ uint32_t a_ = eax, b_ = eax, r_; r_ = a_ ^ b_; FL40_LOGIC(r_, 32); eax = r_; }  /* 0x45e693: xor eax, eax */",
+    13
+   ],
+   [
+    "drop",
+    null,
+    "{ uint32_t a_ = eax, b_ = eax, r_; r_ = a_ ^ b_; FL40_LOGIC(r_, 32); eax = r_; }  /* 0x45e6b3: xor eax, eax */",
+    41
+   ],
+   [
+    "drop",
+    "identical code",
+    "{ uint32_t a_ = eax, b_ = eax, r_; r_ = a_ ^ b_; FL40_LOGIC(r_, 32); eax = r_; }  /* 0x45e69f: xor eax, eax */",
+    25
+   ]
+  ],
+  "0x464fff": [
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = RD8(esi), b_ = RD8(edi), r_;",
+    22
+   ]
+  ],
+  "0x46f8ae": [
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(0x5bb202u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x46f8de: cmp dword ptr [0x5bb202], 0 */",
+    30
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(0x5bb202u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x46f8de: cmp dword ptr [0x5bb202], 0 */",
+    30
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = RD8(esi), b_ = RD8(edi), r_;",
+    17
+   ],
+   [
+    "literal",
+    null,
+    "ecx = 0x9u;  /* 0x46f8c2: mov ecx, 9 */",
+    13
+   ]
+  ],
+  "0x404be1": [
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(0x5e361eu)), b_ = 0x1u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x405b27: cmp dword ptr [0x5e361e], 1 */",
+    1213
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(0x5e353au)), b_ = 0x1u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x404ee8: cmp dword ptr [0x5e353a], 1 */",
+    244
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(0x5e35dau)), b_ = 0x1u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x405780: cmp dword ptr [0x5e35da], 1 */",
+    924
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(0x5e35c6u)), b_ = 0x1u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x40566d: cmp dword ptr [0x5e35c6], 1 */",
+    839
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(0x5e352au)), b_ = 0x1u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x404e0c: cmp dword ptr [0x5e352a], 1 */",
+    176
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(0x5e35b6u)), b_ = 0x1u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x405591: cmp dword ptr [0x5e35b6], 1 */",
+    771
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(0x5e3526u)), b_ = 0x1u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x404dd5: cmp dword ptr [0x5e3526], 1 */",
+    159
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(0x5e352eu)), b_ = 0x1u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x404e43: cmp dword ptr [0x5e352e], 1 */",
+    193
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = RD32((uint32_t)(0x5e361au)), b_ = 0x1u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x405af0: cmp dword ptr [0x5e361a], 1 */",
+    1196
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(0x5e3562u)), b_ = 0x1u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x40510e: cmp dword ptr [0x5e3562], 1 */",
+    414
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(0x5e35eeu)), b_ = 0x1u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x405893: cmp dword ptr [0x5e35ee], 1 */",
+    1009
+   ]
+  ],
+  "0x47a1a9": [
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = edx, b_ = ecx, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x47a227: cmp edx, ecx */",
+    39
+   ],
+   [
+    "drop",
+    null,
+    "ecx = RD32((uint32_t)(ebp + 0xfffffff0u));  /* 0x47a212: mov ecx, dword ptr [ebp - 0x10] */",
+    35
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = eax, b_ = edx, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x47a20a: cmp eax, edx */",
+    32
+   ]
+  ],
+  "0x404b49": [
+   [
+    "width",
+    null,
+    "edx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x404b98: mov edx, dword ptr [ebp - 4] */",
+    53
+   ],
+   [
+    "literal",
+    "identical code",
+    "{ uint32_t a_ = eax & 0xffu, b_ = RD8(edi), r_;",
+    66
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = eax & 0xffu, b_ = RD8(edi), r_;",
+    18
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = ecx, n_ = 0x2u, r_; if (n_ != 0u) { FL40_SHR(r_, a_, n_, 32); ecx = r_; } }  /* 0x404b74: shr ecx, 2 */",
+    29
+   ],
+   [
+    "width",
+    null,
+    "WR8(edi, RD8(esi));",
+    40
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = ecx, n_ = 0x2u, r_; if (n_ != 0u) { FL40_SHR(r_, a_, n_, 32); ecx = r_; } }  /* 0x404bcd: shr ecx, 2 */",
+    77
+   ],
+   [
+    "width",
+    null,
+    "WR8(edi, RD8(esi));",
+    88
+   ]
+  ],
+  "0x412cb9": [
+   [
+    "drop",
+    null,
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xffffffdcu)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x412d7d: cmp dword ptr [ebp - 0x24], 0 */",
+    66
+   ],
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = esp, b_ = 0x4u, r_; FL40_ADD(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x412daf: add esp, 4 */",
+    80
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xffffffecu)), b_ = 0x2u, r_; FL40_ADD(a_, b_, 0u, r_, 32); WR32((uint32_t)(ebp + 0xffffffecu), r_); }  /* 0x412d5c: add d",
+    53
+   ],
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = RD8((uint32_t)(ebp + 0xffffffe7u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 8); }  /* 0x412d41: cmp byte ptr [ebp - 0x19], 0 */",
+    44
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = eax, b_ = eax, r_; FL40_SUB(a_, b_, cf, r_, 32); eax = r_; }  /* 0x412d6f: sbb eax, eax */",
+    60
+   ],
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = RD8((uint32_t)(ebp + 0xffffffe6u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 8); }  /* 0x412d60: cmp byte ptr [ebp - 0x1a], 0 */",
+    54
+   ],
+   [
+    "register",
+    null,
+    "{ uint32_t a_ = RD8((uint32_t)(ebp + 0xffffffe6u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 8); }  /* 0x412d60: cmp byte ptr [ebp - 0x1a], 0 */",
+    54
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xffffffdcu)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x412d7d: cmp dword ptr [ebp - 0x24], 0 */",
+    66
+   ],
+   [
+    "width",
+    null,
+    "ecx = RD32((uint32_t)(ebp + 0xfffffff8u));  /* 0x412d91: mov ecx, dword ptr [ebp - 8] */",
+    71
+   ]
+  ],
+  "0x4145d0": [
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(ecx + 0x2u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x4145f5: cmp dword ptr [ecx + 2], 0 */",
+    15
+   ],
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(eax + 0x1eu)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x414626: cmp dword ptr [eax + 0x1e], 0 */",
+    31
+   ],
+   [
+    "register",
+    null,
+    "esp -= 4u; WR32(esp, ecx);  /* 0x41463b: push ecx */",
+    38
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(ecx + 0x2u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x4145f5: cmp dword ptr [ecx + 2], 0 */",
+    15
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(eax + 0x1eu)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x414626: cmp dword ptr [eax + 0x1e], 0 */",
+    31
+   ]
+  ],
+  "0x41a19c": [
+   [
+    "width",
+    null,
+    "eax = (eax & 0xffff0000u) | ((((uint32_t)(int32_t)(int8_t)(RD8((uint32_t)(edx + ecx)))) & 0xffffu) & 0xffffu);  /* 0x41a1e1: movsx ax, byte ptr [edx + ecx] */",
+    36
+   ],
+   [
+    "width",
+    null,
+    "ecx = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(ebp + 0xfffffffcu)))) & 0xffffffffu;  /* 0x41a1da: movsx ecx, word ptr [ebp - 4] */",
+    34
+   ],
+   [
+    "width",
+    null,
+    "edx = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(ebp + 0xfffffffcu)))) & 0xffffffffu;  /* 0x41a1c0: movsx edx, word ptr [ebp - 4] */",
+    17
+   ],
+   [
+    "literal",
+    "identical code",
+    "{ uint32_t a_ = eax & 0xffu, b_ = RD8(edi), r_;",
+    23
+   ],
+   [
+    "width",
+    null,
+    "eax = (eax & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffffcu))) & 0xffffu);  /* 0x41a1b4: mov ax, word ptr [ebp - 4] */",
+    13
+   ]
+  ],
+  "0x41e33b": [
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = ecx, n_ = 0x2u, r_; if (n_ != 0u) { FL40_SHR(r_, a_, n_, 32); ecx = r_; } }  /* 0x41e3ae: shr ecx, 2 */",
+    35
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = eax & 0xffu, b_ = RD8(edi), r_;",
+    24
+   ],
+   [
+    "literal",
+    "identical code",
+    "{ uint32_t a_ = eax & 0xffu, b_ = RD8(edi), r_;",
+    24
+   ]
+  ],
+  "0x426063": [
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = esp, b_ = 0x4u, r_; FL40_ADD(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x426141: add esp, 4 */",
+    60
+   ],
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(0x5703a4u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x426081: cmp dword ptr [0x5703a4], 0 */",
+    14
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(0x5703a4u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x426081: cmp dword ptr [0x5703a4], 0 */",
+    14
+   ],
+   [
+    "register",
+    null,
+    "esp -= 4u; WR32(esp, ecx);  /* 0x4260ce: push ecx */",
+    36
+   ],
+   [
+    "register",
+    null,
+    "esp -= 4u; WR32(esp, ecx);  /* 0x4260a8: push ecx */",
+    26
+   ],
+   [
+    "literal",
+    "identical code",
+    "{ uint32_t a_ = esp, b_ = 0x4u, r_; FL40_ADD(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x426141: add esp, 4 */",
+    60
+   ]
+  ],
+  "0x41a216": [
+   [
+    "register",
+    null,
+    "{ uint32_t a_ = RD8((uint32_t)(ebp + 0xffffffefu)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 8); }  /* 0x41a291: cmp byte ptr [ebp - 0x11], 0 */",
+    55
+   ],
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = RD8((uint32_t)(ebp + 0xffffffeeu)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 8); }  /* 0x41a2b0: cmp byte ptr [ebp - 0x12], 0 */",
+    65
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xffffffe4u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x41a2cd: cmp dword ptr [ebp - 0x1c], 0 */",
+    77
+   ],
+   [
+    "width",
+    null,
+    "edx = (edx & 0xffffff00u) | ((RD8((uint32_t)(ecx + 0x1u))) & 0xffu);  /* 0x41a29a: mov dl, byte ptr [ecx + 1] */",
+    58
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = eax & 0xffu, b_ = RD8(edi), r_;",
+    14
+   ],
+   [
+    "register",
+    null,
+    "{ uint32_t a_ = RD8((uint32_t)(ebp + 0xffffffeeu)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 8); }  /* 0x41a2b0: cmp byte ptr [ebp - 0x12], 0 */",
+    65
+   ],
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xffffffe4u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x41a2cd: cmp dword ptr [ebp - 0x1c], 0 */",
+    77
+   ],
+   [
+    "width",
+    null,
+    "edx = (edx & 0xffffff00u) | ((RD8((uint32_t)(ecx))) & 0xffu);  /* 0x41a285: mov dl, byte ptr [ecx] */",
+    50
+   ]
+  ],
+  "0x4273c1": [
+   [
+    "width",
+    null,
+    "eax = (eax & 0xffffff00u) | ((RD8((uint32_t)(0x58320cu))) & 0xffu);  /* 0x4273ca: mov al, byte ptr [0x58320c] */",
+    9
+   ],
+   [
+    "literal",
+    "identical code",
+    "eax = (eax & 0xffffff00u) | ((RD8((uint32_t)(0x58320cu))) & 0xffu);  /* 0x4273ca: mov al, byte ptr [0x58320c] */",
+    9
+   ],
+   [
+    "drop",
+    "same value",
+    "ecx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x4273d3: mov ecx, dword ptr [ebp - 4] */",
+    12
+   ]
+  ],
+  "0x427a40": [
+   [
+    "register",
+    "identical code",
+    "ebp = esp;  /* 0x427a41: mov ebp, esp */",
+    5
+   ],
+   [
+    "drop",
+    "identical code",
+    "ebp = esp;  /* 0x427a41: mov ebp, esp */",
+    5
+   ]
+  ],
+  "0x42dbe1": [
+   [
+    "literal",
+    null,
+    "edx = RD32((uint32_t)(0x5b5120u));  /* 0x42ddc7: mov edx, dword ptr [0x5b5120] */",
+    109
+   ],
+   [
+    "literal",
+    null,
+    "eax = RD32((uint32_t)(0x5b5120u));  /* 0x42dd10: mov eax, dword ptr [0x5b5120] */",
+    68
+   ],
+   [
+    "width",
+    null,
+    "eax = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(ebp + 0x8u)))) & 0xffffffffu;  /* 0x42dc32: movsx eax, word ptr [ebp + 8] */",
+    20
+   ],
+   [
+    "literal",
+    null,
+    "ecx = RD32((uint32_t)(0x5b5120u));  /* 0x42dcaa: mov ecx, dword ptr [0x5b5120] */",
+    44
+   ]
+  ],
+  "0x42e34e": [
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(0x5b508bu)), b_ = 0x1u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x42e45d: cmp dword ptr [0x5b508b], 1 */",
+    77
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(0x5c39e5u)), b_ = edx, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x42e46d: cmp dword ptr [0x5c39e5], edx */",
+    80
+   ]
+  ],
+  "0x411215": [
+   [
+    "width",
+    null,
+    "ecx = (ecx & 0xffff0000u) | ((RD16((uint32_t)(eax))) & 0xffffu);  /* 0x41128d: mov cx, word ptr [eax] */",
+    28
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = ecx, n_ = 0x2u, r_; if (n_ != 0u) { FL40_SHR(r_, a_, n_, 32); ecx = r_; } }  /* 0x411323: shr ecx, 2 */",
+    80
+   ],
+   [
+    "literal",
+    null,
+    "esi = RD32((uint32_t)(ebp + 0xffff1540u));  /* 0x4112e0: mov esi, dword ptr [ebp - 0xeac0] */",
+    59
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = eax, b_ = RD32((uint32_t)(ebp + 0xffff0410u)), r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x4112b8: cmp eax, dword ptr [ebp - 0xfbf0] */",
+    38
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = ecx, b_ = RD32((uint32_t)(ebp + 0xffffffccu)), r_; FL40_ADD(a_, b_, 0u, r_, 32); ecx = r_; }  /* 0x4112fa: add ecx, dword ptr [ebp - 0x34] */",
+    71
+   ]
+  ],
+  "0x437cff": [
+   [
+    "width",
+    null,
+    "ecx = (ecx & 0xffffff00u) | ((RD8((uint32_t)(eax + 0x1eu))) & 0xffu);  /* 0x437db2: mov cl, byte ptr [eax + 0x1e] */",
+    78
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(eax)), b_ = 0x25u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x437d09: cmp dword ptr [eax], 0x25 */",
+    9
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(eax)), b_ = 0x28u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x437d9c: cmp dword ptr [eax], 0x28 */",
+    69
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(edx)), b_ = 0x26u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x437d6c: cmp dword ptr [edx], 0x26 */",
+    49
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(ecx)), b_ = 0x27u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x437d3c: cmp dword ptr [ecx], 0x27 */",
+    29
+   ],
+   [
+    "literal",
+    "identical code",
+    "eax = (eax & 0xffffff00u) | ((RD8((uint32_t)(edx + 0xeu))) & 0xffu);  /* 0x437d46: mov al, byte ptr [edx + 0xe] */",
+    33
+   ],
+   [
+    "width",
+    null,
+    "ecx = (ecx & 0xffffff00u) | ((RD8((uint32_t)(eax + 0xbu))) & 0xffu);  /* 0x437d76: mov cl, byte ptr [eax + 0xb] */",
+    53
+   ],
+   [
+    "literal",
+    "identical code",
+    "edx = (edx & 0xffffff00u) | ((RD8((uint32_t)(ecx + 0xcu))) & 0xffu);  /* 0x437da6: mov dl, byte ptr [ecx + 0xc] */",
+    73
+   ]
+  ],
+  "0x43da93": [
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(ecx + 0x5d15a9u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x43dbb5: cmp dword ptr [ecx + 0x5d15a9], 0 */",
+    52
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = RD32((uint32_t)(ecx + 0x5d15a9u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x43dbb5: cmp dword ptr [ecx + 0x5d15a9], 0 */",
+    52
+   ],
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(0x5bb1dau)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x43db04: cmp dword ptr [0x5bb1da], 0 */",
+    23
+   ],
+   [
+    "width",
+    null,
+    "eax = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(ebp + 0xfffffffcu)))) & 0xffffffffu;  /* 0x43dba5: movsx eax, word ptr [ebp - 4] */",
+    47
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(0x5bb1d2u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x43dadd: cmp dword ptr [0x5bb1d2], 0 */",
+    16
+   ],
+   [
+    "width",
+    null,
+    "edx = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(ebp + 0xfffffffcu)))) & 0xffffffffu;  /* 0x43dbbe: movsx edx, word ptr [ebp - 4] */",
+    54
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(ecx + 0x5d15a9u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x43dbb5: cmp dword ptr [ecx + 0x5d15a9], 0 */",
+    52
+   ],
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(0x5bb1d2u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x43dadd: cmp dword ptr [0x5bb1d2], 0 */",
+    16
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(0x5bb1dau)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x43db04: cmp dword ptr [0x5bb1da], 0 */",
+    23
+   ]
+  ],
+  "0x43ebc9": [
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = esp, b_ = 0x4u, r_; FL40_ADD(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x43ebf3: add esp, 4 */",
+    17
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0x8u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x43ebd8: cmp dword ptr [ebp + 8], 0 */",
+    10
+   ],
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0x8u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x43ebd8: cmp dword ptr [ebp + 8], 0 */",
+    10
+   ],
+   [
+    "literal",
+    "identical code",
+    "{ uint32_t a_ = esp, b_ = 0x4u, r_; FL40_ADD(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x43ebf3: add esp, 4 */",
+    17
+   ],
+   [
+    "drop",
+    "identical code",
+    "{ uint32_t a_ = esp, b_ = 0x4u, r_; FL40_ADD(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x43ebf3: add esp, 4 */",
+    17
+   ],
+   [
+    "drop",
+    "same value",
+    "ecx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x43ebd0: mov ecx, dword ptr [ebp - 4] */",
+    8
+   ],
+   [
+    "literal",
+    "identical code",
+    "{ uint32_t a_ = esp, b_ = 0x4u, r_; FL40_ADD(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x43ebf3: add esp, 4 */",
+    17
+   ]
+  ],
+  "0x42639d": [
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = ecx, n_ = 0x2u, r_; if (n_ != 0u) { FL40_SHR(r_, a_, n_, 32); ecx = r_; } }  /* 0x426404: shr ecx, 2 */",
+    89
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = eax & 0xffu, b_ = RD8(edi), r_;",
+    81
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = ecx, n_ = 0x2u, r_; if (n_ != 0u) { FL40_SHR(r_, a_, n_, 32); ecx = r_; } }  /* 0x4263c0: shr ecx, 2 */",
+    29
+   ],
+   [
+    "width",
+    null,
+    "WR8(edi, RD8(esi));",
+    40
+   ],
+   [
+    "literal",
+    "identical code",
+    "{ uint32_t a_ = eax & 0xffu, b_ = RD8(edi), r_;",
+    49
+   ]
+  ],
+  "0x440dfc": [
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(0x58723du)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x441205: cmp dword ptr [0x58723d], 0 */",
+    355
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(0x587549u)), b_ = 0x1u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x440ead: cmp dword ptr [0x587549], 1 */",
+    66
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = ecx, n_ = 0x2u, r_; if (n_ != 0u) { FL40_SHR(r_, a_, n_, 32); ecx = r_; } }  /* 0x441642: shr ecx, 2 */",
+    726
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(0x58728du)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x440eba: cmp dword ptr [0x58728d], 0 */",
+    68
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = ecx, n_ = 0x2u, r_; if (n_ != 0u) { FL40_SHR(r_, a_, n_, 32); ecx = r_; } }  /* 0x441450: shr ecx, 2 */",
+    555
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(0x587095u)), b_ = 0x1u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x440e07: cmp dword ptr [0x587095], 1 */",
+    9
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(0x58706du)), b_ = 0x1u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x4415f6: cmp dword ptr [0x58706d], 1 */",
+    699
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = eax & 0xffu, b_ = RD8(edi), r_;",
+    139
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = ecx, n_ = 0x2u, r_; if (n_ != 0u) { FL40_SHR(r_, a_, n_, 32); ecx = r_; } }  /* 0x4410eb: shr ecx, 2 */",
+    264
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(0x58763du)), b_ = 0x1u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x441145: cmp dword ptr [0x58763d], 1 */",
+    294
+   ]
+  ],
+  "0x44423f": [
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(0x587491u)), b_ = 0x1u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x44454a: cmp dword ptr [0x587491], 1 */",
+    253
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = eax & 0xffu, b_ = RD8(edi), r_;",
+    334
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(0x587661u)), b_ = 0x1u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x44448a: cmp dword ptr [0x587661], 1 */",
+    192
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = ecx, n_ = 0x2u, r_; if (n_ != 0u) { FL40_SHR(r_, a_, n_, 32); ecx = r_; } }  /* 0x4444f0: shr ecx, 2 */",
+    223
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = eax & 0xffu, b_ = RD8(edi), r_;",
+    271
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = RD32((uint32_t)(0x587521u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x444264: cmp dword ptr [0x587521], 0 */",
+    13
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = ecx, n_ = 0x2u, r_; if (n_ != 0u) { FL40_SHR(r_, a_, n_, 32); ecx = r_; } }  /* 0x444430: shr ecx, 2 */",
+    162
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = RD32((uint32_t)(0x5869e5u)), b_ = 0x1u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x4445fd: cmp dword ptr [0x5869e5], 1 */",
+    312
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(0x587205u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x4444b1: cmp dword ptr [0x587205], 0 */",
+    198
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = ecx, n_ = 0x2u, r_; if (n_ != 0u) { FL40_SHR(r_, a_, n_, 32); ecx = r_; } }  /* 0x4442b0: shr ecx, 2 */",
+    40
+   ],
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(0x58773du)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x4444a4: cmp dword ptr [0x58773d], 0 */",
+    196
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = RD32((uint32_t)(0x587205u)), b_ = 0x1u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x44478a: cmp dword ptr [0x587205], 1 */",
+    436
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = ecx, n_ = 0x2u, r_; if (n_ != 0u) { FL40_SHR(r_, a_, n_, 32); ecx = r_; } }  /* 0x4445a3: shr ecx, 2 */",
+    282
+   ]
+  ],
+  "0x447166": [
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(eax + 0x35u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x4471a1: cmp dword ptr [eax + 0x35], 0 */",
+    24
+   ],
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(ecx + 0x31u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x447179: cmp dword ptr [ecx + 0x31], 0 */",
+    11
+   ],
+   [
+    "register",
+    null,
+    "esp -= 4u; WR32(esp, ecx);  /* 0x44718b: push ecx */",
+    17
+   ],
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(eax + 0x35u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x4471a1: cmp dword ptr [eax + 0x35], 0 */",
+    24
+   ],
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = esp, b_ = 0x4u, r_; FL40_ADD(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4471b9: add esp, 4 */",
+    32
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(ecx + 0x31u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x447179: cmp dword ptr [ecx + 0x31], 0 */",
+    11
+   ],
+   [
+    "literal",
+    "identical code",
+    "{ uint32_t a_ = esp, b_ = 0x4u, r_; FL40_ADD(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4471b9: add esp, 4 */",
+    32
+   ]
+  ],
+  "0x4458d4": [
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xfffffe24u)), b_ = 0x1u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x445956: cmp dword ptr [ebp - 0x1dc], 1 */",
+    63
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xfffffe24u)), b_ = 0x2u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x44595f: cmp dword ptr [ebp - 0x1dc], 2 */",
+    65
+   ],
+   [
+    "literal",
+    "identical code",
+    "{ uint32_t a_ = eax & 0xffu, b_ = RD8(edi), r_;",
+    30
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = eax & 0xffu, b_ = RD8(edi), r_;",
+    30
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = ecx, n_ = 0x2u, r_; if (n_ != 0u) { FL40_SHR(r_, a_, n_, 32); ecx = r_; } }  /* 0x445922: shr ecx, 2 */",
+    41
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xfffffe24u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x44594d: cmp dword ptr [ebp - 0x1dc], 0 */",
+    61
+   ],
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xfffffe24u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x44594d: cmp dword ptr [ebp - 0x1dc], 0 */",
+    61
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xfffffe24u)), b_ = 0x1u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x445956: cmp dword ptr [ebp - 0x1dc], 1 */",
+    63
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xfffffe24u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x44594d: cmp dword ptr [ebp - 0x1dc], 0 */",
+    61
+   ]
+  ],
+  "0x448186": [
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xfffffff8u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x4481b6: cmp dword ptr [ebp - 8], 0 */",
+    20
+   ],
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(eax + 0x1eu)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x448194: cmp dword ptr [eax + 0x1e], 0 */",
+    11
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xfffffff8u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x4481b6: cmp dword ptr [ebp - 8], 0 */",
+    20
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(eax + 0x1eu)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x448194: cmp dword ptr [eax + 0x1e], 0 */",
+    11
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xfffffff8u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x4481b6: cmp dword ptr [ebp - 8], 0 */",
+    20
+   ]
+  ],
+  "0x447e83": [
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(eax + 0x1eu)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x447e8f: cmp dword ptr [eax + 0x1e], 0 */",
+    11
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(eax + 0x1eu)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x447e8f: cmp dword ptr [eax + 0x1e], 0 */",
+    11
+   ],
+   [
+    "width",
+    null,
+    "WR8(edi, RD8(esi)); esi += 1u; edi += 1u;  /* 0x447ea8: movsb byte ptr es:[edi], byte ptr [esi] */",
+    23
+   ],
+   [
+    "width",
+    null,
+    "WR16(edi, RD16(esi)); esi += 2u; edi += 2u;  /* 0x447ea6: movsw word ptr es:[edi], word ptr [esi] */",
+    22
+   ]
+  ],
+  "0x41c133": [
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = ecx, n_ = 0x2u, r_; if (n_ != 0u) { FL40_SHR(r_, a_, n_, 32); ecx = r_; } }  /* 0x41c23b: shr ecx, 2 */",
+    79
+   ],
+   [
+    "literal",
+    "identical code",
+    "WR8(edi, eax & 0xffu); edi += 1u;  /* 0x41c1e8: stosb byte ptr es:[edi], al */",
+    48
+   ],
+   [
+    "literal",
+    null,
+    "eax = RD32((uint32_t)(ebp + 0xffffaba4u));  /* 0x41c19f: mov eax, dword ptr [ebp - 0x545c] */",
+    26
+   ],
+   [
+    "width",
+    null,
+    "eax = RD32((uint32_t)(ebp + 0xffff9a80u));  /* 0x41c1ca: mov eax, dword ptr [ebp - 0x6580] */",
+    36
+   ],
+   [
+    "width",
+    null,
+    "WR8(edi, RD8(esi));",
+    90
+   ]
+  ],
+  "0x448254": [
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(eax + 0x1eu)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x448260: cmp dword ptr [eax + 0x1e], 0 */",
+    9
+   ],
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(eax + 0x1eu)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x448260: cmp dword ptr [eax + 0x1e], 0 */",
+    9
+   ]
+  ],
+  "0x449dc7": [
+   [
+    "literal",
+    "identical code",
+    "{ uint32_t a_ = eax & 0xffu, b_ = RD8(edi), r_;",
+    163
+   ],
+   [
+    "drop",
+    null,
+    "{ uint32_t a_ = eax, b_ = eax, r_; r_ = a_ ^ b_; FL40_LOGIC(r_, 32); eax = r_; }  /* 0x449e4f: xor eax, eax */",
+    85
+   ],
+   [
+    "width",
+    null,
+    "WR8(edi, RD8(esi));",
+    38
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = ecx, n_ = 0x2u, r_; if (n_ != 0u) { FL40_SHR(r_, a_, n_, 32); ecx = r_; } }  /* 0x449ded: shr ecx, 2 */",
+    27
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = ecx, n_ = 0x2u, r_; if (n_ != 0u) { FL40_SHR(r_, a_, n_, 32); ecx = r_; } }  /* 0x449e5d: shr ecx, 2 */",
+    99
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = ecx, n_ = 0x2u, r_; if (n_ != 0u) { FL40_SHR(r_, a_, n_, 32); ecx = r_; } }  /* 0x449e2d: shr ecx, 2 */",
+    63
+   ],
+   [
+    "width",
+    null,
+    "WR8(edi, RD8(esi));",
+    182
+   ],
+   [
+    "literal",
+    "identical code",
+    "{ uint32_t a_ = eax & 0xffu, b_ = RD8(edi), r_;",
+    50
+   ],
+   [
+    "width",
+    null,
+    "ecx = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(ebp + 0xfffffefcu)))) & 0xffffffffu;  /* 0x449e1f: movsx ecx, word ptr [ebp - 0x104] */",
+    59
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = ecx, n_ = 0x2u, r_; if (n_ != 0u) { FL40_SHR(r_, a_, n_, 32); ecx = r_; } }  /* 0x449ee5: shr ecx, 2 */",
+    171
+   ]
+  ],
+  "0x44ac3a": [
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = eax & 0xffu, b_ = RD8(edi), r_;",
+    104
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = eax, b_ = ecx, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x44ace1: cmp eax, ecx */",
+    80
+   ],
+   [
+    "width",
+    null,
+    "edx = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(ebp + 0xfffffffcu)))) & 0xffffffffu;  /* 0x44acf1: movsx edx, word ptr [ebp - 4] */",
+    85
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = ecx, b_ = edx, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x44acfd: cmp ecx, edx */",
+    88
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = eax & 0xffu, b_ = RD8(edi), r_;",
+    14
+   ],
+   [
+    "width",
+    null,
+    "ecx = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(ebp + 0xfffffffcu)))) & 0xffffffffu;  /* 0x44acc9: movsx ecx, word ptr [ebp - 4] */",
+    74
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = ecx, n_ = 0x2u, r_; if (n_ != 0u) { FL40_SHR(r_, a_, n_, 32); ecx = r_; } }  /* 0x44ad2f: shr ecx, 2 */",
+    115
+   ],
+   [
+    "drop",
+    null,
+    "eax = ((uint32_t)(int32_t)(int8_t)(RD8((uint32_t)(edx + ecx + 0x1u)))) & 0xffffffffu;  /* 0x44acd0: movsx eax, byte ptr [edx + ecx + 1] */",
+    76
+   ],
+   [
+    "width",
+    null,
+    "eax = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(ebp + 0xfffffffcu)))) & 0xffffffffu;  /* 0x44ad01: movsx eax, word ptr [ebp - 4] */",
+    90
+   ],
+   [
+    "width",
+    null,
+    "eax = (eax & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffff8u))) & 0xffffu);  /* 0x44ac8b: mov ax, word ptr [ebp - 8] */",
+    46
+   ]
+  ],
+  "0x44a6f2": [
+   [
+    "width",
+    null,
+    "WR8(edi, RD8(esi));",
+    270
+   ],
+   [
+    "literal",
+    "identical code",
+    "{ uint32_t a_ = eax & 0xffu, b_ = RD8(edi), r_;",
+    248
+   ],
+   [
+    "drop",
+    null,
+    "ecx -= 1u;",
+    238
+   ],
+   [
+    "drop",
+    null,
+    "ecx -= 1u;",
+    272
+   ],
+   [
+    "drop",
+    null,
+    "WR8(edi, RD8(esi));",
+    202
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = ecx, n_ = 0x2u, r_; if (n_ != 0u) { FL40_SHR(r_, a_, n_, 32); ecx = r_; } }  /* 0x44aa1a: shr ecx, 2 */",
+    293
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xffffff60u)), b_ = 0x1e6u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x44a966: cmp dword ptr [ebp - 0xa0], 0x1e6 */",
+    168
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = ecx, n_ = 0x2u, r_; if (n_ != 0u) { FL40_SHR(r_, a_, n_, 32); ecx = r_; } }  /* 0x44a9f0: shr ecx, 2 */",
+    259
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xffffff60u)), b_ = 0x182u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x44a95a: cmp dword ptr [ebp - 0xa0], 0x182 */",
+    166
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = ecx, n_ = 0x2u, r_; if (n_ != 0u) { FL40_SHR(r_, a_, n_, 32); ecx = r_; } }  /* 0x44a9c6: shr ecx, 2 */",
+    225
+   ],
+   [
+    "width",
+    null,
+    "edx = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(0x63a4cdu)))) & 0xffffffffu;  /* 0x44a923: movsx edx, word ptr [0x63a4cd] */",
+    151
+   ],
+   [
+    "literal",
+    "identical code",
+    "{ uint32_t a_ = eax & 0xffu, b_ = RD8(edi), r_;",
+    214
+   ]
+  ],
+  "0x454847": [
+   [
+    "literal",
+    null,
+    "{ int64_t w_ = (int64_t)(int32_t)(ecx) * (int32_t)(0x4au); uint32_t r_ = (uint32_t)w_; cf = of = (w_ != (int64_t)(int32_t)r_); FL40_ZSP(r_, 32); ecx = r_; }  /*",
+    216
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = edx, b_ = RD32((uint32_t)(0x61dbc3u)), r_; FL40_SUB(a_, b_, 0u, r_, 32); edx = r_; }  /* 0x4548e8: sub edx, dword ptr [0x61dbc3] */",
+    39
+   ],
+   [
+    "literal",
+    null,
+    "esp -= 4u; WR32(esp, 0x454b15u); FL40_CALL(0x4c5d4bu); esp += 20u; esp += 4u;  /* 0x454b10: call 0x4c5d4b */",
+    175
+   ],
+   [
+    "register",
+    null,
+    "{ uint32_t a_ = eax, b_ = RD32((uint32_t)(0x61d8efu)), r_; FL40_SUB(a_, b_, 0u, r_, 32); eax = r_; }  /* 0x454a82: sub eax, dword ptr [0x61d8ef] */",
+    135
+   ],
+   [
+    "literal",
+    null,
+    "ecx = RD32((uint32_t)(0x5d15e3u));  /* 0x454879: mov ecx, dword ptr [0x5d15e3] */",
+    18
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = eax, b_ = RD32((uint32_t)(0x61dbbfu)), r_; FL40_ADD(a_, b_, 0u, r_, 32); eax = r_; }  /* 0x454bf7: add eax, dword ptr [0x61dbbf] */",
+    237
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(0x61d933u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x4548ad: cmp dword ptr [0x61d933], 0 */",
+    27
+   ],
+   [
+    "register",
+    null,
+    "{ uint32_t a_ = eax, b_ = RD32((uint32_t)(ebp + 0xffffffe8u)), r_; FL40_SUB(a_, b_, 0u, r_, 32); eax = r_; }  /* 0x454bef: sub eax, dword ptr [ebp - 0x18] */",
+    233
+   ],
+   [
+    "literal",
+    null,
+    "edx = RD32((uint32_t)(0x61d9c7u));  /* 0x454947: mov edx, dword ptr [0x61d9c7] */",
+    61
+   ],
+   [
+    "width",
+    null,
+    "ecx = RD32((uint32_t)(0x61d9cbu));  /* 0x454938: mov ecx, dword ptr [0x61d9cb] */",
+    58
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = eax, b_ = RD32((uint32_t)(ebp + 0xffffffe8u)), r_; FL40_SUB(a_, b_, 0u, r_, 32); eax = r_; }  /* 0x454bef: sub eax, dword ptr [ebp - 0x18] */",
+    233
+   ],
+   [
+    "width",
+    null,
+    "edx = RD32((uint32_t)(ebp + 0xffffffe8u));  /* 0x454b71: mov edx, dword ptr [ebp - 0x18] */",
+    201
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(0x61d887u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x45484d: cmp dword ptr [0x61d887], 0 */",
+    7
+   ],
+   [
+    "drop",
+    null,
+    "{ uint32_t a_ = eax, b_ = RD32((uint32_t)(ebp + 0xffffffecu)), r_; FL40_SUB(a_, b_, 0u, r_, 32); eax = r_; }  /* 0x454abb: sub eax, dword ptr [ebp - 0x14] */",
+    150
+   ],
+   [
+    "width",
+    null,
+    "edx = RD32((uint32_t)(0x61d94bu));  /* 0x4548b6: mov edx, dword ptr [0x61d94b] */",
+    29
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = eax, b_ = RD32((uint32_t)(0x61d8efu)), r_; FL40_SUB(a_, b_, 0u, r_, 32); eax = r_; }  /* 0x454a82: sub eax, dword ptr [0x61d8ef] */",
+    135
+   ],
+   [
+    "drop",
+    null,
+    "{ uint32_t a_ = eax, b_ = RD32((uint32_t)(ebp + 0xffffffecu)), r_; FL40_SUB(a_, b_, 0u, r_, 32); eax = r_; }  /* 0x454b60: sub eax, dword ptr [ebp - 0x14] */",
+    195
+   ],
+   [
+    "register",
+    null,
+    "esp -= 4u; WR32(esp, ecx);  /* 0x454905: push ecx */",
+    46
+   ],
+   [
+    "drop",
+    null,
+    "edx = RD32((uint32_t)(ebp + 0xffffffecu));  /* 0x454ad9: mov edx, dword ptr [ebp - 0x14] */",
+    160
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(0x61d937u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x45485b: cmp dword ptr [0x61d937], 0 */",
+    11
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = eax, n_ = 0x1u, r_; if (n_ != 0u) { FL40_SAR(r_, a_, n_, 32); eax = r_; } }  /* 0x454ac1: sar eax, 1 */",
+    153
+   ],
+   [
+    "register",
+    null,
+    "{ uint32_t a_ = edx, b_ = RD32((uint32_t)(0x61dbc3u)), r_; FL40_SUB(a_, b_, 0u, r_, 32); edx = r_; }  /* 0x45494d: sub edx, dword ptr [0x61dbc3] */",
+    62
+   ]
+  ],
+  "0x449ef8": [
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = ecx, n_ = 0x2u, r_; if (n_ != 0u) { FL40_SHR(r_, a_, n_, 32); ecx = r_; } }  /* 0x449f5e: shr ecx, 2 */",
+    63
+   ],
+   [
+    "width",
+    null,
+    "WR32(edi, RD32(esi));",
+    183
+   ],
+   [
+    "width",
+    null,
+    "ecx = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(ebp + 0xfffffefcu)))) & 0xffffffffu;  /* 0x449f50: movsx ecx, word ptr [ebp - 0x104] */",
+    59
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = ecx, n_ = 0x2u, r_; if (n_ != 0u) { FL40_SHR(r_, a_, n_, 32); ecx = r_; } }  /* 0x44a0b2: shr ecx, 2 */",
+    324
+   ],
+   [
+    "drop",
+    null,
+    "WR32(edi, RD32(esi));",
+    101
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = ecx, n_ = 0x2u, r_; if (n_ != 0u) { FL40_SHR(r_, a_, n_, 32); ecx = r_; } }  /* 0x449ff8: shr ecx, 2 */",
+    180
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = eax & 0xffu, b_ = RD8(edi), r_;",
+    134
+   ],
+   [
+    "drop",
+    null,
+    "ecx -= 1u;",
+    283
+   ],
+   [
+    "width",
+    null,
+    "WR8(edi, RD8(esi));",
+    191
+   ],
+   [
+    "literal",
+    "identical code",
+    "{ uint32_t a_ = eax & 0xffu, b_ = RD8(edi), r_;",
+    301
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = ecx, n_ = 0x2u, r_; if (n_ != 0u) { FL40_SHR(r_, a_, n_, 32); ecx = r_; } }  /* 0x449fbe: shr ecx, 2 */",
+    142
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = eax & 0xffu, b_ = RD8(edi), r_;",
+    216
+   ]
+  ],
+  "0x459bd6": [
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = eax, b_ = 0xffffffffu, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x459bf3: cmp eax, -1 */",
+    15
+   ],
+   [
+    "literal",
+    "identical code",
+    "ecx = (ecx & 0xffffff00u) | ((RD8((uint32_t)(eax + 0xd6u))) & 0xffu);  /* 0x459be2: mov cl, byte ptr [eax + 0xd6] */",
+    10
+   ],
+   [
+    "width",
+    null,
+    "ecx = (ecx & 0xffffff00u) | ((RD8((uint32_t)(eax + 0xd6u))) & 0xffu);  /* 0x459be2: mov cl, byte ptr [eax + 0xd6] */",
+    10
+   ]
+  ],
+  "0x459ddc": [
+   [
+    "width",
+    null,
+    "eax = RD32((uint32_t)(0x5b44f0u));  /* 0x459e1b: mov eax, dword ptr [0x5b44f0] */",
+    16
+   ],
+   [
+    "width",
+    null,
+    "ecx = RD32((uint32_t)(0x5b44f4u));  /* 0x459e23: mov ecx, dword ptr [0x5b44f4] */",
+    18
+   ]
+  ],
+  "0x4524a8": [
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(eax + edx * 4u + 0x270u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x452558: cmp dword ptr [eax + edx*4 + 0x270], 0 *",
+    56
+   ],
+   [
+    "drop",
+    "same value",
+    "eax = RD32((uint32_t)(ebp + 0xfffffff8u));  /* 0x452509: mov eax, dword ptr [ebp - 8] */",
+    33
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(ecx + eax * 4u + 0x270u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x4524f4: cmp dword ptr [ecx + eax*4 + 0x270], 0 *",
+    25
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = RD32((uint32_t)(ecx + 0x510u)), b_ = 0x6u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x4524df: cmp dword ptr [ecx + 0x510], 6 */",
+    20
+   ],
+   [
+    "drop",
+    "same value",
+    "eax = RD32((uint32_t)(ebp + 0xfffffff8u));  /* 0x452555: mov eax, dword ptr [ebp - 8] */",
+    55
+   ],
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(eax + edx * 4u + 0x270u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x452558: cmp dword ptr [eax + edx*4 + 0x270], 0 *",
+    56
+   ],
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(ecx + eax * 4u + 0x270u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x4524f4: cmp dword ptr [ecx + eax*4 + 0x270], 0 *",
+    25
+   ],
+   [
+    "width",
+    null,
+    "edx = RD32((uint32_t)(ecx + 0x510u));  /* 0x4524ca: mov edx, dword ptr [ecx + 0x510] */",
+    14
+   ],
+   [
+    "alu",
+    "frame",
+    "{ uint32_t a_ = esp, b_ = 0x8u, r_; FL40_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4524ab: sub esp, 8 */",
+    6
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = esp, b_ = 0x8u, r_; FL40_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4524ab: sub esp, 8 */",
+    6
+   ],
+   [
+    "width",
+    null,
+    "eax = RD32((uint32_t)(edx + 0x510u));  /* 0x4524eb: mov eax, dword ptr [edx + 0x510] */",
+    23
+   ],
+   [
+    "literal",
+    "identical code",
+    "{ uint32_t a_ = esp, b_ = 0x8u, r_; FL40_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4524ab: sub esp, 8 */",
+    6
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = RD32((uint32_t)(eax + 0x510u)), b_ = 0x6u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x452543: cmp dword ptr [eax + 0x510], 6 */",
+    51
+   ]
+  ],
+  "0x45dd96": [
+   [
+    "literal",
+    "identical code",
+    "ecx = (ecx & 0xffffff00u) | ((RD8((uint32_t)(eax + 0x321u))) & 0xffu);  /* 0x45dda2: mov cl, byte ptr [eax + 0x321] */",
+    10
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = eax, b_ = 0xffffffffu, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x45ddb3: cmp eax, -1 */",
+    15
+   ],
+   [
+    "width",
+    null,
+    "ecx = (ecx & 0xffffff00u) | ((RD8((uint32_t)(eax + 0x321u))) & 0xffu);  /* 0x45dda2: mov cl, byte ptr [eax + 0x321] */",
+    10
+   ]
+  ],
+  "0x459aea": [
+   [
+    "drop",
+    "same value",
+    "eax = RD32((uint32_t)(ebp + 0xfffffff8u));  /* 0x459b12: mov eax, dword ptr [ebp - 8] */",
+    14
+   ],
+   [
+    "alu",
+    "frame",
+    "{ uint32_t a_ = esp, b_ = 0x8u, r_; FL40_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x459aed: sub esp, 8 */",
+    6
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = esp, b_ = 0x8u, r_; FL40_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x459aed: sub esp, 8 */",
+    6
+   ],
+   [
+    "drop",
+    "same value",
+    "eax = RD32((uint32_t)(ebp + 0xfffffff8u));  /* 0x459b34: mov eax, dword ptr [ebp - 8] */",
+    20
+   ],
+   [
+    "literal",
+    "identical code",
+    "{ uint32_t a_ = esp, b_ = 0x8u, r_; FL40_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x459aed: sub esp, 8 */",
+    6
+   ],
+   [
+    "width",
+    null,
+    "ecx = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(ebp + 0xfffffffcu)))) & 0xffffffffu;  /* 0x459b64: movsx ecx, word ptr [ebp - 4] */",
+    34
+   ],
+   [
+    "width",
+    null,
+    "eax = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(ebp + 0xfffffffcu)))) & 0xffffffffu;  /* 0x459b70: movsx eax, word ptr [ebp - 4] */",
+    37
+   ]
+  ],
+  "0x464ab5": [
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = eax, b_ = 0x27c9u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x464b22: cmp eax, 0x27c9 */",
+    27
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = eax, b_ = 0x27cbu, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x464bfa: cmp eax, 0x27cb */",
+    70
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = ecx, b_ = 0x27cdu, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x464b2d: cmp ecx, 0x27cd */",
+    30
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = eax, b_ = 0x27ccu, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x464ac0: cmp eax, 0x27cc */",
+    9
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = eax, b_ = 0x27cau, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x464b9b: cmp eax, 0x27ca */",
+    52
+   ]
+  ],
+  "0x45ae6e": [
+   [
+    "drop",
+    "identical code",
+    "if (d_ == 0u || (n_ == INT64_MIN && (int32_t)d_ == -1) || n_ / (int32_t)d_ > INT32_MAX || n_ / (int32_t)d_ < INT32_MIN) FL40_TRAP;",
+    125
+   ],
+   [
+    "literal",
+    null,
+    "eax = RD32((uint32_t)(edx + 0x5d1599u));  /* 0x45b1d4: mov eax, dword ptr [edx + 0x5d1599] */",
+    260
+   ],
+   [
+    "width",
+    null,
+    "eax = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(ebp + 0xffffffe0u)))) & 0xffffffffu;  /* 0x45aff7: movsx eax, word ptr [ebp - 0x20] */",
+    143
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = eax, n_ = 0x4u, r_; if (n_ != 0u) { FL40_SHL(r_, a_, n_, 32); eax = r_; } }  /* 0x45affb: shl eax, 4 */",
+    144
+   ],
+   [
+    "literal",
+    null,
+    "eax = RD32((uint32_t)(edx + 0x5d1599u));  /* 0x45aef9: mov eax, dword ptr [edx + 0x5d1599] */",
+    43
+   ],
+   [
+    "literal",
+    null,
+    "{ int64_t w_ = (int64_t)(int32_t)(ecx) * (int32_t)(0x4au); uint32_t r_ = (uint32_t)w_; cf = of = (w_ != (int64_t)(int32_t)r_); FL40_ZSP(r_, 32); ecx = r_; }  /*",
+    196
+   ],
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(0x63a85cu)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x45b13d: cmp dword ptr [0x63a85c], 0 */",
+    225
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(0x63a85cu)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x45b15c: cmp dword ptr [0x63a85c], 0 */",
+    232
+   ],
+   [
+    "width",
+    null,
+    "eax = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(ebp + 0xffffffe8u)))) & 0xffffffffu;  /* 0x45b0ae: movsx eax, word ptr [ebp - 0x18] */",
+    188
+   ],
+   [
+    "drop",
+    null,
+    "{ int64_t w_ = (int64_t)(int32_t)(eax) * (int32_t)(0x4au); uint32_t r_ = (uint32_t)w_; cf = of = (w_ != (int64_t)(int32_t)r_); FL40_ZSP(r_, 32); eax = r_; }  /*",
+    302
+   ],
+   [
+    "width",
+    null,
+    "eax = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(ebp + 0xfffffff4u)))) & 0xffffffffu;  /* 0x45aeae: movsx eax, word ptr [ebp - 0xc] */",
+    21
+   ],
+   [
+    "literal",
+    null,
+    "ecx = RD32((uint32_t)(eax + 0x5d1599u));  /* 0x45b286: mov ecx, dword ptr [eax + 0x5d1599] */",
+    303
+   ]
+  ],
+  "0x465f8e": [
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = eax, b_ = 0x27d2u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x465f99: cmp eax, 0x27d2 */",
+    9
+   ],
+   [
+    "literal",
+    null,
+    "edx = (edx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0x10u))) & 0xffffu);  /* 0x465ff4: mov dx, word ptr [ebp + 0x10] */",
+    26
+   ],
+   [
+    "drop",
+    null,
+    "eax = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(ebp + 0x8u)))) & 0xffffffffu;  /* 0x465ffe: movsx eax, word ptr [ebp + 8] */",
+    30
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = eax, b_ = 0x27d3u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x466002: cmp eax, 0x27d3 */",
+    31
+   ],
+   [
+    "width",
+    null,
+    "ecx = RD32((uint32_t)(0x5b44f4u));  /* 0x465fc8: mov ecx, dword ptr [0x5b44f4] */",
+    18
+   ]
+  ],
+  "0x464faa": [
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = RD8(esi), b_ = RD8(edi), r_;",
+    22
+   ],
+   [
+    "literal",
+    null,
+    "ecx = 0x9u;  /* 0x464fd9: mov ecx, 9 */",
+    18
+   ]
+  ],
+  "0x467e23": [
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(ecx + 0x254u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x467e39: cmp dword ptr [ecx + 0x254], 0 */",
+    12
+   ],
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(eax + 0x258u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x467e2d: cmp dword ptr [eax + 0x258], 0 */",
+    9
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(eax + 0x258u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x467e2d: cmp dword ptr [eax + 0x258], 0 */",
+    9
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(ecx + 0x254u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x467e39: cmp dword ptr [ecx + 0x254], 0 */",
+    12
+   ],
+   [
+    "drop",
+    "same value",
+    "ecx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x467e36: mov ecx, dword ptr [ebp - 4] */",
+    11
+   ],
+   [
+    "drop",
+    "same value",
+    "eax = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x467e51: mov eax, dword ptr [ebp - 4] */",
+    19
+   ]
+  ],
+  "0x467e70": [
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(eax + 0x25cu)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x467e7a: cmp dword ptr [eax + 0x25c], 0 */",
+    9
+   ],
+   [
+    "literal",
+    null,
+    "ecx = (ecx & 0xffff0000u) | ((RD16((uint32_t)(eax + 0x352u))) & 0xffffu);  /* 0x467e9a: mov cx, word ptr [eax + 0x352] */",
+    18
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = RD32((uint32_t)(eax + 0x25cu)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x467e7a: cmp dword ptr [eax + 0x25c], 0 */",
+    9
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(eax + 0x25cu)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x467e7a: cmp dword ptr [eax + 0x25c], 0 */",
+    9
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(ecx + 0x240u)), b_ = 0x10u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x467e88: cmp dword ptr [ecx + 0x240], 0x10 */",
+    14
+   ],
+   [
+    "drop",
+    "same value",
+    "ecx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x467e85: mov ecx, dword ptr [ebp - 4] */",
+    13
+   ]
+  ],
+  "0x4691ee": [
+   [
+    "width",
+    null,
+    "ecx = RD32((uint32_t)(0x5b44f0u));  /* 0x469213: mov ecx, dword ptr [0x5b44f0] */",
+    12
+   ],
+   [
+    "literal",
+    null,
+    "edx = (edx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0x8u))) & 0xffffu);  /* 0x469248: mov dx, word ptr [ebp + 8] */",
+    21
+   ],
+   [
+    "width",
+    null,
+    "edx = RD32((uint32_t)(0x5b44f4u));  /* 0x46921c: mov edx, dword ptr [0x5b44f4] */",
+    14
+   ]
+  ],
+  "0x470e31": [
+   [
+    "literal",
+    "identical code",
+    "ecx = (ecx & 0xffffff00u) | ((RD8((uint32_t)(eax + 0xd3eu))) & 0xffu);  /* 0x470e3d: mov cl, byte ptr [eax + 0xd3e] */",
+    10
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = eax, b_ = 0xffffffffu, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x470e51: cmp eax, -1 */",
+    15
+   ],
+   [
+    "width",
+    null,
+    "ecx = (ecx & 0xffffff00u) | ((RD8((uint32_t)(eax + 0xd3eu))) & 0xffu);  /* 0x470e3d: mov cl, byte ptr [eax + 0xd3e] */",
+    10
+   ]
+  ],
+  "0x458dce": [
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = esp, b_ = 0xcu, r_; FL40_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x458dd1: sub esp, 0xc */",
+    6
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = edx, b_ = eax, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x458e33: cmp edx, eax */",
+    32
+   ],
+   [
+    "drop",
+    "same value",
+    "eax = RD32((uint32_t)(ebp + 0xfffffff4u));  /* 0x458ded: mov eax, dword ptr [ebp - 0xc] */",
+    13
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = esp, b_ = 0xcu, r_; FL40_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x458dd1: sub esp, 0xc */",
+    6
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xfffffffcu)), b_ = eax, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x458e12: cmp dword ptr [ebp - 4], eax */",
+    24
+   ],
+   [
+    "width",
+    null,
+    "eax = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x458e25: mov eax, dword ptr [ebp - 4] */",
+    29
+   ],
+   [
+    "literal",
+    "identical code",
+    "{ uint32_t a_ = esp, b_ = 0xcu, r_; FL40_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x458dd1: sub esp, 0xc */",
+    6
+   ]
+  ],
+  "0x478684": [
+   [
+    "literal",
+    null,
+    "{ uint32_t a_ = eax, b_ = ecx, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x47884e: cmp eax, ecx */",
+    145
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xfffffff4u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x4788f8: cmp dword ptr [ebp - 0xc], 0 */",
+    202
+   ]
+  ],
+  "0x479f72": [
+   [
+    "width",
+    null,
+    "eax = RD32((uint32_t)(0x5b44f4u));  /* 0x479fad: mov eax, dword ptr [0x5b44f4] */",
+    17
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = eax, b_ = 0x279du, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x479f7d: cmp eax, 0x279d */",
+    9
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = ecx, n_ = 0x5u, r_; if (n_ != 0u) { FL40_SHL(r_, a_, n_, 32); ecx = r_; } }  /* 0x479ffc: shl ecx, 5 */",
+    31
+   ],
+   [
+    "literal",
+    null,
+    "{ uint32_t a_ = ecx, n_ = 0x5u, r_; if (n_ != 0u) { FL40_SHL(r_, a_, n_, 32); ecx = r_; } }  /* 0x479ffc: shl ecx, 5 */",
+    31
+   ],
+   [
+    "literal",
+    null,
+    "eax = (eax & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xcu))) & 0xffffu);  /* 0x47a02b: mov ax, word ptr [ebp + 0xc] */",
+    40
+   ],
+   [
+    "width",
+    null,
+    "edx = RD32((uint32_t)(0x5b44f4u));  /* 0x479fff: mov edx, dword ptr [0x5b44f4] */",
+    32
+   ],
+   [
+    "width",
+    null,
+    "ecx = RD32((uint32_t)(0x5b44f0u));  /* 0x479ff6: mov ecx, dword ptr [0x5b44f0] */",
+    30
+   ],
+   [
+    "drop",
+    null,
+    "{ uint32_t a_ = ecx, n_ = 0x5u, r_; if (n_ != 0u) { FL40_SHL(r_, a_, n_, 32); ecx = r_; } }  /* 0x479ffc: shl ecx, 5 */",
+    31
+   ]
+  ],
+  "0x4741eb": [
+   [
+    "literal",
+    "identical code",
+    "{ uint32_t a_ = esp, b_ = 0x8u, r_; FL40_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4741ee: sub esp, 8 */",
+    6
+   ],
+   [
+    "alu",
+    "frame",
+    "{ uint32_t a_ = esp, b_ = 0x8u, r_; FL40_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4741ee: sub esp, 8 */",
+    6
+   ],
+   [
+    "width",
+    null,
+    "ecx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x47420c: mov ecx, dword ptr [ebp - 4] */",
+    17
+   ],
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(ecx * 4u + 0x5a4b4eu)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x47420f: cmp dword ptr [ecx*4 + 0x5a4b4e], 0 */",
+    18
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = esp, b_ = 0x8u, r_; FL40_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4741ee: sub esp, 8 */",
+    6
+   ],
+   [
+    "width",
+    null,
+    "edx = RD32((uint32_t)(edx + 0xcu));  /* 0x47427d: mov edx, dword ptr [edx + 0xc] */",
+    51
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(ecx * 4u + 0x5a4b4eu)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x47420f: cmp dword ptr [ecx*4 + 0x5a4b4e], 0 */",
+    18
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xfffffffcu)), b_ = 0x4u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x474206: cmp dword ptr [ebp - 4], 4 */",
+    15
+   ],
+   [
+    "drop",
+    "identical code",
+    "{ uint32_t a_ = esp, b_ = 0x8u, r_; FL40_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4741ee: sub esp, 8 */",
+    6
+   ],
+   [
+    "literal",
+    "identical code",
+    "{ uint32_t a_ = esp, b_ = 0x8u, r_; FL40_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4741ee: sub esp, 8 */",
+    6
+   ]
+  ],
+  "0x47a28c": [
+   [
+    "alu",
+    "frame",
+    "{ uint32_t a_ = esp, b_ = 0x10u, r_; FL40_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x47a28f: sub esp, 0x10 */",
+    6
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = ecx, b_ = 0x1u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x47a30f: cmp ecx, 1 */",
+    41
+   ],
+   [
+    "literal",
+    "identical code",
+    "ecx = (ecx & 0xffffff00u) | ((RD8((uint32_t)(eax + 0x2bu))) & 0xffu);  /* 0x47a30c: mov cl, byte ptr [eax + 0x2b] */",
+    40
+   ],
+   [
+    "register",
+    "frame",
+    "{ uint32_t a_ = esp, b_ = 0x10u, r_; FL40_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x47a28f: sub esp, 0x10 */",
+    6
+   ],
+   [
+    "width",
+    null,
+    "ecx = (ecx & 0xffffff00u) | ((RD8((uint32_t)(eax + 0x2bu))) & 0xffu);  /* 0x47a30c: mov cl, byte ptr [eax + 0x2b] */",
+    40
+   ]
+  ],
+  "0x478f91": [
+   [
+    "width",
+    null,
+    "ecx = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(ebp + 0xfffffffcu)))) & 0xffffffffu;  /* 0x4794c5: movsx ecx, word ptr [ebp - 4] */",
+    390
+   ],
+   [
+    "width",
+    null,
+    "ecx = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(ebp + 0xfffffffcu)))) & 0xffffffffu;  /* 0x4795ef: movsx ecx, word ptr [ebp - 4] */",
+    473
+   ],
+   [
+    "drop",
+    null,
+    "edx = RD32((uint32_t)(ebp + 0xffffffe0u));  /* 0x479a2c: mov edx, dword ptr [ebp - 0x20] */",
+    777
+   ],
+   [
+    "width",
+    null,
+    "ecx = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(ebp + 0xfffffffcu)))) & 0xffffffffu;  /* 0x479300: movsx ecx, word ptr [ebp - 4] */",
+    263
+   ]
+  ]
+ },
+ "unexplained_rows": [
+  "0x404b49",
+  "0x404be1",
+  "0x411215",
+  "0x412cb9",
+  "0x4145d0",
+  "0x41a19c",
+  "0x41a216",
+  "0x41c133",
+  "0x41e33b",
+  "0x426063",
+  "0x42639d",
+  "0x4273c1",
+  "0x42dbe1",
+  "0x437cff",
+  "0x43da93",
+  "0x43ff18",
+  "0x440dfc",
+  "0x44423f",
+  "0x4458d4",
+  "0x447166",
+  "0x447e83",
+  "0x448186",
+  "0x449dc7",
+  "0x449ef8",
+  "0x44a6f2",
+  "0x44ac3a",
+  "0x4524a8",
+  "0x45432f",
+  "0x454847",
+  "0x458dce",
+  "0x459aea",
+  "0x459bd6",
+  "0x459ddc",
+  "0x45ae6e",
+  "0x45dd96",
+  "0x45e67d",
+  "0x464faa",
+  "0x464fff",
+  "0x465f8e",
+  "0x467e70",
+  "0x4691ee",
+  "0x46f8ae",
+  "0x470e31",
+  "0x4741eb",
+  "0x478684",
+  "0x478f91",
+  "0x479f72",
+  "0x47a1a9",
+  "0x47a28c"
+ ]
+}

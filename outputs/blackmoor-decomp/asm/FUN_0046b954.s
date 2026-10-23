@@ -10,7 +10,7 @@
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         m46b954_lifted
 # naming:       native port src/original_methods_fl40.c:m46b954_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port
-# name-note:    Machine-translated from the original instructions (scripts/lift_function.py); 7 seeds; oracle 197/197 instructions, 2/2 jump directions; mutation survivors: tasks/fl40-survivors.json.
+# name-note:    Machine-translated from the original instructions (scripts/lift_function.py); 11 seeds; oracle 197/197 instructions, 2/2 jump directions; mutation survivors: tasks/fl40-survivors.json.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [eax + n] field_49fc, field_4a00, field_4a04, field_4a08, field_4a0c, field_4a10, field_4a14, field_4a18, field_4a1c, field_4a20, field_4a4c, field_4a62 and 1 more; [ecx + n] field_49e4, field_49e8, field_49ec, field_49f0, field_49f4, field_49f8, field_49fc, field_4a00, field_4a04, field_4a08, field_4a0c, field_4a10 and 5 more; [edx + n] field_49f4, field_49f8, field_49fc, field_4a00, field_4a14, field_4a18, field_4a1c, field_4a20, field_4a5a, field_4a5e, field_816a, field_816c

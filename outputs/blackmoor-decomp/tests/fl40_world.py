@@ -52,11 +52,12 @@ def magic_of(row):
     return row['magic']
 
 
-HI_SEEDS = 7000        # seeds from here on use style 5 only
+HI_SEEDS = 7000        # seeds from 7000 to TGT_SEEDS - 1 use style 5 only
+TGT_SEEDS = 20000      # seeds from here on use style 6 only (FL-42)
 
 
 def style_of(seed):
-    return 5 if seed >= HI_SEEDS else seed % 5
+    return 6 if seed >= TGT_SEEDS else 5 if seed >= HI_SEEDS else seed % 5
 
 
 def mixture(rng, style, magic):
@@ -72,6 +73,8 @@ def mixture(rng, style, magic):
         weights = [(40, 'zero'), (3, 'one'), (3, 'small'), (3, 'neg'), (36, 'magic'), (10, 'ptr'), (5, 'rand')]
     elif style == 5:       # style 5 (seeds from HI_SEEDS on): values whose low half is small or zero and whose upper bytes are not, so that a narrower read of a 32-bit value differs
         weights = [(12, 'zero'), (8, 'one'), (8, 'small'), (28, 'hi16'), (14, 'hi8'), (10, 'ptr'), (10, 'rand'), (10, 'magic')]
+    elif style == 6:       # style 6 (seeds from TGT_SEEDS on): a constant of the function or a boundary value, then decorated in the half or byte a narrower access would miss
+        weights = [(10, 'zero'), (8, 'one'), (52, 'tgt'), (10, 'ptr'), (10, 'rand'), (10, 'hi16')]
     total = sum(w for w, _ in weights)
     pick = rng.randrange(total)
     for w, kind in weights:
@@ -88,6 +91,19 @@ def mixture(rng, style, magic):
         return (1 + rng.randrange(0xffff)) << 16 | rng.choice((0, 0, 0, 1))
     if kind == 'hi8':
         return (1 + rng.randrange(0xff)) << 8 | rng.choice((0, 0, 1))
+    if kind == 'tgt':
+        base = rng.choice(list(magic or ()) + [0, 1, 2, 3, 4, 8, 0x10, 0x20, 0x7f, 0x80, 0xff, 0x100, 0x7fff, 0x8000, 0xffff, 0x10000])
+        base = (base + rng.choice((0, 0, 0, 0, 1, -1))) & 0xffffffff
+        deco = rng.randrange(20)
+        if deco < 4:
+            return base
+        if deco < 11:
+            return base & 0xffff | (1 + rng.randrange(0xffff)) << 16
+        if deco < 14:
+            return base & 0xff | (1 + rng.randrange(0xff)) << 8
+        if deco < 17:
+            return base | 0x80000000
+        return (-base) & 0xffffffff
     if kind == 'neg':
         return (-rng.randrange(1, 0x41)) & 0xffffffff
     if kind == 'magic' and magic:
@@ -323,7 +339,7 @@ class Mem:
             self.image[address - IMAGE_BASE:address - IMAGE_BASE + len(data)] = data
         self.image_end = IMAGE_BASE + len(self.image)
         self.stack = bytearray(b'\x71' * STACK_SIZE)
-        self.pages = {}
+        self.pages = {STUB_BASE >> 12: bytearray(b'\x90' * PAGE), STOP >> 12: bytearray(b'\x90' * 16 + bytes(PAGE - 16))}      # the pages the original run maps for the call stubs and the return address (FL-42: a pointer into them reads the same)
         self.seed, self.magic = seed, magic
 
     def _cell(self, address, size):
@@ -331,8 +347,6 @@ class Mem:
             return self.image, address - IMAGE_BASE
         if STACK_BASE <= address and address + size <= STACK_BASE + STACK_SIZE:
             return self.stack, address - STACK_BASE
-        if STOP <= address < STOP + 16:
-            return bytearray(b'\x90' * 16), 0
         if address >= 0xfff00000:
             raise Fault('access at 0x%x' % address)
         if (address >> 12) != ((address + size - 1) >> 12):
@@ -512,6 +526,17 @@ def cmp_decoders(row):
 
     out = {}
     for i in md.disasm(pe.image[off:off + row['body']], row['va']):
+        if i.mnemonic in ('repe cmpsb', 'repne cmpsb'):        # FL-42: a string compare is one instruction; the guided search needs the whole other string
+            def decode_str(uc, address, wc, ensure):
+                esi, edi, ecx = (uc.reg_read(full[n]) for n in ('esi', 'edi', 'ecx'))
+                n = min(ecx, 64)
+                if n == 0:
+                    return (address, 'str', esi, b'')
+                for a in (esi, esi + n - 1, edi, edi + n - 1):
+                    ensure(a)
+                return (address, 'str', esi, bytes(uc.mem_read(edi, n)))
+            out[i.address] = decode_str
+            continue
         if i.mnemonic in ('cmp', 'test') and len(i.operands) == 2:
             bits = i.operands[0].size * 8
             a, b = operand(i, i.operands[0], bits), operand(i, i.operands[1], bits)
