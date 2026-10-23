@@ -56201,31 +56201,6 @@
    "note": "Machine-translated from the original instructions (scripts/lift_function.py); 1 seeds; oracle 13/13 instructions, 0/0 jump directions; mutation survivors: tasks/fl40-survivors.json."
   },
   {
-   "va": "0x416e90",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review, findings addressed (FL-40)",
-   "date": "2026-10-22",
-   "native_source": {
-    "path": "src/original_methods_fl40.c",
-    "symbol": "m416e90_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/test_fl40_differential.py",
-     "test_id": "Fl40Differential.test_416e90_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl40_original_oracle.py",
-    "window": [
-     "0x416e90",
-     "0x416f2d"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 1 seeds; oracle 45/45 instructions, 2/2 jump directions; mutation survivors: tasks/fl40-survivors.json."
-  },
-  {
    "va": "0x41a4b0",
    "class": "native_oracle_verified",
    "reviewer": "Sonnet slice-reviewer, diff review, findings addressed (FL-40)",
@@ -56323,7 +56298,7 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 2 seeds; oracle 58/58 instructions, 6/6 jump directions; mutation survivors: tasks/fl40-survivors.json."
+   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 3 seeds; oracle 58/58 instructions, 6/6 jump directions; mutation survivors: tasks/fl40-survivors.json."
   },
   {
    "va": "0x425fa0",
@@ -56584,45 +56559,6 @@
    },
    "parts_accounted": [],
    "note": "Machine-translated from the original instructions (scripts/lift_function.py); 2 seeds; oracle 15/15 instructions, 0/0 jump directions; mutation survivors: tasks/fl40-survivors.json."
-  },
-  {
-   "va": "0x43e96c",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review, findings addressed (FL-40)",
-   "date": "2026-10-22",
-   "native_source": {
-    "path": "src/original_methods_fl40.c",
-    "symbol": "m43e96c_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/test_fl40_differential.py",
-     "test_id": "Fl40Differential.test_43e96c_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl40_original_oracle.py",
-    "window": [
-     "0x43e96c",
-     "0x43eab0"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 6 seeds; oracle 71/71 instructions, 8/8 jump directions; mutation survivors: tasks/fl40-survivors.json.",
-   "blockers_reviewed": [
-    {
-     "id": "A-20.1:b2c7ee29ac609413",
-     "rationale": "The item records a static reading of the dispatcher arm and the unmodelled producers of the action-active dword; it concerns the executor and the callees. All instructions and both jump directions of this function run in the oracle."
-    },
-    {
-     "id": "RT-15:6b1c3f1b49470cdb",
-     "rationale": "The item records a static reading of the dispatcher arm and the unmodelled producers of the action-active dword; it concerns the executor and the callees. All instructions and both jump directions of this function run in the oracle."
-    },
-    {
-     "id": "RT-3:68a1cbe007fd9216",
-     "rationale": "The item records a static reading of the dispatcher arm and the unmodelled producers of the action-active dword; it concerns the executor and the callees. All instructions and both jump directions of this function run in the oracle."
-    }
-   ]
   },
   {
    "va": "0x43eb75",
@@ -57173,31 +57109,6 @@
    },
    "parts_accounted": [],
    "note": "Machine-translated from the original instructions (scripts/lift_function.py); 1 seeds; oracle 23/23 instructions, 0/0 jump directions; mutation survivors: tasks/fl40-survivors.json."
-  },
-  {
-   "va": "0x46e823",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review, findings addressed (FL-40)",
-   "date": "2026-10-22",
-   "native_source": {
-    "path": "src/original_methods_fl40.c",
-    "symbol": "m46e823_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/test_fl40_differential.py",
-     "test_id": "Fl40Differential.test_46e823_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl40_original_oracle.py",
-    "window": [
-     "0x46e823",
-     "0x46e9c0"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 8 seeds; oracle 122/122 instructions, 10/10 jump directions; mutation survivors: tasks/fl40-survivors.json."
   },
   {
    "va": "0x4709bb",
@@ -58356,181 +58267,6 @@
    "note": "Machine-translated from the original instructions (scripts/lift_function.py); 1 seeds; oracle 38/38 instructions, 4/4 jump directions; mutation survivors: tasks/fl40-survivors.json."
   },
   {
-   "va": "0x41608b",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review (FL-42, findings addressed)",
-   "date": "2026-10-22",
-   "native_source": {
-    "path": "src/original_methods_fl40.c",
-    "symbol": "m41608b_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/test_fl40_differential.py",
-     "test_id": "Fl40Differential.test_41608b_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl40_original_oracle.py",
-    "window": [
-     "0x41608b",
-     "0x416122"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 5 seeds; oracle 41/41 instructions, 6/6 jump directions; mutation survivors: tasks/fl40-survivors.json."
-  },
-  {
-   "va": "0x41a216",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review (FL-42, findings addressed)",
-   "date": "2026-10-22",
-   "native_source": {
-    "path": "src/original_methods_fl40.c",
-    "symbol": "m41a216_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/test_fl40_differential.py",
-     "test_id": "Fl40Differential.test_41a216_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl40_original_oracle.py",
-    "window": [
-     "0x41a216",
-     "0x41a2e9"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 9 seeds; oracle 69/69 instructions, 14/14 jump directions; mutation survivors: tasks/fl40-survivors.json."
-  },
-  {
-   "va": "0x41aaa1",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review (FL-42, findings addressed)",
-   "date": "2026-10-22",
-   "native_source": {
-    "path": "src/original_methods_fl40.c",
-    "symbol": "m41aaa1_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/test_fl40_differential.py",
-     "test_id": "Fl40Differential.test_41aaa1_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl40_original_oracle.py",
-    "window": [
-     "0x41aaa1",
-     "0x41aeaa"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 15 seeds; oracle 281/281 instructions, 36/36 jump directions; mutation survivors: tasks/fl40-survivors.json."
-  },
-  {
-   "va": "0x41aeaa",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review (FL-42, findings addressed)",
-   "date": "2026-10-22",
-   "native_source": {
-    "path": "src/original_methods_fl40.c",
-    "symbol": "m41aeaa_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/test_fl40_differential.py",
-     "test_id": "Fl40Differential.test_41aeaa_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl40_original_oracle.py",
-    "window": [
-     "0x41aeaa",
-     "0x41b2e6"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 21 seeds; oracle 294/294 instructions, 40/40 jump directions; mutation survivors: tasks/fl40-survivors.json."
-  },
-  {
-   "va": "0x41b2e6",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review (FL-42, findings addressed)",
-   "date": "2026-10-22",
-   "native_source": {
-    "path": "src/original_methods_fl40.c",
-    "symbol": "m41b2e6_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/test_fl40_differential.py",
-     "test_id": "Fl40Differential.test_41b2e6_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl40_original_oracle.py",
-    "window": [
-     "0x41b2e6",
-     "0x41b6e2"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 18 seeds; oracle 274/274 instructions, 36/36 jump directions; mutation survivors: tasks/fl40-survivors.json."
-  },
-  {
-   "va": "0x41b925",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review (FL-42, findings addressed)",
-   "date": "2026-10-22",
-   "native_source": {
-    "path": "src/original_methods_fl40.c",
-    "symbol": "m41b925_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/test_fl40_differential.py",
-     "test_id": "Fl40Differential.test_41b925_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl40_original_oracle.py",
-    "window": [
-     "0x41b925",
-     "0x41b992"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 1 seeds; oracle 29/29 instructions, 4/4 jump directions; mutation survivors: tasks/fl40-survivors.json."
-  },
-  {
-   "va": "0x41c29a",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review (FL-42, findings addressed)",
-   "date": "2026-10-22",
-   "native_source": {
-    "path": "src/original_methods_fl40.c",
-    "symbol": "m41c29a_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/test_fl40_differential.py",
-     "test_id": "Fl40Differential.test_41c29a_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl40_original_oracle.py",
-    "window": [
-     "0x41c29a",
-     "0x41c3ba"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 6 seeds; oracle 78/78 instructions, 10/10 jump directions; mutation survivors: tasks/fl40-survivors.json."
-  },
-  {
    "va": "0x426b4e",
    "class": "native_oracle_verified",
    "reviewer": "Sonnet slice-reviewer, diff review (FL-42, findings addressed)",
@@ -58712,97 +58448,6 @@
    ]
   },
   {
-   "va": "0x433c60",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review (FL-42, findings addressed)",
-   "date": "2026-10-22",
-   "native_source": {
-    "path": "src/original_methods_fl40.c",
-    "symbol": "m433c60_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/test_fl40_differential.py",
-     "test_id": "Fl40Differential.test_433c60_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl40_original_oracle.py",
-    "window": [
-     "0x433c60",
-     "0x433e63"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 8 seeds; oracle 126/126 instructions, 8/8 jump directions; mutation survivors: tasks/fl40-survivors.json."
-  },
-  {
-   "va": "0x43e776",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review (FL-42, findings addressed)",
-   "date": "2026-10-22",
-   "native_source": {
-    "path": "src/original_methods_fl40.c",
-    "symbol": "m43e776_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/test_fl40_differential.py",
-     "test_id": "Fl40Differential.test_43e776_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl40_original_oracle.py",
-    "window": [
-     "0x43e776",
-     "0x43e8b8"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 2 seeds; oracle 70/70 instructions, 10/10 jump directions; mutation survivors: tasks/fl40-survivors.json.",
-   "blockers_reviewed": [
-    {
-     "id": "RT-15:6b1c3f1b49470cdb",
-     "rationale": "The item says the producers of the action-active dword are not modelled by the runtime; it concerns the executor, not whether this function's instructions match. All instructions and both jump directions run in the oracle."
-    },
-    {
-     "id": "RT-3:68a1cbe007fd9216",
-     "rationale": "The item says the producers of the action-active dword are not modelled by the runtime; it concerns the executor, not whether this function's instructions match. All instructions and both jump directions run in the oracle."
-    }
-   ]
-  },
-  {
-   "va": "0x43e8b8",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review (FL-42, findings addressed)",
-   "date": "2026-10-22",
-   "native_source": {
-    "path": "src/original_methods_fl40.c",
-    "symbol": "m43e8b8_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/test_fl40_differential.py",
-     "test_id": "Fl40Differential.test_43e8b8_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl40_original_oracle.py",
-    "window": [
-     "0x43e8b8",
-     "0x43e96c"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 4 seeds; oracle 47/47 instructions, 10/10 jump directions; mutation survivors: tasks/fl40-survivors.json.",
-   "blockers_reviewed": [
-    {
-     "id": "A-20.1:b2c7ee29ac609413",
-     "rationale": "The item records a static reading of the dispatcher arm and its callees; this function's own instructions and both jump directions now run in the oracle against the translation, with the callees as recording stubs."
-    }
-   ]
-  },
-  {
    "va": "0x43ebc9",
    "class": "native_oracle_verified",
    "reviewer": "Sonnet slice-reviewer, diff review (FL-42, findings addressed)",
@@ -58851,31 +58496,6 @@
    },
    "parts_accounted": [],
    "note": "Machine-translated from the original instructions (scripts/lift_function.py); 4 seeds; oracle 57/57 instructions, 2/2 jump directions; mutation survivors: tasks/fl40-survivors.json."
-  },
-  {
-   "va": "0x448084",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review (FL-42, findings addressed)",
-   "date": "2026-10-22",
-   "native_source": {
-    "path": "src/original_methods_fl40.c",
-    "symbol": "m448084_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/test_fl40_differential.py",
-     "test_id": "Fl40Differential.test_448084_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl40_original_oracle.py",
-    "window": [
-     "0x448084",
-     "0x448186"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 8 seeds; oracle 79/79 instructions, 6/6 jump directions; mutation survivors: tasks/fl40-survivors.json."
   },
   {
    "va": "0x449ba5",
@@ -59003,31 +58623,6 @@
    "note": "Machine-translated from the original instructions (scripts/lift_function.py); 6 seeds; oracle 30/30 instructions, 4/4 jump directions; mutation survivors: tasks/fl40-survivors.json."
   },
   {
-   "va": "0x4540bd",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review (FL-42, findings addressed)",
-   "date": "2026-10-22",
-   "native_source": {
-    "path": "src/original_methods_fl40.c",
-    "symbol": "m4540bd_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/test_fl40_differential.py",
-     "test_id": "Fl40Differential.test_4540bd_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl40_original_oracle.py",
-    "window": [
-     "0x4540bd",
-     "0x4541a6"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 13 seeds; oracle 69/69 instructions, 18/18 jump directions; mutation survivors: tasks/fl40-survivors.json."
-  },
-  {
    "va": "0x45504b",
    "class": "native_oracle_verified",
    "reviewer": "Sonnet slice-reviewer, diff review (FL-42, findings addressed)",
@@ -59101,31 +58696,6 @@
    },
    "parts_accounted": [],
    "note": "Machine-translated from the original instructions (scripts/lift_function.py); 4 seeds; oracle 28/28 instructions, 0/0 jump directions; mutation survivors: tasks/fl40-survivors.json."
-  },
-  {
-   "va": "0x4595f1",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review (FL-42, findings addressed)",
-   "date": "2026-10-22",
-   "native_source": {
-    "path": "src/original_methods_fl40.c",
-    "symbol": "m4595f1_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/test_fl40_differential.py",
-     "test_id": "Fl40Differential.test_4595f1_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl40_original_oracle.py",
-    "window": [
-     "0x4595f1",
-     "0x4599d0"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 17 seeds; oracle 243/243 instructions, 32/32 jump directions; mutation survivors: tasks/fl40-survivors.json."
   },
   {
    "va": "0x467608",
@@ -59376,31 +58946,6 @@
    },
    "parts_accounted": [],
    "note": "Machine-translated from the original instructions (scripts/lift_function.py); 6 seeds; oracle 50/50 instructions, 0/0 jump directions; mutation survivors: tasks/fl40-survivors.json."
-  },
-  {
-   "va": "0x478e7b",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review (FL-42, findings addressed)",
-   "date": "2026-10-22",
-   "native_source": {
-    "path": "src/original_methods_fl40.c",
-    "symbol": "m478e7b_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/test_fl40_differential.py",
-     "test_id": "Fl40Differential.test_478e7b_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl40_original_oracle.py",
-    "window": [
-     "0x478e7b",
-     "0x478f91"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 8 seeds; oracle 73/73 instructions, 2/2 jump directions; mutation survivors: tasks/fl40-survivors.json."
   },
   {
    "va": "0x4a3beb",
@@ -59701,6 +59246,656 @@
    },
    "parts_accounted": [],
    "note": "Machine-translated (scripts/lift_fl41.py), 1 seeds; oracle: 77/77 instructions, 0/0 jump directions; every mutant killed, identical -O2 code, or explained."
+  },
+  {
+   "va": "0x40236a",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, findings addressed (FL-44)",
+   "date": "2026-10-22",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m40236a_lifted"
+   },
+   "tests": [
+    {
+     "path": "tests/test_fl40_differential.py",
+     "test_id": "Fl40Differential.test_40236a_lifted"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl40_original_oracle.py",
+    "window": [
+     "0x40236a",
+     "0x402945"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 46 seeds; oracle 415/415 instructions, 48/48 jump directions; mutation survivors: tasks/fl40-survivors.json."
+  },
+  {
+   "va": "0x41114f",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, findings addressed (FL-44)",
+   "date": "2026-10-22",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m41114f_lifted"
+   },
+   "tests": [
+    {
+     "path": "tests/test_fl40_differential.py",
+     "test_id": "Fl40Differential.test_41114f_lifted"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl40_original_oracle.py",
+    "window": [
+     "0x41114f",
+     "0x4111a0"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 3 seeds; oracle 25/25 instructions, 4/4 jump directions; mutation survivors: tasks/fl40-survivors.json."
+  },
+  {
+   "va": "0x41195c",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, findings addressed (FL-44)",
+   "date": "2026-10-22",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m41195c_lifted"
+   },
+   "tests": [
+    {
+     "path": "tests/test_fl40_differential.py",
+     "test_id": "Fl40Differential.test_41195c_lifted"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl40_original_oracle.py",
+    "window": [
+     "0x41195c",
+     "0x411a22"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 5 seeds; oracle 57/57 instructions, 4/4 jump directions; mutation survivors: tasks/fl40-survivors.json."
+  },
+  {
+   "va": "0x4150af",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, findings addressed (FL-44)",
+   "date": "2026-10-22",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m4150af_lifted"
+   },
+   "tests": [
+    {
+     "path": "tests/test_fl40_differential.py",
+     "test_id": "Fl40Differential.test_4150af_lifted"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl40_original_oracle.py",
+    "window": [
+     "0x4150af",
+     "0x415113"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 3 seeds; oracle 29/29 instructions, 2/2 jump directions; mutation survivors: tasks/fl40-survivors.json."
+  },
+  {
+   "va": "0x415113",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, findings addressed (FL-44)",
+   "date": "2026-10-22",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m415113_lifted"
+   },
+   "tests": [
+    {
+     "path": "tests/test_fl40_differential.py",
+     "test_id": "Fl40Differential.test_415113_lifted"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl40_original_oracle.py",
+    "window": [
+     "0x415113",
+     "0x415176"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 5 seeds; oracle 29/29 instructions, 2/2 jump directions; mutation survivors: tasks/fl40-survivors.json."
+  },
+  {
+   "va": "0x41a140",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, findings addressed (FL-44)",
+   "date": "2026-10-22",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m41a140_lifted"
+   },
+   "tests": [
+    {
+     "path": "tests/test_fl40_differential.py",
+     "test_id": "Fl40Differential.test_41a140_lifted"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl40_original_oracle.py",
+    "window": [
+     "0x41a140",
+     "0x41a19c"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 4 seeds; oracle 33/33 instructions, 2/2 jump directions; mutation survivors: tasks/fl40-survivors.json."
+  },
+  {
+   "va": "0x41a336",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, findings addressed (FL-44)",
+   "date": "2026-10-22",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m41a336_lifted"
+   },
+   "tests": [
+    {
+     "path": "tests/test_fl40_differential.py",
+     "test_id": "Fl40Differential.test_41a336_lifted"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl40_original_oracle.py",
+    "window": [
+     "0x41a336",
+     "0x41a480"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 9 seeds; oracle 75/75 instructions, 6/6 jump directions; mutation survivors: tasks/fl40-survivors.json."
+  },
+  {
+   "va": "0x423af1",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, findings addressed (FL-44)",
+   "date": "2026-10-22",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m423af1_lifted"
+   },
+   "tests": [
+    {
+     "path": "tests/test_fl40_differential.py",
+     "test_id": "Fl40Differential.test_423af1_lifted"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl40_original_oracle.py",
+    "window": [
+     "0x423af1",
+     "0x423b51"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 3 seeds; oracle 29/29 instructions, 4/4 jump directions; mutation survivors: tasks/fl40-survivors.json."
+  },
+  {
+   "va": "0x426300",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, findings addressed (FL-44)",
+   "date": "2026-10-22",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m426300_lifted"
+   },
+   "tests": [
+    {
+     "path": "tests/test_fl40_differential.py",
+     "test_id": "Fl40Differential.test_426300_lifted"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl40_original_oracle.py",
+    "window": [
+     "0x426300",
+     "0x426346"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 3 seeds; oracle 23/23 instructions, 2/2 jump directions; mutation survivors: tasks/fl40-survivors.json."
+  },
+  {
+   "va": "0x4273c1",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, findings addressed (FL-44)",
+   "date": "2026-10-22",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m4273c1_lifted"
+   },
+   "tests": [
+    {
+     "path": "tests/test_fl40_differential.py",
+     "test_id": "Fl40Differential.test_4273c1_lifted"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl40_original_oracle.py",
+    "window": [
+     "0x4273c1",
+     "0x4273f0"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 2 seeds; oracle 15/15 instructions, 2/2 jump directions; mutation survivors: tasks/fl40-survivors.json."
+  },
+  {
+   "va": "0x437743",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, findings addressed (FL-44)",
+   "date": "2026-10-22",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m437743_lifted"
+   },
+   "tests": [
+    {
+     "path": "tests/test_fl40_differential.py",
+     "test_id": "Fl40Differential.test_437743_lifted"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl40_original_oracle.py",
+    "window": [
+     "0x437743",
+     "0x437774"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 1 seeds; oracle 18/18 instructions, 2/2 jump directions; mutation survivors: tasks/fl40-survivors.json."
+  },
+  {
+   "va": "0x446ffb",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, findings addressed (FL-44)",
+   "date": "2026-10-22",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m446ffb_lifted"
+   },
+   "tests": [
+    {
+     "path": "tests/test_fl40_differential.py",
+     "test_id": "Fl40Differential.test_446ffb_lifted"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl40_original_oracle.py",
+    "window": [
+     "0x446ffb",
+     "0x447166"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 7 seeds; oracle 104/104 instructions, 4/4 jump directions; mutation survivors: tasks/fl40-survivors.json."
+  },
+  {
+   "va": "0x448186",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, findings addressed (FL-44)",
+   "date": "2026-10-22",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m448186_lifted"
+   },
+   "tests": [
+    {
+     "path": "tests/test_fl40_differential.py",
+     "test_id": "Fl40Differential.test_448186_lifted"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl40_original_oracle.py",
+    "window": [
+     "0x448186",
+     "0x448254"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 6 seeds; oracle 62/62 instructions, 6/6 jump directions; mutation survivors: tasks/fl40-survivors.json."
+  },
+  {
+   "va": "0x44b05a",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, findings addressed (FL-44)",
+   "date": "2026-10-22",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m44b05a_lifted"
+   },
+   "tests": [
+    {
+     "path": "tests/test_fl40_differential.py",
+     "test_id": "Fl40Differential.test_44b05a_lifted"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl40_original_oracle.py",
+    "window": [
+     "0x44b05a",
+     "0x44b102"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 7 seeds; oracle 52/52 instructions, 4/4 jump directions; mutation survivors: tasks/fl40-survivors.json."
+  },
+  {
+   "va": "0x44b1b4",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, findings addressed (FL-44)",
+   "date": "2026-10-22",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m44b1b4_lifted"
+   },
+   "tests": [
+    {
+     "path": "tests/test_fl40_differential.py",
+     "test_id": "Fl40Differential.test_44b1b4_lifted"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl40_original_oracle.py",
+    "window": [
+     "0x44b1b4",
+     "0x44b26a"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 7 seeds; oracle 56/56 instructions, 4/4 jump directions; mutation survivors: tasks/fl40-survivors.json."
+  },
+  {
+   "va": "0x459bd6",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, findings addressed (FL-44)",
+   "date": "2026-10-22",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m459bd6_lifted"
+   },
+   "tests": [
+    {
+     "path": "tests/test_fl40_differential.py",
+     "test_id": "Fl40Differential.test_459bd6_lifted"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl40_original_oracle.py",
+    "window": [
+     "0x459bd6",
+     "0x459c10"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 5 seeds; oracle 20/20 instructions, 4/4 jump directions; mutation survivors: tasks/fl40-survivors.json."
+  },
+  {
+   "va": "0x45dd96",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, findings addressed (FL-44)",
+   "date": "2026-10-22",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m45dd96_lifted"
+   },
+   "tests": [
+    {
+     "path": "tests/test_fl40_differential.py",
+     "test_id": "Fl40Differential.test_45dd96_lifted"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl40_original_oracle.py",
+    "window": [
+     "0x45dd96",
+     "0x45ddd0"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 5 seeds; oracle 20/20 instructions, 4/4 jump directions; mutation survivors: tasks/fl40-survivors.json."
+  },
+  {
+   "va": "0x45e906",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, findings addressed (FL-44)",
+   "date": "2026-10-22",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m45e906_lifted"
+   },
+   "tests": [
+    {
+     "path": "tests/test_fl40_differential.py",
+     "test_id": "Fl40Differential.test_45e906_lifted"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl40_original_oracle.py",
+    "window": [
+     "0x45e906",
+     "0x45e9db"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 4 seeds; oracle 53/53 instructions, 0/0 jump directions; mutation survivors: tasks/fl40-survivors.json."
+  },
+  {
+   "va": "0x45e9db",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, findings addressed (FL-44)",
+   "date": "2026-10-22",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m45e9db_lifted"
+   },
+   "tests": [
+    {
+     "path": "tests/test_fl40_differential.py",
+     "test_id": "Fl40Differential.test_45e9db_lifted"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl40_original_oracle.py",
+    "window": [
+     "0x45e9db",
+     "0x45ea4a"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 6 seeds; oracle 33/33 instructions, 4/4 jump directions; mutation survivors: tasks/fl40-survivors.json."
+  },
+  {
+   "va": "0x465075",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, findings addressed (FL-44)",
+   "date": "2026-10-22",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m465075_lifted"
+   },
+   "tests": [
+    {
+     "path": "tests/test_fl40_differential.py",
+     "test_id": "Fl40Differential.test_465075_lifted"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl40_original_oracle.py",
+    "window": [
+     "0x465075",
+     "0x4650db"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 4 seeds; oracle 29/29 instructions, 4/4 jump directions; mutation survivors: tasks/fl40-survivors.json."
+  },
+  {
+   "va": "0x469505",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, findings addressed (FL-44)",
+   "date": "2026-10-22",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m469505_lifted"
+   },
+   "tests": [
+    {
+     "path": "tests/test_fl40_differential.py",
+     "test_id": "Fl40Differential.test_469505_lifted"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl40_original_oracle.py",
+    "window": [
+     "0x469505",
+     "0x46957d"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 12 seeds; oracle 30/30 instructions, 6/6 jump directions; mutation survivors: tasks/fl40-survivors.json."
+  },
+  {
+   "va": "0x46b58a",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, findings addressed (FL-44)",
+   "date": "2026-10-22",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m46b58a_lifted"
+   },
+   "tests": [
+    {
+     "path": "tests/test_fl40_differential.py",
+     "test_id": "Fl40Differential.test_46b58a_lifted"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl40_original_oracle.py",
+    "window": [
+     "0x46b58a",
+     "0x46b67f"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 2 seeds; oracle 51/51 instructions, 2/2 jump directions; mutation survivors: tasks/fl40-survivors.json."
+  },
+  {
+   "va": "0x46e6c1",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, findings addressed (FL-44)",
+   "date": "2026-10-22",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m46e6c1_lifted"
+   },
+   "tests": [
+    {
+     "path": "tests/test_fl40_differential.py",
+     "test_id": "Fl40Differential.test_46e6c1_lifted"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl40_original_oracle.py",
+    "window": [
+     "0x46e6c1",
+     "0x46e7a6"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 1 seeds; oracle 58/58 instructions, 4/4 jump directions; mutation survivors: tasks/fl40-survivors.json."
+  },
+  {
+   "va": "0x46ebbd",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, findings addressed (FL-44)",
+   "date": "2026-10-22",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m46ebbd_lifted"
+   },
+   "tests": [
+    {
+     "path": "tests/test_fl40_differential.py",
+     "test_id": "Fl40Differential.test_46ebbd_lifted"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl40_original_oracle.py",
+    "window": [
+     "0x46ebbd",
+     "0x46ebff"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 13 seeds; oracle 23/23 instructions, 8/8 jump directions; mutation survivors: tasks/fl40-survivors.json."
+  },
+  {
+   "va": "0x470e31",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, findings addressed (FL-44)",
+   "date": "2026-10-22",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m470e31_lifted"
+   },
+   "tests": [
+    {
+     "path": "tests/test_fl40_differential.py",
+     "test_id": "Fl40Differential.test_470e31_lifted"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl40_original_oracle.py",
+    "window": [
+     "0x470e31",
+     "0x470e71"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 4 seeds; oracle 20/20 instructions, 4/4 jump directions; mutation survivors: tasks/fl40-survivors.json."
+  },
+  {
+   "va": "0x473f7d",
+   "class": "native_oracle_verified",
+   "reviewer": "Sonnet slice-reviewer, diff review, findings addressed (FL-44)",
+   "date": "2026-10-22",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m473f7d_lifted"
+   },
+   "tests": [
+    {
+     "path": "tests/test_fl40_differential.py",
+     "test_id": "Fl40Differential.test_473f7d_lifted"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl40_original_oracle.py",
+    "window": [
+     "0x473f7d",
+     "0x473ffc"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 5 seeds; oracle 33/33 instructions, 6/6 jump directions; mutation survivors: tasks/fl40-survivors.json."
   }
  ],
  "not_needed_entries": [

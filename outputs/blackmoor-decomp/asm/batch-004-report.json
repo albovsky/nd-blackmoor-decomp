@@ -1352,6 +1352,7 @@
       "contains_original_byte_values": false,
       "data_items": [],
       "function": "FUN_0044b05a",
+      "naming": "native_port",
       "object": {
         "sha256": "ccc45ef74295145e01242a5d9a7d2f4f086a49314623020ee5ad25bb66504623",
         "size": 303928
@@ -1361,7 +1362,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_0044b05a.s",
-        "sha256": "9956c592d6b625445f5f65c1f93424713234ce62756daedc18ee0fd1711f8e18"
+        "sha256": "9b51bf770ebaf09f9733317816671d030cb65e7fd908ff0e3bd04ff07deab7ea"
       },
       "status": "accepted",
       "va": 4501594
@@ -1407,7 +1408,7 @@
       "contains_original_byte_values": false,
       "data_items": [],
       "function": "FUN_0044b1b4",
-      "naming": "inferred_prose",
+      "naming": "native_port",
       "object": {
         "sha256": "583a7c1cd5ecb0f2bdc6600922df3932e16e596d433c119a80b17d98dd33e0a8",
         "size": 304324
@@ -1417,7 +1418,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_0044b1b4.s",
-        "sha256": "92af05fc99cf9a84659ff61c16de20f6e5a7b434087100c37df62f5554274dd9"
+        "sha256": "a95455f8b2bae095d79fda8bf28f6a6811e808203c2fa103f4457ba82a041c13"
       },
       "status": "accepted",
       "va": 4501940
@@ -4140,7 +4141,6 @@
       "contains_original_byte_values": false,
       "data_items": [],
       "function": "FUN_004540bd",
-      "naming": "native_port",
       "object": {
         "sha256": "ce55934cfd1f7b292778fc9b6644c8f5f317bdbaad82059985be643b2e5bc6bf",
         "size": 340924
@@ -4150,7 +4150,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_004540bd.s",
-        "sha256": "2124c3ca9636d1854ee0bfd7b712a525d331899da287572bc732c6da649de078"
+        "sha256": "cf521a22f8446a85257f1e44dbd268ab944e6bdf6736abf0e3e00465a2d0b451"
       },
       "status": "accepted",
       "va": 4538557
@@ -6237,7 +6237,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_00458c9b.s",
-        "sha256": "95b2bb7f9114925219b8017e92bb882dff42a91a740001d6f4a829d080f676c3"
+        "sha256": "bcd38968a7713e9d2cd7d16a8b3c149cc113044f13e13d8e2a6a1b403eb1e9a6"
       },
       "status": "accepted",
       "va": 4557979
@@ -6353,7 +6353,6 @@
         }
       ],
       "function": "FUN_004595f1",
-      "naming": "native_port",
       "object": {
         "sha256": "9fd9e869f8e90ca36bee135853def4cc8b0c7f9534a65ecb545bd5bafec85b8c",
         "size": 363774
@@ -6363,7 +6362,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_004595f1.s",
-        "sha256": "a615eb7242d6fab669d9a301d378025bf9793706efa417c0d3718c00bd102ac7"
+        "sha256": "0ac48ce03bd26fdc5cccd61f48ad81d2cd7aed5859f2047db3a2e5479059ebe2"
       },
       "status": "accepted",
       "va": 4560369
@@ -6584,6 +6583,7 @@
       "contains_original_byte_values": false,
       "data_items": [],
       "function": "FUN_00459bd6",
+      "naming": "native_port",
       "object": {
         "sha256": "2e527cb101b386fb208c6037b3a3ef31c5ee4dc04397895cdb993dcef3732d40",
         "size": 363909
@@ -6593,7 +6593,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_00459bd6.s",
-        "sha256": "2ff1c6fcc7fa89a363dc0fbfba1e2c2bc9492957fb16f566dad6a79229f71657"
+        "sha256": "9e6a70abb045f6f6c99b637ad0cd2c44edd9396dde3cb6af908b084a1fbb0ca4"
       },
       "status": "accepted",
       "va": 4561878
@@ -7636,7 +7636,7 @@
       "contains_original_byte_values": false,
       "data_items": [],
       "function": "FUN_0045dd96",
-      "naming": "inferred_prose",
+      "naming": "native_port",
       "object": {
         "sha256": "6402b6b1c54e90e7fda0b17a9df5c6955e0733d941307938435459cc051c5fb2",
         "size": 380751
@@ -7646,7 +7646,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_0045dd96.s",
-        "sha256": "7dfc581cd489ee01c1f37635c9f1d515ec611435c8c9c51ccf1fefa72c85a7bd"
+        "sha256": "d418095ee7d236255f37400a10f9f986bee081f18de94765a09cb569b1727ea2"
       },
       "status": "accepted",
       "va": 4578710
@@ -7860,7 +7860,7 @@
       "contains_original_byte_values": false,
       "data_items": [],
       "function": "FUN_0045e906",
-      "naming": "inferred_prose",
+      "naming": "native_port",
       "object": {
         "sha256": "fc589224732728421be242c905705b9f4a62b5dc9ffa5fed739856619dc559be",
         "size": 383897
@@ -7870,7 +7870,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_0045e906.s",
-        "sha256": "f6847b2d3a753979d202eaacd17f0aaa982d86ed9296f26b84c5b4e4a54d224e"
+        "sha256": "4b39729546e8c2120ba60ec7c0077a8e4d2fbefa6dddea41691f19d44b9f6979"
       },
       "status": "accepted",
       "va": 4581638
@@ -7888,6 +7888,7 @@
       "contains_original_byte_values": false,
       "data_items": [],
       "function": "FUN_0045e9db",
+      "naming": "native_port",
       "object": {
         "sha256": "9ba9169d8b9442a5ed5021455799183e27abd5993b00cfbd649bae7c02a33f8e",
         "size": 384019
@@ -7897,7 +7898,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_0045e9db.s",
-        "sha256": "abc078d2ab2e6eebf3761d2e991fbb67aecb94d9de9aa6f86e08606a72c6a36e"
+        "sha256": "e42f289a5dd4fe1b062463c46364823521ffcfaa5f890dc10994b9ba3d02ffdc"
       },
       "status": "accepted",
       "va": 4581851
@@ -9372,6 +9373,7 @@
       "contains_original_byte_values": false,
       "data_items": [],
       "function": "FUN_00465075",
+      "naming": "native_port",
       "object": {
         "sha256": "59b136fb245757a3a7d287e4eec04fa495f872910b78f2fc78f7f42ad04cbd7b",
         "size": 410265
@@ -9381,7 +9383,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_00465075.s",
-        "sha256": "53a96707b104c66d43a2be76fe898d7afa3d32b8cc1ab5cb42617fa74c5c390c"
+        "sha256": "2ec18daa4f262519ab6ba0bacbf719e6499e40efb1f75e400462b782bf7f71ab"
       },
       "status": "accepted",
       "va": 4608117
@@ -10876,6 +10878,7 @@
       "contains_original_byte_values": false,
       "data_items": [],
       "function": "FUN_00469505",
+      "naming": "native_port",
       "object": {
         "sha256": "500b561ad07b20db33154e7ac78a27126bb94f08087963288ad4f69170cd958f",
         "size": 427803
@@ -10885,7 +10888,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_00469505.s",
-        "sha256": "8b8c62e54c402249d26f9bb1209901652251c71963922192d97176c8d15a2ceb"
+        "sha256": "badde359558542429683d8d4b179080e214c9b8fe3578311b70e100a8e8598d0"
       },
       "status": "accepted",
       "va": 4625669
@@ -11204,6 +11207,7 @@
       "contains_original_byte_values": false,
       "data_items": [],
       "function": "FUN_0046b58a",
+      "naming": "native_port",
       "object": {
         "sha256": "ae30661ec36a93380dbdb0cbffd0797ff7802b628e57aeeeed5df27c5dcbfb0f",
         "size": 436637
@@ -11213,7 +11217,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_0046b58a.s",
-        "sha256": "57c6a5e5cf5c897fcdb6bef085fa46645bebdf1fc68dc8d4df358b30a071157d"
+        "sha256": "b937859c062fcf9fdc693398462bbaef87ec9ad3675980f12b371793744684f1"
       },
       "status": "accepted",
       "va": 4633994
@@ -11748,6 +11752,7 @@
       "contains_original_byte_values": false,
       "data_items": [],
       "function": "FUN_0046e6c1",
+      "naming": "native_port",
       "object": {
         "sha256": "8be7d53b84497d91c4f8e947c47776e30998f2163e48411c16606e144d2106ce",
         "size": 449067
@@ -11757,7 +11762,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_0046e6c1.s",
-        "sha256": "5a369f66d29b23bc36a62e3e2a6f4b781050b9b49113da2048d4d34d2436ff1d"
+        "sha256": "8482f9e8dfe9afd2b5d767598b2924b00872e9716a0e2177fd77993d27e04072"
       },
       "status": "accepted",
       "va": 4646593
@@ -11831,7 +11836,6 @@
       "contains_original_byte_values": false,
       "data_items": [],
       "function": "FUN_0046e823",
-      "naming": "native_port",
       "object": {
         "sha256": "7e00ee12988c02a3d184ece9499779fd2b6bba2047782ed53be7e4148e7d37ae",
         "size": 449642
@@ -11841,7 +11845,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_0046e823.s",
-        "sha256": "72927056232149c9a3ae88c3d295fdcbaae4940f0035c23b93ef2f8a95e5eb57"
+        "sha256": "9031a120fbf4559975295dc8d8bfe5bfae48642ff72ed366a43e4c26f1fb2304"
       },
       "status": "accepted",
       "va": 4646947
@@ -11915,6 +11919,7 @@
       "contains_original_byte_values": false,
       "data_items": [],
       "function": "FUN_0046ebbd",
+      "naming": "native_port",
       "object": {
         "sha256": "f7fbe1d3cf8531da03a745cebe59932481bd1c9770b668e6ae91944350e5063d",
         "size": 449999
@@ -11924,7 +11929,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_0046ebbd.s",
-        "sha256": "474651ba79d3ef45e8ddcc4dcf1749c98acf29e2e50b06644df1552e4f8bddc7"
+        "sha256": "58a02c89c08c8b83d52ca61b0505b3514162b2864a2683e3069e171f6f8ed143"
       },
       "status": "accepted",
       "va": 4647869
@@ -12505,7 +12510,7 @@
       "contains_original_byte_values": false,
       "data_items": [],
       "function": "FUN_00470e31",
-      "naming": "inferred_prose",
+      "naming": "native_port",
       "object": {
         "sha256": "65c78c0c1e7b53972fadce7439419fe4f52c2c35194c274f916b1d72dcad33e1",
         "size": 458749
@@ -12515,7 +12520,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_00470e31.s",
-        "sha256": "9e5155980a0791fb8ab256098bbcc312b5da8c1c3276afcaba0403021b0fddd7"
+        "sha256": "45b0fa95553294418c4f1171d245a6ab67b6bf837cb2660712ddbcd3fa1563a0"
       },
       "status": "accepted",
       "va": 4656689
@@ -13112,6 +13117,7 @@
       "contains_original_byte_values": false,
       "data_items": [],
       "function": "FUN_00473f7d",
+      "naming": "native_port",
       "object": {
         "sha256": "0c86571f8981f31724ada4e34afdbfafc5398fc8618b9a99fb46f53ed3f19eb3",
         "size": 471468
@@ -13121,7 +13127,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_00473f7d.s",
-        "sha256": "61e7f03002364dbee108808823cc2510c1aa4996ed5a686efa7885368432c183"
+        "sha256": "1c736e78bfa67c942bd10e3ae6efe6e2fb02e973ccfb412aa99656021361dac9"
       },
       "status": "accepted",
       "va": 4669309
@@ -14446,7 +14452,6 @@
       "contains_original_byte_values": false,
       "data_items": [],
       "function": "FUN_00478e7b",
-      "naming": "native_port",
       "object": {
         "sha256": "4080fd2524dea7441c548c29ef09887790e0e92eb52cd4e55f39889136a42b1a",
         "size": 492069
@@ -14456,7 +14461,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_00478e7b.s",
-        "sha256": "2785c51e05f5071e3da87b157ae010dd5505a26671a447cc588d96112a034d6c"
+        "sha256": "0130fb2c34dbd1a08a4f76548d65bcb594eddea4c29b5349ac646098b99d4f4e"
       },
       "status": "accepted",
       "va": 4689531
@@ -21180,7 +21185,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_00490598.s",
-        "sha256": "5a35a0c62e2fc9f91e3e8e2f996d5130b610008087f1e480b8626d14524bf2d6"
+        "sha256": "87a8de559df361a3c1200d39745bf0c959e90c6d6e6ec73b667ca12ac88f6888"
       },
       "status": "accepted",
       "va": 4785560
@@ -21325,9 +21330,9 @@
       "va": 4790079
     }
   ],
-  "manifest_sha256": "0023f780fb88216fe37c8015beebd99857ae706a3317c9db04bb2d4b2a3fc5a0",
-  "named_functions": 545,
-  "names_sha256": "7c22df2d6742557ccebbac411fb511bbfd8c5bf9a0a4ea57c9ad718d8e4aaeb7",
+  "manifest_sha256": "888040f2901d097ac2a60dbe8e0999e18a7976c91aff649d98249c36c4377904",
+  "named_functions": 550,
+  "names_sha256": "79a2e59e14efb426882df0c365da5e62fe7b56b584e974ed89d0ee824f85c4e6",
   "note": "Accepted functions are candidates for the tool_assisted_reconstructed_assembly class; they count only after root accepts the independent review. No claim is made about original C++ or compiler provenance.",
   "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45"
 }
