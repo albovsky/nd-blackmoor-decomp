@@ -1,0 +1,8 @@
+0x437cff mutants 1 killed 0 survivors [('drop', 72, 'survives')]
+0x4416a2 mutants 12 killed 4 survivors [('width', 137, 'survives'), ('width', 159, 'survives'), ('width', 104, 'survives'), ('width', 192, 'survives'), ('width', 47, 'survives'), ('width', 82, 'survives'), ('width', 214, 'survives'), ('width', 25, 'survives')]
+0x44551b mutants 3 killed 1 survivors [('width', 21, 'survives'), ('width', 43, 'survives')]
+0x43f210 mutants 7 killed 2 survivors [('width', 126, 'survives'), ('width', 105, 'survives'), ('width', 23, 'survives'), ('width', 39, 'survives'), ('width', 61, 'survives')]
+0x4456e1 mutants 7 killed 2 survivors [('width', 63, 'survives'), ('literal', 61, 'survives'), ('width', 61, 'survives'), ('width', 30, 'survives'), ('width', 52, 'survives')]
+0x47a28c mutants 4 killed 0 survivors [('drop', 59, 'survives'), ('drop', 79, 'survives'), ('drop', 87, 'survives'), ('drop', 51, 'survives')]
+0x423c2b mutants 3 killed 0 survivors [('drop', 52, 'survives'), ('drop', 54, 'survives'), ('drop', 50, 'survives')]
+TOTAL mutants 37 killed 9 rows with a survivor 7

@@ -24,6 +24,7 @@ PROJECT = Path(__file__).resolve().parents[1]
 GAME_EXE = PROJECT.parents[1] / 'work/original/GAME.EXE'
 GP = ('eax', 'ecx', 'edx', 'ebx', 'esi', 'edi')
 MAXU = 0xffffffff
+PART = {'ax': 'eax', 'al': 'eax', 'ah': 'eax', 'cx': 'ecx', 'cl': 'ecx', 'ch': 'ecx', 'dx': 'edx', 'dl': 'edx', 'dh': 'edx', 'bx': 'ebx', 'bl': 'ebx', 'bh': 'ebx', 'si': 'esi', 'di': 'edi'}
 SIGN_SAFE = 0x7fffffff
 JCC = {'jl': 'l', 'jnge': 'l', 'jge': 'ge', 'jnl': 'ge', 'jle': 'le', 'jng': 'le', 'jg': 'g', 'jnle': 'g',
        'jb': 'b', 'jnae': 'b', 'jc': 'b', 'jae': 'ae', 'jnb': 'ae', 'jnc': 'ae', 'jbe': 'be', 'jna': 'be', 'ja': 'a', 'jnbe': 'a',
@@ -98,8 +99,12 @@ def slot_of(i, op):
 def refused(ins):
     """True when the frame may be reached by an address or by an esp/indexed operand"""
     import capstone.x86 as X
-    for i in ins:
+    for pos, i in enumerate(ins):
         n = i.mnemonic
+        if (n.startswith('j') and n != 'jmp' and n not in JCC) or n.startswith('loop'):
+            return True         # jns, js, jo, jp, jecxz, loop...: a branch the analysis does not model
+        if n == 'push' and pos > 0 and i.operands and i.operands[0].type == X.X86_OP_REG and i.reg_name(i.operands[0].reg) in ('ebp', 'esp'):
+            return True         # a pushed frame pointer after the prologue: a callee could be handed the frame
         if n in ('lea',):
             if any(op.type == X.X86_OP_MEM and (i.reg_name(op.mem.base) in ('ebp', 'esp') or i.reg_name(op.mem.index) in ('ebp', 'esp')) for op in i.operands):
                 return True
@@ -230,7 +235,7 @@ def transfer(i, st):
         return st
     try:
         _, regs_w = i.regs_access()
-        written_regs = {i.reg_name(r) for r in regs_w}
+        written_regs = {PART.get(i.reg_name(r), i.reg_name(r)) for r in regs_w}
     except Exception:
         written_regs = set()
     # memory writes into the frame

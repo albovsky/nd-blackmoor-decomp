@@ -176,25 +176,26 @@ def check_row_inner(args):
         fresh_by_stage = []
         def scan(k, items, every=False):
             """Run mutant k (None: the unmutated translation) on the scenarios against the recorded original, in a forked child.
-            -> (indices of the scenarios on which it differs; only the first unless `every`, None when it agrees everywhere, True when a scenario made it hang or crash).
-            Every scenario has its own alarm (a mutant that loops forever is dead on that seed) and the child leaves the index it is on in shared memory, so a timeout kill names its seed."""
+            -> (indices of the scenarios on which it differs, the one a hang or crash stopped it on last; only the first unless `every`; and True when it hung or crashed).
+            Every scenario has its own alarm (a mutant that loops forever is dead on that seed). The child leaves the index it is on and a flag per scenario in shared memory,
+            so a hang names its seed and the mismatches found before it are not lost."""
             cur = mmap.mmap(-1, 8)
+            flags = mmap.mmap(-1, len(items) + 1)
             r_fd, w_fd = os.pipe()
             pid = os.fork()
             if pid == 0:
                 try:
                     os.close(r_fd)
-                    found = []
                     for i, (sd, ov, ref) in enumerate(items):
                         cur[:8] = struct.pack('<q', i)
                         signal.alarm(10)
                         t = W.run_native(Shim(lib, va, k), row, sd, ov)
                         signal.alarm(0)
                         if (t.digest() if not t.fault else 'fault') != ref:
-                            found.append(i)
+                            flags[i] = 1
                             if not every:
                                 break
-                    os.write(w_fd, json.dumps(found).encode())
+                    os.write(w_fd, b'D')
                 except MemoryError:             # the mutant ran away with memory: the original does not
                     pass
                 except Exception as exc:        # a harness bug is not a kill
@@ -213,24 +214,33 @@ def check_row_inner(args):
             data = b''.join(chunks)
             if data.startswith(b'E'):
                 raise RuntimeError('mutation harness error on %s mutant %s: %s' % (key, k, data[1:].decode()))
-            if not data:
-                return [struct.unpack('<q', cur[:8])[0]], True      # the alarm, or the mutant crashed the process: the original does neither
-            return json.loads(data), False
+            found = [i for i in range(len(items)) if flags[i]]
+            if data != b'D':
+                found.append(struct.unpack('<q', cur[:8])[0])      # the alarm, or the mutant crashed the process: the original does neither
+                return found, True
+            return found, False
 
         def guard(items, what):
-            """FL-44: a kill counts only on a seed where the unmutated translation equals the original. Returns the scenarios where it does."""
-            bad, _ = scan(None, items, every=True) if items else ([], False)
+            """FL-44: a kill counts only on a seed where the unmutated translation equals the original. Returns the scenarios where it does.
+            A scenario that makes the unmutated translation hang or crash is dropped too and the scan goes on after it."""
+            bad, start = set(), 0
+            while items and start < len(items):
+                found, hung = scan(None, items[start:], every=True)
+                bad |= {start + i for i in found}
+                if not hung:
+                    break
+                start += found[-1] + 1
             dropped[0] += len(bad)
             if bad and what == 'corpus':
-                raise RuntimeError('the unmutated translation of %s differs from the original on corpus seed %s' % (key, items[bad[0]][0]))
-            return [it for i, it in enumerate(items) if i not in set(bad)]
+                raise RuntimeError('the unmutated translation of %s differs from the original on corpus seed %s' % (key, items[min(bad)][0]))
+            return [it for i, it in enumerate(items) if i not in bad]
 
         def first_mismatch(k, items):
             """Index of the first scenario on which mutant k differs from the recorded original (a hang counts), None when it agrees everywhere."""
             found, hung = scan(k, items)
             if hung:
                 hangs.append(k)
-            return found[0] if found else None
+            return min(found) if found else None
 
         dropped = [0]
         hangs = []          # mutants killed by a hang or crash (a scenario over its 10 s alarm); logged, and the port itself ran the same scenarios inside the same alarm

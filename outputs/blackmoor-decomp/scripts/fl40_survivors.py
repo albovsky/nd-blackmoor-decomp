@@ -277,8 +277,8 @@ def range_ok(row, lines, n):
     text = lines[n]
     m = INSN.search(text)
     first = re.search(r'\bRD(8|16|32)\(', text)
-    if not m or not first:
-        return False
+    if not m or not first or not text.rstrip().endswith('*/') or len(re.findall(r'\b(?:RD|WR)\d+\(', text)) != 1:
+        return False            # the statement must be one line with a single memory token, so that the only width mutant is the read
     slot = FIRST_RD.match(text, first.start())
     if not slot:
         return False
@@ -300,9 +300,30 @@ MASKED_BYTE = re.compile(r'^\s*\w+ = \(\w+ & 0xffffff00u\) \| \(\(RD8\(.*\)\) & 
 
 
 def masked_read_ok(lines, n):
-    """(FL-44) `(RD8(x)) & 0xffu` read as RD16: the low byte of the wider read is the byte, the mask drops the rest; only the wider read itself differs, and no trace records reads"""
+    """(FL-44) `(RD8(x)) & 0xffu` read as RD16: the low byte of the wider read is the byte, the mask drops the rest; only the wider read itself differs, and no trace records reads.
+    The one place where the wider read is observable is the top of the model's address space (the world faults from 0xfff00000, a Win32 user space ends below 2 GiB), which no real read reaches."""
     t = stmt(lines[n])
     return bool(MASKED_BYTE.match(t)) and t.count('RD') == 1
+
+
+_FLOW = {}
+
+
+def flow_ok(row, lines, n):
+    """(FL-44, using FL-43's scripts/fl43_equiv.py) the dropped instruction is a data-flow no-op on the original instructions: its work is repeated or dead"""
+    m = INSN.search(lines[n])
+    if not m or not row:
+        return None
+    key = (row, int(m.group(1), 16))
+    if key not in _FLOW:
+        try:
+            import fl43_equiv as E
+            corpus = json.loads((PROJECT / 'tests/fl40_corpus.json').read_text())
+            res = E.prove(int(row, 16), corpus[row]['body'], [key[1]])
+            _FLOW[key] = (res.get(key[1]) or '').split(':')[0] or None
+        except Exception:
+            _FLOW[key] = None
+    return _FLOW[key]
 
 
 def classify(kind, lines, n, equivalent, row=None):
@@ -310,6 +331,8 @@ def classify(kind, lines, n, equivalent, row=None):
         return 'identical code'
     if kind == 'alu' and rep_count_ok(lines, n):
         return 'rep count'
+    if kind == 'drop' and flow_ok(row, lines, n):
+        return 'flow ' + flow_ok(row, lines, n)
     if kind == 'width' and masked_read_ok(lines, n):
         return 'masked read'
     if kind == 'width' and row and range_ok(row, lines, n):

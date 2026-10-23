@@ -40,8 +40,8 @@ def main():
             key = (it['kind'], it['line'])
             if ran.get(row) and key not in alive[row]:
                 continue            # killed by the corpus (it holds the earlier killing seeds) or by a rescue seed; no mutant of that statement survives
-            why = S.classify(it['kind'], text, it['line'], False, row) if it['kind'] in ('alu', 'width') else None
-            if why in ('rep count', 'masked read', 'range'):
+            why = S.classify(it['kind'], text, it['line'], False, row) if it['kind'] != 'unchecked' else None
+            if why in ('rep count', 'masked read', 'range', 'flow repeat', 'flow dead'):
                 explained[why] = explained.get(why, 0) + 1
                 classes.setdefault(row, {})[(it['kind'], it['line'])] = why
                 continue

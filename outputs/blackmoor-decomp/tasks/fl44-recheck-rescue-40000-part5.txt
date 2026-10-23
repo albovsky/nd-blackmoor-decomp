@@ -1,0 +1,2 @@
+0x47a1a9 mutants 2 killed 0 survivors [('literal', 44, 'survives'), ('width', 48, 'survives')]
+TOTAL mutants 2 killed 0 rows with a survivor 1
