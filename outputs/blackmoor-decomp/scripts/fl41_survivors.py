@@ -6,6 +6,8 @@ A survivor is explained only when one of these holds for the mutated statement; 
   same value       a register reload `reg = RD(ebp +- k)` right after the store `WR(ebp +- k, reg)` or the load `reg = RD(ebp +- k)` of the same register, on straight-line code with no call, label, jump or
                    store that could hit the slot in between (a store through another register is assumed not to point into the function's own frame): the register already holds the value, so dropping the reload changes nothing
   cleanup          the bytes a played callee pops after a call (`esp += n`) when the next statement that touches esp is `esp = ebp` on straight-line code
+  repeat, dead     (FL-43, scripts/fl43_equiv.py) a dropped instruction that data flow over the original instructions shows to be a no-op: the register already holds the value on every path
+                   to it, or every register and flag it writes is overwritten before it is read
   frame            `ebp = esp` / `esp = ebp` where nothing reads ebp between that statement and the next `esp = ebp`, or a `sub esp, N` whose next esp-touching statement is `esp = ebp`
 The earlier "local width" class (a narrower read of a frame local that the corpus never shows) is NOT an equivalence and is gone: those rows stay pending.
 
@@ -19,6 +21,8 @@ import sys
 PROJECT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT / 'tests'))
 import fl41_mutation_check as M
+sys.path.insert(0, str(PROJECT / 'scripts'))
+import fl43_equiv as E
 
 BARRIER = re.compile(r'FL41_CALL|goto|^L_|^done:|while|switch|case |FL41_EPILOGUE')
 
@@ -106,9 +110,16 @@ def esp_adjust_ok(lines, n):
     return rets > 0 and sum(1 for t in body if t.startswith('esp = ebp;')) >= rets
 
 
-def classify(kind, lines, n, equivalent):
+def instruction_address(lines, n):
+    m = re.search(r'/\* (0x[0-9a-f]+): ', lines[n])
+    return int(m.group(1), 16) if m else None
+
+
+def classify(kind, lines, n, equivalent, proofs=None):
     if equivalent:
         return 'identical code'
+    if kind == 'drop' and proofs and proofs.get(instruction_address(lines, n)):
+        return 'repeat' if proofs[instruction_address(lines, n)].startswith('repeat') else 'dead'
     if kind == 'drop' and same_value(lines, n):
         return 'same value'
     if kind == 'literal' and cleanup_ok(lines, n):
@@ -125,8 +136,9 @@ def main():
     equiv = {}
     if '--equiv' in sys.argv:        # scripts/fl41_o2_classify.py: {row: [[kind, line], ...]} for the survivors whose -O2 assembly equals the translation's
         for row, items in json.loads(Path(sys.argv[sys.argv.index('--equiv') + 1]).read_text()).items():
-            equiv[row] = {(kind, n): True for kind, n in items}
+            equiv[row] = {(kind, n, ident): True for kind, n, ident in items}
     funcs = M.split_functions((PROJECT / 'src/original_methods_fl41.c').read_text())
+    corpus = json.loads((PROJECT / 'tests/fl41_corpus.json').read_text())
     out = {'rows_with_survivors': {}, 'unexplained_rows': []}
     for line in open(log):
         m = re.match(r'(0x[0-9a-f]+) mutants \d+ killed \d+ survivors (.*)', line)
@@ -135,10 +147,18 @@ def main():
         if m.group(1) not in funcs:            # a row already taken out of the translated set (pruned earlier)
             continue
         text = funcs[m.group(1)].split('\n')
+        proofs = {}
+        try:
+            wanted = [a for a in (instruction_address(text, n) for _, n, *_ in eval(m.group(2)[:m.group(2).rindex(']') + 1])) if a]
+            proofs = E.prove(int(m.group(1), 16), corpus[m.group(1)]['body'], wanted)
+        except E.NoProof:
+            pass
         items = []
-        for kind, n, why in eval(m.group(2)[:m.group(2).rindex(']') + 1]):
+        for kind, n, why, *rest in eval(m.group(2)[:m.group(2).rindex(']') + 1]):
             if why == 'survives':
-                items.append((kind, classify(kind, text, n, equiv.get(m.group(1), {}).get((kind, n), False)), text[n].strip()[:160], n))
+                ident = rest[0] if rest else None
+                same = equiv.get(m.group(1), {}).get((kind, n, ident), False) or (ident is None and equiv.get(m.group(1), {}).get((kind, n, None), False))
+                items.append((kind, classify(kind, text, n, same, proofs), text[n].strip()[:160], n))
         if items:
             out['rows_with_survivors'][m.group(1)] = items
             if any(c is None for _, c, _, _ in items):

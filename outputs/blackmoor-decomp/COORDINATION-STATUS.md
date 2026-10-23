@@ -1611,3 +1611,8 @@ Details: `tasks/fl41-handoff.md`. Part 1 (PR 164): operator-level recheck of the
 ## FL-42 handoff (2026-10-22, PDT): exhaustive recheck of the FL-40 rows, 65 more translated rows below 0x480000
 
 Details: `tasks/fl42-handoff.md`. 327 translated rows; every mutant (27,676 on 185 candidate rows) run; 12 of FL-40's 110 rows back to pending, 48 new rows credited, 1,873 (main after PR 166) -> **1,909 ported**. Dataflow rule for same-value reloads (`scripts/fl40_survivors.py`) carries 467 survivors; world model now mirrors the stub and return-address pages. Next: guard the harness to count kills only on seeds where the port matches the original, range reasoning for width survivors, incomplete rows.
+
+## FL-43 handoff (2026-10-23, PDT): rows at or above 0x480000, third round
+
+Details: `tasks/fl43-handoff.md`. `src/original_methods_fl41.c` 19 -> 27 rows, 1,909 (main after PR 167) -> **1,917 ported**: 12 rows credited (10 FL-41 held rows, 2 from the regenerated pool), 4 FL-41 credits withdrawn (`0x4d58eb`, `0x4a1d3a`, `0x4d9302`, `0x490d50`). New: data-flow proofs that a dropped instruction is a no-op (`scripts/fl43_equiv.py`), an extended mutant set, kills counted only on seeds where the port equals the original, a fixed world model (stub writes into the function's own code, stub/stop pages) and a fix of a harness bug (one 20 s alarm over the whole seed list counted slow rows' survivors as kills; `tests/fl40_mutation_check.py` still has it). Next: width survivors need range reasoning or killing seeds; rerun the FL-40/42 check with the fixes.
+

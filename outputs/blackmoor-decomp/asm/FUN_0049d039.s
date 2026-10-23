@@ -10,7 +10,7 @@
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
 # name:         m49d039_lifted
 # naming:       native port src/original_methods_fl41.c:m49d039_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port
-# name-note:    Machine-translated (scripts/lift_fl41.py), 33 seeds; oracle: 97/97 instructions, 16/16 jump directions; every mutant killed, identical -O2 code, or explained.
+# name-note:    Machine-translated (scripts/lift_fl41.py), 39 seeds; oracle: 97/97 instructions, 16/16 jump directions; every mutant killed, identical -O2 code, or explained.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_1c, field_e38; [ecx + n] field_4, field_8, field_1c, field_e38; [edx + n] field_1c, field_e38, field_minus_4, field_minus_8
