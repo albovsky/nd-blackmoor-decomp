@@ -2,8 +2,8 @@
  "schema": "blackmoor-function-names/1",
  "note": "Names that committed evidence already states for assembly functions; every other source keeps the machine name fn_<va>. Written and checked by scripts/function_names.py; read by scripts/annotate_machine.py and scripts/audit_tool_assisted.py. A name is not a claim that the function is understood beyond its summary, and nothing here claims original C++ or compiler provenance.",
  "counts": {
-  "entries": 2811,
-  "native_port": 1672,
+  "entries": 2820,
+  "native_port": 1681,
   "parity_rule": 1,
   "ghidra_name": 83,
   "ghidra_funclet": 570,
@@ -13992,18 +13992,6 @@
    }
   },
   {
-   "va": "0x00490d50",
-   "name": "m490d50_lifted",
-   "basis": "native_port",
-   "summary": "Machine-translated (scripts/lift_fl41.py), 12 seeds; oracle: 304/304 instructions, 50/50 jump directions; every mutant killed, identical -O2 code, or explained.",
-   "source": "native port src/original_methods_fl41.c:m490d50_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port",
-   "native_source": {
-    "path": "src/original_methods_fl41.c",
-    "symbol": "m490d50_lifted",
-    "class": "native_oracle_verified"
-   }
-  },
-  {
    "va": "0x004911ca",
    "name": "m4911ca_lifted",
    "basis": "native_port",
@@ -14369,7 +14357,7 @@
    "va": "0x0049d039",
    "name": "m49d039_lifted",
    "basis": "native_port",
-   "summary": "Machine-translated (scripts/lift_fl41.py), 33 seeds; oracle: 97/97 instructions, 16/16 jump directions; every mutant killed, identical -O2 code, or explained.",
+   "summary": "Machine-translated (scripts/lift_fl41.py), 39 seeds; oracle: 97/97 instructions, 16/16 jump directions; every mutant killed, identical -O2 code, or explained.",
    "source": "native port src/original_methods_fl41.c:m49d039_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port",
    "native_source": {
     "path": "src/original_methods_fl41.c",
@@ -14526,18 +14514,6 @@
    }
   },
   {
-   "va": "0x004a1d3a",
-   "name": "m4a1d3a_lifted",
-   "basis": "native_port",
-   "summary": "Machine-translated (scripts/lift_fl41.py), 5 seeds; oracle: 70/70 instructions, 4/4 jump directions; every mutant killed, identical -O2 code, or explained.",
-   "source": "native port src/original_methods_fl41.c:m4a1d3a_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port",
-   "native_source": {
-    "path": "src/original_methods_fl41.c",
-    "symbol": "m4a1d3a_lifted",
-    "class": "native_oracle_verified"
-   }
-  },
-  {
    "va": "0x004a1e16",
    "name": "m4a1e16_hit_test",
    "basis": "native_port",
@@ -14690,6 +14666,18 @@
    "native_source": {
     "path": "src/original_methods_fl39c.c",
     "symbol": "m4a3aec_clamp_rect",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x004a3beb",
+   "name": "m4a3beb_lifted",
+   "basis": "native_port",
+   "summary": "Machine-translated (scripts/lift_fl41.py), 10 seeds; oracle: 197/197 instructions, 2/2 jump directions; every mutant killed, identical -O2 code, or explained.",
+   "source": "native port src/original_methods_fl41.c:m4a3beb_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl41.c",
+    "symbol": "m4a3beb_lifted",
     "class": "native_oracle_verified"
    }
   },
@@ -15059,6 +15047,18 @@
    }
   },
   {
+   "va": "0x004a8007",
+   "name": "m4a8007_lifted",
+   "basis": "native_port",
+   "summary": "Machine-translated (scripts/lift_fl41.py), 11 seeds; oracle: 197/197 instructions, 2/2 jump directions; every mutant killed, identical -O2 code, or explained.",
+   "source": "native port src/original_methods_fl41.c:m4a8007_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl41.c",
+    "symbol": "m4a8007_lifted",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
    "va": "0x004a835c",
    "name": "m4a835c_hit_test",
    "basis": "native_port",
@@ -15180,6 +15180,18 @@
    "native_source": {
     "path": "src/original_methods_fl32b.c",
     "symbol": "m4a9f27_reset_fields",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x004a9f63",
+   "name": "m4a9f63_lifted",
+   "basis": "native_port",
+   "summary": "Machine-translated (scripts/lift_fl41.py), 7 seeds; oracle: 35/35 instructions, 8/8 jump directions; every mutant killed, identical -O2 code, or explained.",
+   "source": "native port src/original_methods_fl41.c:m4a9f63_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl41.c",
+    "symbol": "m4a9f63_lifted",
     "class": "native_oracle_verified"
    }
   },
@@ -15418,6 +15430,18 @@
    }
   },
   {
+   "va": "0x004ac37f",
+   "name": "m4ac37f_lifted",
+   "basis": "native_port",
+   "summary": "Machine-translated (scripts/lift_fl41.py), 1 seeds; oracle: 27/27 instructions, 0/0 jump directions; every mutant killed, identical -O2 code, or explained.",
+   "source": "native port src/original_methods_fl41.c:m4ac37f_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl41.c",
+    "symbol": "m4ac37f_lifted",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
    "va": "0x004ac3d2",
    "name": "m4ac3d2_lifted",
    "basis": "native_port",
@@ -15552,6 +15576,18 @@
    "native_source": {
     "path": "src/original_methods_fl39b.c",
     "symbol": "m4acbf1_clone_record",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x004accab",
+   "name": "m4accab_lifted",
+   "basis": "native_port",
+   "summary": "Machine-translated (scripts/lift_fl41.py), 17 seeds; oracle: 90/90 instructions, 8/8 jump directions; every mutant killed, identical -O2 code, or explained.",
+   "source": "native port src/original_methods_fl41.c:m4accab_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl41.c",
+    "symbol": "m4accab_lifted",
     "class": "native_oracle_verified"
    }
   },
@@ -15992,6 +16028,18 @@
    }
   },
   {
+   "va": "0x004b3f98",
+   "name": "m4b3f98_lifted",
+   "basis": "native_port",
+   "summary": "Machine-translated (scripts/lift_fl41.py), 12 seeds; oracle: 189/189 instructions, 4/4 jump directions; every mutant killed, identical -O2 code, or explained.",
+   "source": "native port src/original_methods_fl41.c:m4b3f98_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl41.c",
+    "symbol": "m4b3f98_lifted",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
    "va": "0x004b42d3",
    "name": "m4b42d3_hit_test",
    "basis": "native_port",
@@ -16012,6 +16060,18 @@
    "native_source": {
     "path": "src/original_methods_fl23b.c",
     "symbol": "m4b45ed_click_2739",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x004b4913",
+   "name": "m4b4913_lifted",
+   "basis": "native_port",
+   "summary": "Machine-translated (scripts/lift_fl41.py), 7 seeds; oracle: 47/47 instructions, 4/4 jump directions; every mutant killed, identical -O2 code, or explained.",
+   "source": "native port src/original_methods_fl41.c:m4b4913_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl41.c",
+    "symbol": "m4b4913_lifted",
     "class": "native_oracle_verified"
    }
   },
@@ -16808,6 +16868,18 @@
    "native_source": {
     "path": "src/original_methods_fl23b.c",
     "symbol": "m4ba4f2_click_276a",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x004be18b",
+   "name": "m4be18b_lifted",
+   "basis": "native_port",
+   "summary": "Machine-translated (scripts/lift_fl41.py), 5 seeds; oracle: 30/30 instructions, 4/4 jump directions; every mutant killed, identical -O2 code, or explained.",
+   "source": "native port src/original_methods_fl41.c:m4be18b_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl41.c",
+    "symbol": "m4be18b_lifted",
     "class": "native_oracle_verified"
    }
   },
@@ -19156,6 +19228,18 @@
    }
   },
   {
+   "va": "0x004d3a52",
+   "name": "m4d3a52_lifted",
+   "basis": "native_port",
+   "summary": "Machine-translated (scripts/lift_fl41.py), 1 seeds; oracle: 24/24 instructions, 0/0 jump directions; every mutant killed, identical -O2 code, or explained.",
+   "source": "native port src/original_methods_fl41.c:m4d3a52_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl41.c",
+    "symbol": "m4d3a52_lifted",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
    "va": "0x004d3aa0",
    "name": "m4d3aa0_new_and_construct",
    "basis": "native_port",
@@ -19374,6 +19458,18 @@
      ]
     }
    ]
+  },
+  {
+   "va": "0x004d3fa9",
+   "name": "m4d3fa9_lifted",
+   "basis": "native_port",
+   "summary": "Machine-translated (scripts/lift_fl41.py), 8 seeds; oracle: 24/24 instructions, 2/2 jump directions; every mutant killed, identical -O2 code, or explained.",
+   "source": "native port src/original_methods_fl41.c:m4d3fa9_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl41.c",
+    "symbol": "m4d3fa9_lifted",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x004d3ffe",
@@ -19636,6 +19732,18 @@
    }
   },
   {
+   "va": "0x004d5661",
+   "name": "m4d5661_lifted",
+   "basis": "native_port",
+   "summary": "Machine-translated (scripts/lift_fl41.py), 6 seeds; oracle: 47/47 instructions, 4/4 jump directions; every mutant killed, identical -O2 code, or explained.",
+   "source": "native port src/original_methods_fl41.c:m4d5661_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl41.c",
+    "symbol": "m4d5661_lifted",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
    "va": "0x004d56e2",
    "name": "m4d56e2_lifted",
    "basis": "native_port",
@@ -19818,18 +19926,6 @@
    }
   },
   {
-   "va": "0x004d9302",
-   "name": "m4d9302_lifted",
-   "basis": "native_port",
-   "summary": "Machine-translated (scripts/lift_fl41.py), 7 seeds; oracle: 67/67 instructions, 0/0 jump directions; every mutant killed, identical -O2 code, or explained.",
-   "source": "native port src/original_methods_fl41.c:m4d9302_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port",
-   "native_source": {
-    "path": "src/original_methods_fl41.c",
-    "symbol": "m4d9302_lifted",
-    "class": "native_oracle_verified"
-   }
-  },
-  {
    "va": "0x004d9910",
    "name": "m4d9910_alloc_zero",
    "basis": "native_port",
@@ -20008,6 +20104,18 @@
    "native_source": {
     "path": "src/original_methods_fl36c.c",
     "symbol": "m4db27f_init_vtable_call",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x004db29b",
+   "name": "m4db29b_lifted",
+   "basis": "native_port",
+   "summary": "Machine-translated (scripts/lift_fl41.py), 1 seeds; oracle: 77/77 instructions, 0/0 jump directions; every mutant killed, identical -O2 code, or explained.",
+   "source": "native port src/original_methods_fl41.c:m4db29b_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl41.c",
+    "symbol": "m4db29b_lifted",
     "class": "native_oracle_verified"
    }
   },
@@ -23144,7 +23252,7 @@
    "va": "0x004fad50",
    "name": "m4fad50_lifted",
    "basis": "native_port",
-   "summary": "Machine-translated (scripts/lift_fl41.py), 5 seeds; oracle: 34/34 instructions, 6/6 jump directions; every mutant killed, identical -O2 code, or explained.",
+   "summary": "Machine-translated (scripts/lift_fl41.py), 6 seeds; oracle: 34/34 instructions, 6/6 jump directions; every mutant killed, identical -O2 code, or explained.",
    "source": "native port src/original_methods_fl41.c:m4fad50_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port",
    "native_source": {
     "path": "src/original_methods_fl41.c",
