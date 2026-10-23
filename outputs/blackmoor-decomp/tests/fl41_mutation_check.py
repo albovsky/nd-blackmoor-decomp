@@ -42,6 +42,37 @@ EXTRA_SEEDS = range(5000, 5040)
 WIDE = 600          # --harden: seeds tried on a survivor after the extra ones
 
 
+STRICT_HANG = json.loads(Path(os.environ['FL45_STRICT_HANG']).read_text()) if os.environ.get('FL45_STRICT_HANG') else None   # FL-45: {row: [mutant hash]}: rerun only these mutants and count no hang as a kill
+STRICT_ALARM = int(os.environ.get("FL45_STRICT_ALARM", "5"))
+
+
+def strict_scenario(shim, row, sd, ov, ref):
+    """'same', 'differs' (digest or fault differs, or the process crashes: the original does neither) or 'hang' (the 5 s alarm ended the child)"""
+    r_fd, w_fd = os.pipe()
+    pid = os.fork()
+    if pid == 0:
+        try:
+            os.close(r_fd)
+            signal.alarm(STRICT_ALARM)
+            t = W.run_native(shim, row, sd, ov)
+            os.write(w_fd, b'D' if (t.digest() if not t.fault else 'fault') != ref else b'S')
+        except Exception as exc:
+            os.write(w_fd, b'E' + repr(exc).encode()[:100])
+        finally:
+            os._exit(0)
+    os.close(w_fd)
+    data = os.read(r_fd, 256)
+    os.close(r_fd)
+    _, status = os.waitpid(pid, 0)
+    if data.startswith(b'E'):
+        raise RuntimeError('mutation harness error: %s' % data[1:].decode())
+    if data:
+        return 'differs' if data == b'D' else 'same'
+    if os.WIFSIGNALED(status) and os.WTERMSIG(status) == signal.SIGSEGV:
+        return 'differs'              # a crash the original does not have
+    return 'hang'                     # the alarm, an OOM kill or any other end: inconclusive, never a kill
+
+
 def split_functions(text):
     parts = re.split(r'(?=/\* GAME\.EXE 0x[0-9a-f]+ \()', text)
     out = {}
@@ -159,6 +190,13 @@ def check_row_inner(args):
     row = W.row_info(va, entry['body'], {int(k, 16): v for k, v in entry['callees'].items()}, {int(k, 16): v for k, v in entry['imports'].items()}, entry['fs'])
     rng = random.Random(va)
     muts = mutants(text, va, rng, per_row, extended)
+    if STRICT_HANG:
+        only = STRICT_HANG.get(key, [])
+        keep = [(i, m) for i, m in enumerate(muts) if line_hash(m[2], m[1]) in only]
+        if {line_hash(m[2], m[1]) for _, m in keep} != set(only):
+            raise RuntimeError('strict rerun of %s: the mutants of the hang list are not all regenerated (use the --per-row and --extended of the original run)' % key)
+        muts = [(kind, n, t.replace('m%x_mut%d' % (va, i), 'm%x_mutN%d' % (va, j))) for j, (i, (kind, n, t)) in enumerate(keep)]
+        muts = [(kind, n, t.replace('_mutN', '_mut')) for kind, n, t in muts]
     scenarios = [(sd, [tuple(o) for o in ov]) for sd, ov in entry['seeds']]
     with tempfile.TemporaryDirectory() as tmp:
         src = Path(tmp) / 'm.c'
@@ -205,6 +243,14 @@ def check_row_inner(args):
                     os.close(r_fd)
                     found = -1
                     for i, (sd, ov, ref) in enumerate(items):
+                        if STRICT_HANG:           # FL-45 strict mode: each scenario in its own child; one that hangs kills nothing, the mutant must differ (or crash) on another scenario
+                            verdict = strict_scenario(Shim(lib, va, k), row, sd, ov, ref)
+                            if verdict == 'hang':
+                                continue
+                            if verdict == 'differs':
+                                found = i
+                                break
+                            continue
                         signal.alarm(20)         # per scenario (FL-43): one alarm over the whole list killed slow rows' mutants and counted that as a kill
                         t = W.run_native(Shim(lib, va, k), row, sd, ov)
                         signal.alarm(0)
@@ -221,7 +267,7 @@ def check_row_inner(args):
             os.close(r_fd)
             _, status = os.waitpid(pid, 0)
             if data.startswith(b'E'):
-                raise RuntimeError('mutation harness error on %s mutant %d: %s' % (key, k, data[1:].decode()))
+                raise RuntimeError('mutation harness error on %s mutant %d: %s' % (key, k, data[1:].decode()[-150:]))
             if not data:
                 return 'timeout'          # the alarm, or the mutant crashed the process: the original does neither
             i = int(data)
@@ -299,8 +345,11 @@ def main():
                 print('%s COMPILE ERROR %s' % (key, res['error']))
                 bad.append(key)
                 continue
-            if res['killers']:
-                corpus[key]['seeds'].extend([sd, []] for sd in res['killers'])
+            if res['killers'] and a.harden:
+                fresh = json.loads(CORPUS.read_text())               # FL-45: add the killers to the corpus on disk, not to the copy loaded at the start (other tools may have added seeds since)
+                have = {(sd, json.dumps(ov)) for sd, ov in fresh[key]['seeds']}
+                fresh[key]['seeds'].extend([sd, []] for sd in res['killers'] if (sd, json.dumps([])) not in have)
+                CORPUS.write_text(json.dumps(fresh, indent=1, sort_keys=True) + '\n')
             if res.get('divergent'):
                 print('%s divergent seeds (the unmutated translation differs from the original) %s' % (key, res['divergent']), flush=True)
             if res.get('hangs'):
@@ -309,12 +358,8 @@ def main():
             killed += res['killed']
             hard = [s for s in res['survivors'] if s[2] == 'survives']
             print('%s mutants %d killed %d survivors %s' % (key, res['mutants'], res['killed'], res['survivors']), flush=True)
-            if a.harden and res['killers']:
-                CORPUS.write_text(json.dumps(corpus, indent=1, sort_keys=True) + '\n')
             if hard:
                 bad.append(key)
-    if a.harden:
-        CORPUS.write_text(json.dumps(corpus, indent=1, sort_keys=True) + '\n')
     print('TOTAL mutants %d killed %d rows with a survivor %d' % (total, killed, len(bad)))
     return 1 if bad else 0
 
