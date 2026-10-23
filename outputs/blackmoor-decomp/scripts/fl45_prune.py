@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """FL-45: keep in src/original_methods_fl41.c, tests/fl41_corpus.json and tests/test_fl41_differential.py the rows that were credited before this slice plus the rows whose mutation
 survivors are all explained in tasks/fl45-survivors.json (rows_with_survivors with no unexplained item, and rows of the final log without any survivor); every other row of the corpus goes
-back to tests/fl41_pending.json. Run from outputs/blackmoor-decomp:   fl45_prune.py <merged mutation log> <survivors json> <credited-before json (list of rows)>"""
+back to tests/fl41_pending.json. Run from outputs/blackmoor-decomp:   fl45_prune.py <merged mutation log> <survivors json> <credited-before json (list of rows)> [strict survivors json]"""
 import json
 from pathlib import Path
 import re
@@ -13,6 +13,9 @@ PROJECT = Path(__file__).resolve().parents[1]
 def main():
     log, surv_path, before_path = sys.argv[1:4]
     surv = json.loads(Path(surv_path).read_text())
+    # optional 4th argument: the strict survivors json (hang kills not counted); its unexplained rows are held back too
+    if len(sys.argv) > 4:
+        surv['unexplained_rows'] = sorted(set(surv['unexplained_rows']) | set(json.loads(Path(sys.argv[4]).read_text())['unexplained_rows']))
     before = set(json.loads(Path(before_path).read_text()))
     checked = {l.split()[0] for l in Path(log).read_text().split('\n') if re.match(r'^0x[0-9a-f]+ mutants \d+', l)}
     keep = before | {r for r in checked if r not in set(surv['unexplained_rows'])}

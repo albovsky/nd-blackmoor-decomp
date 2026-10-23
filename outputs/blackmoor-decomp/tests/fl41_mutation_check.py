@@ -68,7 +68,9 @@ def strict_scenario(shim, row, sd, ov, ref):
         raise RuntimeError('mutation harness error: %s' % data[1:].decode())
     if data:
         return 'differs' if data == b'D' else 'same'
-    return 'hang' if os.WIFSIGNALED(status) and os.WTERMSIG(status) == signal.SIGALRM else 'differs'
+    if os.WIFSIGNALED(status) and os.WTERMSIG(status) == signal.SIGSEGV:
+        return 'differs'              # a crash the original does not have
+    return 'hang'                     # the alarm, an OOM kill or any other end: inconclusive, never a kill
 
 
 def split_functions(text):
@@ -191,6 +193,8 @@ def check_row_inner(args):
     if STRICT_HANG:
         only = STRICT_HANG.get(key, [])
         keep = [(i, m) for i, m in enumerate(muts) if line_hash(m[2], m[1]) in only]
+        if {line_hash(m[2], m[1]) for _, m in keep} != set(only):
+            raise RuntimeError('strict rerun of %s: the mutants of the hang list are not all regenerated (use the --per-row and --extended of the original run)' % key)
         muts = [(kind, n, t.replace('m%x_mut%d' % (va, i), 'm%x_mutN%d' % (va, j))) for j, (i, (kind, n, t)) in enumerate(keep)]
         muts = [(kind, n, t.replace('_mutN', '_mut')) for kind, n, t in muts]
     scenarios = [(sd, [tuple(o) for o in ov]) for sd, ov in entry['seeds']]

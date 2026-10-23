@@ -185,7 +185,7 @@ def masked_ok(change):
     if wb <= wa:
         return False
     mask = (1 << wa) - 1
-    if before.endswith('(') and re.match(r'^\)\)? & 0x%xu\b' % mask, after):
+    if re.search(r'\| \(+$', before) and re.match(r'^\)\)? & 0x%xu\b' % mask, after):
         return True                                     # `(RDn(x)) & mask` or `((RDn(x))) & mask`
     if plain_store_operand(before) == wa and re.match(r'^\)\)?;', after):
         return True                                     # `WRn(addr, RDn(x))`: the store keeps the low n bits
