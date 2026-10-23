@@ -345,6 +345,9 @@ def classify(kind, lines, n, equivalent, row=None):
         return 'frame'
     if kind in ('alu', 'literal', 'register', 'drop') and esp_adjust_ok(lines, n):
         return 'frame'
+    if row:
+        import fl46_rules       # FL-46: dead flags, dead registers, equal pushes (liveness on the statements)
+        return fl46_rules.explain(kind, lines, n, row)
     return None
 
 

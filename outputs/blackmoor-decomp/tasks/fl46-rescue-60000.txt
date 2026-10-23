@@ -1,0 +1,4 @@
+0x4015fb mutants 3 killed 0 survivors [('width', 16, 'survives'), ('width', 24, 'survives'), ('width', 12, 'survives')]
+0x403ea4 mutants 1 killed 0 survivors [('width', 135, 'survives')]
+0x401249 mutants 2 killed 0 survivors [('width', 61, 'survives'), ('drop', 61, 'survives')]
+0x40478e mutants 2 killed 1 survivors [('literal', 25, 'survives')]

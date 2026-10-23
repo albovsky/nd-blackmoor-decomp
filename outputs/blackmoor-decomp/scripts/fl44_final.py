@@ -21,10 +21,10 @@ import fl40_mutation_check as M
 import fl40_survivors as S
 
 TASKS = PROJECT / 'tasks'
-LOGS = ['fl44-recheck-credited-log-part1.txt', 'fl44-recheck-credited-log-part2.txt', 'fl44-recheck-credited-log-part3.txt', 'fl44-recheck-credited-log-part4.txt', 'fl44-recheck-big5-log.txt', 'fl44-new-rows-mutation-log.txt']
-EQUIV = ['fl44-recheck-equivalence.json', 'fl44-recheck-equivalence-big.json', 'fl44-recheck-equivalence-big5.json', 'fl44-recheck-equivalence-part4.json', 'fl44-new-equivalence.json']
-RESCUE = ['fl44-rescue-base40000.txt', 'fl44-new-rescue-40000.txt', 'fl44-recheck-rescue-40000-part1.txt', 'fl44-recheck-rescue-40000-part2.txt', 'fl44-recheck-rescue-40000-part4.txt', 'fl44-recheck-rescue-40000-part5.txt']
-REQUESTS = ['fl44-requests-held-fl42.json', 'fl44-new-survivors.json', 'fl44-recheck-survivors.json', 'fl44-part4-survivors.json', 'fl44-part5-survivors.json']      # what the rescue runs were asked to retry
+LOGS = ['fl44-recheck-credited-log-part1.txt', 'fl44-recheck-credited-log-part2.txt', 'fl44-recheck-credited-log-part3.txt', 'fl44-recheck-credited-log-part4.txt', 'fl44-recheck-big5-log.txt', 'fl44-new-rows-mutation-log.txt', 'fl46-unchecked-log.txt']
+EQUIV = ['fl44-recheck-equivalence.json', 'fl44-recheck-equivalence-big.json', 'fl44-recheck-equivalence-big5.json', 'fl44-recheck-equivalence-part4.json', 'fl44-new-equivalence.json', 'fl46-equivalence.json']
+RESCUE = ['fl44-rescue-base40000.txt', 'fl44-new-rescue-40000.txt', 'fl44-recheck-rescue-40000-part1.txt', 'fl44-recheck-rescue-40000-part2.txt', 'fl44-recheck-rescue-40000-part4.txt', 'fl44-recheck-rescue-40000-part5.txt', 'fl46-rescue-40000.txt']
+REQUESTS = ['fl44-requests-held-fl42.json', 'fl44-new-survivors.json', 'fl44-recheck-survivors.json', 'fl44-part4-survivors.json', 'fl44-part5-survivors.json', 'fl46-survivors.json']      # what the rescue runs were asked to retry
 LINE = re.compile(r'(0x[0-9a-f]+) mutants \d+ killed \d+ survivors (.*)')
 
 
@@ -67,7 +67,10 @@ def main():
             continue
         text = funcs[row].split('\n')
         left = []
-        retried = {(k, n): why for k, n, why in rescued.get(row, [])}
+        retried = {}
+        for k, n, why in rescued.get(row, []):          # FL-46: a line with several mutants stays open while any one of them survives
+            if retried.get((k, n)) != 'survives':
+                retried[(k, n)] = why
         for kind, n, why in logs[row]:
             if why != 'survives':
                 continue
