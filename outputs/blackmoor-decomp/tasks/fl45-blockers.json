@@ -1,0 +1,64 @@
+{
+ "0x4cd645": [
+  {
+   "id": "A-2E.1:98d39096d37b0362",
+   "rationale": "The item concerns the allocation-failure branch and the fatal diagnostics/cleanup behind it. The oracle runs every instruction of this function and both directions of each jump, with the allocator and logging callees as recording stubs; the translation makes the same stub calls and stores."
+  }
+ ],
+ "0x4d42e0": [
+  {
+   "id": "RT-11:bbd107b5f000b7dd",
+   "rationale": "The item lists other callers of the sound-stop helpers that the native scene runtime does not model; that is a caller-side gap. This function's own instructions and jump directions all run in the oracle and match the translation."
+  }
+ ],
+ "0x4e1d34": [
+  {
+   "id": "RT-11:f7524f45a690aca7",
+   "rationale": "The item lists other callers of the sound-stop helpers that the native scene runtime does not model; that is a caller-side gap. This function's own instructions and jump directions all run in the oracle and match the translation."
+  },
+  {
+   "id": "RT-11.1:2c9f169d7c9c21f7",
+   "rationale": "The item concerns who owns or triggers this routine (dialogue-object sounds, key-driven fade-stop) in the native runtime; it is a caller-side gap. The function's own instructions and jump directions run in the oracle and match the translation."
+  }
+ ],
+ "0x4e7512": [
+  {
+   "id": "RT-12:f22a9d85d4bd7503",
+   "rationale": "The item concerns the phone email/browser consumers in the native runtime, a caller-side gap. This function's own instructions and both directions of every jump run in the oracle and match the translation."
+  }
+ ],
+ "0x4fafc7": [
+  {
+   "id": "RT-11.1:69a6a5277ff4b95a",
+   "rationale": "The item concerns who owns or triggers this routine (dialogue-object sounds, key-driven fade-stop) in the native runtime; it is a caller-side gap. The function's own instructions and jump directions run in the oracle and match the translation."
+  }
+ ],
+ "0x4fb018": [
+  {
+   "id": "A-6D.1:489443acb9dc6613",
+   "rationale": "The item is a static-only note about a dispatcher arm and its callees. This function's own instructions and jump directions run in the oracle and match the translation; the dispatcher is a separate row."
+  },
+  {
+   "id": "A-70.1:2550fd40524a43ce",
+   "rationale": "The item is a static-only navigation note about a dispatcher arm's effects. This function's own instructions and jump directions run in the oracle and match the translation; the dispatcher is a separate row."
+  },
+  {
+   "id": "RT-11:bbd107b5f000b7dd",
+   "rationale": "The item lists other callers of the sound-stop helpers that the native scene runtime does not model; that is a caller-side gap. This function's own instructions and jump directions all run in the oracle and match the translation."
+  },
+  {
+   "id": "RT-5:b85fc26293d512ec",
+   "rationale": "The item says a scene state is a named no-op in the native runtime; that is a caller-side gap. This function's own instructions and jump directions run in the oracle and match the translation."
+  }
+ ],
+ "0x4fb086": [
+  {
+   "id": "RT-11:bbd107b5f000b7dd",
+   "rationale": "The item lists other callers of the sound-stop helpers that the native scene runtime does not model; that is a caller-side gap. This function's own instructions and jump directions all run in the oracle and match the translation."
+  },
+  {
+   "id": "RT-11.1:69a6a5277ff4b95a",
+   "rationale": "The item concerns who owns or triggers this routine (dialogue-object sounds, key-driven fade-stop) in the native runtime; it is a caller-side gap. The function's own instructions and jump directions run in the oracle and match the translation."
+  }
+ ]
+}

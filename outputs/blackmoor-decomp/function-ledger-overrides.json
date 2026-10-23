@@ -59705,7 +59705,7 @@
   {
    "va": "0x48a70a",
    "class": "native_oracle_verified",
-   "reviewer": "FL-45 Sonnet slice (exhaustive mutation check with interval and relation proofs, tasks/fl45-survivors.json)",
+   "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
    "date": "2026-10-22",
    "native_source": {
     "path": "src/original_methods_fl41.c",
@@ -59730,7 +59730,7 @@
   {
    "va": "0x48bca6",
    "class": "native_oracle_verified",
-   "reviewer": "FL-45 Sonnet slice (exhaustive mutation check with interval and relation proofs, tasks/fl45-survivors.json)",
+   "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
    "date": "2026-10-22",
    "native_source": {
     "path": "src/original_methods_fl41.c",
@@ -59755,7 +59755,7 @@
   {
    "va": "0x48e324",
    "class": "native_oracle_verified",
-   "reviewer": "FL-45 Sonnet slice (exhaustive mutation check with interval and relation proofs, tasks/fl45-survivors.json)",
+   "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
    "date": "2026-10-22",
    "native_source": {
     "path": "src/original_methods_fl41.c",
@@ -59780,7 +59780,7 @@
   {
    "va": "0x4a378a",
    "class": "native_oracle_verified",
-   "reviewer": "FL-45 Sonnet slice (exhaustive mutation check with interval and relation proofs, tasks/fl45-survivors.json)",
+   "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
    "date": "2026-10-22",
    "native_source": {
     "path": "src/original_methods_fl41.c",
@@ -59805,7 +59805,7 @@
   {
    "va": "0x4a3947",
    "class": "native_oracle_verified",
-   "reviewer": "FL-45 Sonnet slice (exhaustive mutation check with interval and relation proofs, tasks/fl45-survivors.json)",
+   "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
    "date": "2026-10-22",
    "native_source": {
     "path": "src/original_methods_fl41.c",
@@ -59830,7 +59830,7 @@
   {
    "va": "0x4aa002",
    "class": "native_oracle_verified",
-   "reviewer": "FL-45 Sonnet slice (exhaustive mutation check with interval and relation proofs, tasks/fl45-survivors.json)",
+   "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
    "date": "2026-10-22",
    "native_source": {
     "path": "src/original_methods_fl41.c",
@@ -59855,7 +59855,7 @@
   {
    "va": "0x4ab9fa",
    "class": "native_oracle_verified",
-   "reviewer": "FL-45 Sonnet slice (exhaustive mutation check with interval and relation proofs, tasks/fl45-survivors.json)",
+   "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
    "date": "2026-10-22",
    "native_source": {
     "path": "src/original_methods_fl41.c",
@@ -59880,7 +59880,7 @@
   {
    "va": "0x4b49d4",
    "class": "native_oracle_verified",
-   "reviewer": "FL-45 Sonnet slice (exhaustive mutation check with interval and relation proofs, tasks/fl45-survivors.json)",
+   "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
    "date": "2026-10-22",
    "native_source": {
     "path": "src/original_methods_fl41.c",
@@ -59905,7 +59905,7 @@
   {
    "va": "0x4be1dd",
    "class": "native_oracle_verified",
-   "reviewer": "FL-45 Sonnet slice (exhaustive mutation check with interval and relation proofs, tasks/fl45-survivors.json)",
+   "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
    "date": "2026-10-22",
    "native_source": {
     "path": "src/original_methods_fl41.c",
@@ -59930,7 +59930,7 @@
   {
    "va": "0x4c0b8b",
    "class": "native_oracle_verified",
-   "reviewer": "FL-45 Sonnet slice (exhaustive mutation check with interval and relation proofs, tasks/fl45-survivors.json)",
+   "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
    "date": "2026-10-22",
    "native_source": {
     "path": "src/original_methods_fl41.c",
@@ -59955,7 +59955,7 @@
   {
    "va": "0x4c9428",
    "class": "native_oracle_verified",
-   "reviewer": "FL-45 Sonnet slice (exhaustive mutation check with interval and relation proofs, tasks/fl45-survivors.json)",
+   "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
    "date": "2026-10-22",
    "native_source": {
     "path": "src/original_methods_fl41.c",
@@ -59980,7 +59980,7 @@
   {
    "va": "0x4c94ec",
    "class": "native_oracle_verified",
-   "reviewer": "FL-45 Sonnet slice (exhaustive mutation check with interval and relation proofs, tasks/fl45-survivors.json)",
+   "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
    "date": "2026-10-22",
    "native_source": {
     "path": "src/original_methods_fl41.c",
@@ -60005,7 +60005,7 @@
   {
    "va": "0x4cd645",
    "class": "native_oracle_verified",
-   "reviewer": "FL-45 Sonnet slice (exhaustive mutation check with interval and relation proofs, tasks/fl45-survivors.json)",
+   "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
    "date": "2026-10-22",
    "native_source": {
     "path": "src/original_methods_fl41.c",
@@ -60025,12 +60025,18 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated (scripts/lift_fl41.py), 11 seeds; oracle: 59/59 instructions, 4/4 jump directions; every mutant killed, identical -O2 code, or explained."
+   "note": "Machine-translated (scripts/lift_fl41.py), 11 seeds; oracle: 59/59 instructions, 4/4 jump directions; every mutant killed, identical -O2 code, or explained.",
+   "blockers_reviewed": [
+    {
+     "id": "A-2E.1:98d39096d37b0362",
+     "rationale": "The item concerns the allocation-failure branch and the fatal diagnostics/cleanup behind it. The oracle runs every instruction of this function and both directions of each jump, with the allocator and logging callees as recording stubs; the translation makes the same stub calls and stores."
+    }
+   ]
   },
   {
    "va": "0x4d0afc",
    "class": "native_oracle_verified",
-   "reviewer": "FL-45 Sonnet slice (exhaustive mutation check with interval and relation proofs, tasks/fl45-survivors.json)",
+   "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
    "date": "2026-10-22",
    "native_source": {
     "path": "src/original_methods_fl41.c",
@@ -60055,7 +60061,7 @@
   {
    "va": "0x4d3d48",
    "class": "native_oracle_verified",
-   "reviewer": "FL-45 Sonnet slice (exhaustive mutation check with interval and relation proofs, tasks/fl45-survivors.json)",
+   "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
    "date": "2026-10-22",
    "native_source": {
     "path": "src/original_methods_fl41.c",
@@ -60071,7 +60077,7 @@
     "path": "tests/fl41_original_oracle.py",
     "window": [
      "0x4d3d48",
-     "0x4d3d97"
+     "0x4d3da7"
     ]
    },
    "parts_accounted": [],
@@ -60080,7 +60086,7 @@
   {
    "va": "0x4d3da7",
    "class": "native_oracle_verified",
-   "reviewer": "FL-45 Sonnet slice (exhaustive mutation check with interval and relation proofs, tasks/fl45-survivors.json)",
+   "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
    "date": "2026-10-22",
    "native_source": {
     "path": "src/original_methods_fl41.c",
@@ -60105,7 +60111,7 @@
   {
    "va": "0x4d42e0",
    "class": "native_oracle_verified",
-   "reviewer": "FL-45 Sonnet slice (exhaustive mutation check with interval and relation proofs, tasks/fl45-survivors.json)",
+   "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
    "date": "2026-10-22",
    "native_source": {
     "path": "src/original_methods_fl41.c",
@@ -60125,12 +60131,18 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated (scripts/lift_fl41.py), 10 seeds; oracle: 30/30 instructions, 2/2 jump directions; every mutant killed, identical -O2 code, or explained."
+   "note": "Machine-translated (scripts/lift_fl41.py), 10 seeds; oracle: 30/30 instructions, 2/2 jump directions; every mutant killed, identical -O2 code, or explained.",
+   "blockers_reviewed": [
+    {
+     "id": "RT-11:bbd107b5f000b7dd",
+     "rationale": "The item lists other callers of the sound-stop helpers that the native scene runtime does not model; that is a caller-side gap. This function's own instructions and jump directions all run in the oracle and match the translation."
+    }
+   ]
   },
   {
    "va": "0x4d4377",
    "class": "native_oracle_verified",
-   "reviewer": "FL-45 Sonnet slice (exhaustive mutation check with interval and relation proofs, tasks/fl45-survivors.json)",
+   "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
    "date": "2026-10-22",
    "native_source": {
     "path": "src/original_methods_fl41.c",
@@ -60155,7 +60167,7 @@
   {
    "va": "0x4d46b3",
    "class": "native_oracle_verified",
-   "reviewer": "FL-45 Sonnet slice (exhaustive mutation check with interval and relation proofs, tasks/fl45-survivors.json)",
+   "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
    "date": "2026-10-22",
    "native_source": {
     "path": "src/original_methods_fl41.c",
@@ -60180,7 +60192,7 @@
   {
    "va": "0x4de009",
    "class": "native_oracle_verified",
-   "reviewer": "FL-45 Sonnet slice (exhaustive mutation check with interval and relation proofs, tasks/fl45-survivors.json)",
+   "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
    "date": "2026-10-22",
    "native_source": {
     "path": "src/original_methods_fl41.c",
@@ -60205,7 +60217,7 @@
   {
    "va": "0x4de743",
    "class": "native_oracle_verified",
-   "reviewer": "FL-45 Sonnet slice (exhaustive mutation check with interval and relation proofs, tasks/fl45-survivors.json)",
+   "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
    "date": "2026-10-22",
    "native_source": {
     "path": "src/original_methods_fl41.c",
@@ -60230,7 +60242,7 @@
   {
    "va": "0x4e1d34",
    "class": "native_oracle_verified",
-   "reviewer": "FL-45 Sonnet slice (exhaustive mutation check with interval and relation proofs, tasks/fl45-survivors.json)",
+   "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
    "date": "2026-10-22",
    "native_source": {
     "path": "src/original_methods_fl41.c",
@@ -60250,12 +60262,22 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated (scripts/lift_fl41.py), 18 seeds; oracle: 39/39 instructions, 10/10 jump directions; every mutant killed, identical -O2 code, or explained."
+   "note": "Machine-translated (scripts/lift_fl41.py), 18 seeds; oracle: 39/39 instructions, 10/10 jump directions; every mutant killed, identical -O2 code, or explained.",
+   "blockers_reviewed": [
+    {
+     "id": "RT-11:f7524f45a690aca7",
+     "rationale": "The item lists other callers of the sound-stop helpers that the native scene runtime does not model; that is a caller-side gap. This function's own instructions and jump directions all run in the oracle and match the translation."
+    },
+    {
+     "id": "RT-11.1:2c9f169d7c9c21f7",
+     "rationale": "The item concerns who owns or triggers this routine (dialogue-object sounds, key-driven fade-stop) in the native runtime; it is a caller-side gap. The function's own instructions and jump directions run in the oracle and match the translation."
+    }
+   ]
   },
   {
    "va": "0x4e354a",
    "class": "native_oracle_verified",
-   "reviewer": "FL-45 Sonnet slice (exhaustive mutation check with interval and relation proofs, tasks/fl45-survivors.json)",
+   "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
    "date": "2026-10-22",
    "native_source": {
     "path": "src/original_methods_fl41.c",
@@ -60280,7 +60302,7 @@
   {
    "va": "0x4e35e8",
    "class": "native_oracle_verified",
-   "reviewer": "FL-45 Sonnet slice (exhaustive mutation check with interval and relation proofs, tasks/fl45-survivors.json)",
+   "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
    "date": "2026-10-22",
    "native_source": {
     "path": "src/original_methods_fl41.c",
@@ -60305,7 +60327,7 @@
   {
    "va": "0x4e364a",
    "class": "native_oracle_verified",
-   "reviewer": "FL-45 Sonnet slice (exhaustive mutation check with interval and relation proofs, tasks/fl45-survivors.json)",
+   "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
    "date": "2026-10-22",
    "native_source": {
     "path": "src/original_methods_fl41.c",
@@ -60330,7 +60352,7 @@
   {
    "va": "0x4e7512",
    "class": "native_oracle_verified",
-   "reviewer": "FL-45 Sonnet slice (exhaustive mutation check with interval and relation proofs, tasks/fl45-survivors.json)",
+   "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
    "date": "2026-10-22",
    "native_source": {
     "path": "src/original_methods_fl41.c",
@@ -60346,16 +60368,22 @@
     "path": "tests/fl41_original_oracle.py",
     "window": [
      "0x4e7512",
-     "0x4e75f3"
+     "0x4e7600"
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated (scripts/lift_fl41.py), 6 seeds; oracle: 67/67 instructions, 0/0 jump directions; every mutant killed, identical -O2 code, or explained."
+   "note": "Machine-translated (scripts/lift_fl41.py), 6 seeds; oracle: 67/67 instructions, 0/0 jump directions; every mutant killed, identical -O2 code, or explained.",
+   "blockers_reviewed": [
+    {
+     "id": "RT-12:f22a9d85d4bd7503",
+     "rationale": "The item concerns the phone email/browser consumers in the native runtime, a caller-side gap. This function's own instructions and both directions of every jump run in the oracle and match the translation."
+    }
+   ]
   },
   {
    "va": "0x4e9d8f",
    "class": "native_oracle_verified",
-   "reviewer": "FL-45 Sonnet slice (exhaustive mutation check with interval and relation proofs, tasks/fl45-survivors.json)",
+   "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
    "date": "2026-10-22",
    "native_source": {
     "path": "src/original_methods_fl41.c",
@@ -60380,7 +60408,7 @@
   {
    "va": "0x4eb9c8",
    "class": "native_oracle_verified",
-   "reviewer": "FL-45 Sonnet slice (exhaustive mutation check with interval and relation proofs, tasks/fl45-survivors.json)",
+   "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
    "date": "2026-10-22",
    "native_source": {
     "path": "src/original_methods_fl41.c",
@@ -60405,7 +60433,7 @@
   {
    "va": "0x4eff03",
    "class": "native_oracle_verified",
-   "reviewer": "FL-45 Sonnet slice (exhaustive mutation check with interval and relation proofs, tasks/fl45-survivors.json)",
+   "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
    "date": "2026-10-22",
    "native_source": {
     "path": "src/original_methods_fl41.c",
@@ -60430,7 +60458,7 @@
   {
    "va": "0x4f2640",
    "class": "native_oracle_verified",
-   "reviewer": "FL-45 Sonnet slice (exhaustive mutation check with interval and relation proofs, tasks/fl45-survivors.json)",
+   "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
    "date": "2026-10-22",
    "native_source": {
     "path": "src/original_methods_fl41.c",
@@ -60455,7 +60483,7 @@
   {
    "va": "0x4f67be",
    "class": "native_oracle_verified",
-   "reviewer": "FL-45 Sonnet slice (exhaustive mutation check with interval and relation proofs, tasks/fl45-survivors.json)",
+   "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
    "date": "2026-10-22",
    "native_source": {
     "path": "src/original_methods_fl41.c",
@@ -60480,7 +60508,7 @@
   {
    "va": "0x4f6810",
    "class": "native_oracle_verified",
-   "reviewer": "FL-45 Sonnet slice (exhaustive mutation check with interval and relation proofs, tasks/fl45-survivors.json)",
+   "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
    "date": "2026-10-22",
    "native_source": {
     "path": "src/original_methods_fl41.c",
@@ -60505,7 +60533,7 @@
   {
    "va": "0x4fafc7",
    "class": "native_oracle_verified",
-   "reviewer": "FL-45 Sonnet slice (exhaustive mutation check with interval and relation proofs, tasks/fl45-survivors.json)",
+   "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
    "date": "2026-10-22",
    "native_source": {
     "path": "src/original_methods_fl41.c",
@@ -60525,12 +60553,18 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated (scripts/lift_fl41.py), 4 seeds; oracle: 26/26 instructions, 4/4 jump directions; every mutant killed, identical -O2 code, or explained."
+   "note": "Machine-translated (scripts/lift_fl41.py), 4 seeds; oracle: 26/26 instructions, 4/4 jump directions; every mutant killed, identical -O2 code, or explained.",
+   "blockers_reviewed": [
+    {
+     "id": "RT-11.1:69a6a5277ff4b95a",
+     "rationale": "The item concerns who owns or triggers this routine (dialogue-object sounds, key-driven fade-stop) in the native runtime; it is a caller-side gap. The function's own instructions and jump directions run in the oracle and match the translation."
+    }
+   ]
   },
   {
    "va": "0x4fb018",
    "class": "native_oracle_verified",
-   "reviewer": "FL-45 Sonnet slice (exhaustive mutation check with interval and relation proofs, tasks/fl45-survivors.json)",
+   "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
    "date": "2026-10-22",
    "native_source": {
     "path": "src/original_methods_fl41.c",
@@ -60550,12 +60584,30 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated (scripts/lift_fl41.py), 4 seeds; oracle: 28/28 instructions, 4/4 jump directions; every mutant killed, identical -O2 code, or explained."
+   "note": "Machine-translated (scripts/lift_fl41.py), 4 seeds; oracle: 28/28 instructions, 4/4 jump directions; every mutant killed, identical -O2 code, or explained.",
+   "blockers_reviewed": [
+    {
+     "id": "A-6D.1:489443acb9dc6613",
+     "rationale": "The item is a static-only note about a dispatcher arm and its callees. This function's own instructions and jump directions run in the oracle and match the translation; the dispatcher is a separate row."
+    },
+    {
+     "id": "A-70.1:2550fd40524a43ce",
+     "rationale": "The item is a static-only navigation note about a dispatcher arm's effects. This function's own instructions and jump directions run in the oracle and match the translation; the dispatcher is a separate row."
+    },
+    {
+     "id": "RT-11:bbd107b5f000b7dd",
+     "rationale": "The item lists other callers of the sound-stop helpers that the native scene runtime does not model; that is a caller-side gap. This function's own instructions and jump directions all run in the oracle and match the translation."
+    },
+    {
+     "id": "RT-5:b85fc26293d512ec",
+     "rationale": "The item says a scene state is a named no-op in the native runtime; that is a caller-side gap. This function's own instructions and jump directions run in the oracle and match the translation."
+    }
+   ]
   },
   {
    "va": "0x4fb086",
    "class": "native_oracle_verified",
-   "reviewer": "FL-45 Sonnet slice (exhaustive mutation check with interval and relation proofs, tasks/fl45-survivors.json)",
+   "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
    "date": "2026-10-22",
    "native_source": {
     "path": "src/original_methods_fl41.c",
@@ -60575,12 +60627,22 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated (scripts/lift_fl41.py), 1 seeds; oracle: 20/20 instructions, 2/2 jump directions; every mutant killed, identical -O2 code, or explained."
+   "note": "Machine-translated (scripts/lift_fl41.py), 1 seeds; oracle: 20/20 instructions, 2/2 jump directions; every mutant killed, identical -O2 code, or explained.",
+   "blockers_reviewed": [
+    {
+     "id": "RT-11:bbd107b5f000b7dd",
+     "rationale": "The item lists other callers of the sound-stop helpers that the native scene runtime does not model; that is a caller-side gap. This function's own instructions and jump directions all run in the oracle and match the translation."
+    },
+    {
+     "id": "RT-11.1:69a6a5277ff4b95a",
+     "rationale": "The item concerns who owns or triggers this routine (dialogue-object sounds, key-driven fade-stop) in the native runtime; it is a caller-side gap. The function's own instructions and jump directions run in the oracle and match the translation."
+    }
+   ]
   },
   {
    "va": "0x4fb737",
    "class": "native_oracle_verified",
-   "reviewer": "FL-45 Sonnet slice (exhaustive mutation check with interval and relation proofs, tasks/fl45-survivors.json)",
+   "reviewer": "FL-45 slice: exhaustive mutation check, tasks/fl45-survivors.json",
    "date": "2026-10-22",
    "native_source": {
     "path": "src/original_methods_fl41.c",
