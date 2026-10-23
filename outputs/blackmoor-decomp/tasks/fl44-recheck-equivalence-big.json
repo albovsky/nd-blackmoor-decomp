@@ -1,0 +1,338 @@
+{
+ "rows": {
+  "0x426520": [
+   {
+    "kind": "drop",
+    "line": 354,
+    "statement": "eax = RD32((uint32_t)(ebp + 0xfffffff0u));  /* 0x426b3d: mov eax, dword ptr [ebp - 0x10] */",
+    "equivalent": false,
+    "mutants": 1
+   },
+   {
+    "kind": "drop",
+    "line": 14,
+    "statement": "ecx = RD32((uint32_t)(ebp + 0xfffffff0u));  /* 0x42653e: mov ecx, dword ptr [ebp - 0x10] */",
+    "equivalent": false,
+    "mutants": 1
+   }
+  ],
+  "0x427420": [
+   {
+    "kind": "drop",
+    "line": 14,
+    "statement": "ecx = RD32((uint32_t)(ebp + 0xfffffff0u));  /* 0x427443: mov ecx, dword ptr [ebp - 0x10] */",
+    "equivalent": false,
+    "mutants": 1
+   }
+  ],
+  "0x44f68b": [
+   {
+    "kind": "drop",
+    "line": 65,
+    "statement": "ecx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x44f7e2: mov ecx, dword ptr [ebp - 4] */",
+    "equivalent": false,
+    "mutants": 1
+   },
+   {
+    "kind": "drop",
+    "line": 149,
+    "statement": "{ uint32_t a_ = eax, b_ = eax, r_; r_ = a_ ^ b_; FL40_LOGIC(r_, 32); eax = r_; }  /* 0x44f906: xor eax, eax */",
+    "equivalent": true,
+    "mutants": 1
+   },
+   {
+    "kind": "drop",
+    "line": 79,
+    "statement": "edx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x44f83a: mov edx, dword ptr [ebp - 4] */",
+    "equivalent": false,
+    "mutants": 1
+   },
+   {
+    "kind": "drop",
+    "line": 35,
+    "statement": "ecx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x44f71f: mov ecx, dword ptr [ebp - 4] */",
+    "equivalent": false,
+    "mutants": 1
+   },
+   {
+    "kind": "drop",
+    "line": 83,
+    "statement": "ecx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x44f854: mov ecx, dword ptr [ebp - 4] */",
+    "equivalent": false,
+    "mutants": 1
+   },
+   {
+    "kind": "drop",
+    "line": 33,
+    "statement": "eax = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x44f712: mov eax, dword ptr [ebp - 4] */",
+    "equivalent": false,
+    "mutants": 1
+   },
+   {
+    "kind": "drop",
+    "line": 19,
+    "statement": "edx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x44f6c3: mov edx, dword ptr [ebp - 4] */",
+    "equivalent": false,
+    "mutants": 1
+   },
+   {
+    "kind": "drop",
+    "line": 25,
+    "statement": "edx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x44f6e1: mov edx, dword ptr [ebp - 4] */",
+    "equivalent": false,
+    "mutants": 1
+   },
+   {
+    "kind": "drop",
+    "line": 102,
+    "statement": "{ uint32_t a_ = ecx, b_ = ecx, r_; r_ = a_ ^ b_; FL40_LOGIC(r_, 32); ecx = r_; }  /* 0x44f886: xor ecx, ecx */",
+    "equivalent": true,
+    "mutants": 1
+   },
+   {
+    "kind": "drop",
+    "line": 23,
+    "statement": "ecx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x44f6d7: mov ecx, dword ptr [ebp - 4] */",
+    "equivalent": false,
+    "mutants": 1
+   },
+   {
+    "kind": "drop",
+    "line": 51,
+    "statement": "eax = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x44f787: mov eax, dword ptr [ebp - 4] */",
+    "equivalent": false,
+    "mutants": 1
+   },
+   {
+    "kind": "drop",
+    "line": 55,
+    "statement": "edx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x44f7a1: mov edx, dword ptr [ebp - 4] */",
+    "equivalent": false,
+    "mutants": 1
+   },
+   {
+    "kind": "drop",
+    "line": 61,
+    "statement": "edx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x44f7c8: mov edx, dword ptr [ebp - 4] */",
+    "equivalent": false,
+    "mutants": 1
+   },
+   {
+    "kind": "drop",
+    "line": 75,
+    "statement": "eax = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x44f823: mov eax, dword ptr [ebp - 4] */",
+    "equivalent": false,
+    "mutants": 1
+   },
+   {
+    "kind": "drop",
+    "line": 69,
+    "statement": "eax = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x44f7fc: mov eax, dword ptr [ebp - 4] */",
+    "equivalent": false,
+    "mutants": 1
+   },
+   {
+    "kind": "drop",
+    "line": 138,
+    "statement": "{ uint32_t a_ = eax, b_ = eax, r_; r_ = a_ ^ b_; FL40_LOGIC(r_, 32); eax = r_; }  /* 0x44f8f3: xor eax, eax */",
+    "equivalent": true,
+    "mutants": 1
+   },
+   {
+    "kind": "drop",
+    "line": 184,
+    "statement": "{ uint32_t a_ = eax, b_ = eax, r_; r_ = a_ ^ b_; FL40_LOGIC(r_, 32); eax = r_; }  /* 0x44f94b: xor eax, eax */",
+    "equivalent": true,
+    "mutants": 1
+   },
+   {
+    "kind": "literal",
+    "line": 147,
+    "statement": "WR8(edi, eax & 0xffu); edi += 1u;  /* 0x44f900: stosb byte ptr es:[edi], al */",
+    "equivalent": true,
+    "mutants": 1
+   },
+   {
+    "kind": "drop",
+    "line": 47,
+    "statement": "ecx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x44f76d: mov ecx, dword ptr [ebp - 4] */",
+    "equivalent": false,
+    "mutants": 1
+   },
+   {
+    "kind": "drop",
+    "line": 27,
+    "statement": "eax = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x44f6eb: mov eax, dword ptr [ebp - 4] */",
+    "equivalent": false,
+    "mutants": 1
+   },
+   {
+    "kind": "drop",
+    "line": 11,
+    "statement": "ecx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x44f69c: mov ecx, dword ptr [ebp - 4] */",
+    "equivalent": false,
+    "mutants": 1
+   },
+   {
+    "kind": "drop",
+    "line": 43,
+    "statement": "edx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x44f753: mov edx, dword ptr [ebp - 4] */",
+    "equivalent": false,
+    "mutants": 1
+   },
+   {
+    "kind": "drop",
+    "line": 67,
+    "statement": "edx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x44f7ef: mov edx, dword ptr [ebp - 4] */",
+    "equivalent": false,
+    "mutants": 1
+   },
+   {
+    "kind": "drop",
+    "line": 39,
+    "statement": "eax = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x44f739: mov eax, dword ptr [ebp - 4] */",
+    "equivalent": false,
+    "mutants": 1
+   },
+   {
+    "kind": "drop",
+    "line": 21,
+    "statement": "eax = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x44f6cd: mov eax, dword ptr [ebp - 4] */",
+    "equivalent": false,
+    "mutants": 1
+   },
+   {
+    "kind": "drop",
+    "line": 53,
+    "statement": "ecx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x44f794: mov ecx, dword ptr [ebp - 4] */",
+    "equivalent": false,
+    "mutants": 1
+   },
+   {
+    "kind": "drop",
+    "line": 81,
+    "statement": "eax = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x44f847: mov eax, dword ptr [ebp - 4] */",
+    "equivalent": false,
+    "mutants": 1
+   },
+   {
+    "kind": "drop",
+    "line": 77,
+    "statement": "ecx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x44f82d: mov ecx, dword ptr [ebp - 4] */",
+    "equivalent": false,
+    "mutants": 1
+   },
+   {
+    "kind": "drop",
+    "line": 71,
+    "statement": "ecx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x44f809: mov ecx, dword ptr [ebp - 4] */",
+    "equivalent": false,
+    "mutants": 1
+   },
+   {
+    "kind": "drop",
+    "line": 59,
+    "statement": "ecx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x44f7bb: mov ecx, dword ptr [ebp - 4] */",
+    "equivalent": false,
+    "mutants": 1
+   },
+   {
+    "kind": "drop",
+    "line": 198,
+    "statement": "{ uint32_t a_ = eax, b_ = eax, r_; r_ = a_ ^ b_; FL40_LOGIC(r_, 32); eax = r_; }  /* 0x44f977: xor eax, eax */",
+    "equivalent": true,
+    "mutants": 1
+   },
+   {
+    "kind": "drop",
+    "line": 73,
+    "statement": "edx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x44f816: mov edx, dword ptr [ebp - 4] */",
+    "equivalent": false,
+    "mutants": 1
+   },
+   {
+    "kind": "drop",
+    "line": 17,
+    "statement": "ecx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x44f6b9: mov ecx, dword ptr [ebp - 4] */",
+    "equivalent": false,
+    "mutants": 1
+   },
+   {
+    "kind": "drop",
+    "line": 37,
+    "statement": "edx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x44f72c: mov edx, dword ptr [ebp - 4] */",
+    "equivalent": false,
+    "mutants": 1
+   },
+   {
+    "kind": "drop",
+    "line": 41,
+    "statement": "ecx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x44f746: mov ecx, dword ptr [ebp - 4] */",
+    "equivalent": false,
+    "mutants": 1
+   },
+   {
+    "kind": "drop",
+    "line": 15,
+    "statement": "eax = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x44f6af: mov eax, dword ptr [ebp - 4] */",
+    "equivalent": false,
+    "mutants": 1
+   },
+   {
+    "kind": "drop",
+    "line": 159,
+    "statement": "{ uint32_t a_ = eax, b_ = eax, r_; r_ = a_ ^ b_; FL40_LOGIC(r_, 32); eax = r_; }  /* 0x44f918: xor eax, eax */",
+    "equivalent": true,
+    "mutants": 1
+   },
+   {
+    "kind": "drop",
+    "line": 49,
+    "statement": "edx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x44f77a: mov edx, dword ptr [ebp - 4] */",
+    "equivalent": false,
+    "mutants": 1
+   },
+   {
+    "kind": "drop",
+    "line": 63,
+    "statement": "eax = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x44f7d5: mov eax, dword ptr [ebp - 4] */",
+    "equivalent": false,
+    "mutants": 1
+   },
+   {
+    "kind": "drop",
+    "line": 45,
+    "statement": "eax = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x44f760: mov eax, dword ptr [ebp - 4] */",
+    "equivalent": false,
+    "mutants": 1
+   },
+   {
+    "kind": "drop",
+    "line": 57,
+    "statement": "eax = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x44f7ae: mov eax, dword ptr [ebp - 4] */",
+    "equivalent": false,
+    "mutants": 1
+   },
+   {
+    "kind": "drop",
+    "line": 31,
+    "statement": "edx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x44f705: mov edx, dword ptr [ebp - 4] */",
+    "equivalent": false,
+    "mutants": 1
+   },
+   {
+    "kind": "drop",
+    "line": 29,
+    "statement": "ecx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x44f6f8: mov ecx, dword ptr [ebp - 4] */",
+    "equivalent": false,
+    "mutants": 1
+   }
+  ]
+ },
+ "rows_all_equivalent": [],
+ "rows_with_open_survivor": [
+  "0x426520",
+  "0x427420",
+  "0x44f68b"
+ ]
+}

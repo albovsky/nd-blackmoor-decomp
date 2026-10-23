@@ -1,0 +1,60 @@
+0x401130 mutants 15 killed 15 survivors []
+0x401140 mutants 15 killed 15 survivors []
+0x4010c0 mutants 18 killed 17 survivors [('drop', 8, 'survives')]
+0x4010d5 mutants 24 killed 23 survivors [('drop', 10, 'survives')]
+0x401150 mutants 27 killed 26 survivors [('literal', 12, 'survives')]
+0x401000 mutants 39 killed 37 survivors [('drop', 16, 'survives'), ('drop', 8, 'survives')]
+0x4011c0 mutants 39 killed 35 survivors [('alu', 9, 'survives'), ('register', 11, 'survives'), ('register', 9, 'survives'), ('register', 13, 'survives')]
+0x401170 mutants 27 killed 26 survivors [('literal', 12, 'survives')]
+0x401511 mutants 18 killed 18 survivors []
+0x401526 mutants 47 killed 47 survivors []
+0x401589 mutants 66 killed 66 survivors []
+0x401c1c mutants 21 killed 20 survivors [('drop', 9, 'survives')]
+0x40149a mutants 57 killed 56 survivors [('drop', 15, 'survives')]
+0x401c90 mutants 17 killed 17 survivors []
+0x4011f7 mutants 43 killed 42 survivors [('alu', 19, 'survives')] hang-kills 2
+0x401c70 mutants 18 killed 17 survivors [('drop', 8, 'survives')]
+0x401cb0 mutants 36 killed 34 survivors [('literal', 12, 'survives'), ('drop', 11, 'survives')]
+0x402322 mutants 58 killed 54 survivors [('alu', 16, 'survives'), ('literal', 16, 'survives'), ('drop', 16, 'survives'), ('literal', 16, 'survives')]
+0x4013cc mutants 42 killed 41 survivors [('alu', 16, 'survives')] hang-kills 5
+0x404186 mutants 20 killed 20 survivors []
+0x4030ba mutants 211 killed 209 survivors [('drop', 84, 'survives'), ('drop', 15, 'survives')]
+0x4041d7 mutants 17 killed 17 survivors []
+0x4041ec mutants 17 killed 17 survivors []
+0x4041a3 mutants 31 killed 30 survivors [('literal', 16, 'survives')]
+0x403229 mutants 203 killed 202 survivors [('drop', 16, 'survives')]
+0x404384 mutants 31 killed 28 survivors [('alu', 8, 'survives'), ('register', 8, 'survives'), ('drop', 15, 'survives')]
+0x404201 mutants 67 killed 65 survivors [('register', 21, 'survives'), ('drop', 11, 'survives')]
+0x404812 mutants 26 killed 25 survivors [('drop', 11, 'survives')]
+0x40483a mutants 26 killed 25 survivors [('drop', 11, 'survives')]
+0x404862 mutants 26 killed 25 survivors [('drop', 11, 'survives')]
+0x40488a mutants 26 killed 25 survivors [('drop', 11, 'survives')]
+0x4048b2 mutants 26 killed 25 survivors [('drop', 11, 'survives')]
+0x4048da mutants 46 killed 44 survivors [('register', 10, 'survives'), ('alu', 10, 'survives')]
+0x404aca mutants 32 killed 29 survivors [('literal', 11, 'survives'), ('drop', 14, 'survives'), ('drop', 10, 'survives')]
+0x407bba mutants 73 killed 71 survivors [('literal', 25, 'survives'), ('drop', 15, 'survives')]
+0x406739 mutants 81 killed 79 survivors [('alu', 19, 'survives'), ('register', 19, 'survives')]
+0x407c29 mutants 63 killed 62 survivors [('drop', 19, 'survives')]
+0x408a2a mutants 451 killed 449 survivors [('drop', 180, 'survives'), ('drop', 15, 'survives')]
+0x407da0 mutants 599 killed 586 survivors [('drop', 163, 'survives'), ('drop', 55, 'survives'), ('drop', 8, 'survives'), ('drop', 73, 'survives'), ('drop', 181, 'survives'), ('drop', 37, 'survives'), ('drop', 145, 'survives'), ('drop', 19, 'survives'), ('drop', 109, 'survives'), ('drop', 127, 'survives'), ('drop', 199, 'survives'), ('drop', 91, 'survives'), ('drop', 217, 'survives')]
+0x408d49 mutants 443 killed 442 survivors [('drop', 16, 'survives')]
+0x411080 mutants 56 killed 55 survivors [('drop', 13, 'survives')]
+0x40236a mutants 903 killed 861 survivors [('register', 200, 'survives'), ('register', 162, 'survives'), ('register', 124, 'survives'), ('register', 105, 'survives'), ('drop', 404, 'survives'), ('register', 219, 'survives'), ('register', 143, 'survives'), ('register', 371, 'survives'), ('register', 333, 'survives'), ('register', 86, 'survives'), ('register', 67, 'survives'), ('register', 352, 'survives'), ('register', 257, 'survives'), ('register', 181, 'survives'), ('register', 238, 'survives'), ('register', 29, 'survives'), ('register', 48, 'survives'), ('register', 10, 'survives'), ('drop', 176, 'survives'), ('register', 314, 'survives'), ('register', 428, 'survives'), ('register', 390, 'survives'), ('literal', 454, 'survives'), ('register', 295, 'survives'), ('register', 447, 'survives'), ('register', 276, 'survives'), ('register', 409, 'survives'), ('drop', 111, 'survives'), ('drop', 453, 'survives'), ('drop', 233, 'survives'), ('drop', 347, 'survives'), ('drop', 62, 'survives'), ('drop', 461, 'survives'), ('literal', 462, 'survives'), ('drop', 339, 'survives'), ('drop', 168, 'survives'), ('drop', 282, 'survives'), ('drop', 290, 'survives'), ('drop', 54, 'survives'), ('drop', 119, 'survives'), ('drop', 225, 'survives'), ('drop', 396, 'survives')]
+0x4110d7 mutants 28 killed 27 survivors [('drop', 10, 'survives')]
+0x41114f mutants 60 killed 54 survivors [('width', 17, 'survives'), ('register', 18, 'survives'), ('width', 15, 'survives'), ('alu', 18, 'survives'), ('width', 11, 'survives'), ('width', 20, 'survives')] hang-kills 3
+0x41195c mutants 139 killed 137 survivors [('alu', 18, 'survives'), ('register', 18, 'survives')] hang-kills 2
+0x40a209 mutants 663 killed 649 survivors [('drop', 217, 'survives'), ('drop', 235, 'survives'), ('drop', 73, 'survives'), ('drop', 55, 'survives'), ('drop', 163, 'survives'), ('drop', 181, 'survives'), ('drop', 199, 'survives'), ('drop', 8, 'survives'), ('drop', 91, 'survives'), ('drop', 127, 'survives'), ('drop', 19, 'survives'), ('drop', 37, 'survives'), ('drop', 109, 'survives'), ('drop', 145, 'survives')]
+0x4145a7 mutants 33 killed 32 survivors [('drop', 10, 'survives')]
+0x4150af mutants 70 killed 67 survivors [('register', 17, 'survives'), ('alu', 17, 'survives'), ('drop', 15, 'survives')]
+0x415113 mutants 69 killed 66 survivors [('alu', 17, 'survives'), ('register', 17, 'survives'), ('drop', 15, 'survives')]
+0x405b72 mutants 1361 killed 1356 survivors [('width', 661, 'survives'), ('drop', 8, 'survives'), ('width', 652, 'survives'), ('width', 656, 'survives'), ('drop', 663, 'survives')] hang-kills 3
+0x4111a0 mutants 95 killed 86 survivors [('width', 32, 'survives'), ('width', 30, 'survives'), ('drop', 13, 'survives'), ('width', 22, 'survives'), ('width', 13, 'survives'), ('width', 44, 'survives'), ('width', 17, 'survives'), ('width', 26, 'survives'), ('literal', 41, 'survives')] hang-kills 10
+0x41a140 mutants 81 killed 75 survivors [('literal', 33, 'survives'), ('register', 14, 'survives'), ('alu', 14, 'survives'), ('alu', 33, 'survives'), ('literal', 33, 'survives'), ('drop', 33, 'survives')]
+0x41a4b0 mutants 18 killed 18 survivors []
+0x41608b mutants 106 killed 90 survivors [('width', 29, 'survives'), ('alu', 20, 'survives'), ('drop', 27, 'survives'), ('width', 38, 'survives'), ('width', 11, 'survives'), ('drop', 22, 'survives'), ('register', 20, 'survives'), ('drop', 29, 'survives'), ('width', 15, 'survives'), ('width', 25, 'survives'), ('width', 18, 'survives'), ('drop', 30, 'survives'), ('literal', 25, 'survives'), ('drop', 24, 'survives'), ('width', 41, 'survives'), ('width', 22, 'survives')] hang-kills 5
+0x416e90 mutants 110 killed 103 survivors [('drop', 35, 'survives'), ('literal', 45, 'survives'), ('width', 35, 'survives'), ('drop', 15, 'survives'), ('width', 26, 'survives'), ('width', 30, 'survives'), ('literal', 26, 'survives')] hang-kills 6
+0x41a216 mutants 189 killed 164 survivors [('register', 55, 'survives'), ('alu', 65, 'survives'), ('register', 77, 'survives'), ('width', 58, 'survives'), ('width', 14, 'survives'), ('register', 65, 'survives'), ('alu', 77, 'survives'), ('width', 50, 'survives'), ('register', 71, 'survives'), ('drop', 57, 'survives'), ('width', 65, 'survives'), ('alu', 55, 'survives'), ('width', 34, 'survives'), ('width', 77, 'survives'), ('width', 79, 'survives'), ('literal', 24, 'survives'), ('width', 55, 'survives'), ('width', 41, 'survives'), ('literal', 14, 'survives'), ('width', 38, 'survives'), ('literal', 77, 'survives'), ('drop', 77, 'survives'), ('literal', 84, 'survives'), ('drop', 22, 'survives'), ('drop', 60, 'survives')] hang-kills 6
+0x41b925 mutants 73 killed 67 survivors [('register', 6, 'survives'), ('drop', 6, 'survives'), ('alu', 6, 'survives'), ('literal', 11, 'survives'), ('literal', 6, 'survives'), ('literal', 6, 'survives')] hang-kills 14
+0x41be1a mutants 107 killed 105 survivors [('drop', 13, 'survives'), ('drop', 38, 'survives')]
+0x41bebc mutants 89 killed 88 survivors [('drop', 16, 'survives')]
+0x41c29a mutants 202 killed 190 survivors [('register', 11, 'survives'), ('alu', 67, 'survives'), ('register', 21, 'survives'), ('width', 40, 'survives'), ('width', 36, 'survives'), ('register', 67, 'survives'), ('width', 50, 'survives'), ('width', 57, 'survives'), ('width', 53, 'survives'), ('width', 46, 'survives'), ('literal', 89, 'survives'), ('literal', 36, 'survives')] hang-kills 12

@@ -54,6 +54,8 @@ def magic_of(row):
 
 HI_SEEDS = 7000        # seeds from 7000 to TGT_SEEDS - 1 use style 5 only
 TGT_SEEDS = 20000      # seeds from here on use style 6 only (FL-42)
+LONG_SEEDS = 60000     # seeds from here on fill 15 of 16 pages with bytes that are all nonzero (FL-44): a string scan runs on for tens of thousands of bytes, so a length test against 40000 goes the long way
+STUB_SEEDS = 40000     # seeds from here on also give the callees' return values and outputs the boundary-value styles 5 and 6 (FL-44): a value that flows from a callee can have a zero low half
 
 
 def style_of(seed):
@@ -117,6 +119,8 @@ def mixture(rng, style, magic):
 def page_fill(seed, magic, page):
     rng = random.Random(seed * 1000003 + page)
     style = style_of(seed)
+    if seed >= LONG_SEEDS and rng.randrange(16):
+        return bytes(1 + rng.randrange(255) for _ in range(PAGE))
     words = [mixture(rng, style, magic) for _ in range(PAGE // 4)]
     return struct.pack('<%dI' % (PAGE // 4), *words)
 
@@ -143,9 +147,11 @@ def initial_state(row, seed):
     return regs, args, patches
 
 
-def stub_effect(rng, magic, ecx, args):
+def stub_effect(rng, magic, ecx, args, seed=0):
     """What a callee does in this world: (eax, ecx, edx, [(address, bytes)]). The draws are in call order, so both sides agree."""
     style = rng.randrange(5)
+    if seed >= STUB_SEEDS:
+        style = 5 + style % 2
     eax = mixture(rng, style, magic)
     ecx_out = mixture(rng, style, magic)         # a callee clobbers ecx and edx (the caller-saved registers); ebx, esi, edi and ebp are kept
     edx = mixture(rng, style, magic)
@@ -178,7 +184,7 @@ class Trace:
 # ---- the original, under Unicorn ----------------------------------------------------------------------------------------------------
 
 
-def run_original(row, seed, overrides=(), observe=False):
+def run_original(row, seed, overrides=(), observe=False, setup=None):
     import unicorn
     from unicorn import x86_const as X
     pe = od.load_image()
@@ -274,7 +280,7 @@ def run_original(row, seed, overrides=(), observe=False):
         ecx = uc.reg_read(X.UC_X86_REG_ECX)
         held = tuple(uc.reg_read(getattr(X, 'UC_X86_REG_' + n)) for n in ('EAX', 'EDX', 'EBX', 'ESI', 'EDI', 'EBP'))
         words = struct.unpack('<%dI' % LOGGED, uc.mem_read(esp + 4, 4 * LOGGED))
-        eax, ecx_out, edx, writes = stub_effect(stub_rng, magic, ecx, words)
+        eax, ecx_out, edx, writes = stub_effect(stub_rng, magic, ecx, words, seed)
         for at, data in writes:
             ensure(at)
             ensure(at + len(data) - 1)
@@ -301,6 +307,8 @@ def run_original(row, seed, overrides=(), observe=False):
             ensure(address)
             ensure(address + size_ - 1)
             uc.mem_write(address, (value & ((1 << (8 * size_)) - 1)).to_bytes(size_, 'little'))
+    if setup:
+        setup(uc)       # FL-44: the range test hooks the emulator here
     try:
         uc.emu_start(va, STOP, count=INSTRUCTION_LIMIT)
     except unicorn.UcError as ex:
@@ -409,7 +417,7 @@ def run_native(lib, row, seed, overrides=()):
         if callee == 0xffffffff:
             trace.fault = 'divide error'
             return
-        eax, ecx_out, edx, writes = stub_effect(stub_rng, magic, ecx, words)
+        eax, ecx_out, edx, writes = stub_effect(stub_rng, magic, ecx, words, seed)
         for at, data in writes:
             mem.write_bytes(at, data)
         held = tuple(getattr(rr.contents, n) for n in ('eax', 'edx', 'ebx', 'esi', 'edi', 'ebp'))

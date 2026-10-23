@@ -122,7 +122,7 @@ def children(row, o, overrides, untaken, rng):
 def search(args):
     import ctypes
     import random
-    row, libpath, max_seeds, guided = args
+    row, libpath, max_seeds, guided, more = args
     lib = ctypes.CDLL(libpath)
     ex, ed = set(), set()
     kept = []                     # (seed, overrides)
@@ -156,7 +156,7 @@ def search(args):
         return a == b and c == d
 
     try:
-        for seed in range(max_seeds):
+        for seed in list(range(max_seeds)) + [b + k for b in more for k in range(max_seeds)]:      # FL-44: more = starts of extra seed ranges (e.g. 60000: pages of nonzero bytes)
             o = run(seed, ())
             if o is not None and consider(seed, (), o) and full():
                 break
@@ -274,6 +274,7 @@ def main():
     ap.add_argument('--max-seeds', type=int, default=300)
     ap.add_argument('--guided', type=int, default=1500)
     ap.add_argument('--jobs', type=int, default=4)
+    ap.add_argument('--more-from', default='', help='comma-separated starts of extra seed ranges tried after seeds 0..max-seeds-1 (FL-44: 60000 = long strings)')
     ap.add_argument('--out-dir', default=str(PROJECT))
     a = ap.parse_args()
     spans = L.ledger_spans()
@@ -300,7 +301,7 @@ def main():
     t0 = time.time()
     results = {}
     with mp.Pool(a.jobs) as pool:
-        for k, (va, res) in enumerate(pool.imap_unordered(search, [(rows[v], libpath, a.max_seeds, a.guided) for v in vas])):
+        for k, (va, res) in enumerate(pool.imap_unordered(search, [(rows[v], libpath, a.max_seeds, a.guided, [int(x) for x in a.more_from.split(',') if x]) for v in vas])):
             results[va] = res
             print('%d/%d 0x%x %s %s' % (k + 1, len(vas), va, res['status'], {x: res[x] for x in ('instructions', 'directions', 'tried') if x in res}), flush=True)
     complete = [v for v in vas if results[v]['status'] == 'complete']

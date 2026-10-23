@@ -18,9 +18,11 @@ Prints one line per row (mutants, killed, survivors) and a total; exits 1 when a
 """
 import argparse
 import json
+import mmap
 import multiprocessing as mp
 import os
 import signal
+import struct
 from pathlib import Path
 import random
 import re
@@ -152,7 +154,7 @@ def check_row_inner(args):
     with tempfile.TemporaryDirectory() as tmp:
         src = Path(tmp) / 'm.c'
         for _ in range(4):
-            src.write_text('#include "original_methods_fl40.h"\n' + helper + '\n'.join(m[2] for m in muts))
+            src.write_text('#include "original_methods_fl40.h"\n' + helper + text + '\n'.join(m[2] for m in muts))
             cmd = ['cc', '-std=c11', '-O0', '-shared', '-fPIC', '-w', '-I%s' % (PROJECT / 'src'), str(src), '-o', str(Path(tmp) / 'm.so')]
             built = subprocess.run(cmd, capture_output=True, text=True)
             if built.returncode == 0:
@@ -172,22 +174,27 @@ def check_row_inner(args):
         wide = None
         killed, survivors, killers = 0, [], set()
         fresh_by_stage = []
-        def first_mismatch(k, items):
-            """Index of the first scenario on which mutant k differs from the recorded original, 'timeout' when it hangs, None when it agrees everywhere.
-            Runs in a forked child with an alarm: a mutant that loops forever is dead."""
+        def scan(k, items, every=False):
+            """Run mutant k (None: the unmutated translation) on the scenarios against the recorded original, in a forked child.
+            -> (indices of the scenarios on which it differs; only the first unless `every`, None when it agrees everywhere, True when a scenario made it hang or crash).
+            Every scenario has its own alarm (a mutant that loops forever is dead on that seed) and the child leaves the index it is on in shared memory, so a timeout kill names its seed."""
+            cur = mmap.mmap(-1, 8)
             r_fd, w_fd = os.pipe()
             pid = os.fork()
             if pid == 0:
                 try:
-                    signal.alarm(20)
                     os.close(r_fd)
-                    found = -1
+                    found = []
                     for i, (sd, ov, ref) in enumerate(items):
+                        cur[:8] = struct.pack('<q', i)
+                        signal.alarm(10)
                         t = W.run_native(Shim(lib, va, k), row, sd, ov)
+                        signal.alarm(0)
                         if (t.digest() if not t.fault else 'fault') != ref:
-                            found = i
-                            break
-                    os.write(w_fd, str(found).encode())
+                            found.append(i)
+                            if not every:
+                                break
+                    os.write(w_fd, json.dumps(found).encode())
                 except MemoryError:             # the mutant ran away with memory: the original does not
                     pass
                 except Exception as exc:        # a harness bug is not a kill
@@ -195,16 +202,39 @@ def check_row_inner(args):
                 finally:
                     os._exit(0)
             os.close(w_fd)
-            data = os.read(r_fd, 32)
+            chunks = []
+            while True:
+                c = os.read(r_fd, 65536)
+                if not c:
+                    break
+                chunks.append(c)
             os.close(r_fd)
-            _, status = os.waitpid(pid, 0)
+            os.waitpid(pid, 0)
+            data = b''.join(chunks)
             if data.startswith(b'E'):
-                raise RuntimeError('mutation harness error on %s mutant %d: %s' % (key, k, data[1:].decode()))
+                raise RuntimeError('mutation harness error on %s mutant %s: %s' % (key, k, data[1:].decode()))
             if not data:
-                return 'timeout'          # the alarm, or the mutant crashed the process: the original does neither
-            i = int(data)
-            return None if i < 0 else i
+                return [struct.unpack('<q', cur[:8])[0]], True      # the alarm, or the mutant crashed the process: the original does neither
+            return json.loads(data), False
 
+        def guard(items, what):
+            """FL-44: a kill counts only on a seed where the unmutated translation equals the original. Returns the scenarios where it does."""
+            bad, _ = scan(None, items, every=True) if items else ([], False)
+            dropped[0] += len(bad)
+            if bad and what == 'corpus':
+                raise RuntimeError('the unmutated translation of %s differs from the original on corpus seed %s' % (key, items[bad[0]][0]))
+            return [it for i, it in enumerate(items) if i not in set(bad)]
+
+        def first_mismatch(k, items):
+            """Index of the first scenario on which mutant k differs from the recorded original (a hang counts), None when it agrees everywhere."""
+            found, hung = scan(k, items)
+            if hung:
+                hangs.append(k)
+            return found[0] if found else None
+
+        dropped = [0]
+        hangs = []          # mutants killed by a hang or crash (a scenario over its 10 s alarm); logged, and the port itself ran the same scenarios inside the same alarm
+        reference = guard(reference, 'corpus')
         for k, (kind, n, _) in enumerate(muts):
             hit = first_mismatch(k, reference)
             dead = hit is not None
@@ -215,9 +245,10 @@ def check_row_inner(args):
                         t = safe_original(row, sd)
                         if t is not None and not t.fault:
                             extra.append((sd, (), t.digest()))
+                    extra = guard(extra, 'extra')
                 hit = first_mismatch(k, extra)
                 if hit is not None:
-                    if harden and hit != 'timeout':
+                    if harden:
                         killers.add(extra[hit][0])
                     survivors.append((kind, n, 'killed only by an extra seed'))
                     killed += 1
@@ -229,11 +260,10 @@ def check_row_inner(args):
                     hit = None
                     for stage in range(len(rescue['stages'])):        # new seeds in growing batches: most killable mutants die in the first
                         while len(fresh_by_stage) <= stage:
-                            fresh_by_stage.append([(sd, (), t.digest()) for sd in rescue['stages'][len(fresh_by_stage)] for t in [safe_original(row, sd)] if t is not None and not t.fault])
+                            fresh_by_stage.append(guard([(sd, (), t.digest()) for sd in rescue['stages'][len(fresh_by_stage)] for t in [safe_original(row, sd)] if t is not None and not t.fault], 'rescue'))
                         hit = first_mismatch(k, fresh_by_stage[stage])
                         if hit is not None:
-                            if hit != 'timeout':
-                                killers.add(fresh_by_stage[stage][hit][0])
+                            killers.add(fresh_by_stage[stage][hit][0])
                             break
                     if hit is not None:
                         killed += 1
@@ -243,16 +273,15 @@ def check_row_inner(args):
                     continue
                 if harden:
                     if wide is None:
-                        wide = [(sd, (), t.digest()) for sd in list(range(6000, 6000 + WIDE)) + list(range(W.HI_SEEDS, W.HI_SEEDS + WIDE)) + list(range(W.TGT_SEEDS, W.TGT_SEEDS + WIDE)) for t in [safe_original(row, sd)] if t is not None and not t.fault]
+                        wide = guard([(sd, (), t.digest()) for sd in list(range(6000, 6000 + WIDE)) + list(range(W.HI_SEEDS, W.HI_SEEDS + WIDE)) + list(range(W.TGT_SEEDS, W.TGT_SEEDS + WIDE)) for t in [safe_original(row, sd)] if t is not None and not t.fault], 'wide')
                     hit = first_mismatch(k, wide)
                     if hit is not None:
-                        if hit != 'timeout':
-                            killers.add(wide[hit][0])
+                        killers.add(wide[hit][0])
                         killed += 1
                         survivors.append((kind, n, 'killed by hardening seed'))
                         continue
                 survivors.append((kind, n, 'survives'))
-        return key, {'mutants': len(muts), 'killed': killed, 'survivors': survivors, 'killers': sorted(killers)}
+        return key, {'mutants': len(muts), 'killed': killed, 'survivors': survivors, 'killers': sorted(killers), 'guard_dropped': dropped[0], 'hang_kills': len(set(hangs))}
 
 
 class Shim:
@@ -272,10 +301,14 @@ def main():
     ap.add_argument('--jobs', type=int, default=4)
     ap.add_argument('--rescue', help='FL-42: a survivors file; retry only the mutants it lists as surviving, against --seeds new seeds (the extra and hardening ones are skipped)')
     ap.add_argument('--seeds', type=int, default=1500)
+    ap.add_argument('--base', type=int, default=W.TGT_SEEDS, help='first rescue seed (default 20000; 40000 adds boundary-value styles to the callees\' results)')
     ap.add_argument('--harden', action='store_true', help='add to the corpus a seed that kills each survivor, where one of 300 more seeds does')
+    ap.add_argument('--corpus', help='read and write this copy of the corpus instead of tests/fl40_corpus.json (two runs at once must not share one file; merge the seeds afterwards)')
     ap.add_argument('--window', help='lo:hi, only the picked mutants lo..hi-1 of each row')
     a = ap.parse_args()
-    global WINDOW
+    global WINDOW, CORPUS
+    if a.corpus:
+        CORPUS = Path(a.corpus)
     WINDOW = tuple(int(x) for x in a.window.split(':')) if a.window else None
     corpus = json.loads(CORPUS.read_text())
     funcs = split_functions(SOURCE.read_text())
@@ -288,9 +321,9 @@ def main():
             if only:
                 rescue[row] = {'only': only}
         keys = [k for k in keys if k in rescue]
-        stages, lo = [], W.TGT_SEEDS
+        stages, lo = [], a.base
         for size in (60, 240, a.seeds):
-            stages.append(list(range(lo, lo + size)) + list(range(7300 + lo - W.TGT_SEEDS, 7300 + lo - W.TGT_SEEDS + size // 6)))
+            stages.append(list(range(lo, lo + size)) + list(range(7300 + lo - a.base, 7300 + lo - a.base + size // 6)))
             lo += size
         for v in rescue.values():
             v['stages'] = stages
@@ -310,7 +343,7 @@ def main():
             total += res['mutants']
             killed += res['killed']
             hard = [s for s in res['survivors'] if s[2] == 'survives']
-            print('%s mutants %d killed %d survivors %s' % (key, res['mutants'], res['killed'], res['survivors']), flush=True)
+            print('%s mutants %d killed %d survivors %s%s' % (key, res['mutants'], res['killed'], res['survivors'], ((' guard-dropped-scenarios %d' % res['guard_dropped']) if res['guard_dropped'] else '') + ((' hang-kills %d' % res['hang_kills']) if res['hang_kills'] else '')), flush=True)
             if hard:
                 bad.append(key)
     if a.harden or a.rescue:

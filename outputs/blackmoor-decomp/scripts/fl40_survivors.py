@@ -233,9 +233,87 @@ def esp_adjust_ok(lines, n):
     return rets > 0 and sum(1 for t in body if t.startswith('esp = ebp;')) >= rets
 
 
-def classify(kind, lines, n, equivalent):
+def rep_count_ok(lines, n):
+    """(FL-44) `shr ecx, 2` (or `sar`) whose result is the count of the very next `rep movsd` / `rep stosd`: arithmetic and logical shift differ only when bit 31 of ecx is set,
+    and then the count is at least 2^29 dwords = 2 GiB. GAME.EXE is a 32-bit image without IMAGE_FILE_LARGE_ADDRESS_AWARE (characteristics 0x10f), so its user space is below
+    2 GiB: a copy or fill of 2 GiB cannot finish (it hits unmapped memory), and in the emulated world it runs into the instruction limit. Both the original and the
+    mutant fault on every such seed, so no completing execution tells them apart."""
+    t = stmt(lines[n])
+    m = re.match(r'^\{ uint32_t a_ = ecx, n_ = 0x2u, r_; if \(n_ != 0u\) \{ FL40_(SHR|SAR)\(r_, a_, n_, 32\); ecx = r_; \} \}$', t)
+    if not m:
+        return False
+    for j in range(n + 1, len(lines)):
+        raw = lines[j].strip()
+        if not raw:
+            continue
+        if raw.startswith('/*'):
+            if re.match(r'/\* 0x[0-9a-f]+: rep (movsd|stosd) ', raw):
+                return True
+            return False
+        return False
+    return False
+
+
+_RANGES = {}
+
+
+def frame_ranges(row):
+    """fl44_ranges.ranges() of a row (cached); None when GAME.EXE or capstone is missing or the function is refused"""
+    if row not in _RANGES:
+        import fl44_ranges as R
+        corpus = json.loads((PROJECT / 'tests/fl40_corpus.json').read_text())
+        _RANGES[row] = R.ranges(int(row, 16), corpus[row]['body']) if R.available() and row in corpus else None
+    return _RANGES[row]
+
+
+FIRST_RD = re.compile(r'\bRD(8|16|32)\(\(uint32_t\)\(ebp \+ (0x[0-9a-f]+)u\)\)')
+INSN = re.compile(r'/\* (0x[0-9a-f]+): ')
+
+
+def range_ok(row, lines, n):
+    """(FL-44) a narrower read of a frame slot that always holds a value the narrower access reads whole. The first RD of the statement must be the slot read, the slot a dword
+    slot that scripts/fl44_ranges.py tracks at that instruction, and its interval inside what the narrower width keeps: below 2^16 for RD32 -> RD16, below 2^8 for RD16 -> RD8
+    (below 2^7 when the read is sign-extended)."""
+    text = lines[n]
+    m = INSN.search(text)
+    first = re.search(r'\bRD(8|16|32)\(', text)
+    if not m or not first:
+        return False
+    slot = FIRST_RD.match(text, first.start())
+    if not slot:
+        return False
+    width = int(slot.group(1))
+    if width == 8:
+        return False
+    disp = int(slot.group(2), 16)
+    disp = disp - (1 << 32) if disp >= 1 << 31 else disp
+    r = frame_ranges(row)
+    if r is None or int(m.group(1), 16) not in r or disp not in r[int(m.group(1), 16)]:
+        return False
+    hi = r[int(m.group(1), 16)][disp][1]
+    bits = 16 if width == 32 else 8
+    signed = 'int16_t' in text or 'int8_t' in text
+    return hi < (1 << (bits - 1 if signed else bits))
+
+
+MASKED_BYTE = re.compile(r'^\s*\w+ = \(\w+ & 0xffffff00u\) \| \(\(RD8\(.*\)\) & 0xffu\);')
+
+
+def masked_read_ok(lines, n):
+    """(FL-44) `(RD8(x)) & 0xffu` read as RD16: the low byte of the wider read is the byte, the mask drops the rest; only the wider read itself differs, and no trace records reads"""
+    t = stmt(lines[n])
+    return bool(MASKED_BYTE.match(t)) and t.count('RD') == 1
+
+
+def classify(kind, lines, n, equivalent, row=None):
     if equivalent:
         return 'identical code'
+    if kind == 'alu' and rep_count_ok(lines, n):
+        return 'rep count'
+    if kind == 'width' and masked_read_ok(lines, n):
+        return 'masked read'
+    if kind == 'width' and row and range_ok(row, lines, n):
+        return 'range'
     if kind == 'drop' and (same_value(lines, n) or available_copy_ok(lines, n)):
         return 'same value'
     if kind == 'literal' and cleanup_ok(lines, n):
@@ -263,7 +341,7 @@ def main():
         items = []
         for kind, n, why in eval(m.group(2)[:m.group(2).rindex(']') + 1]):
             if why == 'survives':
-                items.append((kind, classify(kind, text, n, equiv.get(m.group(1), {}).get((kind, n), False)), text[n].strip()[:160], n))
+                items.append((kind, classify(kind, text, n, equiv.get(m.group(1), {}).get((kind, n), False), m.group(1)), text[n].strip()[:160], n))
         if items:
             out['rows_with_survivors'][m.group(1)] = items
             if any(c is None for _, c, _, _ in items):
