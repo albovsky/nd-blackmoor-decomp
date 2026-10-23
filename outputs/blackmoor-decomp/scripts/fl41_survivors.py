@@ -289,6 +289,86 @@ def relation_ok(orig, mut, ranges, addr):
     return all((r in COND_REL[a.group(1)]) == (r in COND_REL[b.group(1)]) for r in possible)
 
 
+def signed_narrow_ok(orig, change, ranges, addr):
+    """(FL-47) `cmp dword [ebp + k], imm` whose slot holds a sign-extended n-bit value (32-bit interval within [-2^(n-1), 2^(n-1) - 1]) and 0 <= imm < 2^(n-1), read with only n bits,
+    before an unsigned or equality jump that is the only reader of the flags: a value of 0 or more compares the same either way; a negative one is above every such imm unsigned (the
+    32-bit value is huge, the zero-extended n-bit one is at least 2^(n-1))"""
+    wa, wb, arg, call, before, after = change
+    m = re.match(r'^\(uint32_t\)\(ebp \+ (0x[0-9a-f]+)u\)$', arg.strip())
+    imm = re.match(r'^\{ uint32_t a_ = RD32\([^;]*\), b_ = (0x[0-9a-f]+)u, r_; FL41_SUB\(a_, b_, 0u, r_, 32\); \}$', orig)
+    if ranges is None or not m or not imm or wb not in (8, 16) or addr is None or addr not in ranges.at:
+        return False
+    k = int(m.group(1), 16)
+    k = k - (1 << 32) if k >= 1 << 31 else k
+    c = int(imm.group(1), 16)
+    st = ranges.IN.get(addr)
+    if st is None:
+        return True
+    v = st.slots.get(k, RG.TOP)
+    return v[0] >= -(1 << (wb - 1)) and v[1] <= (1 << (wb - 1)) - 1 and 0 <= c < (1 << (wb - 1))
+
+
+def cond_eval(cond, **flags):
+    expr = cond.replace('||', ' or ').replace('&&', ' and ')
+    expr = re.sub(r'!(?!=)', ' not ', expr)
+    return bool(eval(expr, {}, flags))
+
+
+def logic_jump_ok(orig, mut, ranges, addr):
+    """(FL-47) a conditional jump replaced by another one directly after a `test`/`and`/`or`/`xor` (which clear CF and OF), the jump reached only from that instruction: the two conditions
+    agree for every value of ZF and SF once CF = OF = 0 (`jbe` and `je` after `test`, `jae` and always-true, ...)"""
+    a = re.match(r'^if \((.*)\) goto (L_[0-9a-f]+);$', orig)
+    b = re.match(r'^if \((.*)\) goto (L_[0-9a-f]+);$', mut)
+    if not a or not b or a.group(2) != b.group(2) or ranges is None or addr is None or addr not in ranges.at:
+        return False
+    order = ranges.f.order
+    k = order.index(addr)
+    if k == 0 or not ranges.at[addr].mnemonic.startswith('j'):
+        return False
+    prev = ranges.at[order[k - 1]]
+    if prev.mnemonic not in ('test', 'and', 'or', 'xor'):
+        return False
+    if any(addr in succ and src != prev.address for src, succ in ranges.f.succ.items()):
+        return False                                       # reached from somewhere else: the flags come from another instruction
+    sfs = (0,) if strlen_nonneg(ranges, k - 1) else (0, 1)
+    for zf in (0, 1):
+        for sf in sfs:
+            fl = dict(cf=0, of=0, zf=zf, sf=sf)
+            if cond_eval(a.group(1), **fl) != cond_eval(b.group(1), **fl):
+                return False
+    return True
+
+
+def strlen_nonneg(ranges, t):
+    """(FL-47) the instruction at order index t is `test ecx, ecx` of the string-length idiom `or ecx, -1 / xor eax, eax / repne scasb / not ecx / add ecx, -1` (or `dec ecx`) on straight-line code:
+    the scan covers k >= 1 bytes, k <= 2^31 inside the 2 GiB user address space (a longer one faults, and a faulting run is not compared), ecx = k - 1 lies in [0, 2^31 - 1], so SF is 0"""
+    order, at = ranges.f.order, ranges.at
+    if t < 5 or at[order[t]].mnemonic != 'test' or at[order[t]].op_str != 'ecx, ecx':
+        return False
+    seq = [at[order[t - i]] for i in range(1, 5)]            # add/dec, not, repne scasb, then the instruction before it (xor eax,eax or the init of ecx)
+    if not (seq[0].mnemonic == 'dec' and seq[0].op_str == 'ecx' or seq[0].mnemonic == 'add' and seq[0].op_str in ('ecx, -1', 'ecx, 0xffffffff')):
+        return False
+    if seq[1].mnemonic != 'not' or seq[1].op_str != 'ecx' or seq[2].mnemonic != 'repne scasb':
+        return False
+    found = None
+    for i in range(4, 7):
+        if t - i < 0:
+            return False
+        ins = at[order[t - i]]
+        if ins.mnemonic == 'or' and ins.op_str in ('ecx, 0xffffffff', 'ecx, -1') or ins.mnemonic == 'mov' and ins.op_str in ('ecx, -1', 'ecx, 0xffffffff'):
+            found = t - i
+            break
+        if ins.op_str.split(', ')[0] in ('ecx', 'cx', 'cl', 'ch') or ins.mnemonic in ('call', 'jmp') or ins.mnemonic.startswith('j') or ins.mnemonic.startswith(('rep', 'loop', 'pop', 'xchg')):
+            return False
+    if found is None:
+        return False
+    for k_ in range(found, t + 1):                           # every instruction from the initialisation to the test is reached only from the one before it
+        a_ = order[k_]
+        if any(a_ in s and src != order[k_ - 1] for src, s in ranges.f.succ.items() if k_ > found):
+            return False
+    return True
+
+
 def next_jump(ranges, addr):
     """(condition suffix, address) of the conditional jump that directly follows the instruction at `addr`, with the flags dead after it; else None"""
     if ranges is None or addr is None or addr not in ranges.at:
@@ -326,6 +406,8 @@ def flags_ok(kind, orig, mut, ranges, addr):
         return swapped == mut and cc in ('e', 'z', 'ne', 'nz')
     if kind == 'width':
         change = read_change(orig, mut)
+        if change and change[1] < change[0] == 32 and cc in ('a', 'ae', 'b', 'be', 'nbe', 'nb', 'nae', 'na', 'e', 'z', 'ne', 'nz'):
+            return signed_narrow_ok(orig, change, ranges, addr)
         bits = re.search(r'FL41_(?:SUB|ADD)\(a_, b_, \d+u, r_, (\d+)\)', orig)
         return bool(change and bits and change[1] > change[0] and int(bits.group(1)) == change[0] and cc in ('e', 'z', 'ne', 'nz', 's', 'ns'))
     return False
@@ -340,6 +422,8 @@ def classify(kind, lines, n, equivalent, proofs=None, mutline=None, ranges=None)
             return 'masked read'
         if change and width_range_ok(change, ranges, instruction_address(lines, n)):
             return 'range'
+    if kind == 'jump' and mutline is not None and logic_jump_ok(stmt_full(lines[n]), stmt_full(mutline), ranges, instruction_address(lines, n)):
+        return 'range'
     if kind == 'jump' and mutline is not None and (jump_range_ok(stmt_full(lines[n]), stmt_full(mutline), ranges, instruction_address(lines, n))
                                                    or relation_ok(stmt_full(lines[n]), stmt_full(mutline), ranges, instruction_address(lines, n))):
         return 'range'
@@ -386,7 +470,7 @@ def main():
         proofs = {}
         try:
             wanted = [a for a in (instruction_address(text, n) for _, n, *_ in eval(m.group(2)[:m.group(2).rindex(']') + 1])) if a]
-            proofs = E.prove(int(m.group(1), 16), corpus[m.group(1)]['body'], wanted, ranges.feasible if ranges else None, RG.TableFunction if ranges else None)
+            proofs = E.prove(int(m.group(1), 16), corpus[m.group(1)]['body'], wanted, ranges.feasible if ranges else None, RG.TableFunction if ranges else None, exposed_ok=True)
         except E.NoProof:
             pass
         items = []

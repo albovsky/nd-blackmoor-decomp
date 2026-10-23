@@ -8,13 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         fn_004be1dd
+# name:         m4be1dd_lifted
+# naming:       native port src/original_methods_fl41.c:m4be1dd_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port
+# name-note:    Machine-translated (scripts/lift_fl41.py), 17 seeds; oracle: 69/69 instructions, 18/18 jump directions; every mutant killed, identical -O2 code, or explained.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       4 ebp-relative slot(s): local_4, local_8, local_c, local_10
 # fields:       [eax + n] field_4c, field_14c, field_150; [ecx + n] field_4c, field_50, field_14c, field_150; [edx + n] field_4c, field_150
 # callees:      calls FUN_004be2c6
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 69 instruction(s), 9 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl41.c:m4be1dd_lifted (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 69 instruction(s), 9 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

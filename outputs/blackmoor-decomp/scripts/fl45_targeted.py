@@ -87,6 +87,41 @@ def make_probe(md, ins, store):
     return probe
 
 
+def make_addr_probe(md, ins, store):
+    """FL-47: a callback that records (effective address, size, [(register value, scale) of the base and the index]) of the memory operand of `ins` just before it runs"""
+    def probe(uc, ensure, wc):
+        for op in ins.operands:
+            if op.type == CX.X86_OP_MEM and ins.mnemonic != 'lea':
+                m = op.mem
+                try:
+                    parts = []
+                    if m.base:
+                        parts.append((uc.reg_read(FULL[md.reg_name(m.base)]), 1))
+                    if m.index:
+                        parts.append((uc.reg_read(FULL[md.reg_name(m.index)]), m.scale))
+                    a = (m.disp + sum(v * s for v, s in parts)) & 0xffffffff
+                except KeyError:
+                    return
+                store.append((a, op.size, parts, wc))
+                return
+    return probe
+
+
+def store_instructions(row):
+    """the instructions of the row that write memory through a register address"""
+    pe = W.od.load_image()
+    md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
+    md.detail = True
+    off = row['va'] - pe.image_base
+    out = []
+    for ins in md.disasm(pe.image[off:off + row['body']], row['va']):
+        for op in ins.operands:
+            if op.type == CX.X86_OP_MEM and (op.access & 2) and ins.mnemonic != 'lea' and (op.mem.base or op.mem.index) and md.reg_name(op.mem.base or op.mem.index) not in ('ebp', 'esp'):
+                out.append(ins)
+                break
+    return md, out
+
+
 def variants(v, size, imms, others):
     bits = 8 * size
     mask = (1 << bits) - 1
@@ -96,6 +131,9 @@ def variants(v, size, imms, others):
             out.add((c + d) & mask)
     for u in others:
         for x in (u, u + 1, u - 1, -u, -u + 1, -u - 1):
+            out.add(x & mask)
+    for c in list(imms) + list(others):                    # FL-47: an operand value with a bit above a narrower width set (what a narrowed read of the cell would not see)
+        for x in (c | 0x100, c | 0x10000, c | 0x1000000, c ^ 0x80000000, c | 0x80000000):
             out.add(x & mask)
     for x in (v + 1, v - 1, 0, 1, -1, v ^ 1, v ^ 0x80, v | 0x80, v & 0xff, v & 0xffff):
         out.add(x & mask)
@@ -167,6 +205,7 @@ def work(args):
             if not targets:
                 continue
             md, ins = instruction_at(row, address)
+            s_md, stores = store_instructions(row)
             imms = [op.imm & 0xffffffff for op in ins.operands if op.type == CX.X86_OP_IMM]
             reaching = []
             for sd, ov in base:
@@ -174,10 +213,10 @@ def work(args):
                 o = W.run_original(row, sd, ov, observe=True, probes={address: make_probe(md, ins, store)})
                 if o.fault or not store:
                     continue
-                reaching.append((sd, ov, o, store[0]))
+                reaching.append((sd, ov, o, store[0], 0))
                 if len(reaching) >= seed_limit:
                     break
-            for sd, ov, o, (cells, values, wc) in reaching:
+            for sd, ov, o, (cells, values, wc), depth in reaching:
                 if not (alive & targets):
                     break
                 first_write = {}
@@ -203,8 +242,30 @@ def work(args):
                 for (a, n), v in inputs.items():                          # the cells whose value reached the instruction by a copy chain
                     if v in values and len(chosen) < 12:
                         chosen.setdefault((a, n), v)
+                if ins.mnemonic.startswith('j') and not chosen:                  # FL-47: a conditional jump has no operand cells: any input cell may decide a later compare, try them one at a time
+                    chosen = dict(list(inputs.items())[:48])
+                extra = {}
+                if cells:                                                 # FL-47 alias scenarios: make an earlier store through a register hit the cell this instruction reads
+                    a_r = cells[0][0]
+                    for s_ins in stores:
+                        s_store = []
+                        W.run_original(row, sd, ov, probes={s_ins.address: make_addr_probe(s_md, s_ins, s_store)})
+                        for ea, size_s, parts, wc_s in s_store[:2]:
+                            if wc_s >= wc:
+                                continue
+                            delta = (a_r - ea) & 0xffffffff
+                            for (a, n), v in inputs.items():
+                                if n != 4:
+                                    continue
+                                for pv, scale in parts:
+                                    if v == pv and len(extra) < 40:
+                                        if scale == 1 or delta % scale == 0:
+                                            extra.setdefault((a, n), (v, set()))[1].add((v + delta // scale) & 0xffffffff)
+                                        extra.setdefault((a, n), (v, set()))[1].add((v - ((-delta) & 0xffffffff) // scale) & 0xffffffff if scale == 1 else (v + delta // scale) & 0xffffffff)
+                for (a, n), (v, news) in extra.items():
+                    chosen.setdefault((a, n), v)
                 for (a, n), v in sorted(chosen.items()):
-                    for new in variants(v, n, imms, [x for x in values if x != v]):
+                    for new in (list(variants(v, n, imms, [x for x in values if x != v])) if depth == 0 else []) + sorted(extra.get((a, n), (v, ()))[1]):
                         if not (alive & targets):
                             break
                         merged = {(x, y): z for x, y, z in ov}
@@ -219,6 +280,11 @@ def work(args):
                             continue
                         ref = o2.digest()
                         killed = []
+                        if depth == 0 and (a, n) in extra and new in extra[(a, n)][1] and len(reaching) < 40:      # an alias scenario that kills nothing yet is a base for a second alias cell
+                            store2 = []
+                            o3 = W.run_original(row, sd, scen, observe=True, probes={address: make_probe(md, ins, store2)})
+                            if not o3.fault and store2:
+                                reaching.append((sd, list(scen), o3, store2[0], 1))
                         for k in sorted(alive & targets):
                             r_fd, w_fd = os.pipe()
                             pid = os.fork()

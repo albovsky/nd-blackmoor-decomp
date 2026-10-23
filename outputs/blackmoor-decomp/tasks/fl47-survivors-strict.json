@@ -1,0 +1,114 @@
+{
+ "rows_with_survivors": {
+  "0x48ac92": [
+   [
+    "drop",
+    null,
+    "WR32((uint32_t)(ebp + 0xfffffffcu), eax);  /* 0x48acc0: mov dword ptr [ebp - 4], eax */",
+    18
+   ],
+   [
+    "drop",
+    null,
+    "{ uint32_t a_ = eax, b_ = 0x1u, r_; FL41_ADD(a_, b_, 0u, r_, 32); eax = r_; }  /* 0x48acbd: add eax, 1 */",
+    17
+   ],
+   [
+    "drop",
+    null,
+    "eax = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x48acba: mov eax, dword ptr [ebp - 4] */",
+    16
+   ]
+  ],
+  "0x4d3da7": [
+   [
+    "drop",
+    null,
+    "ecx -= 1u;",
+    62
+   ],
+   [
+    "drop",
+    null,
+    "{ uint32_t a_ = ecx; ecx = (~a_) & 0xffffffffu; }  /* 0x4d3e76: not ecx */",
+    52
+   ],
+   [
+    "drop",
+    null,
+    "ecx -= 1u;",
+    70
+   ],
+   [
+    "drop",
+    null,
+    "if (zf) break;",
+    50
+   ]
+  ],
+  "0x4de24f": [
+   [
+    "drop",
+    null,
+    "if (zf) break;",
+    18
+   ]
+  ],
+  "0x4c0b8b": [
+   [
+    "literal",
+    null,
+    "{ uint32_t a_ = ecx, b_ = 0xffffffffu, r_; r_ = a_ | b_; FL41_LOGIC(r_, 32); ecx = r_; }  /* 0x4c0bf5: or ecx, 0xffffffff */",
+    24
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = ecx, b_ = 0xffffffffu, r_; r_ = a_ | b_; FL41_LOGIC(r_, 32); ecx = r_; }  /* 0x4c0bf5: or ecx, 0xffffffff */",
+    24
+   ],
+   [
+    "drop",
+    null,
+    "ecx -= 1u;",
+    52
+   ],
+   [
+    "drop",
+    null,
+    "{ uint32_t a_ = ecx, b_ = 0xffffffffu, r_; r_ = a_ | b_; FL41_LOGIC(r_, 32); ecx = r_; }  /* 0x4c0bf5: or ecx, 0xffffffff */",
+    24
+   ],
+   [
+    "drop",
+    null,
+    "edi += 1u;",
+    30
+   ],
+   [
+    "drop",
+    null,
+    "ecx -= 1u;",
+    44
+   ],
+   [
+    "drop",
+    null,
+    "{ uint32_t a_ = ecx; ecx = (~a_) & 0xffffffffu; }  /* 0x4c0bfc: not ecx */",
+    34
+   ],
+   [
+    "drop",
+    null,
+    "if (zf) break;",
+    32
+   ]
+  ]
+ },
+ "unexplained_rows": [
+  "0x48ac92",
+  "0x4c0b8b",
+  "0x4d3da7",
+  "0x4de24f"
+ ]
+}
