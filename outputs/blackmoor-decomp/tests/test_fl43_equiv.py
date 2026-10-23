@@ -52,6 +52,8 @@ class Fl43Equiv(unittest.TestCase):
                 status[m.group(1)] = {(x[0], x[1]): x[2] for x in eval(m.group(2)[:m.group(2).rindex(']') + 1])}
         checked = 0
         for key, st in status.items():
+            if key not in self.funcs:        # a row that left the translated set
+                continue
             lines = self.funcs[key].split('\n')
             statements = [n for n, l in enumerate(lines)
                           if (lambda c: c.strip() and not c.strip().startswith(DROPPABLE_NOT) and 'goto' not in c and 'FL41_CALL' not in c)(re.sub(r'\s*/\*.*', '', l))]

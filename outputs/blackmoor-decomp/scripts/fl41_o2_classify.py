@@ -71,7 +71,7 @@ def main():
     work = []
     for line in open(log):
         m = re.match(r'(0x[0-9a-f]+) mutants \d+ killed \d+ survivors (.*)', line)
-        if not m:
+        if not m or m.group(1) not in funcs:        # a row taken out of the translated set
             continue
         wanted = [(x[0], x[1], x[3] if len(x) > 3 else None) for x in eval(m.group(2)) if x[2] == 'survives']
         if wanted:

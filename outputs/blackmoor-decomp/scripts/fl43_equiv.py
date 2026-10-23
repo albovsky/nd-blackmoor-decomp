@@ -39,6 +39,7 @@ FULL.update(L.SUB8L)
 FULL.update(L.SUB8H)
 PURE = {'mov', 'movsx', 'movzx', 'lea', 'add', 'sub', 'and', 'or', 'xor', 'not', 'neg', 'inc', 'dec', 'shl', 'shr', 'sar', 'imul', 'cdq', 'cwde', 'cmp', 'test',
         'sbb', 'adc'}
+PARTIAL_FLAGS = {'inc', 'dec', 'shl', 'shr', 'sar', 'sal', 'rol', 'ror', 'rcl', 'rcr', 'stc', 'clc', 'cmc', 'cld', 'std'}      # capstone reports eflags written, but some flags (or all, for a zero count) survive
 STRING_OPS = ('movs', 'stos', 'cmps', 'scas', 'lods', 'rep')
 IMAGE_END = 0x400000 + 0x1000000
 
@@ -71,6 +72,8 @@ def info(ins):
         if op.type == MEM_OP and ins.mnemonic != 'lea':
             mem = op
             mem_written = bool(op.access & 2)
+    if ins.mnemonic.startswith('cmov') and ins.operands and ins.operands[0].type == REG_OP:
+        rd.add(FULL[ins.reg_name(ins.operands[0].reg)])          # a conditional move keeps the old value when the condition fails
     if ins.mnemonic in ('xor', 'sub') and len(ins.operands) == 2 and ins.operands[0].type == REG_OP and ins.operands[1].type == REG_OP \
             and ins.operands[0].reg == ins.operands[1].reg:
         rd.discard(FULL[ins.reg_name(ins.operands[0].reg)])
@@ -95,6 +98,8 @@ def mem_class(ins, mem):
     index = ins.reg_name(mem.mem.index) if mem.mem.index else None
     if base == 'ebp' and not index:
         return ('slot', mem.mem.disp, mem.size)
+    if base == 'ebp' or index == 'ebp':
+        return ('esp',)                      # an indexed frame address (a local array): it can reach any slot, so a store through it ends every fact
     if not base and not index and 0x400000 <= (mem.mem.disp & 0xffffffff) < IMAGE_END:
         return ('abs', mem.mem.disp & 0xffffffff, mem.size)
     if base == 'esp' or index == 'esp':
@@ -129,6 +134,8 @@ class Function:
                 else:
                     self.exits.add(i.address)
                 self.succ[i.address] = s
+            elif m in ('cmpxchg', 'xlatb', 'xlat', 'xadd', 'cmpxchg8b') or m.startswith('f') and m not in ('fs',) or (m.startswith('set') and any(op.type == MEM_OP for op in i.operands)):
+                raise NoProof('instruction %s at 0x%x is not modelled' % (m, i.address))
             elif m in ('loop', 'loope', 'loopne'):
                 raise NoProof('loop instruction at 0x%x' % i.address)
             else:
@@ -210,7 +217,7 @@ class Function:
         if m in ('mov', 'movsx', 'movzx', 'lea') and not mem_written and len(i.operands) == 2 and i.operands[0].type == REG_OP \
                 and i.reg_name(i.operands[0].reg) in ALL:
             d = i.reg_name(i.operands[0].reg)
-            if d not in rd:
+            if d not in rd and (cls is None or cls[0] != 'esp'):
                 out.add(((m, i.op_str), d, frozenset(rd), cls))
         if m == 'mov' and mem_written and cls and cls[0] in ('slot', 'abs') and len(i.operands) == 2 and i.operands[1].type == REG_OP and cls[2] == 4:
             r = i.reg_name(i.operands[1].reg)
@@ -244,7 +251,7 @@ class Function:
                 if i.mnemonic == 'call':
                     new, nf = frozenset(out | ALL), fout
                 else:
-                    new, nf = frozenset((out - wr) | rd | wp), (fout and not fwr) or frd
+                    new, nf = frozenset((out - wr) | rd | wp), (fout and not (fwr and i.mnemonic not in PARTIAL_FLAGS)) or frd
                 if new != live_in[a] or nf != flags_in[a]:
                     live_in[a], flags_in[a] = new, nf
                     changed = True

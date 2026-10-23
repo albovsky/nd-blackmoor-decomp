@@ -3065,6 +3065,10 @@
   "detail": "a mutant of the translation survives the corpus and its statement is not one of the explained kinds (tasks/fl41-survivors.json)",
   "status": "mutation survivor"
  },
+ "0x490d50": {
+  "detail": "FL-43 exhaustive check (tasks/fl43-mutation-log.txt, tasks/fl43-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
+  "status": "mutation survivor"
+ },
  "0x491972": {
   "directions": [
    0,

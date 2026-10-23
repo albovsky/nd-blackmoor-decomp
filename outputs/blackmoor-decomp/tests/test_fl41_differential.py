@@ -60,17 +60,11 @@ class Fl41Differential(unittest.TestCase):
             va = int(key, 16)
             self.assertIn(L.lift(va, spans[va])[0], text, key)
 
-    def test_490d50_lifted(self):
-        self.check_row('0x490d50', 'm490d50_lifted')
-
     def test_494ccc_lifted(self):
         self.check_row('0x494ccc', 'm494ccc_lifted')
 
     def test_49d039_lifted(self):
         self.check_row('0x49d039', 'm49d039_lifted')
-
-    def test_4a1d3a_lifted(self):
-        self.check_row('0x4a1d3a', 'm4a1d3a_lifted')
 
     def test_4a35d7_lifted(self):
         self.check_row('0x4a35d7', 'm4a35d7_lifted')
@@ -98,9 +92,6 @@ class Fl41Differential(unittest.TestCase):
 
     def test_4d5207_lifted(self):
         self.check_row('0x4d5207', 'm4d5207_lifted')
-
-    def test_4d9302_lifted(self):
-        self.check_row('0x4d9302', 'm4d9302_lifted')
 
     def test_4e048f_lifted(self):
         self.check_row('0x4e048f', 'm4e048f_lifted')
