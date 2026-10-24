@@ -259,8 +259,23 @@ def check_row_inner(args):
             o = W.run_original(row, sd)
             if o.fault:
                 return None
-            t = W.run_native(lib, row, sd)
-            if t.fault or t.digest() != o.digest():
+            r_fd, w_fd = os.pipe()               # FL-48: the unmutated translation runs in a child with an alarm too (on a seed where it does not terminate it grew to several GB in this process)
+            pid = os.fork()
+            if pid == 0:
+                try:
+                    os.close(r_fd)
+                    W.PAGE_CAP = 40000
+                    signal.alarm(int(os.environ.get('FL48_ALARM', '20')))
+                    t = W.run_native(lib, row, sd)
+                    signal.alarm(0)
+                    os.write(w_fd, b'ok' if not t.fault and t.digest() == o.digest() else b'differs')
+                finally:
+                    os._exit(0)
+            os.close(w_fd)
+            verdict = os.read(r_fd, 16)
+            os.close(r_fd)
+            os.waitpid(pid, 0)
+            if verdict != b'ok':
                 divergent.append(sd)
                 return None
             return o.digest()
@@ -274,6 +289,8 @@ def check_row_inner(args):
                 try:
                     os.close(r_fd)
                     found = -1
+                    if not STRICT_HANG:
+                        W.PAGE_CAP = 40000
                     for i, (sd, ov, ref) in enumerate(items):
                         if STRICT_HANG:           # FL-45 strict mode: each scenario in its own child; one that hangs kills nothing, the mutant must differ (or crash) on another scenario
                             verdict = strict_scenario(lib, Shim(lib, va, k), row, sd, ov, ref)

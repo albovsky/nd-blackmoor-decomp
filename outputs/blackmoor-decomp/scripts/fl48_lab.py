@@ -8,6 +8,7 @@
         runs the scenario (seed + overrides) on the original, the unmutated translation and every mutant of each KIND:LINE (kind and 0-based line number as in the packet); prints for each
         mutant 'KILLED' (its digest differs from the original) or 'same'. The scenario counts only if the original does not fault and the unmutated translation agrees with it.
         --set overrides SIZE (1,2,4) bytes at ADDR with VALUE (numbers may be hex); --stub K:REG:VALUE sets the eax (REG 0), ecx (1) or edx (2) that the K-th callee stub returns.
+        --stubwrite K:ADDRESS:VALUE makes the K-th callee stub also store the dword VALUE at ADDRESS (a callee may write any cell, e.g. a loop counter); both sides honour it
         --save appends a scenario that kills something to tasks/fl48-lab-found.json (the same format as scripts/fl45_targeted.py output; scripts/fl48_apply.py adds it to the corpus).
 Run from outputs/blackmoor-decomp.   Seeds: any integer (the row's corpus seeds are in tests/fl41_corpus.json; other integers are fine, `this` and the arguments follow from the seed).
 """
@@ -42,6 +43,7 @@ def main():
     ap.add_argument('--kill', action='append', default=[])
     ap.add_argument('--set', action='append', default=[])
     ap.add_argument('--stub', action='append', default=[])
+    ap.add_argument('--stubwrite', action='append', default=[], help='K:ADDRESS:VALUE the K-th callee also stores the dword VALUE at ADDRESS')
     ap.add_argument('--save', action='store_true')
     ap.add_argument('--skip', default='', help='comma-separated mutant numbers (as printed) not to run, e.g. a mutant that never terminates and would kill the lab by its alarm')
     a = ap.parse_args()
@@ -56,6 +58,10 @@ def main():
     for s in a.stub:
         k, r, v = s.split(':')
         ov.append((W.STUB_OVR + 16 * num(k) + 4 * num(r), 4, num(v)))
+    for s in a.stubwrite:
+        k, ad, v = s.split(':')
+        ov.append((W.STUB_WR + 16 * num(k), 4, num(ad)))
+        ov.append((W.STUB_WR + 16 * num(k) + 4, 4, num(v)))
     ov = tuple(ov)
     if a.show:
         regs, args, patches = W.initial_state(row, a.seed)
