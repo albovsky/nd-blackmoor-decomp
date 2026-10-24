@@ -459,7 +459,7 @@ def main():
             equiv[row] = {(kind, n, ident): True for kind, n, ident in items}
     funcs = M.split_functions((PROJECT / 'src/original_methods_fl41.c').read_text())
     corpus = json.loads((PROJECT / 'tests/fl41_corpus.json').read_text())
-    out = {'rows_with_survivors': {}, 'unexplained_rows': []}
+    out = {'rows_with_survivors': {}, 'unexplained_rows': [], 'mutants': {}}
     for line in open(log):
         m = re.match(r'(0x[0-9a-f]+) mutants \d+ killed \d+ survivors (.*)', line)
         if not m:
@@ -486,7 +486,9 @@ def main():
             if why == 'survives':
                 ident = rest[0] if rest else None
                 same = equiv.get(m.group(1), {}).get((kind, n, ident), False) or (ident is None and equiv.get(m.group(1), {}).get((kind, n, None), False))
-                items.append((kind, classify(kind, text, n, same, proofs, idents.get((kind, n, ident)), ranges, m.group(1)) or ('written reason' if ((kind, n, ident) in written or (kind, n, None) in written) else None), text[n].strip()[:160], n))
+                cls = classify(kind, text, n, same, proofs, idents.get((kind, n, ident)), ranges, m.group(1)) or ('written reason' if ((kind, n, ident) in written or (kind, n, None) in written) else None)
+                items.append((kind, cls, text[n].strip()[:160], n))
+                out['mutants'].setdefault(m.group(1), []).append([kind, n, ident, cls])         # FL-48: the mutant by its hash (the writers of the reasons name mutants)
         if items:
             out['rows_with_survivors'][m.group(1)] = items
             if any(c is None for _, c, _, _ in items):
