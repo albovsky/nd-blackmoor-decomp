@@ -39,7 +39,7 @@ REGION_BASE, REGION_STEP, REGIONS = 0x20000000, 0x10000, 8
 TIB, GDT = 0x7d000000, 0x7d010000        # the thread information block behind fs, and the descriptor table that puts it there
 STUB_BASE = od.STUB_BASE
 DATA_START = 0x537000          # first writable page of .data (the .rdata ends before it): globals below it are constants and tables
-INSTRUCTION_LIMIT = 200000
+INSTRUCTION_LIMIT = int(os.environ.get("FL48_INSTR_LIMIT", "4000000"))
 FIXED = os.environ.get('FL43_WORLD_FIXED', '1') != '0'      # FL-43: closes two gaps of the model that only show on rare seeds (see Mem and stub_filter); the recorded runs of the corpus seeds are identical with and without it (FL43_WORLD_FIXED=0)
 ORDER = None                   # set to a list to get the executed instruction addresses of run_original in order (debugging aid, FL-43)
 ARGS = 8                       # stack dwords above the return address

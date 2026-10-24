@@ -43,6 +43,7 @@ WIDE = 600          # --harden: seeds tried on a survivor after the extra ones
 
 
 STRICT_HANG = json.loads(Path(os.environ['FL45_STRICT_HANG']).read_text()) if os.environ.get('FL45_STRICT_HANG') else None   # FL-45: {row: [mutant hash]}: rerun only these mutants and count no hang as a kill
+ONLY = json.loads(Path(os.environ['FL48_ONLY']).read_text()) if os.environ.get('FL48_ONLY') else None    # FL-48: {row: [mutant hash]}: recheck only these mutants (the survivors of an earlier run) in the normal mode
 STRICT_ALARM = int(os.environ.get("FL45_STRICT_ALARM", "5"))
 
 
@@ -219,8 +220,8 @@ def check_row_inner(args):
     row = W.row_info(va, entry['body'], {int(k, 16): v for k, v in entry['callees'].items()}, {int(k, 16): v for k, v in entry['imports'].items()}, entry['fs'])
     rng = random.Random(va)
     muts = mutants(text, va, rng, per_row, extended)
-    if STRICT_HANG:
-        only = STRICT_HANG.get(key, [])
+    if STRICT_HANG or ONLY:
+        only = (STRICT_HANG or ONLY).get(key, [])
         keep = [(i, m) for i, m in enumerate(muts) if line_hash(m[2], m[1]) in only]
         if {line_hash(m[2], m[1]) for _, m in keep} != set(only):
             raise RuntimeError('strict rerun of %s: the mutants of the hang list are not all regenerated (use the --per-row and --extended of the original run)' % key)
