@@ -1,0 +1,13 @@
+0x40478e mutants 2 killed 1 survivors [('literal', 25, 'survives')]
+0x4015fb mutants 3 killed 0 survivors [('width', 16, 'survives'), ('width', 24, 'survives'), ('width', 12, 'survives')]
+0x403ea4 mutants 1 killed 0 survivors [('width', 135, 'survives')]
+0x401249 mutants 2 killed 0 survivors [('width', 61, 'survives'), ('drop', 61, 'survives')]
+0x404b49 mutants 7 killed 2 survivors [('width', 18, 'survives'), ('width', 40, 'survives'), ('width', 88, 'survives'), ('width', 66, 'survives'), ('literal', 54, 'survives')]
+0x4110f6 mutants 1 killed 0 survivors [('drop', 26, 'survives')]
+0x415a61 mutants 1 killed 0 survivors [('width', 11, 'survives')]
+0x412cb9 mutants 13 killed 2 survivors [('drop', 66, 'survives'), ('width', 53, 'survives'), ('width', 49, 'survives'), ('width', 66, 'survives'), ('width', 23, 'survives'), ('width', 50, 'survives'), ('literal', 66, 'survives'), ('width', 54, 'survives'), ('width', 44, 'survives'), ('literal', 72, 'survives'), ('literal', 47, 'survives')]
+0x416122 mutants 2 killed 0 survivors [('drop', 13, 'survives'), ('literal', 13, 'survives')]
+0x416e90 mutants 4 killed 0 survivors [('drop', 35, 'survives'), ('width', 35, 'survives'), ('width', 26, 'survives'), ('width', 30, 'survives')]
+0x411215 mutants 14 killed 2 survivors [('width', 28, 'survives'), ('literal', 59, 'survives'), ('width', 38, 'survives'), ('width', 91, 'survives'), ('literal', 70, 'survives'), ('width', 33, 'survives'), ('literal', 76, 'survives'), ('width', 37, 'survives'), ('width', 74, 'survives'), ('width', 69, 'survives'), ('width', 102, 'survives'), ('literal', 27, 'survives')]
+0x41a102 mutants 2 killed 0 survivors [('literal', 16, 'survives'), ('drop', 16, 'survives')]
+0x41a19c mutants 8 killed 1 survivors [('width', 36, 'survives'), ('alu', 14, 'killed by step budget'), ('width', 34, 'survives'), ('literal', 14, 'killed by step budget'), ('width', 17, 'survives'), ('width', 13, 'survives'), ('width', 23, 'survives')] budget-kills 2
