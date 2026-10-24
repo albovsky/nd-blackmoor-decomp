@@ -293,6 +293,7 @@ def check_row_inner(args):
                     hangs.append(k)
                 return min(found) if found else None
             start, first_hit = 0, None
+            over = []       # FL-50: every scenario on which the quick budget (BUDGET_FLOOR) ran out
             while start < len(items):
                 found, hung = scan(k, items[start:])
                 if not hung:
@@ -301,10 +302,17 @@ def check_row_inner(args):
                     return start + min(found)
                 if end_kind[0] == 'budget':
                     first_hit = first_hit or items[start + found[-1]]
+                    over.append(items[start + found[-1]])
                 else:
                     hangs.append(k)
                 start += found[-1] + 1
             if first_hit is not None and BUDGET:        # no mismatch anywhere: the hang kill must hold up on the full definition of the budget
+                # FL-50: the quick budget is only a filter. On the full budget max(100 x the original's instructions, CONFIRM_FLOOR) a mutant that finishes
+                # (a 16-bit loop counter that wraps after about 65,000 turns) and differs from the original is killed by that difference, not by a hang.
+                for it in over:
+                    found, hung = scan(k, [it], floor=CONFIRM_FLOOR)
+                    if found and not hung:
+                        return items.index(it)
                 found, hung = scan(k, [first_hit], floor=CONFIRM_FLOOR)
                 if hung and end_kind[0] == 'budget':
                     budget_hit.add(k)
