@@ -6593,7 +6593,6 @@
       "contains_original_byte_values": false,
       "data_items": [],
       "function": "FUN_004aef4a",
-      "naming": "native_port",
       "object": {
         "sha256": "caaf105d6ce31e738db33f27bccbf8fbf3fb0e12581cfca1f7b6cfc2269ef204",
         "size": 714241
@@ -6603,7 +6602,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_004aef4a.s",
-        "sha256": "a67a205264a5f2b950d89ce84c618a848d041eb2a15c829fff348ec5f23dff7d"
+        "sha256": "40725eb2a95758d505fb745ecc498493c68fb0470b6319cca1cdb2e176fa9788"
       },
       "status": "accepted",
       "va": 4910922
@@ -6648,7 +6647,6 @@
       "contains_original_byte_values": false,
       "data_items": [],
       "function": "FUN_004af96e",
-      "naming": "native_port",
       "object": {
         "sha256": "663b2685b67df007eabc5fa08f789082bcfee2d8114c01c27be0156b2194272d",
         "size": 715727
@@ -6658,7 +6656,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_004af96e.s",
-        "sha256": "af011847656ac1b67eeec3acfca579e27e3d92193505c74b61c80530ee78d21b"
+        "sha256": "b1a7c4da57020402d80f16dbf3da8a9bf6b42bb91c5a4174b33e501346400a59"
       },
       "status": "accepted",
       "va": 4913518
@@ -12529,7 +12527,6 @@
       "contains_original_byte_values": false,
       "data_items": [],
       "function": "FUN_004c4c2b",
-      "naming": "native_port",
       "object": {
         "sha256": "eca831b8104c6b617a9444a8412be1e1c1a75d62139ebf3b78e8b039a8f3d436",
         "size": 802784
@@ -12539,7 +12536,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_004c4c2b.s",
-        "sha256": "9be4a979cdbd4055df26dd8b6c09ce787f41b06f77148ad967f574e1fbc3a978"
+        "sha256": "9004379402778348fd96e57e4d827c58dc380f504d84a2682a036afdc18451f5"
       },
       "status": "accepted",
       "va": 5000235
@@ -12863,7 +12860,6 @@
       "contains_original_byte_values": false,
       "data_items": [],
       "function": "FUN_004c5d4b",
-      "naming": "native_port",
       "object": {
         "sha256": "e0133d4f084c0dddf2bfec98c6adf3d7324e4a337eff773dc93f93529da69a81",
         "size": 808138
@@ -12873,7 +12869,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_004c5d4b.s",
-        "sha256": "50bd08eb3de482367e4dc1f2ba4342cf06a0311c537e24c4cd0a23edb3b91745"
+        "sha256": "0ecade8a41c1b21984cea9adf011713bfd5af5bfedf6ad0e8656104cff261dfd"
       },
       "status": "accepted",
       "va": 5004619
@@ -21299,9 +21295,9 @@
       "va": 5105136
     }
   ],
-  "manifest_sha256": "7ef205fb48f57c1ceb2a8c71b50f49f0a0544fdb57d8b9641434939cf0264ab4",
-  "named_functions": 573,
-  "names_sha256": "b0eadea43cac89ad464eb7898d355c7881ca6d2a4a0b4d4dceaa3de2893cc6d7",
+  "manifest_sha256": "10a408a6f85bbacd0073b6e3537a14dc4d427411d66d03689c836b0f356d9358",
+  "named_functions": 569,
+  "names_sha256": "33ea932172b30dbfc59eb55a919a3986ca06d5c86ab9e54c26f19194bb522090",
   "note": "Accepted functions are candidates for the tool_assisted_reconstructed_assembly class; they count only after root accepts the independent review. No claim is made about original C++ or compiler provenance.",
   "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45"
 }
