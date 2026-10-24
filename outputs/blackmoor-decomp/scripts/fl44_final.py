@@ -69,8 +69,7 @@ def main():
             for row, items in doc['rows_with_survivors'].items():
                 asked.setdefault(row, set()).update((kind, n) for kind, cls, _, n in items if cls is None)
     reasons = {}        # FL-46: row-specific written reasons, tied to the exact statement they were written for
-    reasons_path = TASKS / 'fl46-written-reasons.json'
-    if reasons_path.is_file():
+    for reasons_path in sorted(TASKS.glob('fl4*-written-reasons.json')):          # FL-46, FL-49
         for row, items in json.loads(reasons_path.read_text())['rows'].items():
             for i in items:
                 if len(i['reason']) >= 80:
