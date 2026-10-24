@@ -21,7 +21,7 @@ import fl40_mutation_check as M
 import fl40_survivors as S
 
 TASKS = PROJECT / 'tasks'
-LOGS = ['fl44-recheck-credited-log-part1.txt', 'fl44-recheck-credited-log-part2.txt', 'fl44-recheck-credited-log-part3.txt', 'fl44-recheck-credited-log-part4.txt', 'fl44-recheck-big5-log.txt', 'fl44-new-rows-mutation-log.txt', 'fl46-unchecked-log.txt', 'fl46-budget3-log.txt']
+LOGS = ['fl44-recheck-credited-log-part1.txt', 'fl44-recheck-credited-log-part2.txt', 'fl44-recheck-credited-log-part3.txt', 'fl44-recheck-credited-log-part4.txt', 'fl44-recheck-big5-log.txt', 'fl44-new-rows-mutation-log.txt', 'fl46-unchecked-log.txt', 'fl46-budget3-log.txt', 'fl49-recheck-log.txt', 'fl49-recheck2-log.txt', 'fl49-recheck3-log.txt']
 EQUIV = ['fl44-recheck-equivalence.json', 'fl44-recheck-equivalence-big.json', 'fl44-recheck-equivalence-big5.json', 'fl44-recheck-equivalence-part4.json', 'fl44-new-equivalence.json', 'fl46-equivalence.json']
 RESCUE = ['fl44-rescue-base40000.txt', 'fl44-new-rescue-40000.txt', 'fl44-recheck-rescue-40000-part1.txt', 'fl44-recheck-rescue-40000-part2.txt', 'fl44-recheck-rescue-40000-part4.txt', 'fl44-recheck-rescue-40000-part5.txt', 'fl46-rescue-40000.txt', 'fl46-rescue-454065.txt']
 REQUESTS = ['fl44-requests-held-fl42.json', 'fl44-new-survivors.json', 'fl44-recheck-survivors.json', 'fl44-part4-survivors.json', 'fl44-part5-survivors.json', 'fl46-survivors.json', 'fl46-rescue-454065-request.json']      # what the rescue runs were asked to retry
@@ -69,11 +69,10 @@ def main():
             for row, items in doc['rows_with_survivors'].items():
                 asked.setdefault(row, set()).update((kind, n) for kind, cls, _, n in items if cls is None)
     reasons = {}        # FL-46: row-specific written reasons, tied to the exact statement they were written for
-    reasons_path = TASKS / 'fl46-written-reasons.json'
-    if reasons_path.is_file():
+    for reasons_path in sorted(TASKS.glob('fl4*-written-reasons.json')):          # FL-46, FL-49
         for row, items in json.loads(reasons_path.read_text())['rows'].items():
             for i in items:
-                if len(i['reason']) >= 80:
+                if len(' '.join(i['reason'].split())) >= 80 and len(i.get('review', '').strip()) >= 40:        # a reason without its independent review does not count
                     reasons[(row, i['kind'], i['line'])] = i['statement']
     clean, held = [], {}
     for row in sorted(corpus, key=lambda k: int(k, 16)):

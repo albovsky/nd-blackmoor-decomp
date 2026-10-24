@@ -1631,3 +1631,7 @@ Details: `tasks/fl47-handoff.md`. `src/original_methods_fl41.c` 35 -> 76 rows, 1
 ## FL-46 handoff (2026-10-23, PDT): rows below 0x480000, fourth round
 
 Details: `tasks/fl46-handoff.md`. 1,975 (main after PR 171) -> **2,011 ported**: 191 of 337 translated rows credited (155 before; 37 new, 1 withdrawn: `0x41df05`, whose FL-44 credit rested on a wall-clock hang kill). Glib's hang ruling is applied: a mutant that never terminates counts as killed only by a fixed step budget (max of 100 x the unmutated port's steps and 200,000), only on seeds where the port equals the original; both readings are recorded per row in `tasks/fl46-verdicts.json` (191 budget, 160 strict; 1,980 ported on the strict reading). New: liveness rules (`scripts/fl46_rules.py`), 70 written reasons, a step counter in the Unicorn world, a resumable run driver. Next: the 7 large unchecked rows, the 146 held rows (string-length literals, widened writes), rule soundness on all 117 rows.
+
+## FL-49 handoff (2026-10-24, PDT): rows below 0x480000, fifth round
+
+Details: `tasks/fl49-handoff.md`. 2,011 (main after PR 172) -> **2,059 ported**: 239 of 337 translated rows credited (191 before), 98 held. New: 263 reviewer-confirmed row-specific written reasons (`tasks/fl49-written-reasons.json`), about 65 killing seeds from `scripts/fl49_targeted.py` added to `tests/fl40_corpus.json`, rechecks under the step-budget rules. Open: 98 held rows, 7 large unchecked rows, rule soundness checked on 85 of 172 rows (no disproof), reviewers were lenient so spot-check the reasons.
