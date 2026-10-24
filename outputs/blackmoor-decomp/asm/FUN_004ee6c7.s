@@ -8,15 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_popup_poll
-# naming:       INFERRED (lower confidence, not verified): the repository text src/caption_lifecycle.c:691 says "0x4ee6c7(param): returns 1, or 0 when the popup closed itself."
-# name-note:    Popup poll: returns 1, or 0 when the popup closed itself.
+# name:         m4ee6c7_lifted
+# naming:       native port src/original_methods_fl41.c:m4ee6c7_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port
+# name-note:    Machine-translated (scripts/lift_fl41.py), 27 seeds; oracle: 99/99 instructions, 26/26 jump directions; every mutant killed, identical -O2 code, or explained.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [eax + n] field_bc, field_15f, field_4ab, field_4af; [ecx + n] field_252, field_4af, field_4b3, field_689; [edx + n] field_4ab, field_4af, field_675, field_685, field_68d
 # callees:      calls FUN_004c2790, FUN_004fb2e3, FUN_004db993, FUN_004e29ec, FUN_004ef89b, FUN_004e2913, FUN_004edb97
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 99 instruction(s), 13 conditional branch(es) and 1 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class partial_native is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl41.c:m4ee6c7_lifted (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 99 instruction(s), 13 conditional branch(es) and 1 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

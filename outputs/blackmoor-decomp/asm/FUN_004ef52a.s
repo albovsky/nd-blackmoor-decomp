@@ -8,15 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_slider_thumb_rect_placer
-# naming:       INFERRED (lower confidence, not verified): the repository text src/caption_lifecycle.c:220 says "0x4ef52a: thumb rectangle from the offset."
-# name-note:    Computes the slider thumb rectangle from the offset.
+# name:         m4ef52a_lifted
+# naming:       native port src/original_methods_fl41.c:m4ef52a_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port
+# name-note:    Machine-translated (scripts/lift_fl41.py), 38 seeds; oracle: 226/226 instructions, 20/20 jump directions; every mutant killed, identical -O2 code, or explained.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       4 ebp-relative slot(s): local_4, local_8, local_c, local_10
 # fields:       [eax + n] field_ce, field_12e, field_132, field_136, field_13e, field_142, field_146, field_14a, field_166, field_176, field_17a, field_17e and 3 more; [ecx + n] field_d2, field_12e, field_132, field_136, field_13a, field_13e, field_142, field_146, field_14a, field_172, field_176, field_17a and 1 more; [edx + n] field_d2, field_12e, field_132, field_136, field_13a, field_13e, field_142, field_146, field_14a, field_166, field_172, field_17a and 3 more
 # callees:      none: no call or outward jump
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 226 instruction(s), 10 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class partial_native is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl41.c:m4ef52a_lifted (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 226 instruction(s), 10 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

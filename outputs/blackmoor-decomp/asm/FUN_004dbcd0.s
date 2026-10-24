@@ -8,15 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_logo_sequence_state_machine
-# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/4dbcd0.c.txt, not original source) refers to the data labelled s_DF_Company_Logo_Surface_0055b00c, s_LogoSequence____begin_LOGO_INIT_s_0055afe0
-# name-note:    Company logo sequence: LOGO_INIT loads DF_Company_Logo_Surface and blits it, shows it about 4 seconds or until skipped, then unloads and moves to the next state.
+# name:         m4dbcd0_lifted
+# naming:       native port src/original_methods_fl41.c:m4dbcd0_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port
+# name-note:    Machine-translated (scripts/lift_fl41.py), 23 seeds; oracle: 102/102 instructions, 16/16 jump directions; every mutant killed, identical -O2 code, or explained.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is not read by this function's own entry-block instructions before being written (a callee may still read it)
 # locals:       10 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c, local_20, local_24, local_28
 # fields:       [edx + n] field_minus_1
 # callees:      calls FUN_0044a2b7, FUN_004dad60, FUN_004c2790, FUN_004faf98, KERNEL32.dll!GetTickCount, FUN_004c5377, FUN_004dadff, FUN_004c2dfb
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 102 instruction(s), 8 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class partial_native is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl41.c:m4dbcd0_lifted (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 102 instruction(s), 8 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

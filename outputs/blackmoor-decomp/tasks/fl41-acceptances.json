@@ -2048,7 +2048,13 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated (scripts/lift_fl41.py), 10 seeds; oracle: 306/306 instructions, 8/8 jump directions; every mutant killed, identical -O2 code, or explained."
+  "note": "Machine-translated (scripts/lift_fl41.py), 10 seeds; oracle: 306/306 instructions, 8/8 jump directions; every mutant killed, identical -O2 code, or explained.",
+  "blockers_reviewed": [
+   {
+    "id": "RT-18:cd02434a8b807d6b",
+    "rationale": "The item says only the executor gate type of raw 0x38 is mapped in the native app (no image, no binding): a gap in the app-side loader and binding, not in this constructor. Here the function's own instructions and the jump directions all run in the oracle and match the translation, with callees as recording stubs."
+   }
+  ]
  },
  {
   "va": "0x48b730",
@@ -2069,7 +2075,7 @@
    "path": "tests/fl41_original_oracle.py",
    "window": [
     "0x48b730",
-    "0x48b9f6"
+    "0x48ba00"
    ]
   },
   "parts_accounted": [],
@@ -2169,7 +2175,7 @@
    "path": "tests/fl41_original_oracle.py",
    "window": [
     "0x49027c",
-    "0x49044c"
+    "0x490450"
    ]
   },
   "parts_accounted": [],
@@ -2344,7 +2350,7 @@
    "path": "tests/fl41_original_oracle.py",
    "window": [
     "0x4aaf05",
-    "0x4ab289"
+    "0x4ab290"
    ]
   },
   "parts_accounted": [],
@@ -2369,7 +2375,7 @@
    "path": "tests/fl41_original_oracle.py",
    "window": [
     "0x4ac498",
-    "0x4ac7b7"
+    "0x4ac7c0"
    ]
   },
   "parts_accounted": [],
@@ -2469,7 +2475,7 @@
    "path": "tests/fl41_original_oracle.py",
    "window": [
     "0x4afa1e",
-    "0x4afc1e"
+    "0x4afc20"
    ]
   },
   "parts_accounted": [],
@@ -2648,7 +2654,13 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated (scripts/lift_fl41.py), 22 seeds; oracle: 260/260 instructions, 20/20 jump directions; every mutant killed, identical -O2 code, or explained."
+  "note": "Machine-translated (scripts/lift_fl41.py), 22 seeds; oracle: 260/260 instructions, 20/20 jump directions; every mutant killed, identical -O2 code, or explained.",
+  "blockers_reviewed": [
+   {
+    "id": "S05-2:767c11cd049fda53",
+    "rationale": "The item says an offscreen pixel-composition fixture for the blit-command loops was not built in slice S05-2: a gap in that slice's test fixture. Here the function's own instructions and the jump directions all run in the oracle and match the translation, with callees as recording stubs."
+   }
+  ]
  },
  {
   "va": "0x4c609b",
@@ -2848,7 +2860,13 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated (scripts/lift_fl41.py), 10 seeds; oracle: 214/214 instructions, 6/6 jump directions; every mutant killed, identical -O2 code, or explained."
+  "note": "Machine-translated (scripts/lift_fl41.py), 10 seeds; oracle: 214/214 instructions, 6/6 jump directions; every mutant killed, identical -O2 code, or explained.",
+  "blockers_reviewed": [
+   {
+    "id": "RT-14:16358bcf024bb808",
+    "rationale": "The item says the native app never hides render-slot overlays (0x43da93 sets visible to 0 on slots 24..63, 0x489722 re-shows them): a gap in the app's overlay behaviour around the caller, not in this function. Here the function's own instructions and the jump directions all run in the oracle and match the translation, with callees as recording stubs."
+   }
+  ]
  },
  {
   "va": "0x4d5316",
@@ -2969,7 +2987,7 @@
    "path": "tests/fl41_original_oracle.py",
    "window": [
     "0x4d6705",
-    "0x4d6777"
+    "0x4d6787"
    ]
   },
   "parts_accounted": [],
@@ -3094,7 +3112,7 @@
    "path": "tests/fl41_original_oracle.py",
    "window": [
     "0x4dbb13",
-    "0x4dbc67"
+    "0x4dbc77"
    ]
   },
   "parts_accounted": [],
@@ -3119,7 +3137,7 @@
    "path": "tests/fl41_original_oracle.py",
    "window": [
     "0x4dbcd0",
-    "0x4dbe99"
+    "0x4dbea0"
    ]
   },
   "parts_accounted": [],
@@ -3148,7 +3166,13 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated (scripts/lift_fl41.py), 11 seeds; oracle: 237/237 instructions, 8/8 jump directions; every mutant killed, identical -O2 code, or explained."
+  "note": "Machine-translated (scripts/lift_fl41.py), 11 seeds; oracle: 237/237 instructions, 8/8 jump directions; every mutant killed, identical -O2 code, or explained.",
+  "blockers_reviewed": [
+   {
+    "id": "RT-14:16358bcf024bb808",
+    "rationale": "The item says the native app never hides render-slot overlays (0x43da93 sets visible to 0 on slots 24..63, 0x489722 re-shows them): a gap in the app's overlay behaviour around the caller, not in this function. Here the function's own instructions and the jump directions all run in the oracle and match the translation, with callees as recording stubs."
+   }
+  ]
  },
  {
   "va": "0x4e18e5",
@@ -3194,7 +3218,7 @@
    "path": "tests/fl41_original_oracle.py",
    "window": [
     "0x4e1b79",
-    "0x4e1c18"
+    "0x4e1c20"
    ]
   },
   "parts_accounted": [],
@@ -3223,7 +3247,13 @@
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated (scripts/lift_fl41.py), 92 seeds; oracle: 132/132 instructions, 48/48 jump directions; every mutant killed, identical -O2 code, or explained."
+  "note": "Machine-translated (scripts/lift_fl41.py), 92 seeds; oracle: 132/132 instructions, 48/48 jump directions; every mutant killed, identical -O2 code, or explained.",
+  "blockers_reviewed": [
+   {
+    "id": "RT-22:8e70fcc0b86b44cf",
+    "rationale": "The item says tab lists, paging, scroll floats, keyboard arrows and the frame control are not modelled in the app (frame_consumed is a host input): a gap in the app-side UI model. Here the function's own instructions and the jump directions all run in the oracle and match the translation, with callees as recording stubs."
+   }
+  ]
  },
  {
   "va": "0x4e2522",
@@ -3419,7 +3449,7 @@
    "path": "tests/fl41_original_oracle.py",
    "window": [
     "0x4eaf2a",
-    "0x4eb0f7"
+    "0x4eb107"
    ]
   },
   "parts_accounted": [],
@@ -3494,11 +3524,17 @@
    "path": "tests/fl41_original_oracle.py",
    "window": [
     "0x4ee6c7",
-    "0x4ee857"
+    "0x4ee86f"
    ]
   },
   "parts_accounted": [],
-  "note": "Machine-translated (scripts/lift_fl41.py), 27 seeds; oracle: 99/99 instructions, 26/26 jump directions; every mutant killed, identical -O2 code, or explained."
+  "note": "Machine-translated (scripts/lift_fl41.py), 27 seeds; oracle: 99/99 instructions, 26/26 jump directions; every mutant killed, identical -O2 code, or explained.",
+  "blockers_reviewed": [
+   {
+    "id": "S05:cbac757a041d45e6",
+    "rationale": "The item says the frame text-box UI lifecycle, taskbar presentation and caption clear sequence are not built natively: it concerns missing app-side backends. Here the function's own instructions and the jump directions all run in the oracle and match the translation, with callees as recording stubs."
+   }
+  ]
  },
  {
   "va": "0x4ef52a",
