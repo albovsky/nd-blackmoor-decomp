@@ -168,5 +168,93 @@
    "id": "RT-11:f7524f45a690aca7",
    "rationale": "The item says dialogue-object-owned sound cleanup is unbound in the native runtime because the dialogue object is unimplemented; that is a caller-side gap. This function's own instructions and jump directions run in the oracle and match the translation."
   }
+ ],
+ "0x42639d": [
+  {
+   "id": "A-20.1:9832e9ca5f828cf5",
+   "rationale": "The old item concerns the malloc-failure branch and fatal cleanup (0x4c97b4) reached from allocation callers. This function allocates nothing: its only call is the routine at 0x52139c, and any failure branch lives in other rows. The fl40 oracle runs every instruction and both jump directions of this function and compares the call it makes."
+  },
+  {
+   "id": "A-6D.1:b9eb5744ff601317",
+   "rationale": "The old item concerns the malloc-failure branch and fatal cleanup (0x4c97b4) reached from allocation callers. This function allocates nothing: its only call is the routine at 0x52139c, and any failure branch lives in other rows. The fl40 oracle runs every instruction and both jump directions of this function and compares the call it makes."
+  },
+  {
+   "id": "A-70.1:2fa53a28bff6ffa8",
+   "rationale": "The old item concerns the malloc-failure branch and fatal cleanup (0x4c97b4) reached from allocation callers. This function allocates nothing: its only call is the routine at 0x52139c, and any failure branch lives in other rows. The fl40 oracle runs every instruction and both jump directions of this function and compares the call it makes."
+  },
+  {
+   "id": "A-76.1:f418f07de9516c6f",
+   "rationale": "The old item concerns the malloc-failure branch and fatal cleanup (0x4c97b4) reached from allocation callers. This function allocates nothing: its only call is the routine at 0x52139c, and any failure branch lives in other rows. The fl40 oracle runs every instruction and both jump directions of this function and compares the call it makes."
+  },
+  {
+   "id": "A-77.1:1c24d0c5d8c5b9fd",
+   "rationale": "The old item concerns the malloc-failure branch and fatal cleanup (0x4c97b4) reached from allocation callers. This function allocates nothing: its only call is the routine at 0x52139c, and any failure branch lives in other rows. The fl40 oracle runs every instruction and both jump directions of this function and compares the call it makes."
+  },
+  {
+   "id": "A-80.1:9832e9ca5f828cf5",
+   "rationale": "The old item concerns the malloc-failure branch and fatal cleanup (0x4c97b4) reached from allocation callers. This function allocates nothing: its only call is the routine at 0x52139c, and any failure branch lives in other rows. The fl40 oracle runs every instruction and both jump directions of this function and compares the call it makes."
+  },
+  {
+   "id": "A-83.1:d861914def0bb0c7",
+   "rationale": "The old item concerns the malloc-failure branch and fatal cleanup (0x4c97b4) reached from allocation callers. This function allocates nothing: its only call is the routine at 0x52139c, and any failure branch lives in other rows. The fl40 oracle runs every instruction and both jump directions of this function and compares the call it makes."
+  },
+  {
+   "id": "A-9A.1:bd2a2e484fdcae24",
+   "rationale": "The old item concerns the malloc-failure branch and fatal cleanup (0x4c97b4) reached from allocation callers. This function allocates nothing: its only call is the routine at 0x52139c, and any failure branch lives in other rows. The fl40 oracle runs every instruction and both jump directions of this function and compares the call it makes."
+  },
+  {
+   "id": "A-AA.1:bd2a2e484fdcae24",
+   "rationale": "The old item concerns the malloc-failure branch and fatal cleanup (0x4c97b4) reached from allocation callers. This function allocates nothing: its only call is the routine at 0x52139c, and any failure branch lives in other rows. The fl40 oracle runs every instruction and both jump directions of this function and compares the call it makes."
+  },
+  {
+   "id": "A-D0.1:776fdb6c4f7a529e",
+   "rationale": "The old item concerns the malloc-failure branch and fatal cleanup (0x4c97b4) reached from allocation callers. This function allocates nothing: its only call is the routine at 0x52139c, and any failure branch lives in other rows. The fl40 oracle runs every instruction and both jump directions of this function and compares the call it makes."
+  },
+  {
+   "id": "A-D3.1:996ae791e9d4a4fd",
+   "rationale": "The old item concerns the malloc-failure branch and fatal cleanup (0x4c97b4) reached from allocation callers. This function allocates nothing: its only call is the routine at 0x52139c, and any failure branch lives in other rows. The fl40 oracle runs every instruction and both jump directions of this function and compares the call it makes."
+  },
+  {
+   "id": "A-D6.1:48e7b71758cd46b9",
+   "rationale": "The old item concerns the malloc-failure branch and fatal cleanup (0x4c97b4) reached from allocation callers. This function allocates nothing: its only call is the routine at 0x52139c, and any failure branch lives in other rows. The fl40 oracle runs every instruction and both jump directions of this function and compares the call it makes."
+  },
+  {
+   "id": "A-DA.1:1c24d0c5d8c5b9fd",
+   "rationale": "The old item concerns the malloc-failure branch and fatal cleanup (0x4c97b4) reached from allocation callers. This function allocates nothing: its only call is the routine at 0x52139c, and any failure branch lives in other rows. The fl40 oracle runs every instruction and both jump directions of this function and compares the call it makes."
+  },
+  {
+   "id": "A-E0.1:844dcfff409cd0d2",
+   "rationale": "The old item concerns the malloc-failure branch and fatal cleanup (0x4c97b4) reached from allocation callers. This function allocates nothing: its only call is the routine at 0x52139c, and any failure branch lives in other rows. The fl40 oracle runs every instruction and both jump directions of this function and compares the call it makes."
+  },
+  {
+   "id": "A-E4.1:b1c0f00f67f185bd",
+   "rationale": "The old item concerns the malloc-failure branch and fatal cleanup (0x4c97b4) reached from allocation callers. This function allocates nothing: its only call is the routine at 0x52139c, and any failure branch lives in other rows. The fl40 oracle runs every instruction and both jump directions of this function and compares the call it makes."
+  },
+  {
+   "id": "A-EA.1:0f0aa53bd9baed2e",
+   "rationale": "The old item concerns the malloc-failure branch and fatal cleanup (0x4c97b4) reached from allocation callers. This function allocates nothing: its only call is the routine at 0x52139c, and any failure branch lives in other rows. The fl40 oracle runs every instruction and both jump directions of this function and compares the call it makes."
+  },
+  {
+   "id": "A-EB.1:e018aeced560744e",
+   "rationale": "The old item concerns the malloc-failure branch and fatal cleanup (0x4c97b4) reached from allocation callers. This function allocates nothing: its only call is the routine at 0x52139c, and any failure branch lives in other rows. The fl40 oracle runs every instruction and both jump directions of this function and compares the call it makes."
+  },
+  {
+   "id": "A-EE.1:8b70805344844861",
+   "rationale": "The old item concerns the malloc-failure branch and fatal cleanup (0x4c97b4) reached from allocation callers. This function allocates nothing: its only call is the routine at 0x52139c, and any failure branch lives in other rows. The fl40 oracle runs every instruction and both jump directions of this function and compares the call it makes."
+  },
+  {
+   "id": "A-F5.1:996ae791e9d4a4fd",
+   "rationale": "The old item concerns the malloc-failure branch and fatal cleanup (0x4c97b4) reached from allocation callers. This function allocates nothing: its only call is the routine at 0x52139c, and any failure branch lives in other rows. The fl40 oracle runs every instruction and both jump directions of this function and compares the call it makes."
+  },
+  {
+   "id": "A-F6.1:bb44b238534be791",
+   "rationale": "The old item concerns the malloc-failure branch and fatal cleanup (0x4c97b4) reached from allocation callers. This function allocates nothing: its only call is the routine at 0x52139c, and any failure branch lives in other rows. The fl40 oracle runs every instruction and both jump directions of this function and compares the call it makes."
+  }
+ ],
+ "0x45741d": [
+  {
+   "id": "RT-6:ec9b5de9db0bd0a3",
+   "rationale": "The item says the native runtime does not model the writers of the active candidate between consume and activation; that is a runtime-model gap around this function, not a difference in its instructions. All instructions and both jump directions of this function run in the original-only oracle and match the translation."
+  }
  ]
 }
