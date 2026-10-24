@@ -1,0 +1,2 @@
+0x4011f7 mutants 43 killed 40 survivors [('alu', 19, 'survives'), ('width', 23, 'survives'), ('drop', 23, 'survives')] hang-kills 2
+0x41114f mutants 60 killed 51 survivors [('width', 17, 'survives'), ('register', 18, 'survives'), ('alu', 12, 'survives'), ('width', 15, 'survives'), ('alu', 18, 'survives'), ('drop', 13, 'survives'), ('width', 11, 'survives'), ('width', 20, 'survives'), ('drop', 12, 'survives')] hang-kills 3

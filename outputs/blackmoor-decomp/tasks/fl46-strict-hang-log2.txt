@@ -1,0 +1,1 @@
+0x41195c mutants 139 killed 136 survivors [('alu', 18, 'survives'), ('register', 18, 'survives'), ('drop', 44, 'survives')] hang-kills 2
