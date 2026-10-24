@@ -282,7 +282,7 @@ def check_row_inner(args):
                                 found = i if verdict == 'differs' else -2 - i          # -2 - i: killed by the step budget on scenario i
                                 break
                             continue
-                        signal.alarm(20)         # per scenario (FL-43): one alarm over the whole list killed slow rows' mutants and counted that as a kill
+                        signal.alarm(int(os.environ.get('FL48_ALARM', '20')))         # per scenario (FL-43): one alarm over the whole list killed slow rows' mutants and counted that as a kill
                         t = W.run_native(Shim(lib, va, k), row, sd, ov)
                         signal.alarm(0)
                         if (t.digest() if not t.fault else 'fault') != ref:
