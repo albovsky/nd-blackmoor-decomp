@@ -1,0 +1,5 @@
+0x464f55 mutants 69 killed 68 survivors [('width', 22, 'survives')]
+0x45e67d mutants 60 killed 52 survivors [('literal', 28, 'survives'), ('width', 16, 'survives'), ('width', 28, 'survives'), ('drop', 13, 'survives'), ('drop', 32, 'killed by step budget'), ('drop', 30, 'killed by step budget'), ('drop', 41, 'survives'), ('drop', 25, 'survives')] budget-kills 2
+0x464faa mutants 69 killed 68 survivors [('width', 22, 'survives')]
+0x46f8ae mutants 80 killed 76 survivors [('alu', 30, 'survives'), ('register', 30, 'survives'), ('width', 17, 'survives'), ('width', 30, 'survives')]
+0x47a1a9 mutants 158 killed 149 survivors [('register', 39, 'survives'), ('width', 23, 'killed only by an extra seed'), ('drop', 35, 'survives'), ('register', 32, 'survives'), ('width', 18, 'killed by step budget'), ('literal', 20, 'killed only by an extra seed'), ('drop', 19, 'killed by step budget'), ('literal', 19, 'killed by step budget'), ('width', 48, 'survives'), ('drop', 20, 'killed by step budget'), ('drop', 27, 'survives')] budget-kills 5
