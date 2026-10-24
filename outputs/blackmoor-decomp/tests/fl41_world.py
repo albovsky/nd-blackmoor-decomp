@@ -308,6 +308,8 @@ def run_original(row, seed, overrides=(), observe=False, probes=None):
             ensure(address)
             ensure(address + size_ - 1)
             uc.mem_write(address, (value & ((1 << (8 * size_)) - 1)).to_bytes(size_, 'little'))
+        elif address >= DATA_START:                 # FL-48: a writable global may hold any value (code and constant tables below DATA_START stay as they are)
+            uc.mem_write(address, (value & ((1 << (8 * size_)) - 1)).to_bytes(size_, 'little'))
     try:
         uc.emu_start(va, STOP, count=INSTRUCTION_LIMIT)
     except unicorn.UcError as ex:
@@ -440,6 +442,8 @@ def run_native(lib, row, seed, overrides=()):
     for k, v in enumerate([STOP, *args]):
         mem.write(sp + 4 * k, 4, v)
     for address, size_, value in overrides:
+        if IMAGE_BASE <= address < DATA_START:          # FL-48: the original ignores an override of its code or constant tables, and so does the translation
+            continue
         mem.write(address, size_, value)
     r = Regs(regs['eax'], regs['ecx'], regs['edx'], regs['ebx'], sp, regs['ebp'], regs['esi'], regs['edi'])
     getattr(lib, 'm%x_lifted' % va)(ctypes.byref(r), ctypes.byref(host))
