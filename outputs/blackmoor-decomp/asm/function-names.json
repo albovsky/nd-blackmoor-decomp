@@ -2,8 +2,8 @@
  "schema": "blackmoor-function-names/1",
  "note": "Names that committed evidence already states for assembly functions; every other source keeps the machine name fn_<va>. Written and checked by scripts/function_names.py; read by scripts/annotate_machine.py and scripts/audit_tool_assisted.py. A name is not a claim that the function is understood beyond its summary, and nothing here claims original C++ or compiler provenance.",
  "counts": {
-  "entries": 2924,
-  "native_port": 1827,
+  "entries": 2939,
+  "native_port": 1842,
   "parity_rule": 1,
   "ghidra_name": 83,
   "ghidra_funclet": 570,
@@ -7681,6 +7681,186 @@
    "native_source": {
     "path": "src/original_methods_fl40.c",
     "symbol": "m44bebb_lifted",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x0044bed5",
+   "name": "m44bed5_lifted",
+   "basis": "native_port",
+   "summary": "Machine-translated from the original instructions (scripts/lift_function.py); 3 seeds; oracle 24/24 instructions, 0/0 jump directions; mutation survivors: tasks/fl40-survivors.json.",
+   "source": "native port src/original_methods_fl40.c:m44bed5_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m44bed5_lifted",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x0044bf14",
+   "name": "m44bf14_lifted",
+   "basis": "native_port",
+   "summary": "Machine-translated from the original instructions (scripts/lift_function.py); 5 seeds; oracle 21/21 instructions, 0/0 jump directions; mutation survivors: tasks/fl40-survivors.json.",
+   "source": "native port src/original_methods_fl40.c:m44bf14_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m44bf14_lifted",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x0044bf4b",
+   "name": "m44bf4b_lifted",
+   "basis": "native_port",
+   "summary": "Machine-translated from the original instructions (scripts/lift_function.py); 2 seeds; oracle 23/23 instructions, 0/0 jump directions; mutation survivors: tasks/fl40-survivors.json.",
+   "source": "native port src/original_methods_fl40.c:m44bf4b_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m44bf4b_lifted",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x0044bf8b",
+   "name": "m44bf8b_lifted",
+   "basis": "native_port",
+   "summary": "Machine-translated from the original instructions (scripts/lift_function.py); 2 seeds; oracle 17/17 instructions, 0/0 jump directions; mutation survivors: tasks/fl40-survivors.json.",
+   "source": "native port src/original_methods_fl40.c:m44bf8b_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m44bf8b_lifted",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x0044bfb2",
+   "name": "m44bfb2_lifted",
+   "basis": "native_port",
+   "summary": "Machine-translated from the original instructions (scripts/lift_function.py); 3 seeds; oracle 21/21 instructions, 0/0 jump directions; mutation survivors: tasks/fl40-survivors.json.",
+   "source": "native port src/original_methods_fl40.c:m44bfb2_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m44bfb2_lifted",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x0044bfe5",
+   "name": "m44bfe5_lifted",
+   "basis": "native_port",
+   "summary": "Machine-translated from the original instructions (scripts/lift_function.py); 6 seeds; oracle 16/16 instructions, 0/0 jump directions; mutation survivors: tasks/fl40-survivors.json.",
+   "source": "native port src/original_methods_fl40.c:m44bfe5_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m44bfe5_lifted",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x0044c00a",
+   "name": "m44c00a_lifted",
+   "basis": "native_port",
+   "summary": "Machine-translated from the original instructions (scripts/lift_function.py); 7 seeds; oracle 17/17 instructions, 0/0 jump directions; mutation survivors: tasks/fl40-survivors.json.",
+   "source": "native port src/original_methods_fl40.c:m44c00a_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m44c00a_lifted",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x0044c033",
+   "name": "m44c033_lifted",
+   "basis": "native_port",
+   "summary": "Machine-translated from the original instructions (scripts/lift_function.py); 4 seeds; oracle 17/17 instructions, 0/0 jump directions; mutation survivors: tasks/fl40-survivors.json.",
+   "source": "native port src/original_methods_fl40.c:m44c033_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m44c033_lifted",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x0044c05c",
+   "name": "m44c05c_lifted",
+   "basis": "native_port",
+   "summary": "Machine-translated from the original instructions (scripts/lift_function.py); 4 seeds; oracle 19/19 instructions, 0/0 jump directions; mutation survivors: tasks/fl40-survivors.json.",
+   "source": "native port src/original_methods_fl40.c:m44c05c_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m44c05c_lifted",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x0044c08a",
+   "name": "m44c08a_lifted",
+   "basis": "native_port",
+   "summary": "Machine-translated from the original instructions (scripts/lift_function.py); 5 seeds; oracle 19/19 instructions, 0/0 jump directions; mutation survivors: tasks/fl40-survivors.json.",
+   "source": "native port src/original_methods_fl40.c:m44c08a_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m44c08a_lifted",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x0044c0b8",
+   "name": "m44c0b8_lifted",
+   "basis": "native_port",
+   "summary": "Machine-translated from the original instructions (scripts/lift_function.py); 6 seeds; oracle 19/19 instructions, 0/0 jump directions; mutation survivors: tasks/fl40-survivors.json.",
+   "source": "native port src/original_methods_fl40.c:m44c0b8_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m44c0b8_lifted",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x0044c0e6",
+   "name": "m44c0e6_lifted",
+   "basis": "native_port",
+   "summary": "Machine-translated from the original instructions (scripts/lift_function.py); 3 seeds; oracle 19/19 instructions, 0/0 jump directions; mutation survivors: tasks/fl40-survivors.json.",
+   "source": "native port src/original_methods_fl40.c:m44c0e6_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m44c0e6_lifted",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x0044c114",
+   "name": "m44c114_lifted",
+   "basis": "native_port",
+   "summary": "Machine-translated from the original instructions (scripts/lift_function.py); 5 seeds; oracle 49/49 instructions, 0/0 jump directions; mutation survivors: tasks/fl40-survivors.json.",
+   "source": "native port src/original_methods_fl40.c:m44c114_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m44c114_lifted",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x0044c1a3",
+   "name": "m44c1a3_lifted",
+   "basis": "native_port",
+   "summary": "Machine-translated from the original instructions (scripts/lift_function.py); 3 seeds; oracle 44/44 instructions, 0/0 jump directions; mutation survivors: tasks/fl40-survivors.json.",
+   "source": "native port src/original_methods_fl40.c:m44c1a3_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m44c1a3_lifted",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x0044c223",
+   "name": "m44c223_lifted",
+   "basis": "native_port",
+   "summary": "Machine-translated from the original instructions (scripts/lift_function.py); 4 seeds; oracle 48/48 instructions, 2/2 jump directions; mutation survivors: tasks/fl40-survivors.json.",
+   "source": "native port src/original_methods_fl40.c:m44c223_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m44c223_lifted",
     "class": "native_oracle_verified"
    }
   },

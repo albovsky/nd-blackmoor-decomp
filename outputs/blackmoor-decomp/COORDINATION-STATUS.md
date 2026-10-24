@@ -1640,3 +1640,7 @@ Details: `tasks/fl49-handoff.md`. 2,011 (main after PR 172) -> **2,059 ported**:
 
 Details: `tasks/fl50-handoff.md`. 2,059 (main after PR 174) -> **2,064 ported**: 244 of 337 translated rows credited (239 before), 93 held. A harness gap was fixed (a mutant that went over the quick step budget but finished inside the full budget and differed was not counted as killed). Rule soundness is now rechecked on all 172 rows with no disproof. Large rows 0x440dfc and 0x41a4c9 have 186 and 117 open mutants and stay held. Open: 93 held rows, five large rows never checked, written reasons that rest on an aliasing assumption (FL-49).
 
+
+## FL-51 handoff (2026-10-24, PDT): rows below 0x480000, seventh round (the x87 unit)
+
+Details: `tasks/fl51-handoff.md`. 2,064 (main after PR 175) -> **2,079 ported**: 39 rows that use the FPU now lift (376 translated rows below 0x480000), 15 are credited (259 credited, 117 held). New: an x87 model that follows the oracle (Win32 control word 0x27f), callee FPU-effect classification, float-bit seeds, FPU mutation operators (the diff review added fchs, stack-index and fst/fstp mutants and a tighter callee classification; the 15 rows were re-checked). Open: 10 clone rows with one width survivor in a `repe cmpsb` loop, 7 rows with survivors, 7 never mutation-checked, 9 with incomplete seed coverage. Model limits (exception flags other than ZE, NaN quieting, x86-host-only exactness) are listed in the handoff.

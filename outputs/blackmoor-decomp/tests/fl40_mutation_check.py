@@ -92,7 +92,8 @@ def mutants(text, va, rng, limit, only=None):
     for n, line in enumerate(lines):
         code, comment = COMMENT.match(line).groups()
         comment = comment or ''
-        if not code.strip() or code.strip() in ('{', '}') or code.strip().startswith(('/*', 'void ', 'FL40_', 'done:', 'L_', 'while', 'switch', 'case', 'default', 'break')):
+        if not code.strip() or code.strip() in ('{', '}') or code.strip().startswith(('/*', 'void ', 'FL40_', 'done:', 'L_', 'while', 'switch', 'case', 'default', 'break')) \
+                and not code.strip().startswith('FL40_FST(fp'):
             continue
 
         def add(kind, new_code):
@@ -103,6 +104,39 @@ def mutants(text, va, rng, limit, only=None):
             continue
         if 'goto' in code or 'case ' in code or 'switch' in code:
             continue
+        # FL-51: the statements of the x87 unit
+        m = re.search(r'fl40_fx_(add|sub|mul|div)\(fp, (\w+), (\w+)\)', code)
+        if m:
+            for other in ('add', 'sub', 'mul', 'div'):
+                if other != m.group(1):
+                    add('alu', code.replace('fl40_fx_%s(' % m.group(1), 'fl40_fx_%s(' % other, 1))
+            if m.group(1) in ('sub', 'div'):          # add and mul are commutative: swapping their operands is no mutant
+                add('register', code.replace(m.group(0), 'fl40_fx_%s(fp, %s, %s)' % (m.group(1), m.group(3), m.group(2)), 1))
+        for old, new in (('fl40_ld_f32(', 'fl40_ld_f64('), ('fl40_ld_f64(', 'fl40_ld_f32('), ('fl40_ld_f32(', 'fl40_ld_i32('), ('fl40_ld_f64(', 'fl40_ld_i64('),
+                         ('fl40_ld_i32(', 'fl40_ld_f32('), ('fl40_ld_i64(', 'fl40_ld_f64('), ('fl40_ld_i16(', 'fl40_ld_i32('), ('fl40_st_f32(', 'fl40_st_f64('), ('fl40_st_f64(', 'fl40_st_f32(')):
+            if old in code:
+                add('width', code.replace(old, new, 1))
+        if 'v_ = fl40_fpop(fp)' in code:          # fstp becomes fst
+            add('alu', code.replace('v_ = fl40_fpop(fp)', 'v_ = FL40_FST(fp, 0)', 1))
+        if 'v_ = FL40_FST(fp, 0)' in code:        # fst becomes fstp
+            add('alu', code.replace('v_ = FL40_FST(fp, 0)', 'v_ = fl40_fpop(fp)', 1))
+        m = re.search(r'fl40_fx_cmp\(fp, (FL40_FST\(fp, \d\)), (.*)\);\s*$', code)
+        if m:
+            add('register', code.replace(m.group(0), 'fl40_fx_cmp(fp, %s, %s);' % (m.group(2), m.group(1)), 1))
+        m = re.search(r'FL40_FST\(fp, (\d)\)', code)
+        if m and 'fl40_fx_' not in code and 'fl40_fchs' not in code:
+            add('register', code.replace(m.group(0), 'FL40_FST(fp, %d)' % ((int(m.group(1)) + 1) & 7), 1))
+        # FL-51 review: every stack index of an arithmetic, compare or sign-change statement is moved one slot (one mutant per occurrence), a
+        # dropped fchs, a store without pop (fst for fstp), and the narrower integer loads
+        if 'fl40_fx_' in code or 'fl40_fchs' in code:
+            for k, mm in enumerate(re.finditer(r'FL40_FST\(fp, (\d)\)', code)):
+                add('register', code[:mm.start()] + 'FL40_FST(fp, %d)' % ((int(mm.group(1)) + 1) & 7) + code[mm.end():])
+        mm = re.search(r'fl40_fchs\((FL40_FST\(fp, \d\))\)', code)
+        if mm:
+            add('alu', code.replace(mm.group(0), mm.group(1), 1))
+        for old, new in (('fl40_ld_i64(', 'fl40_ld_i32('), ('fl40_ld_i32(', 'fl40_ld_i16(')):
+            if old in code:
+                add('width', code.replace(old, new, 1))
         if 'FL40_ADD(' in code:
             add('alu', code.replace('FL40_ADD(', 'FL40_SUB('))
         if 'FL40_SUB(' in code:

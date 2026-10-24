@@ -112,6 +112,9 @@ def refused(ins):
             return True
         if n == 'call' and False:
             pass
+        if n in ('fst', 'fstp', 'fist', 'fistp', 'fisttp', 'fnstcw', 'fstcw', 'fnstsw', 'fstsw', 'fnstenv', 'fstenv', 'fbstp') \
+                and any(op.type == X.X86_OP_MEM for op in i.operands):
+            return True         # FL-51: an x87 store writes a frame slot the integer analysis does not see (a float written to [ebp - 4])
         for op in i.operands:
             if op.type == X.X86_OP_MEM:
                 b, ix = i.reg_name(op.mem.base), i.reg_name(op.mem.index)

@@ -81,6 +81,16 @@ def ledger_spans():
     return _LEDGER
 
 
+_ENTRIES = None
+
+
+def ledger_entry(va):
+    global _ENTRIES
+    if _ENTRIES is None:
+        _ENTRIES = {int(e["va"], 16): e for e in json.load(open(PROJECT / "function-ledger.json"))["entries"]}
+    return _ENTRIES.get(va)
+
+
 def callee_shape(target, depth=0):
     """(bytes the callee pops after the return address, None) of the function at `target`, from its own `ret N` instructions; raises
     Unsupported for a callee that does not follow the usual stack discipline (x87 inside, esp written otherwise, ret N that differ,
@@ -116,6 +126,114 @@ def callee_shape(target, depth=0):
     if len(rets) != 1:
         raise Unsupported("callee 0x%x has several ret sizes %s" % (target, sorted(rets)))
     return rets.pop()
+
+
+# net change of the x87 stack depth of an instruction (FL-51)
+FPU_PUSH = {"fld", "fild", "fld1", "fldz", "fldpi", "fldl2e", "fldln2", "fldl2t", "fldlg2", "fsincos", "fptan", "fxtract"}
+FPU_POP = {"fstp", "fistp", "fisttp", "fcomp", "fucomp", "faddp", "fmulp", "fsubp", "fsubrp", "fdivp", "fdivrp", "ficomp", "fpatan", "fyl2x", "fyl2xp1"}
+FPU_POP2 = {"fcompp", "fucompp"}
+FPU_NEUTRAL = {"fst", "fist", "fadd", "fmul", "fsub", "fsubr", "fdiv", "fdivr", "fiadd", "fimul", "fisub", "fisubr", "fidiv", "fidivr", "fchs", "fabs", "fcom",
+               "fucom", "ficom", "fnstsw", "fnstcw", "fldcw", "fwait", "fsqrt", "frndint", "ftst", "fxch", "fxam", "fnclex", "fnstenv", "fldenv", "fprem", "fscale",
+               "fsin", "fcos", "f2xm1", "fprem1", "fnop"}
+_FPU_NET = {}
+# C runtime routines whose x87 effect was read from their bytes (the ledger splits some of them into pieces, so a walk of the ledger span would miss their `ret`):
+# sqrt, sin and cos take a double on the stack and leave the result in st(0); __ftol takes st(0) and returns edx:eax; atof (0x50ccec) returns its result in st(0)
+LIBRARY_FPU_NET = {0x50df94: 1, 0x50e104: 1, 0x50e054: 1, 0x50ce04: -1, 0x50ccec: 1}
+
+
+def library_fpu_net(target, depth=0):
+    """x87 effect of a C runtime routine: the table above, else 0 provided the routine (its bytes up to the first `ret`, at most 400) holds no x87 instruction.
+    A thunk (`mov edx, imm; jmp target`) is followed; any other jump or call out of the scan is refused (FL-51 review: 0x50de00 jumps to code that uses the x87 unit)."""
+    if target in LIBRARY_FPU_NET:
+        return LIBRARY_FPU_NET[target]
+    if depth > 3:
+        raise Unsupported("library callee 0x%x: jump chain too long" % target)
+    img = od.load_image()
+    n = 0
+    for i in md().disasm(img.image[target - img.image_base:][:400], target):
+        if i.mnemonic.startswith("f") and i.mnemonic != "fs":
+            raise Unsupported("library callee 0x%x uses %s and is not classified" % (target, i.mnemonic))
+        n += 1
+        if i.mnemonic == "jmp":
+            if i.operands and i.operands[0].type == X.X86_OP_IMM:
+                return library_fpu_net(i.operands[0].imm, depth + 1)
+            raise Unsupported("library callee 0x%x: indirect jump" % target)
+        if i.mnemonic == "ret":
+            return 0
+    raise Unsupported("library callee 0x%x: no ret within 400 bytes" % target)
+
+
+def fpu_net(target, depth=0):
+    """Net change of the x87 stack depth that a call of the function at `target` leaves (1: it returns a value in st(0)); raises Unsupported for a callee whose
+    paths disagree, that calls through a register, or that uses an x87 instruction the model does not know."""
+    if target in _FPU_NET:
+        return _FPU_NET[target]
+    entry = ledger_entry(target)
+    if entry is None or depth > 6:
+        raise Unsupported("callee 0x%x is not a ledger function" % target)
+    if entry["origin"] != "game":
+        _FPU_NET[target] = library_fpu_net(target)
+        return _FPU_NET[target]
+    spans = ledger_spans()
+    ins = list(md().disasm(od.load_image().image[target - od.load_image().image_base:][:spans[target]], target))
+    by_addr = {i.address: k for k, i in enumerate(ins)}
+    seen, rets = {}, set()
+    work = [(0, 0)]
+    while work:
+        k, d = work.pop()
+        while k < len(ins):
+            i = ins[k]
+            if i.address in seen:
+                if seen[i.address] != d:
+                    raise Unsupported("callee 0x%x: x87 depth differs on two paths at 0x%x" % (target, i.address))
+                break
+            seen[i.address] = d
+            mn = i.mnemonic
+            if mn.startswith("f") and mn != "fs":
+                if mn in FPU_PUSH:
+                    d += 1
+                elif mn in FPU_POP:
+                    d -= 1
+                elif mn in FPU_POP2:
+                    d -= 2
+                elif mn not in FPU_NEUTRAL:
+                    raise Unsupported("callee 0x%x: x87 instruction %s" % (target, mn))
+            if mn == "call":
+                o = i.operands[0]
+                if o.type == X.X86_OP_MEM and not o.mem.base and not o.mem.index and o.mem.disp in import_slots():
+                    pass                                    # an import: it does not touch the x87 stack
+                elif o.type != X.X86_OP_IMM:
+                    raise Unsupported("callee 0x%x: indirect call at 0x%x" % (target, i.address))
+                elif o.imm != target:
+                    d += fpu_net(o.imm, depth + 1)
+            if mn == "ret":
+                rets.add(d)
+                break
+            if mn == "jmp" and i.operands[0].type == X.X86_OP_MEM and i.operands[0].mem.index and not i.operands[0].mem.base:
+                for t in set(jump_table(ins, k, target, target + spans[target])):
+                    work.append((by_addr[t], d))
+                break
+            if mn == "jmp":
+                t = i.operands[0].imm if i.operands and i.operands[0].type == X.X86_OP_IMM else None
+                if t is None or t not in by_addr:
+                    if t is not None and t != target:
+                        rets.add(d + fpu_net(t, depth + 1))
+                    else:
+                        raise Unsupported("callee 0x%x: indirect jump at 0x%x" % (target, i.address))
+                    break
+                k = by_addr[t]
+                continue
+            if mn[0] == "j" and i.operands and i.operands[0].type == X.X86_OP_IMM:
+                if i.operands[0].imm not in by_addr:
+                    raise Unsupported("callee 0x%x: conditional jump out of its span at 0x%x" % (target, i.address))
+                work.append((by_addr[i.operands[0].imm], d))
+            k += 1
+        else:
+            raise Unsupported("callee 0x%x: runs off the end of its span" % target)
+    if len(rets) != 1:
+        raise Unsupported("callee 0x%x: x87 depth at its returns %s" % (target, sorted(rets)))
+    _FPU_NET[target] = rets.pop()
+    return _FPU_NET[target]
 
 
 # ---- the imports ---------------------------------------------------------------------------------------------------------------
@@ -174,7 +292,9 @@ class Ctx:
         self.callees = {}
         self.imports = {}
         self.inline = set()
+        self.fpret = {}
         self.fs = False
+        self.fpu = any(i.mnemonic.startswith('f') and i.mnemonic != 'fs' for i in ins)
         self.lines = []
         self.temp = 0
 
@@ -255,6 +375,50 @@ ARITH = {"add": "ADD", "sub": "SUB", "adc": "ADC", "sbb": "SBB", "cmp": "CMP", "
 
 def label(va):
     return "L_%x" % va
+
+
+BYTE_REGS = {X.X86_REG_AL: "eax", X.X86_REG_CL: "ecx", X.X86_REG_DL: "edx", X.X86_REG_BL: "ebx"}
+
+
+def jump_table(ins, k, va, end):
+    """Targets of the `jmp [index*4 + table]` at ins[k] of the function [va, end): the table has as many entries as the bound the code compares the index with
+    (FL-51: the index may be any register that a byte table was read into). Raises Unsupported for a table that leaves the function or has no visible bound."""
+    i = ins[k]
+    m = i.operands[0].mem
+    a = i.address
+    table = m.disp & 0xffffffff
+    count = None
+    window = ins[max(0, k - 14):k]
+    index_reg = reg_name(i, m.index)
+
+    def bound_before(upto):
+        """imm + 1 of the last `cmp x, imm` before window[upto] that is followed by ja (imm + 1 values) or jae (imm values)."""
+        for q in range(upto - 1, 0, -1):
+            if window[q].mnemonic in ("ja", "jae") and window[q - 1].mnemonic == "cmp" and window[q - 1].operands[1].type == X.X86_OP_IMM:
+                return window[q - 1].operands[1].imm + (1 if window[q].mnemonic == "ja" else 0)
+        return None
+
+    # the index comes from a byte table: mov al, byte ptr [reg + IDX]; the entries are the largest byte + 1
+    for n, prev in enumerate(window):
+        if prev.mnemonic == "mov" and prev.operands[0].type == X.X86_OP_REG and BYTE_REGS.get(prev.operands[0].reg) == index_reg and \
+                prev.operands[1].type == X.X86_OP_MEM and prev.operands[1].size == 1 and prev.operands[1].mem.index == 0:
+            bound = bound_before(n)
+            if bound is not None:
+                base_idx = prev.operands[1].mem.disp & 0xffffffff
+                raw = od.load_image().image
+                count = max(raw[base_idx - od.load_image().image_base:][:bound]) + 1
+            break
+    if count is None:
+        count = bound_before(len(window))
+    if count is None:
+        raise Unsupported("jump table without a bound at 0x%x" % a)
+    img = od.load_image()
+    off = table - img.image_base
+    import struct
+    targets = struct.unpack_from("<%dI" % count, img.image, off)
+    if any(not (va <= t < end) for t in targets):
+        raise Unsupported("jump table leaves the function at 0x%x" % a)
+    return targets
 
 
 def lift_one(c, i):
@@ -387,49 +551,23 @@ def lift_one(c, i):
             return
         cleanup = callee_shape(t)
         c.callees[t] = cleanup
+        net = fpu_net(t) if c.fpu else 0
+        if net not in (-1, 0, 1):
+            raise Unsupported("callee 0x%x changes the x87 stack by %d at 0x%x" % (t, net, a))
         e("esp -= 4u; WR32(esp, 0x%xu);" % (a + i.size))
         e("FL40_CALL(0x%xu);" % t)
         if cleanup:
             e("esp += %du;" % cleanup)
         e("esp += 4u;")
+        if net:
+            c.fpret[t] = net
+            e("fl40_fpush(fp, fl40_ld_f64(fp, h->fret(h->ctx)));" if net > 0 else "fl40_fpop(fp);")
         return
     if mn == "jmp" and ops[0].type == X.X86_OP_MEM:
         m = ops[0].mem
         if m.base or not m.index or m.scale != 4 or m.segment not in (0, X.X86_REG_DS):
             raise Unsupported("indirect jump at 0x%x" % a)
-        table = m.disp & 0xffffffff
-        count = None
-        k = c.ins.index(i)
-        window = c.ins[max(0, k - 14):k]
-        index_reg = reg_name(i, m.index)
-
-        def bound_before(upto):
-            """imm + 1 of the last `cmp x, imm` before window[upto] that is followed by ja (imm + 1 values) or jae (imm values)."""
-            for q in range(upto - 1, 0, -1):
-                if window[q].mnemonic in ("ja", "jae") and window[q - 1].mnemonic == "cmp" and window[q - 1].operands[1].type == X.X86_OP_IMM:
-                    return window[q - 1].operands[1].imm + (1 if window[q].mnemonic == "ja" else 0)
-            return None
-
-        # the index comes from a byte table: mov al, byte ptr [reg + IDX]; the entries are the largest byte + 1
-        for n, prev in enumerate(window):
-            if prev.mnemonic == "mov" and prev.operands[0].type == X.X86_OP_REG and prev.operands[0].reg == X.X86_REG_AL and \
-                    prev.operands[1].type == X.X86_OP_MEM and prev.operands[1].size == 1 and prev.operands[1].mem.index == 0 and index_reg == "eax":
-                bound = bound_before(n)
-                if bound is not None:
-                    base_idx = prev.operands[1].mem.disp & 0xffffffff
-                    raw = od.load_image().image
-                    count = max(raw[base_idx - od.load_image().image_base:][:bound]) + 1
-                break
-        if count is None:
-            count = bound_before(len(window))
-        if count is None:
-            raise Unsupported("jump table without a bound at 0x%x" % a)
-        img = od.load_image()
-        off = table - img.image_base
-        import struct
-        targets = struct.unpack_from("<%dI" % count, img.image, off)
-        if any(not (c.va <= t < c.end) for t in targets):
-            raise Unsupported("jump table leaves the function at 0x%x" % a)
+        targets = jump_table(c.ins, c.ins.index(i), c.va, c.end)
         c.targets |= set(targets)
         e("{ uint32_t t_ = RD32(%s);" % mem_addr(i, ops[0]))
         e("  switch (t_) {")
@@ -535,6 +673,108 @@ def lift_one(c, i):
         return lift_string(c, i, prefix, mn)
     if mn == "std":
         raise Unsupported("std at 0x%x" % a)
+    if mn.startswith("f") and mn != "fs":
+        return lift_x87(c, i, mn)
+    raise Unsupported("%s at 0x%x" % (mn, a))
+
+
+def st_index(i, op):
+    if op.type != X.X86_OP_REG or not (X.X86_REG_ST0 <= op.reg <= X.X86_REG_ST7):
+        raise Unsupported("x87 operand at 0x%x" % i.address)
+    return op.reg - X.X86_REG_ST0
+
+
+def mem64(i, op):
+    """(low dword read, high dword read) of a qword operand"""
+    addr = mem_addr(i, op)
+    return "RD32(%s)" % addr, "RD32((uint32_t)(%s + 4u))" % addr
+
+
+def f_load(i, op, kind):
+    """C expression of the long double that the memory operand holds as float / double / int16 / int32 / int64"""
+    if op.type != X.X86_OP_MEM:
+        raise Unsupported("x87 operand at 0x%x" % i.address)
+    n = op.size
+    if kind == "f":
+        if n == 4:
+            return "fl40_ld_f32(fp, RD32(%s))" % mem_addr(i, op)
+        if n == 8:
+            lo, hi = mem64(i, op)
+            return "fl40_ld_f64(fp, ((uint64_t)%s << 32) | %s)" % (hi, lo)
+    else:
+        if n == 2:
+            return "fl40_ld_i16(fp, RD16(%s))" % mem_addr(i, op)
+        if n == 4:
+            return "fl40_ld_i32(fp, RD32(%s))" % mem_addr(i, op)
+        if n == 8:
+            lo, hi = mem64(i, op)
+            return "fl40_ld_i64(fp, ((uint64_t)%s << 32) | %s)" % (hi, lo)
+    raise Unsupported("x87 memory operand of %d bytes at 0x%x" % (n, i.address))
+
+
+FARITH = {"fadd": ("add", False), "fsub": ("sub", False), "fsubr": ("sub", True), "fmul": ("mul", False), "fdiv": ("div", False), "fdivr": ("div", True)}
+
+
+def lift_x87(c, i, mn):
+    e = c.emit
+    ops = i.operands
+    a = i.address
+    if mn == "fld":
+        if ops[0].type == X.X86_OP_MEM:
+            e("fl40_fpush(fp, %s);" % f_load(i, ops[0], "f"))
+        else:
+            e("fl40_fpush(fp, FL40_FST(fp, %d));" % st_index(i, ops[0]))
+        return
+    if mn == "fild":
+        e("fl40_fpush(fp, %s);" % f_load(i, ops[0], "i"))
+        return
+    if mn in ("fst", "fstp"):
+        if ops[0].type != X.X86_OP_MEM:
+            raise Unsupported("%s to a register at 0x%x" % (mn, a))
+        pop = "fl40_fpop(fp)" if mn == "fstp" else "FL40_FST(fp, 0)"
+        if ops[0].size == 4:
+            e("{ long double v_ = %s; WR32(%s, fl40_st_f32(fp, v_)); }" % (pop, mem_addr(i, ops[0])))
+        elif ops[0].size == 8:
+            e("{ long double v_ = %s; uint64_t w_ = fl40_st_f64(fp, v_); WR32(%s, (uint32_t)w_); WR32((uint32_t)(%s + 4u), (uint32_t)(w_ >> 32)); }" % (pop, mem_addr(i, ops[0]), mem_addr(i, ops[0])))
+        else:
+            raise Unsupported("%s of %d bytes at 0x%x" % (mn, ops[0].size, a))
+        return
+    base = mn[:-1] if mn.endswith("p") and mn[:-1] in FARITH else mn
+    if base in FARITH:
+        op, reverse = FARITH[base]
+        pop = mn != base
+        if ops and ops[0].type == X.X86_OP_MEM:
+            dst, src = "FL40_FST(fp, 0)", f_load(i, ops[0], "f")
+        else:
+            di = st_index(i, ops[0]) if ops else 1
+            si = st_index(i, ops[1]) if len(ops) > 1 else 0
+            if not ops or (len(ops) == 1 and not pop):
+                raise Unsupported("%s form at 0x%x" % (mn, a))
+            dst, src = "FL40_FST(fp, %d)" % di, "FL40_FST(fp, %d)" % si
+        e("{ long double d_ = %s, s_ = %s; %s = fl40_fx_%s(fp, %s, %s); }" % (dst, src, dst, op, "s_" if reverse else "d_", "d_" if reverse else "s_"))
+        if pop:
+            e("fl40_fpop(fp);")
+        return
+    if mn == "fchs":
+        e("FL40_FST(fp, 0) = fl40_fchs(FL40_FST(fp, 0));")
+        return
+    if mn in ("fcom", "fcomp"):
+        if ops and ops[0].type == X.X86_OP_MEM:
+            e("fl40_fx_cmp(fp, FL40_FST(fp, 0), %s);" % f_load(i, ops[0], "f"))
+        else:
+            e("fl40_fx_cmp(fp, FL40_FST(fp, 0), FL40_FST(fp, %d));" % (st_index(i, ops[0]) if ops else 1))
+        if mn == "fcomp":
+            e("fl40_fpop(fp);")
+        return
+    if mn == "fcompp":
+        e("fl40_fx_cmp(fp, FL40_FST(fp, 0), FL40_FST(fp, 1));")
+        e("fl40_fpop(fp); fl40_fpop(fp);")
+        return
+    if mn == "fnstsw":
+        if not (ops and ops[0].type == X.X86_OP_REG and reg_name(i, ops[0].reg) == "ax"):
+            raise Unsupported("fnstsw operand at 0x%x" % a)
+        e("eax = (eax & 0xffff0000u) | (uint32_t)fp->sw;")
+        return
     raise Unsupported("%s at 0x%x" % (mn, a))
 
 
@@ -590,7 +830,7 @@ def lift(va, body_size):
         note = "/* 0x%x: %s %s */" % (i.address, i.mnemonic, i.op_str.replace("*/", "* /"))
         if not chunk:
             c.emit(note)
-        elif len(chunk) == 1 or (not any(x.startswith(("while", "switch", "case", "default")) for x in chunk) and sum(len(x) for x in chunk) < 200):
+        elif len(chunk) == 1 or (not any(x.startswith(("while", "switch", "case", "default", "fl40_f", "FL40_FST")) for x in chunk) and sum(len(x) for x in chunk) < 200):
             c.emit(" ".join(chunk) + "  " + note)
         else:
             c.emit(note)
@@ -598,8 +838,8 @@ def lift(va, body_size):
     head = ["/* GAME.EXE 0x%x (%d bytes): machine translation of the original instructions, see the note at the top of this file. */" % (va, body_size),
             "void m%x_lifted(Fl40Regs *r, const Fl40Host *h)" % va, "{",
             "    FL40_PROLOGUE",
-            ]
-    tail = ["done:", "    FL40_EPILOGUE", "}"]
+            ] + (["    FL40_FPU_PROLOGUE"] if c.fpu else [])
+    tail = ["done:", "    FL40_EPILOGUE"] + (["    FL40_FPU_EPILOGUE"] if c.fpu else []) + ["}"]
     fs = any(any(op.type == X.X86_OP_MEM and op.mem.segment == X.X86_REG_FS for op in i.operands) for i in ins)
     return "\n".join(head + c.lines + tail) + "\n", dict(c.callees), dict(c.imports), fs, set(c.inline)
 
