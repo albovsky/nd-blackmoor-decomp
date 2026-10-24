@@ -37,6 +37,7 @@ from unicorn import x86_const as UX
 import fl40_world as W
 import fl40_mutation_check as M
 
+NEIGHBOURS = os.environ.get('FL49_NEIGHBOURS') == '1'
 SOURCE = PROJECT / 'src/original_methods_fl40.c'
 CORPUS = PROJECT / 'tests/fl40_corpus.json'
 FULL = {n: getattr(UX, 'UC_X86_REG_' + n.upper()) for n in ('eax', 'ecx', 'edx', 'ebx', 'esp', 'ebp', 'esi', 'edi')}
@@ -204,12 +205,22 @@ def work(args):
             if not targets:
                 continue
             md, ins = instruction_at(row, address)
+            STRING = ('cmps', 'scas', 'movs')
+            paddr, pins = address, ins
+            if not ins.mnemonic.split()[-1].startswith(STRING):                       # FL-49: a mutated `mov ecx, N` just before a string instruction: probe the string instruction (its esi/edi cells)
+                nxt = address + ins.size
+                for _ in range(4):
+                    md_, cand = instruction_at(row, nxt)
+                    if cand.mnemonic.split()[-1].startswith(STRING):
+                        paddr, pins = nxt, cand
+                        break
+                    nxt += cand.size
             s_md, stores = store_instructions(row)
             imms = [op.imm & 0xffffffff for op in ins.operands if op.type == CX.X86_OP_IMM]
             reaching = []
             for sd, ov in base:
                 store = []
-                o = W.run_original(row, sd, ov, observe=True, probes={address: make_probe(md, ins, store)})
+                o = W.run_original(row, sd, ov, observe=True, probes={paddr: make_probe(md, pins, store)})
                 if o.fault or not store:
                     continue
                 reaching.append((sd, ov, o, store[0], 0))
@@ -264,25 +275,45 @@ def work(args):
                                         extra.setdefault((a, n), (v, set()))[1].add((v - ((-delta) & 0xffffffff) // scale) & 0xffffffff if scale == 1 else (v + delta // scale) & 0xffffffff)
                 for (a, n), (v, news) in extra.items():
                     chosen.setdefault((a, n), v)
+                if NEIGHBOURS:                                           # FL-49: the bytes around a cell the instruction reads (a compare that the mutant runs one turn longer reads the next byte, which the original never read)
+                    for (a, n, _v) in cells:
+                        for d in range(-2, 17):
+                            chosen.setdefault((a + d, 1), inputs.get((a + d, 1), 0))
+                cand_list = []
                 for (a, n), v in sorted(chosen.items()):
                     for new in (list(variants(v, n, imms, [x for x in values if x != v])) if depth == 0 else []) + sorted(extra.get((a, n), (v, ()))[1]):
+                        cand_list.append(({(a, n): new}, (a, n), new))
+                if NEIGHBOURS and depth == 0 and pins.mnemonic.split()[-1].startswith('cmps') and len(cells) == 2:          # FL-49: make one string equal to the other for N bytes, then vary the next byte (a compare run one byte longer)
+                    image = W.od.load_image().image
+                    (ca, _, _), (cb, _, _) = cells
+                    const, var = (ca, cb) if ca < W.DATA_START else (cb, ca)
+                    if const < W.DATA_START and const >= 0x401000 and var >= W.DATA_START:
+                        for count in range(1, 17):
+                            base_ov = {(var + i, 1): image[const + i - W.IMAGE_BASE] for i in range(count)}
+                            for x in {0, 1, 0x20, 0x41, 0xff, image[const + count - W.IMAGE_BASE] ^ 1, (image[const + count - W.IMAGE_BASE] + 1) & 0xff}:
+                                cand_list.append((dict(base_ov, **{(var + count, 1): x}), None, None))
+                for add, an, new in cand_list:
+                    if True:
                         if not (alive & targets):
                             break
                         merged = {(x, y): z for x, y, z in ov}
-                        merged[(a, n)] = new
+                        merged.update(add)
                         scen = tuple(sorted((x, y, z) for (x, y), z in merged.items()))
                         tried += 1
-                        o2 = W.run_original(row, sd, scen)
-                        if o2.fault:
+                        try:
+                            o2 = W.run_original(row, sd, scen)
+                            if o2.fault:
+                                continue
+                            t = W.run_native(lib, row, sd, scen)
+                        except W.Fault:         # an override outside the model's memory
                             continue
-                        t = W.run_native(lib, row, sd, scen)
                         if t.fault or t.digest() != o2.digest():
                             continue
                         ref = o2.digest()
                         killed = []
-                        if depth == 0 and (a, n) in extra and new in extra[(a, n)][1] and len(reaching) < 40:      # an alias scenario that kills nothing yet is a base for a second alias cell
+                        if depth == 0 and an is not None and an in extra and new in extra[an][1] and len(reaching) < 40:      # an alias scenario that kills nothing yet is a base for a second alias cell
                             store2 = []
-                            o3 = W.run_original(row, sd, scen, observe=True, probes={address: make_probe(md, ins, store2)})
+                            o3 = W.run_original(row, sd, scen, observe=True, probes={paddr: make_probe(md, pins, store2)})
                             if not o3.fault and store2:
                                 reaching.append((sd, list(scen), o3, store2[0], 1))
                         for k in sorted(alive & targets):
