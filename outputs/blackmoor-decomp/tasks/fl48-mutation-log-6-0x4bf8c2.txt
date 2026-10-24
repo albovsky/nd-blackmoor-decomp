@@ -1,0 +1,2 @@
+0x4bf8c2 divergent seeds (the unmutated translation differs from the original) [5014, 5017, 5022]
+0x4bf8c2 mutants 11 killed 4 survivors [('jump', 39, 'survives', 'c4cac981'), ('alu', 87, 'survives', '396d1b56'), ('jump', 88, 'survives', '16021f90'), ('alu', 61, 'survives', 'e2f82115'), ('width', 72, 'survives', 'c74cc126'), ('register', 38, 'survives', '7ffe22a8'), ('alu', 38, 'survives', '6965d4f3')]

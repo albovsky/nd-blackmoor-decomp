@@ -413,7 +413,7 @@ def flags_ok(kind, orig, mut, ranges, addr):
     return False
 
 
-def classify(kind, lines, n, equivalent, proofs=None, mutline=None, ranges=None):
+def classify(kind, lines, n, equivalent, proofs=None, mutline=None, ranges=None, row=None):
     if equivalent:
         return 'identical code'
     if kind == 'width' and mutline is not None:
@@ -441,7 +441,14 @@ def classify(kind, lines, n, equivalent, proofs=None, mutline=None, ranges=None)
         return 'frame'
     if kind in ('alu', 'literal', 'register', 'drop') and esp_adjust_ok(lines, n):
         return 'frame'
+    if row:
+        import fl48_rules       # FL-48: FL-46's liveness rules (dead flags, dead register, equal push) on the statements
+        return fl48_rules.explain(kind, lines, n, row)
     return None
+
+
+WRITTEN_PATH = PROJECT / 'tasks/fl48-written-reasons.json'
+WRITTEN = json.loads(WRITTEN_PATH.read_text())['rows'] if WRITTEN_PATH.exists() else {}      # FL-48: {row: [{kind, line, statement, reason, review}]}, read by one Sonnet reader and checked by a second
 
 
 def main():
@@ -452,7 +459,7 @@ def main():
             equiv[row] = {(kind, n, ident): True for kind, n, ident in items}
     funcs = M.split_functions((PROJECT / 'src/original_methods_fl41.c').read_text())
     corpus = json.loads((PROJECT / 'tests/fl41_corpus.json').read_text())
-    out = {'rows_with_survivors': {}, 'unexplained_rows': []}
+    out = {'rows_with_survivors': {}, 'unexplained_rows': [], 'mutants': {}}
     for line in open(log):
         m = re.match(r'(0x[0-9a-f]+) mutants \d+ killed \d+ survivors (.*)', line)
         if not m:
@@ -474,11 +481,14 @@ def main():
         except E.NoProof:
             pass
         items = []
+        written = {(r_['kind'], r_['line'], r_.get('ident')) for r_ in WRITTEN.get(m.group(1), []) if text[r_['line']] == r_['statement']}      # FL-48: a written reason for exactly this statement (and mutant, when it names one)
         for kind, n, why, *rest in eval(m.group(2)[:m.group(2).rindex(']') + 1]):
             if why == 'survives':
                 ident = rest[0] if rest else None
                 same = equiv.get(m.group(1), {}).get((kind, n, ident), False) or (ident is None and equiv.get(m.group(1), {}).get((kind, n, None), False))
-                items.append((kind, classify(kind, text, n, same, proofs, idents.get((kind, n, ident)), ranges), text[n].strip()[:160], n))
+                cls = classify(kind, text, n, same, proofs, idents.get((kind, n, ident)), ranges, m.group(1)) or ('written reason' if ((kind, n, ident) in written or (kind, n, None) in written) else None)
+                items.append((kind, cls, text[n].strip()[:160], n))
+                out['mutants'].setdefault(m.group(1), []).append([kind, n, ident, cls])         # FL-48: the mutant by its hash (the writers of the reasons name mutants)
         if items:
             out['rows_with_survivors'][m.group(1)] = items
             if any(c is None for _, c, _, _ in items):

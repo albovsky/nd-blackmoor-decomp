@@ -1,0 +1,1 @@
+0x4d0952 mutants 14 killed 10 survivors [('jump', 51, 'survives', 'f484a2e7'), ('alu', 50, 'survives', 'c8eba785'), ('register', 50, 'survives', 'ca75839a'), ('drop', 20, 'survives', 'd1153238')]

@@ -1,0 +1,1 @@
+0x4d0275 mutants 38 killed 37 survivors [('register', 54, 'survives', '22e81e77')]

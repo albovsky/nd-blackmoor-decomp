@@ -43,6 +43,7 @@ WIDE = 600          # --harden: seeds tried on a survivor after the extra ones
 
 
 STRICT_HANG = json.loads(Path(os.environ['FL45_STRICT_HANG']).read_text()) if os.environ.get('FL45_STRICT_HANG') else None   # FL-45: {row: [mutant hash]}: rerun only these mutants and count no hang as a kill
+ONLY = json.loads(Path(os.environ['FL48_ONLY']).read_text()) if os.environ.get('FL48_ONLY') else None    # FL-48: {row: [mutant hash]}: recheck only these mutants (the survivors of an earlier run) in the normal mode
 STRICT_ALARM = int(os.environ.get("FL45_STRICT_ALARM", "5"))
 
 
@@ -72,7 +73,7 @@ def strict_scenario(lib, shim, row, sd, ov, ref):
     if pid == 0:
         try:
             os.close(r_fd)
-            signal.alarm(60)
+            signal.alarm(int(os.environ.get('FL48_SAFETY', '60')))
             steps.value, budget.value, exhausted.value = 0, 1 << 62, 0
             t0 = W.run_native(lib, row, sd, ov)                    # the unmutated translation: its step count, and it must equal the original on this scenario
             base = steps.value
@@ -219,8 +220,8 @@ def check_row_inner(args):
     row = W.row_info(va, entry['body'], {int(k, 16): v for k, v in entry['callees'].items()}, {int(k, 16): v for k, v in entry['imports'].items()}, entry['fs'])
     rng = random.Random(va)
     muts = mutants(text, va, rng, per_row, extended)
-    if STRICT_HANG:
-        only = STRICT_HANG.get(key, [])
+    if STRICT_HANG or ONLY:
+        only = (STRICT_HANG or ONLY).get(key, [])
         keep = [(i, m) for i, m in enumerate(muts) if line_hash(m[2], m[1]) in only]
         if {line_hash(m[2], m[1]) for _, m in keep} != set(only):
             raise RuntimeError('strict rerun of %s: the mutants of the hang list are not all regenerated (use the --per-row and --extended of the original run)' % key)
@@ -258,8 +259,23 @@ def check_row_inner(args):
             o = W.run_original(row, sd)
             if o.fault:
                 return None
-            t = W.run_native(lib, row, sd)
-            if t.fault or t.digest() != o.digest():
+            r_fd, w_fd = os.pipe()               # FL-48: the unmutated translation runs in a child with an alarm too (on a seed where it does not terminate it grew to several GB in this process)
+            pid = os.fork()
+            if pid == 0:
+                try:
+                    os.close(r_fd)
+                    W.PAGE_CAP = 40000
+                    signal.alarm(int(os.environ.get('FL48_ALARM', '20')))
+                    t = W.run_native(lib, row, sd)
+                    signal.alarm(0)
+                    os.write(w_fd, b'ok' if not t.fault and t.digest() == o.digest() else b'differs')
+                finally:
+                    os._exit(0)
+            os.close(w_fd)
+            verdict = os.read(r_fd, 16)
+            os.close(r_fd)
+            os.waitpid(pid, 0)
+            if verdict != b'ok':
                 divergent.append(sd)
                 return None
             return o.digest()
@@ -273,6 +289,8 @@ def check_row_inner(args):
                 try:
                     os.close(r_fd)
                     found = -1
+                    if not STRICT_HANG:
+                        W.PAGE_CAP = 40000
                     for i, (sd, ov, ref) in enumerate(items):
                         if STRICT_HANG:           # FL-45 strict mode: each scenario in its own child; one that hangs kills nothing, the mutant must differ (or crash) on another scenario
                             verdict = strict_scenario(lib, Shim(lib, va, k), row, sd, ov, ref)
@@ -282,7 +300,7 @@ def check_row_inner(args):
                                 found = i if verdict == 'differs' else -2 - i          # -2 - i: killed by the step budget on scenario i
                                 break
                             continue
-                        signal.alarm(20)         # per scenario (FL-43): one alarm over the whole list killed slow rows' mutants and counted that as a kill
+                        signal.alarm(int(os.environ.get('FL48_ALARM', '20')))         # per scenario (FL-43): one alarm over the whole list killed slow rows' mutants and counted that as a kill
                         t = W.run_native(Shim(lib, va, k), row, sd, ov)
                         signal.alarm(0)
                         if (t.digest() if not t.fault else 'fault') != ref:

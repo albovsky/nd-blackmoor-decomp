@@ -8,15 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_load_save_screen_init
-# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/4d5c54.c.txt, not original source) refers to the data labelled s_DF_LOADSAVE_first_page_Surface_0055a660, s_LOAD_SAVE_0055a730, s_Load_Save_Text_Slot_0055a700
-# name-note:    Loads the LOADSAVE surfaces (first page, non-first page, overlay, save confirmation, text slots) from CIFTREE and sets up the LOAD_SAVE render descriptor.
+# name:         m4d5c54_lifted
+# naming:       native port src/original_methods_fl41.c:m4d5c54_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port
+# name-note:    Machine-translated (scripts/lift_fl41.py), 8 seeds; oracle: 214/214 instructions, 14/14 jump directions; every mutant killed, identical -O2 code, or explained.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       1 ebp-relative slot(s): local_4
 # fields:       [eax + n] field_4, field_8, field_c, field_293, field_94d6, field_94da, field_94de, field_94e2, field_950a, field_9522, field_9526, field_952a and 7 more; [ecx + n] field_28b, field_297, field_950a, field_9526, field_952a, field_952e, field_972c, field_9730, field_9734, field_9738, field_98a8; [edx + n] field_4, field_8, field_c, field_28f, field_94d6, field_94da, field_94de, field_94e2, field_950a, field_9522, field_952e, field_9724 and 4 more
 # callees:      calls FUN_004c2790, FUN_004c2a8d
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 214 instruction(s), 7 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl41.c:m4d5c54_lifted (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 214 instruction(s), 7 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

@@ -1,0 +1,2 @@
+0x4c5770 divergent seeds (the unmutated translation differs from the original) [5002, 5003, 5004, 5005, 5006, 5009, 5010, 5011, 5012, 5013, 5014, 5015, 5016, 5018, 5019, 5020, 5021, 5022, 5023, 5025, 5026, 5027, 5029, 5030, 5031, 5032, 5033, 5035, 5037, 5038, 5039]
+0x4c5770 mutants 2 killed 0 survivors [('width', 115, 'survives', '084d04f1'), ('jump', 12, 'survives', '856fae03')]

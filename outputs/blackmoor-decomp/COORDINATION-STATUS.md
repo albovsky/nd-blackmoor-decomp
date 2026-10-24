@@ -1640,3 +1640,7 @@ Details: `tasks/fl49-handoff.md`. 2,011 (main after PR 172) -> **2,059 ported**:
 
 Details: `tasks/fl50-handoff.md`. 2,059 (main after PR 174) -> **2,064 ported**: 244 of 337 translated rows credited (239 before), 93 held. A harness gap was fixed (a mutant that went over the quick step budget but finished inside the full budget and differed was not counted as killed). Rule soundness is now rechecked on all 172 rows with no disproof. Large rows 0x440dfc and 0x41a4c9 have 186 and 117 open mutants and stay held. Open: 93 held rows, five large rows never checked, written reasons that rest on an aliasing assumption (FL-49).
 
+
+## FL-48 handoff (2026-10-24, PDT): rows at or above 0x480000, round six
+
+Details: `tasks/fl48-handoff.md`. 2,064 (main after PR 175) -> **2,122 ported**: 58 upper-address machine-translated rows credited (134 rows in `src/original_methods_fl41.c`), 34 held. Same rulings as FL-46/49 (exhaustive mutation check, kills only on seeds where the unmutated port matches, hangs only under the step budget, reviewed written reasons without callee reliance). New: callee-store scenarios (`STUB_WR`), a forked agree-check with page caps, per-mutant written reasons, and a test that ties every credited row to the step-budget rerun. A diff review caught a merge bug that hid budget survivors; six rows were held because of it. Open: ~80 written reasons rest on an aliasing assumption (as in FL-49), 34 held rows (six too large), 0x494f1f needs a larger instruction limit.

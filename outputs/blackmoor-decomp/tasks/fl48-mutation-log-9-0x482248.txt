@@ -1,0 +1,2 @@
+0x482248 divergent seeds (the unmutated translation differs from the original) [5023]
+0x482248 mutants 8 killed 0 survivors [('jump', 98, 'survives', 'f974aee6'), ('jump', 18, 'survives', 'c54ac907'), ('alu', 69, 'survives', '8cff18aa'), ('register', 17, 'survives', '759e89c0'), ('alu', 97, 'survives', '2f8d54c3'), ('alu', 17, 'survives', 'acf224d5'), ('width', 80, 'survives', 'c74cc126'), ('drop', 68, 'survives', 'fca47d7a')]
