@@ -205,6 +205,7 @@ def check_row_inner(args):
         extra = None
         wide = None
         killed, survivors, killers = 0, [], set()
+        mutant_survivors = []       # FL-49: (index of the mutant, kind, line) of every survivor, for the per-mutant detail (FL49_DETAIL=1)
         fresh_by_stage = []
         end_kind = [None]       # FL-46: how the last scan child ended when it did not finish: 'alarm' (a hang), 'crash' (another signal than SIGKILL, which is the out-of-memory killer's or a kill from outside and kills nothing) or 'nonend' (it left without finishing, an out-of-memory)
 
@@ -348,6 +349,7 @@ def check_row_inner(args):
                         survivors.append((kind, n, 'killed by rescue seed'))
                     else:
                         survivors.append((kind, n, 'killed by step budget' if k in budget_hit else 'survives'))
+                        mutant_survivors.append((k, kind, n))
                     continue
                 if harden:
                     if wide is None:
@@ -359,7 +361,8 @@ def check_row_inner(args):
                         survivors.append((kind, n, 'killed by hardening seed'))
                         continue
                 survivors.append((kind, n, 'killed by step budget' if k in budget_hit else 'survives'))
-        return key, {'mutants': len(muts), 'killed': killed, 'survivors': survivors, 'killers': sorted(killers), 'guard_dropped': dropped[0], 'hang_kills': len(set(hangs)), 'budget_kills': len(budget_hit)}
+                mutant_survivors.append((k, kind, n))
+        return key, {'mutants': len(muts), 'killed': killed, 'survivors': survivors, 'killers': sorted(killers), 'mutant_survivors': mutant_survivors, 'mutant_texts': {k: muts[k][2] for k, _, _ in mutant_survivors} if os.environ.get('FL49_DETAIL') else {}, 'guard_dropped': dropped[0], 'hang_kills': len(set(hangs)), 'budget_kills': len(budget_hit)}
 
 
 class Shim:
@@ -421,6 +424,9 @@ def main():
             total += res['mutants']
             killed += res['killed']
             hard = [s for s in res['survivors'] if s[2] == 'survives']
+            if os.environ.get('FL49_DETAIL'):        # FL-49: the surviving mutants one by one: DETAIL <row> [[index, kind, line, original line, mutant line], ...]
+                orig = funcs[key].split('\n')
+                print('DETAIL %s %s' % (key, json.dumps([[k, kind, n, orig[n].strip(), res['mutant_texts'][k].split('\n')[n].strip()] for k, kind, n in res['mutant_survivors']])), flush=True)
             print('%s mutants %d killed %d survivors %s%s' % (key, res['mutants'], res['killed'], res['survivors'], ((' guard-dropped-scenarios %d' % res['guard_dropped']) if res['guard_dropped'] else '') + ((' hang-kills %d' % res['hang_kills']) if res['hang_kills'] else '') + ((' budget-kills %d' % res['budget_kills']) if res['budget_kills'] else '')), flush=True)
             if hard:
                 bad.append(key)

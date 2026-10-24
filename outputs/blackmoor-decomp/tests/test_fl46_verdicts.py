@@ -55,12 +55,12 @@ class Coverage(unittest.TestCase):
         import fl44_final
         budget = set(re.findall(r'^(0x[0-9a-f]+) mutants', (PROJECT / 'tasks/fl46-budget3-log.txt').read_text(), re.M))
         for name in fl44_final.LOGS:
-            if name.startswith('fl46-'):
+            if name.startswith(('fl46-', 'fl49-')):
                 continue
             for row in re.findall(r'^(0x[0-9a-f]+) mutants .* hang-kills [1-9]', (PROJECT / 'tasks' / name).read_text(), re.M):
                 if row not in held:
                     self.assertIn(row, budget, (name, row))
-        self.assertEqual(fl44_final.LOGS[-1], 'fl46-budget3-log.txt')       # the later log wins in fl44_final.main
+        self.assertEqual(fl44_final.LOGS[-2:], ['fl46-budget3-log.txt', 'fl49-recheck-log.txt'])       # the later log wins in fl44_final.main
 
 
 class HeldRows(unittest.TestCase):
