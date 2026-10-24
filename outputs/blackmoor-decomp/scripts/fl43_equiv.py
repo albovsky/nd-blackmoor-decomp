@@ -114,8 +114,11 @@ def overlap(a, b):
 class Function:
     feasible = None      # FL-45: the set of (instruction, successor) edges that the interval analysis (scripts/fl45_ranges.py) shows can be taken; None = every edge
 
-    def __init__(self, va, size, feasible=None):
+    exposed = None       # FL-47: lowest frame offset whose address a `lea r, [ebp + d]` takes (frame slots at or above it can change in a call or a store through a pointer); None = no address taken
+
+    def __init__(self, va, size, feasible=None, exposed_ok=False):
         self.feasible = feasible
+        self.exposed_ok = exposed_ok
         self.va, self.size = va, size
         self.ins = L.disasm(va, size)
         self.at = {i.address: i for i in self.ins}
@@ -160,6 +163,10 @@ class Function:
             rd, wr, wp, _, _, mem, _ = info(i)
             if m == 'lea':
                 for op in i.operands:
+                    if self.exposed_ok and op.type == MEM_OP and op.mem.base and i.reg_name(op.mem.base) == 'ebp' and not op.mem.index and op.mem.disp < 0:
+                        # FL-47: the pointer reaches the object it points into, which lies at or above the address: slots below it are untouched by what a callee or a store does through it
+                        self.exposed = op.mem.disp if self.exposed is None else min(self.exposed, op.mem.disp)
+                        continue
                     if op.type == MEM_OP and op.mem.base and i.reg_name(op.mem.base) in ('ebp', 'esp'):
                         raise NoProof('address of a frame slot taken at 0x%x' % i.address)
                     if op.type == MEM_OP and op.mem.index and i.reg_name(op.mem.index) in ('ebp', 'esp'):
@@ -199,6 +206,9 @@ class Function:
         rd, wr, wp, _, _, mem, mem_written = info(i)
         cls = mem_class(i, mem)
         m = i.mnemonic
+        if m in ('mov', 'movsx', 'movzx', 'lea') and not mem_written and len(i.operands) == 2 and i.operands[0].type == REG_OP and i.reg_name(i.operands[0].reg) in ALL \
+                and any(f[0] == (m, i.op_str) and f[1] == i.reg_name(i.operands[0].reg) for f in facts):
+            return facts                         # FL-47: the register already holds this value (the same load ran, nothing changed since): the instruction changes nothing, so no fact ends
         gone = set(wr) | set(wp)
         kill_other = kill_abs = False            # memory reached through a register; memory at an absolute address
         if m == 'call':
@@ -213,10 +223,14 @@ class Function:
                 kill_other = kill_abs = True
             elif cls[0] == 'abs':
                 kill_other = True                # an absolute store may be what a register-based address points at; other absolute addresses are untouched unless they overlap
+            elif cls[0] == 'slot' and self.exposed is not None and cls[1] + cls[2] > self.exposed:
+                kill_other = True                # FL-47: a register holds the address of this slot, so what a register-based address reads can change
         out = set()
         for sig, defreg, inputs, mcls in facts:
             if defreg in gone or inputs & gone:
                 continue
+            if mcls is not None and mcls[0] == 'slot' and self.exposed is not None and mcls[1] + mcls[2] > self.exposed and (kill_other or m == 'call'):
+                continue                         # FL-47: a slot whose address was taken can change in a callee or through a pointer
             if mcls is not None:
                 if mcls[0] == 'other' and kill_other or mcls[0] == 'abs' and kill_abs:
                     continue
@@ -232,7 +246,52 @@ class Function:
             r = i.reg_name(i.operands[1].reg)
             if r in ALL:
                 out.add((('mov', '%s, %s' % (r, i.op_str.split(', ')[0])), r, frozenset(addr_regs(i, mem)), cls))
+        out |= self.new_facts(i, m, mem, mem_written, cls, rd, out)
         return frozenset(out)
+
+    def new_facts(self, i, m, mem, mem_written, cls, rd, facts):
+        """FL-47: 'holds' facts for a 32-bit move between a register and [base + disp] (base a register, no index; the register holds the 32 bits at that address), and
+        'eq' facts for registers that hold the same value (reg-to-reg copy; two loads of the same frame slot or absolute address with no store between).
+        A 'holds' fact is a memory fact of class 'other', so a call, a string instruction, a store through a register or an absolute store ends it; it ends when the base or
+        the register is written. An 'eq' fact ends when either register is written."""
+        new = set()
+        if m != 'mov' or len(i.operands) != 2:
+            return new
+        a, b = i.operands
+        if mem is not None and mem.mem.base and not mem.mem.index and mem.size == 4 and cls == ('other',) and not mem.mem.segment:
+            base = FULL[i.reg_name(mem.mem.base)]
+            reg_op = b if mem_written else a
+            if reg_op.type == REG_OP and i.reg_name(reg_op.reg) in ALL and base not in ('ebp', 'esp'):
+                r = i.reg_name(reg_op.reg)
+                if mem_written or r != base:
+                    new.add((('holds', base, mem.mem.disp), r, frozenset((base, r)), ('other',)))
+        if a.type == REG_OP and b.type == REG_OP and not mem_written:
+            x, y = i.reg_name(a.reg), i.reg_name(b.reg)
+            if x in ALL and y in ALL and x != y and 'esp' not in (x, y) and 'ebp' not in (x, y):
+                new.add((('eq',), x, frozenset((y,)), None))
+        elif a.type == REG_OP and mem is not None and not mem_written and cls and cls[0] in ('slot', 'abs') and cls[2] == 4 and i.reg_name(a.reg) in ALL:
+            d = i.reg_name(a.reg)
+            if d not in ('esp', 'ebp'):
+                for f in facts:
+                    if f[0][0] == 'mov' and f[3] == cls and f[1] != d and f[1] not in ('esp', 'ebp') and f[0][1].startswith(f[1] + ', ') and not f[0][1].startswith(d + ', '):
+                        new.add((('eq',), d, frozenset((f[1],)), None))
+        return new
+
+    @staticmethod
+    def equal_regs(facts):
+        """union-find classes of registers that hold the same value, from the 'eq' facts"""
+        parent = {}
+
+        def find(x):
+            while parent.setdefault(x, x) != x:
+                parent[x] = parent[parent[x]]
+                x = parent[x]
+            return x
+        for f in facts:
+            if f[0] == ('eq',):
+                (y,) = tuple(f[2])
+                parent[find(f[1])] = find(y)
+        return find
 
     def repeat_ok(self, addr, IN):
         i = self.at[addr]
@@ -244,7 +303,17 @@ class Function:
         if i.operands[0].type != REG_OP or i.reg_name(i.operands[0].reg) not in ALL:
             return False
         d = i.reg_name(i.operands[0].reg)
-        return any(f[0] == (i.mnemonic, i.op_str) and f[1] == d for f in IN[addr])
+        if any(f[0] == (i.mnemonic, i.op_str) and f[1] == d for f in IN[addr]):
+            return True
+        # FL-47: `mov d, [B + disp]` where d already holds the 32 bits at [B2 + disp] and B2 holds the value of B
+        op = i.operands[1]
+        if i.mnemonic == 'mov' and op.type == MEM_OP and op.size == 4 and op.mem.base and not op.mem.index and not op.mem.segment and d not in ('esp', 'ebp'):
+            base = FULL[i.reg_name(op.mem.base)]
+            if base in ('ebp', 'esp') or base == d:
+                return False
+            find = self.equal_regs(IN[addr])
+            return any(f[0][0] == 'holds' and f[0][2] == op.mem.disp and f[1] == d and find(f[0][1]) == find(base) for f in IN[addr])
+        return False
 
     # ---- backward liveness of registers and flags ----
     def liveness(self):
@@ -291,9 +360,9 @@ class Function:
         return bool(wr or wp or fwr)
 
 
-def prove(va, size, addrs, feasible=None, factory=None):
+def prove(va, size, addrs, feasible=None, factory=None, exposed_ok=False):
     """{instruction address: reason, or None when there is no proof}; raises NoProof for a function the analysis does not cover"""
-    f = (factory or Function)(va, size, feasible)
+    f = factory(va, size, feasible) if factory else Function(va, size, feasible, exposed_ok=exposed_ok)
     IN = f.facts()
     live = f.liveness()
     res = {}

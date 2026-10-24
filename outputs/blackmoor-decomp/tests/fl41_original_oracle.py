@@ -10,6 +10,8 @@ Prints one line per function:  0x<va> instructions <executed>/<total> branch-dir
 all scenarios>. Exits 0 only when every instruction of every function was executed and both directions of every conditional jump were taken (there is no
 allowlist: a row with an untaken direction is not in the corpus). No original bytes or memory dumps are printed. Run from outputs/blackmoor-decomp:
 python3 tests/fl41_original_oracle.py
+
+FL-47: the corpus now holds 76 rows (the script text changes whenever the corpus does, so that `record_function_execution.py collect --merge` records a new run).
 """
 import hashlib
 import json

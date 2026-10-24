@@ -1,0 +1,56 @@
+{
+ "0x4de24f": [
+  {
+   "id": "A-51:29188def10ea4702",
+   "rationale": "The item concerns the renderer behaviour inside 0x448d11 and the frame text box 0x4de24f/0x4de2d8 being stubbed in the A-51 action tests: a gap in what that slice compared. Here the function's own instructions and jump directions all run in the oracle and match the translation, with 0x448d11 as a recording stub."
+  },
+  {
+   "id": "A-51:c6f8b288bc870891",
+   "rationale": "The item says the frame text box UI (0x4de24f) and caption layout (0x448d11) need native UI backends that do not exist yet; it concerns the missing backends. The function's own instructions and both directions of every jump run in the oracle, and the translation makes the same stub calls and stores."
+  },
+  {
+   "id": "S05:cbac757a041d45e6",
+   "rationale": "The item lists the frame text-box lifecycle (open 0x4de24f, poll and close 0x4de4f9/0x4ee6c7, scroll, dismissal input) as native UI work still to do. That is a gap in the native runtime around this function; its own instructions and jump directions all run in the oracle and match the translation."
+  }
+ ],
+ "0x4e7512": [
+  {
+   "id": "RT-12:f22a9d85d4bd7503",
+   "rationale": "The item names the phone email and browser rendering and click consumers, including this function, as not modelled in the native runtime: a caller-side gap. This function's own instructions and jump directions all run in the oracle and match the translation."
+  }
+ ],
+ "0x4fafc7": [
+  {
+   "id": "RT-11.1:69a6a5277ff4b95a",
+   "rationale": "The item concerns who owns or triggers the key-driven fade-stop routines (0x4fafc7/0x4fb086) in the native runtime; it is a caller-side gap. The function's own instructions and jump directions run in the oracle and match the translation."
+  }
+ ],
+ "0x4fb018": [
+  {
+   "id": "A-6D.1:489443acb9dc6613",
+   "rationale": "The item says dispatcher arm 0x4290c0 and its callees including 0x4fb018 were only inspected statically in A-6D.1. Here 0x4fb018's own instructions and both directions of every jump run in the oracle and match the translation; callees are recording stubs."
+  },
+  {
+   "id": "A-70.1:2550fd40524a43ce",
+   "rationale": "The item concerns the effects of dispatcher arm 0x4291f8 (calls to 0x4fb018 and 0x43dbd5, globals) that A-70.1 only navigated statically. This function's own instructions and jump directions all run in the oracle and match the translation."
+  },
+  {
+   "id": "RT-11:bbd107b5f000b7dd",
+   "rationale": "The item lists other callers of the sound-stop helpers that the native scene runtime does not model; that is a caller-side gap. This function's own instructions and jump directions all run in the oracle and match the translation."
+  },
+  {
+   "id": "RT-5:b85fc26293d512ec",
+   "rationale": "The item says state 2 of the scene transition (where 0x4fb018 clears 14 sound channels) is a named no-op in the native runtime: a gap in the caller. This function's own instructions and jump directions all run in the oracle and match the translation."
+  }
+ ],
+ "0x4fb086": [
+  {
+   "id": "RT-11.1:69a6a5277ff4b95a",
+   "rationale": "The item concerns who owns or triggers the key-driven fade-stop routines (0x4fafc7/0x4fb086) in the native runtime; it is a caller-side gap. The function's own instructions and jump directions run in the oracle and match the translation."
+  },
+  {
+   "id": "RT-11:bbd107b5f000b7dd",
+   "rationale": "The item lists other callers of the sound-stop helpers that the native scene runtime does not model; that is a caller-side gap. This function's own instructions and jump directions all run in the oracle and match the translation."
+  }
+ ]
+}

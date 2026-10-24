@@ -46,16 +46,45 @@ STRICT_HANG = json.loads(Path(os.environ['FL45_STRICT_HANG']).read_text()) if os
 STRICT_ALARM = int(os.environ.get("FL45_STRICT_ALARM", "5"))
 
 
-def strict_scenario(shim, row, sd, ov, ref):
-    """'same', 'differs' (digest or fault differs, or the process crashes: the original does neither) or 'hang' (the 5 s alarm ended the child)"""
+STEP_FLOOR = 200000       # FL-47: the step budget of a scenario is max(100 x the steps of the unmutated translation on it, STEP_FLOOR)
+STEP_PRELUDE = ('unsigned long long fl41_steps, fl41_budget;\nint fl41_exhausted;\n'
+                '#define FL41_TICK do { if (++fl41_steps > fl41_budget) { fl41_exhausted = 1; goto done; } } while (0)\n')
+
+
+def instrument(text):
+    """FL-47 (Glib's ruling): a step counter instead of a wall-clock alarm. One tick per label reached and per iteration of a `rep` loop; a run that exceeds its budget stops at `done`
+    and is flagged, so that a mutant which never terminates is told from one that is merely slow without any timing."""
+    out = []
+    for line in text.split('\n'):
+        out.append(line)
+        if re.match(r'^\s*L_[0-9a-f]+:\s*$', line) or re.match(r'^\s*while \(.*\) \{\s*$', line):
+            out.append('FL41_TICK;')
+    return '\n'.join(out)
+
+
+def strict_scenario(lib, shim, row, sd, ov, ref):
+    """'same', 'differs' (digest or fault differs, or the process crashes: the original does neither), 'budget' (the mutant exceeded the step budget although the unmutated translation, which
+    equals the original on this seed, finishes in at most budget/100 steps: it does not terminate) or 'hang' (the 60 s wall-clock safety ended the child: inconclusive, never a kill)"""
+    import ctypes
+    steps, budget, exhausted = (ctypes.c_ulonglong.in_dll(lib, 'fl41_steps'), ctypes.c_ulonglong.in_dll(lib, 'fl41_budget'), ctypes.c_int.in_dll(lib, 'fl41_exhausted'))
     r_fd, w_fd = os.pipe()
     pid = os.fork()
     if pid == 0:
         try:
             os.close(r_fd)
-            signal.alarm(STRICT_ALARM)
+            signal.alarm(60)
+            steps.value, budget.value, exhausted.value = 0, 1 << 62, 0
+            t0 = W.run_native(lib, row, sd, ov)                    # the unmutated translation: its step count, and it must equal the original on this scenario
+            base = steps.value
+            if t0.fault or t0.digest() != ref or exhausted.value:
+                os.write(w_fd, b'H')                               # the translation does not agree with the original here: nothing is compared, no kill
+                return
+            steps.value, budget.value, exhausted.value = 0, max(100 * base, STEP_FLOOR), 0
             t = W.run_native(shim, row, sd, ov)
-            os.write(w_fd, b'D' if (t.digest() if not t.fault else 'fault') != ref else b'S')
+            if exhausted.value:
+                os.write(w_fd, b'B')
+            else:
+                os.write(w_fd, b'D' if (t.digest() if not t.fault else 'fault') != ref else b'S')
         except Exception as exc:
             os.write(w_fd, b'E' + repr(exc).encode()[:100])
         finally:
@@ -67,10 +96,10 @@ def strict_scenario(shim, row, sd, ov, ref):
     if data.startswith(b'E'):
         raise RuntimeError('mutation harness error: %s' % data[1:].decode())
     if data:
-        return 'differs' if data == b'D' else 'same'
+        return {b'D': 'differs', b'B': 'budget', b'H': 'hang'}.get(data, 'same')
     if os.WIFSIGNALED(status) and os.WTERMSIG(status) == signal.SIGSEGV:
         return 'differs'              # a crash the original does not have
-    return 'hang'                     # the alarm, an OOM kill or any other end: inconclusive, never a kill
+    return 'hang'                     # the safety alarm, an OOM kill or any other end: inconclusive, never a kill
 
 
 def split_functions(text):
@@ -201,7 +230,8 @@ def check_row_inner(args):
     with tempfile.TemporaryDirectory() as tmp:
         src = Path(tmp) / 'm.c'
         for _ in range(4):
-            src.write_text('#include "original_methods_fl41.h"\n' + helper + text + '\n' + '\n'.join(m[2] for m in muts))
+            body = helper + text + '\n' + '\n'.join(m[2] for m in muts)
+            src.write_text('#include "original_methods_fl41.h"\n' + (STEP_PRELUDE + instrument(body) if STRICT_HANG else body))
             cmd = ['cc', '-std=c11', '-O0', '-shared', '-fPIC', '-w', '-I%s' % (PROJECT / 'src'), str(src), '-o', str(Path(tmp) / 'm.so')]
             built = subprocess.run(cmd, capture_output=True, text=True)
             if built.returncode == 0:
@@ -220,6 +250,7 @@ def check_row_inner(args):
         extra = None
         wide = None
         hangs = []          # mutants killed by a hang or a crash (FL-43: listed, not hidden)
+        budgets = []        # FL-47: mutants killed only by the step budget (they do not terminate where the original does)
         divergent = []      # seeds on which the UNMUTATED translation already differs from the original (FL-43): a mutant is not killed by such a seed
 
         def agrees(sd):
@@ -244,11 +275,11 @@ def check_row_inner(args):
                     found = -1
                     for i, (sd, ov, ref) in enumerate(items):
                         if STRICT_HANG:           # FL-45 strict mode: each scenario in its own child; one that hangs kills nothing, the mutant must differ (or crash) on another scenario
-                            verdict = strict_scenario(Shim(lib, va, k), row, sd, ov, ref)
+                            verdict = strict_scenario(lib, Shim(lib, va, k), row, sd, ov, ref)
                             if verdict == 'hang':
                                 continue
-                            if verdict == 'differs':
-                                found = i
+                            if verdict in ('differs', 'budget'):
+                                found = i if verdict == 'differs' else -2 - i          # -2 - i: killed by the step budget on scenario i
                                 break
                             continue
                         signal.alarm(20)         # per scenario (FL-43): one alarm over the whole list killed slow rows' mutants and counted that as a kill
@@ -271,6 +302,8 @@ def check_row_inner(args):
             if not data:
                 return 'timeout'          # the alarm, or the mutant crashed the process: the original does neither
             i = int(data)
+            if i <= -2:
+                return 'budget'           # FL-47: killed by the step budget (a mutant that does not terminate)
             return None if i < 0 else i
 
         for k, (kind, n, mtext) in enumerate(muts):
@@ -279,6 +312,8 @@ def check_row_inner(args):
             dead = hit is not None
             if hit == 'timeout':
                 hangs.append((kind, n, ident))
+            if hit == 'budget':
+                budgets.append((kind, n, ident))
             if not dead:
                 if extra is None:
                     extra = []
@@ -289,8 +324,10 @@ def check_row_inner(args):
                 hit = first_mismatch(k, extra)
                 if hit == 'timeout':
                     hangs.append((kind, n, ident))
+                if hit == 'budget':
+                    budgets.append((kind, n, ident))
                 if hit is not None:
-                    if harden and hit != 'timeout':
+                    if harden and hit not in ('timeout', 'budget'):
                         killers.add(extra[hit][0])
                     survivors.append((kind, n, 'killed only by an extra seed', ident))
                     killed += 1
@@ -304,14 +341,16 @@ def check_row_inner(args):
                     hit = first_mismatch(k, wide)
                     if hit == 'timeout':
                         hangs.append((kind, n, ident))
+                    if hit == 'budget':
+                        budgets.append((kind, n, ident))
                     if hit is not None:
-                        if hit != 'timeout':
+                        if hit not in ('timeout', 'budget'):
                             killers.add(wide[hit][0])
                         killed += 1
                         survivors.append((kind, n, 'killed by hardening seed', ident))
                         continue
                 survivors.append((kind, n, 'survives', ident))
-        return key, {'mutants': len(muts), 'killed': killed, 'survivors': survivors, 'killers': sorted(killers), 'divergent': sorted(set(divergent)), 'hangs': hangs}
+        return key, {'mutants': len(muts), 'killed': killed, 'survivors': survivors, 'killers': sorted(killers), 'divergent': sorted(set(divergent)), 'hangs': hangs, 'budgets': budgets}
 
 
 class Shim:
@@ -352,6 +391,8 @@ def main():
                 CORPUS.write_text(json.dumps(fresh, indent=1, sort_keys=True) + '\n')
             if res.get('divergent'):
                 print('%s divergent seeds (the unmutated translation differs from the original) %s' % (key, res['divergent']), flush=True)
+            if res.get('budgets'):
+                print('%s mutants killed by the step budget (ran past max(100 x the unmutated steps, 200000); Glib ruling 2026-10-23) %s' % (key, res['budgets']), flush=True)
             if res.get('hangs'):
                 print('%s mutants killed by a hang or crash %s' % (key, res['hangs']), flush=True)
             total += res['mutants']
