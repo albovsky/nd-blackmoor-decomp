@@ -1,8 +1,8 @@
 {
  "note": "FL-46. budget_verdict (the credited one): a mutant that never terminates counts as killed when it runs past max(100x the unmutated port's steps, 200,000 steps) and the unmutated port matches the original on that seed (Glib, 2026-10-23). strict_verdict: such a mutant is a survivor (the first reading), kept so a later ruling can switch. A row that is clean under budget and held under strict is credited only through budget kills. 0x41df05 was credited by FL-44 through a wall-clock hang kill of one mutant; that kill does not count and the row is held until it is re-verified under the budget.",
  "counts": {
-  "budget_clean": 189,
-  "strict_clean": 158,
+  "budget_clean": 191,
+  "strict_clean": 160,
   "budget_only": 31,
   "credited_on_main_before": 155,
   "credited_on_main_and_budget_only": 22,
@@ -1332,8 +1332,8 @@
    "mutants_killed_only_by_step_budget": 11
   },
   "0x453f4f": {
-   "budget_verdict": "held",
-   "strict_verdict": "held",
+   "budget_verdict": "clean",
+   "strict_verdict": "clean",
    "credited_on_main_before": false,
    "mutants_killed_only_by_step_budget": 0
   },
@@ -2004,8 +2004,8 @@
    "mutants_killed_only_by_step_budget": 0
   },
   "0x479cd7": {
-   "budget_verdict": "held",
-   "strict_verdict": "held",
+   "budget_verdict": "clean",
+   "strict_verdict": "clean",
    "credited_on_main_before": false,
    "mutants_killed_only_by_step_budget": 0
   },

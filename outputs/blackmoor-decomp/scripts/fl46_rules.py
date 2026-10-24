@@ -32,6 +32,11 @@ SWAP_SUB = re.compile(r'^\{ uint32_t a_ = [^;]*, b_ = [^;]*, r_; FL40_SUB\(a_, b
 PUSH = re.compile(r'^esp -= 4u; WR32\(esp, (eax|ecx|edx|ebx|esi|edi)\);$')
 
 
+def SWAP_OPERANDS(t):
+    """the statement with the two operands of its compare exchanged, as tests/fl40_mutation_check.py builds the 'register' mutant of a compare"""
+    return re.sub(r'a_ = ([^,]+), b_ = ([^,;]+),', r'a_ = \2, b_ = \1,', t, count=1)
+
+
 def stmt(line):
     return re.sub(r'\s*/\*.*', '', line).strip()
 
@@ -218,17 +223,21 @@ def explain(kind, lines, n, row):
     if FLAG_ONLY.match(t):
         if not flags_live:
             return 'dead flags'
-        if kind == 'register' and SWAP_SUB.match(t) and flags_live <= {'zf'}:
+        if kind == 'register' and SWAP_SUB.match(t) and flags_live <= {'zf'} and all(x == SWAP_OPERANDS(t) for x in mut):     # a - b == 0 exactly when b - a == 0
             return 'dead flags'
         return None
     m = BLOCK_DEF.match(t)
     if m:
+        if kind != 'drop' and not all(('%s = r_;' % m.group(3)) in x for x in mut):
+            return None         # a mutant that moves the destination is not covered by the liveness of this one
         return 'dead register' if out_r[n][m.group(3)] == 0 and not flags_live else None
     uses, kills, copy, keeps = effects(t)
     single = [r for r in kills if r in GP]
     if len(single) == 1 and (PARTIAL.match(t) or (SIMPLE_DEF.match(t) and not re.search(r'\bWR\d+|FL40_', SIMPLE_DEF.match(t).group(2)))):
         reg = single[0]
         live = out_r[n][reg]
+        if kind != 'drop' and not all(x.startswith(reg + ' = ') for x in mut):
+            return None         # a mutant that writes another register is not covered by the liveness of this one
         if live == 0 or (PARTIAL.match(t) and kind == 'drop' and live & kills[reg] == 0):
             return 'dead register'
         changed = 0

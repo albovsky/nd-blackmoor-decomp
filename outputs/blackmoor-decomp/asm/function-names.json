@@ -2,8 +2,8 @@
  "schema": "blackmoor-function-names/1",
  "note": "Names that committed evidence already states for assembly functions; every other source keeps the machine name fn_<va>. Written and checked by scripts/function_names.py; read by scripts/annotate_machine.py and scripts/audit_tool_assisted.py. A name is not a claim that the function is understood beyond its summary, and nothing here claims original C++ or compiler provenance.",
  "counts": {
-  "entries": 2885,
-  "native_port": 1773,
+  "entries": 2887,
+  "native_port": 1775,
   "parity_rule": 1,
   "ghidra_name": 83,
   "ghidra_funclet": 570,
@@ -8180,6 +8180,18 @@
    ]
   },
   {
+   "va": "0x00453f4f",
+   "name": "m453f4f_lifted",
+   "basis": "native_port",
+   "summary": "Machine-translated from the original instructions (scripts/lift_function.py); 9 seeds; oracle 80/80 instructions, 4/4 jump directions; mutation survivors: tasks/fl40-survivors.json.",
+   "source": "native port src/original_methods_fl40.c:m453f4f_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m453f4f_lifted",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
    "va": "0x00454065",
    "name": "m454065_lifted",
    "basis": "native_port",
@@ -11706,6 +11718,18 @@
    "native_source": {
     "path": "src/original_methods_fl40.c",
     "symbol": "m478915_lifted",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x00479cd7",
+   "name": "m479cd7_lifted",
+   "basis": "native_port",
+   "summary": "Machine-translated from the original instructions (scripts/lift_function.py); 7 seeds; oracle 54/54 instructions, 0/0 jump directions; mutation survivors: tasks/fl40-survivors.json.",
+   "source": "native port src/original_methods_fl40.c:m479cd7_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m479cd7_lifted",
     "class": "native_oracle_verified"
    }
   },

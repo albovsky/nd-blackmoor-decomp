@@ -41,8 +41,23 @@ class WrittenReasons(unittest.TestCase):
             known = set(re.findall(r'/\* (0x[0-9a-f]+):', self.funcs[row]))
             for i in items:
                 for addr in re.findall(r'0x4[0-9a-f]{5}\b', i['reason']):
-                    if lo < int(addr, 16) < lo + corpus[row]['body']:         # inside the function: it must be an instruction the translation has
+                    if lo <= int(addr, 16) < lo + corpus[row]['body']:         # inside the function: it must be an instruction the translation has
                         self.assertIn(addr, known, (row, i['line'], addr))
+
+
+class Coverage(unittest.TestCase):
+    def test_a_wall_clock_hang_kill_in_an_older_log_never_decides_a_row(self):
+        """a credited row whose line in an older log lists hang kills (wall clock) has a line in the budget log, which is read last"""
+        held = set(json.loads((PROJECT / 'tasks/fl40-held-rows.json').read_text())['rows'])
+        import fl44_final
+        budget = set(re.findall(r'^(0x[0-9a-f]+) mutants', (PROJECT / 'tasks/fl46-budget3-log.txt').read_text(), re.M))
+        for name in fl44_final.LOGS:
+            if name.startswith('fl46-'):
+                continue
+            for row in re.findall(r'^(0x[0-9a-f]+) mutants .* hang-kills [1-9]', (PROJECT / 'tasks' / name).read_text(), re.M):
+                if row not in held:
+                    self.assertIn(row, budget, (name, row))
+        self.assertEqual(fl44_final.LOGS[-1], 'fl46-budget3-log.txt')       # the later log wins in fl44_final.main
 
 
 class HeldRows(unittest.TestCase):
@@ -57,12 +72,13 @@ class HeldRows(unittest.TestCase):
         argv, sys.argv = sys.argv, ['fl44_final.py']
         try:
             with contextlib.redirect_stdout(io.StringIO()) as out:
-                fl44_final.main()
+                _, held_now = fl44_final.main()
         finally:
             sys.argv = argv
         counts = re.search(r'clean (\d+), held (\d+)', out.getvalue())
         corpus = json.loads((PROJECT / 'tests/fl40_corpus.json').read_text())
         self.assertEqual(int(counts.group(2)), len(committed))
+        self.assertEqual(set(held_now), set(committed))
         self.assertEqual(int(counts.group(1)), len(corpus) - len(committed))
 
     def test_acceptance_exactly_for_the_rows_that_are_not_held(self):

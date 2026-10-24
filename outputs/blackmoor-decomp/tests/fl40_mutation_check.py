@@ -206,7 +206,7 @@ def check_row_inner(args):
         wide = None
         killed, survivors, killers = 0, [], set()
         fresh_by_stage = []
-        end_kind = [None]       # FL-46: how the last scan child ended when it did not finish: 'alarm' (a hang), 'crash' (another signal) or 'nonend' (it left without finishing, an out-of-memory)
+        end_kind = [None]       # FL-46: how the last scan child ended when it did not finish: 'alarm' (a hang), 'crash' (another signal than SIGKILL, which is the out-of-memory killer's or a kill from outside and kills nothing) or 'nonend' (it left without finishing, an out-of-memory)
 
         port_steps = []         # FL-46: after scan(None, ...), the taken jumps and loop turns of the unmutated port on each of its items
 
@@ -252,7 +252,7 @@ def check_row_inner(args):
                 chunks.append(c)
             os.close(r_fd)
             _, status = os.waitpid(pid, 0)
-            end_kind[0] = 'alarm' if os.WIFSIGNALED(status) and os.WTERMSIG(status) == signal.SIGALRM else 'budget' if os.WIFSIGNALED(status) and os.WTERMSIG(status) == signal.SIGUSR1 else 'crash' if os.WIFSIGNALED(status) else 'nonend'
+            end_kind[0] = 'alarm' if os.WIFSIGNALED(status) and os.WTERMSIG(status) == signal.SIGALRM else 'budget' if os.WIFSIGNALED(status) and os.WTERMSIG(status) == signal.SIGUSR1 else 'crash' if os.WIFSIGNALED(status) and os.WTERMSIG(status) != signal.SIGKILL else 'nonend'
             port_steps[:] = [struct.unpack_from('<Q', stepmm, 8 * i)[0] for i in range(len(items))]
             data = b''.join(chunks)
             if data.startswith(b'E'):
