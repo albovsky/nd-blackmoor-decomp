@@ -15,6 +15,7 @@ instruction) pairs. `Trace.digest()` hashes everything that is compared.
 """
 from __future__ import annotations
 
+import gc
 import ctypes
 import hashlib
 import os
@@ -179,6 +180,14 @@ class Trace:
 
 
 def run_original(row, seed, overrides=(), observe=False, probes=None):
+    """FL-48: collect the emulator's reference cycles after every run (a few hundred runs in one process used 13 GB and the container's OOM killer ended the mutation check)"""
+    try:
+        return _run_original(row, seed, overrides, observe, probes)
+    finally:
+        gc.collect()
+
+
+def _run_original(row, seed, overrides=(), observe=False, probes=None):
     overrides, stub_ovr = split_stub_overrides(overrides)
     import unicorn
     from unicorn import x86_const as X

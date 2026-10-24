@@ -43,6 +43,7 @@ def main():
     ap.add_argument('--set', action='append', default=[])
     ap.add_argument('--stub', action='append', default=[])
     ap.add_argument('--save', action='store_true')
+    ap.add_argument('--skip', default='', help='comma-separated mutant numbers (as printed) not to run, e.g. a mutant that never terminates and would kill the lab by its alarm')
     a = ap.parse_args()
     corpus = json.loads((PROJECT / 'tests/fl41_corpus.json').read_text())
     e = corpus[a.row]
@@ -107,6 +108,9 @@ def main():
             return 1
         killed = []
         for i, (kind, n, t) in enumerate(named):
+            if str(i) in a.skip.split(','):
+                print('skipped #%d %s line %d' % (i, kind, n))
+                continue
             class Shim:
                 def __getattr__(self, name, i=i):
                     return getattr(lib, 'm%x_mut%d' % (va, i))
@@ -118,7 +122,7 @@ def main():
             except Exception as ex:
                 res = 'KILLED(%s)' % type(ex).__name__
             signal.alarm(0)
-            print('%-7s %s line %d: %s' % (res, kind, n, t.split('\n')[n].strip()[:110]))
+            print('%-7s #%d %s line %d: %s' % (res, i, kind, n, t.split('\n')[n].strip()[:110]))
             if res.startswith('KILLED'):
                 killed.append([kind, n])
         if a.save and killed:

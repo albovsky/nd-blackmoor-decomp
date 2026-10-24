@@ -481,12 +481,12 @@ def main():
         except E.NoProof:
             pass
         items = []
-        written = {(r_['kind'], r_['line']) for r_ in WRITTEN.get(m.group(1), []) if text[r_['line']] == r_['statement']}      # FL-48: a written reason for exactly this statement
+        written = {(r_['kind'], r_['line'], r_.get('ident')) for r_ in WRITTEN.get(m.group(1), []) if text[r_['line']] == r_['statement']}      # FL-48: a written reason for exactly this statement (and mutant, when it names one)
         for kind, n, why, *rest in eval(m.group(2)[:m.group(2).rindex(']') + 1]):
             if why == 'survives':
                 ident = rest[0] if rest else None
                 same = equiv.get(m.group(1), {}).get((kind, n, ident), False) or (ident is None and equiv.get(m.group(1), {}).get((kind, n, None), False))
-                items.append((kind, classify(kind, text, n, same, proofs, idents.get((kind, n, ident)), ranges, m.group(1)) or ('written reason' if (kind, n) in written else None), text[n].strip()[:160], n))
+                items.append((kind, classify(kind, text, n, same, proofs, idents.get((kind, n, ident)), ranges, m.group(1)) or ('written reason' if ((kind, n, ident) in written or (kind, n, None) in written) else None), text[n].strip()[:160], n))
         if items:
             out['rows_with_survivors'][m.group(1)] = items
             if any(c is None for _, c, _, _ in items):
