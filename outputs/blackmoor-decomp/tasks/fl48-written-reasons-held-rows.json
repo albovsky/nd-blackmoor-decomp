@@ -600,6 +600,142 @@
     "reason": "Mutant uses sar instead of shr on ecx at 0x4e656c. ecx there is the string length from not ecx (0x4e6562) after the repne scasb (0x4e6560) started at ecx=0xffffffff (0x4e655b): ecx = number of bytes scanned. sar differs from shr only if bit 31 is set, i.e. a scan of 2^31 or more bytes, which cannot happen (it would run past the end of the address space). Then sar equals shr, giving the same rep movsd count.",
     "review": "sar vs shr of ecx by 2 at 0x4e656c differ only if bit 31 set; ecx = ~ecx (0x4e6562) = bytes scanned from 0xffffffff (0x4e655b), so needs a scan >=2^31 bytes (excluded). Flags overwritten by and at 0x4e6573."
    }
+  ],
+  "0x48905b": [
+   {
+    "kind": "drop",
+    "line": 302,
+    "ident": "a4cbb918",
+    "statement": "    eax = RD32((uint32_t)(edx + 0x20u));  /* 0x4893bf: mov eax, dword ptr [edx + 0x20] */",
+    "reason": "0x4893b5 loads eax=[edx+0x20] with edx=[ebp-0x14] (0x4893b2); 0x4893bc reloads edx=[ebp-0x14] and 0x4893bf reloads the same eax=[edx+0x20]. Between 0x4893b5 and 0x4893bf there are only reads (0x4893b8 movsx, 0x4893bc), no writes, so the reload yields the same value; the dropped mov is a no-op on eax.",
+    "review": "Between 0x4893b5 (eax=[[ebp-0x14]+0x20]) and 0x4893bf there are only reads (0x4893b8 movsx, 0x4893bc reload of edx); no write or call, so the reload at 0x4893bf yields the same value and eax is unchanged (only used as base at 0x4893c2)."
+   },
+   {
+    "kind": "drop",
+    "line": 319,
+    "ident": "7d67f852",
+    "statement": "    ecx = edx;  /* 0x4893e4: mov ecx, edx */",
+    "reason": "Dropping mov ecx,edx at 0x4893e4 leaves ecx=0 (rep movsd at 0x4893e2 ends with ecx=0) so rep movsb at 0x4893e9 copies 0 bytes; the original copies (edx & 3) bytes (0x4893e6). edx = ecx<<4 (0x4893cb, copied at 0x4893dd) has its low 4 bits zero and is not changed by the movsd loop, so edx&3 = 0 on every path: the original's count is also 0. Same writes, same esi/edi.",
+    "review": "After rep movsd (0x4893e2) ecx==0; original sets ecx=edx (0x4893e4) then and 3 (0x4893e6). edx=ecx (0x4893dd) with ecx=(x)<<4 (0x4893cb), low 4 bits zero, edx untouched by the copy loop, so edx&3==0 and rep movsb copies 0 bytes in both. ecx dead (reloaded 0x4893ee), flags rewritten."
+   },
+   {
+    "kind": "register",
+    "line": 319,
+    "ident": "b08f27ab",
+    "statement": "    ecx = edx;  /* 0x4893e4: mov ecx, edx */",
+    "reason": "Mutant sets ecx=ebp, so the movsb count at 0x4893e9 becomes ebp&3 instead of edx&3. edx&3 = 0 (edx=ecx<<4 at 0x4893cb, 0x4893dd). ebp&3 = 0: ebp=esp after push ebp (0x48905b/0x48905c), the stack pointer at entry is 4-byte aligned (harness assumption), so esp-4 and ebp are multiples of 4; ebp is never modified until the pop at 0x489457. So both counts are 0 and no byte is copied either way.",
+    "review": "Mutant uses ebp&3 for the movsb count at 0x4893e9, original edx&3. edx=(..)<<4 (0x4893cb,0x4893dd) so edx&3==0; ebp=esp after push ebp (0x48905c) with 4-byte aligned entry esp is a multiple of 4 and is only reassigned by pop at 0x489457. Both counts 0, no bytes copied; ecx dead."
+   },
+   {
+    "kind": "drop",
+    "line": 331,
+    "ident": "aaab4a55",
+    "statement": "    ecx = RD32((uint32_t)(eax + 0x20u));  /* 0x4893f8: mov ecx, dword ptr [eax + 0x20] */",
+    "reason": "At 0x4893ee ecx=[eax+0x20] with eax=[ebp-0x14] (0x4893eb); 0x4893f1 only writes edx; 0x4893f5 reloads eax=[ebp-0x14], 0x4893f8 would reload ecx=[eax+0x20]. No memory writes occur between 0x4893eb and 0x4893f8 and ecx is untouched, so ecx already holds that value. ecx is next used at 0x4893fb (as base for the movsx read), so the dropped load is a no-op.",
+    "review": "ecx=[[ebp-0x14]+0x20] is loaded at 0x4893ee; 0x4893f1 only writes edx (ecx used as base), 0x4893f5 reloads eax; no memory write or call before 0x4893f8, so the reload would give the identical ecx. Dropping it changes nothing; ecx next used as base at 0x4893fb."
+   },
+   {
+    "kind": "drop",
+    "line": 345,
+    "ident": "361ff310",
+    "statement": "    eax = RD32((uint32_t)(edx + 0x20u));  /* 0x489420: mov eax, dword ptr [edx + 0x20] */",
+    "reason": "0x489413 edx=[ebp-0x14], 0x489416 eax=[edx+0x20]; 0x489419 only reads and writes ecx; 0x48941d reloads edx=[ebp-0x14] (same value) and 0x489420 would reload eax=[edx+0x20]. The last memory write before is 0x489411, which precedes 0x489416, so no write intervenes and eax already holds the same value; the dropped statement is a no-op (eax used at 0x489423 as base).",
+    "review": "eax=[[ebp-0x14]+0x20] loaded at 0x489416; 0x489419 writes ecx only, 0x48941d reloads edx from the same cell; the last store (0x489411) precedes 0x489416 and nothing writes before 0x489420, so the reload gives the same eax (used as base at 0x489423)."
+   }
+  ],
+  "0x4aef4a": [
+   {
+    "kind": "jump",
+    "line": 72,
+    "ident": "d8472c3f",
+    "statement": "    if ((zf || sf != of)) goto L_4af026;  /* 0x4af019: jle 0x4af026 */",
+    "reason": "Mutant drops the zf (equal) case of jle at 0x4af019. If [A+8]==[B+8] (A=[ebp-0x4c], B=[ebp-0x64], cmp at 0x4af016) original goes to 0x4af026 and stores [A+8] into [ebp-0x24] (0x4af02c); mutant falls to 0x4af01b and stores [B+8] (0x4af021): same value, same address. No write occurs between 0x4af013 and 0x4af029/0x4af01e (the write at 0x4af00a precedes), A/B cells unchanged. Both paths then jump to 0x4af07a, which reloads eax/ecx/edx, so register differences vanish.",
+    "review": "jle vs jl differs only when the dwords at [[ebp-0x4c]+8] and [[ebp-0x64]+8] are equal (cmp 0x4af016); both paths then store that same value to [ebp-0x24] (0x4af021/0x4af02c), no writes between loads, no calls; eax/ecx/edx reloaded at 0x4af07a-0x4af07d."
+   },
+   {
+    "kind": "jump",
+    "line": 101,
+    "ident": "4ae6490d",
+    "statement": "    if ((!zf && sf == of)) goto L_4af068;  /* 0x4af05b: jg 0x4af068 */",
+    "reason": "Mutant turns jg into jge at 0x4af05b, differing only when [A+8]==[B+8] (cmp at 0x4af058, A=[ebp-0x4c], B=[ebp-0x64]). Original then falls to 0x4af05d and stores [A+8] to [ebp-0x24] (0x4af063); mutant goes to 0x4af068 and stores [B+8] (0x4af06e): same value and address, since no write happens between 0x4af055 and 0x4af060/0x4af06b (the write 0x4af04c is earlier). Both join at 0x4af07a which reloads ecx, edx, eax.",
+    "review": "jg vs jge differs only when the two dwords at +8 are equal (cmp 0x4af058); both paths store the same value to [ebp-0x24] (0x4af063/0x4af06e), no writes between the loads, no calls; registers reloaded at 0x4af07a-0x4af080."
+   }
+  ],
+  "0x4c4c2b": [
+   {
+    "kind": "jump",
+    "line": 70,
+    "ident": "48ceddf7",
+    "statement": "    if ((zf || sf != of)) goto L_4c4d1d;  /* 0x4c4d0b: jle 0x4c4d1d */",
+    "reason": "Mutant drops zf from jle at 0x4c4d0b. Only differs when ecx==edx (cmp at 0x4c4d09), i.e. word [this+0xe86] == word [ebp-4] (sign-extended loads 0x4cfe, 0x4d05). Then the mutant runs 0x4c4d0d-0x4c4d17: eax=[ebp-0xc] (same value as 0x4c4cfb, no writes between), stores cx=word[eax+0xe86] to [ebp-0xe]; the original stores dx=word[ebp-4] at 0x4c4d21. Both 16-bit values are equal, same address, same eax afterwards; ecx/edx are scratch and reloaded/rewritten before use (0x4c4d28, 0x4c4d33).",
+    "review": "Differs only when ecx==edx at 0x4c4d09 i.e. word[eax+0xe86]==word[ebp-4] (sign-extended loads 0x4c4cfe/0x4c4d05, no calls/writes since). Mutant stores word[eax+0xe86] (0x4c4d10, eax reloaded) to [ebp-0xe], original stores the equal word[ebp-4] (0x4c4d21): same value, same eax; checked also under aliasing."
+   },
+   {
+    "kind": "drop",
+    "line": 72,
+    "ident": "b498d053",
+    "statement": "    ecx = (ecx & 0xffff0000u) | ((RD16((uint32_t)(eax + 0xe86u))) & 0xffffu);  /* 0x4c4d10: mov cx, word ptr [eax + 0xe86] */",
+    "reason": "0x4c4d10 loads cx from word [eax+0xe86] where eax=[ebp-0xc] re-read at 0x4c4d0d. ecx already holds movsx of the same word (0x4c4cfe, same eax, no write in between), so cx is unchanged by the load; the dropped statement is a no-op on cx. The store at 0x4c4d17 writes cx identical either way; ecx is reloaded at 0x4c4d28.",
+    "review": "ecx at 0x4c4d10 already holds sext word[eax+0xe86] from 0x4c4cfe with eax=[ebp-0xc] reloaded at 0x4c4d0d; no call or store between 0x4c4cfb and 0x4c4d10, so cx load is a no-op; upper half untouched either way, store 0x4c4d17 identical."
+   },
+   {
+    "kind": "literal",
+    "line": 72,
+    "ident": "175ac9ac",
+    "statement": "    ecx = (ecx & 0xffff0000u) | ((RD16((uint32_t)(eax + 0xe86u))) & 0xffffu);  /* 0x4c4d10: mov cx, word ptr [eax + 0xe86] */",
+    "reason": "Mutant changes only bit 0 of the preserved mask for ecx at 0x4c4d10; the loaded word is OR-ed into the low 16 bits. Only the low 16 bits of ecx are observed (0x4c4d17 store of cx); ecx bit0 before is bit0 of the same word (movsx at 0x4c4cfe), so bit0 = old|new = same value. Upper bits are never used: ecx is reloaded at 0x4c4d28 (cx only stored at 0x4c4d2c) and ecx is scratch at return.",
+    "review": "Mask ...0001 vs ...0000 only keeps bit0 of old ecx; old ecx = sext word[eax+0xe86] (0x4c4cfe, no store since), so its bit0 equals bit0 of the word OR-ed in; low 16 bits identical, 0x4c4d17 stores only cx; ecx reloaded 0x4c4d28."
+   },
+   {
+    "kind": "drop",
+    "line": 76,
+    "ident": "e33fc096",
+    "statement": "    edx = (edx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffffcu))) & 0xffffu);  /* 0x4c4d1d: mov dx, word ptr [ebp - 4] */",
+    "reason": "0x4c4d1d is only reached from jle at 0x4c4d0b, after 0x4c4d05 loaded edx=movsx word [ebp-4]. No memory write occurs between 0x4c4d05 and 0x4c4d21, so dx already equals word [ebp-4]; the dropped mov dx is a no-op on dx, and the store at 0x4c4d21 writes the same word. Later edx use (0x4c4d33) is re-derived.",
+    "review": "0x4c4d1d is reached only from jle 0x4c4d0b, right after 0x4c4d05 edx=sext word[ebp-4]; no store/call between 0x4c4d05 and 0x4c4d1d so mov dx is a no-op (edx unchanged entirely); store 0x4c4d21 identical."
+   }
+  ],
+  "0x4c5d4b": [
+   {
+    "kind": "drop",
+    "line": 26,
+    "ident": "701a888d",
+    "statement": "    ecx = RD32((uint32_t)(ebp + 0x14u));  /* 0x4c5d9d: mov ecx, dword ptr [ebp + 0x14] */",
+    "reason": "0x4c5d8c sets ecx=[ebp+0x14]; 0x4c5d8f-0x4c5d97 do not write ecx and the only memory write (0x4c5d97) goes to [ebp-0xa4], which does not overlap [ebp+0x14]. So at 0x4c5d9d ecx already equals [ebp+0x14]; the reload is a no-op and 0x4c5da3 reads [ecx+0xc] at the same address. 0x4c5d9d is reached only by fall-through.",
+    "review": "ecx=[ebp+0x14] at 0x4c5d8c untouched by 0x4c5d8f-0x4c5d97 (edx/eax only; store 0x4c5d97 to frame cell [ebp-0xa4]); no call, fall-through only. Reload at 0x4c5d9d is a no-op; 0x4c5da3 reads same address."
+   },
+   {
+    "kind": "drop",
+    "line": 27,
+    "ident": "e53128f6",
+    "statement": "    edx = RD32((uint32_t)(ebp + 0x14u));  /* 0x4c5da0: mov edx, dword ptr [ebp + 0x14] */",
+    "reason": "0x4c5d8f sets edx=[ebp+0x14]; 0x4c5d95 'sub eax,[edx]' only reads edx, 0x4c5d9d writes ecx only, and the only memory write (0x4c5d97) targets [ebp-0xa4], not overlapping [ebp+0x14]. So edx at 0x4c5da0 already equals [ebp+0x14]; the reload is a no-op and 0x4c5da6 reads [edx+4] at the same address.",
+    "review": "edx=[ebp+0x14] at 0x4c5d8f only read by 0x4c5d95; 0x4c5d9d writes ecx only; sole store 0x4c5d97 is [ebp-0xa4]. edx at 0x4c5da0 equals the reload; 0x4c5da6 reads same [edx+4]."
+   },
+   {
+    "kind": "drop",
+    "line": 202,
+    "ident": "bbf60b15",
+    "statement": "    ecx = RD32((uint32_t)(ebp + 0x10u));  /* 0x4c5f9f: mov ecx, dword ptr [ebp + 0x10] */",
+    "reason": "0x4c5f8a sets ecx=[ebp+0x10]; 0x4c5f8d-0x4c5f99 write only edx/eax and memory [ebp-0x90] (0x4c5f99), which does not overlap [ebp+0x10]. So at 0x4c5f9f ecx already equals [ebp+0x10]; the reload is a no-op and 0x4c5fa5 reads [ecx+8] at the same address. Only fall-through reaches 0x4c5f9f.",
+    "review": "ecx=[ebp+0x10] set at 0x4c5f8a; 0x4c5f8d-0x4c5f99 change only edx/eax and store frame cell [ebp-0x90]; no call, fall-through only. Reload at 0x4c5f9f is a no-op; 0x4c5fa5 reads same [ecx+8]."
+   },
+   {
+    "kind": "drop",
+    "line": 203,
+    "ident": "d4aa3138",
+    "statement": "    edx = RD32((uint32_t)(ebp + 0x10u));  /* 0x4c5fa2: mov edx, dword ptr [ebp + 0x10] */",
+    "reason": "0x4c5f8d sets edx=[ebp+0x10]; 0x4c5f93 'sub eax,[edx+4]' only reads edx, nothing up to 0x4c5fa2 writes edx, and the only memory write (0x4c5f99) is to [ebp-0x90], not overlapping [ebp+0x10]. So edx already equals [ebp+0x10] at 0x4c5fa2; the reload is a no-op and 0x4c5fa8 reads [edx] at the same address.",
+    "review": "edx=[ebp+0x10] set at 0x4c5f8d, only read at 0x4c5f93; nothing writes edx up to 0x4c5fa2 and the sole store 0x4c5f99 is [ebp-0x90]. Reload is a no-op; 0x4c5fa8 reads same [edx]."
+   },
+   {
+    "kind": "width",
+    "line": 236,
+    "ident": "6f69fb50",
+    "statement": "    eax = RD32((uint32_t)(ebp + 0xffffff60u));  /* 0x4c6013: mov eax, dword ptr [ebp - 0xa0] */",
+    "reason": "0x4c6013 loads dword [ebp-0xa0] into eax and 0x4c6019 'and eax,0xffff' keeps only the low 16 bits (the cell was written as a word at 0x4c600c). The mutant's 16-bit read yields exactly those low 16 bits (little endian), the upper bytes are masked away, so eax after 0x4c6019, the flags and the compare at 0x4c602d are identical.",
+    "review": "0x4c6013 loads dword [ebp-0xa0] and 0x4c6019 and eax,0xffff keeps only the low word, which RD16 returns exactly (little endian); no store between 0x4c600c and 0x4c6013; eax and flags after 0x4c6019 identical."
+   }
   ]
  }
 }

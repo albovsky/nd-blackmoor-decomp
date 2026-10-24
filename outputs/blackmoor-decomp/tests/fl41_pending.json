@@ -2192,6 +2192,10 @@
    ]
   ]
  },
+ "0x48905b": {
+  "detail": "exhaustive check (FL-48: tasks/fl48-merged-e.txt, tasks/fl48-budget2-log-*.txt, tasks/fl48-survivors-final.json): a surviving mutant is neither identical -O2 code, a proven no-op nor covered by a reviewed written reason",
+  "status": "mutation survivor"
+ },
  "0x489722": {
   "detail": "exhaustive check (FL-48: tasks/fl48-merged-e.txt, tasks/fl48-budget2-log-*.txt, tasks/fl48-survivors-final.json): a surviving mutant is neither identical -O2 code, a proven no-op nor covered by a reviewed written reason",
   "status": "mutation survivor"
@@ -2644,6 +2648,10 @@
     "fall-through"
    ]
   ]
+ },
+ "0x48efe8": {
+  "detail": "exhaustive check (FL-48: tasks/fl48-merged-e.txt, tasks/fl48-budget2-log-*.txt, tasks/fl48-survivors-final.json): a surviving mutant is neither identical -O2 code, a proven no-op nor covered by a reviewed written reason",
+  "status": "mutation survivor"
  },
  "0x48f181": {
   "directions": [
@@ -6383,6 +6391,10 @@
    ]
   ]
  },
+ "0x4aef4a": {
+  "detail": "exhaustive check (FL-48: tasks/fl48-merged-e.txt, tasks/fl48-budget2-log-*.txt, tasks/fl48-survivors-final.json): a surviving mutant is neither identical -O2 code, a proven no-op nor covered by a reviewed written reason",
+  "status": "mutation survivor"
+ },
  "0x4af225": {
   "directions": [
    35,
@@ -6608,6 +6620,10 @@
     "taken"
    ]
   ]
+ },
+ "0x4af96e": {
+  "detail": "exhaustive check (FL-48: tasks/fl48-merged-e.txt, tasks/fl48-budget2-log-*.txt, tasks/fl48-survivors-final.json): a surviving mutant is neither identical -O2 code, a proven no-op nor covered by a reviewed written reason",
+  "status": "mutation survivor"
  },
  "0x4afec1": {
   "directions": [
@@ -9173,6 +9189,10 @@
    ]
   ]
  },
+ "0x4c4c2b": {
+  "detail": "exhaustive check (FL-48: tasks/fl48-merged-e.txt, tasks/fl48-budget2-log-*.txt, tasks/fl48-survivors-final.json): a surviving mutant is neither identical -O2 code, a proven no-op nor covered by a reviewed written reason",
+  "status": "mutation survivor"
+ },
  "0x4c558b": {
   "detail": "exhaustive check (FL-48: tasks/fl48-merged-e.txt, tasks/fl48-budget2-log-*.txt, tasks/fl48-survivors-final.json): a surviving mutant is neither identical -O2 code, a proven no-op nor covered by a reviewed written reason",
   "status": "mutation survivor"
@@ -9182,6 +9202,10 @@
   "status": "mutation survivor"
  },
  "0x4c5976": {
+  "detail": "exhaustive check (FL-48: tasks/fl48-merged-e.txt, tasks/fl48-budget2-log-*.txt, tasks/fl48-survivors-final.json): a surviving mutant is neither identical -O2 code, a proven no-op nor covered by a reviewed written reason",
+  "status": "mutation survivor"
+ },
+ "0x4c5d4b": {
   "detail": "exhaustive check (FL-48: tasks/fl48-merged-e.txt, tasks/fl48-budget2-log-*.txt, tasks/fl48-survivors-final.json): a surviving mutant is neither identical -O2 code, a proven no-op nor covered by a reviewed written reason",
   "status": "mutation survivor"
  },

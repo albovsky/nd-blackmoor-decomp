@@ -2,8 +2,11 @@
 
   - every reason in tasks/fl48-written-reasons.json names a statement that is still, character for character, on its line of the translation in src/original_methods_fl41.c, is long
     enough to say something (80+ characters), carries the independent reviewer's note, and cites only instruction addresses inside the function that the translation has;
-  - a reason that names a mutant (`ident`, the hash scripts/fl48_only.py and the mutation logs use) names one the mutation operators still produce on that line.
+  - a reason names a mutant (`ident`, the hash scripts/fl48_only.py and the mutation logs use) that the mutation operators still produce on that line;
+  - no credited FL-48 row has an unexplained survivor, and every mutant that the step-budget rerun (tasks/fl48-budget-log-*.txt) did not kill is classified (identical code, proven
+    no-op, range rule or written reason) in tasks/fl48-survivors-5.json: a hang kill of an ordinary run never decides a row (Glib's ruling).
 """
+import ast
 import json
 from pathlib import Path
 import random
@@ -44,8 +47,27 @@ class WrittenReasons(unittest.TestCase):
         for row, items in self.doc['rows'].items():
             muts = M.mutants(self.funcs[row], int(row, 16), random.Random(int(row, 16)), 100000, True)
             for i in items:
-                if i.get('ident'):
+                self.assertTrue(i.get('ident'), (row, i['kind'], i['line']))       # a reason without an ident would cover every mutant of the line
+                if True:
                     self.assertIn((i['kind'], i['line'], i['ident']), {(k, n, M.line_hash(t, n)) for k, n, t in muts}, (row, i['kind'], i['line']))
+
+
+class StepBudget(unittest.TestCase):
+    def test_hang_listed_mutants_are_killed_by_the_budget_or_explained(self):
+        surv = json.loads((PROJECT / 'tasks/fl48-survivors-5.json').read_text())
+        rows = set(M.split_functions((PROJECT / 'src/original_methods_fl41.c').read_text()))
+        before = set(json.loads((PROJECT / 'tasks/fl48-credited-before.json').read_text()))
+        self.assertEqual(rows & set(surv['unexplained_rows']), set())
+        hang = json.loads((PROJECT / 'tasks/fl48-hang-lists-all.json').read_text())
+        for row in sorted(rows - before):
+            if row not in hang:
+                continue
+            log = PROJECT / ('tasks/fl48-budget-log-%s.txt' % row)
+            m = re.search(r'^%s mutants \d+ killed \d+ survivors (.*)$' % row, log.read_text(), re.M)
+            self.assertTrue(m, row)
+            alive = {(x[0], x[1], x[3]) for x in ast.literal_eval(m.group(1))}
+            explained = {(x[0], x[1], x[2]) for x in surv['mutants'].get(row, []) if x[3]}
+            self.assertEqual(alive - explained, set(), row)
 
 
 if __name__ == '__main__':
