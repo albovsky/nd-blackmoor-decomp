@@ -349,6 +349,9 @@ def main():
         wanted = {(i[0], i[3]) for i in surv['rows_with_survivors'][key] if i[1] is None}
         jobs.append((key, corpus[key], funcs[key], helper if 'FL41_CALL_LIFTED' in funcs[key] else '', wanted, a.seeds))
     result = {}
+    if os.environ.get('FL48_RESUME') and Path(a.out).exists():                 # FL-48: keep the rows an interrupted run finished
+        result = {k: v for k, v in json.loads(Path(a.out).read_text()).items() if v.get('alive', -1) >= 0}
+        jobs = [j for j in jobs if j[0] not in result]
     with mp.Pool(a.jobs, maxtasksperchild=1) as pool:
         for key, res in pool.imap_unordered(work, jobs):
             result[key] = res
