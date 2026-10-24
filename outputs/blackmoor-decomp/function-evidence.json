@@ -1627,6 +1627,7 @@
   {"path":"outputs/blackmoor-decomp/tests/test_fl43_equiv.py","role":"test","sha256":"931a6d404b566b14c5803573ecb3a2ae0eebc70a3b877d0740c0d5ed19d8ec51"},
   {"path":"outputs/blackmoor-decomp/tests/test_fl44_ranges.py","role":"test","sha256":"231a3e94fd05283db8f50289eee202a3e9890fff726d446df2ed15241389daf4"},
   {"path":"outputs/blackmoor-decomp/tests/test_fl45_ranges.py","role":"test","sha256":"c82ab39b1b447bca0ac5a10a822a45fbbbd26cd4255a89be1f23e0f151f527d8"},
+  {"path":"outputs/blackmoor-decomp/tests/test_fl46_verdicts.py","role":"test","sha256":"caa75d59a5a2ab34a010d84e2debe028b08e697e552340b43f96d90a90e5eb42"},
   {"path":"outputs/blackmoor-decomp/tests/test_fl_differential.py","role":"test","sha256":"82bb669377813e686d0b0d76acd7a1eb73182ad065788a2dc29950fd4972c5ee"},
   {"path":"outputs/blackmoor-decomp/tests/test_function_names.py","role":"test","sha256":"e8782e8604a4d01f34dbbeb3a2fdf1805ccadafd944ebe2ea75e91908955187f"},
   {"path":"outputs/blackmoor-decomp/tests/test_game_resources.py","role":"test","sha256":"3407e5d2a434e56bac646e43d93a3389e8b2a5164bafc3aa2efdccd5bd2da4a8"},

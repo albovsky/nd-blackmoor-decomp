@@ -950,31 +950,6 @@
   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 1 seeds; oracle 38/38 instructions, 0/0 jump directions; mutation survivors: tasks/fl40-survivors.json."
  },
  {
-  "va": "0x41df05",
-  "class": "native_oracle_verified",
-  "reviewer": "Sonnet slice-reviewer, diff review, findings addressed (FL-40)",
-  "date": "2026-10-22",
-  "native_source": {
-   "path": "src/original_methods_fl40.c",
-   "symbol": "m41df05_lifted"
-  },
-  "tests": [
-   {
-    "path": "tests/test_fl40_differential.py",
-    "test_id": "Fl40Differential.test_41df05_lifted"
-   }
-  ],
-  "oracle": {
-   "path": "tests/fl40_original_oracle.py",
-   "window": [
-    "0x41df05",
-    "0x41dfd2"
-   ]
-  },
-  "parts_accounted": [],
-  "note": "Machine-translated from the original instructions (scripts/lift_function.py); 3 seeds; oracle 58/58 instructions, 6/6 jump directions; mutation survivors: tasks/fl40-survivors.json."
- },
- {
   "va": "0x425fa0",
   "class": "native_oracle_verified",
   "reviewer": "Sonnet slice-reviewer, diff review, findings addressed (FL-40)",
@@ -4837,5 +4812,30 @@
   },
   "parts_accounted": [],
   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 3 seeds; oracle 70/70 instructions, 12/12 jump directions; mutation survivors: tasks/fl40-survivors.json."
+ },
+ {
+  "va": "0x454065",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet slice-reviewer, diff review, findings addressed (FL-46)",
+  "date": "2026-10-22",
+  "native_source": {
+   "path": "src/original_methods_fl40.c",
+   "symbol": "m454065_lifted"
+  },
+  "tests": [
+   {
+    "path": "tests/test_fl40_differential.py",
+    "test_id": "Fl40Differential.test_454065_lifted"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl40_original_oracle.py",
+   "window": [
+    "0x454065",
+    "0x4540bd"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Machine-translated from the original instructions (scripts/lift_function.py); 6 seeds; oracle 30/30 instructions, 4/4 jump directions; mutation survivors: tasks/fl40-survivors.json."
  }
 ]

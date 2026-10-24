@@ -1,0 +1,2 @@
+0x454065 mutants 3 killed 1 survivors [('literal', 15, 'killed by step budget'), ('drop', 15, 'killed by step budget')] budget-kills 2
+TOTAL mutants 3 killed 1 rows with a survivor 0

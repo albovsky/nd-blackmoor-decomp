@@ -12885,7 +12885,6 @@
       "contains_original_byte_values": false,
       "data_items": [],
       "function": "FUN_0041df05",
-      "naming": "native_port",
       "object": {
         "sha256": "0de7666379669c95fb1807f68f67e12321b830dc94762df538177da54e7cdcb2",
         "size": 119275
@@ -12895,7 +12894,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_0041df05.s",
-        "sha256": "a7df01c630e7c82c51e84da7f826dc6b4b555d3048b817059345e39e319404fe"
+        "sha256": "76856dabf805b99619323869531e197626d5cbe4e9497d059691b94ee1a97287"
       },
       "status": "accepted",
       "va": 4316933
@@ -21239,9 +21238,9 @@
       "va": 4498450
     }
   ],
-  "manifest_sha256": "8afea9713b10a80b7cd9dfb11e41574a8d5caad03ba8942c9d7fcda7979e49c5",
-  "named_functions": 595,
-  "names_sha256": "cb88536c3a41dccad3ec501465e1cbaf096f68dc9546486287d5694ac2d366df",
+  "manifest_sha256": "403429dc5c80076e9572c2c5d0b72ea9919249c26c05c4af943e903d9864338c",
+  "named_functions": 594,
+  "names_sha256": "a6d17a8f25a39f4f3e917a5b7998c769f6c9d7aceecb5be84ace59aae5a88adf",
   "note": "Accepted functions are candidates for the tool_assisted_reconstructed_assembly class; they count only after root accepts the independent review. No claim is made about original C++ or compiler provenance.",
   "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45"
 }
