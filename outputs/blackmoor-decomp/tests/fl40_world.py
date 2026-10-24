@@ -170,6 +170,7 @@ class Trace:
         self.writes = []
         self.calls = []
         self.executed = set()
+        self.steps = 0          # FL-46: instructions of the function body the original ran (the step budget of a hang kill)
         self.edges = set()
         self.fault = None
 
@@ -256,6 +257,7 @@ def run_original(row, seed, overrides=(), observe=False, setup=None):
 
     def count(uc_, address, size_, user):
         trace.executed.add(address)
+        trace.steps += 1
         if prev[0] is not None:
             trace.edges.add((prev[0], address))
         prev[0] = address
