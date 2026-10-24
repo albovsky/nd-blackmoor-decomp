@@ -403,6 +403,10 @@
    ]
   ]
  },
+ "0x482248": {
+  "detail": "FL-45 exhaustive check (tasks/fl45-mutation-log-final.txt, tasks/fl45-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
+  "status": "mutation survivor"
+ },
  "0x482595": {
   "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
   "status": "mutation check not run"
@@ -2259,10 +2263,6 @@
    ]
   ]
  },
- "0x48a70a": {
-  "detail": "FL-45: every mutant is killed or explained except 8 that only a hang (scenario alarm) kills; timeouts do not count as kills (tasks/fl45-strict-hang-log.txt). Translation, corpus and seeds are kept in tasks/fl45-hang-dependent-rows.json.",
-  "status": "mutation survivor"
- },
  "0x48ae05": {
   "directions": [
    52,
@@ -2538,14 +2538,6 @@
  "0x48b730": {
   "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
   "status": "mutation check not run"
- },
- "0x48bca6": {
-  "detail": "FL-45: every mutant is killed or explained except 8 that only a hang (scenario alarm) kills; timeouts do not count as kills (tasks/fl45-strict-hang-log.txt). Translation, corpus and seeds are kept in tasks/fl45-hang-dependent-rows.json.",
-  "status": "mutation survivor"
- },
- "0x48e324": {
-  "detail": "FL-45: every mutant is killed or explained except 9 that only a hang (scenario alarm) kills; timeouts do not count as kills (tasks/fl45-strict-hang-log.txt). Translation, corpus and seeds are kept in tasks/fl45-hang-dependent-rows.json.",
-  "status": "mutation survivor"
  },
  "0x48e3ca": {
   "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
@@ -3519,6 +3511,10 @@
    ]
   ]
  },
+ "0x495a5b": {
+  "detail": "FL-45 exhaustive check (tasks/fl45-mutation-log-final.txt, tasks/fl45-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
+  "status": "mutation survivor"
+ },
  "0x49d1be": {
   "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
   "status": "mutation check not run"
@@ -3613,8 +3609,8 @@
   "status": "mutation check not run"
  },
  "0x4a0d73": {
-  "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
-  "status": "mutation check not run"
+  "detail": "FL-45 exhaustive check (tasks/fl45-mutation-log-final.txt, tasks/fl45-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
+  "status": "mutation survivor"
  },
  "0x4a0ec3": {
   "directions": [
@@ -4279,12 +4275,8 @@
    ]
   ]
  },
- "0x4a378a": {
-  "detail": "FL-45: every mutant is killed or explained except 7 that only a hang (scenario alarm) kills; timeouts do not count as kills (tasks/fl45-strict-hang-log.txt). Translation, corpus and seeds are kept in tasks/fl45-hang-dependent-rows.json.",
-  "status": "mutation survivor"
- },
- "0x4a3947": {
-  "detail": "FL-45: every mutant is killed or explained except 11 that only a hang (scenario alarm) kills; timeouts do not count as kills (tasks/fl45-strict-hang-log.txt). Translation, corpus and seeds are kept in tasks/fl45-hang-dependent-rows.json.",
+ "0x4a3884": {
+  "detail": "FL-45 exhaustive check (tasks/fl45-mutation-log-final.txt, tasks/fl45-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4a42c0": {
@@ -4335,8 +4327,8 @@
   ]
  },
  "0x4a4c15": {
-  "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
-  "status": "mutation check not run"
+  "detail": "FL-45 exhaustive check (tasks/fl45-mutation-log-final.txt, tasks/fl45-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
+  "status": "mutation survivor"
  },
  "0x4a4d55": {
   "directions": [
@@ -5123,17 +5115,13 @@
    ]
   ]
  },
- "0x4a7a29": {
-  "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
-  "status": "mutation check not run"
- },
  "0x4a8697": {
-  "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
-  "status": "mutation check not run"
+  "detail": "FL-45 exhaustive check (tasks/fl45-mutation-log-final.txt, tasks/fl45-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
+  "status": "mutation survivor"
  },
  "0x4a8bf2": {
-  "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
-  "status": "mutation check not run"
+  "detail": "FL-45 exhaustive check (tasks/fl45-mutation-log-final.txt, tasks/fl45-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
+  "status": "mutation survivor"
  },
  "0x4a8d28": {
   "directions": [
@@ -5476,10 +5464,6 @@
    ]
   ]
  },
- "0x4aa002": {
-  "detail": "FL-45: every mutant is killed or explained except 10 that only a hang (scenario alarm) kills; timeouts do not count as kills (tasks/fl45-strict-hang-log.txt). Translation, corpus and seeds are kept in tasks/fl45-hang-dependent-rows.json.",
-  "status": "mutation survivor"
- },
  "0x4aa81e": {
   "directions": [
    38,
@@ -5689,10 +5673,6 @@
  "0x4aaf05": {
   "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
   "status": "mutation check not run"
- },
- "0x4ab9fa": {
-  "detail": "FL-45: every mutant is killed or explained except 3 that only a hang (scenario alarm) kills; timeouts do not count as kills (tasks/fl45-strict-hang-log.txt). Translation, corpus and seeds are kept in tasks/fl45-hang-dependent-rows.json.",
-  "status": "mutation survivor"
  },
  "0x4aba6d": {
   "directions": [
@@ -6056,10 +6036,6 @@
     "taken"
    ]
   ]
- },
- "0x4acdc2": {
-  "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
-  "status": "mutation check not run"
  },
  "0x4ad590": {
   "directions": [
@@ -7711,10 +7687,6 @@
   "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
   "status": "mutation check not run"
  },
- "0x4b49d4": {
-  "detail": "FL-45: every mutant is killed or explained except 12 that only a hang (scenario alarm) kills; timeouts do not count as kills (tasks/fl45-strict-hang-log.txt). Translation, corpus and seeds are kept in tasks/fl45-hang-dependent-rows.json.",
-  "status": "mutation survivor"
- },
  "0x4b4a68": {
   "directions": [
    69,
@@ -8959,10 +8931,6 @@
   "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
   "status": "mutation check not run"
  },
- "0x4be1dd": {
-  "detail": "FL-45: every mutant is killed or explained except 12 that only a hang (scenario alarm) kills; timeouts do not count as kills (tasks/fl45-strict-hang-log.txt). Translation, corpus and seeds are kept in tasks/fl45-hang-dependent-rows.json.",
-  "status": "mutation survivor"
- },
  "0x4be6a4": {
   "directions": [
    35,
@@ -9247,8 +9215,12 @@
    ]
   ]
  },
- "0x4c0b8b": {
-  "detail": "FL-45: every mutant is killed or explained except 9 that only a hang (scenario alarm) kills; timeouts do not count as kills (tasks/fl45-strict-hang-log.txt). Translation, corpus and seeds are kept in tasks/fl45-hang-dependent-rows.json.",
+ "0x4bf1f0": {
+  "detail": "FL-45 exhaustive check (tasks/fl45-mutation-log-final.txt, tasks/fl45-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
+  "status": "mutation survivor"
+ },
+ "0x4bf8c2": {
+  "detail": "FL-45 exhaustive check (tasks/fl45-mutation-log-final.txt, tasks/fl45-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4c0f70": {
@@ -9298,12 +9270,12 @@
   ]
  },
  "0x4c4b12": {
-  "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
-  "status": "mutation check not run"
+  "detail": "FL-45 exhaustive check (tasks/fl45-mutation-log-final.txt, tasks/fl45-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
+  "status": "mutation survivor"
  },
  "0x4c4c2b": {
-  "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
-  "status": "mutation check not run"
+  "detail": "FL-45 exhaustive check (tasks/fl45-mutation-log-final.txt, tasks/fl45-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
+  "status": "mutation survivor"
  },
  "0x4c558b": {
   "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
@@ -9334,8 +9306,8 @@
   "status": "mutation check not run"
  },
  "0x4c71f9": {
-  "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
-  "status": "mutation check not run"
+  "detail": "FL-45 exhaustive check (tasks/fl45-mutation-log-final.txt, tasks/fl45-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
+  "status": "mutation survivor"
  },
  "0x4c7770": {
   "detail": "UcError: No memory available or memory not present (UC_ERR_NOMEM)",
@@ -9362,14 +9334,6 @@
  "0x4c880f": {
   "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
   "status": "mutation check not run"
- },
- "0x4c9428": {
-  "detail": "FL-45: every mutant is killed or explained except 7 that only a hang (scenario alarm) kills; timeouts do not count as kills (tasks/fl45-strict-hang-log.txt). Translation, corpus and seeds are kept in tasks/fl45-hang-dependent-rows.json.",
-  "status": "mutation survivor"
- },
- "0x4c94ec": {
-  "detail": "FL-45: every mutant is killed or explained except 3 that only a hang (scenario alarm) kills; timeouts do not count as kills (tasks/fl45-strict-hang-log.txt). Translation, corpus and seeds are kept in tasks/fl45-hang-dependent-rows.json.",
-  "status": "mutation survivor"
  },
  "0x4c952f": {
   "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
@@ -9974,8 +9938,8 @@
   "status": "mutation check not run"
  },
  "0x4d040a": {
-  "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
-  "status": "mutation check not run"
+  "detail": "FL-45 exhaustive check (tasks/fl45-mutation-log-final.txt, tasks/fl45-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
+  "status": "mutation survivor"
  },
  "0x4d0532": {
   "directions": [
@@ -10033,11 +9997,7 @@
   ]
  },
  "0x4d0952": {
-  "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
-  "status": "mutation check not run"
- },
- "0x4d0afc": {
-  "detail": "FL-45: every mutant is killed or explained except 8 that only a hang (scenario alarm) kills; timeouts do not count as kills (tasks/fl45-strict-hang-log.txt). Translation, corpus and seeds are kept in tasks/fl45-hang-dependent-rows.json.",
+  "detail": "FL-45 exhaustive check (tasks/fl45-mutation-log-final.txt, tasks/fl45-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4d0d06": {
@@ -10203,10 +10163,6 @@
  "0x4d341d": {
   "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
   "status": "mutation check not run"
- },
- "0x4d3da7": {
-  "detail": "FL-45: every mutant is killed or explained except 8 that only a hang (scenario alarm) kills; timeouts do not count as kills (tasks/fl45-strict-hang-log.txt). Translation, corpus and seeds are kept in tasks/fl45-hang-dependent-rows.json.",
-  "status": "mutation survivor"
  },
  "0x4d4410": {
   "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
@@ -10448,13 +10404,21 @@
   "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
   "status": "mutation check not run"
  },
+ "0x4d65e9": {
+  "detail": "FL-45 exhaustive check (tasks/fl45-mutation-log-final.txt, tasks/fl45-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
+  "status": "mutation survivor"
+ },
+ "0x4d6705": {
+  "detail": "FL-45 exhaustive check (tasks/fl45-mutation-log-final.txt, tasks/fl45-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
+  "status": "mutation survivor"
+ },
  "0x4d6824": {
-  "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
-  "status": "mutation check not run"
+  "detail": "FL-45 exhaustive check (tasks/fl45-mutation-log-final.txt, tasks/fl45-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
+  "status": "mutation survivor"
  },
  "0x4d696d": {
-  "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
-  "status": "mutation check not run"
+  "detail": "FL-45 exhaustive check (tasks/fl45-mutation-log-final.txt, tasks/fl45-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
+  "status": "mutation survivor"
  },
  "0x4d7162": {
   "directions": [
@@ -11330,8 +11294,8 @@
   ]
  },
  "0x4d8fb6": {
-  "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
-  "status": "mutation check not run"
+  "detail": "FL-45 exhaustive check (tasks/fl45-mutation-log-final.txt, tasks/fl45-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
+  "status": "mutation survivor"
  },
  "0x4d940a": {
   "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
@@ -11716,8 +11680,8 @@
   ]
  },
  "0x4dbb13": {
-  "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
-  "status": "mutation check not run"
+  "detail": "FL-45 exhaustive check (tasks/fl45-mutation-log-final.txt, tasks/fl45-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
+  "status": "mutation survivor"
  },
  "0x4dbcd0": {
   "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
@@ -12513,10 +12477,6 @@
    ]
   ]
  },
- "0x4de009": {
-  "detail": "FL-45: every mutant is killed or explained except 17 that only a hang (scenario alarm) kills; timeouts do not count as kills (tasks/fl45-strict-hang-log.txt). Translation, corpus and seeds are kept in tasks/fl45-hang-dependent-rows.json.",
-  "status": "mutation survivor"
- },
  "0x4e075a": {
   "directions": [
    17,
@@ -13033,6 +12993,10 @@
   "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
   "status": "mutation check not run"
  },
+ "0x4e1b79": {
+  "detail": "FL-45 exhaustive check (tasks/fl45-mutation-log-final.txt, tasks/fl45-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
+  "status": "mutation survivor"
+ },
  "0x4e1db3": {
   "directions": [
    6,
@@ -13417,18 +13381,6 @@
  "0x4e3093": {
   "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
   "status": "mutation check not run"
- },
- "0x4e354a": {
-  "detail": "FL-45: every mutant is killed or explained except 8 that only a hang (scenario alarm) kills; timeouts do not count as kills (tasks/fl45-strict-hang-log.txt). Translation, corpus and seeds are kept in tasks/fl45-hang-dependent-rows.json.",
-  "status": "mutation survivor"
- },
- "0x4e35e8": {
-  "detail": "FL-45: every mutant is killed or explained except 7 that only a hang (scenario alarm) kills; timeouts do not count as kills (tasks/fl45-strict-hang-log.txt). Translation, corpus and seeds are kept in tasks/fl45-hang-dependent-rows.json.",
-  "status": "mutation survivor"
- },
- "0x4e364a": {
-  "detail": "FL-45: every mutant is killed or explained except 8 that only a hang (scenario alarm) kills; timeouts do not count as kills (tasks/fl45-strict-hang-log.txt). Translation, corpus and seeds are kept in tasks/fl45-hang-dependent-rows.json.",
-  "status": "mutation survivor"
  },
  "0x4e386e": {
   "directions": [
@@ -14293,6 +14245,10 @@
    ]
   ]
  },
+ "0x4e6548": {
+  "detail": "FL-45 exhaustive check (tasks/fl45-mutation-log-final.txt, tasks/fl45-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
+  "status": "mutation survivor"
+ },
  "0x4e6658": {
   "directions": [
    70,
@@ -14666,8 +14622,8 @@
    ]
   ]
  },
- "0x4e7512": {
-  "detail": "FL-45: every mutant is killed or explained except 10 that only a hang (scenario alarm) kills; timeouts do not count as kills (tasks/fl45-strict-hang-log.txt). Translation, corpus and seeds are kept in tasks/fl45-hang-dependent-rows.json.",
+ "0x4e77b8": {
+  "detail": "FL-45 exhaustive check (tasks/fl45-mutation-log-final.txt, tasks/fl45-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
   "status": "mutation survivor"
  },
  "0x4e7e15": {
@@ -15126,10 +15082,6 @@
   "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
   "status": "mutation check not run"
  },
- "0x4e9d8f": {
-  "detail": "FL-45: every mutant is killed or explained except 10 that only a hang (scenario alarm) kills; timeouts do not count as kills (tasks/fl45-strict-hang-log.txt). Translation, corpus and seeds are kept in tasks/fl45-hang-dependent-rows.json.",
-  "status": "mutation survivor"
- },
  "0x4ea3a0": {
   "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
   "status": "mutation check not run"
@@ -15279,10 +15231,6 @@
  "0x4eaf2a": {
   "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
   "status": "mutation check not run"
- },
- "0x4eb9c8": {
-  "detail": "FL-45: every mutant is killed or explained except 11 that only a hang (scenario alarm) kills; timeouts do not count as kills (tasks/fl45-strict-hang-log.txt). Translation, corpus and seeds are kept in tasks/fl45-hang-dependent-rows.json.",
-  "status": "mutation survivor"
  },
  "0x4ebb5b": {
   "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
@@ -16018,8 +15966,8 @@
   "status": "mutation check not run"
  },
  "0x4ee6c7": {
-  "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
-  "status": "mutation check not run"
+  "detail": "FL-45 exhaustive check (tasks/fl45-mutation-log-final.txt, tasks/fl45-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
+  "status": "mutation survivor"
  },
  "0x4ee86f": {
   "directions": [
@@ -16190,25 +16138,13 @@
   "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
   "status": "mutation check not run"
  },
- "0x4f2640": {
-  "detail": "FL-45: every mutant is killed or explained except 3 that only a hang (scenario alarm) kills; timeouts do not count as kills (tasks/fl45-strict-hang-log.txt). Translation, corpus and seeds are kept in tasks/fl45-hang-dependent-rows.json.",
-  "status": "mutation survivor"
- },
  "0x4f57e3": {
-  "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
-  "status": "mutation check not run"
+  "detail": "FL-45 exhaustive check (tasks/fl45-mutation-log-final.txt, tasks/fl45-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op",
+  "status": "mutation survivor"
  },
  "0x4f6624": {
   "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
   "status": "mutation check not run"
- },
- "0x4f67be": {
-  "detail": "FL-45: every mutant is killed or explained except 4 that only a hang (scenario alarm) kills; timeouts do not count as kills (tasks/fl45-strict-hang-log.txt). Translation, corpus and seeds are kept in tasks/fl45-hang-dependent-rows.json.",
-  "status": "mutation survivor"
- },
- "0x4f6810": {
-  "detail": "FL-45: every mutant is killed or explained except 4 that only a hang (scenario alarm) kills; timeouts do not count as kills (tasks/fl45-strict-hang-log.txt). Translation, corpus and seeds are kept in tasks/fl45-hang-dependent-rows.json.",
-  "status": "mutation survivor"
  },
  "0x4fa2a8": {
   "directions": [
@@ -16252,21 +16188,5 @@
  "0x4faa03": {
   "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
   "status": "mutation check not run"
- },
- "0x4fafc7": {
-  "detail": "FL-45: every mutant is killed or explained except 7 that only a hang (scenario alarm) kills; timeouts do not count as kills (tasks/fl45-strict-hang-log.txt). Translation, corpus and seeds are kept in tasks/fl45-hang-dependent-rows.json.",
-  "status": "mutation survivor"
- },
- "0x4fb018": {
-  "detail": "FL-45: every mutant is killed or explained except 7 that only a hang (scenario alarm) kills; timeouts do not count as kills (tasks/fl45-strict-hang-log.txt). Translation, corpus and seeds are kept in tasks/fl45-hang-dependent-rows.json.",
-  "status": "mutation survivor"
- },
- "0x4fb086": {
-  "detail": "FL-45: every mutant is killed or explained except 7 that only a hang (scenario alarm) kills; timeouts do not count as kills (tasks/fl45-strict-hang-log.txt). Translation, corpus and seeds are kept in tasks/fl45-hang-dependent-rows.json.",
-  "status": "mutation survivor"
- },
- "0x4fb737": {
-  "detail": "FL-45: every mutant is killed or explained except 7 that only a hang (scenario alarm) kills; timeouts do not count as kills (tasks/fl45-strict-hang-log.txt). Translation, corpus and seeds are kept in tasks/fl45-hang-dependent-rows.json.",
-  "status": "mutation survivor"
  }
 }
