@@ -1,0 +1,605 @@
+{
+ "note": "FL-49: row-specific written reasons that a lifted-C survivor (kind, line) is equivalent to the original, same rules as tasks/fl46-written-reasons.json. Each was written by one Sonnet reader from the function alone and confirmed by a second, independent Sonnet reviewer who tried to break it (reviewer note kept); rejected reasons are not here. The statement must equal the current line of the row, else the reason is ignored (scripts/fl44_final.py).",
+ "rows": {
+  "0x4015fb": [
+   {
+    "kind": "width",
+    "line": 12,
+    "statement": "eax = (eax & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xffffff74u))) & 0xffffu);  /* 0x40161e: mov ax, word ptr [ebp - 0x8c] */",
+    "reason": "Counter [ebp-0x8c] is set to 0 at 0x401613 and rewritten only by 0x401629 (ax+1). The loop exits via jge 0x401640 once movsx counter >= movsx [ebp-0x84] (0x34, set at 0x40160a), so the counter stays in 0..0x34 and its high byte is 0. Assumption: both slots are written only by explicit ebp-relative stores; the lea'd pointers at ebp-0x88/ebp-0x80 passed to the callees address other slots. At 0x40161e ax gets the same value with RD8, so ax+1 (0x401625), the store at 0x401629 and eax are identical.",
+    "review": "Re-derived: counter [ebp-0x8c] starts 0 (0x401613), only +1 (0x401629), loop exits on signed counter>=0x34 (limit word [ebp-0x84]=0x34); 0x401589 stores only a word through the [ebp-0x88] pointer (checked asm of 0x402322: word store) and 0x401589/0x51d4c4 get buffer at ebp-0x80 upward, so the slots are not touched; counter is 0..0x34, high byte 0, so RD8==RD16 here. ax identical, so ax+1, the WR16 and eax (upper half kept) are identical."
+   },
+   {
+    "kind": "width",
+    "line": 16,
+    "statement": "ecx = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(ebp + 0xffffff74u)))) & 0xffffffffu;  /* 0x401630: movsx ecx, word ptr [ebp - 0x8c] */",
+    "reason": "Counter [ebp-0x8c] is set to 0 at 0x401613 and rewritten only by 0x401629 (ax+1). The loop exits via jge 0x401640 once movsx counter >= movsx [ebp-0x84] (0x34, set at 0x40160a), so the counter stays in 0..0x34 and its high byte is 0. Assumption: both slots are written only by explicit ebp-relative stores; the lea'd pointers at ebp-0x88/ebp-0x80 passed to the callees address other slots. RD8 returns that low byte (<0x80), so the sign-extended ecx at 0x401630 and the cmp/jge are identical.",
+    "review": "Re-derived: counter [ebp-0x8c] starts 0 (0x401613), only +1 (0x401629), loop exits on signed counter>=0x34 (limit word [ebp-0x84]=0x34); 0x401589 stores only a word through the [ebp-0x88] pointer (checked asm of 0x402322: word store) and 0x401589/0x51d4c4 get buffer at ebp-0x80 upward, so the slots are not touched; counter is 0..0x34, high byte 0, so RD8==RD16 here. movsx ecx and the cmp/jge are identical."
+   },
+   {
+    "kind": "width",
+    "line": 24,
+    "statement": "edx = (edx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xffffff74u))) & 0xffffu);  /* 0x40164d: mov dx, word ptr [ebp - 0x8c] */",
+    "reason": "Counter [ebp-0x8c] is set to 0 at 0x401613 and rewritten only by 0x401629 (ax+1). The loop exits via jge 0x401640 once movsx counter >= movsx [ebp-0x84] (0x34, set at 0x40160a), so the counter stays in 0..0x34 and its high byte is 0. Assumption: both slots are written only by explicit ebp-relative stores; the lea'd pointers at ebp-0x88/ebp-0x80 passed to the callees address other slots. At 0x40164d dx gets the same value with RD8, so the edx pushed at 0x401654 (upper half from the movsx at 0x401637) is identical.",
+    "review": "Re-derived: counter [ebp-0x8c] starts 0 (0x401613), only +1 (0x401629), loop exits on signed counter>=0x34 (limit word [ebp-0x84]=0x34); 0x401589 stores only a word through the [ebp-0x88] pointer (checked asm of 0x402322: word store) and 0x401589/0x51d4c4 get buffer at ebp-0x80 upward, so the slots are not touched; counter is 0..0x34, high byte 0, so RD8==RD16 here. Low word of edx identical, upper half from the movsx at 0x401637 untouched, pushed value identical."
+   }
+  ],
+  "0x404b49": [
+   {
+    "kind": "width",
+    "line": 18,
+    "statement": "{ uint32_t a_ = eax & 0xffu, b_ = RD8(edi), r_;",
+    "reason": "Repne scasb at 0x404b68 (al=0, edi from 0x53e92c): FL40_SUB(a_,b_,0,r_,8) gives r_=(0-b_)&0xff, so zf, the only flag the loop consumes (the break), depends only on the low byte of b_, which RD16 does not change; edi/ecx updates are identical. cf/sf/of/pf of the scan are dead: not ecx (0x404b6a) sets no flags and sub edi,ecx (0x404b6c) rewrites all of them before anything reads. Assumes the byte after the NUL is readable (pure read in the host model).",
+    "review": "Re-derived: al=0 (line 15), 8-bit FL40_SUB: zf depends on low byte of b_ only; cf dead since sub edi,ecx (line 25) rewrites all flags after the not; ecx=-1 so loop runs; extra read side-effect free."
+   },
+   {
+    "kind": "width",
+    "line": 66,
+    "statement": "{ uint32_t a_ = eax & 0xffu, b_ = RD8(edi), r_;",
+    "reason": "Repne scasb at 0x404bc1 (al=0, edi = 0x571b90+i*0x16d): FL40_SUB(0,b_,0,r_,8) gives r_=(0-b_)&0xff, so zf (the break condition) depends only on the low byte of b_, unchanged by RD16; edi/ecx advance identically. The other flags are dead: not ecx (0x404bc3) sets none and sub edi,ecx (0x404bc5) rewrites them before any use. Assumes the byte after the terminating NUL is readable (side-effect-free read in the host model).",
+    "review": "Re-derived: same as line 18: al=0 (line 63), zf-only consumer, cf dead (sub edi,ecx line 73 rewrites), edi=0x571b90+i*0x16d, read-only."
+   }
+  ],
+  "0x4110f6": [
+   {
+    "kind": "drop",
+    "line": 26,
+    "statement": "edx = RD32((uint32_t)(ebp + 0xfffffff8u));  /* 0x41113e: mov edx, dword ptr [ebp - 8] */",
+    "reason": "The loop at 0x411111 starts with [ebp-4]=0 (0x4110ff) and 0<6 signed, so the body 0x411117/0x41111a runs at least once and leaves edx=[ebp-8]. Nothing after changes edx: 0x41111d is a store, 0x411127/0x411131 load eax/ecx, 0x41112a/0x411134 are stores. So at 0x411141 edx already equals what the dropped reload at 0x41113e would load. [ebp-8] is written only at 0x4110fc (frame-slot assumption: the stores through [edx+ecx*4+0x12], [eax+6], [ecx+0x2930] use a pointer loaded from [ebp-8], i.e. the this/heap pointer, not a frame address), so the reload sees the same value. edx is scratch at return.",
+    "review": "Re-derived: [ebp-4]=0<6 so the loop body (edx=[ebp-8] at 0x41111a) runs at least once and nothing writes edx after; [ebp-8] is written once at 0x4110fc and stores go via this."
+   }
+  ],
+  "0x416122": [
+   {
+    "kind": "drop",
+    "line": 13,
+    "statement": "edx = (edx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffffcu))) & 0xffffu);  /* 0x41613b: mov dx, word ptr [ebp - 4] */",
+    "reason": "L_41613b is reached only from 0x4161c6 (jne at 0x416183), whose only path from the last write of edx is 0x41616e: movsx edx,[ebp-4], with no call or store to [ebp-4] in between (0x416172-0x416183 only load, and the store at 0x416178 goes through the argument pointer [ebp+8], assumed not to alias the frame). So dx already equals [ebp-4] when 0x41613b runs; the mov dx is a no-op on edx. edx is also overwritten by movsx at 0x41614e before any other read.",
+    "review": "Re-derived: L_41613b has a single goto (line 49, from line 33 jne); between the last edx write (line 28 movsx [ebp-4]) and line 33 there is no call and the only store (line 31) goes via the argument pointer, so low word of edx already equals [ebp-4]; mov dx is a no-op and upper half is kept either way."
+   },
+   {
+    "kind": "literal",
+    "line": 13,
+    "statement": "edx = (edx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffffcu))) & 0xffffu);  /* 0x41613b: mov dx, word ptr [ebp - 4] */",
+    "reason": "Mutant mask 0xffff0001 keeps bit 0 of old edx ORed into dx. L_41613b is reached only via 0x4161c6 after 0x41616e, where edx = movsx [ebp-4] with [ebp-4] unchanged since (store at 0x416178 goes via argument pointer, assumed not to alias the frame; no calls after 0x41616e). So old edx bit 0 equals bit 0 of the RD16 value being ORed in; (e&1)|x == x. dx, the add at 0x41613f, the store at 0x416143 are identical; edx is overwritten at 0x41614e.",
+    "review": "Re-derived: same single-entry/dataflow fact; edx = sext16([ebp-4]) on entry so edx bit 0 == bit 0 of the word ORed in, hence (e&1)|w == w for the one mutant (mask 0xffff0001); rest of edx unchanged."
+   }
+  ],
+  "0x416f2d": [
+   {
+    "kind": "width",
+    "line": 19,
+    "statement": "ecx = (ecx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffff0u))) & 0xffffu);  /* 0x416f63: mov cx, word ptr [ebp - 0x10] */",
+    "reason": "0x416f63 is reached only from the jmp at 0x416f85 after the test at 0x416f76 passed, so the counter word [ebp-0x10] is in 0..29 (set to 0 at 0x416f5b, only changed by +1 at 0x416f67/0x416f6b, loop body entered only while signed i<30). Its high byte is 0, so RD8 equals RD16: cx gets the same value (upper half of ecx kept in both), and the add/store at 0x416f67-0x416f6b is identical. Assumes [ebp-0x10] is not written by the callee at 0x41a336 (no pointer into the frame is passed).",
+    "review": "Re-derived: 0x416f63 reached only from jmp 0x416f85 after the i<30 test passed, i in 0..29, RD8==RD16, upper half of ecx kept in both, store back identical."
+   },
+   {
+    "kind": "width",
+    "line": 23,
+    "statement": "edx = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(ebp + 0xfffffff0u)))) & 0xffffffffu;  /* 0x416f6f: movsx edx, word ptr [ebp - 0x10] */",
+    "reason": "movsx edx,word [ebp-0x10] at 0x416f6f is reached with counter i=0 (jmp 0x416f61) or i=1..30 (after 0x416f6b increments a value known to be 0..29). The word never exceeds 30, so its high byte is 0 and the mutant's int16 cast of the byte equals the 16-bit sign extension; edx is identical for the cmp at 0x416f73 and the jge at 0x416f76 (edx is dead afterwards, rewritten at the next 0x416f6f). Assumes the slot is written only by this function's ebp-relative stores 0x416f5b/0x416f6b.",
+    "review": "Re-derived: read at 0x416f6f has i in 0..30 (0 via jmp, else incremented 0..29), so byte zero-extended then int16 cast equals the word value; edx dead after the cmp/jge anyway."
+   },
+   {
+    "kind": "width",
+    "line": 26,
+    "statement": "eax = (eax & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffff0u))) & 0xffffu);  /* 0x416f78: mov ax, word ptr [ebp - 0x10] */",
+    "reason": "The word [ebp-0x10] (counter i, written only by 0x416f5b = 0 and 0x416f6b = cx, cx = i+1 from 0x416f63/0x416f67) is read at 0x416f78 only after the signed test at 0x416f6f-0x416f76 passed (i<30). i starts at 0 and only goes up by 1, so 0<=i<=29 and its high byte is 0: RD8 returns the same value as RD16, so ax, the eax pushed at 0x416f7c and the call are identical. Assumes frame slot [ebp-0x10] is written only by this function's ebp-relative stores (no lea/frame pointer is passed to the callee, only ecx=[ebp-0x14] and the pushed eax).",
+    "review": "Re-derived: word [ebp-0x10] set 0, +1 only at 0x416f67/6b after test i<30 passed; read at 0x416f78 only after jge fell through so i in 0..29, high byte 0; callee gets only eax value and ecx=this, no frame pointer."
+   }
+  ],
+  "0x41b925": [
+   {
+    "kind": "literal",
+    "line": 11,
+    "statement": "eax = (eax & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffffcu))) & 0xffffu);  /* 0x41b936: mov ax, word ptr [ebp - 4] */",
+    "reason": "Mutant keeps bit 0 of the old eax in the mov ax,[ebp-4] merge at 0x41b936, i.e. ax=[ebp-4]|(eax&1). First pass: [ebp-4]=0x1001 (0x41b92e, odd) so bit0 is 1 either way. Later passes: eax low word is the ax stored to [ebp-4] at 0x41b93e (0x41b942-0x41b95c touch only ecx, edx and a global table at 0x56b148+2*edx, edx in 0x1001..0x1100, none change eax or the frame slot), so eax bit0 equals [ebp-4] bit0 and the OR changes nothing. Upper 16 bits are identical. Assumes the slot is written only by explicit ebp-relative stores (0x41b92e/0x41b93e).",
+    "review": "Re-derived: L_41b936 has one goto (line 20). First pass: [ebp-4]=0x1001 (odd), so (eax&1)|0x1001 == 0x1001 whatever the entry eax. Later passes: ax was stored to [ebp-4] at line 13, lines 15-19 only change ecx/edx and a global table store, so eax bit 0 equals the word's bit 0; upper half untouched."
+   }
+  ],
+  "0x41df05": [
+   {
+    "kind": "literal",
+    "line": 11,
+    "statement": "eax = (eax & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffff8u))) & 0xffffu);  /* 0x41df16: mov ax, word ptr [ebp - 8] */",
+    "reason": "The only way to 0x41df16 is jmp 0x41dfc9 -> 0x41df16, reached from the jge at 0x41dfa4. At that point eax was set by 0x41df9d to sext16([ebp-4]); the counter (0 at 0x41df89, +1 per iteration at 0x41df95/99, body only while <4) first reaches >=4 as exactly 4, so eax=4 and its bit 0 is 0. The mutant mask 0xffff0001 keeps eax bit 0 = 0, so it ORs 0 with the loaded word; the result is identical to the original on all paths (0x41df14 jumps to 0x41df22, never to 0x41df16). Assumes [ebp-4] is changed only by 0x41df89/0x41df99.",
+    "review": "Re-derived: L_41df16 only reached via goto from L_41dfc9 <- jge 0x41dfa4 straight after eax=sext16(i) (0x41df9d); i steps by 1 from 0 so first i>=4 is exactly 4; eax=4 has bit0=0, so ORing old bit0 changes nothing; upper half unchanged."
+   },
+   {
+    "kind": "width",
+    "line": 46,
+    "statement": "edx = (edx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffffcu))) & 0xffffu);  /* 0x41df91: mov dx, word ptr [ebp - 4] */",
+    "reason": "0x41df91 is entered only after the call at 0x41dfc2 from inside the inner loop body, where the 16-bit counter [ebp-4] is 0..3 (set to 0 at 0x41df89, tested <4 at 0x41dfa1/0x41dfa4, changed only by 0x41df99). Its high byte is therefore 0, so the low 16 bits of edx are the same with RD8 (zero-extended) as with RD16; the add dx,1 and the store at 0x41df99 are unchanged. Assumes [ebp-4] is written only by those explicit instructions (callees get no frame pointer).",
+    "review": "Re-derived: 0x41df91 reached only after the body, i in 0..3, high byte 0, upper half of edx kept; add dx,1 and store identical."
+   },
+   {
+    "kind": "width",
+    "line": 50,
+    "statement": "eax = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(ebp + 0xfffffffcu)))) & 0xffffffffu;  /* 0x41df9d: movsx eax, word ptr [ebp - 4] */",
+    "reason": "0x41df9d reads the 16-bit counter [ebp-4], which is set to 0 at 0x41df89 and then only incremented at 0x41df99 after the test at 0x41dfa1/0x41dfa4 passed (value <4). So every value read at 0x41df9d is 0..4: high byte [ebp-3] is 0 and bit 7 of the low byte is 0, hence movsx of RD8 equals movsx of RD16. Assumes the frame slot [ebp-4] is written only by 0x41df89 and 0x41df99 (callees receive only values loaded from the this-object, not a frame pointer).",
+    "review": "Re-derived: read at 0x41df9d has i in 0 (jmp) or 1..4 (after +1 of 0..3); high byte 0, bit 7 of low byte 0, so movsx(RD8)==movsx(RD16)."
+   },
+   {
+    "kind": "width",
+    "line": 57,
+    "statement": "ecx = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(ebp + 0xfffffffcu)))) & 0xffffffffu;  /* 0x41dfb4: movsx ecx, word ptr [ebp - 4] */",
+    "reason": "0x41dfb4 runs only inside the inner loop body (0x41dfa6..0x41dfc2), entered from the jge at 0x41dfa4 only when sext16([ebp-4]) < 4. [ebp-4] is a 16-bit counter set to 0 at 0x41df89 and changed only by 0x41df99 (old+1, from 0x41df91/95); with the loop test at 0x41df9d it is always 0..3 in the body. So its high byte [ebp-3] is 0 and sign-extending RD8 equals sign-extending RD16. Assumes frame slot [ebp-4] is written only by those explicit instructions (the callees get only data values, no lea-derived frame pointer).",
+    "review": "Re-derived: inner word [ebp-4] set 0 at 0x41df89, +1 only at 0x41df99, body entered only after signed i<4, so i in 0..3 and RD8==RD16; callees get no frame pointer."
+   }
+  ],
+  "0x41e33b": [
+   {
+    "kind": "width",
+    "line": 24,
+    "statement": "{ uint32_t a_ = eax & 0xffu, b_ = RD8(edi), r_;",
+    "reason": "Mutant reads RD16(edi) for the scasb compare at 0x41e3a2. FL40_SUB(width 8) masks res to 8 bits, and zf, sf, pf, of (bit 7 of a^b and a^res) depend only on the low byte of b, so the repne break at zf and the loop trace are unchanged; only cf = (a_ < b_) can differ, and cf is not read by the loop (only zf) and is overwritten by sub edi,ecx at 0x41e3a6 (flags scratch at return). al is 0 from 0x41e3a0, the loop runs at least once (ecx=-1 from 0x41e39d). The extra read touches only the byte after the scanned byte; no stores.",
+    "review": "Re-derived from FL40_SUB(...,8): res, zf, sf, pf and of (bit 7 only) depend on the low byte of b_; only cf sees the high byte, and cf is never read (loop breaks on zf only, sub edi,ecx at line 31 rewrites flags); eax&0xff==0 after line 21, ecx=-1 so loop runs; extra read is side-effect free."
+   }
+  ],
+  "0x423c2b": [
+   {
+    "kind": "drop",
+    "line": 52,
+    "statement": "ecx = RD32((uint32_t)(ebp + 0xfffffff4u));  /* 0x423cee: mov ecx, dword ptr [ebp - 0xc] */",
+    "reason": "The reload ecx=[ebp-0xc] at 0x423cee yields p (element pointer): [ebp-0xc] is written only at 0x423c92 with eax=[ebp-4], and [ebp-4]=p is written only at 0x423c8c. Without the reload ecx still holds [ebp-4]=p from 0x423cd1 (the instructions between, 0x423cd4 store, 0x423cdb edx, 0x423ce5 eax, do not modify ecx). The stores at 0x423c98-0x423cde go to p+k with p=0x5bb5e9+i*0x8d (global array, not the frame; assumption: global/heap pointers don't alias this function's frame), so [ebp-4]/[ebp-0xc] are unchanged. ecx is next used by the store at 0x423cf1 (address p+4 either way) and rewritten at 0x423d0c before any other read.",
+    "review": "Re-derived: [ebp-0xc] written once from [ebp-4] (0x423c92), [ebp-4] once at 0x423c8c; ecx was loaded from [ebp-4] at 0x423cd1 and 0x423cd4..0x423ce8 only store/load edx,eax; stores go to the global array p+k; ecx next used at 0x423cf1 (same address), rewritten at 0x423d0c."
+   },
+   {
+    "kind": "drop",
+    "line": 54,
+    "statement": "edx = RD32((uint32_t)(ebp + 0xfffffff4u));  /* 0x423cf8: mov edx, dword ptr [ebp - 0xc] */",
+    "reason": "Dropping edx=[ebp-0xc] at 0x423cf8: edx already holds [ebp-4]=p from 0x423cdb, and 0x423ce5 (eax) / 0x423cee (ecx) / 0x423cf1 (store) do not touch edx. [ebp-0xc] was set to the same p at 0x423c92 from [ebp-4] (written only at 0x423c8c), and no store in between reaches the frame (stores go to p+0x1c..p+0x38, p+0, p+4 in the global array at 0x5bb5e9+i*0x8d; assumption: global pointers don't alias this function's frame). So the store at 0x423cfb writes to p+8 either way; edx is rewritten at 0x423d16 before any further read.",
+    "review": "Re-derived: edx=[ebp-4] from 0x423cdb is untouched by 0x423ce5-0x423cf1 (eax, ecx, stores); [ebp-0xc]==[ebp-4]; store at 0x423cfb uses same address; edx rewritten at 0x423d16."
+   }
+  ],
+  "0x423ff9": [
+   {
+    "kind": "drop",
+    "line": 19,
+    "statement": "edx = RD32((uint32_t)(ecx + 0x20u));  /* 0x424020: mov edx, dword ptr [ecx + 0x20] */",
+    "reason": "Dropped edx=[ecx+0x20] at 0x424020 is redundant: edx already holds the same value from 0x424013. Both loads use ecx=[ebp+8] (0x424010 and 0x42401d, same argument slot, not written in between) and the same field +0x20. The only intervening store is 0x42401a to [ebp-4], a different frame slot from [ebp+8] and from the heap/argument object [arg+0x20] (assumption: argument pointers do not point into this function's own frame). edx is then used only as base at 0x424026 and is scratch at return.",
+    "review": "Re-derived: line 19 only reachable through L_424010 (single goto line 10); line 15 loads edx=[[ebp+8]+0x20]; between 15 and 19 only line 17 stores to [ebp-4], which does not overlap [ebp+8] nor [arg+0x20] under the frame assumption; line 18 reloads same ecx, so edx identical; edx only feeds line 21/22 (ecx value stored the same)."
+   }
+  ],
+  "0x42db5b": [
+   {
+    "kind": "width",
+    "line": 19,
+    "statement": "edx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x42db82: mov edx, dword ptr [ebp - 4] */",
+    "reason": "0x42db82 is reached only from the jmp at 0x42dbdb after the loop body, which was entered with 0<=i<ecx<=32767 (ecx = movsx of a word, test at 0x42db94/0x42db97), so i<=32766 and [ebp-4] has upper 16 bits 0 (set to 0 at 0x42db79, only +1 at 0x42db85/88). RD16 = RD32, so edx, edx+1 and the store back at 0x42db88 are identical. Assumes [ebp-4] is only written by this function's ebp-relative stores (the store at 0x42dbd4 targets a global table address).",
+    "review": "Re-derived: [ebp-4] dword = 0 at 0x42db79, +1 only at 0x42db85/88, body entered only when signed i < sext16 limit <=32767 (re-read each iteration, still <=32767), so i in 0..32767 at every read; the global-table store is not in the frame. High half 0 so RD16==RD32."
+   },
+   {
+    "kind": "width",
+    "line": 25,
+    "statement": "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xfffffffcu)), b_ = ecx, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x42db94: cmp dword ptr [ebp - 4], ecx */",
+    "reason": "[ebp-4] is the loop counter i: set to 0 at 0x42db79, only changed by +1 at 0x42db85/0x42db88, and the body (0x42db99..) is only entered when i < ecx = movsx(word) <= 32767 (cmp/jge at 0x42db94-0x42db97), so at 0x42db94 0<=i<=32767 and the upper 16 bits are 0. RD16 = RD32, so the cmp operands and the jge decision are identical. Assumes [ebp-4] is written only by this function's ebp-relative stores (the only other store, 0x42dbd4 to 0x585801+4*movsx16, is a global address, not the frame).",
+    "review": "Re-derived: [ebp-4] dword = 0 at 0x42db79, +1 only at 0x42db85/88, body entered only when signed i < sext16 limit <=32767 (re-read each iteration, still <=32767), so i in 0..32767 at every read; the global-table store is not in the frame. High half 0 so RD16==RD32."
+   },
+   {
+    "kind": "width",
+    "line": 27,
+    "statement": "edx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x42db99: mov edx, dword ptr [ebp - 4] */",
+    "reason": "0x42db99 is reached only after jge at 0x42db97 fell through, i.e. signed i < ecx = movsx16 <= 32767 with i >= 0 (counter set to 0 at 0x42db79 and only incremented by 1 at 0x42db85/0x42db88), so [ebp-4] has upper 16 bits 0 and RD16 equals RD32; edx*6 (0x42db9c) and the derived pointer [ebp-8] are identical. Assumes the slot is only written by this function's ebp-relative stores (0x42dbd4 stores to a global array address).",
+    "review": "Re-derived: [ebp-4] dword = 0 at 0x42db79, +1 only at 0x42db85/88, body entered only when signed i < sext16 limit <=32767 (re-read each iteration, still <=32767), so i in 0..32767 at every read; the global-table store is not in the frame. High half 0 so RD16==RD32."
+   }
+  ],
+  "0x42e7b8": [
+   {
+    "kind": "width",
+    "line": 35,
+    "statement": "eax = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(0x5b503fu)))) & 0xffffffffu;  /* 0x42e81d: movsx eax, word ptr [0x5b503f] */",
+    "reason": "0x42e81d is reachable only via the je at 0x42e819 after 0x42e80b, i.e. only through L_42e7df, where [0x5b503f] was just rewritten by the 16-bit store of 0 (0x42e7f7) or 1 (0x42e802) on both arms. The only things between that store and 0x42e81d are the load/store of the stack slot [ebp-4] (0x42e812) and loads/compares; no call and no other store to 0x5b503f (a global, distinct from the stack slot). So the word is 0 or 1, high byte 0, and the sign-extended RD8 equals the sign-extended RD16.",
+    "review": "Re-derived: L_42e81d has one goto (line 32), reached only via L_42e80b after WR16 of 0 (line 24) or 1 (line 27) to 0x5b503f; lines 29-31 only read 0x5b507b and store [ebp-4]; no call; so the word is 0/1, high byte 0, RD8 sext == RD16 sext."
+   }
+  ],
+  "0x433c60": [
+   {
+    "kind": "width",
+    "line": 20,
+    "statement": "{ uint32_t a_ = eax & 0xffu, b_ = RD8(edi), r_;",
+    "reason": "Mutant reads RD16(edi) for the scasb compare (0x433c87) on the arg string. al=0 from xor eax,eax at 0x433c85. FL40_SUB(width 8) masks the result to 8 bits and zf/sf/pf/of depend only on the low byte of b_, so the repne break on zf happens at the same byte; only cf=(a_<b_) can differ, and cf is not read by the loop and is overwritten by sub edi,ecx at 0x433c8b. ecx=-1 (0x433c82) so the loop runs at least once. The extra byte read has no side effect and no stores.",
+    "review": "Checked the SUB macro in original_methods_fl40.h: res is masked to 8 bits, zf/sf/pf/of(bit 7) depend only on the low byte of b_; only cf=(a_<b_) differs. al=0 (xor 0x433c85), loop breaks on zf only, after it not ecx / sub edi,ecx (0x433c8b) rewrite all flags; edi/ecx progress identical, the extra read has no store."
+   }
+  ],
+  "0x445253": [
+   {
+    "kind": "width",
+    "line": 29,
+    "statement": "{ uint32_t a_ = eax & 0xffu, b_ = RD8(edi), r_;",
+    "reason": "This is the repne scasb at 0x445299 (al=0, edi from 0x548190, ecx=-1): FL40_SUB(0,b_,0,r_,8) yields r_=(0-b_)&0xff, so zf (the only flag the loop consumes, via the break) depends only on the low byte of b_, which RD16 does not change; edi/ecx updates are identical. cf/sf/of/pf of the scan are dead: the next flag writer is the sub at 0x44529d and nothing reads flags in between (not ecx at 0x44529b does not touch them). Assumes the byte after the NUL terminator is readable (a pure, side-effect-free read in the host model); the scan starts at the fixed address 0x548190.",
+    "review": "SUB macro masks to 8 bits: zf (the only flag the loop uses) depends on low byte of b_; not ecx has no flags, sub edi,ecx at 0x44529d rewrites them; no stores."
+   },
+   {
+    "kind": "width",
+    "line": 60,
+    "statement": "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xfffffe24u)), b_ = 0x3u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x4452d0: cmp dword ptr [ebp - 0x1dc], 3 */",
+    "reason": "[ebp-0x1dc] is written at 0x4452ca with ecx = movsx(int16 w) (a sign-extended 16-bit value) and read at 0x4452d0 with no intervening store or call; only the ja at 0x4452d7 (!cf && !zf, i.e. unsigned a>3) consumes the flags. With RD16 the operand is w&0xffff: for w in 0..3 it is the same; for any other w (negative ones: RD32 sees >=0xffff8000, RD16 sees 0x8000..0xffff; and w in 4..0x7fff) both exceed 3, so cf=0, zf=0 and ja is taken in both; a==3 gives zf=1 in both. The flags are not read after the ja (no later jcc/adc in the function reads flags before an instruction rewrites them).",
+    "review": "Same derivation as 0x445c8a: slot is sext16 value written at 0x4452ca with no store before 0x4452d0; RD16 and RD32 are both unsigned >3 for all values except 0..3, where they agree; only ja reads flags."
+   },
+   {
+    "kind": "width",
+    "line": 62,
+    "statement": "edx = RD32((uint32_t)(ebp + 0xfffffe24u));  /* 0x4452dd: mov edx, dword ptr [ebp - 0x1dc] */",
+    "reason": "0x4452dd is reached only when the ja at 0x4452d7 was not taken, i.e. [ebp-0x1dc] (written by 0x4452ca as movsx16, no store since) is unsigned <=3, i.e. 0..3, whose upper 16 bits are 0: RD16 equals RD32, so edx is identical and the jump table lookup at 0x4452e3 [edx*4+0x4453a7] and the switch target are the same. For every other value the branch to 0x445390 is taken before this statement. edx is scratch and not read after the switch (the call at 0x44539c clobbers it).",
+    "review": "Line 62 reached only when ja not taken, so the dword is unsigned <=3 (0..3), RD16==RD32, jump-table index identical; edx unused at the case blocks."
+   }
+  ],
+  "0x4453b7": [
+   {
+    "kind": "width",
+    "line": 29,
+    "statement": "{ uint32_t a_ = eax & 0xffu, b_ = RD8(edi), r_;",
+    "reason": "Repne scasb at 0x4453fd (al=0, edi from 0x5481a0): FL40_SUB(0,b_,0,r_,8) gives r_=(0-b_)&0xff, so zf (the break) depends only on the low byte of b_, unchanged by RD16; edi/ecx updates are identical. The other flags are dead: not ecx (0x4453ff) sets none and sub edi,ecx (0x445401) rewrites them before any read. Assumes the byte after the NUL is readable (side-effect-free read in the host model).",
+    "review": "Re-derived: al=0 (line 26), 8-bit SUB: zf from low byte of b_ only; cf dead since sub edi,ecx (line 36) rewrites flags; ecx=-1."
+   },
+   {
+    "kind": "width",
+    "line": 60,
+    "statement": "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xfffffe24u)), b_ = 0x3u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x445434: cmp dword ptr [ebp - 0x1dc], 3 */",
+    "reason": "The dword [ebp-0x1dc] was written at 0x44542e with ecx=movsx16(w), no store or call since, and only the ja at 0x44543b (taken iff unsigned a>3, i.e. !cf&&!zf) consumes the cmp flags. RD16 gives w&0xffff: for w in 0..3 equal to a. For any other w both exceed 3 (negative w: a>=0xffff8000, RD16 value 0x8000..0xffff; w in 4..0x7fff unchanged), so cf=0, zf=0 and ja is taken in both. No later instruction reads flags before they are rewritten. Assumes the slot is written only by explicit ebp-relative stores.",
+    "review": "Re-derived: value v=sext16(ax) from line 58. ja taken iff unsigned v>3: v in 0..3 same; v in 4..0x7fff same; negative v (>=0xffff8000) vs mutant 0x8000..0xffff both >3; so cf/zf and the branch agree; no flags read after line 61 (calls may clobber, nothing reads)."
+   },
+   {
+    "kind": "width",
+    "line": 62,
+    "statement": "edx = RD32((uint32_t)(ebp + 0xfffffe24u));  /* 0x445441: mov edx, dword ptr [ebp - 0x1dc] */",
+    "reason": "0x445441 is reached only when ja at 0x44543b was not taken, i.e. [ebp-0x1dc] (written at 0x44542e with movsx16, no store or call since) is unsigned <=3, so in 0..3 with upper 16 bits 0: RD16 equals RD32 and edx is identical for the jump table read at 0x445447 ([edx*4+0x44550b]) and the switch target. Every other value branches to 0x4454f4 first. edx is scratch and not read afterwards. Assumes the slot is written only by this function's explicit store 0x44542e.",
+    "review": "Re-derived: line 62 is reached only if ja at line 61 not taken, i.e. [ebp-0x1dc] unsigned <=3 so in 0..3; written at line 59 with no call/store to it since (callee at line 21 precedes, movsb copies upward from ebp-0x42); upper 16 bits zero so RD16==RD32 and jump table index same."
+   }
+  ],
+  "0x445c8a": [
+   {
+    "kind": "width",
+    "line": 29,
+    "statement": "{ uint32_t a_ = eax & 0xffu, b_ = RD8(edi), r_;",
+    "reason": "Mutant reads RD16(edi) in the repne scasb at 0x445cd0, with al=0 from xor eax,eax at 0x445cce and ecx=-1 from 0x445ccb. FL40_SUB (width 8) masks the result to 8 bits and zf/sf/pf/of depend only on the low byte of b_, so the zf break occurs at the same byte; only cf=(a_<b_) can differ. The loop reads only zf and cf is overwritten by sub edi,ecx at 0x445cd4. The extra byte read has no side effect.",
+    "review": "Same SUB-macro facts: only cf differs; al=0 from xor (0x445cce), loop breaks on zf only, not ecx has no flags and sub edi,ecx (0x445cd4) rewrites them; no stores."
+   },
+   {
+    "kind": "width",
+    "line": 60,
+    "statement": "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xfffffe24u)), b_ = 0x3u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x445d07: cmp dword ptr [ebp - 0x1dc], 3 */",
+    "reason": "[ebp-0x1dc] holds x = movsx [ebp-4] (0x445cfd/0x445d01); [ebp-4] is eax from 0x445ca6 = rand() & 0x80000003 (0x445c9a), then 0..3 or, via the dec/or/inc at 0x445ca1-0x445ca5, -3..0. So x is in -3..3. RD16 gives x for 0..3 and 0xfffd..0xffff for negative x; ja at 0x445d0e reads only cf and zf: negative x is above 3 unsigned in both (cf=0, zf=0, taken), and 0..3 are unchanged. Other flags are scratch.",
+    "review": "Re-derived: slot holds sext16 value; RD16 vs RD32 give same value for 0..3 and both unsigned >3 for every other sext16 value (negatives: 0xfffffff?? vs 0xf???), so cf/zf for ja are identical; no other flag is read after (targets lea/push/call)."
+   },
+   {
+    "kind": "width",
+    "line": 62,
+    "statement": "edx = RD32((uint32_t)(ebp + 0xfffffe24u));  /* 0x445d14: mov edx, dword ptr [ebp - 0x1dc] */",
+    "reason": "[ebp-0x1dc] holds x = movsx word [ebp-4] (0x445cfd/0x445d01), where [ebp-4] is eax from 0x445ca6: eax = rand() & 0x80000003 (0x445c9a); if the sign bit is clear eax is 0..3, otherwise the dec/or/inc sequence 0x445ca1-0x445ca5 gives -3..0. So x is in -3..3 (32-bit sign-extended), written only at 0x445d01 (slot not touched by the lea'd buffers: 0x43f210 writes at ebp-0x1d2 upward). edx at 0x445d14 is reached only when ja at 0x445d0e was not taken, i.e. x unsigned <= 3, so x is 0..3 and both RD16 and RD32 return the same value (high 16 bits are 0); the jump-table index at 0x445d1a is identical.",
+    "review": "Re-derived: line 62 is reached only when ja (cf=0,zf=0 means unsigned>3) was not taken, so the dword [ebp-0x1dc] (written at 0x445d01, no store in between) is unsigned <=3, i.e. 0..3, high 16 bits zero; RD16==RD32, jump table index identical (needs no rand range)."
+   }
+  ],
+  "0x448254": [
+   {
+    "kind": "literal",
+    "line": 61,
+    "statement": "ecx = (ecx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0x8u))) & 0xffffu);  /* 0x44831c: mov cx, word ptr [ebp + 8] */",
+    "reason": "On entry to 0x44831c, ecx was set at 0x4482f9..0x4482fd to sext16(arg)*0x8d (imul 32-bit), and 0x8d is odd, so ecx bit 0 equals bit 0 of the argument word [ebp+8]. The mutant mask 0xffff0001 keeps that ecx bit 0 and ORs the loaded word's bit 0, which is the same bit, so the result is identical; ecx is not modified between 0x4482fd and 0x44831c (edx/eax only). Assumes the store at 0x448316 (global table at 0x5bb5e5+arg*0x8d) does not overwrite the stack argument slot [ebp+8]. The pushed ecx value is unchanged.",
+    "review": "Re-derived: ecx at line 55 = sext16(arg)*0x8d (odd multiplier) so ecx bit0 == bit0 of [ebp+8]; ecx not written in 56-60; store at line 60 goes to 0x5bb5e5+sext16(arg)*0x8d in 0x1575e5..0xa1f4f8, far from the stack (0x10000000+ in the harness) so [ebp+8] unchanged; (ecx&1)|w0 == w0. Only the one mutant (mask 0xffff0001) is listed in my input."
+   }
+  ],
+  "0x44a488": [
+   {
+    "kind": "width",
+    "line": 19,
+    "statement": "{ uint32_t a_ = eax & 0xffu, b_ = RD8(edi), r_;",
+    "reason": "Repne scasb at 0x44a4b3 (al=0): FL40_SUB(0,b_,0,r_,8) gives r_=(0-b_)&0xff, so the zf that ends the loop depends only on the low byte of b_, unchanged by RD16 vs RD8; edi/ecx advance identically. cf/sf/of/pf of the scan are dead: not ecx (0x44a4b5) sets no flags and add ecx,-1 (0x44a4b7) overwrites them before the cmp/ja at 0x44a4ba-0x44a4bd. Assumes the byte after the terminating NUL of the string at [ebp+8] is readable (side-effect-free read in the host model).",
+    "review": "Only cf differs; add ecx,-1 (0x44a4b7) rewrites flags before cmp/ja at 0x44a4ba; zf break unchanged."
+   },
+   {
+    "kind": "width",
+    "line": 34,
+    "statement": "{ uint32_t a_ = eax & 0xffu, b_ = RD8(edi), r_;",
+    "reason": "Repne scasb at 0x44a4c7 (al=0): FL40_SUB(0,b_,0,r_,8) gives r_=(0-b_)&0xff, so the zf that ends the loop depends only on the low byte of b_, unchanged by RD16 vs RD8; edi/ecx advance identically. cf/sf/of/pf of the scan are dead: not ecx (0x44a4c9) sets no flags and add ecx,-1 (0x44a4cb) and test (0x44a4ce) overwrite them before je at 0x44a4d0. Assumes the byte after the terminating NUL of the string at [ebp+8] is readable (side-effect-free read in the host model).",
+    "review": "Only cf differs; add ecx,-1 and test ecx,ecx (0x44a4cb/ce) rewrite flags before je at 0x44a4d0; zf break unchanged."
+   },
+   {
+    "kind": "width",
+    "line": 70,
+    "statement": "eax = RD32((uint32_t)(ebp + 0xfffffff0u));  /* 0x44a527: mov eax, dword ptr [ebp - 0x10] */",
+    "reason": "[ebp-0x10] is written with the dword 0 at 0x44a511 and read at 0x44a527 after the call 0x51e7ba; RD16 of a dword holding 0 equals RD32. The call receives only ecx=lea [ebp+8] (a pointer to the incoming argument slot, 0x18+ bytes above [ebp-0x10], an object extending upward) so it cannot modify [ebp-0x10]. Assumption: frame slots are written only by this function's explicit ebp-relative stores or through the lea'd pointer, and that pointer does not reach below ebp+8.",
+    "review": "Re-derived: [ebp-0x10] dword is written 0 at 0x44a511 on every path into line 70, the only call in between gets ecx=ebp+8 (arg slot, above), 0x51e7ba cannot reach below it; RD16 of 0 equals RD32."
+   },
+   {
+    "kind": "width",
+    "line": 77,
+    "statement": "eax = RD32((uint32_t)(ebp + 0xffffffecu));  /* 0x44a542: mov eax, dword ptr [ebp - 0x14] */",
+    "reason": "[ebp-0x14] is written with the dword 1 at 0x44a52c and read at 0x44a542 after the call 0x51e7ba; RD16 of a dword holding 1 equals RD32 (value 1). The call receives only ecx=lea [ebp+8] (pointer to the incoming argument slot, above the saved ebp/return address; [ebp-0x14] is 0x1c bytes below it), so it cannot modify [ebp-0x14]. Assumption: frame slots are written only by this function's explicit ebp-relative stores or through the lea'd pointer, which does not reach below ebp+8.",
+    "review": "Re-derived: [ebp-0x14] dword = 1 at 0x44a52c, reached only via je 0x44a50f, call with ecx=ebp+8 in between cannot touch it; RD16 of 1 equals RD32."
+   }
+  ],
+  "0x45150e": [
+   {
+    "kind": "drop",
+    "line": 65,
+    "statement": "eax = RD32((uint32_t)(ecx + 0x3cu));  /* 0x4515c4: mov eax, dword ptr [ecx + 0x3c] */",
+    "reason": "At 0x4515c4 eax is reloaded from [ecx+0x3c], with ecx = [ebp-4] (0x4515be) = this, the same pointer used in edx at 0x4515b2 for eax = [edx+0x3c] at 0x4515b5. The only store since is [this+0x138] at 0x4515b8, which does not overlap [this+0x3c] (0xfc apart), and eax is not touched until 0x4515c7. So eax already equals [this+0x3c]; the reload is a no-op. [ebp-4] is a frame slot written only at 0x451512.",
+    "review": "Re-derived: eax=[this+0x3c] at line 61 (edx=[ebp-4]); only store in between is [this+0x138] (line 62), 0xfc away so no overlap; line 63-64 do not touch eax; line 65 reloads [ecx+0x3c] with ecx=[ebp-4] (same slot, same value), no label before it, and line 66 sub overwrites flags."
+   },
+   {
+    "kind": "drop",
+    "line": 76,
+    "statement": "eax = RD32((uint32_t)(edx));  /* 0x4515e5: mov eax, dword ptr [edx] */",
+    "reason": "L_4515df (0x4515df) is reached only from jge at 0x4515ad (the preceding block ends with jmp 0x4515dd). At 0x4515a8 eax = [ecx] with ecx = [ebp+8]; only cmp 0x4515aa and the jge intervene, no stores. The dropped 0x4515e5 reloads [edx] with edx = [ebp+8] (0x4515e2), the same address, so eax already equals it and the store at 0x4515e7 is identical.",
+    "review": "Re-derived: L_4515df has exactly one goto (line 58 jge; line 72 goto precedes it); eax=[ecx] with ecx=[ebp+8] at line 56, no stores through line 58, line 75 edx=[ebp+8], so line 76 re-reads the same dword."
+   },
+   {
+    "kind": "drop",
+    "line": 105,
+    "statement": "eax = RD32((uint32_t)(edx + 0xcu));  /* 0x451644: mov eax, dword ptr [edx + 0xc] */",
+    "reason": "L_45163e (0x45163e) is reached only from jle at 0x45160b (the preceding block ends with jmp at 0x45163c). At 0x451605 eax = [ecx+0xc] with ecx = [ebp+8]; only the cmp at 0x451608 and the jle intervene, with no stores. The dropped 0x451644 reloads [edx+0xc] with edx = [ebp+8] (0x451641), the same address, so eax already holds that value and the store at 0x451647 is identical.",
+    "review": "Re-derived: L_45163e has exactly one goto (line 87 jle; line 101 goto precedes it); eax=[ecx+0xc] at line 85 with ecx=[ebp+8] and no store/eax write through line 87, line 104 reloads edx=[ebp+8] so line 105 re-reads the same address."
+   },
+   {
+    "kind": "drop",
+    "line": 134,
+    "statement": "eax = RD32((uint32_t)(edx + 0x8u));  /* 0x4516a4: mov eax, dword ptr [edx + 8] */",
+    "reason": "L_45169e (0x45169e) is reached only from jle at 0x45166b (the preceding block ends with jmp 0x45169c). At 0x451665 eax = [ecx+8] with ecx = [ebp+8]; only cmp 0x451668 and the jle intervene, with no stores. The dropped 0x4516a4 reloads [edx+8] with edx = [ebp+8] (0x4516a1), the same address, so eax already holds it and the store at 0x4516a7 is identical.",
+    "review": "Re-derived: L_45169e has exactly one goto (line 116; line 130 goto precedes it); eax=[ecx+8] with ecx=[ebp+8] at line 114, no stores before line 116, line 133 edx=[ebp+8], so line 134 re-reads the same dword."
+   }
+  ],
+  "0x4541cf": [
+   {
+    "kind": "drop",
+    "line": 33,
+    "statement": "ecx = RD32((uint32_t)(ebp + 0xfffffff8u));  /* 0x454227: mov ecx, dword ptr [ebp - 8] */",
+    "reason": "The reload ecx=[ebp-8] at 0x454227 is redundant: on the only path to it (jne at 0x454219 not taken) ecx was set to [ebp-8] at 0x45420f and is untouched by 0x454212 (cmp), 0x45421b/0x45421e (edx, eax loads) and 0x454221 (store to [this+0x6a7]); [ebp-8] itself is only written at 0x4541d5. ecx is consumed by the store at 0x45422d (address this+0x6ab) and is dead afterwards (the result is eax=[ebp-4]). Assumes the heap store at this+0x6a7 does not alias the function's frame.",
+    "review": "Re-derived: ecx=[ebp-8] at 0x45420f; 0x454212 cmp, 0x45421b/1e loads, store at this+0x6a7 do not change ecx; [ebp-8] written only at 0x4541d5; ecx used at 0x45422d (this+0x6ab). Fall-through only (no other goto to the label)."
+   },
+   {
+    "kind": "drop",
+    "line": 40,
+    "statement": "edx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x45423e: mov edx, dword ptr [ebp - 4] */",
+    "reason": "On the path to 0x45423e (jne at 0x454219 taken) edx was loaded from [ebp-4] at 0x454207 and neither 0x45420a (eax), 0x45420d (store through edx), 0x45420f/0x454238 (ecx, eax loads) nor 0x454212 touches edx, and [ebp-4] is not changed by those instructions (the store at 0x45420d writes to the allocated node pointed to by edx, a heap pointer returned via the lea'd slot of the call at 0x454202). So edx == [ebp-4] at 0x45423e and the store value at 0x454241 is identical; edx is rewritten at 0x45424a before any further read. Assumes the pointer returned by the allocation does not point into this function's frame.",
+    "review": "Re-derived: L_454235 reached only via jne 0x454219; edx=[ebp-4] from 0x454207, 0x45420a-0x454238 do not write edx, [ebp-4] is written only before (explicit store and lea call at 0x454202); edx rewritten at 0x45424a."
+   }
+  ],
+  "0x45445a": [
+   {
+    "kind": "width",
+    "line": 82,
+    "statement": "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xffffffe4u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x454540: cmp dword ptr [ebp - 0x1c], 0 */",
+    "reason": "[ebp-0x1c] is written only at 0x454534 with eax = [ebp-0x10] xor [ebp-0xc]. Those two slots are 0 (0x454463, 0x45446a) and only ever set to 1 (0x454500, 0x45450d), so the xor is 0 or 1 and the upper 16 bits are 0: RD16 equals RD32, the cmp and the je at 0x454544 (only zf is read) are identical. No call between 0x454534 and 0x454540, and the earlier calls (0x45448e..0x4544d3) receive no frame pointers, only argument values and this. Assumes slots are written only by explicit ebp-relative stores.",
+    "review": "Re-derived: [ebp-0x1c]=[ebp-0x10]^[ebp-0xc], both slots init 0 (lines 8-9) and only set to 1 (lines 62, 66), calls at 19-46 receive no frame pointers; so value is 0/1, RD16==RD32, only zf is read at line 83 and cmp at 84 rewrites flags."
+   },
+   {
+    "kind": "width",
+    "line": 84,
+    "statement": "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xffffffe0u)), b_ = 0x0u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x454546: cmp dword ptr [ebp - 0x20], 0 */",
+    "reason": "[ebp-0x20] is written only at 0x45453d with ecx = [ebp-0x18] xor [ebp-0x24]. Both slots start at 0 (0x454471, 0x454478) and are only ever set to 1 (0x45451a, 0x454527), so the xor is 0 or 1 with upper 16 bits 0: RD16 equals RD32, and the cmp/je at 0x454546-0x45454a (zf only) are identical. No call between the store and the read; the earlier calls get no pointer into the frame. Assumes slots are written only by explicit ebp-relative stores.",
+    "review": "Re-derived: [ebp-0x20]=[ebp-0x18]^[ebp-0x24], slots init 0 (lines 10-11) and only set to 1 (lines 70, 74), so value 0/1 with zero upper half; RD16==RD32, only zf read at line 85."
+   }
+  ],
+  "0x455ab8": [
+   {
+    "kind": "width",
+    "line": 22,
+    "statement": "{ uint32_t a_ = RD8(esi), b_ = RD8(edi), r_;",
+    "reason": "Mutant reads RD16(esi) for the repe cmpsb compare at 0x455aee. FL40_SUB (width 8) masks the result to 8 bits, and zf, sf, pf and of ((a^b)&(a^res), bit 7) depend only on the low byte of a_, so the loop's zf test (!zf break), the je at 0x455af0 and ecx/esi/edi progress are unchanged. Only cf=(a_<b_) can differ; cf is not read by the loop or by any later instruction (add at 0x455b0d rewrites it) and flags are scratch. The extra byte read has no side effect, no stores.",
+    "review": "SUB macro masks to 8 bits so only cf differs; ecx=9 so the loop runs, flags read only by !zf break and je at 0x455af0; the other path reaches add at 0x455b0d only after a call and loads; no stores."
+   }
+  ],
+  "0x455b2e": [
+   {
+    "kind": "drop",
+    "line": 26,
+    "statement": "eax = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(edx + 0x172u)))) & 0xffffffffu;  /* 0x455b72: movsx eax, word ptr [edx + 0x172] */",
+    "reason": "At 0x455b72 eax still holds the fixed-up rand value from 0x455b54-0x455b5f (and 0x80000003, then for sign the dec/or -4/inc sequence), which is in {0..3} or {-3,-2,-1}, i.e. already the sign extension of its low 16 bits. 0x455b63 stored ax at [this+0x172] and 0x455b72 reads the same address back (this=[ebp-8], unchanged, same value in ecx and edx) with no store between, so movsx eax,word [edx+0x172] reproduces eax exactly; 0x455b6a/0x455b6f touch only edi/edx, so eax is intact. The following imul at 0x455b79 therefore sees the same eax.",
+    "review": "Re-derived: after and 0x80000003 (+dec/or -4/inc when sf) eax is in {0..3} or {0,-1,-2,-3} (computed all 8 cases), so it equals sext16 of its low word; line 23 stores ax to [ecx+0x172], ecx=edx=[ebp-8], nothing stored between 23 and 26, so the reload gives the same eax; lines 24-25 touch only edi/edx; no label at 26, movsx sets no flags."
+   },
+   {
+    "kind": "width",
+    "line": 34,
+    "statement": "{ uint32_t a_ = RD8(esi), b_ = RD8(edi), r_;",
+    "reason": "Repe cmpsb at 0x455b8d: FL40_SUB(a_,b_,0,r_,8) computes r_=(a_-b_)&0xff, and zf=(r_==0) depends only on the low byte of a_, which RD16(esi) leaves unchanged; the loop count, esi/edi and ecx updates are identical. The other flags (cf etc.) are dead: only the je at 0x455b8f reads flags, and the next flag writers (0x455b9f imul, 0x455bda cmp) come before any other read. Assumes the byte after the compared byte is readable (side-effect-free read in the host model).",
+    "review": "Re-derived: only zf feeds the break and the je at line 40; high byte of a_ affects only cf; cf not read before flags are rewritten (imul line 43, cmp line 57) or the function returns (flags scratch)."
+   },
+   {
+    "kind": "width",
+    "line": 68,
+    "statement": "{ uint32_t a_ = eax & 0xffu, b_ = RD8(edi), r_;",
+    "reason": "Repne scasb at 0x455c02 (al=0): FL40_SUB(0,b_,0,r_,8) gives r_=(0-b_)&0xff, so zf (the break condition) depends only on the low byte of b_, unchanged by RD16; edi/ecx advance identically. The other flags of the scan are dead: not ecx (0x455c04) sets none and add ecx,-1 (0x455c06) / test (0x455c09) overwrite them before the jbe at 0x455c0b. Assumes the byte after the NUL terminator is readable (side-effect-free read in the host model).",
+    "review": "Re-derived: al=0 (xor line 65), 8-bit FL40_SUB means zf depends only on low byte of b_; cf dead: not ecx sets no flags, add ecx,-1 (line 75) and test (line 76, cf=0) rewrite all flags before jbe at line 77; loop runs (ecx=-1)."
+   }
+  ],
+  "0x456dc8": [
+   {
+    "kind": "drop",
+    "line": 35,
+    "statement": "eax = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x456e72: mov eax, dword ptr [ebp - 4] */",
+    "reason": "0x456e72 is reached only via jne at 0x456df9 (label 0x456e5d). On that path eax was set at 0x456de7 to [ebp-4] and not changed since (0x456e5d-0x456e67 only touch ecx and edx, and the store at 0x456e67 goes to the global table edx*4+0x585801 with edx a sign-extended word). [ebp-4] is written only at 0x456de4 before that, so reloading it yields the same value; eax feeds 0x456e75 identically. Assumes frame slots are written only by explicit ebp-relative stores, i.e. the global table stores do not hit the frame.",
+    "review": "Re-derived: L_456e5d only reached by jne 0x456df9; eax=[ebp-4] set at 0x456de7 and untouched by 0x456dea (ecx), cmp, 0x456e5d-0x456e67 (ecx, edx, global-table store); eax read at 0x456e75 then overwritten at 0x456e8a."
+   }
+  ],
+  "0x45741d": [
+   {
+    "kind": "width",
+    "line": 15,
+    "statement": "edx = RD32((uint32_t)(0x5b44f0u));  /* 0x45744f: mov edx, dword ptr [0x5b44f0] */",
+    "reason": "0x45744f follows the 32-bit store of 9 to [0x5b44f0] at 0x45743b. The only store in between is the dword 1 to 0x5b44f4 (0x457445, bytes f4..f7), which does not overlap 0x5b44f0..f3. So the dword is 9 and RD16 returns 9, the same as RD32.",
+    "review": "Re-derived: 0x5b44f0 dword=9 stored at line 13; only later store is 0x5b44f4..f7 (line 14); RD16==RD32==9."
+   },
+   {
+    "kind": "width",
+    "line": 17,
+    "statement": "eax = RD32((uint32_t)(0x5b44f4u));  /* 0x457458: mov eax, dword ptr [0x5b44f4] */",
+    "reason": "0x457458 is on the path from the cmp at 0x457428, which just stored 1 to [0x5b44f4] with a 32-bit write at 0x457445. Between that store and the load only 0x45744f (load) and 0x457455 (shift on edx) execute; no other store overlaps 0x5b44f4..0x5b44f7 (0x45743b writes 0x5b44f0..f3, 0x457435 writes 0x5d162d). So the dword is 1 and RD16 returns 1, the same as RD32.",
+    "review": "Re-derived: 0x5b44f4 dword set to 1 at line 14; lines 15-16 register only; no store in between, so RD16==RD32==1."
+   },
+   {
+    "kind": "width",
+    "line": 30,
+    "statement": "ecx = RD32((uint32_t)(0x5b44f0u));  /* 0x4574a1: mov ecx, dword ptr [0x5b44f0] */",
+    "reason": "0x4574a1 follows the 32-bit store of 0x16 to [0x5b44f0] at 0x457483. In between only the store of 1 to 0x5b44f4 (0x45748d, bytes f4..f7) and a load/store of 0x5d0377/0x5d162d (0x457497, 0x45749c) occur; neither overlaps 0x5b44f0..f3. So the value is 0x16 with the high half 0 and RD16 equals RD32.",
+    "review": "Re-derived: 0x5b44f0 dword=0x16 stored at line 26; later stores (27, 29) hit 0x5b44f4.. and 0x5d162d..; no overlap; RD16==RD32==0x16."
+   },
+   {
+    "kind": "width",
+    "line": 32,
+    "statement": "edx = RD32((uint32_t)(0x5b44f4u));  /* 0x4574aa: mov edx, dword ptr [0x5b44f4] */",
+    "reason": "0x4574aa follows the 32-bit store of 1 to [0x5b44f4] at 0x45748d. In between only 0x457497 (load), 0x45749c (store to 0x5d162d..0x5d1630), 0x4574a1 and 0x4574a7 (register ops) run; none overlap 0x5b44f4..0x5b44f7. So the dword is 1 and RD16 gives 1, identical to RD32.",
+    "review": "Re-derived: dword 0x5b44f4=1 stored at line 27; lines 28-29 store only 0x5d162d..30, no overlap; RD16==RD32==1."
+   },
+   {
+    "kind": "literal",
+    "line": 40,
+    "statement": "eax = (eax & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xcu))) & 0xffffu);  /* 0x4574d6: mov ax, word ptr [ebp + 0xc] */",
+    "reason": "The mask 0xffff0001 keeps bit 0 of eax before 0x4574d6. On this path eax is the lea at 0x4574b3 = ecx+edx+0x5b160c with ecx=(0x16<<5) and edx=(1<<4), where 0x16 and 1 were just stored to [0x5b44f0]/[0x5b44f4] (0x457483, 0x45748d) and reloaded (0x4574a1, 0x4574aa) with no overlapping store in between. So eax=0x5b18dc, bit 0 = 0; the stores at 0x4574ba..0x4574cd do not change eax. ORing a zero bit is the original behavior; ax and eax at return are unchanged.",
+    "review": "Re-derived: eax at line 40 = 0x5b160c + (0x16<<5) + (1<<4) = 0x5b18dc (even) from lea at line 34, using values just stored at 0x5b44f0/f4 with no overlapping store; lines 35-39 do not change eax; bit0 is 0 so mask 0xffff0001 equals original."
+   }
+  ],
+  "0x458dce": [
+   {
+    "kind": "width",
+    "line": 18,
+    "statement": "ecx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x458e02: mov ecx, dword ptr [ebp - 4] */",
+    "reason": "The counter [ebp-4] is stored 0 at 0x458df9 and otherwise written only by 0x458e08 (+1); the function has no lea'd pointers or calls, and its heap store at 0x458e48 goes through [this], assumed not to alias the frame. The loop continues only while i < movsx word [edx+0x21] (0x458e0e/0x458e15, a value at most 32767), so i is always in 0..32767 whatever memory holds (it only grows by 1 per passing test); its upper 16 bits are 0. At 0x458e02 ecx gets the same value with RD16 (i < 0x8000), so ecx+1 stored back at 0x458e08 is the same, at most 0x8000.",
+    "review": "Re-derived: counter [ebp-4] is a dword set to 0 (0x458df9), +1 only at 0x458e08, body entered only while signed i < sext16(limit)<=32767, so i in 0..32767 at every read incl. 0x458e02 after a passed test; function has no lea/frame pointer or call. High 16 bits 0 so RD16==RD32 for this statement."
+   },
+   {
+    "kind": "width",
+    "line": 24,
+    "statement": "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xfffffffcu)), b_ = eax, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x458e12: cmp dword ptr [ebp - 4], eax */",
+    "reason": "The counter [ebp-4] is stored 0 at 0x458df9 and otherwise written only by 0x458e08 (+1); the function has no lea'd pointers or calls, and its heap store at 0x458e48 goes through [this], assumed not to alias the frame. The loop continues only while i < movsx word [edx+0x21] (0x458e0e/0x458e15, a value at most 32767), so i is always in 0..32767 whatever memory holds (it only grows by 1 per passing test); its upper 16 bits are 0. RD16 of [ebp-4] at the cmp 0x458e12 therefore returns exactly the same 32-bit value, so sf/of and the jge at 0x458e15 are identical.",
+    "review": "Re-derived: counter [ebp-4] is a dword set to 0 (0x458df9), +1 only at 0x458e08, body entered only while signed i < sext16(limit)<=32767, so i in 0..32767 at every read incl. 0x458e02 after a passed test; function has no lea/frame pointer or call. High 16 bits 0 so RD16==RD32 for this statement."
+   },
+   {
+    "kind": "width",
+    "line": 26,
+    "statement": "ecx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x458e17: mov ecx, dword ptr [ebp - 4] */",
+    "reason": "The counter [ebp-4] is stored 0 at 0x458df9 and otherwise written only by 0x458e08 (+1); the function has no lea'd pointers or calls, and its heap store at 0x458e48 goes through [this], assumed not to alias the frame. The loop continues only while i < movsx word [edx+0x21] (0x458e0e/0x458e15, a value at most 32767), so i is always in 0..32767 whatever memory holds (it only grows by 1 per passing test); its upper 16 bits are 0. ecx at 0x458e17 gets the same value with RD16 (i < 0x8000), so the address ecx*2+0x5a4bd6 read at 0x458e1a and edx are identical.",
+    "review": "Re-derived: counter [ebp-4] is a dword set to 0 (0x458df9), +1 only at 0x458e08, body entered only while signed i < sext16(limit)<=32767, so i in 0..32767 at every read incl. 0x458e02 after a passed test; function has no lea/frame pointer or call. High 16 bits 0 so RD16==RD32 for this statement."
+   },
+   {
+    "kind": "width",
+    "line": 29,
+    "statement": "eax = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x458e25: mov eax, dword ptr [ebp - 4] */",
+    "reason": "The counter [ebp-4] is stored 0 at 0x458df9 and otherwise written only by 0x458e08 (+1); the function has no lea'd pointers or calls, and its heap store at 0x458e48 goes through [this], assumed not to alias the frame. The loop continues only while i < movsx word [edx+0x21] (0x458e0e/0x458e15, a value at most 32767), so i is always in 0..32767 whatever memory holds (it only grows by 1 per passing test); its upper 16 bits are 0. eax at 0x458e25 gets the same value with RD16 (i < 0x8000), so the address ecx+eax*2+0x4c5 of the movsx at 0x458e2b and everything downstream is identical.",
+    "review": "Re-derived: counter [ebp-4] is a dword set to 0 (0x458df9), +1 only at 0x458e08, body entered only while signed i < sext16(limit)<=32767, so i in 0..32767 at every read incl. 0x458e02 after a passed test; function has no lea/frame pointer or call. High 16 bits 0 so RD16==RD32 for this statement."
+   }
+  ],
+  "0x459aea": [
+   {
+    "kind": "width",
+    "line": 27,
+    "statement": "edx = (edx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffffcu))) & 0xffffu);  /* 0x459b4f: mov dx, word ptr [ebp - 4] */",
+    "reason": "0x459b4f is reached only from the jmp at 0x459b81 inside the loop, i.e. with the counter word [ebp-4] in 0..3 (set to 0 at 0x459b47, +1 per iteration, body entered only while signed i<4), so its high byte is 0 and RD8 equals RD16: dx gets the same value (upper half kept), and the following add/store at 0x459b53-0x459b57 is identical. Assumes [ebp-4] is only written by this function's ebp-relative stores (body stores go through this=[ebp-8]).",
+    "review": "Re-derived: L_459b4f has one goto (line 40) from the body where i in 0..3; high byte 0, so dx gets the same value (upper half of edx kept in both); add and store at 28-29 identical."
+   },
+   {
+    "kind": "width",
+    "line": 31,
+    "statement": "eax = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(ebp + 0xfffffffcu)))) & 0xffffffffu;  /* 0x459b5b: movsx eax, word ptr [ebp - 4] */",
+    "reason": "0x459b5b is reached with i=0 (jmp 0x459b4d) or i=1..4 (after 0x459b57 increments a value in 0..3), so the counter word [ebp-4] never exceeds 4 and its high byte is 0: RD8 equals RD16 including the int16 sign extension, so eax, the cmp at 0x459b5f and the jge at 0x459b62 are identical. Assumes [ebp-4] is only written by this function's ebp-relative stores (the stores in the body go through this=[ebp-8], a non-frame pointer).",
+    "review": "Re-derived: line 31 is reached from line 25 (i=0) and by fallthrough from line 29 (i = old+1 where old in 0..3), so i in 0..4, high byte 0; RD8==RD16, cmp/jge identical."
+   },
+   {
+    "kind": "width",
+    "line": 34,
+    "statement": "ecx = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(ebp + 0xfffffffcu)))) & 0xffffffffu;  /* 0x459b64: movsx ecx, word ptr [ebp - 4] */",
+    "reason": "At 0x459b64 the counter word [ebp-4] is in 0..3: it is set to 0 at 0x459b47, only changed by +1 at 0x459b53/0x459b57, and the body is entered only when signed i<4 (cmp/jge at 0x459b5f-0x459b62). Its high byte is 0, so RD8 and RD16 agree and the int16 sign extension of the byte equals that of the word; ecx and the address of the store at 0x459b6b are identical. Assumes [ebp-4] is written only by this function's ebp-relative stores; the other stores go through this=[ebp-8] (heap, not the frame).",
+    "review": "Re-derived: [ebp-4] is written only at line 24 (0) and line 29 (dx+1 of its own value); body (lines 34-40) is entered only if sext(i)<4 signed, so i in 0..3; high byte 0 so RD8==RD16 and sign extension same; stores in body go via this=[ebp-8]."
+   },
+   {
+    "kind": "width",
+    "line": 37,
+    "statement": "eax = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(ebp + 0xfffffffcu)))) & 0xffffffffu;  /* 0x459b70: movsx eax, word ptr [ebp - 4] */",
+    "reason": "At 0x459b70 the counter word [ebp-4] is in 0..3 (set to 0 at 0x459b47, only +1 at 0x459b53/57, body entered only while signed i<4, no store to [ebp-4] in the body since the stores at 0x459b6b/0x459b77 go through this=[ebp-8]), so its high byte is 0 and RD8 = RD16 incl. sign extension; eax and the word store address this+2*eax+0xce are identical. Assumes this does not point into the function's own frame.",
+    "review": "Re-derived: same loop-counter range i in 0..3 at line 37 (no write to [ebp-4] between the guard at 32-33 and line 37), high byte 0, RD8==RD16, eax identical for the store address."
+   }
+  ],
+  "0x45e67d": [
+   {
+    "kind": "drop",
+    "line": 13,
+    "statement": "{ uint32_t a_ = eax, b_ = eax, r_; r_ = a_ ^ b_; FL40_LOGIC(r_, 32); eax = r_; }  /* 0x45e693: xor eax, eax */",
+    "reason": "xor eax,eax at 0x45e693 is dead. Between it and the next eax write, only the repe cmpsb at 0x45e695 runs (it never reads or writes eax) and the je at 0x45e697: if taken, 0x45e6b3 sets eax=0; if not, 0x45e69f sets eax=0 before the scan; every path writes eax before the return value is read. Its flags are also dead: ecx=9 (0x45e68e) is nonzero, so the cmpsb loop runs at least once and rewrites zf/sf/cf/of/pf before the je reads them.",
+    "review": "Re-derived: eax is not read by repe cmpsb; both successors set eax=0 (je -> xor at 0x45e6b3 kept in this mutant, fall-through -> xor at 0x45e69f); ecx=9 so loop rewrites flags before je."
+   },
+   {
+    "kind": "width",
+    "line": 16,
+    "statement": "{ uint32_t a_ = RD8(esi), b_ = RD8(edi), r_;",
+    "reason": "Repe cmpsb at 0x45e695: FL40_SUB(a_,b_,0,r_,8) yields r_=(a_-b_)&0xff, so zf (the only flag the loop break and the je at 0x45e697 read) depends only on the low byte of a_, which RD16(esi) leaves unchanged; esi/edi/ecx updates are identical. The other flags are dead: the je path goes to 0x45e6b3 (xor) and the other path rewrites flags at 0x45e69c/0x45e6a8 before jbe at 0x45e6aa. Assumes the byte after the compared one is readable (pure read).",
+    "review": "Only cf differs; je reads zf, not-taken path rewrites flags at 0x45e69c/0x45e6a8 before jbe; ecx=9 so loop runs."
+   },
+   {
+    "kind": "width",
+    "line": 28,
+    "statement": "{ uint32_t a_ = eax & 0xffu, b_ = RD8(edi), r_;",
+    "reason": "Repne scasb at 0x45e6a1 (al=0): FL40_SUB(0,b_,0,r_,8) gives r_=(0-b_)&0xff, so zf (the break) depends only on the low byte of b_, unchanged by RD16; edi/ecx advance identically. The other flags are dead: not ecx (0x45e6a3) sets none and add ecx,-1 (0x45e6a5) and test (0x45e6a8) rewrite them before jbe at 0x45e6aa. Assumes the byte after the terminating NUL is readable (side-effect-free read in the host model).",
+    "review": "Only cf differs; jbe at 0x45e6aa reads cf/zf after test (0x45e6a8) which clears cf; add ecx,-1 also rewrites."
+   },
+   {
+    "kind": "drop",
+    "line": 41,
+    "statement": "{ uint32_t a_ = eax, b_ = eax, r_; r_ = a_ ^ b_; FL40_LOGIC(r_, 32); eax = r_; }  /* 0x45e6b3: xor eax, eax */",
+    "reason": "xor eax,eax at 0x45e6b3 is redundant: eax is already 0 on both ways in. From the je at 0x45e697, eax is the 0 set at 0x45e693 (repe cmpsb does not touch eax). From the jbe at 0x45e6aa, eax is the 0 set at 0x45e69f (repne scasb, not, add and test leave eax alone). So eax=0 is returned either way (the only other path sets eax=1 at 0x45e6ac and jumps past it). Flags are scratch at return and nothing after reads them.",
+    "review": "Re-derived: predecessors of 0x45e6b3 are je 0x45e697 (eax=0 from 0x45e693, unchanged by cmpsb) and jbe 0x45e6aa (eax=0 from 0x45e69f, unchanged by scasb/not/add/test); no fall-through since line 38 jumps past; flags scratch at return."
+   }
+  ],
+  "0x464f55": [
+   {
+    "kind": "width",
+    "line": 22,
+    "statement": "{ uint32_t a_ = RD8(esi), b_ = RD8(edi), r_;",
+    "reason": "Both operands go into FL40_SUB(...,8): the 8-bit result is (a-b)&0xff, so the high byte of the 16-bit load does not affect the result, zf, sf, pf or of (of uses only bit 7). Only cf would differ, and cf is read by nothing: repe uses only zf (0x464f8b), the following je at 0x464f8d tests zf, and flags are scratch at return. The extra byte read at esi+1 is a read with no side effect; esi is inside the object (fields up to +0x385 are read later by this function). So zf at the break and the loop count are identical.",
+    "review": "Re-derived: 8-bit FL40_SUB: zf from low bytes only, high byte of a_ affects only cf; cf unread (line 28 reads zf; call or return follows, flags scratch); ecx=9 loop identical; extra read at esi+0x364+9 side-effect free."
+   }
+  ],
+  "0x464faa": [
+   {
+    "kind": "width",
+    "line": 22,
+    "statement": "{ uint32_t a_ = RD8(esi), b_ = RD8(edi), r_;",
+    "reason": "Mutant reads RD16(esi) as the first operand of the repe cmpsb compare at 0x464fe0. FL40_SUB (width 8) masks the result to 8 bits and zf, sf, pf and of (bit 7 of a^b and a^res) depend only on the low byte of a_, so the (!zf) break, the je at 0x464fe2 and the esi/edi/ecx progress are unchanged. Only cf=(a_<b_) can differ, and no instruction reads cf: after the loop only je (zf) is used, and mov/push/call follow. The extra byte read has no side effect and there are no stores.",
+    "review": "SUB macro masks to 8 bits: only cf differs; cf is unread (only je zf at 0x464fe2, then mov/push/call and return); ecx=9 so loop runs; no stores."
+   }
+  ],
+  "0x46f8ae": [
+   {
+    "kind": "width",
+    "line": 17,
+    "statement": "{ uint32_t a_ = RD8(esi), b_ = RD8(edi), r_;",
+    "reason": "Mutant reads RD16(esi) as the first operand of the repe cmpsb compare at 0x46f8c9. FL40_SUB (width 8) masks the result to 8 bits and zf, sf, pf and of (bit 7) depend only on the low byte of a_, so the (!zf) break, the je at 0x46f8cb and the esi/edi/ecx progress are unchanged. Only cf=(a_<b_) can differ; no later instruction reads cf (cmp at 0x46f8de rewrites all flags before the je at 0x46f8e5, and the add at 0x46f8d0 rewrites them on the other path). The extra byte read has no side effect; no stores.",
+    "review": "Re-derived: FL40_SUB 8-bit masks res; zf/sf/pf/of(bit7) depend only on low byte of a_; only cf differs and no later instruction reads cf (line 23 reads zf; line 25 add / line 30 cmp rewrite flags before any other read); ecx=9 so loop count and esi/edi unchanged; extra read has no side effect."
+   }
+  ],
+  "0x46f907": [
+   {
+    "kind": "width",
+    "line": 17,
+    "statement": "{ uint32_t a_ = RD8(esi), b_ = RD8(edi), r_;",
+    "reason": "Repe cmpsb at 0x46f924: FL40_SUB(a_,b_,0,r_,8) gives r_=(a_-b_)&0xff, zf=(r_==0) depends only on the low byte of a_, unchanged by RD16(esi); the break, ecx and esi/edi updates are identical. Other flags are dead: only the je at 0x46f926 reads them, and the next readers (jne at 0x46f945, je at 0x46f963) follow the test at 0x46f943 and the cmp at 0x46f95c that rewrite them. Assumes the byte after the compared byte (source [arg+0x64+k+1]) is readable (side-effect-free read in the host model).",
+    "review": "Only cf differs; je on zf at 0x46f926, then test (0x46f943) or cmp (0x46f95c) rewrite flags before any other reader; ecx=9 so loop runs; no stores."
+   }
+  ],
+  "0x478e7b": [
+   {
+    "kind": "drop",
+    "line": 37,
+    "statement": "edx = (edx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffffcu))) & 0xffffu);  /* 0x478ef4: mov dx, word ptr [ebp - 4] */",
+    "reason": "0x478ef4 is entered only from the jmp at 0x478f87, right after the loop body, where edx was last set at 0x478f6d to movsx(word [ebp-4]) and not changed (0x478f71-0x478f7f only touch eax, esi, ecx, and the store at 0x478f7f goes through this=[ebp-0xc]). So the low word of edx already equals [ebp-4] and the dropped mov dx,[ebp-4] would rewrite the same 16 bits; upper half is kept either way. add dx,1 and the store at 0x478efc are identical. Assumes [ebp-4] is only written by explicit ebp-relative stores (this is not a frame pointer).",
+    "review": "Re-derived: L_478ef4 only entered from line 74; edx last set at line 69 (movsx [ebp-4]) and lines 70-73 do not write edx; no call; store at 73 goes through this; so edx low word already equals [ebp-4]; dropped mov dx is a no-op. (Note: the separate width mutant RD8 at this line is not in my input; i is not bounded below 256 here.)"
+   },
+   {
+    "kind": "literal",
+    "line": 37,
+    "statement": "edx = (edx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffffcu))) & 0xffffu);  /* 0x478ef4: mov dx, word ptr [ebp - 4] */",
+    "reason": "The mutant ORs bit 0 of the old edx into dx at 0x478ef4. On every entry (only from the jmp at 0x478f87) edx = movsx(word [ebp-4]) set at 0x478f6d and unchanged through 0x478f7f (stores go through this=[ebp-0xc], not the frame), so bit 0 of edx equals bit 0 of the word [ebp-4] that is ORed in anyway; low word and upper half are identical, so add dx,1 (0x478ef8) and the store at 0x478efc are unchanged. The first iteration does not pass through 0x478ef4 (jmp 0x478f00 at 0x478ef2).",
+    "review": "Re-derived: same entry/dataflow: edx = sext([ebp-4]) on entry, so edx bit 0 equals bit 0 of the word ORed in; mask 0xffff0001 changes nothing; first iteration bypasses line 37 via jmp at line 35."
+   }
+  ],
+  "0x47a1a9": [
+   {
+    "kind": "width",
+    "line": 48,
+    "statement": "{ uint32_t a_ = RD8(esi), b_ = RD8(edi), r_;",
+    "reason": "The compare is FL40_SUB(...,8): the result is (a-b)&0xff, so the extra high byte of RD16 changes neither the result, zf, sf, pf nor of (bit 7 only); only cf differs, and cf is never read (repe 0x47a240 and the je at 0x47a242 use zf only; the later test at 0x47a25f resets flags; flags are scratch at return). The extra read of byte esi+1 has no side effect and lies inside the same object (field +0x1e5 is read later). Loop count and break point are unchanged.",
+    "review": "Only cf differs; je on zf at 0x47a242, other path rewrites flags (test 0x47a25f); ecx=9 so loop runs; extra byte read is a pure read."
+   }
+  ]
+ }
+}

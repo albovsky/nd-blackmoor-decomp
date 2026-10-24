@@ -317,6 +317,7 @@ def main():
     ap.add_argument('--jobs', type=int, default=4)
     ap.add_argument('--out', required=True, help='JSON with the scenarios found (the corpus is only touched with --apply: do not run it while a mutation check writes the corpus)')
     ap.add_argument('--apply', action='store_true')
+    ap.add_argument('--resume', action='store_true', help='keep the rows already in --out and skip them (the container may be reset in a long run)')
     a = ap.parse_args()
     held = json.loads(Path(a.held).read_text())['rows']
     only = json.loads(Path(a.only).read_text()) if a.only else None
@@ -330,7 +331,8 @@ def main():
         wanted = {(i['kind'], i['line']) for i in items if i['kind'] != 'unchecked' and (only is None or [i['kind'], i['line']] in only.get(key, []))}
         if wanted:
             jobs.append((key, corpus[key], funcs[key], helper if 'FL40_CALL_LIFTED' in funcs[key] else '', wanted, a.seeds, None))
-    result = {}
+    result = json.loads(Path(a.out).read_text()) if a.resume and Path(a.out).is_file() else {}
+    jobs = [j for j in jobs if j[0] not in result]
     with mp.Pool(a.jobs, maxtasksperchild=1) as pool:
         for key, res in pool.imap_unordered(work, jobs):
             result[key] = res
