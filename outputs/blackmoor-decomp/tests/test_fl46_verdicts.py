@@ -35,7 +35,8 @@ class WrittenReasons(unittest.TestCase):
             lines = self.funcs[row].split('\n')
             for i in items:
                 self.assertEqual(lines[i['line']].strip()[:300], i['statement'], (row, i['kind'], i['line']))
-                self.assertGreaterEqual(len(i['reason']), 80, (row, i['line']))
+                self.assertGreaterEqual(len(' '.join(i['reason'].split())), 80, (row, i['line']))
+                self.assertGreaterEqual(len(i['review'].strip()), 40, (row, i['line']))
 
     def test_reasons_cite_addresses_of_the_function_only(self):
         corpus = json.loads((PROJECT / 'tests/fl40_corpus.json').read_text())
@@ -43,9 +44,11 @@ class WrittenReasons(unittest.TestCase):
             lo = int(row, 16)
             known = set(re.findall(r'/\* (0x[0-9a-f]+):', self.funcs[row]))
             for i in items:
-                for addr in re.findall(r'0x4[0-9a-f]{5}\b', i['reason']):
+                for addr in re.findall(r'0x4[0-9a-fA-F]{5}\b', i['reason']):
                     if lo <= int(addr, 16) < lo + corpus[row]['body']:         # inside the function: it must be an instruction the translation has
-                        self.assertIn(addr, known, (row, i['line'], addr))
+                        self.assertIn(addr.lower(), known, (row, i['line'], addr))
+                    else:                                                       # outside: only a jump table the function's own jmp reads; a callee's behaviour is not checked by the oracle
+                        self.assertIn(addr.lower(), ('0x4453a7', '0x44550b'), (row, i['line'], addr))
 
 
 class Coverage(unittest.TestCase):
@@ -55,7 +58,12 @@ class Coverage(unittest.TestCase):
         import fl44_final
         budget = set(re.findall(r'^(0x[0-9a-f]+) mutants', (PROJECT / 'tasks/fl46-budget3-log.txt').read_text(), re.M))
         for name in fl44_final.LOGS:
-            if name.startswith(('fl46-', 'fl49-')):
+            if name.startswith('fl49-'):                      # run under FL46_BUDGET=1: a line with hang kills must say that budget kills decided them
+                for line in (PROJECT / 'tasks' / name).read_text().split('\n'):
+                    if re.match(r'^0x[0-9a-f]+ mutants .* hang-kills [1-9]', line):
+                        self.assertIn('killed by step budget', line, (name, line[:20]))
+                continue
+            if name.startswith('fl46-'):
                 continue
             for row in re.findall(r'^(0x[0-9a-f]+) mutants .* hang-kills [1-9]', (PROJECT / 'tasks' / name).read_text(), re.M):
                 if row not in held:

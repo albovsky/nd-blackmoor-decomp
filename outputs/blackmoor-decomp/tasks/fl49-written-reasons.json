@@ -1,5 +1,5 @@
 {
- "note": "FL-49: row-specific written reasons that a lifted-C survivor (kind, line) is equivalent to the original, same rules as tasks/fl46-written-reasons.json. Each was written by one Sonnet reader from the function alone and confirmed by a second, independent Sonnet reviewer who tried to break it (reviewer note kept); rejected reasons are not here. The statement must equal the current line of the row, else the reason is ignored (scripts/fl44_final.py).",
+ "note": "FL-49: row-specific written reasons that a lifted-C survivor (kind, line) is equivalent to the original, same rules as tasks/fl46-written-reasons.json. Each was written by one Sonnet reader from the function alone and confirmed by a second, independent Sonnet reviewer who tried to break it (reviewer note kept); rejected reasons are not here. The statement must equal the current line of the row, else the reason is ignored (scripts/fl44_final.py). Reasons that cite an address outside their own function (a callee) were dropped after the diff review.",
  "rows": {
   "0x4015fb": [
    {
@@ -175,13 +175,6 @@
    }
   ],
   "0x416f2d": [
-   {
-    "kind": "width",
-    "line": 19,
-    "statement": "ecx = (ecx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffff0u))) & 0xffffu);  /* 0x416f63: mov cx, word ptr [ebp - 0x10] */",
-    "reason": "0x416f63 is reached only from the jmp at 0x416f85 after the test at 0x416f76 passed, so the counter word [ebp-0x10] is in 0..29 (set to 0 at 0x416f5b, only changed by +1 at 0x416f67/0x416f6b, loop body entered only while signed i<30). Its high byte is 0, so RD8 equals RD16: cx gets the same value (upper half of ecx kept in both), and the add/store at 0x416f67-0x416f6b is identical. Assumes [ebp-0x10] is not written by the callee at 0x41a336 (no pointer into the frame is passed).",
-    "review": "Re-derived: 0x416f63 reached only from jmp 0x416f85 after the i<30 test passed, i in 0..29, RD8==RD16, upper half of ecx kept in both, store back identical."
-   },
    {
     "kind": "width",
     "line": 23,
@@ -1010,13 +1003,6 @@
     "statement": "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xfffffe24u)), b_ = 0x3u, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x445d07: cmp dword ptr [ebp - 0x1dc], 3 */",
     "reason": "[ebp-0x1dc] holds x = movsx [ebp-4] (0x445cfd/0x445d01); [ebp-4] is eax from 0x445ca6 = rand() & 0x80000003 (0x445c9a), then 0..3 or, via the dec/or/inc at 0x445ca1-0x445ca5, -3..0. So x is in -3..3. RD16 gives x for 0..3 and 0xfffd..0xffff for negative x; ja at 0x445d0e reads only cf and zf: negative x is above 3 unsigned in both (cf=0, zf=0, taken), and 0..3 are unchanged. Other flags are scratch.",
     "review": "Re-derived: slot holds sext16 value; RD16 vs RD32 give same value for 0..3 and both unsigned >3 for every other sext16 value (negatives: 0xfffffff?? vs 0xf???), so cf/zf for ja are identical; no other flag is read after (targets lea/push/call)."
-   },
-   {
-    "kind": "width",
-    "line": 62,
-    "statement": "edx = RD32((uint32_t)(ebp + 0xfffffe24u));  /* 0x445d14: mov edx, dword ptr [ebp - 0x1dc] */",
-    "reason": "[ebp-0x1dc] holds x = movsx word [ebp-4] (0x445cfd/0x445d01), where [ebp-4] is eax from 0x445ca6: eax = rand() & 0x80000003 (0x445c9a); if the sign bit is clear eax is 0..3, otherwise the dec/or/inc sequence 0x445ca1-0x445ca5 gives -3..0. So x is in -3..3 (32-bit sign-extended), written only at 0x445d01 (slot not touched by the lea'd buffers: 0x43f210 writes at ebp-0x1d2 upward). edx at 0x445d14 is reached only when ja at 0x445d0e was not taken, i.e. x unsigned <= 3, so x is 0..3 and both RD16 and RD32 return the same value (high 16 bits are 0); the jump-table index at 0x445d1a is identical.",
-    "review": "Re-derived: line 62 is reached only when ja (cf=0,zf=0 means unsigned>3) was not taken, so the dword [ebp-0x1dc] (written at 0x445d01, no store in between) is unsigned <=3, i.e. 0..3, high 16 bits zero; RD16==RD32, jump table index identical (needs no rand range)."
    }
   ],
   "0x447e83": [
@@ -1083,15 +1069,6 @@
     "statement": "WR8(edi, RD8(esi)); esi += 1u; edi += 1u;  /* 0x44b179: movsb byte ptr es:[edi], byte ptr [esi] */",
     "reason": "Mutant WR8(edi,RD16(esi)) at the movsb 0x44b179: the host wr masks a 1-byte store to the low byte, which equals RD8(esi) (little endian), so the stored byte, edi/esi increments and the later code (0x44b17a onward does not use esi/edi/ecx values from here; esi/edi are popped at 0x44b1ac/0x44b1ad) are identical. The only difference is one extra read of the byte at src+31 (src=[[ebp+0xc]], 30 bytes already copied by 0x44b175/0x44b177). Assumption: that read is side-effect free and the byte is readable in the host model (no fault below 0xfff00000); no store or call depends on it.",
     "review": "Re-derived: movsb copies byte 30 of the 31-byte block; WR8 masks the RD16 value to its low byte = RD8(esi); extra read is src+31, a discarded load (reads are not observable; host read path never faults below 0xfff00000 and splits page-crossing reads). Following code uses neither esi/edi/ecx values (reloaded/popped) nor the byte."
-   }
-  ],
-  "0x44c384": [
-   {
-    "kind": "drop",
-    "line": 50,
-    "statement": "{ uint32_t a_ = ecx, b_ = ecx, r_; r_ = a_ & b_; FL40_LOGIC(r_, 32); }  /* 0x44c439: test ecx, ecx */",
-    "reason": "Dropping test ecx,ecx at 0x44c439 keeps the earlier flags. Path A (je 0x44c423 taken): zf=1 from test eax at 0x44c421 with W=movsx [0x63a4cd]==0; no store or call between 0x44c41a and 0x44c432, so the reload at 0x44c432 gives W==0, zf=1 again: same je at 0x44c43b. Path B (fall-through, W!=0): call 0x44a2b7 then add esp,4 at 0x44c42f sets zf=(esp==0)=0 (esp is a nonzero stack address), while the original re-tests the reloaded W, still nonzero. This uses the accepted assumption that callee 0x44a2b7 (a logger: GetLocalTime, fprintf/fflush on [0x5a4c10], increments [0x63a84c]) writes only through pointers it is given (the constant string 0x54931c) and its own state, not [0x63a4cd].",
-    "review": "Re-derived: line 49 is entered only via the not-taken je at 0x44c423 (W!=0, then call 0x44a2b7 and add esp,4 which sets zf=0 as esp+4 is a stack address) or via the taken je (zf=1 from test eax with W==0, no flags writer in between). Reloaded ecx=W is the same W (no stores/calls on the W==0 path; on the call path the accepted callee assumption keeps [0x63a4cd] intact, the pointer passed is the constant string 0x54931c). So original test ecx,ecx gives zf=!W exactly matching the retained flag; ecx itself is still loaded. Only one mutant listed and covered."
    }
   ],
   "0x44c9db": [
@@ -1482,13 +1459,6 @@
     "statement": "{ uint32_t a_ = eax & 0xffu, b_ = RD8(edi), r_;",
     "reason": "repne scasb at 0x458d65 with al=0 (preceding xor eax,eax): FL40_SUB(...,8) masks the result to 8 bits, so ZF/SF/OF(bit 7)/PF depend only on the low byte of the operand; the break and the ecx/edi updates are unchanged for RD16. Only CF (a<b) could differ, and shr ecx,2 (0x458d74) rewrites all flags. The extra read of edi+1 is a pure read with no effect in the host.",
     "review": "Re-derived: al=0 from the xor eax,eax just before (a_=0); FL40_SUB with bits=8 masks res so zf/sf/pf/of(bit 7) depend only on the low byte of b_, hence the break, edi and ecx updates are identical for RD16; only cf (0<b_) can differ, and line 82 shr ecx,2 (n_=2 so FL40_SHR runs) rewrites cf/zf/sf/of/pf and line 90 'and' again, before any reader. The extra byte read at edi+1 is a read only (no trace of reads in the model) within the mapped string area."
-   },
-   {
-    "kind": "width",
-    "line": 93,
-    "statement": "WR8(edi, RD8(esi));",
-    "reason": "rep movsb at 0x458d7e: WR8(edi, RD16(esi)) passes a 16-bit value to a one-byte store, which keeps only the low byte, so the byte stored (and esi/edi/ecx) is identical; both source bytes are read before the store. The source is the heap string pointer from call 0x423259 (not into the frame), the destination the frame buffer [ebp-0xd4]; the extra byte read at esi+1 has no effect in the host.",
-    "review": "Re-derived: WR8 is a one-byte store (Mem.write masks the value to the size), so WR8(edi,RD16(esi)) stores the low byte = RD8(esi) at the same edi; esi/edi/ecx updates are in the loop tail and unchanged; both reads happen before the store; source is the heap string from the call at line 48 (ptr [ebp-4]), dest the frame buffer [ebp-0xd4], no aliasing under the accepted assumption; the extra byte at esi+1 is read and discarded."
    },
    {
     "kind": "width",
@@ -1918,64 +1888,6 @@
     "statement": "{ uint32_t a_ = eax, b_ = eax, r_; r_ = a_ ^ b_; FL40_LOGIC(r_, 32); eax = r_; }  /* 0x473a8e: xor eax, eax */",
     "reason": "xor eax,eax (0x473a8e) is reached only when [ebp-0xc]==0 (cmp 0x473a7e, jne 0x473a82 not taken). [ebp-0xc] is written only at 0x47365a (0) and 0x47376c, 0x47388f, 0x4739c5 (1). Every path into L_473a7e other than the je at 0x4739bf runs through 0x4739c5 (which sets it to 1) first: the jle at 0x473a42 and the fall-through after 0x473a78 both come after it. So [ebp-0xc]==0 implies arrival via je 0x4739bf, i.e. test eax,eax at 0x4739bd gave zf=1, so eax==0, and nothing between (cmp, jne, store to 0x5a4bce) changes eax. The xor is the identity on this path; eax=0 is returned either way. (Slot [ebp-0xc] is never passed by address to a callee; assumption: frame slots are written only by explicit ebp-relative instructions.)",
     "review": "Re-derived: L_473a7e (line 296) is entered only from the je at 0x4739bf (test eax,eax true => eax==0), the jle at 0x473a42 and the fall-through after 0x473a78, the latter two only after [ebp-0xc]=1 at 0x4739c5; [ebp-0xc] is written only at lines 8,74,156,243 and never address-taken. So reaching the xor (jne not taken, [ebp-0xc]==0) means eax==0, and the store at 0x473a84 does not touch eax: the xor is the identity (flags scratch)."
-   }
-  ],
-  "0x478684": [
-   {
-    "kind": "register",
-    "line": 38,
-    "statement": "{ uint32_t a_ = eax, b_ = ecx, r_; FL40_SUB(a_, b_, 0u, r_, 32); eax = r_; }  /* 0x478710: sub eax, ecx */",
-    "reason": "Setup: A=movsx[ebp-0x14], B=movsx[ebp-0x1c] are int16 words, W1/W2 the int16 words at this+0x158e/0x1590; P=[ebp-0x10] (0x478717) and Q=[ebp-8] (0x478730) hold |A-W1| and |B-W2| truncated to 16 bits and are re-read with movsx, so P=|d1| (|d1|<=32767) or negative (|d1|>=32768), d1=A-W1 (same for Q, d2=B-W2). W1/W2 are re-read after the calls 0x478396/0x478656 but are unchanged: those callees (asm FUN_00478396.s, FUN_00478656.s) store only to their own frames, and this function writes only this+0x159a/0x159e and its frame. 'sub ecx,eax' at 0x478710 leaves eax=W1-A=-d1 instead of d1 (the result still lands in eax). The next instructions 0x478712-0x478715 form |eax| (cdq/xor/sub), which is the same for d1 and -d1, so the stored word [ebp-0x10] (0x478717) is identical. edx (sign mask) differs but is overwritten at 0x47871f, ecx at 0x478722, before any read; eax is reloaded at 0x47871b; flags dead.",
-    "review": "Re-derived: swapping the operands makes eax=W1-A=-d1 instead of d1 (ecx unchanged); lines 39-41 are cdq/xor/sub = abs, giving |d1| in both (v=0 gives 0; |v|<=65535 so no overflow), so the WR16 at line 42 and everything after is identical. edx (sign mask) and the flags of lines 38/41 differ, but edx is overwritten at line 44 and the flags are rewritten at line 46 before any reader."
-   },
-   {
-    "kind": "literal",
-    "line": 69,
-    "statement": "{ uint32_t a_ = eax, b_ = ecx, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x478768: cmp eax, ecx */",
-    "reason": "Setup: A=movsx[ebp-0x14], B=movsx[ebp-0x1c] are int16 words, W1/W2 the int16 words at this+0x158e/0x1590; P=[ebp-0x10] (0x478717) and Q=[ebp-8] (0x478730) hold |A-W1| and |B-W2| truncated to 16 bits and are re-read with movsx, so P=|d1| (|d1|<=32767) or negative (|d1|>=32768), d1=A-W1 (same for Q, d2=B-W2). W1/W2 are re-read after the calls 0x478396/0x478656 but are unchanged: those callees (asm FUN_00478396.s, FUN_00478656.s) store only to their own frames, and this function writes only this+0x159a/0x159e and its frame. At 0x478768 eax=|d2-1|, ecx=Q. Borrow 1 changes the jge outcome only if |d2-1|==Q, impossible (needs |d2-1|=|d2| for |d2|<=32767, or Q<0<=eax otherwise). No overflow; flags dead after the jge.",
-    "review": "Same structure with B=movsx[ebp-0x1c], W2=movsx[this+0x1590], d2=B-W2, Q=[ebp-8] from lines 43-50; W2 unchanged (callee asm read, no store to this+0x1590). Line 69: a=|d2-1| vs b=Q; borrow-in 1 (of=0, a>=0) only differs for a==b, which needs |d2-1|=|d2| (impossible) or Q<0<=a (never equal). No flag reader after the jge."
-   },
-   {
-    "kind": "literal",
-    "line": 71,
-    "statement": "edx = (edx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xffffffe8u))) & 0xffffu);  /* 0x47876c: mov dx, word ptr [ebp - 0x18] */",
-    "reason": "Setup: A=movsx[ebp-0x14], B=movsx[ebp-0x1c] are int16 words, W1/W2 the int16 words at this+0x158e/0x1590; P=[ebp-0x10] (0x478717) and Q=[ebp-8] (0x478730) hold |A-W1| and |B-W2| truncated to 16 bits and are re-read with movsx, so P=|d1| (|d1|<=32767) or negative (|d1|>=32768), d1=A-W1 (same for Q, d2=B-W2). W1/W2 are re-read after the calls 0x478396/0x478656 but are unchanged: those callees (asm FUN_00478396.s, FUN_00478656.s) store only to their own frames, and this function writes only this+0x159a/0x159e and its frame. The mutant ORs bit 0 of the incoming edx into dx; edx there is the cdq sign mask of x=B-1-W2 (0x47875f, untouched by 0x478760-0x47876a), so bit 0 is 1 only if x<0. Line 71 is reached only when jge at 0x47876a did not fire, i.e. |x|<Q. For x<0 (d2<=0) |x|=|d2|+1 which is never < Q (Q=|d2| or negative), so edx=0 on every reachable arrival and the pushed edx (0x478770) is the same.",
-    "review": "Re-derived: line 71 is reached only by fallthrough from the jge at line 70; edx there is the cdq mask of x=B-1-W2 (line 65, untouched by lines 66-70), so its bit 0 is 1 only if x<0. x<0 means d2<=0, so |x|=|d2|+1, and with Q=|d2| (|d2|<=32767) or Q<0 the cmp at line 69 gives |x|>Q, so the jge at line 70 fires; hence arrival implies x>=0, edx=0 and the extra mask bit 0 is 0. W2 unchanged by the callees (asm read). Result of the statement and the push at 72 are identical."
-   },
-   {
-    "kind": "literal",
-    "line": 107,
-    "statement": "{ uint32_t a_ = eax, b_ = ecx, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x4787db: cmp eax, ecx */",
-    "reason": "Setup: A=movsx[ebp-0x14], B=movsx[ebp-0x1c] are int16 words, W1/W2 the int16 words at this+0x158e/0x1590; P=[ebp-0x10] (0x478717) and Q=[ebp-8] (0x478730) hold |A-W1| and |B-W2| truncated to 16 bits and are re-read with movsx, so P=|d1| (|d1|<=32767) or negative (|d1|>=32768), d1=A-W1 (same for Q, d2=B-W2). W1/W2 are re-read after the calls 0x478396/0x478656 but are unchanged: those callees (asm FUN_00478396.s, FUN_00478656.s) store only to their own frames, and this function writes only this+0x159a/0x159e and its frame. At 0x4787db eax=|d2+1|, ecx=Q. Borrow 1 changes the jge outcome only if |d2+1|==Q, impossible (needs |d2+1|=|d2| for |d2|<=32767, or Q<0<=eax otherwise). No overflow; flags dead after the jge.",
-    "review": "Same as line 69 with a=|B+1-W2|=|d2+1| (line 98-105) vs b=Q (line 106): |d2+1|=|d2| has no integer solution and Q<0 cannot equal a>=0; W2 unchanged per the callee asm (no store to this+0x1590). No flag reader after the jge."
-   },
-   {
-    "kind": "literal",
-    "line": 145,
-    "statement": "{ uint32_t a_ = eax, b_ = ecx, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x47884e: cmp eax, ecx */",
-    "reason": "Setup: A=movsx[ebp-0x14], B=movsx[ebp-0x1c] are int16 words, W1/W2 the int16 words at this+0x158e/0x1590; P=[ebp-0x10] (0x478717) and Q=[ebp-8] (0x478730) hold |A-W1| and |B-W2| truncated to 16 bits and are re-read with movsx, so P=|d1| (|d1|<=32767) or negative (|d1|>=32768), d1=A-W1 (same for Q, d2=B-W2). W1/W2 are re-read after the calls 0x478396/0x478656 but are unchanged: those callees (asm FUN_00478396.s, FUN_00478656.s) store only to their own frames, and this function writes only this+0x159a/0x159e and its frame. At 0x47884e eax=|d1-1|, ecx=P. Borrow 1 turns jge (eax>=ecx) into eax>ecx; they differ only if |d1-1|==P, impossible: for |d1|<=32767 it needs |d1-1|=|d1| (d1=0.5), otherwise P<0<=eax. Operands are small so no overflow; flags dead after the jge.",
-    "review": "Re-derived: A=movsx[ebp-0x14] (stored only at line 14), W1=movsx[this+0x158e]; d1=A-W1 (|d1|<=65535); P=movsx16 of low16(|d1|) from lines 35-42 (|d1| if <=32767, else |d1|-65536 <0). W1 is re-read after the calls but unchanged: I read asm/FUN_00478396.s and FUN_00478656.s, both call nothing and store only to their own [ebp-N] locals, and this function stores to the heap only at this+0x159a/0x159e (lines 10,86,124,162,200,206), never 0x158e/0x1590. FL40_SUB with c=1 gives of=0 (a>=0 and |operands|<2^17) and sf=(a-b-1<0), so jge becomes a>b instead of a>=b: differs only when a==b. Line 145: a=|A-1-W1|=|d1-1|, b=P. a==P needs |d1-1|=|d1| (d1=1/2, impossible) when |d1|<=32767, else P<0<=a. So no difference; flags are not read after the jge (pushes/call follow)."
-   },
-   {
-    "kind": "literal",
-    "line": 147,
-    "statement": "edx = (edx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xffffffe8u))) & 0xffffu);  /* 0x478852: mov dx, word ptr [ebp - 0x18] */",
-    "reason": "Setup: A=movsx[ebp-0x14], B=movsx[ebp-0x1c] are int16 words, W1/W2 the int16 words at this+0x158e/0x1590; P=[ebp-0x10] (0x478717) and Q=[ebp-8] (0x478730) hold |A-W1| and |B-W2| truncated to 16 bits and are re-read with movsx, so P=|d1| (|d1|<=32767) or negative (|d1|>=32768), d1=A-W1 (same for Q, d2=B-W2). W1/W2 are re-read after the calls 0x478396/0x478656 but are unchanged: those callees (asm FUN_00478396.s, FUN_00478656.s) store only to their own frames, and this function writes only this+0x159a/0x159e and its frame. The mutant ORs bit 0 of the incoming edx into dx; edx there is the cdq sign mask of x=A-1-W1 (0x478845, untouched by 0x478846-0x478850), so bit 0 is 1 only if x<0. Line 147 is reached only if the jge at 0x478850 did not fire, i.e. |x|<P. For x<0 (d1<=0) |x|=|d1|+1 which is never < P (P=|d1| or negative), so edx=0 on every reachable arrival and the pushed edx (0x478856) is the same.",
-    "review": "Same as line 71 for the first direction: line 147 is only the fallthrough of the jge at line 146; edx is the cdq mask of x=A-1-W1 (line 141, lines 142-146 only read it); x<0 means d1<=0, |x|=|d1|+1 > P (P=|d1| or negative) so the jge fires; thus on arrival edx=0 and bit 0 of the old edx is 0. Push at 148 identical."
-   },
-   {
-    "kind": "drop",
-    "line": 181,
-    "statement": "{ uint32_t a_ = eax, b_ = edx, r_; FL40_SUB(a_, b_, 0u, r_, 32); eax = r_; }  /* 0x4788b8: sub eax, edx */",
-    "reason": "Setup: A=movsx[ebp-0x14], B=movsx[ebp-0x1c] are int16 words, W1/W2 the int16 words at this+0x158e/0x1590; P=[ebp-0x10] (0x478717) and Q=[ebp-8] (0x478730) hold |A-W1| and |B-W2| truncated to 16 bits and are re-read with movsx, so P=|d1| (|d1|<=32767) or negative (|d1|>=32768), d1=A-W1 (same for Q, d2=B-W2). W1/W2 are re-read after the calls 0x478396/0x478656 but are unchanged: those callees (asm FUN_00478396.s, FUN_00478656.s) store only to their own frames, and this function writes only this+0x159a/0x159e and its frame. Dropping the last 'sub eax,edx' of the abs idiom (0x4788b6-0x4788b8) leaves eax=x for x=d1+1>=0 (edx=0, identical) and |x|-1 for x<0. The only consumer is cmp eax,ecx / jge at 0x4788be against P: for x<0, |x|>=P and |x|-1>=P differ only if |x|==P, impossible (|d1+1|=|d1| has no integer solution; P<0 otherwise). The eax pushed later (0x4788cb) has upper half 0 in both (x<0 gives |x|<=65534); edx from cdq is unchanged; eax is reloaded at 0x47890c; flags are rewritten by the cmp.",
-    "review": "Re-derived: A=movsx[ebp-0x14] (stored only at line 14), W1=movsx[this+0x158e]; d1=A-W1 (|d1|<=65535); P=movsx16 of low16(|d1|) from lines 35-42 (|d1| if <=32767, else |d1|-65536 <0). W1 is re-read after the calls but unchanged: I read asm/FUN_00478396.s and FUN_00478656.s, both call nothing and store only to their own [ebp-N] locals, and this function stores to the heap only at this+0x159a/0x159e (lines 10,86,124,162,200,206), never 0x158e/0x1590.. Line 181 drop: edx=cdq mask of x=d1+1 (lines 175-179); for x>=0 edx=0 so sub is a no-op; for x<0 eax=~x=|x|-1. Compare (line 183) vs P: |x|>=P and |x|-1>=P differ only if |x|==P; with x<0, |x|=|d1|-1 while P=|d1| (|d1|<=32767) or P<0, never equal. On the not-taken path eax<P<=32767 so its upper 16 bits are 0 in both, and line 187 keeps only those bits (the push at 188 is identical); on the taken path eax is overwritten at line 208. Flags are rewritten by the cmp; edx untouched by the drop."
-   },
-   {
-    "kind": "literal",
-    "line": 183,
-    "statement": "{ uint32_t a_ = eax, b_ = ecx, r_; FL40_SUB(a_, b_, 0u, r_, 32); }  /* 0x4788be: cmp eax, ecx */",
-    "reason": "Setup: A=movsx[ebp-0x14], B=movsx[ebp-0x1c] are int16 words, W1/W2 the int16 words at this+0x158e/0x1590; P=[ebp-0x10] (0x478717) and Q=[ebp-8] (0x478730) hold |A-W1| and |B-W2| truncated to 16 bits and are re-read with movsx, so P=|d1| (|d1|<=32767) or negative (|d1|>=32768), d1=A-W1 (same for Q, d2=B-W2). W1/W2 are re-read after the calls 0x478396/0x478656 but are unchanged: those callees (asm FUN_00478396.s, FUN_00478656.s) store only to their own frames, and this function writes only this+0x159a/0x159e and its frame. At 0x4788be eax=|d1+1|, ecx=P. Borrow 1 changes the jge outcome only if |d1+1|==P, impossible: for |d1|<=32767 it needs |d1+1|=|d1| (d1=-0.5), otherwise P<0<=eax. No overflow; flags dead after the jge.",
-    "review": "Re-derived: A=movsx[ebp-0x14] (stored only at line 14), W1=movsx[this+0x158e]; d1=A-W1 (|d1|<=65535); P=movsx16 of low16(|d1|) from lines 35-42 (|d1| if <=32767, else |d1|-65536 <0). W1 is re-read after the calls but unchanged: I read asm/FUN_00478396.s and FUN_00478656.s, both call nothing and store only to their own [ebp-N] locals, and this function stores to the heap only at this+0x159a/0x159e (lines 10,86,124,162,200,206), never 0x158e/0x1590. FL40_SUB with c=1 gives of=0 (a>=0 and |operands|<2^17) and sf=(a-b-1<0), so jge becomes a>b instead of a>=b: differs only when a==b. Line 183: a=|A+1-W1|=|d1+1|, b=P. |d1+1|=|d1| has no integer solution, and P<0<=a otherwise. No difference."
    }
   ],
   "0x478e7b": [

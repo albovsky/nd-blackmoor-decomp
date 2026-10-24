@@ -62835,31 +62835,6 @@
    "note": "Machine-translated from the original instructions (scripts/lift_function.py); 5 seeds; oracle 75/75 instructions, 6/6 jump directions; mutation survivors: tasks/fl40-survivors.json."
   },
   {
-   "va": "0x445c8a",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review, findings addressed (FL-49)",
-   "date": "2026-10-22",
-   "native_source": {
-    "path": "src/original_methods_fl40.c",
-    "symbol": "m445c8a_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/test_fl40_differential.py",
-     "test_id": "Fl40Differential.test_445c8a_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl40_original_oracle.py",
-    "window": [
-     "0x445c8a",
-     "0x445df0"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 6 seeds; oracle 82/82 instructions, 4/4 jump directions; mutation survivors: tasks/fl40-survivors.json."
-  },
-  {
    "va": "0x448254",
    "class": "native_oracle_verified",
    "reviewer": "Sonnet slice-reviewer, diff review, findings addressed (FL-49)",
@@ -63434,31 +63409,6 @@
    },
    "parts_accounted": [],
    "note": "Machine-translated from the original instructions (scripts/lift_function.py); 10 seeds; oracle 50/50 instructions, 4/4 jump directions; mutation survivors: tasks/fl40-survivors.json."
-  },
-  {
-   "va": "0x478684",
-   "class": "native_oracle_verified",
-   "reviewer": "Sonnet slice-reviewer, diff review, findings addressed (FL-49)",
-   "date": "2026-10-22",
-   "native_source": {
-    "path": "src/original_methods_fl40.c",
-    "symbol": "m478684_lifted"
-   },
-   "tests": [
-    {
-     "path": "tests/test_fl40_differential.py",
-     "test_id": "Fl40Differential.test_478684_lifted"
-    }
-   ],
-   "oracle": {
-    "path": "tests/fl40_original_oracle.py",
-    "window": [
-     "0x478684",
-     "0x478915"
-    ]
-   },
-   "parts_accounted": [],
-   "note": "Machine-translated from the original instructions (scripts/lift_function.py); 12 seeds; oracle 201/201 instructions, 28/28 jump directions; mutation survivors: tasks/fl40-survivors.json."
   },
   {
    "va": "0x4789d6",

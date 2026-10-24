@@ -72,7 +72,7 @@ def main():
     for reasons_path in sorted(TASKS.glob('fl4*-written-reasons.json')):          # FL-46, FL-49
         for row, items in json.loads(reasons_path.read_text())['rows'].items():
             for i in items:
-                if len(i['reason']) >= 80:
+                if len(' '.join(i['reason'].split())) >= 80 and len(i.get('review', '').strip()) >= 40:        # a reason without its independent review does not count
                     reasons[(row, i['kind'], i['line'])] = i['statement']
     clean, held = [], {}
     for row in sorted(corpus, key=lambda k: int(k, 16)):
