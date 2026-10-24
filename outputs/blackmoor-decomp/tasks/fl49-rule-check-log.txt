@@ -75,3 +75,11 @@
 0x448084 mutants 2 killed 0 survivors [('register', 35, 'survives'), ('register', 11, 'survives')]
 0x448186 mutants 2 killed 0 survivors [('register', 20, 'survives'), ('register', 11, 'survives')]
 0x448254 mutants 1 killed 0 survivors [('register', 9, 'survives')]
+0x41df05 mutants 1 killed 1 survivors [('register', 27, 'killed by rescue seed')] guard-dropped-scenarios 5 hang-kills 1
+0x449ba5 mutants 2 killed 0 survivors [('register', 19, 'survives'), ('register', 9, 'survives')]
+0x449cfc mutants 1 killed 0 survivors [('register', 18, 'survives')]
+0x449dc7 mutants 2 killed 0 survivors [('register', 119, 'survives'), ('width', 42, 'survives')]
+0x449ef8 mutants 2 killed 0 survivors [('width', 42, 'survives'), ('register', 161, 'survives')]
+0x44a116 mutants 2 killed 0 survivors [('width', 11, 'survives'), ('register', 19, 'survives')]
+0x44a696 mutants 2 killed 0 survivors [('register', 19, 'survives'), ('register', 6, 'survives')]
+0x44a6f2 mutants 3 killed 0 survivors [('register', 168, 'survives'), ('register', 166, 'survives'), ('register', 170, 'survives')]

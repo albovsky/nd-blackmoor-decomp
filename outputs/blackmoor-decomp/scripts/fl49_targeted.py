@@ -169,7 +169,7 @@ def alive_instructions(text_lines, wanted):
 
 
 def work(args):
-    key, entry, text, helper, wanted, seed_limit, corpus_path = args
+    key, entry, text, helper, wanted, seed_limit, surviving = args
     va = int(key, 16)
     row = W.row_info(va, entry['body'], {int(k, 16): v for k, v in entry['callees'].items()}, {int(k, 16): v for k, v in entry['imports'].items()}, entry['fs'])
     picked = M.mutants(text, va, random.Random(va), 100000, wanted)       # the same mutants, in the same order, as the exhaustive run (the `only` filter keeps the numbering)
@@ -194,6 +194,8 @@ def work(args):
                 return getattr(lib, self.name)
 
         alive = set(range(len(named)))
+        if surviving is not None:          # FL-49: only the mutants that survive the current corpus (DETAIL lines of fl40_mutation_check.py), matched by their replacement line
+            alive = {i for i, (k_, n_, t_) in enumerate(named) if (k_, n_, t_.split('\n')[n_].strip()) in surviving}
         by_line = {}
         for i, (k, n, t) in enumerate(named):
             by_line.setdefault(n, set()).add(i)
@@ -348,9 +350,16 @@ def main():
     ap.add_argument('--jobs', type=int, default=4)
     ap.add_argument('--out', required=True, help='JSON with the scenarios found (the corpus is only touched with --apply: do not run it while a mutation check writes the corpus)')
     ap.add_argument('--apply', action='store_true')
+    ap.add_argument('--detail', nargs='*', help='files with DETAIL lines of fl40_mutation_check.py (FL49_DETAIL=1): restrict the mutants asked for to the surviving ones')
     ap.add_argument('--resume', action='store_true', help='keep the rows already in --out and skip them (the container may be reset in a long run)')
     a = ap.parse_args()
     held = json.loads(Path(a.held).read_text())['rows']
+    surviving = {}
+    for f in a.detail or []:
+        for line in Path(f).read_text().splitlines():
+            if line.startswith('DETAIL '):
+                _, r_, js = line.split(' ', 2)
+                surviving[r_] = {(kind, n, mut) for _k, kind, n, _o, mut in json.loads(js)}
     only = json.loads(Path(a.only).read_text()) if a.only else None
     corpus = json.loads(CORPUS.read_text())
     funcs = M.split_functions(SOURCE.read_text())
@@ -361,7 +370,7 @@ def main():
             continue
         wanted = {(i['kind'], i['line']) for i in items if i['kind'] != 'unchecked' and (only is None or [i['kind'], i['line']] in only.get(key, []))}
         if wanted:
-            jobs.append((key, corpus[key], funcs[key], helper if 'FL40_CALL_LIFTED' in funcs[key] else '', wanted, a.seeds, None))
+            jobs.append((key, corpus[key], funcs[key], helper if 'FL40_CALL_LIFTED' in funcs[key] else '', wanted, a.seeds, surviving.get(key) if surviving else None))
     result = json.loads(Path(a.out).read_text()) if a.resume and Path(a.out).is_file() else {}
     jobs = [j for j in jobs if j[0] not in result]
     with mp.Pool(a.jobs, maxtasksperchild=1) as pool:
