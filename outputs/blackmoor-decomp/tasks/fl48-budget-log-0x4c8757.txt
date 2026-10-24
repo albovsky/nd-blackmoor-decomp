@@ -1,0 +1,3 @@
+0x4c8757 divergent seeds (the unmutated translation differs from the original) [5000, 5001, 5003, 5004, 5005, 5006, 5007, 5008, 5009, 5010, 5011, 5013, 5014, 5015, 5016, 5017, 5018, 5019, 5021, 5024, 5025, 5026, 5027, 5028, 5033, 5035, 5036, 5037, 5038, 5039]
+0x4c8757 mutants killed by the step budget [('register', 5, 'e8f38adb'), ('alu', 15, '90d8af84'), ('drop', 18, 'd68b2487'), ('drop', 15, '36edd06c'), ('drop', 16, '6d7499f7')]
+0x4c8757 mutants 7 killed 5 survivors [('width', 19, 'survives', 'dafa9dcb'), ('jump', 20, 'survives', '48221ed3')]

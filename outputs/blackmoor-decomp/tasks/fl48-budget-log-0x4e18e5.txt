@@ -1,0 +1,2 @@
+0x4e18e5 mutants killed by the step budget [('literal', 58, '01459e84'), ('alu', 12, 'b51bcd56'), ('drop', 13, '5e2c2d22'), ('drop', 58, '7bfbdfa1'), ('drop', 59, '2a658c64'), ('literal', 12, 'a44e1de2'), ('drop', 12, '9f526576'), ('literal', 59, '4a16ea2f'), ('literal', 61, '49d5def4'), ('literal', 15, '689f19b4'), ('literal', 57, '24761601'), ('literal', 12, '45c2b36f'), ('literal', 58, '9d572f72'), ('literal', 13, 'f1b0914e'), ('literal', 11, 'b3449e14')]
+0x4e18e5 mutants 15 killed 15 survivors []

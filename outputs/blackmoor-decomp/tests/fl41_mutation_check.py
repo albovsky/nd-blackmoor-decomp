@@ -73,7 +73,7 @@ def strict_scenario(lib, shim, row, sd, ov, ref):
     if pid == 0:
         try:
             os.close(r_fd)
-            signal.alarm(60)
+            signal.alarm(int(os.environ.get('FL48_SAFETY', '60')))
             steps.value, budget.value, exhausted.value = 0, 1 << 62, 0
             t0 = W.run_native(lib, row, sd, ov)                    # the unmutated translation: its step count, and it must equal the original on this scenario
             base = steps.value

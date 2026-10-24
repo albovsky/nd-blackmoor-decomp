@@ -548,6 +548,14 @@
    },
    {
     "kind": "drop",
+    "line": 127,
+    "ident": "9eecb7db",
+    "statement": "    if (d_ == 0u || (n_ == INT64_MIN && (int32_t)d_ == -1) || n_ / (int32_t)d_ > INT32_MAX || n_ / (int32_t)d_ < INT32_MIN) FL41_TRAP;",
+    "reason": "Dropping the guard before idiv ecx (0x4a60b9). Dividend is edx:eax with edx = sign of eax (cdq 0x4a60b8), eax from movsx word (0x4a60ad), so dividend is in [-32768,32767]. Divisor ecx is movsx byte (0x4a60ca-style load at 0x4a60b4), in [-128,127]. Quotient magnitude <= 32768, so never outside int32 and INT64_MIN never occurs; the guard fires exactly when ecx==0, which is the x86 #DE of idiv. The original faults there, so on every non-faulting input the guard never fires and the dropped guard changes nothing. No label lies between 0x4a60ad and 0x4a60bb.",
+    "review": "Only entry to idiv ecx (0x4a60b9) is straight-line from label 0x4a60ad: eax=movsx word (0x4a60ad), ecx=movsx byte (0x4a60b4), edx=cdq (0x4a60b8). Dividend in [-32768,32767], divisor in [-128,127]: quotient fits int32, INT64_MIN impossible, so guard fires only on ecx==0, exactly the #DE; original faults there."
+   },
+   {
+    "kind": "drop",
     "line": 131,
     "ident": "4e0e0a30",
     "statement": "    eax = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(ebp + 0xffffffe8u)))) & 0xffffffffu;  /* 0x4a60c3: movsx eax, word ptr [ebp - 0x18] */",
@@ -639,6 +647,14 @@
     "statement": "    edx = RD32((uint32_t)(ebp + 0xffffffe8u));  /* 0x4ac558: mov edx, dword ptr [ebp - 0x18] */",
     "reason": "Dropping 'mov edx,[ebp-0x18]' (0x4ac558): edx was already loaded from [ebp-0x18] at 0x4ac547 (line 53); between 0x4ac547 and 0x4ac558 only eax/ecx are written (0x4ac54a, 0x4ac54e, 0x4ac551) and there are no memory writes or calls, so edx still holds that same value and 0x4ac55b reads the same address. Line 57 is reached only by fallthrough from 0x4ac547.",
     "review": "edx=[ebp-0x18] was loaded at 0x4ac547; 0x4ac54a-0x4ac551 only write eax/ecx and read memory (no store, no call, no label), so the reload at 0x4ac558 yields the same value; 0x4ac55b uses the same edx+0x25 and 0x4ac55f cdq overwrites edx."
+   },
+   {
+    "kind": "drop",
+    "line": 63,
+    "ident": "9eecb7db",
+    "statement": "    if (d_ == 0u || (n_ == INT64_MIN && (int32_t)d_ == -1) || n_ / (int32_t)d_ > INT32_MAX || n_ / (int32_t)d_ < INT32_MIN) FL41_TRAP;",
+    "reason": "Dropping the guard before idiv esi (0x4ac560). Dividend is edx:eax with edx = sign of eax (cdq 0x4ac55f), eax from movsx word [0x61d6f9] (0x4ac551), so dividend is in [-32768,32767]. Divisor esi is movsx word [edx+0x25] (0x4ac55b), in [-32768,32767]. Quotient magnitude <= 32768, so never outside int32, and INT64_MIN never occurs; the guard fires exactly when esi==0, the x86 #DE condition of idiv. The original faults there, so on every non-faulting input the guard never fires and dropping it changes nothing. No label lies between 0x4ac551 and 0x4ac562.",
+    "review": "No label between 0x4ac551 and idiv esi (0x4ac560): eax=movsx word [0x61d6f9] (0x4ac551), esi=movsx word [edx+0x25] (0x4ac55b), edx=cdq (0x4ac55f). Dividend in [-32768,32767], divisor sign-extended 16-bit: quotient fits int32, INT64_MIN impossible; guard fires only when esi==0, exactly the #DE."
    }
   ],
   "0x4ae178": [
