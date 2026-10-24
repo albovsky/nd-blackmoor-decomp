@@ -252,7 +252,7 @@ def work_inner(args):
                             if a2 <= a and a + n <= a2 + n2:
                                 chosen[(a2, n2)] = v2
                 for (a, n), v in inputs.items():                          # the cells whose value reached the instruction by a copy chain
-                    if v in values and len(chosen) < 12:
+                    if (v in values or (os.environ.get('FL48_LOOPS') and (a >= W.STUB_OVR or any(v & 0xffff == x or v & 0xff == x for x in values)))) and len(chosen) < 12:     # FL-48: a wide cell reaches a narrow operand (ax, al) through its low bits; what a callee returned may always matter
                         chosen.setdefault((a, n), v)
                 if ins.mnemonic.startswith('j') and not chosen:                  # FL-47: a conditional jump has no operand cells: any input cell may decide a later compare, try them one at a time
                     chosen = dict(list(inputs.items())[:48])
