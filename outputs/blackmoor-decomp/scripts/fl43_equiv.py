@@ -41,6 +41,12 @@ PURE = {'mov', 'movsx', 'movzx', 'lea', 'add', 'sub', 'and', 'or', 'xor', 'not',
         'sbb', 'adc'}
 PARTIAL_FLAGS = {'inc', 'dec', 'shl', 'shr', 'sar', 'sal', 'rol', 'ror', 'rcl', 'rcr', 'stc', 'clc', 'cmc', 'cld', 'std'}      # capstone reports eflags written, but some flags (or all, for a zero count) survive
 STRING_OPS = ('movs', 'stos', 'cmps', 'scas', 'lods', 'rep')
+# FL-55: x87 instructions that touch no general register and no EFLAGS bit except through the operands capstone reports (a memory operand's address registers, ax for fnstsw ax, eflags for fcomi);
+# the FPU stack itself is not tracked here: this analysis proves things about general registers and memory only. Capstone reports the memory operand of a store as a read, so the stores are listed.
+X87_OK = frozenset(('fld', 'fild', 'fld1', 'fldz', 'fldpi', 'fadd', 'faddp', 'fsub', 'fsubp', 'fsubr', 'fsubrp', 'fmul', 'fmulp', 'fdiv', 'fdivp', 'fdivr', 'fdivrp', 'fxch', 'fchs', 'fabs',
+                    'fsqrt', 'fcom', 'fcomp', 'fcompp', 'fucom', 'fucomp', 'fucompp', 'ftst', 'fxam', 'frndint', 'fldcw', 'fiadd', 'fimul', 'fisub', 'fisubr', 'fidiv', 'fidivr', 'ficom',
+                    'ficomp', 'fwait', 'fnop', 'fst', 'fstp', 'fist', 'fistp', 'fisttp', 'fnstcw', 'fstcw', 'fnstsw', 'fstsw', 'fcomi', 'fcomip', 'fucomi', 'fucomip', 'ffree', 'fnclex'))
+X87_STORES = frozenset(('fst', 'fstp', 'fist', 'fistp', 'fisttp', 'fnstcw', 'fstcw', 'fnstsw', 'fstsw'))
 IMAGE_END = 0x400000 + 0x1000000
 
 
@@ -71,7 +77,7 @@ def info(ins):
     for op in ins.operands:
         if op.type == MEM_OP and ins.mnemonic != 'lea':
             mem = op
-            mem_written = bool(op.access & 2)
+            mem_written = bool(op.access & 2) or ins.mnemonic in X87_STORES
     if ins.mnemonic.startswith('cmov') and ins.operands and ins.operands[0].type == REG_OP:
         rd.add(FULL[ins.reg_name(ins.operands[0].reg)])          # a conditional move keeps the old value when the condition fails
     if ins.mnemonic in ('xor', 'sub') and len(ins.operands) == 2 and ins.operands[0].type == REG_OP and ins.operands[1].type == REG_OP \
@@ -141,7 +147,7 @@ class Function:
                 else:
                     self.exits.add(i.address)
                 self.succ[i.address] = s
-            elif m in ('cmpxchg', 'xlatb', 'xlat', 'xadd', 'cmpxchg8b') or m.startswith('f') and m not in ('fs',) or (m.startswith('set') and any(op.type == MEM_OP for op in i.operands)):
+            elif m in ('cmpxchg', 'xlatb', 'xlat', 'xadd', 'cmpxchg8b') or m.startswith('f') and m not in ('fs',) and m not in X87_OK or (m.startswith('set') and any(op.type == MEM_OP for op in i.operands)):
                 raise NoProof('instruction %s at 0x%x is not modelled' % (m, i.address))
             elif m in ('loop', 'loope', 'loopne'):
                 raise NoProof('loop instruction at 0x%x' % i.address)

@@ -87,6 +87,109 @@ def fpu_block(t):
     return t.startswith('{ long double ') and not re.search(r'\b(e[a-d]x|e[sd]i|e[sb]p|esp|zf|sf|cf|of|pf)\b ?=[^=]', t)
 
 
+def sext16_slot_ok(lines, n, mut):
+    """FL-55: `fild dword ptr [ebp + K]` mutated to `fild word ptr [ebp + K]` (fl41_ld_i32 -> fl41_ld_i16, same address): the slot was stored from a register that a `movsx reg, word ptr [...]` defined
+    just before on straight-line code (no call, label or jump, no later write to the register, no store that could overwrite the slot), so the dword is the sign extension of a 16-bit value and
+    its low word, read as a signed 16-bit integer, is the same number"""
+    t = stmt(lines[n])
+    m = re.match(r'^fl41_fpush\(fp, fl41_ld_i32\(fp, RD32\(\(uint32_t\)\(ebp \+ (0x[0-9a-f]+)u\)\)\)\);$', t)
+    if not m or stmt(mut) != t.replace('fl41_ld_i32(', 'fl41_ld_i16(', 1):
+        return False
+    k = m.group(1)
+    store = re.compile(r'^WR32\(\(uint32_t\)\(ebp \+ %su\), (e[a-d]x|e[sd]i)\);$' % k)
+    j = n - 1
+    reg = None
+    while j >= 0:
+        u = stmt(lines[j])
+        j -= 1
+        if not u:
+            continue
+        ms = store.match(u)
+        if ms:
+            reg = ms.group(1)
+            break
+        if BARRIER.search(u) or u.startswith('{') and not fpu_block(u) or aliasing_write(u, k):
+            return False
+    if reg is None:
+        return False
+    sext = re.compile(r'^%s = \(\(uint32_t\)\(int32_t\)\(int16_t\)\(RD16\(.*\)\)\) & 0xffffffffu;$' % reg)
+    while j >= 0:
+        u = stmt(lines[j])
+        j -= 1
+        if not u:
+            continue
+        if sext.match(u):
+            return True
+        if BARRIER.search(u) or re.search(r'\b%s = ' % reg, u) or u.startswith('{') and not fpu_block(u):
+            return False
+    return False
+
+
+CONST_RD = re.compile(r'\bRD(8|16|32)\(')
+_IMAGE = []
+
+
+def const_reads_substituted(text):
+    """FL-55: `text` with every read RD<w>(<constant address>) of the image below the data section (code and constant tables: the world ignores overrides there, and the executable never
+    changes them) replaced by the number it reads from the original bytes; None when the text has no such read"""
+    if not _IMAGE:
+        import fl41_world as W
+        _IMAGE.append((W.od.load_image(), W.DATA_START))
+    pe, limit = _IMAGE[0]
+    out, pos, found = [], 0, False
+    while True:
+        m = CONST_RD.search(text, pos)
+        if not m:
+            out.append(text[pos:])
+            break
+        depth, j = 1, m.end()
+        while j < len(text) and depth:
+            depth += {'(': 1, ')': -1}.get(text[j], 0)
+            j += 1
+        inner = text[m.end():j - 1]
+        arith = re.sub(r'\(uint32_t\)', '', inner)
+        arith = re.sub(r'\b(0x[0-9a-f]+|\d+)u\b', r'\1', arith)
+        if not arith.strip() or not re.fullmatch(r'[+\s()]*', re.sub(r'0x[0-9a-f]+|\d+', '', arith)):
+            out.append(text[pos:j])
+            pos = j
+            continue
+        address = eval(arith, {'__builtins__': {}}) & 0xffffffff
+        width = int(m.group(1)) // 8
+        if not (pe.image_base <= address and address + width <= limit):
+            out.append(text[pos:j])
+            pos = j
+            continue
+        off = address - pe.image_base
+        out.append(text[pos:m.start()] + str(int.from_bytes(pe.image[off:off + width], 'little')))
+        pos = j
+        found = True
+    return ''.join(out) if found else None
+
+
+def const_read_ok(orig, mut):
+    """the mutant changes only the width or the address of reads of constants in the image, and every such read gives the same number"""
+    a, b = const_reads_substituted(orig), const_reads_substituted(mut)
+    return a is not None and a == b
+
+
+ONE_F32 = re.compile(r'fl41_ld_f32\(fp, 1065353216\)')
+ONE_F64 = re.compile(r'fl41_ld_f64\(fp, \(\(uint64_t\)1072693248 << 32\) \| 0\)')
+
+
+def mul_one_ok(lines, n, orig, mut):
+    """FL-55: `fmul` of st(0) by a constant 1.0 (a 4- or 8-byte float constant of the image) is the identity, so the mutant that drops it, or turns the multiplication into a division by the
+    same constant, changes nothing. The model is the host's x87 unit at 53 bits of precision (control word 0x27f), where x * 1.0 and x / 1.0 are exact for a value that holds at most 53
+    significant bits; a row that loads a 64-bit integer (`fild qword`) can hold more, so it is excluded"""
+    if 'fl41_fx_mul(fp, d_, s_)' not in orig or any('fl41_ld_i64' in l or 'fl41_ld_f80' in l for l in lines):
+        return False
+    sub = const_reads_substituted(orig)
+    if sub is None or not (ONE_F32.search(sub) or ONE_F64.search(sub)):
+        return False
+    if re.fullmatch(r';', mut.strip()):
+        return True
+    return mut == orig.replace('fl41_fx_mul(fp, d_, s_)', 'fl41_fx_div(fp, d_, s_)', 1)
+
+
 def forward(lines, n, ok, stop):
     for j in range(n + 1, len(lines)):
         t = stmt(lines[j])
@@ -435,6 +538,12 @@ def flags_ok(kind, orig, mut, ranges, addr):
 def classify(kind, lines, n, equivalent, proofs=None, mutline=None, ranges=None, row=None):
     if equivalent:
         return 'identical code'
+    if kind in ('drop', 'alu') and mutline is not None and mul_one_ok(lines, n, stmt_full(lines[n]), stmt_full(mutline)):
+        return 'range'
+    if kind in ('width', 'literal') and mutline is not None and const_read_ok(stmt_full(lines[n]), stmt_full(mutline)):
+        return 'range'
+    if kind == 'width' and mutline is not None and sext16_slot_ok(lines, n, mutline):
+        return 'range'
     if kind == 'width' and mutline is not None:
         change = read_change(stmt_full(lines[n]), stmt_full(mutline))
         if change and masked_ok(change):
