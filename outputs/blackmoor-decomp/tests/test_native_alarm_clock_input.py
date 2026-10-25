@@ -1,8 +1,9 @@
-"""NATIVE-06: real alarm-clock callbacks and the muted S2175 Cancel route.
+"""NATIVE-06/07: alarm callbacks, muted audio timing and real S2175 routes.
 
 Fresh native modules and the actual app source are built in temporary storage.
 The normal app entry reads original resources in place and uses offline audio;
-Component hosts sink rendering/audio only; input and the real clock binding run unchanged.
+Ordinary components sink sound; audio components use production callbacks and
+the muted offline backend. Input and the real clock binding run unchanged.
 """
 import json
 import os
@@ -95,6 +96,54 @@ class NativeAlarmClockTests(unittest.TestCase):
 
     def test_ui_mode_and_disabled_producer_do_not_hover_clock(self):
         self.component('ui')
+
+    def test_real_muted_audio_gates_final_sound_until_natural_completion(self):
+        self.component('audio')
+
+    def test_cancel_unloads_real_clock_audio(self):
+        self.component('audio-cancel')
+
+    def test_missing_descriptor_and_shared_channel_refresh_use_real_backend(self):
+        self.component('audio-shared')
+
+    def test_actual_alarm_and_set_gestures_reach_real_wake_scene(self):
+        log = Path(self.temp.name) / 'alarm-set-route.log'
+        args = [str(self.executable), '--inspect-live-session', '--live-click-row', '34',
+                '--live-nav', '2010:left:11', '--live-scene-row', '2010:9',
+                '--live-scene-row', '2013:3', '--live-click-at', '2020:472,217',
+                '--live-click-at', '2175:117,216', '--live-click-at', '2175:259,265',
+                '--live-ticks', '3400', '--rand-seed', '1', '--mute',
+                '--game-dir', str(self.game), '--log', str(log)]
+        result = subprocess.run(args, capture_output=True, text=True, timeout=180)
+        contents = log.read_text() if log.is_file() else ''
+        alarm_up = contents.find('live_click_at_up scene=2175 pointer=117,216')
+        set_up = contents.find('live_click_at_up scene=2175 pointer=259,265')
+        wake = re.search(r'^scene_transition_applied source=2175 target=2176\b', contents, re.MULTILINE)
+        transitions = re.findall(r'^scene_transition_applied source=(\d+) target=(\d+)\b', contents, re.MULTILINE)
+        # Report actual subsequent scenes; their identities are not a fixture
+        # shortcut or a predeclared outcome of the wake sequence.
+        after_clock = [target for source, target in transitions[
+            next((i for i, pair in enumerate(transitions) if pair == ('2175', '2176')), len(transitions)):]]
+        summary = (f'CLOCK_WAKE alarm_up={int(alarm_up >= 0)} set_up={int(set_up >= 0)} '
+                   f'entered2176={int(wake is not None)} reached_after_clock={after_clock}')
+        print(summary)
+        self.assertEqual(result.returncode, 0, summary + '\n' + result.stderr[-500:])
+        self.assertGreaterEqual(alarm_up, 0, summary)
+        self.assertGreater(set_up, alarm_up, summary + '\nSecond queued actual gesture never fired')
+        self.assertIsNotNone(wake, summary + '\nClock did not request its real Set target')
+        self.assertLess(set_up, wake.start(), summary)
+        self.assertRegex(contents, r'scene_aaa_click row=3 button=1\b', summary)
+        self.assertRegex(contents, r'scene_aaa_click row=3 button=6\b', summary)
+        self.assertIn('native_audio_output_muted=1', contents, summary)
+        # The real installed clips must resolve through the app's provider;
+        # accepting NO_RESOURCE must not make this real-data route vacuous.
+        self.assertEqual(contents.count('scene_aaa_sound call=0x4fb77a native_status=0'), 2, summary)
+        self.assertEqual(contents.count('scene_aaa_sound channel=9 call=0x4fb2e3 native_status=0'), 3, summary)
+        self.assertEqual(contents.count('scene_aaa_sound call=0x4fba69 native_status=0'), 2, summary)
+        self.assertIn('scene_aaa_sound channel=9 call=0x4fb2e3 native_status=0', contents[set_up:], summary)
+        self.assertNotRegex(contents, r'(?m)^scene_aaa_sound .*native_status=[1-9]\d*', summary)
+        for error in ('scene_session_blocked', 'session_frozen', 'scene_aaa_click_error', 'scene_aaa_pointer_error'):
+            self.assertNotIn(error, contents, summary)
 
     def test_real_cancel_returns_to_bedroom_through_actual_transition(self):
         metadata = subprocess.run([str(self.executable), '--clock-metadata', str(self.game)],

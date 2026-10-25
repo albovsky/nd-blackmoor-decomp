@@ -1,5 +1,7 @@
-/* NATIVE-06: real S2175 binding and actual app input callbacks. Rendering,
- * sound and finish effects are explicit non-input sinks in component mode.
+/* NATIVE-06/07: real S2175 binding and actual app input callbacks. Rendering
+ * and finish effects are sinks; ordinary components also sink sound. The
+ * explicitly named audio components use production callbacks, a muted real
+ * offline graph and owner-local descriptors. No output device is opened.
  * Normal mode runs the actual offline app. No resource payload is committed. */
 #define main blackmoor_app_entry_for_clock_test
 #ifndef NATIVE_ALARM_APP_SOURCE
@@ -56,6 +58,7 @@ struct ClockFixture {
     {
         scene_session_destroy(app.session);
         session_aaa_destroy(app.aaa);
+        if (app.live_audio != nullptr) live_audio_destroy(app.live_audio);
         if (app.scene != session_scene) scene_resource_close(app.scene);
         scene_resource_close(session_scene);
         game_resources_close(app.resources);
@@ -102,7 +105,7 @@ struct ClockFixture {
         return true;
     }
 
-    bool initialize(const char *game_directory, bool unknown = false)
+    bool initialize(const char *game_directory, bool unknown = false, bool real_audio = false)
     {
         if (!load(game_directory)) return false;
         if (unknown) {
@@ -131,14 +134,27 @@ struct ClockFixture {
         app.new_game.view.clock.configured_minute = 30;
         app.new_game.action_core.event_flags = flags.data();
         app.new_game.action_core.event_flag_count = flags.size();
+        if (real_audio) {
+            [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"BlackmoorAudioMuted"];
+            LiveAudioConfig audio{};
+            audio.game_directory = game_directory;
+            audio.mode = MAC_AUDIO_MODE_OFFLINE;
+            char error[256]{};
+            if (live_audio_create(&audio, &app.live_audio, error, sizeof(error)) != LIVE_AUDIO_OK) {
+                std::fprintf(stderr, "clock offline audio: %s\n", error);
+                return false;
+            }
+        }
         SessionAaaHost host{};
         host.kernel.context = &app;
         host.kernel.alloc_slot = sink_slot; host.kernel.register_slot = sink_register;
         host.kernel.load_surface = sink_load; host.kernel.set_slot_surface = sink_surface;
         host.kernel.release_surface = sink_release; host.kernel.release_slot = sink_slot_op;
         host.kernel.mark_dirty = sink_slot_op; host.kernel.view_origin = native_ad1_view_origin;
-        host.kernel.sound_prepare = sink_record; host.kernel.sound_stop = sink_record;
-        host.kernel.sound_play = sink_channel; host.kernel.sound_busy = sink_busy;
+        host.kernel.sound_prepare = real_audio ? native_aaa_sound_prepare : sink_record;
+        host.kernel.sound_stop = real_audio ? native_aaa_sound_stop : sink_record;
+        host.kernel.sound_play = real_audio ? native_aaa_sound_play : sink_channel;
+        host.kernel.sound_busy = real_audio ? native_aaa_sound_busy : sink_busy;
         host.kernel.tick = native_ad1_tick; host.kernel.touch_idle_timer = sink_idle;
         host.kernel.event_flag_invalid = native_ad1_event_flag_invalid;
         host.kernel.transition = sink_transition; host.kernel.store_event_flag = native_ad1_store_event_flag;
@@ -281,12 +297,21 @@ static int retained_release(ClockFixture &f)
     return 0;
 }
 
-static int cancel_clock(ClockFixture &f)
+static int cancel_clock(ClockFixture &f, bool require_playing = false)
 {
     transition_target = -1;
     CHECK_CLOCK(f.hover(0x81) && f.app.input_state.candidate == ALC_CANDIDATE_BUTTON && f.object()->button == 8,
                 "real Cancel rectangle must hover");
     CHECK_CLOCK(f.release(), "Cancel release tick succeeds");
+    if (require_playing) {
+        int32_t busy = -1;
+        LiveAudioChannelInfo playing{};
+        CHECK_CLOCK(native_aaa_sound_busy(&f.app, 9, &busy) == 0 && busy == 1 &&
+                    live_audio_get_channel_info(f.app.live_audio, 9, &playing) == LIVE_AUDIO_OK &&
+                    playing.loaded == 1u && playing.started == 1u,
+                    "Cancel must start its real beep before testing unload-while-playing");
+        std::printf("CLOCK_AUDIO_CANCEL busy_before_cleanup=%d started=%u\n", busy, playing.started);
+    }
     for (unsigned i = 0; i < 35 && f.object()->active != 0; ++i) CHECK_CLOCK(f.tick(), "Cancel timed progression succeeds");
     SceneActionRuntimeState state{};
     CHECK_CLOCK(scene_session_get_action_state(f.app.session, f.row, &state) == SCENE_SESSION_OK, "completed clock row available");
@@ -299,6 +324,116 @@ static int cancel_clock(ClockFixture &f)
     int32_t candidate = -1;
     CHECK_CLOCK(native_pointer_scan(&f.app, &generic, 1u, &candidate) == SESSION_INPUT_OK && candidate == 0,
                 "inactive clock must not retain a stale button candidate");
+    return 0;
+}
+
+static int clock_audio(ClockFixture &f)
+{
+    LiveAudioChannelInfo button{};
+    CHECK_CLOCK(live_audio_get_channel_info(f.app.live_audio, 9, &button) == LIVE_AUDIO_OK, "real clock channel query succeeds");
+    std::printf("CLOCK_AUDIO_PREPARE loaded=%u started=%u frames=%llu rate=%u\n", button.loaded, button.started,
+                static_cast<unsigned long long>(button.frame_count), button.sample_rate);
+    CHECK_CLOCK(button.loaded == 1u && button.started == 0u && button.frame_count > 0,
+                "phase0 must prepare real Beep12 without playing it");
+    CHECK_CLOCK(f.hover(0x61) && f.release(), "real Alarm release starts button sound");
+    int32_t busy = -1;
+    CHECK_CLOCK(native_aaa_sound_busy(&f.app, 9, &busy) == 0 && busy == 1, "real Beep12 must report busy after the release");
+    uint64_t muted_frames = 0;
+    for (unsigned i = 0; busy != 0 && i < 800u; ++i) {
+        LiveAudioOfflineStats stats{};
+        CHECK_CLOCK(live_audio_advance_offline(f.app.live_audio, 4096, &stats, nullptr, 0) == LIVE_AUDIO_OK &&
+                    stats.nonfinite_samples == 0 && stats.nonzero_samples == 0, "muted offline button rendering succeeds");
+        muted_frames += stats.frames;
+        CHECK_CLOCK(native_aaa_sound_busy(&f.app, 9, &busy) == 0, "button completion query succeeds");
+    }
+    CHECK_CLOCK(busy == 0, "Beep12 must complete naturally without a forced stop");
+    CHECK_CLOCK(live_audio_get_channel_info(f.app.live_audio, 9, &button) == LIVE_AUDIO_OK && button.finished == 1u,
+                "button host must record natural completion");
+    CHECK_CLOCK(f.settle(ALC_STATE_ALARM) && f.hover(0x71) && f.release() && f.settle(ALC_STATE_WAIT_SET),
+                "actual Set gesture enters the original one-second wait");
+    CHECK_CLOCK(f.app.new_game.view.clock.configured_hour == 8 && f.app.new_game.view.clock.configured_minute == 30,
+                "clock words must not change before final sound completion");
+    CHECK_CLOCK(f.settle(ALC_STATE_FINAL_SOUND), "wait expiry must prepare/play real SILENCE descriptor");
+    LiveAudioChannelInfo final{};
+    CHECK_CLOCK(live_audio_get_channel_info(f.app.live_audio, 9, &final) == LIVE_AUDIO_OK && final.loaded == 1u &&
+                final.started == 1u && final.frame_count > 0 && final.generation > button.generation,
+                "final descriptor replaces the button sound on real channel9");
+    CHECK_CLOCK(native_aaa_sound_busy(&f.app, 9, &busy) == 0 && busy == 1 && f.tick(0) &&
+                f.object()->state == ALC_STATE_FINAL_SOUND, "FINAL_SOUND must wait while the real channel is busy");
+    SceneActionRuntimeState row{};
+    CHECK_CLOCK(scene_session_get_action_state(f.app.session, f.row, &row) == SCENE_SESSION_OK && row.phase == 1u,
+                "playing final sound retains phase1");
+    unsigned held_ticks = 0;
+    for (unsigned i = 0; busy != 0 && i < 800u; ++i) {
+        LiveAudioOfflineStats stats{};
+        CHECK_CLOCK(live_audio_advance_offline(f.app.live_audio, 4096, &stats, nullptr, 0) == LIVE_AUDIO_OK &&
+                    stats.nonfinite_samples == 0 && stats.nonzero_samples == 0, "muted final rendering succeeds");
+        muted_frames += stats.frames;
+        CHECK_CLOCK(native_aaa_sound_busy(&f.app, 9, &busy) == 0, "final completion query succeeds");
+        if (busy != 0) {
+            CHECK_CLOCK(f.tick(0) && f.object()->state == ALC_STATE_FINAL_SOUND &&
+                        f.app.new_game.view.clock.configured_minute == 30, "busy final channel must continue to gate ACT");
+            ++held_ticks;
+        }
+    }
+    CHECK_CLOCK(busy == 0, "SILENCE must complete naturally after the observed busy phase");
+    transition_target = -1;
+    for (unsigned i = 0; f.object()->active != 0 && i < 5u; ++i) CHECK_CLOCK(f.tick(0), "idle final sound allows phase finish");
+    LiveAudioChannelInfo stopped{};
+    CHECK_CLOCK(live_audio_get_channel_info(f.app.live_audio, 9, &stopped) == LIVE_AUDIO_OK && stopped.loaded == 0u,
+                "phase finish must unload the shared channel");
+    CHECK_CLOCK(scene_session_get_action_state(f.app.session, f.row, &row) == SCENE_SESSION_OK && row.completed == 1u &&
+                f.object()->active == 0 && transition_target == 2176 &&
+                f.app.new_game.view.clock.configured_hour == 9 && f.app.new_game.view.clock.configured_minute == 0,
+                "natural final completion must set 09:00 and request the real set target2176");
+    std::printf("CLOCK_AUDIO_FINISH held_ticks=%u muted_frames=%llu final_frames=%llu target=%d clock=%d:%02d\n",
+                held_ticks, static_cast<unsigned long long>(muted_frames), static_cast<unsigned long long>(final.frame_count),
+                transition_target, f.app.new_game.view.clock.configured_hour, f.app.new_game.view.clock.configured_minute);
+    return 0;
+}
+
+static int clock_audio_cancel(ClockFixture &f)
+{
+    LiveAudioChannelInfo prepared{};
+    CHECK_CLOCK(live_audio_get_channel_info(f.app.live_audio, 9, &prepared) == LIVE_AUDIO_OK && prepared.loaded == 1u,
+                "Cancel cleanup begins with a real prepared Beep12 channel");
+    const int status = cancel_clock(f, true);
+    if (status != 0) return status;
+    LiveAudioChannelInfo channel{};
+    CHECK_CLOCK(live_audio_get_channel_info(f.app.live_audio, 9, &channel) == LIVE_AUDIO_OK && channel.loaded == 0u,
+                "Cancel must unload its prepared/playing Beep12 channel");
+    return 0;
+}
+
+static int clock_audio_shared(ClockFixture &f)
+{
+    SceneActionInfo row{};
+    CHECK_CLOCK(scene_resource_action_at(f.session_scene, f.row, &row) == SCENE_RESOURCE_OK, "real descriptor row available");
+    std::vector<uint8_t> missing(row.typed_body + ALC_OFFSET_BUTTON_SOUND,
+                                 row.typed_body + ALC_OFFSET_BUTTON_SOUND + PUZZLE_SOUND_RECORD_BYTES);
+    std::memset(missing.data(), 0, 33);
+    const char absent[] = "NATIVE07_MISSING_RESOURCE";
+    std::memcpy(missing.data(), absent, sizeof(absent));
+    CHECK_CLOCK(native_aaa_sound_prepare(&f.app, missing.data()) == 0, "missing finite descriptor is a supported no-resource boundary");
+    LiveAudioChannelInfo channel{};
+    int32_t busy = -1;
+    CHECK_CLOCK(live_audio_get_channel_info(f.app.live_audio, 9, &channel) == LIVE_AUDIO_OK && channel.loaded == 0u &&
+                native_aaa_sound_play(&f.app, 9) == 0 && native_aaa_sound_busy(&f.app, 9, &busy) == 0 && busy == 0,
+                "missing resource must clear eligibility and remain idle");
+    /* A different scene owner loads the same channel after that miss. The
+     * clock must query the authoritative provider rather than cached state. */
+    ActionSoundAudioCommand command{};
+    std::memcpy(command.asset_stem, "Beep12", 7);
+    command.channel = 9; command.volume_category = 2; command.mode = 1;
+    command.first_percent = 100; command.second_percent = 100;
+    command.first_gain = 1; command.second_gain = 1; command.transition_scene = 9999;
+    CHECK_CLOCK(live_audio_load_sound(f.app.live_audio, &command) == ACTION_SOUND_BACKEND_OK &&
+                native_aaa_sound_play(&f.app, 9) == 0 && native_aaa_sound_busy(&f.app, 9, &busy) == 0 && busy == 1,
+                "external shared-channel load must become playable after refresh");
+    CHECK_CLOCK(live_audio_unload_sound(f.app.live_audio, 9) == ACTION_SOUND_BACKEND_OK &&
+                native_aaa_sound_play(&f.app, 9) == 0 && native_aaa_sound_busy(&f.app, 9, &busy) == 0 && busy == 0,
+                "external shared-channel unload must revoke stale playback eligibility");
+    std::printf("CLOCK_AUDIO_SHARED missing_idle=1 external_load_busy=1 external_unload_idle=1\n");
     return 0;
 }
 
@@ -375,13 +510,17 @@ int main(int argc, char **argv)
         }
         if (argc == 4 && std::strcmp(argv[1], "--clock-component") == 0) {
             ClockFixture f;
-            if (!f.initialize(argv[2], std::strcmp(argv[3], "unknown") == 0)) {
+            const bool audio = std::strncmp(argv[3], "audio", 5) == 0;
+            if (!f.initialize(argv[2], std::strcmp(argv[3], "unknown") == 0, audio)) {
                 std::fprintf(stderr, "clock component initialization failed\n"); return 2;
             }
             if (std::strcmp(argv[3], "controls") == 0) return controls(f);
             if (std::strcmp(argv[3], "retained") == 0) return retained_release(f);
             if (std::strcmp(argv[3], "cancel") == 0) return cancel_clock(f);
             if (std::strcmp(argv[3], "miss") == 0) return miss(f);
+            if (std::strcmp(argv[3], "audio") == 0) return clock_audio(f);
+            if (std::strcmp(argv[3], "audio-cancel") == 0) return clock_audio_cancel(f);
+            if (std::strcmp(argv[3], "audio-shared") == 0) return clock_audio_shared(f);
             return refuse(f, argv[3]);
         }
         return blackmoor_app_entry_for_clock_test(argc, argv);
