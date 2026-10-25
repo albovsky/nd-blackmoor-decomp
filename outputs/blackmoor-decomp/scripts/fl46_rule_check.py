@@ -30,7 +30,7 @@ def main():
             if (kind, n) in seen:
                 continue
             seen.add((kind, n))
-            why = R.explain(kind, lines, n, row)
+            why = R.explain(kind, lines, n, row) or (R.carry_only(lines, n, row) if kind == 'width' else None)
             if why:
                 items.append([kind, None, why, n])
         if items:
