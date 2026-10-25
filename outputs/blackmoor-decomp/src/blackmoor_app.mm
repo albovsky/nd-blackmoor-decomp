@@ -12,6 +12,7 @@
 #include "his_audio.h"
 #include "macos_audio.h"
 #include "live_audio.h"
+#include "puzzle_sound.h"
 #include "scene_inspector.h"
 #include "world_init.h"
 #include "world_clock.h"
@@ -280,6 +281,8 @@ struct NativeApp {
     bool ad9_render_failure_logged = false;
     /* RT-35: raw 0xd1 Turning Puzzle. */
     SessionAd1Binding *ad1 = nullptr;
+    PuzzleSound ad1_audio{};
+    bool ad1_audio_initialized = false;
     std::array<bool, 0x40> ad1_slot_used{};
     /* RT-47: raw 0xf6 card puzzle (arm 0x42a92b -> 0x45f0e6, gate mode 0). Shares the generic Z entry range 0x18..0x3f
      * with 0xd9 / 0xd1 (native_*_alloc_slot). The restore blit copies from a snapshot of the seeded back buffer, the
@@ -5220,35 +5223,81 @@ static int native_ad1_clear_item(void *context)
     return 0;
 }
 
+/* NATIVE-01: the D1 kernel keeps sound ordering and completion decisions.
+ * These callbacks supply the native host boundaries (0x4fb77a / 0x4fba69 /
+ * 0x4fb2e3 / 0x4f6334) through the same channel table as scene sounds. */
+static bool native_ad1_audio_ready(NativeApp *app)
+{
+    if (app == nullptr || app->live_audio == nullptr) return false;
+    if (!app->ad1_audio_initialized) {
+        ActionSoundBackend backend{};
+        if (live_audio_bind_backend(app->live_audio, &backend) != LIVE_AUDIO_OK ||
+            puzzle_sound_init(&app->ad1_audio, &backend) != PUZZLE_SOUND_OK) return false;
+        app->ad1_audio_initialized = true;
+    }
+    return true;
+}
+
 static int native_ad1_sound_prepare(void *context, int record_index, const uint8_t *bytes)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
-    (void)bytes;
-    record(app, "scene_ad1_sound record=%d call=0x4fb77a NOT PLAYED (no effect backend)", record_index);
-    return 0;
+    if (!native_ad1_audio_ready(app)) return 1;
+    const int status = puzzle_sound_prepare(&app->ad1_audio, bytes, PUZZLE_SOUND_RECORD_BYTES);
+    record(app, "scene_ad1_sound record=%d call=0x4fb77a native_status=%d", record_index, status);
+    return status == PUZZLE_SOUND_OK || status == PUZZLE_SOUND_NO_RESOURCE ? 0 : 1;
 }
 
 static int native_ad1_sound_stop(void *context, int record_index, const uint8_t *bytes)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
-    (void)bytes;
-    record(app, "scene_ad1_sound record=%d call=0x4fba69 NOT PLAYED (no effect backend)", record_index);
-    return 0;
+    if (!native_ad1_audio_ready(app)) return 1;
+    const int status = puzzle_sound_stop(&app->ad1_audio, bytes, PUZZLE_SOUND_RECORD_BYTES);
+    record(app, "scene_ad1_sound record=%d call=0x4fba69 native_status=%d", record_index, status);
+    return status == PUZZLE_SOUND_OK ? 0 : 1;
+}
+
+/* Scene actions can replace the same original channel. Refresh from the
+ * provider before play/busy so a missing earlier prepare never hides a later
+ * shared-channel load, and an external unload never plays stale state. */
+static bool native_ad1_audio_refresh(NativeApp *app, int16_t channel)
+{
+    if (!native_ad1_audio_ready(app) || channel < 0 ||
+        static_cast<unsigned>(channel) >= LIVE_AUDIO_CHANNEL_COUNT) return false;
+    LiveAudioChannelInfo info{};
+    if (live_audio_get_channel_info(app->live_audio, static_cast<uint16_t>(channel), &info) != LIVE_AUDIO_OK)
+        return false;
+    app->ad1_audio.prepared[static_cast<uint16_t>(channel)] = info.loaded;
+    return true;
 }
 
 static int native_ad1_sound_play(void *context, int16_t channel)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
-    record(app, "scene_ad1_sound channel=%d call=0x4fb2e3 NOT PLAYED (no effect backend)", channel);
-    return 0;
+    if (!native_ad1_audio_refresh(app, channel)) return 1;
+    const int status = puzzle_sound_play(&app->ad1_audio, static_cast<uint16_t>(channel));
+    record(app, "scene_ad1_sound channel=%d call=0x4fb2e3 native_status=%d", channel, status);
+    return status == PUZZLE_SOUND_OK || status == PUZZLE_SOUND_NO_RESOURCE ? 0 : 1;
 }
 
 static int native_ad1_sound_busy(void *context, int16_t channel, int32_t *result)
 {
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (result == nullptr || !native_ad1_audio_refresh(app, channel)) return 1;
+    int playing = 0;
+    const int status = puzzle_sound_busy(&app->ad1_audio, static_cast<uint16_t>(channel), &playing);
+    if (status != PUZZLE_SOUND_OK) return 1;
+    *result = playing;
+    return 0;
+}
+
+/* Other puzzle families still have no playback backend in this slice. Their
+ * existing idle answer stays local until their prepare/play hooks are bound. */
+static int native_unbound_puzzle_sound_busy(void *context, int16_t channel, int32_t *result)
+{
     (void)context;
     (void)channel;
     if (result == nullptr) return 1;
-    *result = 0; /* 0x4f6334: nothing is ever playing here */
+    *result = 0;
     return 0;
 }
 
@@ -6008,7 +6057,7 @@ static int native_af6_sound_play(void *context, int16_t channel)
 
 static int native_af6_sound_busy(void *context, int16_t channel, int32_t *result)
 {
-    return native_ad1_sound_busy(context, channel, result); /* 0x4f6334: nothing is ever playing here */
+    return native_unbound_puzzle_sound_busy(context, channel, result); /* this family has no playback backend yet */
 }
 
 static uint32_t native_af6_tick(void *context)
@@ -6791,7 +6840,7 @@ static int native_ae0_sound_play(void *context, int16_t channel)
 
 static int native_ae0_sound_busy(void *context, int16_t channel, int32_t *result)
 {
-    return native_ad1_sound_busy(context, channel, result); /* 0x4f6334: nothing is ever playing here */
+    return native_unbound_puzzle_sound_busy(context, channel, result); /* this family has no playback backend yet */
 }
 
 /* The process dword 0x5bb57b as the app holds it: the running scene (after a load 0x439ec4 stores it). The finish block's failed
@@ -7272,7 +7321,7 @@ static int native_ae4_sound_play(void *context, int16_t channel)
 
 static int native_ae4_sound_busy(void *context, int16_t channel, int32_t *result)
 {
-    return native_ad1_sound_busy(context, channel, result); /* 0x4f6334: nothing is ever playing here */
+    return native_unbound_puzzle_sound_busy(context, channel, result); /* this family has no playback backend yet */
 }
 
 /* 0x50cd50: the MSVC CRT rand, as the card puzzle's provider (scripted by the tick-seeded LCG). */
