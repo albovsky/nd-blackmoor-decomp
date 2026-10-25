@@ -14,3 +14,5 @@
 - Next blockers: pointer routing for other puzzle families, secondary-button rotation, popup/0x70 state integration and save/load. Hardware audibility, real-device completion/suspension, GUI D1 play and both complete difficulty campaigns remain unverified.
 
 Original game files and reserved ledger/evidence outputs are unchanged. Neither whole-game playability nor whole-file x86 completion is claimed.
+
+2026-10-25 — [NATIVE-07](tasks/NATIVE-07-alarm-wake-audio.md), validation complete, independent review pending: the clock now uses real muted native audio completion. The actual Alarm/Set route reaches S2176 -> S2180 -> S2181 -> S2010, with 30 distinct scenes/31 entries and no session error. All 12 clock checks and the D1 real-audio regression pass. GUI automation still reports locked despite owner confirmation; no new visual or speaker check is claimed. Next unverified progression: other wake times, idle timer and story/room routes after returning to the bedroom. Full game remains incomplete.

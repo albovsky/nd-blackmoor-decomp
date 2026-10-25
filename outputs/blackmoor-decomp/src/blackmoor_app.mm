@@ -324,6 +324,8 @@ struct NativeApp {
      * overlay, the mode light and, while a button is pressed, its down image; the "up" restores (blits 13..18) are implicit.
      * Not compiled in the cloud (no macOS toolchain). */
     SessionAaaBinding *aaa = nullptr;
+    PuzzleSound aaa_audio{};
+    bool aaa_audio_initialized = false;
     std::array<bool, 0x40> aaa_slot_used{};
     AlcPointerResult aaa_pointer{};
     uint64_t aaa_plan_signature = 0u;
@@ -6638,35 +6640,66 @@ static int native_aaa_mark_dirty(void *context, int16_t slot)
     return 0;
 }
 
+/* The clock's two descriptors use the same bounded 0x4fb77a adapter as
+ * D1. Both retain their own cache; the live provider owns shared channels. */
+static bool native_aaa_audio_ready(NativeApp *app)
+{
+    if (app == nullptr || app->live_audio == nullptr) return false;
+    if (!app->aaa_audio_initialized) {
+        ActionSoundBackend backend{};
+        if (live_audio_bind_backend(app->live_audio, &backend) != LIVE_AUDIO_OK ||
+            puzzle_sound_init(&app->aaa_audio, &backend) != PUZZLE_SOUND_OK) return false;
+        app->aaa_audio_initialized = true;
+    }
+    return true;
+}
+
+static bool native_aaa_audio_refresh(NativeApp *app, int16_t channel)
+{
+    if (!native_aaa_audio_ready(app) || channel < 0 ||
+        static_cast<unsigned>(channel) >= LIVE_AUDIO_CHANNEL_COUNT) return false;
+    LiveAudioChannelInfo info{};
+    if (live_audio_get_channel_info(app->live_audio, static_cast<uint16_t>(channel), &info) != LIVE_AUDIO_OK)
+        return false;
+    app->aaa_audio.prepared[static_cast<uint16_t>(channel)] = info.loaded;
+    return true;
+}
+
 static int native_aaa_sound_prepare(void *context, const uint8_t *record_bytes)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
-    (void)record_bytes;
-    record(app, "scene_aaa_sound call=0x4fb77a NOT PLAYED (no effect backend)");
-    return 0;
+    if (!native_aaa_audio_ready(app)) return 1;
+    const int status = puzzle_sound_prepare(&app->aaa_audio, record_bytes, PUZZLE_SOUND_RECORD_BYTES);
+    record(app, "scene_aaa_sound call=0x4fb77a native_status=%d", status);
+    return status == PUZZLE_SOUND_OK || status == PUZZLE_SOUND_NO_RESOURCE ? 0 : 1;
 }
 
 static int native_aaa_sound_stop(void *context, const uint8_t *record_bytes)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
-    (void)record_bytes;
-    record(app, "scene_aaa_sound call=0x4fba69 NOT PLAYED (no effect backend)");
-    return 0;
+    if (!native_aaa_audio_ready(app)) return 1;
+    const int status = puzzle_sound_stop(&app->aaa_audio, record_bytes, PUZZLE_SOUND_RECORD_BYTES);
+    record(app, "scene_aaa_sound call=0x4fba69 native_status=%d", status);
+    return status == PUZZLE_SOUND_OK ? 0 : 1;
 }
 
 static int native_aaa_sound_play(void *context, int16_t channel)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
-    record(app, "scene_aaa_sound channel=%d call=0x4fb2e3 NOT PLAYED (no effect backend)", channel);
-    return 0;
+    if (!native_aaa_audio_refresh(app, channel)) return 1;
+    const int status = puzzle_sound_play(&app->aaa_audio, static_cast<uint16_t>(channel));
+    record(app, "scene_aaa_sound channel=%d call=0x4fb2e3 native_status=%d", channel, status);
+    return status == PUZZLE_SOUND_OK || status == PUZZLE_SOUND_NO_RESOURCE ? 0 : 1;
 }
 
 static int native_aaa_sound_busy(void *context, int16_t channel, int32_t *result)
 {
-    (void)context;
-    (void)channel;
-    if (result == nullptr) return 1;
-    *result = 0; /* 0x4f6334: nothing is ever playing here, so the final sound step completes at once */
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (result == nullptr || !native_aaa_audio_refresh(app, channel)) return 1;
+    int playing = 0;
+    const int status = puzzle_sound_busy(&app->aaa_audio, static_cast<uint16_t>(channel), &playing);
+    if (status != PUZZLE_SOUND_OK) return 1;
+    *result = playing;
     return 0;
 }
 
@@ -14072,6 +14105,7 @@ int main(int argc, char **argv)
                     int16_t last_scene = app.current_scene_id;
                     uint32_t stalled = 0;
                     uint32_t scene_ticks = 0;
+                    uint32_t next_click_at_tick = 12u;
                     uint64_t last_progress_tick = 0;
                     for (uint32_t step = 0; step < live_ticks && !app.failure; ++step) {
                         clock += live_tick_ms;
@@ -14086,6 +14120,7 @@ int main(int argc, char **argv)
                             scripted_clicks = 0;
                             stalled = 0;
                             scene_ticks = 0;
+                            next_click_at_tick = 12u;
                         }
                         SceneSessionTickResult tick{};
                         if (scene_session_get_last_result(app.session, &tick) == SCENE_SESSION_OK &&
@@ -14107,19 +14142,22 @@ int main(int argc, char **argv)
                         ++scene_ticks;
                         for (auto it = app.live_click_ats.begin(); it != app.live_click_ats.end(); ++it) {
                             if (it->scene != app.current_scene_id) continue;
-                            if (scene_ticks == 12u) {
+                            if (scene_ticks == next_click_at_tick) {
                                 pointer(&app, BLACKMOOR_POINTER_MOVE, it->x, it->y, 0);
                                 record(&app, "live_click_at_move scene=%d pointer=%d,%d",
                                        app.current_scene_id, it->x, it->y);
-                            } else if (scene_ticks == 14u) {
+                            } else if (scene_ticks == next_click_at_tick + 2u) {
                                 pointer(&app, BLACKMOOR_POINTER_DOWN, it->x, it->y, 0);
                                 record(&app, "live_click_at_down scene=%d pointer=%d,%d",
                                        app.current_scene_id, it->x, it->y);
-                            } else if (scene_ticks == 15u) {
+                            } else if (scene_ticks == next_click_at_tick + 3u) {
                                 pointer(&app, BLACKMOOR_POINTER_UP, it->x, it->y, 0);
                                 record(&app, "live_click_at_up scene=%d pointer=%d,%d",
                                        app.current_scene_id, it->x, it->y);
                                 app.live_click_ats.erase(it);
+                                /* Space queued gestures by 20 scene ticks;
+                                 * preserve the first MOVE at tick 12. */
+                                next_click_at_tick += 20u;
                             }
                             break;
                         }
