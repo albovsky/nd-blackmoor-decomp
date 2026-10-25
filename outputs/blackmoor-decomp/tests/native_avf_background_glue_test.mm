@@ -72,24 +72,40 @@ struct BackgroundFixture {
 static int check_background(const char *game, const char *media, const char *mode)
 {
     BackgroundFixture fixture;
-    if (!fixture.initialize(game, media)) return 2;
+    const bool reject = std::strncmp(mode, "reject", 6) == 0;
+    if (!fixture.initialize(game, reject ? game : media)) return 2;
     NativeApp &app = fixture.app;
     const bool roundtrip = std::strcmp(mode, "roundtrip") == 0;
     std::vector<uint8_t> bink_before;
-    if (roundtrip) {
+    if (roundtrip || reject) {
         CHECK_BG(load_scene(&app, 2175) && app.video != nullptr && app.has_scene_frame,
                  "real initial BIK background must load");
         bink_before = app.scene_frame.rgba;
     }
+    if (reject) app.game_directory = media;
     const bool loaded = load_scene(&app, 3395);
     const uint64_t pixels = background_fnv(app.scene_frame.rgba);
     std::printf("AVF_BACKGROUND mode=%s loaded=%d has_frame=%d bink=%d size=%ux%u frames=%d current=%d rgba_fnv64=%016llx\n",
         mode, loaded ? 1 : 0, app.has_scene_frame ? 1 : 0, app.video != nullptr ? 1 : 0,
         app.scene_frame.width, app.scene_frame.height, app.scene_native_frames, app.scene_current_frame,
         static_cast<unsigned long long>(pixels));
-    if (std::strcmp(mode, "reject") == 0) {
-        CHECK_BG(!loaded && !app.has_scene_frame && app.video == nullptr,
-                 "ambiguous, invalid or unsupported media must refuse without a visible frame");
+    if (reject) {
+        CHECK_BG(!loaded && !app.has_scene_frame && app.video == nullptr && app.nav_player == nullptr &&
+                 app.scene_native_frames == 0 && app.scene_native_width == 0 && app.scene_native_height == 0 &&
+                 app.scene_video_path.empty(),
+                 "failed load must clear previous BIK visibility, players, geometry and path");
+        CHECK_BG(std::fflush(app.log) == 0 && std::fseek(app.log, 0, SEEK_END) == 0,
+                 "fixture log must be readable");
+        const long length = std::ftell(app.log);
+        CHECK_BG(length > 0 && length < 1024 * 1024 && std::fseek(app.log, 0, SEEK_SET) == 0,
+                 "fixture log must have bounded content");
+        std::string log(static_cast<size_t>(length), '\0');
+        CHECK_BG(std::fread(log.data(), 1, log.size(), app.log) == log.size(), "fixture log read");
+        CHECK_BG(log.find("scene_media_error") != std::string::npos, "failure must be logged");
+        if (std::strncmp(mode, "reject-", 7) == 0) {
+            const std::string reason = "branch=AVF-static stage=" + std::string(mode + 7);
+            CHECK_BG(log.find(reason) != std::string::npos, "AVF refusal reason must match the requested stage");
+        }
         return 0;
     }
     CHECK_BG(loaded && app.has_scene_frame, "real S3395 background must load without a BIK asset");
@@ -110,7 +126,7 @@ static int check_background(const char *game, const char *media, const char *mod
         CHECK_BG(pixels == UINT64_C(0x96540e5787f9f228), "static AVF must publish the pinned actual RGBA pixels");
     }
     CHECK_BG(fixture.viewport_matches(), "real VIEW rectangle must contain exact frame pixels with opaque black margins");
-    if (roundtrip) {
+    if (roundtrip || reject) {
         CHECK_BG(load_scene(&app, 2175) && app.video != nullptr && app.has_scene_frame &&
                  app.scene_frame.rgba == bink_before && app.scene_current_frame == 0 &&
                  app.scene_native_frames == 1 && fixture.viewport_matches(),

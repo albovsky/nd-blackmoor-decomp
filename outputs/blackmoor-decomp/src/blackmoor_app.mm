@@ -12227,19 +12227,21 @@ static bool load_static_avf_background(NativeApp *app, const std::string &path)
         image.height = static_cast<uint32_t>(file.height);
         image.frame_index = 0;
         image.rgba.resize(static_cast<size_t>(file.frame_bytes) * 2u);
-        if (!cif_pixels_rgb555_to_rgba(pixels.data(), pixels.size(), image.rgba.data(), image.rgba.size()))
+        if (!cif_pixels_rgb555_to_rgba(pixels.data(), pixels.size(), image.rgba.data(), image.rgba.size())) {
+            record(app, "scene_media_error branch=AVF-static stage=pixel-conversion");
             return false;
+        }
         app->scene_frame = std::move(image);
         app->scene_current_frame = 0;
         app->scene_video_path = path;
         app->scene_native_frames = 1;
         app->scene_native_width = file.width;
         app->scene_native_height = file.height;
-        record(app, "scene_static_avf_open width=%d height=%d frames=1 decoded_bytes=%u delay=%u "
+        record(app, "scene_static_avf_open width=%d height=%d frames=1 decoded_bytes=%u header_1c=%u "
                "source=RGB555 host=opaque-RGBA8 timing=static", file.width, file.height,
                file.frame_bytes, file.header_1c);
         record(app, "scene_frame_decoded width=%u height=%u frame=0 codec=recovered-AVF "
-               "scope=single-full-key-frame", app->scene_frame.width, app->scene_frame.height);
+               "scope=single-full-key-frame original-AVF-display-conversion=unverified", app->scene_frame.width, app->scene_frame.height);
         return true;
     } catch (const std::bad_alloc &) {
         record(app, "scene_media_error branch=AVF-static stage=allocation");
@@ -12319,7 +12321,11 @@ static bool load_scene(NativeApp *app, int16_t scene_id, bool keep_previous_open
         if (matches != 0u) break;
     }
     closedir(directory);
-    if (matches != 1) { record(app, "scene_media_error missing-or-ambiguous=%s", wanted.c_str()); return false; }
+    if (matches != 1) {
+        record(app, "scene_media_error missing-or-ambiguous=%s probes=%s.bik,%s.avf",
+               wanted.c_str(), summary.background, summary.background);
+        return false;
+    }
     if (use_avf) {
         if (!load_static_avf_background(app, path)) return false;
     } else {

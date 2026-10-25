@@ -10,6 +10,7 @@ from pathlib import Path
 import re
 import shlex
 import subprocess
+import struct
 import sys
 import tempfile
 import unittest
@@ -135,7 +136,40 @@ class NativeAvfBackgroundTests(unittest.TestCase):
                     avf.write_bytes(b'not an AVF container')  # synthetic invalid input
                 else:
                     avf.symlink_to(multi)
-                self.component(directory, 'reject')
+                self.component(directory, 'reject-format')
+
+    def test_synthetic_unsupported_avf_reports_reason_and_clears_previous_bik(self):
+        # Small, independently constructed containers; no original payload bytes.
+        def container(kind=0, unpacked=4, compression=2, bpp=16,
+                      width=2, height=1, literal=b"\x00\x00\x00\x00"):
+            header = bytearray(33)
+            header[:15] = b"AVF WayneSikes\0"
+            struct.pack_into('<hh', header, 0x10, 2, 0)
+            struct.pack_into('<hhh', header, 0x15, 1, width, height)
+            header[0x1b], header[0x20] = bpp, compression
+            # Counter-obfuscated literal-only LZSS, at most eight literals.
+            raw = bytes([(1 << len(literal)) - 1]) + literal
+            packed = bytes((value + index) & 255 for index, value in enumerate(raw))
+            record = struct.pack('<HIIIBI', 0, 52, len(packed), unpacked, kind, 0)
+            return bytes(header) + record + packed
+
+        cases = [('type1', container(kind=1), 'format'),
+                 ('type2', container(kind=2), 'format'),
+                 ('partial', container(unpacked=2), 'format'),
+                 ('compression', container(compression=1), 'decode'),
+                 ('short-key', container(literal=b"\x00\x00"), 'decode'),
+                 ('bpp', container(bpp=8), 'format'),
+                 ('frame-cap', container(width=32767, height=32767), 'format'),
+                 ('scratch-cap', container(unpacked=128 * 1024 * 1024 + 1), 'format')]
+        for name, data, stage in cases:
+            with self.subTest(case=name):
+                directory = self.media_tree('synthetic-' + name)
+                (directory / 'CDVideo/HAL_StairLock_PUZ.avf').write_bytes(data)
+                self.component(directory, 'reject-' + stage)
+        directory = self.media_tree('synthetic-file-cap')
+        with (directory / 'CDVideo/HAL_StairLock_PUZ.avf').open('wb') as stream:
+            stream.truncate(128 * 1024 * 1024 + 1)  # sparse file; rejected before allocation
+        self.component(directory, 'reject-file-size')
 
     def test_real_static_avf_pixels_and_bik_roundtrip(self):
         asset = self.game / 'CDVideo/HAL_StairLock_PUZ.avf'
