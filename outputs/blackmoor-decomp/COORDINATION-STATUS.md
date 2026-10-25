@@ -1676,3 +1676,7 @@ Details: `tasks/fl57-handoff.md`. No new ported credits (2,181 of 4,188). All 20
 ## FL-55b handoff (2026-10-25, PDT): bulk "translated, unverified" rows at or above 0x480000
 
 Details: `tasks/fl55-bulk-handoff.md`. Ledger unchanged (2,181 ported). **1,552 of the 1,676 pending upper rows are now translated, unverified** (`translated/original_methods_fl41_translated.c`, `tests/fl41_translated.json`; 1,397 agree with the original on at least one seed, 155 compile with no comparable seed), found with no mutation check and no coverage search, as Glib asked. Not port credits. 0 lifter defects, 4 hang rows, 120 rows the lifter still refuses (callee not a ledger function 35, esp-writing callees 13, `fnstcw` 11, others). Lifter extensions: calls through registers and pointers, 290 Win32 import argument counts, `wait`. Porting PRs now run only the targeted tests.
+
+## FL-57b handoff (2026-10-25, PDT): upper rows the FL-55b lifter refused
+
+Details: `tasks/fl57-handoff.md` part 2. **117 of the 120 refused upper rows are now translated, unverified** (87 agrees, 30 no seed; `translated/original_methods_fl57_translated.c`, `tests/fl57_translated.json`, `scripts/fl57_bulk.py`; not port credits, ledger unchanged at 2,181). Left: 0x4d8dca (recursive, hangs the harness), 0x50ed50 and 0x50fa90 (memmove variants with in-code jump tables).
