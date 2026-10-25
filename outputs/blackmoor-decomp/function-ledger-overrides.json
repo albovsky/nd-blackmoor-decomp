@@ -66552,7 +66552,13 @@
     ]
    },
    "parts_accounted": [],
-   "note": "Machine-translated (scripts/lift_fl41.py), 8 seeds; oracle: 45/45 instructions, 4/4 jump directions; every mutant killed, identical -O2 code, or explained."
+   "note": "Machine-translated (scripts/lift_fl41.py), 8 seeds; oracle: 45/45 instructions, 4/4 jump directions; every mutant killed, identical -O2 code, or explained.",
+   "blockers_reviewed": [
+    {
+     "id": "S05:cbac757a041d45e6",
+     "rationale": "The item lists the frame text-box lifecycle (open 0x4de24f, per-frame poll 0x4de4f9/0x4ee6c7, scrolling 0x4de440, dismissal input) as native UI work still to do. That is a gap in the native runtime around this function; its own instructions and jump directions all run in the oracle and match the translation, with callees as recording stubs."
+    }
+   ]
   },
   {
    "va": "0x4e40a6",
