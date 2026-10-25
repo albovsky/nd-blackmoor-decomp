@@ -204,13 +204,61 @@ struct Fixture {
     }
 };
 
-static int exercise(const char *path, bool unknown)
+static int exercise_miss(Fixture &f)
 {
+    SceneActionInfo action{};
+    if (scene_resource_action_at(f.session_scene, 1, &action) != SCENE_RESOURCE_OK) return 2;
+    auto dword = [&](size_t offset) -> int32_t {
+        const uint8_t *b = action.typed_body + offset;
+        return static_cast<int32_t>(static_cast<uint32_t>(b[0]) | (static_cast<uint32_t>(b[1]) << 8) |
+                                    (static_cast<uint32_t>(b[2]) << 16) | (static_cast<uint32_t>(b[3]) << 24));
+    };
+    auto inside = [&](int32_t x, int32_t y, size_t offset) {
+        return dword(offset) <= x && x <= dword(offset + 8) &&
+               dword(offset + 4) <= y && y <= dword(offset + 12);
+    };
+    const int count = action.typed_body[0x21] | (action.typed_body[0x22] << 8);
+    int32_t miss_x = -1, miss_y = -1;
+    for (int32_t y = 0; y < 375 && miss_x < 0; ++y) {
+        for (int32_t x = 0; x < 620; ++x) {
+            bool hit = inside(x, y, 0x38fu);
+            for (int tile = 0; tile < count; ++tile)
+                hit = hit || inside(x, y, 0x147u + static_cast<size_t>(tile) * 16u);
+            if (!hit) { miss_x = x; miss_y = y; break; }
+        }
+    }
+    if (miss_x < 0) return 2;
+    pointer(&f.app, BLACKMOOR_POINTER_MOVE, miss_x + 10, miss_y + 10, 0);
+    if (!f.tick()) return 2;
+    SceneSessionPointerResult missed{};
+    if (scene_session_get_pointer_result(f.app.session, &missed) != SCENE_SESSION_OK) return 2;
+    /* A valid generic host row may claim only after the D1 receiver missed. */
+    SessionInputHotspot generic{};
+    generic.index = 0;
+    generic.rectangle = {0, 0, 619, 374};
+    generic.active = 1;
+    int32_t candidate = -1;
+    const int status = native_pointer_scan(&f.app, &generic, 1u, &candidate);
+    const D1Object *object = session_ad1_object(f.app.ad1);
+    std::printf("D1_MISS consume=%d scan=%d fallback=%d candidate=%d tile=%d\n",
+                missed.consume_status, missed.scan_status, status, candidate, object->last_tile);
+    if (missed.consume_status != SESSION_INPUT_OK || missed.scan_status != SESSION_INPUT_OK ||
+        status != SESSION_INPUT_OK || candidate != 0 || object->last_tile != -1 || object->moving[0] != 0) {
+        std::fprintf(stderr, "FAIL: a D1 miss must preserve guarded generic fallthrough without moving tiles\n");
+        return 1;
+    }
+    return 0;
+}
+
+static int exercise(const char *path, const char *kind)
+{
+    const bool unknown = std::strcmp(kind, "unknown") == 0;
     Fixture f;
     if (!f.initialize(path, unknown)) {
         std::fprintf(stderr, "fixture initialization failed\n");
         return 2;
     }
+    if (std::strcmp(kind, "miss") == 0) return exercise_miss(f);
     /* S4376 row 1 tile 0: original inclusive hit rect (200,238,249,303).
      * Coordinates include the app's (10,10) viewport origin. Expectations are
      * derived from immutable body bytes, not from the native hit-test output. */
@@ -220,6 +268,17 @@ static int exercise(const char *path, bool unknown)
     if (scene_session_get_pointer_result(f.app.session, &hover) != SCENE_SESSION_OK) return 2;
     const int32_t retained = f.app.input_state.candidate;
     const int16_t hovered_tile = session_ad1_object(f.app.ad1)->last_tile;
+    SceneActionInfo action{};
+    if (scene_resource_action_at(f.session_scene, 1, &action) != SCENE_RESOURCE_OK) return 2;
+    auto word = [&](size_t offset) -> int16_t {
+        return static_cast<int16_t>(action.typed_body[offset] |
+                                    static_cast<uint16_t>(action.typed_body[offset + 1] << 8));
+    };
+    const int16_t tile_count = word(0x21u), frame_count = word(0x23u);
+    if (tile_count != 6 || frame_count != 7 || word(0x25u) != 1) return 2;
+    std::array<int16_t, D1_MAX_TILES> frames_before{};
+    for (int tile = 0; tile < tile_count; ++tile)
+        frames_before[static_cast<size_t>(tile)] = session_ad1_object(f.app.ad1)->frame[tile];
     /* Actual platform callback -> latch -> actual consume callback. No direct
      * candidate publication, latch writes, or D1 pointer/click calls here. */
     pointer(&f.app, BLACKMOOR_POINTER_DOWN, 234, 280, 0);
@@ -229,18 +288,31 @@ static int exercise(const char *path, bool unknown)
     SceneSessionPointerResult release{};
     if (scene_session_get_pointer_result(f.app.session, &release) != SCENE_SESSION_OK) return 2;
     std::printf("D1_PATH fixture=%s hover_consume=%d hover_scan=%d candidate=%d tile=%d "
-                "release_consume=%d state=%d moving0=%d\n", unknown ? "unknown-earlier" : "real-S4376",
+                "release_consume=%d state=%d moving0=%d frame0=%d->%d\n", unknown ? "unknown-earlier" : "real-S4376",
                 hover.consume_status, hover.scan_status, retained, hovered_tile, release.consume_status,
-                object->state, object->moving[0]);
+                object->state, object->moving[0], frames_before[0], object->frame[0]);
+    bool exact_frames = true;
+    for (int tile = 0; tile < tile_count; ++tile) {
+        bool linked = tile == 0;
+        for (int link = 0; link < 4; ++link)
+            if (word(0x254u + static_cast<size_t>(link) * 2u) == tile + 1) linked = true;
+        const int16_t expected = !unknown && linked
+            ? static_cast<int16_t>((frames_before[static_cast<size_t>(tile)] + 1) % frame_count)
+            : frames_before[static_cast<size_t>(tile)];
+        if (object->frame[tile] != expected) exact_frames = false;
+    }
+    /* S4376 has one animation substep. ACT advances linked tiles and clears
+     * moving in this same release tick; assert the resulting frames, rather
+     * than requiring the transient ANIMATE state to survive dispatch. */
     const bool passed = unknown
         ? hover.scan_status == SESSION_INPUT_LIMIT_PRIORITY_PATH && retained == -1 &&
-            object->state == D1_STATE_IDLE && object->moving[0] == 0
-        : retained == 0x276c && hovered_tile == 0 && object->moving[0] == 1 &&
-            (object->state == D1_STATE_ANIMATE || object->state == D1_STATE_WAIT);
+            object->state == D1_STATE_IDLE && object->moving[0] == 0 && exact_frames
+        : retained == 0x276c && hovered_tile == 0 && exact_frames &&
+            object->state == D1_STATE_IDLE && object->moving[0] == 0;
     if (!passed) {
         std::fprintf(stderr, "%s\n", unknown
             ? "FAIL: an unimplemented earlier receiver must remain explicitly limited and cannot turn a D1 tile"
-            : "FAIL: a real D1 tile must publish candidate 0x276c and turn through the actual app release path");
+            : "FAIL: a real D1 tile must publish candidate 0x276c and advance exactly its linked tiles through the actual app release path");
         return 1;
     }
     return 0;
@@ -263,7 +335,8 @@ int main(int argc, char **argv)
     std::signal(SIGSEGV, fixture_signal);
     std::signal(SIGABRT, fixture_signal);
     @autoreleasepool {
-        if (argc != 3 || (std::strcmp(argv[2], "real") != 0 && std::strcmp(argv[2], "unknown") != 0)) return 2;
-        return exercise(argv[1], std::strcmp(argv[2], "unknown") == 0);
+        if (argc != 3 || (std::strcmp(argv[2], "real") != 0 && std::strcmp(argv[2], "unknown") != 0 &&
+                          std::strcmp(argv[2], "miss") != 0)) return 2;
+        return exercise(argv[1], argv[2]);
     }
 }

@@ -10575,6 +10575,28 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
  * modal / range guards, 4f0059 transform and first-hit scan) is the module's.
  * The geometry comes from ProvisionalCursorProvider and the process mirrors
  * the caption lifecycle already keeps for 0x583204 / 0x5c39e9 / 0x5839a9. */
+/* NATIVE-02: all eleven installed D1 scenes have exactly one D1 row and
+ * no other possible cascade-owner type. D1 is now executed below, in its
+ * original post-ACT position; an unknown owner still forbids projection and
+ * generic fallthrough. This is readiness for this bounded modeled cascade,
+ * not a claim that the D1 object is idle. */
+static bool native_d1_pointer_scope(const NativeApp *app)
+{
+    if (app == nullptr || app->scene == nullptr || app->ad1 == nullptr) return false;
+#ifdef BLACKMOOR_NATIVE_APP_TEST_HOOKS
+    if (app->test_members_busy) return false;
+#endif
+    size_t d1_rows = 0u;
+    const size_t count = scene_resource_action_count(app->scene);
+    for (size_t row = 0; row < count; ++row) {
+        SceneActionInfo action{};
+        if (scene_resource_action_at(app->scene, row, &action) != SCENE_RESOURCE_OK) return false;
+        if (action.type == SESSION_AD1_TYPE) ++d1_rows;
+        else if (session_navigation_member_type(action.type)) return false;
+    }
+    return d1_rows == 1u;
+}
+
 static void native_pointer_context(NativeApp *app, SessionInputContext *out)
 {
     std::memset(out, 0, sizeof(*out));
@@ -10599,13 +10621,13 @@ static void native_pointer_context(NativeApp *app, SessionInputContext *out)
     out->producer_disabled = (uint32_t)g.modal_input; /* 0x5839a9 */
     /* No pointer has moved yet: there is no composed sprite to project. */
     out->geometry_ready = (app->pointer_x >= 0 && app->pointer_y >= 0) ? 1u : 0u;
-    /* RT-17: the cascade members before the overlay hit test and the zone tests
-     * (44 call sites, RT-17.cascade-members.json) are each enabled only by the
-     * handler of one runtime row type; no row of those types exists in the
-     * scene (nav_begin_scene), so every member sees its power-on object. The
-     * edge state 0x5a4c18 is no longer an input: the zone tests produce it. */
+    /* RT-17: absent row types prove the earlier receivers idle. NATIVE-02
+     * also permits the single D1 scope because scan now executes that receiver
+     * in original order before fallthrough; all other owners must be absent.
+     * The existing UI guard cells remain mandatory in both cases. */
     out->priority_clear = (cursor.guard_5b5158 == 0 && cursor.guard_5b61af == 0 &&
-                           cursor.guard_5b615e == 0 && app->nav_members_idle) ? 1u : 0u;
+                           cursor.guard_5b615e == 0 &&
+                           (app->nav_members_idle || native_d1_pointer_scope(app))) ? 1u : 0u;
     out->excluded_0 = -1; /* 0x5b4e89 / 0x5b5100: set only by types 0x33/0x34 */
     out->excluded_1 = -1;
 }
@@ -11002,12 +11024,6 @@ static int native_pointer_consume(void *context, SceneExecutorFrameInput *frame,
     if (status == SESSION_INPUT_OK && frame->pointer_valid != 0 && app->aee != nullptr && session_aee_registered(app->aee) != 0u)
         (void)session_aee_pointer_move(app->aee, static_cast<int16_t>(frame->pointer_x),
                                        static_cast<int16_t>(frame->pointer_y), &app->aee_pointer);
-    app->ad1_pointer = D1PointerResult{};
-    app->ad1_pointer.candidate = -1;
-    if (status == SESSION_INPUT_OK && frame->pointer_valid != 0 && app->ad1 != nullptr &&
-        session_ad1_registered(app->ad1) != 0u)
-        (void)session_ad1_pointer_move(app->ad1, static_cast<int16_t>(frame->pointer_x),
-                                       static_cast<int16_t>(frame->pointer_y), &app->ad1_pointer);
     app->af6_pointer = F6PointerResult{};
     app->af6_pointer.candidate = -1;
     if (status == SESSION_INPUT_OK && frame->pointer_valid != 0 && app->af6 != nullptr &&
@@ -11132,6 +11148,45 @@ static int native_pointer_scan(void *context, const SessionInputHotspot *rows,
     native_pointer_context(app, &input);
     /* 0x4d3073 resets the global candidate before the 0x4f0059 scan. */
     (void)session_input_publish_candidate(&app->input_state, -1);
+    /* D1 is at 0x4f0b23, before overlays (0x4f104f), navigation and generic
+     * rows. Project with a private state copy: only the real consume callback
+     * may consume the release edge or publish an activation for this tick. */
+    app->ad1_pointer = D1PointerResult{};
+    app->ad1_pointer.candidate = -1;
+    if (native_d1_pointer_scope(app) && input.priority_clear != 0u) {
+        SessionInputState projection_state = app->input_state;
+        SceneExecutorFrameInput projected{};
+        const int status = session_input_tick(&projection_state, &input, &projected);
+        if (status != SESSION_INPUT_OK) {
+            *candidate = app->input_state.candidate;
+            return status;
+        }
+        if (projected.pointer_valid != 0u && session_ad1_registered(app->ad1) != 0u) {
+            const int hit_status = session_ad1_pointer_move(app->ad1,
+                static_cast<int16_t>(projected.pointer_x), static_cast<int16_t>(projected.pointer_y),
+                &app->ad1_pointer);
+            if (hit_status != D1_OK) {
+                record(app, "scene_ad1_pointer_error status=%d detail=%s", hit_status,
+                       session_ad1_failure(app->ad1));
+                *candidate = app->input_state.candidate;
+                return SESSION_INPUT_INVALID_ARGUMENT;
+            }
+            if (app->ad1_pointer.hit != 0u) {
+                app->nav.state = NAV_STATE_NONE; /* 0x4d3081, before the cascade */
+                app->nav_cursor.index = app->ad1_pointer.cursor; /* 0x4b6097 */
+                app->nav_cursor.variant = 1;
+                (void)session_input_publish_candidate(&app->input_state, app->ad1_pointer.candidate);
+                *candidate = app->input_state.candidate;
+                if (*candidate != app->logged_candidate)
+                    record(app, "scene_ad1_pointer candidate=%d tile=%d before=overlay-navigation-generic",
+                           *candidate, session_ad1_object(app->ad1)->last_tile);
+                app->logged_candidate = *candidate;
+                return SESSION_INPUT_OK;
+            }
+        }
+        /* Sole modeled receiver missed (or is inactive); every other possible
+         * unmodeled owner is absent. The existing guarded pipeline is safe. */
+    }
     /* RT-14: the overlay hit test (0x4897cd) runs inside the 0x4f0059 cascade
      * before its generic row loop, in overlay-list order. */
     std::vector<SessionInputHotspot> overlay_rows(OVERLAY36_LIST_LIMIT * 25u);
@@ -11167,11 +11222,6 @@ static int native_pointer_scan(void *context, const SessionInputHotspot *rows,
         /* No navigation globals yet (no scene entered): the plain scan. */
         status = session_input_scan_priority(&app->input_state, &input, overlay_rows.data(),
                                              overlay_count, rows, count);
-    }
-    if (status == SESSION_INPUT_OK && app->ad1_pointer.hit != 0u) {
-        /* 0x4f0b1e: the Turning Puzzle's hit test returns before the generic row loop (0x4b6097 writes the
-         * candidate). The cursor index it also writes is not drawn by the app. */
-        (void)session_input_publish_candidate(&app->input_state, app->ad1_pointer.candidate);
     }
     if (status == SESSION_INPUT_OK && app->a77_pointer.hit != 0u) {
         /* 0x4f0270..0x4f04b6: the Ordering Puzzle's case returns 1 before the generic row loop and has written the candidate

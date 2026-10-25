@@ -80,6 +80,9 @@ class NativePuzzlePointerTests(unittest.TestCase):
     def test_real_d1_tile_hover_and_primary_release_turn_the_tile(self):
         self.run_fixture('real')
 
+    def test_d1_miss_preserves_guarded_generic_fallthrough(self):
+        self.run_fixture('miss')
+
     def test_unimplemented_earlier_receiver_keeps_an_explicit_priority_limit(self):
         self.run_fixture('unknown')
 

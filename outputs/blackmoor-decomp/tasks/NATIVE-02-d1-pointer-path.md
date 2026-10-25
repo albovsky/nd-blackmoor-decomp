@@ -151,7 +151,7 @@ python3 -m unittest discover -s outputs/blackmoor-decomp/tests -p test_native_pu
 
 Before the fix: real-tile test fails with the expected pointer error and exit 1;
 the explicit-unknown-priority test passes. After root's fix: both pass, the real
-candidate is `0x276c`, tile 0 has a moving flag and an animation/wait state, and
+candidate is `0x276c`, tile 0 has exactly the expected tile-frame increments (substeps is 1, so this release tick completes the turn and clears moving flags), and
 the unknown owner remains limited. The runner builds fresh production modules
 and the included actual app source into a temporary directory. Original data
 is read and hash checked in place. Root must independently review the frozen
@@ -161,3 +161,5 @@ Unverified branches: other puzzles/cascade combinations, multiple eligible D1
 rows in one scene, D1 solved/exit paths, original cursor sprite lifecycle,
 hardware UI/audio, and both complete difficulty playthroughs. This regression
 does not extend any ledger or oracle claim.
+
+Test observation correction after root integration: S4376 has 7 frames and one animation substep. The release callback starts ANIMATE, then the same tick's real ACT visit advances the clicked tile and its declared links and returns to IDLE with moving flags cleared. The regression now checks all six resulting frames, deriving affected tiles from the immutable body link table and wrapping modulo 7. It still fails on the baseline because no frame advances. This is an observable-result assertion, not a relaxed transient-state check.
