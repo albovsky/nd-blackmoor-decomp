@@ -56,9 +56,10 @@ class Fl52X87(unittest.TestCase):
         with contextlib.redirect_stdout(io.StringIO()):
             ok, reasons = L.census()
         self.assertGreater(len(ok), 189)                      # 189 before FL-52
-        self.assertGreaterEqual(len(ok), 213)                 # 221 before the eight FL-52 rows left the pending set
+        self.assertGreaterEqual(len(ok), 203)                 # 221 before the eight FL-52 rows left the pending set, 213 before the ten FL-55 rows did
+        credited = json.loads((Path(__file__).resolve().parent / 'fl41_corpus.json').read_text())      # FL-55: the three rows are credited now, so they left the pending census
         for va in SMALL_X87_ROWS:
-            self.assertIn(hex(va), ok)
+            self.assertTrue(hex(va) in ok or hex(va) in credited)
         self.assertFalse([v for v in reasons.values() if v.startswith(('fild at', 'fld at'))])
 
     def test_float_seeds_start_at_100000_and_older_seeds_keep_their_style(self):

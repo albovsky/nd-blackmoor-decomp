@@ -1,0 +1,8 @@
+{
+ "0x4de440": [
+  {
+   "id": "S05:cbac757a041d45e6",
+   "rationale": "The item lists the frame text-box lifecycle (open 0x4de24f, per-frame poll 0x4de4f9/0x4ee6c7, scrolling 0x4de440, dismissal input) as native UI work still to do. That is a gap in the native runtime around this function; its own instructions and jump directions all run in the oracle and match the translation, with callees as recording stubs."
+  }
+ ]
+}
