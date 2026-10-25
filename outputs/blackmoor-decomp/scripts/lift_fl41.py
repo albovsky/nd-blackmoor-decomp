@@ -140,6 +140,7 @@ FPU_NEUTRAL = {"fst", "fist", "fadd", "fmul", "fsub", "fsubr", "fdiv", "fdivr", 
                "fucom", "ficom", "fnstsw", "fnstcw", "fldcw", "fwait", "fsqrt", "frndint", "ftst", "fxch", "fxam", "fnclex", "fnstenv", "fldenv", "fprem", "fscale",
                "fsin", "fcos", "f2xm1", "fprem1", "fnop"}
 _FPU_NET = {}
+_FPU_NET_BULK = {}     # FL-55b: results derived with the permissive BULK assumptions never reach the strict lifts
 # C runtime routines whose x87 effect was read from their bytes (the ledger splits some of them into pieces, so a walk of the ledger span would miss their `ret`):
 # sqrt, sin and cos take a double on the stack and leave the result in st(0); __ftol takes st(0) and returns edx:eax; atof (0x50ccec) returns its result in st(0)
 LIBRARY_FPU_NET = {0x50df94: 1, 0x50e104: 1, 0x50e054: 1, 0x50ce04: -1, 0x50ccec: 1}
@@ -179,14 +180,15 @@ def fpu_net(target, depth=0):
 def _fpu_net(target, depth=0):
     """Net change of the x87 stack depth that a call of the function at `target` leaves (1: it returns a value in st(0)); raises Unsupported for a callee whose
     paths disagree, that calls through a register, or that uses an x87 instruction the model does not know."""
-    if target in _FPU_NET:
-        return _FPU_NET[target]
+    cache = _FPU_NET_BULK if BULK else _FPU_NET
+    if target in cache:
+        return cache[target]
     entry = ledger_entry(target)
     if entry is None or depth > 6:
         raise Unsupported("callee 0x%x is not a ledger function" % target)
     if entry["origin"] != "game":
-        _FPU_NET[target] = library_fpu_net(target)
-        return _FPU_NET[target]
+        cache[target] = library_fpu_net(target)
+        return cache[target]
     spans = ledger_spans()
     ins = list(md().disasm(od.load_image().image[target - od.load_image().image_base:][:spans[target]], target))
     by_addr = {i.address: k for k, i in enumerate(ins)}
@@ -246,8 +248,8 @@ def _fpu_net(target, depth=0):
             raise Unsupported("callee 0x%x: runs off the end of its span" % target)
     if len(rets) != 1:
         raise Unsupported("callee 0x%x: x87 depth at its returns %s" % (target, sorted(rets)))
-    _FPU_NET[target] = rets.pop()
-    return _FPU_NET[target]
+    cache[target] = rets.pop()
+    return cache[target]
 
 
 # ---- the imports ---------------------------------------------------------------------------------------------------------------
