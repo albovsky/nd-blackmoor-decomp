@@ -14,7 +14,7 @@
 # fields:       [eax + n] field_4, field_8, field_c, field_24, field_100, field_104, field_118, field_11c, field_120, field_124, field_138, field_148 and 14 more; [ecx + n] field_4, field_8, field_c, field_20, field_c8, field_e8, field_ec, field_100, field_104, field_118, field_11c, field_120 and 17 more; [edx + n] field_4, field_8, field_c, field_28, field_fc, field_100, field_104, field_118, field_11c, field_120, field_124, field_13c and 14 more
 # callees:      calls KERNEL32.dll!GetTickCount, USER32.dll!GetAsyncKeyState, FUN_0050cd50, FUN_004542b5, FUN_0050ce04, FUN_00450678, FUN_004511d2, FUN_0045150e
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 426 instruction(s), 27 conditional branch(es) and 1 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class static_navigation_only is a native-touch record, not a counterpart claim
+# unverified:   machine annotation only: the 426 instruction(s), 27 conditional branch(es) and 1 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

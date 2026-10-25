@@ -1,5 +1,7 @@
 # FL-55b handoff (bulk upper translation, follows FL-55): bulk "translated, unverified" rows at or above 0x480000
 
+> Update (FL-58): the 155 no-seed rows are now 10 and the 5 rows 0x4db0d6 0x4db10c 0x4db147 0x4db178 0x4db223 are credited (ledger 2,186); the table holds 1,551 rows. See `tasks/fl58-handoff.md`.
+
 Glib's instruction (25 Oct 2026): speed over verification for now. Translate every pending upper row with the lifter, skip the mutation checks and the seed searches, record the result under a separate status, merge in big batches with only light checks.
 
 **This is not a port credit.** The ledger is unchanged (2,181 of 4,188 ported). The count below is the "translated, unverified" count that the status reports quote.

@@ -1,22 +1,5 @@
 {
- "failed": {
-  "0x4933ff": {
-   "detail": "hang: the native translation or the original did not return within the row budget",
-   "status": "error"
-  },
-  "0x4a1d3a": {
-   "detail": "hang: the native translation or the original did not return within the row budget",
-   "status": "error"
-  },
-  "0x4adb6c": {
-   "detail": "hang: the native translation or the original did not return within the row budget",
-   "status": "error"
-  },
-  "0x4ae178": {
-   "detail": "hang: the native translation or the original did not return within the row budget",
-   "status": "error"
-  }
- },
+ "failed": {},
  "refused": {
   "0x4c1716": "callee 0x4fcebe is not a ledger function",
   "0x4c9d91": "callee 0x4fcec4 is not a ledger function",

@@ -1,0 +1,1 @@
+0x4db223 mutants 48 killed 47 survivors [('literal', 20, 'survives', 'a20adc35')]

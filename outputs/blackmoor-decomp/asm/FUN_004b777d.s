@@ -14,7 +14,7 @@
 # fields:       [eax + n] field_1c, field_21, field_25, field_2f, field_31, field_33, field_310, field_341, field_351, field_355, field_35d, field_367 and 4 more; [ecx + n] field_1d, field_21, field_25, field_27, field_29, field_2f, field_35, field_36, field_2eb, field_353, field_359, field_365 and 6 more; [edx + n] field_1d, field_21, field_2f, field_31, field_36, field_3b, field_2ed, field_351, field_357, field_361, field_369, field_38d and 4 more
 # callees:      calls FUN_004d39f9, FUN_004c2790, FUN_004fb77a, FUN_004fb2e3, FUN_004f6334, FUN_004fba69, FUN_0042ba3a, FUN_004b7229
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 394 instruction(s), 28 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 394 instruction(s), 28 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text
