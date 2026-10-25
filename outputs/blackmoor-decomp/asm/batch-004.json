@@ -6599,7 +6599,7 @@
       "function": "FUN_00472f0a",
       "va": "0x00472f0a",
       "source": "FUN_00472f0a.s",
-      "source_sha256": "9ab0c1cd99375339296ebaa137258363f050849bcaecc590dcdfb57cdcf55793",
+      "source_sha256": "8db29235d7f9dc986b585935f829572e3b1e8ce09e7e04c09268023ef990d4ad",
       "region": "game",
       "evidence_id": "ev_4142f99cf250975ea00b2347f810409c5bbf0cca5348258d5fd0578a4530c136",
       "code": {
@@ -9927,7 +9927,7 @@
       "function": "FUN_00489722",
       "va": "0x00489722",
       "source": "FUN_00489722.s",
-      "source_sha256": "6ef243f166019319a45bfd3ce5411687169a3cabc98d367217db4d35bebd39d3",
+      "source_sha256": "6a0eb47ac4a9647f8b7da030f3405355186339c9219d883b3347db2c6d167293",
       "region": "game",
       "evidence_id": "ev_54bace4f2834e1ad21518a3c0097c08b99de1c57712a85070ff3f94714efabd4",
       "code": {

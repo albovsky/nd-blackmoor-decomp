@@ -1,0 +1,30 @@
+{
+ "note": "FL-49: row-specific written reasons that a lifted-C survivor (kind, line) is equivalent to the original, same rules as tasks/fl46-written-reasons.json. Each was written by one Sonnet reader from the function alone and confirmed by a second, independent Sonnet reviewer who tried to break it (reviewer note kept); rejected reasons are not here. The statement must equal the current line of the row, else the reason is ignored (scripts/fl44_final.py).",
+ "rows": {
+  "0x445c8a": [
+   {
+    "kind": "width",
+    "line": 62,
+    "statement": "edx = RD32((uint32_t)(ebp + 0xfffffe24u));  /* 0x445d14: mov edx, dword ptr [ebp - 0x1dc] */",
+    "reason": "The dword [ebp-0x1dc] is stored at 0x445d01 (ecx) and the only instructions between that store and the read at 0x445d14 are cmp dword ptr [ebp-0x1dc],3 (0x445d07) and ja (0x445d0e), neither of which writes memory or calls, so the read sees the same value. The ja not taken means that value is <= 3 unsigned, so bits 16..31 are 0 and RD16 returns the same value as RD32. edx is therefore identical, so memory writes, calls, registers and flags are unchanged.",
+    "review": "Checked 0x445cfd-0x445d1a: dword [ebp-0x1dc] stored at 0x445d01 (ecx), only cmp (0x445d07, reads, no write) and ja (0x445d0e) in between, no call, so the 0x445d14 read sees ecx. ja not taken (the taken path goes to 0x445dc7 and never reaches 0x445d14) means value <=3 unsigned, so RD16 == RD32; edx, the table read at 0x445d1a, the switch and all later writes/calls/flags are identical. Rests only on the function's own store and its own cmp/ja, not on the callee clobbering edx."
+   }
+  ],
+  "0x472f0a": [
+   {
+    "kind": "drop",
+    "line": 6,
+    "statement": "ebp = esp;  /* 0x472f0b: mov ebp, esp */",
+    "reason": "The only reader of ebp between 0x472f0b and the end is pop ebp at 0x472f1f, and ebp is not used in any address (fld, fdiv and fstp use absolute addresses 0x54c598, 0x54c59c, 0x63a878). pop ebp loads RD32(esp) where esp is the same in the original and the mutant (push at 0x472f0a lowers it by 4, nothing else changes it before the pop), so the final ebp is the value stored by the push in both versions. The value assigned at 0x472f0b is therefore dead (overwritten by the pop before any read), it sets no flags, and the writes, calls, esp, eax, ecx, edx and the other registers are untouched, so the mutant behaves the same on every path.",
+    "review": "Re-disassembled 0x472f0a-0x472f20: ebp is read only by pop-restore at 0x472f1f never as an address (fld/fdiv/fstp at 0x472f0d/13/19 use absolute addresses). pop ebp loads RD32(esp) from memory identical in both versions (same esp, same ordered writes incl. 0x63a878 even if it aliases the slot), so final ebp is the same and the 0x472f0b value is dead; mov sets no flags. No call, no path skipped (straight line)."
+   },
+   {
+    "kind": "register",
+    "line": 6,
+    "statement": "ebp = esp;  /* 0x472f0b: mov ebp, esp */",
+    "reason": "The only reader of ebp between 0x472f0b and the end is pop ebp at 0x472f1f, and ebp is not used in any address (fld, fdiv and fstp use absolute addresses 0x54c598, 0x54c59c, 0x63a878). pop ebp loads RD32(esp) where esp is the same in the original and the mutant (push at 0x472f0a lowers it by 4, nothing else changes it before the pop), so the final ebp is the value stored by the push in both versions. The value assigned at 0x472f0b (esp in the original, edx in the mutant) is therefore dead (overwritten by the pop before any read), it sets no flags, and the writes, calls, esp, eax, ecx, edx and the other registers are untouched, so the mutant behaves the same on every path.",
+    "review": "Same derivation: 0x472f0b assigns ebp, which is overwritten by pop ebp at 0x472f1f before any read; nothing between (0x472f0d-0x472f19) uses ebp or edx, edx itself is not modified or read, no flags set by mov. Final ebp = RD32(esp) in both; writes, esp, other registers identical. Straight-line function, no calls, so no path or callee argument is needed."
+   }
+  ]
+ }
+}

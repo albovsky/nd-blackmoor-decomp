@@ -5,7 +5,7 @@
     "binutils_archive_sha512": "20977ad17729141a2c26d358628f44a0944b84dcfefdec2ba029c2d02f40dfc41cc91c0631044560d2bd6f9a51e1f15846b4b311befbe14f1239f14ff7d57824",
     "path": "work/tools/s08-binutils-2.43.1/prefix/bin/i686-w64-mingw32-as",
     "self_test": "passed",
-    "sha256": "bebbb877639e69e5aa7bc52668b2dee59093a7a127355a039c973889232ec9f4",
+    "sha256": "e098415986a220be7e4b2d14f3b0894cf065a8f21d6aaf117140d2966039e5c4",
     "version_line": "GNU assembler (GNU Binutils) 2.43.1"
   },
   "baseline": {
@@ -12863,6 +12863,7 @@
       "contains_original_byte_values": false,
       "data_items": [],
       "function": "FUN_00472f0a",
+      "naming": "native_port",
       "object": {
         "sha256": "65b35d5b9c470d8f47928a0631898120aea95eaaa2830d8b2ac8796767aef575",
         "size": 467043
@@ -12872,7 +12873,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_00472f0a.s",
-        "sha256": "9ab0c1cd99375339296ebaa137258363f050849bcaecc590dcdfb57cdcf55793"
+        "sha256": "8db29235d7f9dc986b585935f829572e3b1e8ce09e7e04c09268023ef990d4ad"
       },
       "status": "accepted",
       "va": 4665098
@@ -18915,7 +18916,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_00489722.s",
-        "sha256": "6ef243f166019319a45bfd3ce5411687169a3cabc98d367217db4d35bebd39d3"
+        "sha256": "6a0eb47ac4a9647f8b7da030f3405355186339c9219d883b3347db2c6d167293"
       },
       "status": "accepted",
       "va": 4757282
@@ -21398,9 +21399,9 @@
       "va": 4790079
     }
   ],
-  "manifest_sha256": "e232eb61b365738194ebe8c018142152892d26040d12b69400ba0eedcfb24f91",
-  "named_functions": 618,
-  "names_sha256": "85c2579f1552a9bb58e414df246fec7403d24e6635ef459468e77c75c1e77ba7",
+  "manifest_sha256": "84069e0de1582d8ada97b9ea8dab6b87068499db0899b61e16c8a600ef7e6b31",
+  "named_functions": 619,
+  "names_sha256": "f6027baf4a30cf053c973176de04c612eff7ba9559ed8d445adf69c5de28ea13",
   "note": "Accepted functions are candidates for the tool_assisted_reconstructed_assembly class; they count only after root accepts the independent review. No claim is made about original C++ or compiler provenance.",
   "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45"
 }
