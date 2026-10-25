@@ -1,4 +1,5 @@
 #include "macos_platform.h"
+#include "native_display_geometry.h"
 
 #import <AppKit/AppKit.h>
 #import <CoreGraphics/CoreGraphics.h>
@@ -17,6 +18,7 @@ struct BlackmoorMacPlatform {
     BlackmoorPlatformCallbacks callbacks;
     void *context;
     bool stopped;
+    NativeDisplayMode display_mode;
     __strong BlackmoorFrameView *view;
     __strong BlackmoorWindowOwner *owner;
 };
@@ -31,16 +33,65 @@ struct BlackmoorMacPlatform {
 @property(nonatomic, strong) NSWindow *window;
 @property(nonatomic, strong) NSTimer *timer;
 @property(nonatomic, assign) BlackmoorMacPlatform *platform;
+@property(nonatomic, strong) NSMenuItem *displayMenu;
+@property(nonatomic, strong) NSMenuItem *fitItem;
+@property(nonatomic, strong) NSMenuItem *stretchItem;
+- (void)chooseFit:(id)sender;
+- (void)chooseStretch:(id)sender;
 @end
 
 static NSRect surface_rect(BlackmoorMacPlatform *platform, NSRect bounds)
 {
-    CGFloat scale = std::fmin(bounds.size.width / platform->width,
-                              bounds.size.height / platform->height);
-    NSSize size = NSMakeSize(platform->width * scale, platform->height * scale);
-    return NSMakeRect((bounds.size.width - size.width) / 2,
-                      (bounds.size.height - size.height) / 2,
-                      size.width, size.height);
+    NativeDisplayRect rect{};
+    if (!native_display_layout(platform->width, platform->height,
+                               bounds.size.width, bounds.size.height,
+                               platform->display_mode, &rect)) return NSZeroRect;
+    return NSMakeRect(bounds.origin.x + rect.x, bounds.origin.y + rect.y, rect.width, rect.height);
+}
+
+static void set_display_mode(BlackmoorMacPlatform *platform, NativeDisplayMode mode)
+{
+    if (platform == nullptr || platform->stopped || ![NSThread isMainThread]) return;
+    platform->display_mode = mode;
+    [[NSUserDefaults standardUserDefaults] setBool:mode == NATIVE_DISPLAY_STRETCH
+                                           forKey:@"BlackmoorDisplayStretch"];
+    platform->owner.fitItem.state = mode == NATIVE_DISPLAY_FIT ? NSControlStateValueOn : NSControlStateValueOff;
+    platform->owner.stretchItem.state = mode == NATIVE_DISPLAY_STRETCH ? NSControlStateValueOn : NSControlStateValueOff;
+    platform->view.needsDisplay = YES;
+}
+
+static void install_display_menu(BlackmoorMacPlatform *platform)
+{
+    NSMenu *main = NSApp.mainMenu;
+    if (main == nil) {
+        main = [[NSMenu alloc] initWithTitle:@""];
+        NSMenuItem *appItem = [[NSMenuItem alloc] initWithTitle:@"Blackmoor Reconstruction" action:NULL keyEquivalent:@""];
+        NSMenu *appMenu = [[NSMenu alloc] initWithTitle:@"Blackmoor Reconstruction"];
+        NSMenuItem *quit = [[NSMenuItem alloc] initWithTitle:@"Quit Blackmoor Reconstruction"
+            action:@selector(terminate:) keyEquivalent:@"q"];
+        quit.target = NSApp;
+        [appMenu addItem:quit];
+        appItem.submenu = appMenu;
+        [main addItem:appItem];
+        NSApp.mainMenu = main;
+    }
+    NSMenu *viewMenu = [[NSMenu alloc] initWithTitle:@"View"];
+    viewMenu.autoenablesItems = NO;
+    NSMenuItem *fit = [[NSMenuItem alloc] initWithTitle:@"Proportional" action:@selector(chooseFit:) keyEquivalent:@"1"];
+    NSMenuItem *stretch = [[NSMenuItem alloc] initWithTitle:@"Stretch to Fill" action:@selector(chooseStretch:) keyEquivalent:@"2"];
+    for (NSMenuItem *item in @[fit, stretch]) {
+        item.target = platform->owner;
+        item.keyEquivalentModifierMask = NSEventModifierFlagCommand | NSEventModifierFlagOption;
+        [viewMenu addItem:item];
+    }
+    platform->owner.fitItem = fit;
+    platform->owner.stretchItem = stretch;
+    fit.state = platform->display_mode == NATIVE_DISPLAY_FIT ? NSControlStateValueOn : NSControlStateValueOff;
+    stretch.state = platform->display_mode == NATIVE_DISPLAY_STRETCH ? NSControlStateValueOn : NSControlStateValueOff;
+    NSMenuItem *view = [[NSMenuItem alloc] initWithTitle:@"View" action:NULL keyEquivalent:@""];
+    view.submenu = viewMenu;
+    platform->owner.displayMenu = view;
+    [main addItem:view];
 }
 
 static unsigned virtual_key(NSEvent *event)
@@ -106,8 +157,9 @@ static unsigned virtual_key(NSEvent *event)
     NSRect surface = surface_rect(p, self.bounds);
     if (surface.size.width <= 0 || surface.size.height <= 0) return;
     NSPoint point = [self convertPoint:event.locationInWindow fromView:nil];
-    int32_t x = (int32_t)std::floor((point.x - surface.origin.x) * p->width / surface.size.width);
-    int32_t y = (int32_t)std::floor((point.y - surface.origin.y) * p->height / surface.size.height);
+    const NativeDisplayRect rect{surface.origin.x, surface.origin.y, surface.size.width, surface.size.height};
+    int32_t x, y;
+    if (!native_display_map_point(p->width, p->height, &rect, point.x, point.y, &x, &y)) return;
     p->callbacks.pointer(p->context, kind, x, y, (unsigned)event.buttonNumber);
 }
 - (void)mouseMoved:(NSEvent *)e { [self pointer:e kind:BLACKMOOR_POINTER_MOVE]; }
@@ -156,6 +208,8 @@ static unsigned virtual_key(NSEvent *event)
 @end
 
 @implementation BlackmoorWindowOwner
+- (void)chooseFit:(id)sender { (void)sender; set_display_mode(self.platform, NATIVE_DISPLAY_FIT); }
+- (void)chooseStretch:(id)sender { (void)sender; set_display_mode(self.platform, NATIVE_DISPLAY_STRETCH); }
 - (void)windowWillClose:(NSNotification *)notification
 {
     (void)notification;
@@ -194,11 +248,14 @@ BlackmoorMacPlatform *blackmoor_macos_open(
     BlackmoorMacPlatform *p = new (std::nothrow) BlackmoorMacPlatform{};
     if (p == nullptr) return nullptr;
     p->width = width; p->height = height; p->context = context;
+    p->display_mode = [[NSUserDefaults standardUserDefaults] boolForKey:@"BlackmoorDisplayStretch"]
+        ? NATIVE_DISPLAY_STRETCH : NATIVE_DISPLAY_FIT;
     if (callbacks) p->callbacks = *callbacks;
     [NSApplication sharedApplication];
     [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
     p->owner = [[BlackmoorWindowOwner alloc] init];
     p->owner.platform = p;
+    install_display_menu(p);
     p->view = [[BlackmoorFrameView alloc] initWithFrame:NSMakeRect(0, 0, width, height)];
     p->view.platform = p;
     p->view.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
@@ -210,7 +267,6 @@ BlackmoorMacPlatform *blackmoor_macos_open(
     window.title = title ? [NSString stringWithUTF8String:title] : @"Nancy Drew";
     if (window.title == nil) window.title = @"Nancy Drew";
     window.contentView = p->view;
-    window.contentAspectRatio = NSMakeSize(width, height);
     window.delegate = p->owner;
     window.acceptsMouseMovedEvents = YES;
     p->owner.window = window;
@@ -279,6 +335,8 @@ void blackmoor_macos_close(BlackmoorMacPlatform *p)
 {
     if (!p || ![NSThread isMainThread]) return;
     blackmoor_macos_stop(p);
+    NSMenuItem *display = p->owner.displayMenu;
+    if (display.menu != nil) [display.menu removeItem:display];
     p->owner.window.delegate = nil;
     [p->owner.window close];
     p->view.platform = nullptr; p->owner.platform = nullptr;

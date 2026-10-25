@@ -684,6 +684,7 @@ struct NativeApp {
     /* RT-6: the recovered pointer producer (RT-2). One retained candidate
      * (0x5c39e5) lives in input_state; the session sequences it. */
     SessionInputState input_state{};
+    int pointer_last_logged_status = SESSION_INPUT_OK;
     ProvisionalCursorProvider cursor_provider{};
     int32_t logged_candidate = -2;
     /* RT-17: the view-navigation producer (session_navigation). The globals
@@ -9005,6 +9006,10 @@ static void taskbar_post_tick(NativeApp *app, uint32_t now)
 static bool taskbar_pointer_event(NativeApp *app, int event_kind, unsigned button, int32_t x,
                                   int32_t y)
 {
+    /* Native fit-mode bars have no game controls. Preserve UP ownership below
+     * so moving outside after a valid press cannot leave a swallowed release. */
+    if (event_kind != BLACKMOOR_POINTER_UP && (x < 0 || y < 0 || x >= 640 || y >= 480))
+        return false;
     if (app->inv_view.screen_state == INVVIEW_STATE_INVENTORY && button == 1u &&
         event_kind == BLACKMOOR_POINTER_DOWN) {
         /* NOT original: the in-view close controls (frame button 0x4ee517, keys) are not
@@ -11265,7 +11270,9 @@ static int native_pointer_consume(void *context, SceneExecutorFrameInput *frame,
             }
         }
     }
-    if (edge_before != 0u || status != SESSION_INPUT_OK) {
+    /* A pointer resting in a fit-mode bar has no cursor geometry. Record
+     * status transitions and every edge, rather than repeating at 60 Hz. */
+    if (edge_before != 0u || status != app->pointer_last_logged_status) {
         record(app, "pointer_consume status=%d edge=%u candidate=%d activation=%u "
                "modal=%u mode=%d provisional-geometry=1 projected=%d,%d valid=%u",
                status, (unsigned)edge_before, *candidate,
@@ -11273,6 +11280,7 @@ static int native_pointer_consume(void *context, SceneExecutorFrameInput *frame,
                input.cursor_mode, frame->pointer_x, frame->pointer_y,
                (unsigned)frame->pointer_valid);
     }
+    app->pointer_last_logged_status = status;
     return status;
 }
 
@@ -13638,6 +13646,7 @@ int main(int argc, char **argv)
         app.game_directory = default_game_directory;
         std::string log_path;
         int audio_mute_override = -1;
+        int display_mode_override = -1;
         bool inspect_only = false;
         bool inspect_actions = false;
         bool inspect_audio = false;
@@ -13842,6 +13851,10 @@ int main(int argc, char **argv)
                 const unsigned long count = std::strtoul(value, &end, 10);
                 if (!*value || *end || count == 0 || count > 1000000) return 2;
                 live_ticks = (uint32_t)count;
+            } else if (argument == "--display-mode") {
+                if (std::strcmp(value, "fit") == 0) display_mode_override = 0;
+                else if (std::strcmp(value, "stretch") == 0) display_mode_override = 1;
+                else { std::fprintf(stderr, "--display-mode requires fit or stretch\n"); return 2; }
             } else if (argument == "--game-dir") app.game_directory = value;
             else if (argument == "--log") log_path = value;
             else if (argument == "--stop-after-ms") {
@@ -13878,6 +13891,9 @@ int main(int argc, char **argv)
         if (audio_mute_override >= 0)
             [[NSUserDefaults standardUserDefaults] setBool:audio_mute_override != 0
                                                    forKey:@"BlackmoorAudioMuted"];
+        if (display_mode_override >= 0)
+            [[NSUserDefaults standardUserDefaults] setBool:display_mode_override != 0
+                                                   forKey:@"BlackmoorDisplayStretch"];
         app.scene_runtime_enabled = !inspect_only || inspect_session_boundary || inspect_live_session ||
                                     inspect_condition_providers;
         if (log_path.empty()) {
@@ -13894,6 +13910,8 @@ int main(int argc, char **argv)
         NSLog(@"Blackmoor reconstruction log: %s", log_path.c_str());
         record(&app, "native_audio_output_muted=%d scope=application-master-mixer",
                [[NSUserDefaults standardUserDefaults] boolForKey:@"BlackmoorAudioMuted"] ? 1 : 0);
+        record(&app, "native_display_preference=%s logical_surface=640x480",
+               [[NSUserDefaults standardUserDefaults] boolForKey:@"BlackmoorDisplayStretch"] ? "stretch" : "fit");
         int external = 0;
         char error[256] = {};
         GameResourceBytes boot_bytes = GAME_RESOURCE_BYTES_INIT;
