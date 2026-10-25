@@ -315,6 +315,8 @@ struct NativeApp {
      * restore (blit 2): the app reseeds the back buffer every tick, so the held blit is re-applied every tick instead. Not
      * compiled in the cloud (no macOS toolchain). */
     SessionAd0Binding *ad0 = nullptr;
+    PuzzleSound ad0_audio{};
+    bool ad0_audio_initialized = false;
     std::array<bool, 0x40> ad0_slot_used{};
     D0PointerResult ad0_pointer{};
     D0RenderResult ad0_held{};
@@ -6409,35 +6411,67 @@ static int native_ad0_mark_dirty(void *context, int16_t slot)
     return 0;
 }
 
+/* NATIVE-10: piano descriptors share the live scene channel table. Keep a
+ * local adapter cache, refreshed from the provider before play/busy, as for
+ * D1 and the clock. The recovered D0 kernel owns all timers and completion. */
+static bool native_ad0_audio_ready(NativeApp *app)
+{
+    if (app == nullptr || app->live_audio == nullptr) return false;
+    if (!app->ad0_audio_initialized) {
+        ActionSoundBackend backend{};
+        if (live_audio_bind_backend(app->live_audio, &backend) != LIVE_AUDIO_OK ||
+            puzzle_sound_init(&app->ad0_audio, &backend) != PUZZLE_SOUND_OK) return false;
+        app->ad0_audio_initialized = true;
+    }
+    return true;
+}
+
+static bool native_ad0_audio_refresh(NativeApp *app, int16_t channel)
+{
+    if (!native_ad0_audio_ready(app) || channel < 0 ||
+        static_cast<unsigned>(channel) >= LIVE_AUDIO_CHANNEL_COUNT) return false;
+    LiveAudioChannelInfo info{};
+    if (live_audio_get_channel_info(app->live_audio, static_cast<uint16_t>(channel), &info) != LIVE_AUDIO_OK)
+        return false;
+    app->ad0_audio.prepared[static_cast<uint16_t>(channel)] = info.loaded;
+    return true;
+}
+
 static int native_ad0_sound_prepare(void *context, const uint8_t *record_bytes)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
-    (void)record_bytes;
-    record(app, "scene_ad0_sound call=0x4fb77a NOT PLAYED (no effect backend)");
-    return 0;
+    if (!native_ad0_audio_ready(app)) return 1;
+    const int status = puzzle_sound_prepare(&app->ad0_audio, record_bytes, PUZZLE_SOUND_RECORD_BYTES);
+    record(app, "scene_ad0_sound call=0x4fb77a native_status=%d", status);
+    return status == PUZZLE_SOUND_OK || status == PUZZLE_SOUND_NO_RESOURCE ? 0 : 1;
 }
 
 static int native_ad0_sound_stop(void *context, const uint8_t *record_bytes)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
-    (void)record_bytes;
-    record(app, "scene_ad0_sound call=0x4fba69 NOT PLAYED (no effect backend)");
-    return 0;
+    if (!native_ad0_audio_ready(app)) return 1;
+    const int status = puzzle_sound_stop(&app->ad0_audio, record_bytes, PUZZLE_SOUND_RECORD_BYTES);
+    record(app, "scene_ad0_sound call=0x4fba69 native_status=%d", status);
+    return status == PUZZLE_SOUND_OK ? 0 : 1;
 }
 
 static int native_ad0_sound_play(void *context, int16_t channel)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
-    record(app, "scene_ad0_sound channel=%d call=0x4fb2e3 NOT PLAYED (no effect backend)", channel);
-    return 0;
+    if (!native_ad0_audio_refresh(app, channel)) return 1;
+    const int status = puzzle_sound_play(&app->ad0_audio, static_cast<uint16_t>(channel));
+    record(app, "scene_ad0_sound channel=%d call=0x4fb2e3 native_status=%d", channel, status);
+    return status == PUZZLE_SOUND_OK || status == PUZZLE_SOUND_NO_RESOURCE ? 0 : 1;
 }
 
 static int native_ad0_sound_busy(void *context, int16_t channel, int32_t *result)
 {
-    (void)context;
-    (void)channel;
-    if (result == nullptr) return 1;
-    *result = 0; /* 0x4f6334: nothing is ever playing here, so the win sound step completes at once */
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (result == nullptr || !native_ad0_audio_refresh(app, channel)) return 1;
+    int playing = 0;
+    const int status = puzzle_sound_busy(&app->ad0_audio, static_cast<uint16_t>(channel), &playing);
+    if (status != PUZZLE_SOUND_OK) return 1;
+    *result = playing;
     return 0;
 }
 
@@ -6466,12 +6500,13 @@ static void native_ad0_store_world(void *context, const D0World *world)
 static void native_ad0_observe(void *context, int effect, int32_t a, int32_t b)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
-    (void)b;
     if (app == nullptr) return;
     if (effect == D0_FX_PHASE) {
         record(app, "scene_ad0_phase new_phase=%d (0x48d914)", a);
     } else if (effect == D0_FX_COMPLETE) {
         record(app, "scene_ad0_complete row=%d (0x42ba3a)", a);
+    } else if (effect == D0_FX_EVENT_FLAG) {
+        record(app, "scene_ad0_event_flag index=%d value=%d", a, b);
     } else if (effect == D0_FX_SOLVED_CHECK) {
         record(app, "scene_ad0_solved_check (0x48d89e)");
     }

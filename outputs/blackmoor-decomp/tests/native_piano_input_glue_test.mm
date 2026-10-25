@@ -1,6 +1,8 @@
-/* NATIVE-09: actual app callbacks and the owner's complete S3395 body.
- * Components sink rendering, text, sound and finish transition effects. The
- * real binding, executor, pointer projection/latch and piano state run intact.
+/* NATIVE-09/10: actual app callbacks and the owner's complete S3395 body.
+ * Components sink rendering, text and finish transition effects. Ordinary
+ * input cases sink sound; named audio cases use production D0 callbacks and a
+ * real muted offline graph. The binding, executor, pointer projection/latch
+ * and piano state run intact.
  * Normal mode invokes the actual muted offline app. No resource payloads,
  * original-x86 execution, window or output device are used. */
 #define main blackmoor_app_entry_for_piano_test
@@ -66,10 +68,12 @@ struct PianoFixture {
     SceneConditionState conditions{};
     SceneConditionExtension extension{};
     size_t row = SIZE_MAX;
+    uint64_t muted_frames = 0;
     ~PianoFixture()
     {
         scene_session_destroy(app.session);
         session_ad0_destroy(app.ad0);
+        if (app.live_audio != nullptr) live_audio_destroy(app.live_audio);
         if (app.scene != session_scene) scene_resource_close(app.scene);
         scene_resource_close(session_scene);
         game_resources_close(app.resources);
@@ -97,7 +101,7 @@ struct PianoFixture {
         return value(rectangle) <= x && x <= value(rectangle + 8) &&
                value(rectangle + 4) <= y && y <= value(rectangle + 12);
     }
-    bool load(const char *directory)
+    bool load(const char *directory, int scene_id = 3395)
     {
         app.game_directory = directory;
         app.log = std::tmpfile();
@@ -108,7 +112,8 @@ struct PianoFixture {
         app.resources = game_resources_open((app.game_directory + "/Ciftree").c_str(), external, error, sizeof(error));
         if (app.resources == nullptr) return false;
         GameResourceBytes resource = GAME_RESOURCE_BYTES_INIT;
-        if (!game_resources_load_bytes(app.resources, "S3395", &resource, error, sizeof(error))) return false;
+        const std::string scene_name = "S" + std::to_string(scene_id);
+        if (!game_resources_load_bytes(app.resources, scene_name.c_str(), &resource, error, sizeof(error))) return false;
         bytes.assign(resource.bytes, resource.bytes + resource.length);
         game_resource_bytes_destroy(&resource);
         session_scene = scene_resource_open_memory(bytes.data(), bytes.size(), error, sizeof(error));
@@ -149,15 +154,26 @@ struct PianoFixture {
         if (app.scene == nullptr) std::fprintf(stderr, "piano owner metadata: %s\n", error);
         return app.scene != nullptr;
     }
-    bool initialize(const char *directory, const char *owner = nullptr)
+    bool initialize(const char *directory, const char *owner = nullptr, bool real_audio = false, int scene_id = 3395)
     {
-        if (!load(directory) || (owner != nullptr && !add_owner(std::strcmp(owner, "duplicate") == 0))) { std::fprintf(stderr, "piano fixture resource load failed\n"); return false; }
-        app.current_scene_id = 3395;
+        if (!load(directory, scene_id) || (owner != nullptr && !add_owner(std::strcmp(owner, "duplicate") == 0))) { std::fprintf(stderr, "piano fixture resource load failed\n"); return false; }
+        app.current_scene_id = scene_id;
         app.scene_destination = {10, 10, 629, 384};
         app.bar_missing = true;
         app.session_tick_sample = 1000;
         app.new_game.action_core.event_flags = flags.data();
         app.new_game.action_core.event_flag_count = flags.size();
+        if (real_audio) {
+            [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"BlackmoorAudioMuted"];
+            LiveAudioConfig audio{};
+            audio.game_directory = directory;
+            audio.mode = MAC_AUDIO_MODE_OFFLINE;
+            char error[256]{};
+            if (live_audio_create(&audio, &app.live_audio, error, sizeof(error)) != LIVE_AUDIO_OK) {
+                std::fprintf(stderr, "piano offline audio: %s\n", error);
+                return false;
+            }
+        }
         SessionAd0Host host{};
         host.kernel.context = &app;
         host.kernel.alloc_slot = sink_slot; host.kernel.register_slot = sink_register;
@@ -165,8 +181,10 @@ struct PianoFixture {
         host.kernel.release_surface = sink_release; host.kernel.release_slot = sink_slot_op;
         host.kernel.mark_dirty = sink_slot_op; host.kernel.view_origin = native_ad1_view_origin;
         host.kernel.clear_pending_item = sink_idle;
-        host.kernel.sound_prepare = sink_record; host.kernel.sound_stop = sink_record;
-        host.kernel.sound_play = sink_channel; host.kernel.sound_busy = sink_busy;
+        host.kernel.sound_prepare = real_audio ? native_ad0_sound_prepare : sink_record;
+        host.kernel.sound_stop = real_audio ? native_ad0_sound_stop : sink_record;
+        host.kernel.sound_play = real_audio ? native_ad0_sound_play : sink_channel;
+        host.kernel.sound_busy = real_audio ? native_ad0_sound_busy : sink_busy;
         host.kernel.tick = native_ad1_tick;
         host.kernel.text_lookup = sink_text_lookup; host.kernel.text_show = sink_text_show;
         host.kernel.event_flag_invalid = native_ad1_event_flag_invalid;
@@ -197,7 +215,7 @@ struct PianoFixture {
         world.event_flags = flags.data(); world.event_flag_count = flags.size();
         conditions.event_flags = flags.data(); conditions.event_flag_count = flags.size();
         SceneSessionConfig config{};
-        config.scene = session_scene; config.scene_id = 3395;
+        config.scene = session_scene; config.scene_id = scene_id;
         config.action_core_world = &world; config.conditions = &conditions;
         config.action_bindings = bindings.data(); config.action_binding_count = bindings.size();
         config.prepare_tick = prepare_piano; config.advance_media_one = advance_piano_media; config.provider_context = &app;
@@ -233,6 +251,14 @@ struct PianoFixture {
         D0RenderResult render{};
         const int rendered = session_ad0_render(app.ad0, &render);
         return status == SCENE_SESSION_OK && rendered == D0_OK;
+    }
+    bool render_audio(uint64_t frames)
+    {
+        LiveAudioOfflineStats stats{};
+        if (app.live_audio == nullptr || live_audio_advance_offline(app.live_audio, frames, &stats, nullptr, 0) != LIVE_AUDIO_OK ||
+            stats.frames != frames || stats.nonfinite_samples != 0 || stats.nonzero_samples != 0) return false;
+        muted_frames += stats.frames;
+        return true;
     }
     bool hover(size_t rectangle) { move_to(rectangle); return tick(); }
     bool release()
@@ -400,6 +426,156 @@ static int restricted(const char *directory, const char *kind)
     }
     return 0;
 }
+static int audio_key(PianoFixture &f)
+{
+    CHECK(f.word(0x736u) == 8 && f.hover(0x203u) && f.release(), "actual key0 release reaches the real sound callbacks");
+    LiveAudioChannelInfo key{};
+    int32_t busy = -1;
+    CHECK(live_audio_get_channel_info(f.app.live_audio, 8, &key) == LIVE_AUDIO_OK, "real key channel is inspectable");
+    CHECK(native_ad0_sound_busy(&f.app, 8, &busy) == 0, "real busy callback succeeds");
+    std::printf("PIANO_AUDIO_KEY loaded=%u started=%u frames=%llu busy=%d state=%d\n", key.loaded, key.started,
+                static_cast<unsigned long long>(key.frame_count), busy, f.object()->state);
+    CHECK(key.loaded == 1u && key.started == 1u && key.frame_count > 0 && busy == 1,
+          "actual key0 release must load/play Boat_A and expose authoritative busy1");
+    CHECK(f.render_audio(256u), "post-master piano PCM is finite and allzero while playback advances");
+    CHECK(f.tick(499u) && f.object()->pressed == 1u && f.object()->state == D0_STATE_RELEASE,
+          "key remains pressed before its original 500ms deadline");
+    CHECK(f.tick(1u) && f.object()->pressed == 0u && f.object()->state == D0_STATE_IDLE,
+          "deadline releases the real key");
+    CHECK(live_audio_get_channel_info(f.app.live_audio, 8, &key) == LIVE_AUDIO_OK && key.loaded == 0u &&
+          native_ad0_sound_busy(&f.app, 8, &busy) == 0 && busy == 0,
+          "500ms release must stop/unload the key clip and report idle");
+    std::printf("PIANO_AUDIO_RELEASE loaded=%u busy=%d muted_frames=%llu\n", key.loaded, busy,
+                static_cast<unsigned long long>(f.muted_frames));
+    CHECK(f.word(0x21u) == 7, "installed piano has seven real key sounds");
+    uint64_t generation = key.generation;
+    for (int note = 1; note < 7; ++note) {
+        CHECK(f.hover(0x203u + static_cast<size_t>(note) * 16u) && f.release(),
+              "remaining real key gesture succeeds");
+        CHECK(f.object()->last == note && f.object()->pressed == 1u &&
+              live_audio_get_channel_info(f.app.live_audio, 8, &key) == LIVE_AUDIO_OK &&
+              key.loaded == 1u && key.started == 1u && key.frame_count > 0 && key.generation > generation &&
+              native_ad0_sound_busy(&f.app, 8, &busy) == 0 && busy == 1,
+              "each Boat_B..Boat_G key must load a fresh real clip and report busy1");
+        CHECK(f.render_audio(256u) && f.tick(500u) && f.object()->pressed == 0u &&
+              live_audio_get_channel_info(f.app.live_audio, 8, &key) == LIVE_AUDIO_OK && key.loaded == 0u &&
+              native_ad0_sound_busy(&f.app, 8, &busy) == 0 && busy == 0,
+              "each remaining key renders silently and unloads at its real 500ms deadline");
+        generation = key.generation;
+    }
+    std::printf("PIANO_AUDIO_NOTES count=7 fresh_generations=1 all_stopped=1 muted_frames=%llu\n",
+                static_cast<unsigned long long>(f.muted_frames));
+    /* The original cleanup frees only surfaces/slots. Exit from idle after
+     * the real release deadline; do not invent an exit-time audio unload. */
+    return exit_piano(f);
+}
+static int audio_natural_completion(PianoFixture &f)
+{
+    /* Both installed win descriptors are NO SOUND. This exercises natural
+     * completion of a real key clip through D0's production callbacks; it is
+     * not an invented audible-win route or a substituted puzzle body. */
+    CHECK(f.hover(0x203u) && f.release(), "real key starts natural-completion component");
+    int32_t busy = -1;
+    LiveAudioChannelInfo key{};
+    CHECK(native_ad0_sound_busy(&f.app, 8, &busy) == 0 && busy == 1,
+          "natural-completion observation begins while real Boat_A is busy");
+    for (unsigned i = 0; busy != 0 && i < 800u; ++i) {
+        CHECK(f.render_audio(4096u), "muted key audio advances with finite allzero PCM");
+        CHECK(native_ad0_sound_busy(&f.app, 8, &busy) == 0, "production callback polls authoritative key completion");
+    }
+    CHECK(busy == 0 && live_audio_get_channel_info(f.app.live_audio, 8, &key) == LIVE_AUDIO_OK &&
+          key.loaded == 1u && key.started == 1u && key.finished == 1u && key.frame_count > 0,
+          "real clip must finish naturally while remaining loaded until the kernel stop boundary");
+    const uint64_t decoded_frames = key.frame_count;
+    CHECK(f.tick(0) && f.object()->pressed == 1u && f.object()->state == D0_STATE_RELEASE,
+          "natural audio completion alone does not bypass the original key deadline");
+    CHECK(f.tick(500u) && f.object()->pressed == 0u &&
+          live_audio_get_channel_info(f.app.live_audio, 8, &key) == LIVE_AUDIO_OK && key.loaded == 0u,
+          "original key release subsequently unloads the naturally completed clip");
+    std::printf("PIANO_AUDIO_NATURAL finished=1 deadline_retained=1 frames=%llu muted_frames=%llu\n",
+                static_cast<unsigned long long>(decoded_frames), static_cast<unsigned long long>(f.muted_frames));
+    return 0;
+}
+static int audio_solve(PianoFixture &f)
+{
+    transition_target = -1; phase2_dispatches = 0;
+    const SceneActionInfo action = f.action();
+    const int length = f.word(0x317u);
+    CHECK(length == 8 && f.word(0x746u) == 3396 && f.word(0x75cu) == 2013 &&
+          action.typed_body[0x75eu] == 1u && f.word(0x75fu) == 1 && f.flags[2013] == 0,
+          "real solved block begins with target3396, flag2013/value1 and one-second delay");
+    CHECK(std::strcmp(reinterpret_cast<const char *>(action.typed_body + 0x761u), "NO SOUND") == 0 &&
+          f.word(0x782u) == 9, "installed S3395 genuinely has a silent win descriptor on channel9");
+    for (int step = 0; step < length; ++step) {
+        const int key = f.word(0x319u + static_cast<size_t>(step) * 2u);
+        CHECK(key >= 0 && key < f.word(0x21u), "real solution key is in range");
+        CHECK(f.hover(0x203u + static_cast<size_t>(key) * 16u) && f.release(), "real solution gesture succeeds");
+        LiveAudioChannelInfo sound{};
+        int32_t busy = -1;
+        CHECK(f.object()->last == key && f.object()->pressed == 1u &&
+              live_audio_get_channel_info(f.app.live_audio, 8, &sound) == LIVE_AUDIO_OK && sound.loaded == 1u &&
+              sound.started == 1u && sound.frame_count > 0 && native_ad0_sound_busy(&f.app, 8, &busy) == 0 && busy == 1,
+              "every solution gesture must play its real named clip through the production callbacks");
+        CHECK(f.render_audio(256u) && f.tick(500u), "real solution key completes its original release deadline");
+        CHECK(f.object()->pressed == 0u && live_audio_get_channel_info(f.app.live_audio, 8, &sound) == LIVE_AUDIO_OK &&
+              sound.loaded == 0u && f.flags[2013] == 0 && phase2_dispatches == 0u,
+              "each real key stop unloads sound without prematurely applying the solved block");
+    }
+    CHECK(f.object()->solved == 1u && f.object()->state == D0_STATE_START_WIN,
+          "real last-L-key comparison in the render callback starts win flow");
+    CHECK(f.tick(0) && f.object()->state == D0_STATE_WAIT_WIN,
+          "solved handler starts its real one-second wait");
+    CHECK(f.tick(999u) && f.object()->state == D0_STATE_WAIT_WIN && f.flags[2013] == 0 && transition_target == -1,
+          "delay gate must keep phase1 and the flag/transition unchanged before expiry");
+    SceneActionRuntimeState row{};
+    CHECK(scene_session_get_action_state(f.app.session, f.row, &row) == SCENE_SESSION_OK && row.phase == 1u,
+          "real solved row remains phase1 during the delay");
+    CHECK(f.tick(1u) && scene_session_get_action_state(f.app.session, f.row, &row) == SCENE_SESSION_OK &&
+          row.phase == 2u && row.completed == 0u && f.flags[2013] == 0,
+          "NO SOUND branch advances to phase2 only when the original delay expires");
+    LiveAudioChannelInfo win{};
+    CHECK(live_audio_get_channel_info(f.app.live_audio, 9, &win) == LIVE_AUDIO_OK && win.loaded == 0u,
+          "silent installed win branch must not fabricate a loaded win clip");
+    CHECK(f.tick(0) && scene_session_get_action_state(f.app.session, f.row, &row) == SCENE_SESSION_OK &&
+          row.completed == 1u && phase2_dispatches == 1u && transition_target == 3396 && f.flags[2013] == 1 &&
+          f.object()->active == 0 && session_ad0_registered(f.app.ad0) == 0u,
+          "phase2 must apply the actual solved transition/flag once and clean the piano surface/slot");
+    std::printf("PIANO_AUDIO_SOLVE keys=%d silent_win=1 delay_ms=1000 target=%d flag2013=%d completed=%u muted_frames=%llu\n",
+                length, transition_target, f.flags[2013], row.completed, static_cast<unsigned long long>(f.muted_frames));
+    return 0;
+}
+static int audio_shared(PianoFixture &f)
+{
+    CHECK(f.hover(0x203u) && f.release(), "shared-channel case starts with a real piano press");
+    const uint8_t *body = f.action().typed_body;
+    std::vector<uint8_t> descriptor(body + 0x715u, body + 0x715u + PUZZLE_SOUND_RECORD_BYTES);
+    std::memset(descriptor.data(), 0, 33u);
+    const char absent[] = "NATIVE10_MISSING_RESOURCE";
+    std::memcpy(descriptor.data(), absent, sizeof(absent));
+    CHECK(native_ad0_sound_prepare(&f.app, descriptor.data()) == 0, "missing descriptor is an honest no-resource result");
+    LiveAudioChannelInfo channel{};
+    int32_t busy = -1;
+    CHECK(live_audio_get_channel_info(f.app.live_audio, 8, &channel) == LIVE_AUDIO_OK && channel.loaded == 0u &&
+          native_ad0_sound_play(&f.app, 8) == 0 && native_ad0_sound_busy(&f.app, 8, &busy) == 0 && busy == 0,
+          "missing resource must revoke stale cached playback eligibility and remain idle");
+    /* External provider changes model another channel owner, not puzzle
+     * state. The app must refresh eligibility before play and before busy. */
+    ActionSoundAudioCommand command{};
+    std::memcpy(command.asset_stem, body + 0x337u + 0x42u, 33u); /* real Boat_B */
+    command.channel = 8; command.volume_category = 2; command.mode = 1; command.control_word = 1;
+    command.first_percent = 100; command.second_percent = 100;
+    command.first_gain = 1; command.second_gain = 1; command.transition_scene = 9999;
+    CHECK(live_audio_load_sound(f.app.live_audio, &command) == ACTION_SOUND_BACKEND_OK &&
+          native_ad0_sound_play(&f.app, 8) == 0 && native_ad0_sound_busy(&f.app, 8, &busy) == 0 && busy == 1,
+          "authoritative external load must become playable despite the D0 cache's prior miss");
+    CHECK(f.render_audio(256u), "shared-channel rendering stays finite and muted");
+    CHECK(live_audio_unload_sound(f.app.live_audio, 8) == ACTION_SOUND_BACKEND_OK &&
+          native_ad0_sound_play(&f.app, 8) == 0 && native_ad0_sound_busy(&f.app, 8, &busy) == 0 && busy == 0,
+          "authoritative external unload must revoke the stale D0 prepared state");
+    std::printf("PIANO_AUDIO_SHARED missing_idle=1 external_load_busy=1 external_unload_idle=1 muted_frames=%llu\n",
+                static_cast<unsigned long long>(f.muted_frames));
+    return 0;
+}
 static int metadata(PianoFixture &f)
 {
     std::printf("PIANO_METADATA row=%zu count=%d key0=%d,%d,%d,%d exit=%d,%d,%d,%d key_window=%d,%d exit_window=%d,%d target=%d kinds=%d,%d\n",
@@ -408,6 +584,27 @@ static int metadata(PianoFixture &f)
                 (f.value(0x203u) + f.value(0x20bu)) / 2 + 10, (f.value(0x207u) + f.value(0x20fu)) / 2 + 10,
                 (f.value(0x7abu) + f.value(0x7b3u)) / 2 + 10, (f.value(0x7afu) + f.value(0x7b7u)) / 2 + 10,
                 f.word(0x792u), f.word(0x2f3u), f.word(0x305u));
+    std::printf("PIANO_SOLUTION length=%d keys=", f.word(0x317u));
+    for (int i = 0; i < f.word(0x317u); ++i) std::printf("%s%d", i == 0 ? "" : ",", f.word(0x319u + static_cast<size_t>(i) * 2u));
+    std::printf("\n");
+    for (int key = 0; key < f.word(0x21u); ++key) {
+        const size_t rect = 0x203u + static_cast<size_t>(key) * 16u;
+        std::printf("PIANO_KEY_METADATA key=%d window=%d,%d sound=%.*s\n", key,
+                    (f.value(rect) + f.value(rect + 8u)) / 2 + 10,
+                    (f.value(rect + 4u) + f.value(rect + 12u)) / 2 + 10,
+                    33, reinterpret_cast<const char *>(f.action().typed_body + 0x337u + static_cast<size_t>(key) * 0x42u));
+    }
+    for (size_t offset : {0x715u, 0x761u})
+        std::printf("PIANO_DESCRIPTOR kind=%s name=%.*s channel=%d flags=%d loop=%d unused=%d control=%d gain=%d,%d\n",
+                    offset == 0x715u ? "key" : "win", 33, reinterpret_cast<const char *>(f.action().typed_body + offset),
+                    f.word(offset + 0x21u), f.word(offset + 0x23u), f.word(offset + 0x25u), f.word(offset + 0x27u),
+                    f.value(offset + 0x29u), f.word(offset + 0x2du), f.word(offset + 0x2fu));
+    for (size_t offset : {0x746u, 0x792u})
+        std::printf("PIANO_BLOCK kind=%s target=%d words=%d,%d,%d dwords=%d,%d,%d start=%d flag=%d value=%u\n",
+                    offset == 0x746u ? "solved" : "exit", f.word(offset), f.word(offset + 2u), f.word(offset + 4u), f.word(offset + 6u),
+                    f.value(offset + 8u), f.value(offset + 12u), f.value(offset + 16u), f.word(offset + 20u), f.word(offset + 22u),
+                    f.action().typed_body[offset + 24u]);
+    std::printf("PIANO_DELAY seconds=%d\n", f.word(0x75fu));
     return 0;
 }
 static void fixture_signal(int number)
@@ -429,8 +626,14 @@ int main(int argc, char **argv)
         if (std::strcmp(kind, "guards") == 0 || std::strcmp(kind, "owners") == 0 || std::strcmp(kind, "ui") == 0)
             return restricted(argv[2], kind);
         PianoFixture f;
-        if (std::strcmp(kind, "metadata") == 0) { CHECK(f.load(argv[2]), "metadata scene loads"); return metadata(f); }
-        CHECK(f.initialize(argv[2]), "real S3395 fixture initializes");
+        if (std::strcmp(kind, "metadata") == 0 || std::strcmp(kind, "metadata3394") == 0) {
+            CHECK(f.load(argv[2], std::strcmp(kind, "metadata3394") == 0 ? 3394 : 3395), "metadata scene loads"); return metadata(f);
+        }
+        CHECK(f.initialize(argv[2], nullptr, std::strncmp(kind, "audio-", 6) == 0), "real S3395 fixture initializes");
+        if (std::strcmp(kind, "audio-key") == 0) return audio_key(f);
+        if (std::strcmp(kind, "audio-natural") == 0) return audio_natural_completion(f);
+        if (std::strcmp(kind, "audio-solve") == 0) return audio_solve(f);
+        if (std::strcmp(kind, "audio-shared") == 0) return audio_shared(f);
         if (std::strcmp(kind, "key") == 0) return key_press(f);
         if (std::strcmp(kind, "exit") == 0) return exit_piano(f);
         if (std::strcmp(kind, "retained") == 0) return retained_release(f);
