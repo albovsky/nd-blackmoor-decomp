@@ -273,6 +273,7 @@ static int key_press(PianoFixture &f)
           "piano hit must precede a conflicting generic hotspot");
     CHECK(f.app.nav_cursor.variant == 1 && f.app.nav_cursor.index == 18, "key publishes original cursor cells");
     const D0Object before = *f.object();
+    CHECK(f.app.start_flag_5bb1ca == 1, "phase0 store_world must enable the key sound branch");
     CHECK(f.release(), "real release succeeds");
     const D0Object *after = f.object();
     const int length = f.word(0x317u);
@@ -282,8 +283,12 @@ static int key_press(PianoFixture &f)
           "accepted key release must press key0 and shift the real sequence");
     CHECK(result.consume_status == SESSION_INPUT_OK && result.scan_status == SESSION_INPUT_OK,
           "sole piano scope admits guarded input");
-    CHECK(f.tick(500u) && f.object()->pressed == 0u && f.object()->state == D0_STATE_IDLE,
-          "key releases after its real deadline with the sound sink");
+    CHECK(after->deadline == f.app.session_tick_sample + 500u,
+          "key sound branch must set the original 500ms deadline");
+    CHECK(f.tick(499u) && f.object()->pressed == 1u && f.object()->state == D0_STATE_RELEASE,
+          "key must stay pressed before its deadline");
+    CHECK(f.tick(1u) && f.object()->pressed == 0u && f.object()->state == D0_STATE_IDLE,
+          "key releases at its real deadline with the sound sink");
     std::printf("PIANO_PRESS last=%d order_last=%d released=%d\n", after->last, after->order[length - 1], after->pressed == 0u);
     return 0;
 }

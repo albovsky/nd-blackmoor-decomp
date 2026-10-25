@@ -11758,7 +11758,7 @@ static bool bind_native_pointer(NativeApp *app)
     const ProvisionalCursorProvider &c = app->cursor_provider;
     const bool clear = c.guard_5b5158 == 0 && c.guard_5b61af == 0 && c.guard_5b615e == 0 &&
                        (app->nav_members_idle || native_d1_pointer_scope(app) || native_a1c_pointer_scope(app) ||
-                        native_aaa_pointer_scope(app));
+                        native_aaa_pointer_scope(app) || native_ad0_pointer_scope(app));
     record(app, "pointer_provider provisional sprite=%dx%d hot=%d,%d scroll=%d "
            "guards[5b5158,5b61af,5b615e]=%u,%u,%u cascade_members_idle=%d priority_clear=%d "
            "excluded=-1,-1 reason=cursor-sprite-size/hot-point/scroll-unrecovered "
