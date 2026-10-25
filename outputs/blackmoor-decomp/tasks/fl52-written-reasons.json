@@ -51,48 +51,6 @@
     "review": "Re-derived: old ecx is sign-extension of the same word reloaded at line 39 (no store between), so old bit 0 equals new bit 0; mask 0xffff0001 only ORs an identical bit and keeps bits 16-31 like the original."
    }
   ],
-  "0x489722": [
-   {
-    "kind": "alu",
-    "line": 26,
-    "ident": "57899e1e",
-    "statement": "    { uint32_t a_ = RD32((uint32_t)(eax + 0xab2u)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x489761: cmp dword ptr [eax + 0xab2], 0 */",
-    "reason": "cmp [eax+0xab2],0 at 0x489761 computes a-0; the mutant computes a+0. Both results equal a, so zf is the same. The only consumer before the flags are rewritten (by imul at 0x489777/cmp at 0x48977d, or by the cmp at 0x489743 after the jump to 0x4897c4) is je at 0x489768, which reads zf only; cf/of/sf/pf differences are never observed.",
-    "review": "With b=0 the macros give identical flags for SUB and ADD: res=a, cf=0 (a<0 false vs no carry), of=0, and zf/sf/pf from a (no af modeled), so every flag matches, not just zf. The mutant still performs the same RD32."
-   },
-   {
-    "kind": "jump",
-    "line": 27,
-    "ident": "fa1c24d0",
-    "statement": "    if (zf) goto L_4897c4;  /* 0x489768: je 0x4897c4 */",
-    "reason": "The je at 0x489768 follows cmp dword [eax+0xab2],0 at 0x489761, which subtracts 0 with no borrow: cf = (a < 0) = 0 for every a. So (cf || zf) equals zf, the original condition, and no instruction sets flags between 0x489761 and 0x489768.",
-    "review": "Flags at 0x489768 come directly from the cmp [eax+0xab2],0 at line 26 (FL41_SUB with b=0, borrow 0), where cf = (a < 0) as unsigned = 0 always; so (cf||zf) == zf."
-   },
-   {
-    "kind": "drop",
-    "line": 35,
-    "ident": "055ab31f",
-    "statement": "    edx = RD32((uint32_t)(ecx + 0x1cu));  /* 0x489789: mov edx, dword ptr [ecx + 0x1c] */",
-    "reason": "edx at 0x48976d was loaded from [ecx+0x1c] with ecx = [ebp-8]. Between 0x48976d and 0x489789 edx is not written (only eax changes at 0x489770, 0x489777) and there are no stores, so [ebp-8] and [this+0x1c] are unchanged; the reloaded ecx at 0x489786 is the same this value, so 0x489789 loads the same value into edx that it already holds. The load at 0x48978c uses edx and gets the identical value.",
-    "review": "Line 29 sets edx=[ecx+0x1c] with ecx=[ebp-8]; lines 30-33 write only eax and flags and do no stores, and line 34 reloads the same [ebp-8], so the dropped load would re-read the same, unmodified dword (only way to line 35 is fallthrough from 34). edx is reloaded at 0x489740 on every later path and the exit edx comes from line 16."
-   },
-   {
-    "kind": "drop",
-    "line": 40,
-    "ident": "79fed917",
-    "statement": "    edx = RD32((uint32_t)(ecx + 0x1cu));  /* 0x48979b: mov edx, dword ptr [ecx + 0x1c] */",
-    "reason": "edx at 0x489789 holds [ecx+0x1c] with ecx = [ebp-8]. Between 0x489789 and 0x48979b the instructions are loads (0x48978c, 0x489798), a cmp and a je: no stores, edx is not written (only eax). The reloaded ecx at 0x489798 equals the same [ebp-8], so the load at 0x48979b would read the same dword into edx; dropping it leaves edx with the same value for the use at 0x48979e.",
-    "review": "Between the edx load at line 35 and line 40 there are only eax writes, loads, a cmp and a je (no stores), and line 39 reloads the same [ebp-8], so line 40 would load the identical dword already in edx. No label enters between, and edx is overwritten at 0x489740 before any later use."
-   },
-   {
-    "kind": "drop",
-    "line": 45,
-    "ident": "f6bb6290",
-    "statement": "    edx = RD32((uint32_t)(ecx + 0x1cu));  /* 0x4897ad: mov edx, dword ptr [ecx + 0x1c] */",
-    "reason": "edx at 0x48979b holds [ecx+0x1c] with ecx = [ebp-8]. From 0x48979b to 0x4897ad the instructions are loads (0x48979e, 0x4897aa), a cmp and a je, so there are no stores and edx is not written (only eax). The ecx reloaded at 0x4897aa is the same [ebp-8], so the load at 0x4897ad would give the same edx that it already holds; the use at 0x4897b0 sees an identical value. edx is dead afterwards (reloaded at 0x489740 or the loop exit uses the value loaded there).",
-    "review": "edx holds [ecx+0x1c] from line 40 and lines 41-44 only write eax and flags, with no stores; line 44 reloads the same [ebp-8], so the dropped load is redundant and the use at 0x4897b0 sees the same edx. After 0x4897ba the flow goes to the loop head, which reloads edx at 0x489740."
-   }
-  ],
   "0x48e776": [
    {
     "kind": "width",
@@ -149,74 +107,6 @@
     "statement": "    edx = RD32((uint32_t)(0x5b44f4u));  /* 0x48e822: mov edx, dword ptr [0x5b44f4] */",
     "reason": "The dword at 0x5b44f4 was written with 1 by the store at 0x48e80f, and the only instructions between it and the read at 0x48e822 are loads and a shift (0x48e819, 0x48e81f), so there is no intervening store; the earlier stores 0x48e7fb and 0x48e80a do not overlap bytes 0x5b44f4..0x5b44f7. RD32 and RD16 both return 1 (upper half zero), edx is identical.",
     "review": "Re-derived: line 35 stores dword 1 to 0x5b44f4, with only a load and shift (lines 36-37) before the read at line 38; earlier stores at 0x5b44f0..f3 and 0x5d162d..30 do not overlap, so both widths read 1."
-   }
-  ],
-  "0x4959ea": [
-   {
-    "kind": "jump",
-    "line": 30,
-    "ident": "b0444fd4",
-    "statement": "    if (!zf) goto L_495a3d;  /* 0x495a37: jne 0x495a3d */",
-    "reason": "The condition at 0x495a37 follows cmp dword [edx], 0 at 0x495a34, i.e. FL41_SUB(a_, 0, 0): cf = (a_ < 0 + 0) as unsigned, which is always 0 since 0 is the smallest unsigned value. So !cf is always true and (!cf && !zf) equals !zf; no instruction between 0x495a34 and 0x495a37 touches flags. Uses no callee or data.",
-    "review": "Re-derived from FL41_SUB: cf = (uint64)a < (uint64)b + c with b=0, c=0 is always 0, and lines 29-30 are a cmp immediately followed by the jump with nothing touching flags, so (!cf && !zf) == !zf for all inputs."
-   },
-   {
-    "kind": "jump",
-    "line": 36,
-    "ident": "d8b9687a",
-    "statement": "    if (zf) goto L_495a4d;  /* 0x495a44: je 0x495a4d */",
-    "reason": "The je at 0x495a44 follows cmp dword [eax+0xc], 0 at 0x495a40, i.e. FL41_SUB(a_, 0, 0), where cf = (a_ < 0) as unsigned is always 0. So (cf || zf) equals zf; no flag-changing instruction lies between 0x495a40 and 0x495a44. No callee or data value is used.",
-    "review": "Re-derived from FL41_SUB: the cmp at line 35 subtracts 0 so cf is always 0, and the je at line 36 directly follows it, so (cf || zf) == zf for all inputs."
-   }
-  ],
-  "0x4adae8": [
-   {
-    "kind": "width",
-    "line": 26,
-    "ident": "0ccd444f",
-    "statement": "    ecx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x4adb28: mov ecx, dword ptr [ebp - 4] */",
-    "reason": "Slot [ebp-4] gets its low byte from the byte store at 0x4adb25. The dword/word read at 0x4adb28 both include that byte as the lowest-addressed (low) byte, and the very next instruction 0x4adb2b does and ecx,0xff, which discards every other byte. So ecx after 0x4adb2b (and the flags set by it and by test at 0x4adb31) is the same for RD32 and RD16, whatever the other bytes of [ebp-4] hold.",
-    "review": "Low byte of [ebp-4] is written at 0x4adb25 and is the lowest-addressed byte of both the RD16 and RD32 at 0x4adb28; 0x4adb2b and ecx,0xff keeps only it, so ecx and all flags (LOGIC sets cf,of,zf,sf,pf from the masked value) are identical. Uses assumption (a) only."
-   },
-   {
-    "kind": "alu",
-    "line": 28,
-    "ident": "b004d021",
-    "statement": "    { uint32_t a_ = ecx, b_ = ecx, r_; r_ = a_ & b_; FL41_LOGIC(r_, 32); }  /* 0x4adb31: test ecx, ecx */",
-    "reason": "test ecx,ecx at 0x4adb31 computes ecx & ecx; the mutant computes ecx | ecx. Both operands are the same register, so both results equal ecx and FL41_LOGIC derives identical flags (cf=of=0, zf, sf, pf from the same value). Nothing else differs.",
-    "review": "Both operands are ecx so a&b == a|b == ecx; FL41_LOGIC takes only the result (cf=of=0, zf/sf/pf from it), so every flag and ecx is identical."
-   },
-   {
-    "kind": "drop",
-    "line": 28,
-    "ident": "418d5233",
-    "statement": "    { uint32_t a_ = ecx, b_ = ecx, r_; r_ = a_ & b_; FL41_LOGIC(r_, 32); }  /* 0x4adb31: test ecx, ecx */",
-    "reason": "The instruction before it, and ecx,0xff at 0x4adb2b, already set zf/sf/pf from the result now in ecx and clear cf/of; test ecx,ecx at 0x4adb31 computes ecx&ecx = ecx with ecx unchanged in between, so it sets exactly the same flags. The only consumer is jne at 0x4adb33 (zf); later flag users 0x4adb3a and 0x4adb48 overwrite flags first. Dropping it changes nothing.",
-    "review": "Line 27 and ecx,0xff sets cf=of=0 and zf/sf/pf from ecx via FL41_LOGIC, and line 28 recomputes the identical values from the unchanged ecx (no af flag modeled), so the flag state is identical for the jne at 0x4adb33. Both successors (0x4adb37 and dl, 0x4adb06 add) overwrite all flags."
-   },
-   {
-    "kind": "jump",
-    "line": 29,
-    "ident": "b39ab6b7",
-    "statement": "    if (!zf) goto L_4adb37;  /* 0x4adb33: jne 0x4adb37 */",
-    "reason": "Flags at 0x4adb33 come from test ecx,ecx at 0x4adb31 where ecx = x & 0xff (0x4adb2b), so ecx <= 0xff: sf = bit31 = 0 and test clears of, hence sf == of always holds. The mutant condition (!zf && sf==of) therefore equals !zf, the original.",
-    "review": "ecx = x & 0xff so bit 31 is 0 and FL41_LOGIC sets sf=0 and of=0, hence sf==of always and (!zf && sf==of) equals !zf. No instruction sets flags between 0x4adb31 and 0x4adb33."
-   },
-   {
-    "kind": "literal",
-    "line": 33,
-    "ident": "0f7eeb9f",
-    "statement": "    { uint32_t a_ = (edx & 0xffu), b_ = 0x7fu, r_; r_ = a_ & b_; FL41_LOGIC(r_, 8); edx = (edx & 0xffffff00u) | ((r_) & 0xffu); }  /* 0x4adb3a: and dl, 0x7f */",
-    "reason": "At 0x4adb3a the new low byte of edx is r = (dl & 0x7f). The mutant additionally preserves bit 0 of the old edx via mask 0xffffff01. Bit 0 of r equals bit 0 of dl (0x7f has bit 0 set), so OR-ing old bit 0 into the result changes nothing in the low byte; bits 1..7 and the upper 24 bits are identical. edx is only used as dl at the store 0x4adb3d and then never read again before the return.",
-    "review": "Line 32 sets the low byte of edx to dl, so old edx bit 0 equals dl bit 0, and r = dl & 0x7f has bit 0 equal to dl bit 0; mask 0xffffff01 therefore ORs in an identical bit 0, and bits 1..7 and the upper 24 bits are the same. Resulting edx and flags (computed from r_ only) are identical."
-   },
-   {
-    "kind": "width",
-    "line": 35,
-    "ident": "af9c6b93",
-    "statement": "    eax = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x4adb40: mov eax, dword ptr [ebp - 4] */",
-    "reason": "Slot [ebp-4] has its low byte written by the byte store at 0x4adb3d. The read at 0x4adb40 (32-bit vs 16-bit) both contain that byte as the low byte, and 0x4adb43 does and eax,0xff, which discards the rest; the cmp at 0x4adb48 and everything after use only the low byte. So eax and the flags are identical.",
-    "review": "Byte store at 0x4adb3d writes the low byte of [ebp-4], which is the low byte of both the RD16 and RD32 at 0x4adb40; and eax,0xff at 0x4adb43 discards the rest, so eax and the cmp/je flags are identical. Uses assumption (a) only."
    }
   ],
   "0x4af96e": [
