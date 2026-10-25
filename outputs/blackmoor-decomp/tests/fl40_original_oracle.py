@@ -7,8 +7,8 @@ returns scripted values, stores scripted bytes through its pointer arguments, po
 Nothing inside a function under test is patched; every compare, jump, index computation and store of the bodies runs as original instructions.
 
 Prints one line per function:  0x<va> instructions <executed>/<total> branch-directions <taken>/<total> scenarios <n> digest <sha256 of everything compared, over
-all scenarios>. Exits 0 only when every instruction of every function was executed and both directions of every conditional jump were taken (there is no
-allowlist: a row with an untaken direction is not in the corpus). No original bytes or memory dumps are printed. Run from outputs/blackmoor-decomp:
+all scenarios>. Exits 0 only when every instruction of every function was executed and both directions of every conditional jump were taken, except the
+directions a corpus row lists as `untaken_ok` (FL-56: no input can take them; each has a reviewed reason in tasks/fl56-untaken-reasons.json). No original bytes or memory dumps are printed. Run from outputs/blackmoor-decomp:
 python3 tests/fl40_original_oracle.py
 """
 import hashlib
@@ -62,7 +62,8 @@ def main():
                     untaken.append((hex(address), name))
         print('%s instructions %d/%d branch-directions %d/%d scenarios %d digest %s' % (key, len(total) - len(missing), len(total), taken, directions,
                                                                                         len(c['seeds']), chain.hexdigest()))
-        if missing or untaken:
+        allowed = [tuple(x) for x in c.get('untaken_ok', [])]      # FL-56: directions no input can take (tasks/fl56-untaken-reasons.json)
+        if missing or sorted(untaken) != sorted(allowed):
             print('  never executed: %s; untaken: %s' % (' '.join(hex(a) for a in missing[:16]), untaken[:8]), file=sys.stderr)
             status = 1
     return status

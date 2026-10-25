@@ -1967,78 +1967,6 @@
    ]
   ]
  },
- "0x41f5b1": {
-  "directions": [
-   27,
-   28
-  ],
-  "faults": 531,
-  "instructions": [
-   249,
-   249
-  ],
-  "missing": [],
-  "seeds": [
-   [
-    0,
-    []
-   ],
-   [
-    2,
-    []
-   ],
-   [
-    3,
-    []
-   ],
-   [
-    16,
-    []
-   ],
-   [
-    20,
-    []
-   ],
-   [
-    22,
-    []
-   ]
-  ],
-  "status": "incomplete",
-  "tried": 1355,
-  "untaken": [
-   [
-    "0x41f5f2",
-    "taken"
-   ]
-  ]
- },
- "0x4230d1": {
-  "directions": [
-   5,
-   6
-  ],
-  "faults": 0,
-  "instructions": [
-   37,
-   37
-  ],
-  "missing": [],
-  "seeds": [
-   [
-    0,
-    []
-   ]
-  ],
-  "status": "incomplete",
-  "tried": 1989,
-  "untaken": [
-   [
-    "0x42311f",
-    "taken"
-   ]
-  ]
- },
  "0x424aa8": {
   "directions": [
    38,
@@ -5386,40 +5314,6 @@
    [
     "0x43378f",
     "fall-through"
-   ]
-  ]
- },
- "0x433eaa": {
-  "directions": [
-   7,
-   8
-  ],
-  "faults": 827,
-  "instructions": [
-   102,
-   102
-  ],
-  "missing": [],
-  "seeds": [
-   [
-    3,
-    []
-   ],
-   [
-    10,
-    []
-   ],
-   [
-    60166,
-    []
-   ]
-  ],
-  "status": "incomplete",
-  "tried": 1154,
-  "untaken": [
-   [
-    "0x433ee1",
-    "taken"
    ]
   ]
  },
@@ -18801,60 +18695,6 @@
    ],
    [
     "0x46f025",
-    "taken"
-   ]
-  ]
- },
- "0x46f4b0": {
-  "directions": [
-   17,
-   20
-  ],
-  "faults": 58,
-  "instructions": [
-   145,
-   145
-  ],
-  "missing": [],
-  "seeds": [
-   [
-    0,
-    []
-   ],
-   [
-    5,
-    []
-   ],
-   [
-    8,
-    []
-   ],
-   [
-    16,
-    []
-   ],
-   [
-    24,
-    []
-   ],
-   [
-    27,
-    []
-   ]
-  ],
-  "status": "incomplete",
-  "tried": 1241,
-  "untaken": [
-   [
-    "0x46f540",
-    "taken"
-   ],
-   [
-    "0x46f5d2",
-    "taken"
-   ],
-   [
-    "0x46f636",
     "taken"
    ]
   ]
