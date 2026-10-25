@@ -1,0 +1,12 @@
+{
+ "failed": {
+  "0x4d8dca": {
+   "detail": "hang: the run did not return within the row budget (recursive row: the translation calls its own entry through the host)",
+   "status": "mismatch"
+  }
+ },
+ "refused": {
+  "0x50ed50": "callee 0x50eee8 is not a ledger function and has no ret within 400 bytes",
+  "0x50fa90": "jump table without a bound at 0x50fadd"
+ }
+}
