@@ -2196,10 +2196,6 @@
   "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
   "status": "mutation check not run"
  },
- "0x489722": {
-  "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
-  "status": "mutation check not run"
- },
  "0x48a3db": {
   "directions": [
    11,
@@ -3487,10 +3483,6 @@
    ]
   ]
  },
- "0x4959ea": {
-  "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
-  "status": "mutation check not run"
- },
  "0x49d1be": {
   "detail": "exhaustive check (FL-48: tasks/fl48-merged-e.txt, tasks/fl48-budget2-log-*.txt, tasks/fl48-survivors-final.json): a surviving mutant is neither identical -O2 code, a proven no-op nor covered by a reviewed written reason",
   "status": "mutation survivor"
@@ -3585,10 +3577,6 @@
   "status": "mutation check not run"
  },
  "0x4a0bbd": {
-  "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
-  "status": "mutation check not run"
- },
- "0x4a0cea": {
   "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
   "status": "mutation check not run"
  },

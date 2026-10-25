@@ -1,0 +1,2 @@
+0x489722 mutants killed by the step budget [('width', 11, 'eccedaa5'), ('width', 16, 'b3a482be')]
+0x489722 mutants 2 killed 2 survivors []

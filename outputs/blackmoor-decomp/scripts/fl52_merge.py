@@ -5,7 +5,7 @@ A mutant that the normal run lists under 'killed by a hang or crash' is NOT kill
 unmutated translation agrees with the original) can kill it. The merged line of the row lists as survivors (label 'survives') the normal run's 'survives' entries and the budget rerun's
 survivors; it fails when the budget log does not account for every hang-listed mutant of the normal log (each must be either killed by the budget or a budget survivor).
 
-  fl52_merge.py OUT.txt NORMAL.txt[:BUDGET.txt] [NORMAL.txt[:BUDGET.txt] ...]       (run from outputs/blackmoor-decomp)
+  fl52_merge.py OUT.txt NORMAL.txt[:BUDGET.txt[+BUDGET2.txt]] [NORMAL.txt[:BUDGET.txt] ...]      (BUDGET2: a rerun of the budget survivors with a longer safety alarm)       (run from outputs/blackmoor-decomp)
 
 A normal log without a budget log must have no hang-listed mutant."""
 import ast
@@ -45,6 +45,10 @@ def parse(path):
     return row, n, hangs or [], budgets or [], surv
 
 
+def bsurv_all(budget):
+    return [x for blog in budget.split('+') for x in parse(blog)[4]]
+
+
 def main():
     out = []
     for arg in sys.argv[2:]:
@@ -55,15 +59,18 @@ def main():
         if hang_idents:
             if not budget:
                 raise SystemExit('%s: %d hang-listed mutants and no budget log' % (row, len(hang_idents)))
-            brow, _, _, bbud, bsurv = parse(budget)
-            if brow != row:
-                raise SystemExit('%s: budget log is for %s' % (row, brow))
-            killed = {b[2] for b in bbud}
-            alive = {s[3] for s in bsurv}
+            killed, alive_all = set(), set()
+            for blog in budget.split('+'):
+                brow, _, _, bbud, bsurv = parse(blog)
+                if brow != row:
+                    raise SystemExit('%s: budget log is for %s' % (row, brow))
+                killed |= {b[2] for b in bbud}
+                alive_all |= {s[3] for s in bsurv}
+            alive = alive_all - killed          # a later budget log (a longer safety alarm) may kill what an earlier one left alive
             missing = hang_idents - killed - alive
             if missing:
                 raise SystemExit('%s: the budget log accounts for neither kill nor survivor of %s' % (row, sorted(missing)))
-            merged += [(s[0], s[1], 'survives', s[3]) for s in bsurv if s[3] in hang_idents]
+            merged += [(s[0], s[1], 'survives', s[3]) for s in {x[3]: x for x in bsurv_all(budget)}.values() if s[3] in hang_idents and s[3] in alive]
         out.append('%s mutants %d killed %d survivors %r' % (row, n, n - len(merged), merged))
         print(row, 'survivors', len(merged), 'hang-listed', len(hang_idents))
     Path(sys.argv[1]).write_text('\n'.join(out) + '\n')

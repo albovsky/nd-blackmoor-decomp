@@ -3,8 +3,8 @@
   - every reason in tasks/fl52-written-reasons.json names a statement that is still, character for character, on its line of the translation in src/original_methods_fl41.c, is long
     enough to say something (80+ characters), carries the independent reviewer's note, and cites only instruction addresses inside the function that the translation has;
   - a reason names a mutant (`ident`, the hash the mutation logs use) that the mutation operators still produce on that line;
-  - the merged final log of the credited rows (tasks/fl52/final1/merged.txt: the normal runs with the step-budget survivors added, scripts/fl52_merge.py) has every survivor classified
-    in tasks/fl52/final1/surv.json (identical -O2 code, a proven no-op, a range rule or a written reason): no unexplained row; and each credited row is in the log.
+  - the merged final log of the credited rows (tasks/fl52/final2/merged.txt: the normal runs with the step-budget survivors added, scripts/fl52_merge.py) has every survivor classified
+    in tasks/fl52/final2/surv.json (identical -O2 code, a proven no-op, a range rule or a written reason): no unexplained row; and each credited row is in the log.
 """
 import json
 from pathlib import Path
@@ -18,7 +18,7 @@ PROJECT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT / 'tests'))
 import fl41_mutation_check as M
 
-CREDITED = ('0x488da5', '0x48e776', '0x48e9bf', '0x4a6bde', '0x4af96e')
+CREDITED = ('0x488da5', '0x489722', '0x48e776', '0x48e9bf', '0x4959ea', '0x4a0cea', '0x4a6bde', '0x4af96e')
 
 
 class WrittenReasons(unittest.TestCase):
@@ -56,8 +56,8 @@ class WrittenReasons(unittest.TestCase):
 class FinalLog(unittest.TestCase):
     def test_credited_rows_are_in_the_translated_set_and_fully_explained(self):
         rows = set(M.split_functions((PROJECT / 'src/original_methods_fl41.c').read_text()))
-        surv = json.loads((PROJECT / 'tasks/fl52/final1/surv.json').read_text())
-        log = (PROJECT / 'tasks/fl52/final1/merged.txt').read_text()
+        surv = json.loads((PROJECT / 'tasks/fl52/final2/surv.json').read_text())
+        log = (PROJECT / 'tasks/fl52/final2/merged.txt').read_text()
         for row in CREDITED:
             self.assertIn(row, rows)
             self.assertRegex(log, r'(?m)^%s mutants \d+' % row)
@@ -67,17 +67,21 @@ class FinalLog(unittest.TestCase):
         """every hang-listed mutant of a credited row is either killed by the step budget or a budget survivor that the classification explains"""
         sys.path.insert(0, str(PROJECT / 'scripts'))
         import fl52_merge
-        logs = {'0x4a6bde': ('mut3', 'budget3'), '0x48e9bf': ('mut3', 'budget3'), '0x4af96e': ('p-mut', 'p-bud'), '0x48e776': ('mut3', None), '0x488da5': ('mut', None)}
-        surv = json.loads((PROJECT / 'tasks/fl52/final1/surv.json').read_text())
-        for row, (normal, budget) in logs.items():
+        logs = {'0x4a6bde': ('mut3', ['budget3']), '0x48e9bf': ('mut3', ['budget3']), '0x4af96e': ('p-mut', ['p-bud']), '0x48e776': ('mut3', []), '0x488da5': ('mut', []),
+                '0x4959ea': ('p3-mut', ['p3-bud', 'p3-bud2']), '0x489722': ('p2-mut', ['p2-bud', 'p2-bud2']), '0x4a0cea': ('p2-mut', ['p2-bud', 'p2-bud2'])}
+        surv = json.loads((PROJECT / 'tasks/fl52/final2/surv.json').read_text())
+        for row, (normal, budgets) in logs.items():
             _, _, hangs, _, _ = fl52_merge.parse(PROJECT / 'tasks/fl52' / ('%s-%s.txt' % (normal, row)))
             idents = {h[2] for h in hangs}
             if not idents:
-                self.assertIsNone(budget, row)
+                self.assertEqual(budgets, [], row)
                 continue
-            _, _, _, killed, alive = fl52_merge.parse(PROJECT / 'tasks/fl52' / ('%s-%s.txt' % (budget, row)))
-            killed = {k[2] for k in killed}
-            alive = {a[3] for a in alive}
+            killed, alive = set(), set()
+            for budget in budgets:
+                _, _, _, k, a = fl52_merge.parse(PROJECT / 'tasks/fl52' / ('%s-%s.txt' % (budget, row)))
+                killed |= {x[2] for x in k}
+                alive |= {x[3] for x in a}
+            alive -= killed
             self.assertEqual(idents - killed - alive, set(), row)
             explained = {m[2] for m in surv['mutants'].get(row, []) if m[3] is not None}
             self.assertEqual((idents & alive) - explained, set(), row)

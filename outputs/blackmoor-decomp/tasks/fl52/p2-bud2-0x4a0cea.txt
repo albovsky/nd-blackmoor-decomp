@@ -1,0 +1,2 @@
+0x4a0cea mutants killed by the step budget [('width', 11, 'e80a4526'), ('width', 16, '6293d3e1'), ('width', 27, '733f102e'), ('width', 22, '2164ee41')]
+0x4a0cea mutants 4 killed 4 survivors []
