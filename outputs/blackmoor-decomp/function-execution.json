@@ -3,7 +3,7 @@
 "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
 "inputs": {"function_xrefs_sha256": "ee87ee8243c323d2ca1fd8b70e9a7018d60e004b3f38190810246d40e0a1f6bb"},
 "method": "Unicorn UC_HOOK_CODE after the oracle's own hooks; an instruction counts only when EIP still equals its address (instructions replaced by a Python seam are not recorded); a run counts only if its script exited 0; a function row is [code_size, [run, entry_hits, executed_bytes, hits], ...] where executed_bytes sums the distinct executed instruction sizes",
-"counts": {"functions_entered": 2196, "functions_executed": 2199, "runs": 191},
+"counts": {"functions_entered": 2199, "functions_executed": 2202, "runs": 191},
 "runs": [
 {"exit": 0, "hits": 25260, "instructions": 292, "script": "outputs/blackmoor-decomp/tests/action_core_original_oracle.py", "script_sha256": "0c63a456e42f05358cfbeb17a522fb779724436dabb304911b881a4a97e28fe7", "trace_sha256": "8adab37a6e9a65bfba6b377d64c7b8f1fd33f2c55932bae95834e5f92a3f8fc8"},
 {"exit": 0, "hits": 2002505, "instructions": 625, "script": "outputs/blackmoor-decomp/tests/action_family_0b_runtime_original_oracle.py", "script_sha256": "0cf3098a1388cefa6577c7d1f94d38f8367ff8cca85824e93b2a4226f6875015", "trace_sha256": "c48a29c6a33b60159c6551f2450edd128933cd7ad943860de658a1f01f8b3343"},
@@ -195,7 +195,7 @@
 {"exit": 0, "hits": 17746, "instructions": 790, "script": "outputs/blackmoor-decomp/tests/fl39e_original_oracle.py", "script_sha256": "7f587647bf3933e5e7529950a6ebd20cd4c60a2b8ed88f753d8e2c29a415d123", "trace_sha256": "3434607cb5397ac59e8419bd8015a013d731904326b4023b57223cd67b2f85f6"},
 {"exit": 0, "hits": 278276, "instructions": 988, "script": "outputs/blackmoor-decomp/tests/fl39f_original_oracle.py", "script_sha256": "9203de05439c7d810982cb6e3a14f0e49932c8cc75107256246c9a3694fb58c3", "trace_sha256": "7b2683d407c2ac28cb3f804f7c3d038ec5c43a071b7e8fd85ae012d3c3556a12"},
 {"exit": 0, "hits": 9308577, "instructions": 29049, "script": "outputs/blackmoor-decomp/tests/fl40_original_oracle.py", "script_sha256": "c4f454ddbf3f42364af64f61a80e85f03d3740df5a0831da2ed48b64471dfd30", "trace_sha256": "8b4be7d6b0e00ff74b5b0b6bbea5a02ad2f234ee26e8260755cebb3eed05a796"},
-{"exit": 0, "hits": 11775170, "instructions": 11818, "script": "outputs/blackmoor-decomp/tests/fl41_original_oracle.py", "script_sha256": "531fbbc14920cdab539d6af992758356a2b5f57c744981add75dadfc44c06694", "trace_sha256": "427c1e493f9296e2e5b1bf6eab2c0fce1d510e630916b8fc7472a7ad26681abe"}
+{"exit": 0, "hits": 28063457, "instructions": 11947, "script": "outputs/blackmoor-decomp/tests/fl41_original_oracle.py", "script_sha256": "cf98d77e121108978ddb5308ff063501ac25e0d3a991a2840e3a7d393ea529fb", "trace_sha256": "ccec89381914aeefbc0b7ce9f85f7ff9e98be57a2751dc56830e41369d2e7fd8"}
 ],
 "functions": {
 "0x401000": [50, [189, 1, 50, 16]],
@@ -1457,6 +1457,7 @@
 "0x48905b": [1024, [21, 441, 949, 214731], [102, 6760, 949, 3674326]],
 "0x48945b": [369, [19, 4310, 369, 939580], [20, 7240, 369, 1578320], [104, 147, 369, 32046]],
 "0x4895cc": [342, [19, 4310, 267, 3490725], [20, 7240, 267, 5847165], [152, 140, 342, 114890]],
+"0x489722": [171, [190, 7, 171, 1291923]],
 "0x4897cd": [509, [18, 71245, 502, 23746958], [20, 257324, 502, 322292842], [91, 262, 34, 3144], [92, 1412, 507, 39530], [102, 112612, 502, 120180609], [111, 10, 34, 120], [143, 332, 509, 76348]],
 "0x4899ca": [2561, [18, 50029, 2505, 37394005], [20, 29949, 1718, 10737684], [102, 52028, 2407, 7691201]],
 "0x48a3cb": [16, [175, 4, 16, 32]],
@@ -1549,6 +1550,7 @@
 "0x494ccc": [136, [190, 2, 136, 72]],
 "0x494f14": [11, [175, 2, 11, 14]],
 "0x495608": [203, [188, 28, 203, 1074]],
+"0x4959ea": [113, [190, 10, 113, 3426498]],
 "0x495a5b": [152, [186, 11, 152, 331], [190, 10, 152, 300]],
 "0x49c45c": [16, [175, 4, 16, 32]],
 "0x49c46c": [30, [186, 11, 30, 99]],
@@ -1563,6 +1565,7 @@
 "0x49d039": [389, [190, 39, 389, 1975]],
 "0x49e24d": [520, [190, 16, 520, 7582]],
 "0x4a0c7f": [107, [188, 24, 107, 29771]],
+"0x4a0cea": [137, [190, 12, 137, 11569866]],
 "0x4a1358": [179, [190, 6, 179, 251]],
 "0x4a140b": [187, [190, 8, 187, 342]],
 "0x4a1b12": [16, [187, 4, 16, 32]],
