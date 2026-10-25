@@ -27,6 +27,7 @@
 #include "session_bindings_a79.h"
 #include "session_bindings_a78.h"
 #include "inventory_view_runtime.h"
+#include "native_inventory_render.h"
 #include "inventory_examine_runtime.h"
 #include "inventory_button_runtime.h"
 #include "session_bindings_a36.h"
@@ -574,6 +575,11 @@ struct NativeApp {
      * (0x43a862) and the stand-in for --live-pick-item. */
     InventoryView inv_view{};
     InventoryViewLayout inv_layout{};
+    PuzzleSound inv_close_audio{};
+    bool inv_close_down = false, inv_close_requested = false, inv_close_pending = false;
+    int inv_close_state = 0;
+    uint32_t inv_close_deadline = 0;
+    uint64_t inv_render_signature = UINT64_MAX;
     bool inv_view_initialized = false;
     int16_t inv_kind[INVVIEW_ITEMS]{}, inv_text[INVVIEW_ITEMS]{};
     /* RT-43: the examine branch 0x4e8f0e -> 0x4ea269 (item record words +0x32 scene = inv_text, +0x34 = inv_flag782). It saves the
@@ -2113,6 +2119,7 @@ static unsigned current_left_click_count()
     return (unsigned)event.clickCount;
 }
 
+static bool native_inventory_pointer(NativeApp *app, int event_kind, unsigned button, int32_t x, int32_t y);
 static void inventory_view_pointer_event(NativeApp *app, int event_kind, int32_t x, int32_t y);
 static bool taskbar_pointer_event(NativeApp *app, int event_kind, unsigned button, int32_t x,
                                   int32_t y);
@@ -2125,6 +2132,7 @@ static void pointer(void *context, BlackmoorPointerKind kind,
     /* RT-22 follow-up: a left press on a task bar button (0x4e0978) is taken before the scene's
      * own hotspots; so is the release of that press. */
     if (taskbar_pointer_event(app, event_kind, button, x, y)) return;
+    if (native_inventory_pointer(app, event_kind, button, x, y)) return;
     /* RT-22: while the inventory screen is up (0x583204 == 3) the left click goes to
      * the view (0x43b19e -> 0x43c0aa) instead of the scene's hotspots; moves reach
      * its hover and still update the pointer. */
@@ -3455,10 +3463,9 @@ static int native_a78_request_ui_animation(void *context, int16_t index, int32_t
 }
 
 /* ---- RT-22: the inventory view (object 0x571442) ------------------------
- * See inventory_view_runtime.h for the recovered addresses. Rendering (icons,
- * highlight, taskbar), the open transition (0x4e94c1 modes 0/4/5), the tab lists
- * 0x65/0x66, paging, keyboard arrows and every sound are NOT implemented: sounds
- * and the teardown are logged as NOT PLAYED / NOT RENDERED. */
+ * See inventory_view_runtime.h for the recovered addresses. NATIVE-11 draws the
+ * original mode2/3, tab100/page0 artwork and close control. Open/close fades,
+ * derived tab lists, paging, keyboard arrows and pick/put sound remain unmodeled. */
 static Action79Model inventory_model(NativeApp *app)
 {
     WorldInitInventory &inventory = app->new_game.view.inventory;
@@ -3518,7 +3525,7 @@ static int native_inv_view_close(void *context)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
     if (app == nullptr) return 1;
-    record(app, "inventory_view_close (0x4e7d04: teardown 0x4edb97 and 0x4d36ed NOT RENDERED)");
+    record(app, "inventory_view_close (0x4e7d04: scene restored on next composition; teardown fades unverified)");
     return 0;
 }
 
@@ -3556,12 +3563,138 @@ static bool inventory_view_open_request(NativeApp *app, const char *source)
     const int32_t *slots = app->inv_view.slot_item;
     record(app, "inventory_view_open source=%s opened=%d state=%d mode=%d tab=%d slots=%d,%d,%d,%d "
            "origin=%d,%d (open transition 0x4e94c1 modes 0/4/5 NOT RECOVERED, entered at mode 2; "
-           "view NOT RENDERED)",
+           "view=native-opaque-BOOT-compositor)",
            source, opened, app->inv_view.screen_state, app->inv_view.mode, app->inv_view.tab,
            slots[0], slots[1], slots[2], slots[3], app->scene_destination.left,
            app->scene_destination.top);
-    if (opened) inventory_view_hover_now(app);   /* the first tick's hover (0x4d3106) */
+    if (opened) {
+        app->inv_close_down = app->inv_close_requested = app->inv_close_pending = false;
+        app->inv_close_state = 0;
+        app->inv_render_signature = UINT64_MAX;
+        inventory_view_hover_now(app);   /* the first tick's hover (0x4d3106) */
+    }
     return opened != 0;
+}
+
+/* Native producer ownership is a host policy: accept one close release, then
+ * retain the original 200ms/sound-idle button completion without cancellation.
+ * Item picking remains in the existing inventory-view receiver. */
+static bool native_inventory_pointer(NativeApp *app, int event_kind, unsigned button, int32_t x, int32_t y)
+{
+    if (button != 0 || app->inv_view.screen_state != INVVIEW_STATE_INVENTORY) return false;
+    if (event_kind == BLACKMOOR_POINTER_MOVE) { app->pointer_x = x; app->pointer_y = y; }
+    if (app->inv_view.mode != 2 && app->inv_view.mode != 3) return false;
+    NativeInventoryClose control{};
+    if (native_inventory_close_control(app->inv_uiiv.data(), app->inv_uiiv.size(),
+            app->scene_destination.left, app->scene_destination.top, &control) != NATIVE_INV_OK || !control.enabled)
+        return false;
+    if (app->inv_close_pending || app->inv_close_requested)
+        return event_kind != BLACKMOOR_POINTER_MOVE;
+    /* The platform supplies the native system cursor's logical hot point.
+     * Applying the +9 legacy sprite offset here would make the drawn X's
+     * lower/right pixels unclickable. Item hit testing keeps its existing
+     * recovered CURS projection; this close producer is a host UI policy. */
+    const int32_t hx = app->pointer_x, hy = app->pointer_y;
+    const bool hit = hx >= control.rectangle.left && hx <= control.rectangle.right &&
+                     hy >= control.rectangle.top && hy <= control.rectangle.bottom;
+    app->inv_close_state = hit ? 1 : 0;
+    if ((event_kind == BLACKMOOR_POINTER_DOWN || event_kind == kPointerDoubleClick) && hit) {
+        app->inv_close_down = true;
+        return true;
+    }
+    if (event_kind == BLACKMOOR_POINTER_UP && app->inv_close_down) {
+        app->inv_close_down = false;
+        if (hit) { app->inv_close_requested = true; app->inv_close_state = 2; }
+        return true;
+    }
+    return false;
+}
+
+static bool native_inventory_close_tick(NativeApp *app, uint32_t now)
+{
+    if (app->inv_view.screen_state != INVVIEW_STATE_INVENTORY) {
+        app->inv_close_down = app->inv_close_requested = app->inv_close_pending = false;
+        app->inv_close_state = 0;
+        return true;
+    }
+    NativeInventoryClose control{};
+    if (native_inventory_close_control(app->inv_uiiv.data(), app->inv_uiiv.size(),
+            app->scene_destination.left, app->scene_destination.top, &control) != NATIVE_INV_OK)
+        return false;
+    if (app->inv_close_requested) {
+        ActionSoundBackend backend{};
+        if (!control.enabled || app->live_audio == nullptr ||
+            live_audio_bind_backend(app->live_audio, &backend) != LIVE_AUDIO_OK ||
+            puzzle_sound_init(&app->inv_close_audio, &backend) != PUZZLE_SOUND_OK) return false;
+        int status = puzzle_sound_prepare(&app->inv_close_audio,
+            app->inv_uiiv.data() + NATIVE_INV_CLOSE_SOUND, PUZZLE_SOUND_RECORD_BYTES);
+        if (status != PUZZLE_SOUND_OK && status != PUZZLE_SOUND_NO_RESOURCE) return false;
+        status = puzzle_sound_play(&app->inv_close_audio, control.channel);
+        if (status != PUZZLE_SOUND_OK && status != PUZZLE_SOUND_NO_RESOURCE) return false;
+        app->inv_close_deadline = now + control.delay_ms;
+        app->inv_close_requested = false;
+        app->inv_close_pending = true;
+        record(app, "inventory_close_started delay_ms=%u channel=%u sound=BOOT-UIIV native_status=%d",
+               control.delay_ms, control.channel, status);
+    }
+    if (app->inv_close_pending && now > app->inv_close_deadline) {
+        LiveAudioChannelInfo info{};
+        if (control.channel >= LIVE_AUDIO_CHANNEL_COUNT ||
+            live_audio_get_channel_info(app->live_audio, control.channel, &info) != LIVE_AUDIO_OK) return false;
+        app->inv_close_audio.prepared[control.channel] = info.loaded;
+        int busy = 0;
+        if (puzzle_sound_busy(&app->inv_close_audio, control.channel, &busy) != PUZZLE_SOUND_OK) return false;
+        if (!busy) {
+            inventory_view_close(&app->inv_view);
+            app->captions.lifecycle.g.overlay_ui = INVVIEW_STATE_NONE;
+            app->inv_close_pending = false;
+            app->inv_close_state = 0;
+            native_inv_view_close(app); /* original completion does not unload the sound */
+            record(app, "inventory_close_completed sound_idle=1");
+        }
+    }
+    return true;
+}
+
+static bool native_inventory_render(NativeApp *app)
+{
+    if (app->inv_view.screen_state != INVVIEW_STATE_INVENTORY) {
+        app->inv_render_signature = UINT64_MAX;
+        return true;
+    }
+    const uint8_t *inv = nullptr;
+    size_t inv_bytes = 0;
+    char frame_name[33]{}, item_name[33]{};
+    if (app->framebuffer.size() != 640u * 480u * 4u || !find_boot_payload(app, "INV", &inv, &inv_bytes) ||
+        native_inventory_names(app->inv_uiiv.data(), app->inv_uiiv.size(), inv, inv_bytes,
+                               frame_name, item_name) != NATIVE_INV_OK) return false;
+    HostImage *frame = image(app, frame_name), *items = image(app, item_name);
+    if (frame == nullptr || items == nullptr) return false;
+    NativeInventoryPlan plan{};
+    const int status = native_inventory_plan(app->inv_uiiv.data(), app->inv_uiiv.size(), inv, inv_bytes,
+        &app->inv_view, &app->inv_layout, app->scene_destination.left, app->scene_destination.top,
+        app->inv_close_state, frame->width, frame->height, items->width, items->height, &plan);
+    if (status != NATIVE_INV_OK) {
+        record(app, "inventory_render_error status=%d mode=%d tab=%d page=%d", status,
+               app->inv_view.mode, app->inv_view.tab, app->inv_view.page);
+        return false;
+    }
+    for (size_t i = 0; i < plan.count; ++i) {
+        const NativeInventoryBlit &b = plan.blits[i];
+        if (!copy_rectangle(app, b.items ? *items : *frame, b.source.left, b.source.top,
+                            b.source.right, b.source.bottom, b.destination.left, b.destination.top)) return false;
+    }
+    uint64_t signature = static_cast<uint32_t>(app->inv_view.hot) ^ ((uint64_t)app->inv_close_state << 32);
+    for (size_t i = 0; i < INVVIEW_SLOTS; ++i)
+        signature = signature * UINT64_C(1099511628211) ^
+                    (static_cast<uint32_t>(app->inv_view.slot_item[i]) + (uint64_t)app->inv_view.slot_lit[i] * 71u);
+    if (signature != app->inv_render_signature) {
+        record(app, "inventory_view_render blits=%zu hot=%d close_state=%d mode=%d logical=640x480 "
+               "composition=host-opaque-RGBA original-frame-parity=unverified", plan.count,
+               app->inv_view.hot, app->inv_close_state, app->inv_view.mode);
+        app->inv_render_signature = signature;
+    }
+    return true;
 }
 
 static int native_a6e_load_current(void *context, SceneStackCurrent *current);
@@ -13407,6 +13540,11 @@ static void update(NativeApp *app, uint32_t now)
             return;
         }
         taskbar_pre_tick(app);   /* RT-22 follow-up: inventory byte -> view, bar hover */
+        if (!native_inventory_close_tick(app, now)) {
+            record(app, "inventory_close_error"); app->failure = true;
+            if (app->platform) blackmoor_macos_stop(app->platform);
+            return;
+        }
         const int session_status = scene_session_tick(app->session, &session_result);
         if (session_status != SCENE_SESSION_BLOCKED) taskbar_post_tick(app, now);   /* 0x43cf9c */
         if (session_status == SCENE_SESSION_BLOCKED && !app->session_block_reported) {
@@ -13530,6 +13668,11 @@ static void update(NativeApp *app, uint32_t now)
                     return;
                 }
             }
+        }
+        if (!native_inventory_render(app)) {
+            record(app, "inventory_composition_failed"); app->failure = true;
+            if (app->platform) blackmoor_macos_stop(app->platform);
+            return;
         }
         if (app->platform && !blackmoor_macos_present(app->platform,
                 app->framebuffer.data(), app->framebuffer.size(), 640 * 4)) {
