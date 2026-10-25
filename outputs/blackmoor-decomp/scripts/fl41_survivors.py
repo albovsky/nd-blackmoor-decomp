@@ -76,9 +76,15 @@ def same_value(lines, n):
             continue
         if t.startswith(want) or t.startswith('%s = RD32((uint32_t)(ebp + %su));' % (reg, k)):
             return True
-        if BARRIER.search(t) or t.startswith('{') or re.match(r'^%s\b' % reg, t) or re.search(r'\b%s = ' % reg, t) or aliasing_write(t, k):
+        if BARRIER.search(t) or (t.startswith('{') and not fpu_block(t)) or re.match(r'^%s\b' % reg, t) or re.search(r'\b%s = ' % reg, t) or aliasing_write(t, k):
             return False
     return False
+
+
+def fpu_block(t):
+    """FL-55: a statement block of an x87 instruction (`{ long double v_ = ...; ... }`): it changes only the FPU state and, for a store, one memory cell (aliasing_write checks that cell);
+    it never writes a general register or the flags"""
+    return t.startswith('{ long double ') and not re.search(r'\b(e[a-d]x|e[sd]i|e[sb]p|esp|zf|sf|cf|of|pf)\b ?=[^=]', t)
 
 
 def forward(lines, n, ok, stop):
@@ -96,6 +102,19 @@ def forward(lines, n, ok, stop):
 def cleanup_ok(lines, n):
     return 'FL41_CALL' in lines[n] and forward(lines, n, lambda t: t.startswith('esp = ebp;'),
                                                lambda t: 'esp' in t or BARRIER.search(t) or re.search(r'\bR?D\d+|\bWR\d+', t) and 'esp' in t)
+
+
+def cleanup_split_ok(lines, n):
+    """FL-55: the `esp += N;` line of a call written over several lines (a callee that takes st(0) is followed by `fl41_fpop`): the previous statement is the `FL41_CALL(...);`, and the next
+    statement that touches esp is `esp = ebp;`"""
+    if not re.match(r'^esp \+= \d+u;$', stmt(lines[n])):
+        return False
+    j = n - 1
+    while j >= 0 and not stmt(lines[j]):
+        j -= 1
+    if j < 0 or not re.match(r'^FL41_CALL\(0x[0-9a-f]+u\);$', stmt(lines[j])):
+        return False
+    return forward(lines, n, lambda t: t.startswith('esp = ebp;'), lambda t: 'esp' in t or BARRIER.search(t) or re.search(r'\bWR\d+', t) and 'esp' in t)
 
 
 def frame_ok(lines, n):
@@ -436,6 +455,8 @@ def classify(kind, lines, n, equivalent, proofs=None, mutline=None, ranges=None,
     if kind == 'drop' and same_value(lines, n):
         return 'same value'
     if kind == 'literal' and cleanup_ok(lines, n):
+        return 'cleanup'
+    if kind == 'drop' and cleanup_split_ok(lines, n):
         return 'cleanup'
     if kind == 'register' and frame_ok(lines, n):
         return 'frame'
