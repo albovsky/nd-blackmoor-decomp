@@ -66,8 +66,9 @@ struct ConversationFixture {
         }
         app.framebuffer.resize(640u * 480u * 4u);
         if (!load_scene(&app, scene_id)) return false;
-        /* The real reset closes the taskbar box and needs the scene's
-         * already seeded backbuffer, as on the production load path. */
+        /* Component coverage of the original reset's -1 counter path.
+         * Production currently starts at zero; this explicit reset requires
+         * an already seeded scene backbuffer. */
         if (!captions_on && caption_scene_reset(&app.captions.lifecycle,
                 &app.captions.lifecycle_backend) != CAPTION_LIFECYCLE_OK) return false;
         const ActionFamily28Rect view = {app.scene_destination.left, app.scene_destination.top,
