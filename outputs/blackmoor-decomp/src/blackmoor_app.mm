@@ -71,6 +71,7 @@
 #include "session_bindings_a20_a70_a80.h"
 #include "session_bindings_a6d_a9a.h"
 #include "session_bindings_a1c.h"
+#include "interactive_video_input.h"
 #include "session_bindings_ada.h"
 #include "session_bindings_conditions.h"
 #include "session_bindings_conditions_audio.h"
@@ -419,12 +420,16 @@ struct NativeApp {
     SessionA6dBinding *a6d = nullptr;
     SessionA9aBinding *a9a = nullptr;
     Action6DWorld a6d_world{};
-    /* RT-57: raw 0x1c interactive video (arm 0x427cc3 -> 0x4cb586 on the singleton 0x63847b). The movie player 0x637fcf is not wired
-     * (scene movies play through Bink on their own path): the handler waits in phase 0. The binding is recreated at every scene
-     * start (a power-on object, as the other members). */
+    /* Raw 0x1c borrows the actual A35 controller and uses a native sidecar
+     * for the original hover/release pointer identities. */
     SessionA1cBinding *a1c = nullptr;
+    InteractiveVideoInputState a1c_input{};
+    uint64_t a1c_input_generation = 1;
+    const C1cIv *a1c_seen_iv = nullptr;
+    A35Rect a1c_origin_rectangle{};
+    int32_t a1c_cursor_source = IVI_CURSOR_STANDARD;
+    uint32_t a1c_cursor_offset = 0;
     std::array<bool, 0x40> a1c_slot_used{};
-    bool a1c_wait_logged = false;
     bool a1c_fills_logged = false;
     /* RT-59: raw 0xda Bul puzzle (arm 0x42a424 -> 0x45c18f, object 0x624734). The binding persists and is reset at every scene start; the
      * backdrop (Z entry 1, 0x5d15e3) is a snapshot of the seeded back buffer as for 0xe0 / 0xe4; sounds are not played, the caption
@@ -591,6 +596,8 @@ struct NativeApp {
      * modal state only; it does not restore cleared layer words. */
     int32_t layer_5d16cd = 0, layer_5d1683 = 0, movie_visible_5d19fb = 0;
     SessionA35Bink *movie_bink = nullptr;
+    size_t movie_visiting_row = SIZE_MAX, movie_owner_row = SIZE_MAX;
+    std::array<uint8_t, C1C_NAME_BYTES> movie_name{};
     BinkPlayerFrame movie_frame{};
     std::vector<uint8_t> movie_surface;
     A35Rect movie_source{}, movie_destination{};
@@ -3058,6 +3065,8 @@ static void native_a35_close(void *context)
         session_a35_bink_close(app->movie_bink);
     }
     app->movie_bink = nullptr;
+    app->movie_owner_row = SIZE_MAX;
+    app->movie_name.fill(0);
     app->movie_frame = {};
     app->movie_surface.clear();
 }
@@ -3106,6 +3115,10 @@ static int native_a35_open(void *context, const ActionFamily35Decoded *body,
     app->movie_mix_captures = 0;
     const int status = session_a35_bink_open(path.c_str(), body->words[4] == 2u ? 1 : 0,
         &host, &app->movie_bink, &info, error, sizeof(error));
+    if (status == A35_RUNTIME_OK) {
+        app->movie_owner_row = app->movie_visiting_row;
+        std::memcpy(app->movie_name.data(), body->name, app->movie_name.size());
+    }
     SessionA35BinkStats stats{};
     if (app->movie_bink) session_a35_bink_stats(app->movie_bink, &stats);
     record(app, "scene_a35_open branch=Bink name=%s status=%d width=%u height=%u frames=%u "
@@ -3145,7 +3158,10 @@ static int native_a35_handler(void *context, size_t row, const SceneActionInfo *
     try { previous.assign(app->movie_world.event_flags,
                           app->movie_world.event_flags + app->movie_world.event_flag_count); }
     catch (...) { return SCENE_ACTION_HANDLER_ERROR; }
+    const size_t previous_row = app->movie_visiting_row;
+    app->movie_visiting_row = row;
     const int status = session_a35_handler(app->a35, row, a, before, out);
+    app->movie_visiting_row = previous_row;
     SessionA35BinkStats stats{};
     stats.frame = -1;
     if (app->movie_bink) session_a35_bink_stats(app->movie_bink, &stats);
@@ -4146,50 +4162,74 @@ static int native_a9a_handler(void *context, size_t row, const SceneActionInfo *
     return status;
 }
 
-/* Raw 0x1c (RT-57): the interactive video, handler 0x4cb586 on the singleton 0x63847b (kernel action_family_1c_runtime.c, binding
- * session_bindings_a1c.c). The movie player at 0x637fcf is not wired: the app plays scene movies through Bink on its own path, so the
- * player getters report state 0 and the row waits in phase 0 (one log line per scene). The ".IV" file is read from the CifTree
- * directory: the loader 0x4cbba9 builds "<directory string 0x639db1><name>.IV", and 0x639db1 is the "CifTreePath" setting
- * (default "\Ciftree\", read at 0x4348b0), the same directory game_resources_open uses; the lookup follows Windows ASCII case folding
- * like the Bink and HIS lookups. The z entry (type 15, callback 0x4cc79a, label "INTERACTIVE VIDEO DIAGS") shares the 0x18..0x3f range.
- * The original paints each hotspot rectangle in a unique colour into a hidden hit map; the app has none, so the fills are counted and
- * logged once per scene, not drawn. */
+/* Native IV consumers observe the actual A35 controller, not decoder timing
+ * guesses. The selected 34-byte record is kept in view-relative coordinates:
+ * the public presentation destination already includes the viewport origin. */
+static int native_a1c_movie_view(NativeApp *app, A35Snapshot *snapshot, A35Rect *origin)
+{
+    if (app == nullptr || snapshot == nullptr) return -1;
+    if (app->movie_bink == nullptr) return 0;
+    if (app->movie_owner_row == SIZE_MAX || app->a35 == nullptr || app->scene == nullptr ||
+        session_a35_snapshot(app->a35, app->movie_owner_row, snapshot) != A35_RUNTIME_OK) return -1;
+    if (origin != nullptr && snapshot->record >= 0) {
+        SceneActionInfo action{};
+        ActionFamily35Record34 selected{};
+        if (scene_resource_action_at(app->scene, app->movie_owner_row, &action) != SCENE_RESOURCE_OK ||
+            action.type != SESSION_A35_TYPE ||
+            action_family_35_record34_at(action.typed_body, action.typed_body_length,
+                static_cast<size_t>(snapshot->record), &selected) != ACTION_FAMILY_35_OK) return -1;
+        const auto dword = [&](size_t word) {
+            const uint32_t bits = static_cast<uint32_t>(selected.words[word]) |
+                                  (static_cast<uint32_t>(selected.words[word + 1u]) << 16);
+            int32_t value;
+            std::memcpy(&value, &bits, sizeof(value));
+            return value;
+        };
+        *origin = {dword(9), dword(11), dword(13), dword(15)};
+    }
+    return 1;
+}
+
 static int native_a1c_player_state(void *context, int32_t *state)
 {
-    NativeApp *app = static_cast<NativeApp *>(context);
-    if (app == nullptr || state == nullptr) return 1;
-    *state = 0;
-    if (!app->a1c_wait_logged) {
-        app->a1c_wait_logged = true;
-        record(app, "scene_a1c_wait detail=interactive video waits for a movie player (0x637fcf state 2); no movie backend is wired, "
-               "so the row stays in phase 0");
-    }
+    if (state == nullptr) return 1;
+    A35Snapshot snapshot{};
+    const int available = native_a1c_movie_view(static_cast<NativeApp *>(context), &snapshot, nullptr);
+    if (available < 0) return 1;
+    *state = available != 0 ? snapshot.shown : 0; /* player +0x240 */
     return 0;
 }
 
 static int native_a1c_player_name(void *context, uint8_t name[C1C_NAME_BYTES])
 {
-    (void)context;
-    if (name == nullptr) return 1;
-    std::memset(name, 0, C1C_NAME_BYTES);
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || name == nullptr) return 1;
+    std::memcpy(name, app->movie_name.data(), C1C_NAME_BYTES); /* actual opened clip */
     return 0;
 }
 
 static int native_a1c_player_hotspot(void *context, int16_t *index)
 {
-    (void)context;
     if (index == nullptr) return 1;
-    *index = -1;
+    A35Snapshot snapshot{};
+    const int available = native_a1c_movie_view(static_cast<NativeApp *>(context), &snapshot, nullptr);
+    if (available < 0) return 1;
+    *index = available != 0 ? static_cast<int16_t>(snapshot.presented) : static_cast<int16_t>(-1);
     return 0;
 }
 
 static int native_a1c_player_origin(void *context, int *present, int32_t *dx, int32_t *dy)
 {
-    (void)context;
-    if (present == nullptr || dx == nullptr || dy == nullptr) return 1;
-    *present = 0;
-    *dx = 0;
-    *dy = 0;
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app == nullptr || present == nullptr || dx == nullptr || dy == nullptr) return 1;
+    A35Snapshot snapshot{};
+    A35Rect origin{};
+    const int available = native_a1c_movie_view(app, &snapshot, &origin);
+    if (available < 0) return 1;
+    *present = available != 0 && snapshot.record >= 0;
+    *dx = *present != 0 ? origin.left : 0;
+    *dy = *present != 0 ? origin.top : 0;
+    if (*present != 0) app->a1c_origin_rectangle = origin; /* retained +0x15c record */
     return 0;
 }
 
@@ -4317,7 +4357,26 @@ static int native_a1c_handler(void *context, size_t row, const SceneActionInfo *
 {
     NativeApp *app = static_cast<NativeApp *>(context);
     if (app == nullptr || app->a1c == nullptr || before == nullptr || out == nullptr) return SCENE_ACTION_HANDLER_ERROR;
+    const C1cObject *previous = session_a1c_object(app->a1c);
+    const int32_t previous_frame = previous != nullptr ? previous->last_index : -1;
     const int status = session_a1c_handler(app->a1c, row, action, before, out);
+    const C1cObject *object = session_a1c_object(app->a1c);
+    if (object != nullptr && object->iv != app->a1c_seen_iv) {
+        app->a1c_seen_iv = object->iv;
+        interactive_video_input_reset(&app->a1c_input, ++app->a1c_input_generation);
+    }
+    if (status == SCENE_ACTION_HANDLER_OK && before->phase == 0u && out->phase == 1u)
+        record(app, "scene_a1c_active row=%zu phase=1 movie=%s frame=%d origin=%d,%d",
+               row, app->movie_name.data(), object != nullptr ? object->last_index : -1,
+               app->a1c_origin_rectangle.left, app->a1c_origin_rectangle.top);
+    if (status == SCENE_ACTION_HANDLER_OK && object != nullptr && object->armed != 0 &&
+        object->last_index != previous_frame) {
+        A35Snapshot player{};
+        if (native_a1c_movie_view(app, &player, nullptr) == 1)
+            record(app, "scene_a1c_frame frame=%d record=%d origin=%d,%d",
+                   object->last_index, player.record, app->a1c_origin_rectangle.left,
+                   app->a1c_origin_rectangle.top);
+    }
     if (status != SCENE_ACTION_HANDLER_OK) {
         record(app, "scene_a1c_blocker row=%zu status=%d detail=%s", row, status, session_a1c_failure(app->a1c));
     } else if (out->phase != before->phase || out->disposition != SCENE_ACTION_HANDLER_PENDING) {
@@ -10361,7 +10420,9 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
     app->aee_background_seed = UINT64_MAX;
     /* RT-57: raw 0x1c starts every scene from a power-on object. */
     app->a1c_slot_used.fill(false);
-    app->a1c_wait_logged = false;
+    app->a1c_seen_iv = nullptr;
+    app->a1c_origin_rectangle = {};
+    interactive_video_input_reset(&app->a1c_input, ++app->a1c_input_generation);
     app->a1c_fills_logged = false;
     {
         C1cHost a1c_host{};
@@ -10597,6 +10658,64 @@ static bool native_d1_pointer_scope(const NativeApp *app)
     return d1_rows == 1u;
 }
 
+/* The IV receiver follows overlay miss at 0x4f107c. Other unmodeled
+ * owners continue to prohibit projection, as for the bounded D1 scope. */
+static bool native_a1c_pointer_scope(const NativeApp *app)
+{
+    if (app == nullptr || app->scene == nullptr || app->a1c == nullptr) return false;
+#ifdef BLACKMOOR_NATIVE_APP_TEST_HOOKS
+    if (app->test_members_busy) return false;
+#endif
+    size_t count = 0;
+    for (size_t row = 0; row < scene_resource_action_count(app->scene); ++row) {
+        SceneActionInfo action{};
+        if (scene_resource_action_at(app->scene, row, &action) != SCENE_RESOURCE_OK) return false;
+        if (action.type == SESSION_A1C_TYPE) ++count;
+        else if (session_navigation_member_type(action.type)) return false;
+    }
+    return count == 1u;
+}
+
+static InteractiveVideoInputView native_a1c_input_view(NativeApp *app)
+{
+    InteractiveVideoInputView view{};
+    view.object = session_a1c_input_object(app->a1c);
+    view.body_length = C1C_BODY_BYTES; /* binding's validated, owned body */
+    view.generation = app->a1c_input_generation;
+    view.player_rectangle[0] = app->a1c_origin_rectangle.left;
+    view.player_rectangle[1] = app->a1c_origin_rectangle.top;
+    view.player_rectangle[2] = app->a1c_origin_rectangle.right;
+    view.player_rectangle[3] = app->a1c_origin_rectangle.bottom;
+    return view;
+}
+
+static InteractiveVideoInputWorld native_a1c_input_world(NativeApp *app)
+{
+    InteractiveVideoInputWorld world{};
+    const int16_t *held = app->new_game.view.inventory.selected_item_candidate;
+    world.held_item = held != nullptr ? *held : static_cast<int16_t>(-1);
+    world.cursor_index = app->nav_cursor.index;
+    world.cursor_variant = static_cast<uint32_t>(app->nav_cursor.variant);
+    world.cursor_source = app->a1c_cursor_source;
+    world.cursor_table_offset = app->a1c_cursor_offset;
+    world.cursor_enabled = app->captions.lifecycle.g.cursor_layer_enabled;
+    world.candidate = app->input_state.candidate;
+    world.event_flags = app->new_game.action_core.event_flags;
+    world.event_flag_count = app->new_game.action_core.event_flag_count;
+    return world;
+}
+
+static void native_a1c_commit_input_world(NativeApp *app, const InteractiveVideoInputWorld &world)
+{
+    if (app->new_game.view.inventory.selected_item_candidate != nullptr)
+        *app->new_game.view.inventory.selected_item_candidate = world.held_item;
+    app->nav_cursor.index = world.cursor_index;
+    app->nav_cursor.variant = static_cast<int32_t>(world.cursor_variant);
+    app->a1c_cursor_source = world.cursor_source; /* sprite surfaces remain unmodeled */
+    app->a1c_cursor_offset = world.cursor_table_offset;
+    app->captions.lifecycle.g.cursor_layer_enabled = world.cursor_enabled;
+}
+
 static void native_pointer_context(NativeApp *app, SessionInputContext *out)
 {
     std::memset(out, 0, sizeof(*out));
@@ -10627,7 +10746,7 @@ static void native_pointer_context(NativeApp *app, SessionInputContext *out)
      * The existing UI guard cells remain mandatory in both cases. */
     out->priority_clear = (cursor.guard_5b5158 == 0 && cursor.guard_5b61af == 0 &&
                            cursor.guard_5b615e == 0 &&
-                           (app->nav_members_idle || native_d1_pointer_scope(app))) ? 1u : 0u;
+                           (app->nav_members_idle || native_d1_pointer_scope(app) || native_a1c_pointer_scope(app))) ? 1u : 0u;
     out->excluded_0 = -1; /* 0x5b4e89 / 0x5b5100: set only by types 0x33/0x34 */
     out->excluded_1 = -1;
 }
@@ -10675,6 +10794,23 @@ static int native_pointer_consume(void *context, SceneExecutorFrameInput *frame,
                     record(app, "scene_ad1_click_error row=%d detail=phase-2-store-refused", puzzle->row);
             }
         }
+    }
+    /* 0x43b3b3 calls IV release on the consumed edge in normal modes,
+     * before ACT, without the generic 0..239 candidate-range gate. */
+    if (status == SESSION_INPUT_OK && edge_before != 0u &&
+        (input.cursor_mode < 2 || input.cursor_mode > 5) && native_a1c_pointer_scope(app)) {
+        InteractiveVideoInputView view = native_a1c_input_view(app);
+        InteractiveVideoInputWorld world = native_a1c_input_world(app);
+        InteractiveVideoInputResult result{};
+        const int released = interactive_video_input_release(&app->a1c_input, &view, &world, &result);
+        native_a1c_commit_input_world(app, world);
+        if (released != IVI_OK) {
+            record(app, "scene_a1c_release_error status=%d", released);
+            return SESSION_INPUT_INVALID_ARGUMENT;
+        }
+        if (result.flag_written != 0u)
+            record(app, "scene_a1c_release flag=%d value=%d candidate=%d before=ACT",
+                   result.flag_index, world.event_flags[result.flag_index], app->input_state.candidate);
     }
     /* RT-47: the card puzzle. Same chain as the Turning Puzzle above (accepted release -> 0x45e587 on the retained
      * candidate 0x27ec / 0x27ed / 0x27ef, then the cascade member 0x45e1ca hit-tests the pointer). */
@@ -11202,6 +11338,50 @@ static int native_pointer_scan(void *context, const SessionInputHotspot *rows,
         }
         overlay_count = 0u;
     }
+    if (native_a1c_pointer_scope(app) && input.priority_clear != 0u) {
+        SessionInputState projected_state = app->input_state;
+        SceneExecutorFrameInput projected{};
+        const int projection = session_input_tick(&projected_state, &input, &projected);
+        if (projection != SESSION_INPUT_OK) { *candidate = -1; return projection; }
+        if (projected.pointer_valid != 0u) {
+            /* Preserve the held-item prelude even when the IV cursor selector
+             * is -1. It precedes overlay/IV; the receiver follows overlay miss. */
+            const int16_t *held = app->new_game.view.inventory.selected_item_candidate;
+            const int16_t item = held != nullptr ? *held : static_cast<int16_t>(-1);
+            app->nav.state = NAV_STATE_NONE;
+            if (item == -1) app->nav_cursor = {0, 0};
+            else app->nav_cursor.index = static_cast<int32_t>(item) + 0x25;
+            SessionInputState overlay_probe = app->input_state;
+            const int overlay_status = session_input_scan_priority(&overlay_probe, &input,
+                overlay_rows.data(), overlay_count, nullptr, 0u);
+            if (overlay_status != SESSION_INPUT_OK) { *candidate = -1; return overlay_status; }
+            if (overlay_probe.candidate < 0) {
+                InteractiveVideoInputView view = native_a1c_input_view(app);
+                InteractiveVideoInputWorld world = native_a1c_input_world(app);
+                InteractiveVideoInputResult result{};
+                /* Restoring a different saved held item (0x4ea06c) remains an
+                 * explicit host refusal. It is not needed for fresh S2186. */
+                const int hovered = interactive_video_input_hover(&app->a1c_input, &view,
+                    &world, nullptr, static_cast<int16_t>(projected.pointer_x),
+                    static_cast<int16_t>(projected.pointer_y), &result);
+                native_a1c_commit_input_world(app, world);
+                if (hovered != IVI_OK) {
+                    record(app, "scene_a1c_pointer_error status=%d held-restore-host=unbound", hovered);
+                    *candidate = -1;
+                    return SESSION_INPUT_INVALID_ARGUMENT;
+                }
+                if (result.hit != 0u) {
+                    (void)session_input_publish_candidate(&app->input_state, result.candidate);
+                    *candidate = app->input_state.candidate;
+                    if (*candidate != app->logged_candidate)
+                        record(app, "scene_a1c_pointer candidate=%d rectangle=%d after=overlay before=navigation-generic",
+                               *candidate, result.rectangle_index);
+                    app->logged_candidate = *candidate;
+                    return SESSION_INPUT_OK;
+                }
+            }
+        }
+    }
     /* RT-17: the whole cascade as one pipeline in the original's order (overlap
      * guard, held-item prelude, UI members via priority_clear, overlay hit test,
      * edge/arrow zone tests, generic row loop). A zone hit returns before the
@@ -11448,7 +11628,7 @@ static bool bind_native_pointer(NativeApp *app)
     if (scene_session_bind_pointer(app->session, &host) != SCENE_SESSION_OK) return false;
     const ProvisionalCursorProvider &c = app->cursor_provider;
     const bool clear = c.guard_5b5158 == 0 && c.guard_5b61af == 0 && c.guard_5b615e == 0 &&
-                       (app->nav_members_idle || native_d1_pointer_scope(app));
+                       (app->nav_members_idle || native_d1_pointer_scope(app) || native_a1c_pointer_scope(app));
     record(app, "pointer_provider provisional sprite=%dx%d hot=%d,%d scroll=%d "
            "guards[5b5158,5b61af,5b615e]=%u,%u,%u cascade_members_idle=%d priority_clear=%d "
            "excluded=-1,-1 reason=cursor-sprite-size/hot-point/scroll-unrecovered "

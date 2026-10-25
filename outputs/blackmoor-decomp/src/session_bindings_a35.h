@@ -33,6 +33,9 @@ int session_a35_worker_poll(SessionA35Binding *, size_t row);
 int session_a35_render_ack(SessionA35Binding *, size_t row, uint32_t generation,
                            int *blitted);
 const char *session_a35_failure(const SessionA35Binding *);
+/* Borrow the actual controller's observation for native interactive-video
+ * consumers. No player, phase or world state is changed. */
+int session_a35_snapshot(const SessionA35Binding *, size_t row, A35Snapshot *);
 
 #ifdef __cplusplus
 }
