@@ -36,6 +36,7 @@ static int run_lifecycle(NativeApp &app, const SceneResource *scene, size_t row,
     CHECK(binding && session_ad1_begin_scene(binding, scene) == D1_OK);
     uint32_t phase = 0;
     bool completed = false;
+    const size_t waits_before_row = busy_waits;
     auto visit = [&]() -> bool {
         LiveAudioOfflineStats stats{};
         if (live_audio_advance_offline(app.live_audio, 4096u, &stats, nullptr, 0u) != LIVE_AUDIO_OK) return false;
@@ -46,7 +47,14 @@ static int run_lifecycle(NativeApp &app, const SceneResource *scene, size_t row,
         if (session_ad1_handler(binding, row, &info, &before, &out) != SCENE_ACTION_HANDLER_OK) return false;
         phase = out.phase;
         completed = out.disposition == SCENE_ACTION_HANDLER_COMPLETED;
-        if (session_ad1_object(binding)->state == D1_STATE_WIN_SOUND && phase == 1u) ++busy_waits;
+        if (session_ad1_object(binding)->state == D1_STATE_WIN_SOUND && phase == 1u) {
+            const uint8_t *body = info.typed_body;
+            const int16_t channel = (int16_t)(body[0x366] | (uint16_t)(body[0x367] << 8));
+            int32_t playing = 0;
+            if (native_ad1_sound_busy(&app, channel, &playing) != 0) return false;
+            if (playing) ++busy_waits;
+        }
+        if (stats.nonfinite_samples != 0u) return false;
         return true;
     };
     CHECK(visit() && phase == 1u);
@@ -97,14 +105,19 @@ static int run_lifecycle(NativeApp &app, const SceneResource *scene, size_t row,
         CHECK(live_audio_get_channel_info(app.live_audio, (uint16_t)word(0x2fau), &channel) == LIVE_AUDIO_OK);
         CHECK(!channel.loaded); /* phase 2 stopped record 0 */
     }
-    if (!exit_path && std::memcmp(body + 0x345u, "NO SOUND", 9) != 0) {
+    if (std::memcmp(body + 0x345u, "NO SOUND", 9) != 0) {
         CHECK(live_audio_get_channel_info(app.live_audio, (uint16_t)word(0x366u), &channel) == LIVE_AUDIO_OK);
-        CHECK(!channel.loaded); /* WIN_SOUND waited, then stopped record 1 */
+        if (exit_path) CHECK(channel.loaded && !channel.started); /* prepared win clip was never played */
+        else {
+            CHECK(!channel.loaded); /* WIN_SOUND waited, then stopped record 1 */
+            CHECK(busy_waits > waits_before_row); /* each named win clip was observed playing */
+        }
     }
     session_ad1_destroy(binding);
-    /* Scene teardown releases prepared-but-unplayed win audio on exit. */
-    CHECK(live_audio_unload_sound(app.live_audio, 8u) == ACTION_SOUND_BACKEND_OK);
-    CHECK(live_audio_unload_sound(app.live_audio, 9u) == ACTION_SOUND_BACKEND_OK);
+    /* Test isolation only: the original exit leaves the unplayed win clip
+     * prepared. Do not claim an app teardown or hide its state above. */
+    CHECK(live_audio_unload_sound(app.live_audio, (uint16_t)word(0x2fau)) == ACTION_SOUND_BACKEND_OK);
+    CHECK(live_audio_unload_sound(app.live_audio, (uint16_t)word(0x366u)) == ACTION_SOUND_BACKEND_OK);
     return 0;
 }
 
@@ -120,7 +133,7 @@ int main(int argc, char **argv)
         config.mode = MAC_AUDIO_MODE_OFFLINE;
         char error[512] = {};
         CHECK(live_audio_create(&config, &app.live_audio, error, sizeof(error)) == LIVE_AUDIO_OK);
-        size_t rows = 0, clips = 0, lifecycles = 0, busy_waits = 0;
+        size_t rows = 0, clips = 0, solved = 0, exited = 0, busy_waits = 0;
         double peak = 0;
         std::array<uint8_t, PUZZLE_SOUND_RECORD_BYTES> shared_descriptor{};
         for (int file = 2; file < argc; ++file) {
@@ -162,12 +175,13 @@ int main(int argc, char **argv)
                     ++clips;
                 }
                 CHECK(run_lifecycle(app, scene, row, info, false, busy_waits) == 0);
+                ++solved;
                 CHECK(run_lifecycle(app, scene, row, info, true, busy_waits) == 0);
-                lifecycles += 2u;
+                ++exited;
             }
             scene_resource_close(scene);
         }
-        CHECK(rows == 11u && clips == 20u && lifecycles == 22u && busy_waits > 0u);
+        CHECK(rows == 11u && clips == 20u && solved == 11u && exited == 11u && busy_waits > 0u);
         /* A scene action may replace the same original channel. Failed/missing
          * prepares must not make the puzzle's readiness mask hide that load. */
         auto missing = shared_descriptor;
@@ -199,6 +213,9 @@ int main(int argc, char **argv)
         CHECK(native_ad1_sound_stop(&app, 0, shared_descriptor.data()) != 0);
         app.ad1_audio.backend = real_backend;
         CHECK(puzzle_sound_prepare(&peer, shared_descriptor.data(), shared_descriptor.size()) == PUZZLE_SOUND_OK);
+        app.ad1_audio.backend.play_sound = [](void *, uint16_t) { return ACTION_SOUND_BACKEND_ERROR; };
+        CHECK(native_ad1_sound_play(&app, (int16_t)shared_channel) != 0);
+        app.ad1_audio.backend = real_backend;
         app.ad1_audio.backend.is_playing = [](void *, uint16_t, int *) { return ACTION_SOUND_BACKEND_ERROR; };
         shared_busy = 99;
         CHECK(native_ad1_sound_busy(&app, (int16_t)shared_channel, &shared_busy) != 0 && shared_busy == 99);
@@ -209,7 +226,7 @@ int main(int argc, char **argv)
         CHECK(native_ad1_sound_busy(&app, -1, nullptr) != 0);
         CHECK(live_audio_destroy(app.live_audio) == LIVE_AUDIO_OK);
         app.live_audio = nullptr;
-        std::printf("D1 real-audio lifecycle: solved=11 exited=11 busy_wait_ticks=%zu\n", busy_waits);
+        std::printf("D1 real-audio lifecycle: solved=%zu exited=%zu busy_wait_ticks=%zu\n", solved, exited, busy_waits);
         std::fclose(app.log);
         app.log = nullptr;
         std::printf("D1 app audio: rows=%zu clips=%zu nonzero_PCM=1 completion_gated=1 peak=%.6f output_device=none\n", rows, clips, peak);
