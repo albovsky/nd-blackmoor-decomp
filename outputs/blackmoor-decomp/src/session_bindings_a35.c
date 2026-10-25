@@ -106,6 +106,13 @@ const char *session_a35_failure(const SessionA35Binding *b)
     return b == NULL ? "invalid binding" : b->failure;
 }
 
+int session_a35_snapshot(const SessionA35Binding *b, size_t row, A35Snapshot *out)
+{
+    if (b == NULL || out == NULL || row >= b->count || b->rows[row] == NULL)
+        return A35_RUNTIME_ARGUMENT;
+    return action35_runtime_snapshot(b->rows[row], out);
+}
+
 int session_a35_worker_poll(SessionA35Binding *b, size_t row)
 {
     if (b == NULL || row >= b->count || b->rows[row] == NULL) return A35_RUNTIME_ARGUMENT;
