@@ -1,0 +1,2 @@
+0x48e9bf mutants killed by the step budget [('literal', 17, 'd744ffcd'), ('width', 16, 'dbc247a9'), ('literal', 17, '5e100fe5'), ('literal', 16, '55972aca'), ('drop', 18, '77b622fa'), ('drop', 17, 'e14805bf'), ('literal', 18, 'a42fdf1a')]
+0x48e9bf mutants 7 killed 7 survivors []

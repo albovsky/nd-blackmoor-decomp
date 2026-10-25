@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#include "original_methods_fl41_x87.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -24,6 +26,9 @@ typedef struct Fl41Host {
     uint32_t (*rd)(void *ctx, uint32_t address, int bytes);
     void (*wr)(void *ctx, uint32_t address, int bytes, uint32_t value);
     void (*call)(void *ctx, uint32_t callee, Fl41Regs *regs);
+    /* FL-52 (translations that use the x87 unit): the FPU registers, and the value (the bits of a double) that the callee played by `call` left in st(0) */
+    uint64_t (*fret)(void *ctx);
+    Fl41Fpu *fpu;
 } Fl41Host;
 
 #define FL41_PROLOGUE                                                                                                                          \
@@ -32,6 +37,10 @@ typedef struct Fl41Host {
     (void)cf; (void)zf; (void)sf; (void)of; (void)pf; (void)ebx; (void)ebp; (void)esi; (void)edi;
 #define FL41_EPILOGUE                                                                                                                          \
     r->eax = eax; r->ecx = ecx; r->edx = edx; r->ebx = ebx; r->esp = esp; r->ebp = ebp; r->esi = esi; r->edi = edi;
+
+/* a translation that uses the x87 unit works on h->fpu; the host's control word is put back at the end */
+#define FL41_FPU_PROLOGUE Fl41Fpu *fp = h->fpu; (void)fp;
+#define FL41_FPU_EPILOGUE FL41_FPU_RESTORE_HOST_CW();
 
 #define RD8(a) h->rd(h->ctx, (a), 1)
 #define RD16(a) h->rd(h->ctx, (a), 2)

@@ -1,0 +1,377 @@
+{
+ "rows_with_survivors": {
+  "0x4af96e": [
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = esp, b_ = 0xcu, r_; FL41_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4af971: sub esp, 0xc */",
+    6
+   ],
+   [
+    "width",
+    "range",
+    "ecx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x4af9a8: mov ecx, dword ptr [ebp - 4] */",
+    22
+   ],
+   [
+    "jump",
+    "range",
+    "if (!zf) goto L_4af991;  /* 0x4af989: jne 0x4af991 */",
+    12
+   ],
+   [
+    "register",
+    "frame",
+    "{ uint32_t a_ = esp, b_ = 0xcu, r_; FL41_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4af971: sub esp, 0xc */",
+    6
+   ],
+   [
+    "drop",
+    "repeat",
+    "ecx = RD32((uint32_t)(ebp + 0xfffffff4u));  /* 0x4af9e6: mov ecx, dword ptr [ebp - 0xc] */",
+    38
+   ],
+   [
+    "alu",
+    "written reason",
+    "{ uint32_t a_ = ecx, b_ = ecx, r_; r_ = a_ & b_; FL41_LOGIC(r_, 32); }  /* 0x4af987: test ecx, ecx */",
+    11
+   ],
+   [
+    "width",
+    "range",
+    "ecx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x4af9f2: mov ecx, dword ptr [ebp - 4] */",
+    42
+   ],
+   [
+    "drop",
+    "repeat",
+    "edx = RD32((uint32_t)(ebp + 0xfffffff4u));  /* 0x4af9c3: mov edx, dword ptr [ebp - 0xc] */",
+    31
+   ],
+   [
+    "width",
+    "range",
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xfffffffcu)), b_ = eax, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4af9bb: cmp dword ptr [ebp - 4], eax */",
+    28
+   ],
+   [
+    "literal",
+    "frame",
+    "{ uint32_t a_ = esp, b_ = 0xcu, r_; FL41_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4af971: sub esp, 0xc */",
+    6
+   ],
+   [
+    "drop",
+    "dead",
+    "{ uint32_t a_ = esp, b_ = 0xcu, r_; FL41_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4af971: sub esp, 0xc */",
+    6
+   ],
+   [
+    "literal",
+    "identical code",
+    "{ uint32_t a_ = esp, b_ = 0xcu, r_; FL41_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4af971: sub esp, 0xc */",
+    6
+   ],
+   [
+    "width",
+    "range",
+    "ecx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x4af9c0: mov ecx, dword ptr [ebp - 4] */",
+    30
+   ],
+   [
+    "literal",
+    "written reason",
+    "eax = (eax & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffff8u))) & 0xffffu);  /* 0x4af98b: mov ax, word ptr [ebp - 8] */",
+    13
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = ecx, b_ = 0x1u, r_; FL41_ADD(a_, b_, 0u, r_, 32); ecx = r_; }  /* 0x4af9ab: add ecx, 1 */",
+    23
+   ],
+   [
+    "drop",
+    null,
+    "{ uint32_t a_ = ecx, b_ = 0x1u, r_; FL41_ADD(a_, b_, 0u, r_, 32); ecx = r_; }  /* 0x4af9ab: add ecx, 1 */",
+    23
+   ]
+  ],
+  "0x488da5": [
+   [
+    "register",
+    "flags",
+    "{ uint32_t a_ = ecx, b_ = 0xffffffffu, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x488e12: cmp ecx, -1 */",
+    35
+   ],
+   [
+    "literal",
+    "written reason",
+    "ecx = (ecx & 0xffff0000u) | ((RD16((uint32_t)(eax + 0xaa4u))) & 0xffffu);  /* 0x488e1d: mov cx, word ptr [eax + 0xaa4] */",
+    39
+   ],
+   [
+    "register",
+    "flags",
+    "{ uint32_t a_ = edx, b_ = 0xffffffffu, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x488ddb: cmp edx, -1 */",
+    20
+   ],
+   [
+    "drop",
+    "written reason",
+    "eax = RD32((uint32_t)(edx + 0x1cu));  /* 0x488e1a: mov eax, dword ptr [edx + 0x1c] */",
+    38
+   ],
+   [
+    "drop",
+    "repeat",
+    "ecx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x488dc5: mov ecx, dword ptr [ebp - 4] */",
+    14
+   ],
+   [
+    "drop",
+    "repeat",
+    "eax = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x488de0: mov eax, dword ptr [ebp - 4] */",
+    22
+   ],
+   [
+    "drop",
+    "repeat",
+    "eax = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x488dce: mov eax, dword ptr [ebp - 4] */",
+    17
+   ],
+   [
+    "drop",
+    "written reason",
+    "ecx = RD32((uint32_t)(eax + 0x1cu));  /* 0x488de3: mov ecx, dword ptr [eax + 0x1c] */",
+    23
+   ],
+   [
+    "drop",
+    "repeat",
+    "edx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x488e17: mov edx, dword ptr [ebp - 4] */",
+    37
+   ],
+   [
+    "literal",
+    "written reason",
+    "edx = (edx & 0xffff0000u) | ((RD16((uint32_t)(ecx + 0xaa2u))) & 0xffffu);  /* 0x488de6: mov dx, word ptr [ecx + 0xaa2] */",
+    24
+   ],
+   [
+    "drop",
+    "written reason",
+    "ecx = (ecx & 0xffff0000u) | ((RD16((uint32_t)(eax + 0xaa4u))) & 0xffffu);  /* 0x488e1d: mov cx, word ptr [eax + 0xaa4] */",
+    39
+   ],
+   [
+    "drop",
+    "repeat",
+    "edx = RD32((uint32_t)(ecx + 0x1cu));  /* 0x488dc8: mov edx, dword ptr [ecx + 0x1c] */",
+    15
+   ],
+   [
+    "drop",
+    "repeat",
+    "ecx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x488db6: mov ecx, dword ptr [ebp - 4] */",
+    10
+   ],
+   [
+    "drop",
+    "written reason",
+    "edx = (edx & 0xffff0000u) | ((RD16((uint32_t)(ecx + 0xaa2u))) & 0xffffu);  /* 0x488de6: mov dx, word ptr [ecx + 0xaa2] */",
+    24
+   ]
+  ]
+ },
+ "unexplained_rows": [
+  "0x4af96e"
+ ],
+ "mutants": {
+  "0x4af96e": [
+   [
+    "alu",
+    6,
+    "452416ea",
+    "identical code"
+   ],
+   [
+    "width",
+    22,
+    "0750bb0a",
+    "range"
+   ],
+   [
+    "jump",
+    12,
+    "ef362614",
+    "range"
+   ],
+   [
+    "register",
+    6,
+    "53bd9734",
+    "frame"
+   ],
+   [
+    "drop",
+    38,
+    "2889f36f",
+    "repeat"
+   ],
+   [
+    "alu",
+    11,
+    "c3f67b33",
+    "written reason"
+   ],
+   [
+    "width",
+    42,
+    "373493dc",
+    "range"
+   ],
+   [
+    "drop",
+    31,
+    "9e42f95f",
+    "repeat"
+   ],
+   [
+    "width",
+    28,
+    "92eb33c4",
+    "range"
+   ],
+   [
+    "literal",
+    6,
+    "534f77d9",
+    "frame"
+   ],
+   [
+    "drop",
+    6,
+    "66b0e8b9",
+    "dead"
+   ],
+   [
+    "literal",
+    6,
+    "dd996016",
+    "identical code"
+   ],
+   [
+    "width",
+    30,
+    "3ab969e5",
+    "range"
+   ],
+   [
+    "literal",
+    13,
+    "8a5b78c6",
+    "written reason"
+   ],
+   [
+    "alu",
+    23,
+    "51926390",
+    null
+   ],
+   [
+    "drop",
+    23,
+    "4d35dc69",
+    null
+   ]
+  ],
+  "0x488da5": [
+   [
+    "register",
+    35,
+    "949d8885",
+    "flags"
+   ],
+   [
+    "literal",
+    39,
+    "1eedfa73",
+    "written reason"
+   ],
+   [
+    "register",
+    20,
+    "53d49b7c",
+    "flags"
+   ],
+   [
+    "drop",
+    38,
+    "a6af905b",
+    "written reason"
+   ],
+   [
+    "drop",
+    14,
+    "15e6d5d0",
+    "repeat"
+   ],
+   [
+    "drop",
+    22,
+    "89a77f79",
+    "repeat"
+   ],
+   [
+    "drop",
+    17,
+    "d0b785f4",
+    "repeat"
+   ],
+   [
+    "drop",
+    23,
+    "4dfd84e5",
+    "written reason"
+   ],
+   [
+    "drop",
+    37,
+    "0293da0c",
+    "repeat"
+   ],
+   [
+    "literal",
+    24,
+    "10328e3f",
+    "written reason"
+   ],
+   [
+    "drop",
+    39,
+    "4c7b7c75",
+    "written reason"
+   ],
+   [
+    "drop",
+    15,
+    "42726296",
+    "repeat"
+   ],
+   [
+    "drop",
+    10,
+    "eecc305c",
+    "repeat"
+   ],
+   [
+    "drop",
+    24,
+    "4c632c2c",
+    "written reason"
+   ]
+  ]
+ }
+}

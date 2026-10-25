@@ -1,0 +1,4 @@
+[
+ {"kind": "jump", "line": 30, "ident": "b0444fd4", "verdict": "confirmed", "note": "Re-derived from FL41_SUB: cf = (uint64)a < (uint64)b + c with b=0, c=0 is always 0, and lines 29-30 are a cmp immediately followed by the jump with nothing touching flags, so (!cf && !zf) == !zf for all inputs."},
+ {"kind": "jump", "line": 36, "ident": "d8b9687a", "verdict": "confirmed", "note": "Re-derived from FL41_SUB: the cmp at line 35 subtracts 0 so cf is always 0, and the je at line 36 directly follows it, so (cf || zf) == zf for all inputs."}
+]

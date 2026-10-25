@@ -1,0 +1,55 @@
+{
+ "note": "Reviewed reasons for rows that are not (yet) credited; kept for the next thread. FL-48: row-specific written reasons that a surviving mutant (kind, line, ident = the hash of the mutated line) of a machine-translated upper-address row is equivalent to the original. Each was written by one Sonnet reader from the function alone and confirmed by a second, independent Sonnet reviewer who tried to break it (reviewer note kept); rejected reasons are not here. The statement must equal the current line of the row, else the reason is ignored (scripts/fl41_survivors.py).",
+ "rows": {
+  "0x4adae8": [
+   {
+    "kind": "width",
+    "line": 26,
+    "ident": "0ccd444f",
+    "statement": "    ecx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x4adb28: mov ecx, dword ptr [ebp - 4] */",
+    "reason": "Slot [ebp-4] gets its low byte from the byte store at 0x4adb25. The dword/word read at 0x4adb28 both include that byte as the lowest-addressed (low) byte, and the very next instruction 0x4adb2b does and ecx,0xff, which discards every other byte. So ecx after 0x4adb2b (and the flags set by it and by test at 0x4adb31) is the same for RD32 and RD16, whatever the other bytes of [ebp-4] hold.",
+    "review": "Low byte of [ebp-4] is written at 0x4adb25 and is the lowest-addressed byte of both the RD16 and RD32 at 0x4adb28; 0x4adb2b and ecx,0xff keeps only it, so ecx and all flags (LOGIC sets cf,of,zf,sf,pf from the masked value) are identical. Uses assumption (a) only."
+   },
+   {
+    "kind": "alu",
+    "line": 28,
+    "ident": "b004d021",
+    "statement": "    { uint32_t a_ = ecx, b_ = ecx, r_; r_ = a_ & b_; FL41_LOGIC(r_, 32); }  /* 0x4adb31: test ecx, ecx */",
+    "reason": "test ecx,ecx at 0x4adb31 computes ecx & ecx; the mutant computes ecx | ecx. Both operands are the same register, so both results equal ecx and FL41_LOGIC derives identical flags (cf=of=0, zf, sf, pf from the same value). Nothing else differs.",
+    "review": "Both operands are ecx so a&b == a|b == ecx; FL41_LOGIC takes only the result (cf=of=0, zf/sf/pf from it), so every flag and ecx is identical."
+   },
+   {
+    "kind": "drop",
+    "line": 28,
+    "ident": "418d5233",
+    "statement": "    { uint32_t a_ = ecx, b_ = ecx, r_; r_ = a_ & b_; FL41_LOGIC(r_, 32); }  /* 0x4adb31: test ecx, ecx */",
+    "reason": "The instruction before it, and ecx,0xff at 0x4adb2b, already set zf/sf/pf from the result now in ecx and clear cf/of; test ecx,ecx at 0x4adb31 computes ecx&ecx = ecx with ecx unchanged in between, so it sets exactly the same flags. The only consumer is jne at 0x4adb33 (zf); later flag users 0x4adb3a and 0x4adb48 overwrite flags first. Dropping it changes nothing.",
+    "review": "Line 27 and ecx,0xff sets cf=of=0 and zf/sf/pf from ecx via FL41_LOGIC, and line 28 recomputes the identical values from the unchanged ecx (no af flag modeled), so the flag state is identical for the jne at 0x4adb33. Both successors (0x4adb37 and dl, 0x4adb06 add) overwrite all flags."
+   },
+   {
+    "kind": "jump",
+    "line": 29,
+    "ident": "b39ab6b7",
+    "statement": "    if (!zf) goto L_4adb37;  /* 0x4adb33: jne 0x4adb37 */",
+    "reason": "Flags at 0x4adb33 come from test ecx,ecx at 0x4adb31 where ecx = x & 0xff (0x4adb2b), so ecx <= 0xff: sf = bit31 = 0 and test clears of, hence sf == of always holds. The mutant condition (!zf && sf==of) therefore equals !zf, the original.",
+    "review": "ecx = x & 0xff so bit 31 is 0 and FL41_LOGIC sets sf=0 and of=0, hence sf==of always and (!zf && sf==of) equals !zf. No instruction sets flags between 0x4adb31 and 0x4adb33."
+   },
+   {
+    "kind": "literal",
+    "line": 33,
+    "ident": "0f7eeb9f",
+    "statement": "    { uint32_t a_ = (edx & 0xffu), b_ = 0x7fu, r_; r_ = a_ & b_; FL41_LOGIC(r_, 8); edx = (edx & 0xffffff00u) | ((r_) & 0xffu); }  /* 0x4adb3a: and dl, 0x7f */",
+    "reason": "At 0x4adb3a the new low byte of edx is r = (dl & 0x7f). The mutant additionally preserves bit 0 of the old edx via mask 0xffffff01. Bit 0 of r equals bit 0 of dl (0x7f has bit 0 set), so OR-ing old bit 0 into the result changes nothing in the low byte; bits 1..7 and the upper 24 bits are identical. edx is only used as dl at the store 0x4adb3d and then never read again before the return.",
+    "review": "Line 32 sets the low byte of edx to dl, so old edx bit 0 equals dl bit 0, and r = dl & 0x7f has bit 0 equal to dl bit 0; mask 0xffffff01 therefore ORs in an identical bit 0, and bits 1..7 and the upper 24 bits are the same. Resulting edx and flags (computed from r_ only) are identical."
+   },
+   {
+    "kind": "width",
+    "line": 35,
+    "ident": "af9c6b93",
+    "statement": "    eax = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x4adb40: mov eax, dword ptr [ebp - 4] */",
+    "reason": "Slot [ebp-4] has its low byte written by the byte store at 0x4adb3d. The read at 0x4adb40 (32-bit vs 16-bit) both contain that byte as the low byte, and 0x4adb43 does and eax,0xff, which discards the rest; the cmp at 0x4adb48 and everything after use only the low byte. So eax and the flags are identical.",
+    "review": "Byte store at 0x4adb3d writes the low byte of [ebp-4], which is the low byte of both the RD16 and RD32 at 0x4adb40; and eax,0xff at 0x4adb43 discards the rest, so eax and the cmp/je flags are identical. Uses assumption (a) only."
+   }
+  ]
+ }
+}

@@ -1,0 +1,4071 @@
+{
+ "rows_with_survivors": {
+  "0x4a4c15": [
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = esp, b_ = 0x18u, r_; FL41_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4a4c18: sub esp, 0x18 */",
+    6
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = eax, b_ = 0xffffffffu, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4a4cd0: cmp eax, -1 */",
+    58
+   ],
+   [
+    "register",
+    "flags",
+    "{ uint32_t a_ = eax, b_ = ecx, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4a4d1a: cmp eax, ecx */",
+    78
+   ],
+   [
+    "register",
+    "flags",
+    "{ uint32_t a_ = edx, b_ = eax, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4a4c4a: cmp edx, eax */",
+    19
+   ],
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xfffffffcu)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4a4d27: cmp dword ptr [ebp - 4], 0 */",
+    84
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = ecx, b_ = edx, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4a4cf2: cmp ecx, edx */",
+    67
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = ecx, b_ = ecx, r_; r_ = a_ & b_; FL41_LOGIC(r_, 32); }  /* 0x4a4c3e: test ecx, ecx */",
+    15
+   ],
+   [
+    "register",
+    "flags",
+    "{ uint32_t a_ = ecx, b_ = edx, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4a4c5d: cmp ecx, edx */",
+    26
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xfffffff8u)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4a4d2d: cmp dword ptr [ebp - 8], 0 */",
+    86
+   ],
+   [
+    "width",
+    "range",
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xfffffff8u)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4a4d2d: cmp dword ptr [ebp - 8], 0 */",
+    86
+   ],
+   [
+    "register",
+    "frame",
+    "{ uint32_t a_ = esp, b_ = 0x18u, r_; FL41_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4a4c18: sub esp, 0x18 */",
+    6
+   ],
+   [
+    "jump",
+    "range",
+    "if (zf) goto L_4a4d3a;  /* 0x4a4d2b: je 0x4a4d3a */",
+    85
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = edx, b_ = eax, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4a4c4a: cmp edx, eax */",
+    19
+   ],
+   [
+    "register",
+    "flags",
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xfffffffcu)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4a4d27: cmp dword ptr [ebp - 4], 0 */",
+    84
+   ],
+   [
+    "jump",
+    "range",
+    "if (zf) goto L_4a4d3a;  /* 0x4a4d31: je 0x4a4d3a */",
+    87
+   ],
+   [
+    "width",
+    "range",
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xfffffffcu)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4a4d27: cmp dword ptr [ebp - 4], 0 */",
+    84
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xfffffff8u)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4a4d2d: cmp dword ptr [ebp - 8], 0 */",
+    86
+   ],
+   [
+    "jump",
+    "range",
+    "if (zf) goto L_4a4d3a;  /* 0x4a4d31: je 0x4a4d3a */",
+    87
+   ],
+   [
+    "width",
+    null,
+    "edx = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(ebp + 0xfffffff4u)))) & 0xffffffffu;  /* 0x4a4d12: movsx edx, word ptr [ebp - 0xc] */",
+    76
+   ],
+   [
+    "width",
+    null,
+    "ecx = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(ebp + 0x8u)))) & 0xffffffffu;  /* 0x4a4cd5: movsx ecx, word ptr [ebp + 8] */",
+    60
+   ],
+   [
+    "jump",
+    "range",
+    "if (zf) goto L_4a4d3a;  /* 0x4a4d2b: je 0x4a4d3a */",
+    85
+   ],
+   [
+    "width",
+    null,
+    "eax = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(ebp + 0xcu)))) & 0xffffffffu;  /* 0x4a4c46: movsx eax, word ptr [ebp + 0xc] */",
+    18
+   ],
+   [
+    "jump",
+    "range",
+    "if (!zf) goto L_4a4c55;  /* 0x4a4c40: jne 0x4a4c55 */",
+    16
+   ],
+   [
+    "width",
+    null,
+    "edx = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(ebp + 0xcu)))) & 0xffffffffu;  /* 0x4a4c59: movsx edx, word ptr [ebp + 0xc] */",
+    25
+   ],
+   [
+    "width",
+    null,
+    "ecx = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(ebp + 0x8u)))) & 0xffffffffu;  /* 0x4a4c55: movsx ecx, word ptr [ebp + 8] */",
+    24
+   ],
+   [
+    "width",
+    null,
+    "eax = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(ebp + 0xcu)))) & 0xffffffffu;  /* 0x4a4cfd: movsx eax, word ptr [ebp + 0xc] */",
+    71
+   ],
+   [
+    "literal",
+    "frame",
+    "{ uint32_t a_ = esp, b_ = 0x18u, r_; FL41_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4a4c18: sub esp, 0x18 */",
+    6
+   ],
+   [
+    "drop",
+    "dead",
+    "{ uint32_t a_ = esp, b_ = 0x18u, r_; FL41_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4a4c18: sub esp, 0x18 */",
+    6
+   ],
+   [
+    "literal",
+    "frame",
+    "{ uint32_t a_ = esp, b_ = 0x18u, r_; FL41_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4a4c18: sub esp, 0x18 */",
+    6
+   ]
+  ],
+  "0x4b0f9f": [
+   [
+    "jump",
+    "range",
+    "if (zf) goto L_4b10d6;  /* 0x4b108f: je 0x4b10d6 */",
+    89
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = eax, b_ = eax, r_; r_ = a_ & b_; FL41_LOGIC(r_, 32); }  /* 0x4b108d: test eax, eax */",
+    88
+   ],
+   [
+    "width",
+    null,
+    "edx = RD32((uint32_t)(ebp + 0xfffffff4u));  /* 0x4b1098: mov edx, dword ptr [ebp - 0xc] */",
+    92
+   ],
+   [
+    "width",
+    null,
+    "ecx = (ecx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffff8u))) & 0xffffu);  /* 0x4b10c4: mov cx, word ptr [ebp - 8] */",
+    103
+   ],
+   [
+    "width",
+    null,
+    "edx = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(ebp + 0xfffffff8u)))) & 0xffffffffu;  /* 0x4b0ff7: movsx edx, word ptr [ebp - 8] */",
+    34
+   ],
+   [
+    "width",
+    null,
+    "eax = RD32((uint32_t)(ebp + 0xfffffff4u));  /* 0x4b107e: mov eax, dword ptr [ebp - 0xc] */",
+    84
+   ],
+   [
+    "width",
+    null,
+    "edx = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(ebp + 0xfffffff8u)))) & 0xffffffffu;  /* 0x4b1068: movsx edx, word ptr [ebp - 8] */",
+    77
+   ],
+   [
+    "width",
+    null,
+    "ecx = (ecx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffff8u))) & 0xffffu);  /* 0x4b0feb: mov cx, word ptr [ebp - 8] */",
+    30
+   ],
+   [
+    "width",
+    null,
+    "ecx = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(ebp + 0xfffffff8u)))) & 0xffffffffu;  /* 0x4b109f: movsx ecx, word ptr [ebp - 8] */",
+    94
+   ],
+   [
+    "literal",
+    null,
+    "ecx = (ecx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffff8u))) & 0xffffu);  /* 0x4b10c4: mov cx, word ptr [ebp - 8] */",
+    103
+   ],
+   [
+    "width",
+    null,
+    "edx = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(ebp + 0xfffffff8u)))) & 0xffffffffu;  /* 0x4b1085: movsx edx, word ptr [ebp - 8] */",
+    86
+   ],
+   [
+    "width",
+    null,
+    "esi = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(ebp + 0xfffffff8u)))) & 0xffffffffu;  /* 0x4b10b4: movsx esi, word ptr [ebp - 8] */",
+    99
+   ],
+   [
+    "width",
+    null,
+    "ecx = (ecx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffff8u))) & 0xffffu);  /* 0x4b105c: mov cx, word ptr [ebp - 8] */",
+    73
+   ],
+   [
+    "width",
+    null,
+    "edx = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(ebp + 0xfffffff8u)))) & 0xffffffffu;  /* 0x4b101e: movsx edx, word ptr [ebp - 8] */",
+    45
+   ],
+   [
+    "drop",
+    "repeat",
+    "eax = RD32((uint32_t)(ebp + 0xfffffff4u));  /* 0x4b107e: mov eax, dword ptr [ebp - 0xc] */",
+    84
+   ],
+   [
+    "drop",
+    null,
+    "ecx = (ecx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffff8u))) & 0xffffu);  /* 0x4b10c4: mov cx, word ptr [ebp - 8] */",
+    103
+   ],
+   [
+    "literal",
+    null,
+    "ecx = (ecx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffff8u))) & 0xffffu);  /* 0x4b0feb: mov cx, word ptr [ebp - 8] */",
+    30
+   ]
+  ],
+  "0x4a0d73": [
+   [
+    "width",
+    null,
+    "eax = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x4a0e32: mov eax, dword ptr [ebp - 4] */",
+    63
+   ],
+   [
+    "width",
+    null,
+    "ecx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x4a0e60: mov ecx, dword ptr [ebp - 4] */",
+    76
+   ],
+   [
+    "width",
+    null,
+    "ecx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x4a0e87: mov ecx, dword ptr [ebp - 4] */",
+    87
+   ],
+   [
+    "register",
+    "flags",
+    "{ uint32_t a_ = RD32((uint32_t)(edx + eax * 4u)), b_ = 0x1u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4a0dd3: cmp dword ptr [edx + eax*4], 1 */",
+    35
+   ],
+   [
+    "width",
+    null,
+    "eax = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x4a0e0b: mov eax, dword ptr [ebp - 4] */",
+    52
+   ],
+   [
+    "register",
+    "flags",
+    "{ uint32_t a_ = ecx, b_ = 0xffffu, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4a0e26: cmp ecx, 0xffff */",
+    59
+   ],
+   [
+    "literal",
+    null,
+    "edx = (edx & 0xffff0000u) | ((RD16((uint32_t)(eax + ecx * 2u))) & 0xffffu);  /* 0x4a0e77: mov dx, word ptr [eax + ecx*2] */",
+    82
+   ],
+   [
+    "register",
+    "flags",
+    "{ uint32_t a_ = edx, b_ = 0xffffu, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4a0e7b: cmp edx, 0xffff */",
+    83
+   ],
+   [
+    "width",
+    null,
+    "eax = RD32((uint32_t)(ebp + 0xfffffff8u));  /* 0x4a0e83: mov eax, dword ptr [ebp - 8] */",
+    85
+   ],
+   [
+    "literal",
+    null,
+    "ecx = (ecx & 0xffff0000u) | ((RD16((uint32_t)(edx + eax * 2u))) & 0xffffu);  /* 0x4a0e22: mov cx, word ptr [edx + eax*2] */",
+    58
+   ],
+   [
+    "width",
+    null,
+    "ecx = RD32((uint32_t)(ebp + 0xfffffff8u));  /* 0x4a0e72: mov ecx, dword ptr [ebp - 8] */",
+    80
+   ],
+   [
+    "width",
+    null,
+    "ecx = RD32((uint32_t)(ebp + 0xfffffff8u));  /* 0x4a0dd9: mov ecx, dword ptr [ebp - 8] */",
+    37
+   ],
+   [
+    "width",
+    null,
+    "edx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x4a0ddd: mov edx, dword ptr [ebp - 4] */",
+    39
+   ],
+   [
+    "width",
+    null,
+    "eax = RD32((uint32_t)(ebp + 0xfffffff8u));  /* 0x4a0e1d: mov eax, dword ptr [ebp - 8] */",
+    56
+   ],
+   [
+    "width",
+    null,
+    "edx = RD32((uint32_t)(ebp + 0xfffffff8u));  /* 0x4a0db2: mov edx, dword ptr [ebp - 8] */",
+    27
+   ],
+   [
+    "width",
+    null,
+    "edx = RD32((uint32_t)(ebp + 0xfffffff8u));  /* 0x4a0e2e: mov edx, dword ptr [ebp - 8] */",
+    61
+   ],
+   [
+    "width",
+    null,
+    "eax = RD32((uint32_t)(ebp + 0xfffffff8u));  /* 0x4a0da6: mov eax, dword ptr [ebp - 8] */",
+    22
+   ],
+   [
+    "width",
+    null,
+    "edx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x4a0d91: mov edx, dword ptr [ebp - 4] */",
+    16
+   ],
+   [
+    "width",
+    null,
+    "eax = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x4a0dbe: mov eax, dword ptr [ebp - 4] */",
+    30
+   ],
+   [
+    "width",
+    null,
+    "eax = RD32((uint32_t)(ebp + 0xfffffff8u));  /* 0x4a0dd0: mov eax, dword ptr [ebp - 8] */",
+    34
+   ],
+   [
+    "width",
+    null,
+    "eax = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x4a0d85: mov eax, dword ptr [ebp - 4] */",
+    11
+   ],
+   [
+    "drop",
+    "repeat",
+    "ecx = RD32((uint32_t)(ebp + 0xfffffff4u));  /* 0x4a0d8e: mov ecx, dword ptr [ebp - 0xc] */",
+    15
+   ]
+  ],
+  "0x48efe8": [
+   [
+    "width",
+    "flags",
+    "{ uint32_t a_ = eax & 0xffu, b_ = RD8(edi), r_;",
+    30
+   ],
+   [
+    "drop",
+    null,
+    "{ uint32_t a_ = ecx, b_ = 0x3u, r_; r_ = a_ & b_; FL41_LOGIC(r_, 32); ecx = r_; }  /* 0x48f0cd: and ecx, 3 */",
+    101
+   ],
+   [
+    "literal",
+    null,
+    "{ uint32_t a_ = eax & 0xffu, b_ = RD8(edi), r_;",
+    30
+   ],
+   [
+    "jump",
+    "range",
+    "if (zf) goto L_48f08e;  /* 0x48f00d: je 0x48f08e */",
+    16
+   ],
+   [
+    "alu",
+    "copy count",
+    "{ uint32_t a_ = ecx, n_ = 0x2u, r_; if (n_ != 0u) { FL41_SHR(r_, a_, n_, 32); ecx = r_; } }  /* 0x48f047: shr ecx, 2 */",
+    41
+   ],
+   [
+    "drop",
+    "repeat",
+    "eax = RD32((uint32_t)(ebp + 0xfffffff8u));  /* 0x48f10b: mov eax, dword ptr [ebp - 8] */",
+    120
+   ],
+   [
+    "alu",
+    "copy count",
+    "{ uint32_t a_ = ecx, n_ = 0x2u, r_; if (n_ != 0u) { FL41_SHR(r_, a_, n_, 32); ecx = r_; } }  /* 0x48f0c6: shr ecx, 2 */",
+    93
+   ],
+   [
+    "register",
+    "flags",
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0x8u)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x48f009: cmp dword ptr [ebp + 8], 0 */",
+    15
+   ],
+   [
+    "width",
+    null,
+    "WR32(edi, RD32(esi));",
+    96
+   ],
+   [
+    "literal",
+    null,
+    "eax = (eax & 0xffff0000u) | ((RD16((uint32_t)(edx + 0x42du))) & 0xffffu);  /* 0x48f142: mov ax, word ptr [edx + 0x42d] */",
+    130
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0x8u)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x48f009: cmp dword ptr [ebp + 8], 0 */",
+    15
+   ],
+   [
+    "literal",
+    null,
+    "{ uint32_t a_ = ecx, n_ = 0x2u, r_; if (n_ != 0u) { FL41_SHR(r_, a_, n_, 32); ecx = r_; } }  /* 0x48f0c6: shr ecx, 2 */",
+    93
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0x8u)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x48f009: cmp dword ptr [ebp + 8], 0 */",
+    15
+   ],
+   [
+    "drop",
+    "repeat",
+    "edx = RD32((uint32_t)(ebp + 0xfffffff8u));  /* 0x48f13f: mov edx, dword ptr [ebp - 8] */",
+    129
+   ],
+   [
+    "drop",
+    "repeat",
+    "ecx = RD32((uint32_t)(ebp + 0xfffffff8u));  /* 0x48f150: mov ecx, dword ptr [ebp - 8] */",
+    132
+   ],
+   [
+    "literal",
+    null,
+    "{ uint32_t a_ = eax & 0xffu, b_ = RD8(edi), r_;",
+    82
+   ],
+   [
+    "width",
+    "masked read",
+    "WR8(edi, RD8(esi));",
+    104
+   ],
+   [
+    "literal",
+    null,
+    "edx = (edx & 0xffff0000u) | ((RD16((uint32_t)(ecx + 0xacu))) & 0xffffu);  /* 0x48f0fd: mov dx, word ptr [ecx + 0xac] */",
+    117
+   ],
+   [
+    "width",
+    null,
+    "WR32(edi, RD32(esi));",
+    96
+   ],
+   [
+    "drop",
+    "repeat",
+    "ecx = RD32((uint32_t)(ebp + 0xfffffff8u));  /* 0x48f13c: mov ecx, dword ptr [ebp - 8] */",
+    128
+   ],
+   [
+    "drop",
+    "repeat",
+    "ecx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x48f07b: mov ecx, dword ptr [ebp - 4] */",
+    64
+   ],
+   [
+    "width",
+    "masked read",
+    "WR8(edi, RD8(esi));",
+    52
+   ],
+   [
+    "drop",
+    null,
+    "ecx -= 1u;",
+    98
+   ],
+   [
+    "drop",
+    "repeat",
+    "edx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x48f09e: mov edx, dword ptr [ebp - 4] */",
+    72
+   ],
+   [
+    "drop",
+    "repeat",
+    "eax = RD32((uint32_t)(ebp + 0xfffffff8u));  /* 0x48f00f: mov eax, dword ptr [ebp - 8] */",
+    17
+   ],
+   [
+    "width",
+    "flags",
+    "{ uint32_t a_ = eax & 0xffu, b_ = RD8(edi), r_;",
+    82
+   ],
+   [
+    "literal",
+    "identical code",
+    "edx = (edx & 0xffff0000u) | ((RD16((uint32_t)(ecx + edx + 0x162u))) & 0xffffu);  /* 0x48f0e8: mov dx, word ptr [ecx + edx + 0x162] */",
+    113
+   ],
+   [
+    "drop",
+    "repeat",
+    "eax = RD32((uint32_t)(ebp + 0xfffffff8u));  /* 0x48f12f: mov eax, dword ptr [ebp - 8] */",
+    126
+   ],
+   [
+    "drop",
+    null,
+    "WR32(edi, RD32(esi));",
+    96
+   ],
+   [
+    "drop",
+    "repeat",
+    "eax = RD32((uint32_t)(ebp + 0xfffffff8u));  /* 0x48f08e: mov eax, dword ptr [ebp - 8] */",
+    69
+   ],
+   [
+    "drop",
+    "repeat",
+    "eax = RD32((uint32_t)(ebp + 0xfffffff8u));  /* 0x48f078: mov eax, dword ptr [ebp - 8] */",
+    63
+   ],
+   [
+    "drop",
+    "repeat",
+    "eax = RD32((uint32_t)(ebp + 0xfffffff8u));  /* 0x48f0f7: mov eax, dword ptr [ebp - 8] */",
+    115
+   ],
+   [
+    "literal",
+    null,
+    "edx = (edx & 0xffff0000u) | ((RD16((uint32_t)(ecx + edx + 0x121u))) & 0xffffu);  /* 0x48f069: mov dx, word ptr [ecx + edx + 0x121] */",
+    61
+   ],
+   [
+    "drop",
+    "repeat",
+    "ecx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x48f0fa: mov ecx, dword ptr [ebp - 4] */",
+    116
+   ],
+   [
+    "drop",
+    "repeat",
+    "edx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x48f01f: mov edx, dword ptr [ebp - 4] */",
+    20
+   ],
+   [
+    "drop",
+    null,
+    "esi += 4u; edi += 4u;",
+    97
+   ]
+  ],
+  "0x4c5976": [
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = ecx, n_ = 0x2u, r_; if (n_ != 0u) { FL41_SHR(r_, a_, n_, 32); ecx = r_; } }  /* 0x4c5b0c: shr ecx, 2 */",
+    137
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = eax, b_ = eax, r_; r_ = a_ & b_; FL41_LOGIC(r_, 32); }  /* 0x4c598e: test eax, eax */",
+    11
+   ],
+   [
+    "jump",
+    null,
+    "if (!zf) goto L_4c5a6c;  /* 0x4c59fc: jne 0x4c5a6c */",
+    42
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xcu)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4c59f8: cmp dword ptr [ebp + 0xc], 0 */",
+    41
+   ],
+   [
+    "width",
+    null,
+    "eax = RD32((uint32_t)(ebp + 0xcu));  /* 0x4c5a8f: mov eax, dword ptr [ebp + 0xc] */",
+    95
+   ],
+   [
+    "jump",
+    null,
+    "if (!zf) goto L_4c5a6c;  /* 0x4c59fc: jne 0x4c5a6c */",
+    42
+   ],
+   [
+    "jump",
+    null,
+    "if (!zf) goto L_4c59fe;  /* 0x4c59e2: jne 0x4c59fe */",
+    35
+   ],
+   [
+    "jump",
+    null,
+    "if (!zf) goto L_4c59fe;  /* 0x4c59f0: jne 0x4c59fe */",
+    38
+   ],
+   [
+    "jump",
+    null,
+    "if (zf) goto L_4c59fe;  /* 0x4c59f6: je 0x4c59fe */",
+    40
+   ],
+   [
+    "register",
+    "dead flags",
+    "{ uint32_t a_ = edx, b_ = RD32((uint32_t)(ebp + 0xfffffee8u)), r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4c59ea: cmp edx, dword ptr [ebp - 0x118] */",
+    37
+   ],
+   [
+    "jump",
+    null,
+    "if (zf) goto L_4c5a6c;  /* 0x4c5990: je 0x4c5a6c */",
+    12
+   ],
+   [
+    "width",
+    null,
+    "edx = RD32((uint32_t)(ebp + 0x14u));  /* 0x4c5a96: mov edx, dword ptr [ebp + 0x14] */",
+    97
+   ],
+   [
+    "jump",
+    null,
+    "if (!zf) goto L_4c59fe;  /* 0x4c59f0: jne 0x4c59fe */",
+    38
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0x8u)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4c59f2: cmp dword ptr [ebp + 8], 0 */",
+    39
+   ],
+   [
+    "register",
+    "dead flags",
+    "{ uint32_t a_ = ecx, b_ = RD32((uint32_t)(ebp + 0xffffffe8u)), r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4c59df: cmp ecx, dword ptr [ebp - 0x18] */",
+    34
+   ],
+   [
+    "register",
+    "dead flags",
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xcu)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4c59f8: cmp dword ptr [ebp + 0xc], 0 */",
+    41
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = ecx, b_ = RD32((uint32_t)(eax)), r_; FL41_SUB(a_, b_, 0u, r_, 32); ecx = r_; }  /* 0x4c5ad5: sub ecx, dword ptr [eax] */",
+    118
+   ],
+   [
+    "width",
+    null,
+    "edx = RD32((uint32_t)(edx));  /* 0x4c5a85: mov edx, dword ptr [edx] */",
+    91
+   ],
+   [
+    "register",
+    "dead flags",
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0x8u)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4c59f2: cmp dword ptr [ebp + 8], 0 */",
+    39
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0x8u)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4c59f2: cmp dword ptr [ebp + 8], 0 */",
+    39
+   ],
+   [
+    "width",
+    null,
+    "eax = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(0x63a4cdu)))) & 0xffffffffu;  /* 0x4c5987: movsx eax, word ptr [0x63a4cd] */",
+    10
+   ],
+   [
+    "drop",
+    null,
+    "edx = RD32((uint32_t)(ebp + 0x10u));  /* 0x4c5acc: mov edx, dword ptr [ebp + 0x10] */",
+    115
+   ],
+   [
+    "width",
+    null,
+    "ecx = RD32((uint32_t)(edx + 0x8u));  /* 0x4c5ad2: mov ecx, dword ptr [edx + 8] */",
+    117
+   ],
+   [
+    "width",
+    null,
+    "edx = RD32((uint32_t)(ebp + 0x10u));  /* 0x4c5a82: mov edx, dword ptr [ebp + 0x10] */",
+    90
+   ],
+   [
+    "drop",
+    null,
+    "ecx = RD32((uint32_t)(ebp + 0x14u));  /* 0x4c59c7: mov ecx, dword ptr [ebp + 0x14] */",
+    28
+   ],
+   [
+    "drop",
+    null,
+    "edx = RD32((uint32_t)(ebp + 0x14u));  /* 0x4c59ca: mov edx, dword ptr [ebp + 0x14] */",
+    29
+   ],
+   [
+    "width",
+    null,
+    "edx = RD32((uint32_t)(ebp + 0x10u));  /* 0x4c5acc: mov edx, dword ptr [ebp + 0x10] */",
+    115
+   ],
+   [
+    "width",
+    null,
+    "eax = RD32((uint32_t)(ebp + 0xffffffecu));  /* 0x4c5af0: mov eax, dword ptr [ebp - 0x14] */",
+    126
+   ],
+   [
+    "width",
+    null,
+    "eax = RD32((uint32_t)(edx + 0x4u));  /* 0x4c5a99: mov eax, dword ptr [edx + 4] */",
+    98
+   ],
+   [
+    "drop",
+    null,
+    "edx = RD32((uint32_t)(ebp + 0x14u));  /* 0x4c5a96: mov edx, dword ptr [ebp + 0x14] */",
+    97
+   ],
+   [
+    "width",
+    "masked read",
+    "WR8(edi, RD8(esi));",
+    148
+   ],
+   [
+    "drop",
+    "repeat",
+    "ecx = RD32((uint32_t)(ebp + 0x10u));  /* 0x4c59a7: mov ecx, dword ptr [ebp + 0x10] */",
+    18
+   ],
+   [
+    "width",
+    null,
+    "edi = RD32((uint32_t)(ebp + 0xfffffff4u));  /* 0x4c5b07: mov edi, dword ptr [ebp - 0xc] */",
+    135
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xcu)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4c59f8: cmp dword ptr [ebp + 0xc], 0 */",
+    41
+   ],
+   [
+    "width",
+    null,
+    "ecx = RD32((uint32_t)(ebp + 0xffffffecu));  /* 0x4c5af9: mov ecx, dword ptr [ebp - 0x14] */",
+    130
+   ],
+   [
+    "drop",
+    null,
+    "{ uint32_t a_ = edx, b_ = RD32((uint32_t)(ebp + 0xfffffee8u)), r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4c59ea: cmp edx, dword ptr [ebp - 0x118] */",
+    37
+   ],
+   [
+    "width",
+    null,
+    "ecx = RD32((uint32_t)(ebp + 0xfffffff8u));  /* 0x4c5b01: mov ecx, dword ptr [ebp - 8] */",
+    133
+   ],
+   [
+    "width",
+    null,
+    "ecx = RD32((uint32_t)(ebp + 0x14u));  /* 0x4c5aad: mov ecx, dword ptr [ebp + 0x14] */",
+    104
+   ],
+   [
+    "width",
+    null,
+    "esi = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x4c5b04: mov esi, dword ptr [ebp - 4] */",
+    134
+   ],
+   [
+    "drop",
+    "repeat",
+    "edx = RD32((uint32_t)(ebp + 0x10u));  /* 0x4c59aa: mov edx, dword ptr [ebp + 0x10] */",
+    19
+   ],
+   [
+    "drop",
+    null,
+    "eax = RD32((uint32_t)(ebp + 0x10u));  /* 0x4c5acf: mov eax, dword ptr [ebp + 0x10] */",
+    116
+   ]
+  ],
+  "0x48ad26": [
+   [
+    "register",
+    "flags",
+    "{ uint32_t a_ = RD32((uint32_t)(0x5bb1cau)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x48ada9: cmp dword ptr [0x5bb1ca], 0 */",
+    43
+   ],
+   [
+    "width",
+    "masked read",
+    "edx = (edx & 0xffffff00u) | ((RD8((uint32_t)(ecx + 0x21u))) & 0xffu);  /* 0x48ad5e: mov dl, byte ptr [ecx + 0x21] */",
+    24
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = RD8(esi), b_ = RD8(edi), r_;",
+    52
+   ],
+   [
+    "jump",
+    "range",
+    "if (!zf) goto L_48adff;  /* 0x48ade8: jne 0x48adff */",
+    67
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = RD8(esi), b_ = RD8(edi), r_;",
+    52
+   ],
+   [
+    "jump",
+    null,
+    "if (zf) goto L_48adff;  /* 0x48adb0: je 0x48adff */",
+    44
+   ],
+   [
+    "jump",
+    null,
+    "if ((sf == of)) goto L_48ad7f;  /* 0x48ad64: jge 0x48ad7f */",
+    26
+   ],
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(0x5bb1cau)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x48ada9: cmp dword ptr [0x5bb1ca], 0 */",
+    43
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = eax, b_ = eax, r_; r_ = a_ & b_; FL41_LOGIC(r_, 32); }  /* 0x48ade6: test eax, eax */",
+    66
+   ],
+   [
+    "literal",
+    null,
+    "edx = (edx & 0xffffff00u) | ((RD8((uint32_t)(ecx + 0x21u))) & 0xffu);  /* 0x48ad5e: mov dl, byte ptr [ecx + 0x21] */",
+    24
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xfffffffcu)), b_ = edx, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x48ad61: cmp dword ptr [ebp - 4], edx */",
+    25
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = RD32((uint32_t)(0x5bb1cau)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x48ada9: cmp dword ptr [0x5bb1ca], 0 */",
+    43
+   ],
+   [
+    "width",
+    null,
+    "eax = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x48ad66: mov eax, dword ptr [ebp - 4] */",
+    27
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = edx, b_ = RD32((uint32_t)(ebp + 0xfffffffcu)), r_; FL41_ADD(a_, b_, 0u, r_, 32); edx = r_; }  /* 0x48ad76: add edx, dword ptr [ebp - 4] */",
+    31
+   ],
+   [
+    "width",
+    null,
+    "eax = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x48ad50: mov eax, dword ptr [ebp - 4] */",
+    18
+   ],
+   [
+    "drop",
+    "repeat",
+    "eax = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x48ad50: mov eax, dword ptr [ebp - 4] */",
+    18
+   ],
+   [
+    "literal",
+    null,
+    "ecx = 0x9u;  /* 0x48adc0: mov ecx, 9 */",
+    48
+   ],
+   [
+    "drop",
+    "repeat",
+    "eax = RD32((uint32_t)(ebp + 0xfffffff0u));  /* 0x48ad9c: mov eax, dword ptr [ebp - 0x10] */",
+    41
+   ]
+  ],
+  "0x4be2c6": [
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(edx + 0x1a4u)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4be309: cmp dword ptr [edx + 0x1a4], 0 */",
+    27
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xfffffff4u)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4be2e3: cmp dword ptr [ebp - 0xc], 0 */",
+    15
+   ],
+   [
+    "drop",
+    "repeat",
+    "edx = RD32((uint32_t)(ebp + 0xfffffff8u));  /* 0x4be306: mov edx, dword ptr [ebp - 8] */",
+    26
+   ],
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0x8u)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4be2cf: cmp dword ptr [ebp + 8], 0 */",
+    8
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0x8u)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4be2cf: cmp dword ptr [ebp + 8], 0 */",
+    8
+   ],
+   [
+    "jump",
+    "range",
+    "if (zf) goto L_4be2f1;  /* 0x4be2e7: je 0x4be2f1 */",
+    16
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = RD32((uint32_t)(ecx + 0x1a8u)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4be339: cmp dword ptr [ecx + 0x1a8], 0 */",
+    40
+   ],
+   [
+    "register",
+    "flags",
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xfffffff4u)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4be2e3: cmp dword ptr [ebp - 0xc], 0 */",
+    15
+   ],
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = esp, b_ = 0x4u, r_; FL41_ADD(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4be35e: add esp, 4 */",
+    50
+   ],
+   [
+    "drop",
+    null,
+    "{ uint32_t a_ = RD32((uint32_t)(ecx + 0x1a8u)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4be339: cmp dword ptr [ecx + 0x1a8], 0 */",
+    40
+   ],
+   [
+    "jump",
+    "range",
+    "if (!zf) goto L_4be2da;  /* 0x4be2d3: jne 0x4be2da */",
+    9
+   ],
+   [
+    "jump",
+    null,
+    "if (zf) goto L_4be321;  /* 0x4be2ed: je 0x4be321 */",
+    18
+   ],
+   [
+    "register",
+    "flags",
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xfffffff4u)), b_ = 0x1u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4be2e9: cmp dword ptr [ebp - 0xc], 1 */",
+    17
+   ],
+   [
+    "register",
+    "flags",
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0x8u)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4be2cf: cmp dword ptr [ebp + 8], 0 */",
+    8
+   ],
+   [
+    "literal",
+    null,
+    "{ uint32_t a_ = RD32((uint32_t)(ecx + 0x1a8u)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4be339: cmp dword ptr [ecx + 0x1a8], 0 */",
+    40
+   ],
+   [
+    "jump",
+    null,
+    "if ((sf == of)) goto L_4be34f;  /* 0x4be340: jge 0x4be34f */",
+    41
+   ],
+   [
+    "drop",
+    null,
+    "{ uint32_t a_ = RD32((uint32_t)(edx + 0x1a4u)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4be309: cmp dword ptr [edx + 0x1a4], 0 */",
+    27
+   ],
+   [
+    "jump",
+    null,
+    "if ((sf == of)) goto L_4be31f;  /* 0x4be310: jge 0x4be31f */",
+    28
+   ],
+   [
+    "literal",
+    "identical code",
+    "{ uint32_t a_ = esp, b_ = 0x4u, r_; FL41_ADD(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4be35e: add esp, 4 */",
+    50
+   ],
+   [
+    "drop",
+    "dead",
+    "{ uint32_t a_ = esp, b_ = 0x4u, r_; FL41_ADD(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4be35e: add esp, 4 */",
+    50
+   ],
+   [
+    "literal",
+    null,
+    "{ uint32_t a_ = esp, b_ = 0x4u, r_; FL41_ADD(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4be35e: add esp, 4 */",
+    50
+   ],
+   [
+    "drop",
+    "repeat",
+    "ecx = RD32((uint32_t)(ebp + 0xfffffff8u));  /* 0x4be336: mov ecx, dword ptr [ebp - 8] */",
+    39
+   ],
+   [
+    "literal",
+    null,
+    "{ uint32_t a_ = RD32((uint32_t)(edx + 0x1a4u)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4be309: cmp dword ptr [edx + 0x1a4], 0 */",
+    27
+   ],
+   [
+    "literal",
+    null,
+    "{ uint32_t a_ = RD32((uint32_t)(ecx + 0x1a8u)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4be339: cmp dword ptr [ecx + 0x1a8], 0 */",
+    40
+   ],
+   [
+    "literal",
+    null,
+    "{ uint32_t a_ = RD32((uint32_t)(edx + 0x1a4u)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4be309: cmp dword ptr [edx + 0x1a4], 0 */",
+    27
+   ]
+  ],
+  "0x4c4c2b": [
+   [
+    "drop",
+    null,
+    "edx = (edx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffffcu))) & 0xffffu);  /* 0x4c4d1d: mov dx, word ptr [ebp - 4] */",
+    76
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = ecx, b_ = edx, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4c4cf7: cmp ecx, edx */",
+    64
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = ecx, b_ = edx, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4c4cf7: cmp ecx, edx */",
+    64
+   ],
+   [
+    "literal",
+    null,
+    "ecx = (ecx & 0xffffff00u) | ((RD8((uint32_t)(eax + edx + 0xe8au))) & 0xffu);  /* 0x4c4c7e: mov cl, byte ptr [eax + edx + 0xe8a] */",
+    29
+   ],
+   [
+    "width",
+    null,
+    "ecx = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(ebp + 0xfffffffcu)))) & 0xffffffffu;  /* 0x4c4cec: movsx ecx, word ptr [ebp - 4] */",
+    62
+   ],
+   [
+    "jump",
+    null,
+    "if ((zf || sf != of)) goto L_4c4d1d;  /* 0x4c4d0b: jle 0x4c4d1d */",
+    70
+   ],
+   [
+    "drop",
+    "repeat",
+    "edx = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(ebp + 0xfffffff8u)))) & 0xffffffffu;  /* 0x4c4c75: movsx edx, word ptr [ebp - 8] */",
+    26
+   ],
+   [
+    "width",
+    null,
+    "edx = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(0x63a8d8u)))) & 0xffffffffu;  /* 0x4c4cf0: movsx edx, word ptr [0x63a8d8] */",
+    63
+   ],
+   [
+    "drop",
+    "repeat",
+    "eax = RD32((uint32_t)(ebp + 0xfffffff4u));  /* 0x4c4c96: mov eax, dword ptr [ebp - 0xc] */",
+    35
+   ],
+   [
+    "register",
+    "flags",
+    "{ uint32_t a_ = ecx, b_ = 0x1u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4c4c85: cmp ecx, 1 */",
+    30
+   ],
+   [
+    "drop",
+    "repeat",
+    "ecx = RD32((uint32_t)(ebp + 0xfffffff4u));  /* 0x4c4c47: mov ecx, dword ptr [ebp - 0xc] */",
+    12
+   ],
+   [
+    "width",
+    null,
+    "edx = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(ebp + 0xfffffffcu)))) & 0xffffffffu;  /* 0x4c4d05: movsx edx, word ptr [ebp - 4] */",
+    68
+   ],
+   [
+    "drop",
+    null,
+    "ecx = (ecx & 0xffff0000u) | ((RD16((uint32_t)(eax + 0xe86u))) & 0xffffu);  /* 0x4c4d10: mov cx, word ptr [eax + 0xe86] */",
+    72
+   ],
+   [
+    "literal",
+    null,
+    "ecx = (ecx & 0xffff0000u) | ((RD16((uint32_t)(eax + 0xe86u))) & 0xffffu);  /* 0x4c4d10: mov cx, word ptr [eax + 0xe86] */",
+    72
+   ],
+   [
+    "literal",
+    null,
+    "{ uint32_t a_ = ecx, b_ = edx, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4c4d09: cmp ecx, edx */",
+    69
+   ],
+   [
+    "drop",
+    "repeat",
+    "edx = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(ebp + 0xfffffff8u)))) & 0xffffffffu;  /* 0x4c4c8f: movsx edx, word ptr [ebp - 8] */",
+    33
+   ],
+   [
+    "width",
+    "masked read",
+    "ecx = (ecx & 0xffffff00u) | ((RD8((uint32_t)(eax + edx + 0xe8au))) & 0xffu);  /* 0x4c4c7e: mov cl, byte ptr [eax + edx + 0xe8a] */",
+    29
+   ],
+   [
+    "drop",
+    "repeat",
+    "eax = RD32((uint32_t)(ebp + 0xfffffff4u));  /* 0x4c4c79: mov eax, dword ptr [ebp - 0xc] */",
+    27
+   ],
+   [
+    "drop",
+    "repeat",
+    "eax = RD32((uint32_t)(ebp + 0xfffffff4u));  /* 0x4c4cba: mov eax, dword ptr [ebp - 0xc] */",
+    45
+   ],
+   [
+    "drop",
+    "repeat",
+    "ecx = RD32((uint32_t)(ebp + 0xfffffff4u));  /* 0x4c4cd3: mov ecx, dword ptr [ebp - 0xc] */",
+    54
+   ],
+   [
+    "drop",
+    "repeat",
+    "eax = RD32((uint32_t)(ebp + 0xfffffff4u));  /* 0x4c4ca8: mov eax, dword ptr [ebp - 0xc] */",
+    40
+   ],
+   [
+    "drop",
+    null,
+    "edx = (edx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffffcu))) & 0xffffu);  /* 0x4c4d33: mov dx, word ptr [ebp - 4] */",
+    82
+   ],
+   [
+    "literal",
+    null,
+    "edx = (edx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffffcu))) & 0xffffu);  /* 0x4c4d1d: mov dx, word ptr [ebp - 4] */",
+    76
+   ],
+   [
+    "drop",
+    "repeat",
+    "eax = RD32((uint32_t)(ebp + 0xfffffff4u));  /* 0x4c4cfb: mov eax, dword ptr [ebp - 0xc] */",
+    66
+   ],
+   [
+    "drop",
+    "repeat",
+    "eax = RD32((uint32_t)(ebp + 0xfffffff4u));  /* 0x4c4d0d: mov eax, dword ptr [ebp - 0xc] */",
+    71
+   ],
+   [
+    "drop",
+    "repeat",
+    "eax = RD32((uint32_t)(ebp + 0xfffffff4u));  /* 0x4c4d25: mov eax, dword ptr [ebp - 0xc] */",
+    79
+   ],
+   [
+    "literal",
+    null,
+    "edx = (edx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffffcu))) & 0xffffu);  /* 0x4c4d33: mov dx, word ptr [ebp - 4] */",
+    82
+   ]
+  ],
+  "0x4be504": [
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(0x63883fu)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4be5d1: cmp dword ptr [0x63883f], 0 */",
+    73
+   ],
+   [
+    "jump",
+    null,
+    "if ((sf == of)) goto L_4be544;  /* 0x4be534: jge 0x4be544 */",
+    17
+   ],
+   [
+    "alu",
+    "copy count",
+    "{ uint32_t a_ = ecx, n_ = 0x2u, r_; if (n_ != 0u) { FL41_SHR(r_, a_, n_, 32); ecx = r_; } }  /* 0x4be5f5: shr ecx, 2 */",
+    92
+   ],
+   [
+    "jump",
+    null,
+    "if (!zf) goto L_4be601;  /* 0x4be5d8: jne 0x4be601 */",
+    74
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = RD32((uint32_t)(0x63883fu)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4be5d1: cmp dword ptr [0x63883f], 0 */",
+    73
+   ],
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(edx + 0x1f4u)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4be585: cmp dword ptr [edx + 0x1f4], 0 */",
+    46
+   ],
+   [
+    "width",
+    "masked read",
+    "WR8(edi, RD8(esi));",
+    103
+   ],
+   [
+    "register",
+    "flags",
+    "{ uint32_t a_ = RD32((uint32_t)(0x63883fu)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4be5d1: cmp dword ptr [0x63883f], 0 */",
+    73
+   ],
+   [
+    "jump",
+    null,
+    "if ((zf || sf != of)) goto L_4be5a6;  /* 0x4be58c: jle 0x4be5a6 */",
+    47
+   ],
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(edx + 0x1fcu)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4be55a: cmp dword ptr [edx + 0x1fc], 0 */",
+    29
+   ],
+   [
+    "register",
+    "flags",
+    "{ uint32_t a_ = edx, b_ = RD32((uint32_t)(ecx + 0x1fcu)), r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4be51b: cmp edx, dword ptr [ecx + 0x1fc] */",
+    13
+   ],
+   [
+    "jump",
+    null,
+    "if ((zf || sf != of)) goto L_4be57b;  /* 0x4be561: jle 0x4be57b */",
+    30
+   ],
+   [
+    "literal",
+    null,
+    "{ uint32_t a_ = eax & 0xffu, b_ = RD8(edi), r_;",
+    81
+   ],
+   [
+    "literal",
+    null,
+    "edx = (eax & 0x80000000u) ? 0xffffffffu : 0u;  /* 0x4be56f: cdq  */",
+    34
+   ],
+   [
+    "width",
+    null,
+    "edx = RD32((uint32_t)(eax + 0x1f4u));  /* 0x4be515: mov edx, dword ptr [eax + 0x1f4] */",
+    12
+   ],
+   [
+    "drop",
+    "repeat",
+    "ecx = RD32((uint32_t)(ebp + 0xfffffff4u));  /* 0x4be536: mov ecx, dword ptr [ebp - 0xc] */",
+    18
+   ],
+   [
+    "drop",
+    "repeat",
+    "ecx = RD32((uint32_t)(ebp + 0xfffffff4u));  /* 0x4be512: mov ecx, dword ptr [ebp - 0xc] */",
+    11
+   ],
+   [
+    "drop",
+    null,
+    "if (d_ == 0u || (n_ == INT64_MIN && (int32_t)d_ == -1) || n_ / (int32_t)d_ > INT32_MAX || n_ / (int32_t)d_ < INT32_MIN) FL41_TRAP;",
+    38
+   ],
+   [
+    "width",
+    "flags",
+    "{ uint32_t a_ = eax & 0xffu, b_ = RD8(edi), r_;",
+    81
+   ],
+   [
+    "width",
+    null,
+    "{ uint32_t a_ = edx, b_ = RD32((uint32_t)(ecx + 0x1fcu)), r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4be51b: cmp edx, dword ptr [ecx + 0x1fc] */",
+    13
+   ],
+   [
+    "drop",
+    "repeat",
+    "eax = RD32((uint32_t)(ebp + 0xfffffff4u));  /* 0x4be54b: mov eax, dword ptr [ebp - 0xc] */",
+    25
+   ],
+   [
+    "literal",
+    null,
+    "{ uint32_t a_ = RD32((uint32_t)(eax + 0x1f4u)), b_ = 0xb71b00u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4be52a: cmp dword ptr [eax + 0x1f4], 0xb71b00 */",
+    16
+   ],
+   [
+    "drop",
+    "repeat",
+    "edx = RD32((uint32_t)(ecx + 0x1f4u));  /* 0x4be539: mov edx, dword ptr [ecx + 0x1f4] */",
+    19
+   ],
+   [
+    "literal",
+    null,
+    "edx = (eax & 0x80000000u) ? 0xffffffffu : 0u;  /* 0x4be59a: cdq  */",
+    51
+   ],
+   [
+    "drop",
+    null,
+    "ecx = RD32((uint32_t)(ebp + 0xfffffff4u));  /* 0x4be5b5: mov ecx, dword ptr [ebp - 0xc] */",
+    65
+   ],
+   [
+    "drop",
+    "repeat",
+    "eax = RD32((uint32_t)(ebp + 0xfffffff4u));  /* 0x4be527: mov eax, dword ptr [ebp - 0xc] */",
+    15
+   ],
+   [
+    "drop",
+    "repeat",
+    "eax = RD32((uint32_t)(ebp + 0xfffffff4u));  /* 0x4be563: mov eax, dword ptr [ebp - 0xc] */",
+    31
+   ],
+   [
+    "literal",
+    null,
+    "{ uint32_t a_ = RD32((uint32_t)(eax + 0x1f4u)), b_ = 0xb71b00u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4be52a: cmp dword ptr [eax + 0x1f4], 0xb71b00 */",
+    16
+   ],
+   [
+    "drop",
+    null,
+    "if (d_ == 0u || (n_ == INT64_MIN && (int32_t)d_ == -1) || n_ / (int32_t)d_ > INT32_MAX || n_ / (int32_t)d_ < INT32_MIN) FL41_TRAP;",
+    55
+   ]
+  ],
+  "0x4a0ac4": [
+   [
+    "register",
+    "frame",
+    "{ uint32_t a_ = esp, b_ = 0x18u, r_; FL41_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4a0ac7: sub esp, 0x18 */",
+    6
+   ],
+   [
+    "literal",
+    null,
+    "ecx = (ecx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0x14u))) & 0xffffu);  /* 0x4a0af3: mov cx, word ptr [ebp + 0x14] */",
+    17
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = (edx & 0xffffu), b_ = (ecx & 0xffffu), r_; r_ = a_ | b_; FL41_LOGIC(r_, 16); edx = (edx & 0xffff0000u) | ((r_) & 0xffffu); }  /* 0x4a0b19: or dx",
+    26
+   ],
+   [
+    "drop",
+    null,
+    "{ uint32_t a_ = eax, b_ = 0xffffu, r_; r_ = a_ & b_; FL41_LOGIC(r_, 32); eax = r_; }  /* 0x4a0b76: and eax, 0xffff */",
+    49
+   ],
+   [
+    "alu",
+    "frame",
+    "{ uint32_t a_ = esp, b_ = 0x18u, r_; FL41_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4a0ac7: sub esp, 0x18 */",
+    6
+   ],
+   [
+    "literal",
+    null,
+    "{ uint32_t a_ = (edx & 0xffffu), b_ = (ecx & 0xffffu), r_; r_ = a_ | b_; FL41_LOGIC(r_, 16); edx = (edx & 0xffff0000u) | ((r_) & 0xffffu); }  /* 0x4a0b19: or dx",
+    26
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = (ecx & 0xffffu), b_ = (eax & 0xffffu), r_; r_ = a_ | b_; FL41_LOGIC(r_, 16); ecx = (ecx & 0xffff0000u) | ((r_) & 0xffffu); }  /* 0x4a0b63: or cx",
+    44
+   ],
+   [
+    "literal",
+    null,
+    "edx = (edx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xffffffecu))) & 0xffffu);  /* 0x4a0b15: mov dx, word ptr [ebp - 0x14] */",
+    25
+   ],
+   [
+    "literal",
+    null,
+    "{ uint32_t a_ = (ecx & 0xffffu), b_ = (eax & 0xffffu), r_; r_ = a_ | b_; FL41_LOGIC(r_, 16); ecx = (ecx & 0xffff0000u) | ((r_) & 0xffffu); }  /* 0x4a0b63: or cx",
+    44
+   ],
+   [
+    "drop",
+    null,
+    "{ uint32_t a_ = edx, b_ = 0xffffu, r_; r_ = a_ & b_; FL41_LOGIC(r_, 32); edx = r_; }  /* 0x4a0b6d: and edx, 0xffff */",
+    47
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = (eax & 0xffffu), b_ = (edx & 0xffffu), r_; r_ = a_ | b_; FL41_LOGIC(r_, 16); eax = (eax & 0xffff0000u) | ((r_) & 0xffffu); }  /* 0x4a0b3e: or ax",
+    35
+   ],
+   [
+    "width",
+    null,
+    "ecx = (ecx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffff0u))) & 0xffffu);  /* 0x4a0b45: mov cx, word ptr [ebp - 0x10] */",
+    37
+   ],
+   [
+    "width",
+    "range",
+    "edx = (edx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffff0u))) & 0xffffu);  /* 0x4a0ae3: mov dx, word ptr [ebp - 0x10] */",
+    13
+   ],
+   [
+    "literal",
+    null,
+    "WR16((uint32_t)(ebp + 0xfffffff4u), (eax & 0xffffu));  /* 0x4a0aef: mov word ptr [ebp - 0xc], ax */",
+    16
+   ],
+   [
+    "width",
+    null,
+    "edx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x4a0b6a: mov edx, dword ptr [ebp - 4] */",
+    46
+   ],
+   [
+    "drop",
+    null,
+    "{ uint32_t a_ = eax, b_ = 0xffffu, r_; r_ = a_ & b_; FL41_LOGIC(r_, 32); eax = r_; }  /* 0x4a0b8b: and eax, 0xffff */",
+    55
+   ],
+   [
+    "width",
+    "range",
+    "eax = (eax & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xffffffecu))) & 0xffffu);  /* 0x4a0aeb: mov ax, word ptr [ebp - 0x14] */",
+    15
+   ],
+   [
+    "literal",
+    null,
+    "WR16((uint32_t)(ebp + 0xffffffecu), (edx & 0xffffu));  /* 0x4a0ae7: mov word ptr [ebp - 0x14], dx */",
+    14
+   ],
+   [
+    "width",
+    "range",
+    "ecx = (ecx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffff8u))) & 0xffffu);  /* 0x4a0b5f: mov cx, word ptr [ebp - 8] */",
+    43
+   ],
+   [
+    "width",
+    null,
+    "eax = RD32((uint32_t)(ebp + 0xfffffff8u));  /* 0x4a0b88: mov eax, dword ptr [ebp - 8] */",
+    54
+   ],
+   [
+    "width",
+    "range",
+    "edx = (edx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xffffffecu))) & 0xffffu);  /* 0x4a0b15: mov dx, word ptr [ebp - 0x14] */",
+    25
+   ],
+   [
+    "width",
+    null,
+    "edx = (edx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffffcu))) & 0xffffu);  /* 0x4a0afb: mov dx, word ptr [ebp - 4] */",
+    19
+   ],
+   [
+    "literal",
+    null,
+    "eax = (eax & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffffcu))) & 0xffffu);  /* 0x4a0ad3: mov ax, word ptr [ebp - 4] */",
+    9
+   ],
+   [
+    "literal",
+    null,
+    "{ uint32_t a_ = (ecx & 0xffffu), b_ = (eax & 0xffffu), r_; r_ = a_ | b_; FL41_LOGIC(r_, 16); ecx = (ecx & 0xffff0000u) | ((r_) & 0xffffu); }  /* 0x4a0b63: or cx",
+    44
+   ],
+   [
+    "width",
+    null,
+    "eax = RD32((uint32_t)(ebp + 0xffffffecu));  /* 0x4a0b73: mov eax, dword ptr [ebp - 0x14] */",
+    48
+   ],
+   [
+    "width",
+    "range",
+    "ecx = (ecx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffff8u))) & 0xffffu);  /* 0x4a0adb: mov cx, word ptr [ebp - 8] */",
+    11
+   ],
+   [
+    "literal",
+    null,
+    "WR16((uint32_t)(ebp + 0xfffffff0u), (ecx & 0xffffu));  /* 0x4a0adf: mov word ptr [ebp - 0x10], cx */",
+    12
+   ],
+   [
+    "drop",
+    "dead",
+    "{ uint32_t a_ = esp, b_ = 0x18u, r_; FL41_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4a0ac7: sub esp, 0x18 */",
+    6
+   ],
+   [
+    "width",
+    "range",
+    "eax = (eax & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffff0u))) & 0xffffu);  /* 0x4a0b3a: mov ax, word ptr [ebp - 0x10] */",
+    34
+   ],
+   [
+    "width",
+    null,
+    "eax = (eax & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xffffffecu))) & 0xffffu);  /* 0x4a0b20: mov ax, word ptr [ebp - 0x14] */",
+    28
+   ],
+   [
+    "width",
+    "range",
+    "eax = (eax & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffffcu))) & 0xffffu);  /* 0x4a0ad3: mov ax, word ptr [ebp - 4] */",
+    9
+   ],
+   [
+    "width",
+    null,
+    "ecx = RD32((uint32_t)(ebp + 0xfffffff0u));  /* 0x4a0b7d: mov ecx, dword ptr [ebp - 0x10] */",
+    51
+   ],
+   [
+    "drop",
+    null,
+    "{ uint32_t a_ = ecx, b_ = 0xffffu, r_; r_ = a_ & b_; FL41_LOGIC(r_, 32); ecx = r_; }  /* 0x4a0b80: and ecx, 0xffff */",
+    52
+   ],
+   [
+    "literal",
+    "frame",
+    "{ uint32_t a_ = esp, b_ = 0x18u, r_; FL41_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4a0ac7: sub esp, 0x18 */",
+    6
+   ],
+   [
+    "drop",
+    null,
+    "eax = (eax & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xffffffecu))) & 0xffffu);  /* 0x4a0aeb: mov ax, word ptr [ebp - 0x14] */",
+    15
+   ],
+   [
+    "literal",
+    null,
+    "eax = (eax & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffff0u))) & 0xffffu);  /* 0x4a0b3a: mov ax, word ptr [ebp - 0x10] */",
+    34
+   ],
+   [
+    "literal",
+    null,
+    "edx = (edx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffff0u))) & 0xffffu);  /* 0x4a0ae3: mov dx, word ptr [ebp - 0x10] */",
+    13
+   ],
+   [
+    "literal",
+    null,
+    "{ uint32_t a_ = (eax & 0xffffu), b_ = (edx & 0xffffu), r_; r_ = a_ | b_; FL41_LOGIC(r_, 16); eax = (eax & 0xffff0000u) | ((r_) & 0xffffu); }  /* 0x4a0b3e: or ax",
+    35
+   ],
+   [
+    "literal",
+    null,
+    "WR16((uint32_t)(ebp + 0xfffffff8u), (eax & 0xffffu));  /* 0x4a0ad7: mov word ptr [ebp - 8], ax */",
+    10
+   ],
+   [
+    "literal",
+    null,
+    "eax = (eax & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xffffffecu))) & 0xffffu);  /* 0x4a0aeb: mov ax, word ptr [ebp - 0x14] */",
+    15
+   ],
+   [
+    "literal",
+    null,
+    "{ uint32_t a_ = (eax & 0xffffu), b_ = (edx & 0xffffu), r_; r_ = a_ | b_; FL41_LOGIC(r_, 16); eax = (eax & 0xffff0000u) | ((r_) & 0xffffu); }  /* 0x4a0b3e: or ax",
+    35
+   ],
+   [
+    "literal",
+    null,
+    "edx = (edx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xffffffecu))) & 0xffffu);  /* 0x4a0b15: mov dx, word ptr [ebp - 0x14] */",
+    25
+   ],
+   [
+    "literal",
+    null,
+    "{ uint32_t a_ = (edx & 0xffffu), b_ = (ecx & 0xffffu), r_; r_ = a_ | b_; FL41_LOGIC(r_, 16); edx = (edx & 0xffff0000u) | ((r_) & 0xffffu); }  /* 0x4a0b19: or dx",
+    26
+   ],
+   [
+    "literal",
+    null,
+    "edx = (edx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffff0u))) & 0xffffu);  /* 0x4a0ae3: mov dx, word ptr [ebp - 0x10] */",
+    13
+   ],
+   [
+    "literal",
+    null,
+    "ecx = (ecx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffff8u))) & 0xffffu);  /* 0x4a0adb: mov cx, word ptr [ebp - 8] */",
+    11
+   ],
+   [
+    "literal",
+    "frame",
+    "{ uint32_t a_ = esp, b_ = 0x18u, r_; FL41_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4a0ac7: sub esp, 0x18 */",
+    6
+   ],
+   [
+    "literal",
+    null,
+    "ecx = (ecx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffff8u))) & 0xffffu);  /* 0x4a0b5f: mov cx, word ptr [ebp - 8] */",
+    43
+   ],
+   [
+    "literal",
+    null,
+    "ecx = (ecx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffff8u))) & 0xffffu);  /* 0x4a0b5f: mov cx, word ptr [ebp - 8] */",
+    43
+   ],
+   [
+    "literal",
+    null,
+    "edx = (edx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffffcu))) & 0xffffu);  /* 0x4a0afb: mov dx, word ptr [ebp - 4] */",
+    19
+   ],
+   [
+    "literal",
+    null,
+    "eax = (eax & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffff0u))) & 0xffffu);  /* 0x4a0b3a: mov ax, word ptr [ebp - 0x10] */",
+    34
+   ],
+   [
+    "literal",
+    null,
+    "eax = (eax & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xffffffecu))) & 0xffffu);  /* 0x4a0aeb: mov ax, word ptr [ebp - 0x14] */",
+    15
+   ]
+  ],
+  "0x4a0bbd": [
+   [
+    "literal",
+    null,
+    "eax = (eax & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffffcu))) & 0xffffu);  /* 0x4a0bcc: mov ax, word ptr [ebp - 4] */",
+    9
+   ],
+   [
+    "drop",
+    null,
+    "{ uint32_t a_ = edx, b_ = 0xffffu, r_; r_ = a_ & b_; FL41_LOGIC(r_, 32); edx = r_; }  /* 0x4a0c4c: and edx, 0xffff */",
+    41
+   ],
+   [
+    "register",
+    "frame",
+    "{ uint32_t a_ = esp, b_ = 0x14u, r_; FL41_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4a0bc0: sub esp, 0x14 */",
+    6
+   ],
+   [
+    "alu",
+    "frame",
+    "{ uint32_t a_ = esp, b_ = 0x14u, r_; FL41_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4a0bc0: sub esp, 0x14 */",
+    6
+   ],
+   [
+    "drop",
+    null,
+    "{ uint32_t a_ = eax, b_ = 0xffffu, r_; r_ = a_ & b_; FL41_LOGIC(r_, 32); eax = r_; }  /* 0x4a0c39: and eax, 0xffff */",
+    36
+   ],
+   [
+    "literal",
+    null,
+    "{ uint32_t a_ = (ecx & 0xffffu), b_ = (eax & 0xffffu), r_; r_ = a_ | b_; FL41_LOGIC(r_, 16); ecx = (ecx & 0xffff0000u) | ((r_) & 0xffffu); }  /* 0x4a0c0a: or cx",
+    24
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = (edx & 0xffffu), b_ = (ecx & 0xffffu), r_; r_ = a_ | b_; FL41_LOGIC(r_, 16); edx = (edx & 0xffff0000u) | ((r_) & 0xffffu); }  /* 0x4a0c2f: or dx",
+    33
+   ],
+   [
+    "width",
+    null,
+    "edx = RD32((uint32_t)(ebp + 0xfffffff8u));  /* 0x4a0c49: mov edx, dword ptr [ebp - 8] */",
+    40
+   ],
+   [
+    "width",
+    null,
+    "ecx = (ecx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffffcu))) & 0xffffu);  /* 0x4a0bec: mov cx, word ptr [ebp - 4] */",
+    17
+   ],
+   [
+    "drop",
+    null,
+    "edx = RD32((uint32_t)(ebp + 0xfffffff8u));  /* 0x4a0c49: mov edx, dword ptr [ebp - 8] */",
+    40
+   ],
+   [
+    "width",
+    null,
+    "edx = (edx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffff0u))) & 0xffffu);  /* 0x4a0c11: mov dx, word ptr [ebp - 0x10] */",
+    26
+   ],
+   [
+    "width",
+    "range",
+    "edx = (edx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffff8u))) & 0xffffu);  /* 0x4a0c2b: mov dx, word ptr [ebp - 8] */",
+    32
+   ],
+   [
+    "literal",
+    null,
+    "WR16((uint32_t)(ebp + 0xfffffff8u), (ecx & 0xffffu));  /* 0x4a0bd8: mov word ptr [ebp - 8], cx */",
+    12
+   ],
+   [
+    "width",
+    "range",
+    "ecx = (ecx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffff0u))) & 0xffffu);  /* 0x4a0c06: mov cx, word ptr [ebp - 0x10] */",
+    23
+   ],
+   [
+    "drop",
+    "dead",
+    "{ uint32_t a_ = esp, b_ = 0x14u, r_; FL41_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4a0bc0: sub esp, 0x14 */",
+    6
+   ],
+   [
+    "literal",
+    "frame",
+    "{ uint32_t a_ = esp, b_ = 0x14u, r_; FL41_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4a0bc0: sub esp, 0x14 */",
+    6
+   ],
+   [
+    "width",
+    "range",
+    "ecx = (ecx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffff0u))) & 0xffffu);  /* 0x4a0bd4: mov cx, word ptr [ebp - 0x10] */",
+    11
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = eax, b_ = ecx, r_; r_ = a_ | b_; FL41_LOGIC(r_, 32); eax = r_; }  /* 0x4a0c47: or eax, ecx */",
+    39
+   ],
+   [
+    "alu",
+    null,
+    "{ uint32_t a_ = (ecx & 0xffffu), b_ = (eax & 0xffffu), r_; r_ = a_ | b_; FL41_LOGIC(r_, 16); ecx = (ecx & 0xffff0000u) | ((r_) & 0xffffu); }  /* 0x4a0c0a: or cx",
+    24
+   ],
+   [
+    "literal",
+    null,
+    "edx = (edx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffff8u))) & 0xffffu);  /* 0x4a0bdc: mov dx, word ptr [ebp - 8] */",
+    13
+   ],
+   [
+    "width",
+    "range",
+    "edx = (edx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffff8u))) & 0xffffu);  /* 0x4a0bdc: mov dx, word ptr [ebp - 8] */",
+    13
+   ],
+   [
+    "literal",
+    null,
+    "edx = (edx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffff8u))) & 0xffffu);  /* 0x4a0c2b: mov dx, word ptr [ebp - 8] */",
+    32
+   ],
+   [
+    "width",
+    null,
+    "eax = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x4a0c36: mov eax, dword ptr [ebp - 4] */",
+    35
+   ],
+   [
+    "literal",
+    null,
+    "ecx = (ecx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffff0u))) & 0xffffu);  /* 0x4a0c06: mov cx, word ptr [ebp - 0x10] */",
+    23
+   ],
+   [
+    "width",
+    "range",
+    "eax = (eax & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffffcu))) & 0xffffu);  /* 0x4a0bcc: mov ax, word ptr [ebp - 4] */",
+    9
+   ],
+   [
+    "literal",
+    null,
+    "{ uint32_t a_ = (edx & 0xffffu), b_ = (ecx & 0xffffu), r_; r_ = a_ | b_; FL41_LOGIC(r_, 16); edx = (edx & 0xffff0000u) | ((r_) & 0xffffu); }  /* 0x4a0c2f: or dx",
+    33
+   ],
+   [
+    "width",
+    null,
+    "ecx = RD32((uint32_t)(ebp + 0xfffffff0u));  /* 0x4a0c3e: mov ecx, dword ptr [ebp - 0x10] */",
+    37
+   ],
+   [
+    "literal",
+    null,
+    "WR16((uint32_t)(ebp + 0xfffffff4u), (edx & 0xffffu));  /* 0x4a0be0: mov word ptr [ebp - 0xc], dx */",
+    14
+   ],
+   [
+    "literal",
+    null,
+    "edx = (edx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffff8u))) & 0xffffu);  /* 0x4a0c2b: mov dx, word ptr [ebp - 8] */",
+    32
+   ],
+   [
+    "drop",
+    null,
+    "{ uint32_t a_ = ecx, b_ = 0xffffu, r_; r_ = a_ & b_; FL41_LOGIC(r_, 32); ecx = r_; }  /* 0x4a0c41: and ecx, 0xffff */",
+    38
+   ],
+   [
+    "literal",
+    null,
+    "ecx = (ecx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffffcu))) & 0xffffu);  /* 0x4a0bec: mov cx, word ptr [ebp - 4] */",
+    17
+   ],
+   [
+    "literal",
+    null,
+    "edx = (edx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffff8u))) & 0xffffu);  /* 0x4a0bdc: mov dx, word ptr [ebp - 8] */",
+    13
+   ],
+   [
+    "literal",
+    null,
+    "eax = (eax & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0x14u))) & 0xffffu);  /* 0x4a0be4: mov ax, word ptr [ebp + 0x14] */",
+    15
+   ],
+   [
+    "literal",
+    null,
+    "{ uint32_t a_ = (ecx & 0xffffu), b_ = (eax & 0xffffu), r_; r_ = a_ | b_; FL41_LOGIC(r_, 16); ecx = (ecx & 0xffff0000u) | ((r_) & 0xffffu); }  /* 0x4a0c0a: or cx",
+    24
+   ],
+   [
+    "literal",
+    "frame",
+    "{ uint32_t a_ = esp, b_ = 0x14u, r_; FL41_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4a0bc0: sub esp, 0x14 */",
+    6
+   ],
+   [
+    "literal",
+    null,
+    "{ uint32_t a_ = (edx & 0xffffu), b_ = (ecx & 0xffffu), r_; r_ = a_ | b_; FL41_LOGIC(r_, 16); edx = (edx & 0xffff0000u) | ((r_) & 0xffffu); }  /* 0x4a0c2f: or dx",
+    33
+   ],
+   [
+    "literal",
+    null,
+    "WR16((uint32_t)(ebp + 0xfffffff0u), (eax & 0xffffu));  /* 0x4a0bd0: mov word ptr [ebp - 0x10], ax */",
+    10
+   ],
+   [
+    "literal",
+    null,
+    "ecx = (ecx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffff0u))) & 0xffffu);  /* 0x4a0c06: mov cx, word ptr [ebp - 0x10] */",
+    23
+   ],
+   [
+    "literal",
+    null,
+    "ecx = (ecx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffff0u))) & 0xffffu);  /* 0x4a0bd4: mov cx, word ptr [ebp - 0x10] */",
+    11
+   ]
+  ]
+ },
+ "unexplained_rows": [
+  "0x48ad26",
+  "0x48efe8",
+  "0x4a0ac4",
+  "0x4a0bbd",
+  "0x4a0d73",
+  "0x4a4c15",
+  "0x4b0f9f",
+  "0x4be2c6",
+  "0x4be504",
+  "0x4c4c2b",
+  "0x4c5976"
+ ],
+ "mutants": {
+  "0x4a4c15": [
+   [
+    "alu",
+    6,
+    "038ff48f",
+    "identical code"
+   ],
+   [
+    "register",
+    58,
+    "c5fe2423",
+    "identical code"
+   ],
+   [
+    "register",
+    78,
+    "46955ecd",
+    "flags"
+   ],
+   [
+    "register",
+    19,
+    "c0695184",
+    "flags"
+   ],
+   [
+    "alu",
+    84,
+    "dd599e06",
+    "identical code"
+   ],
+   [
+    "register",
+    67,
+    "5eea0235",
+    "identical code"
+   ],
+   [
+    "alu",
+    15,
+    "233719a9",
+    null
+   ],
+   [
+    "register",
+    26,
+    "17e32428",
+    "flags"
+   ],
+   [
+    "register",
+    86,
+    "951595b4",
+    "identical code"
+   ],
+   [
+    "width",
+    86,
+    "9fd0378a",
+    "range"
+   ],
+   [
+    "register",
+    6,
+    "b4e23ffc",
+    "frame"
+   ],
+   [
+    "jump",
+    85,
+    "0d4c033b",
+    "range"
+   ],
+   [
+    "alu",
+    19,
+    "fd154ecc",
+    null
+   ],
+   [
+    "register",
+    84,
+    "735cd372",
+    "flags"
+   ],
+   [
+    "jump",
+    87,
+    "b151c20a",
+    "range"
+   ],
+   [
+    "width",
+    84,
+    "5aac4171",
+    "range"
+   ],
+   [
+    "alu",
+    86,
+    "c225ac0e",
+    null
+   ],
+   [
+    "jump",
+    87,
+    "64bcbd15",
+    "range"
+   ],
+   [
+    "width",
+    76,
+    "33dda7b9",
+    null
+   ],
+   [
+    "width",
+    60,
+    "4271b43e",
+    null
+   ],
+   [
+    "jump",
+    85,
+    "ea6b1b4f",
+    "range"
+   ],
+   [
+    "width",
+    18,
+    "45cf1b78",
+    null
+   ],
+   [
+    "jump",
+    16,
+    "b5ced333",
+    "range"
+   ],
+   [
+    "width",
+    25,
+    "0ddebb81",
+    null
+   ],
+   [
+    "width",
+    24,
+    "3d1280fa",
+    null
+   ],
+   [
+    "width",
+    71,
+    "01f099d5",
+    null
+   ],
+   [
+    "literal",
+    6,
+    "2b7550c3",
+    "frame"
+   ],
+   [
+    "drop",
+    6,
+    "faa1bfba",
+    "dead"
+   ],
+   [
+    "literal",
+    6,
+    "8039f8e1",
+    "frame"
+   ]
+  ],
+  "0x4b0f9f": [
+   [
+    "jump",
+    89,
+    "72d415b8",
+    "range"
+   ],
+   [
+    "alu",
+    88,
+    "2c25a75f",
+    null
+   ],
+   [
+    "width",
+    92,
+    "922c67dc",
+    null
+   ],
+   [
+    "width",
+    103,
+    "ae307eaa",
+    null
+   ],
+   [
+    "width",
+    34,
+    "e90cc217",
+    null
+   ],
+   [
+    "width",
+    84,
+    "fdb52800",
+    null
+   ],
+   [
+    "width",
+    77,
+    "3e946e39",
+    null
+   ],
+   [
+    "width",
+    30,
+    "f0056e36",
+    null
+   ],
+   [
+    "width",
+    94,
+    "7da1779c",
+    null
+   ],
+   [
+    "literal",
+    103,
+    "d13a59c3",
+    null
+   ],
+   [
+    "width",
+    86,
+    "41d4c5fc",
+    null
+   ],
+   [
+    "width",
+    99,
+    "7fefa3b6",
+    null
+   ],
+   [
+    "width",
+    73,
+    "69cc2d34",
+    null
+   ],
+   [
+    "width",
+    45,
+    "6d16dc3b",
+    null
+   ],
+   [
+    "drop",
+    84,
+    "cd4b5b3c",
+    "repeat"
+   ],
+   [
+    "drop",
+    103,
+    "7040188d",
+    null
+   ],
+   [
+    "literal",
+    30,
+    "2d60dc1a",
+    null
+   ]
+  ],
+  "0x4a0d73": [
+   [
+    "width",
+    63,
+    "b95b612d",
+    null
+   ],
+   [
+    "width",
+    76,
+    "55859703",
+    null
+   ],
+   [
+    "width",
+    87,
+    "ea5b47bc",
+    null
+   ],
+   [
+    "register",
+    35,
+    "63a61704",
+    "flags"
+   ],
+   [
+    "width",
+    52,
+    "268dda9c",
+    null
+   ],
+   [
+    "register",
+    59,
+    "2e895c22",
+    "flags"
+   ],
+   [
+    "literal",
+    82,
+    "6940a68b",
+    null
+   ],
+   [
+    "register",
+    83,
+    "3a415abb",
+    "flags"
+   ],
+   [
+    "width",
+    85,
+    "4019aefb",
+    null
+   ],
+   [
+    "literal",
+    58,
+    "d0bb1eda",
+    null
+   ],
+   [
+    "width",
+    80,
+    "2672fcb3",
+    null
+   ],
+   [
+    "width",
+    37,
+    "3be02dce",
+    null
+   ],
+   [
+    "width",
+    39,
+    "beaf7e14",
+    null
+   ],
+   [
+    "width",
+    56,
+    "f480d854",
+    null
+   ],
+   [
+    "width",
+    27,
+    "60df9255",
+    null
+   ],
+   [
+    "width",
+    61,
+    "acb57b11",
+    null
+   ],
+   [
+    "width",
+    22,
+    "db410d4b",
+    null
+   ],
+   [
+    "width",
+    16,
+    "f47a65d3",
+    null
+   ],
+   [
+    "width",
+    30,
+    "a634b9c3",
+    null
+   ],
+   [
+    "width",
+    34,
+    "cc81691f",
+    null
+   ],
+   [
+    "width",
+    11,
+    "f91b9d54",
+    null
+   ],
+   [
+    "drop",
+    15,
+    "cc674a97",
+    "repeat"
+   ]
+  ],
+  "0x48efe8": [
+   [
+    "width",
+    30,
+    "52b48dbe",
+    "flags"
+   ],
+   [
+    "drop",
+    101,
+    "c67708a7",
+    null
+   ],
+   [
+    "literal",
+    30,
+    "9aa47930",
+    null
+   ],
+   [
+    "jump",
+    16,
+    "600757fe",
+    "range"
+   ],
+   [
+    "alu",
+    41,
+    "cba2f74c",
+    "copy count"
+   ],
+   [
+    "drop",
+    120,
+    "97ca3f93",
+    "repeat"
+   ],
+   [
+    "alu",
+    93,
+    "fd080a4e",
+    "copy count"
+   ],
+   [
+    "register",
+    15,
+    "f7a37358",
+    "flags"
+   ],
+   [
+    "width",
+    96,
+    "b4dc0da1",
+    null
+   ],
+   [
+    "literal",
+    130,
+    "68c528c6",
+    null
+   ],
+   [
+    "alu",
+    15,
+    "7d687d28",
+    null
+   ],
+   [
+    "literal",
+    93,
+    "fe08bbb0",
+    null
+   ],
+   [
+    "width",
+    15,
+    "39ff6283",
+    null
+   ],
+   [
+    "drop",
+    129,
+    "06414fcc",
+    "repeat"
+   ],
+   [
+    "drop",
+    132,
+    "27abd450",
+    "repeat"
+   ],
+   [
+    "literal",
+    82,
+    "9aa47930",
+    null
+   ],
+   [
+    "width",
+    104,
+    "c74cc126",
+    "masked read"
+   ],
+   [
+    "literal",
+    117,
+    "69933f09",
+    null
+   ],
+   [
+    "width",
+    96,
+    "7dcde4c1",
+    null
+   ],
+   [
+    "drop",
+    128,
+    "ffaa8646",
+    "repeat"
+   ],
+   [
+    "drop",
+    64,
+    "033104d0",
+    "repeat"
+   ],
+   [
+    "width",
+    52,
+    "c74cc126",
+    "masked read"
+   ],
+   [
+    "drop",
+    98,
+    "9eecb7db",
+    null
+   ],
+   [
+    "drop",
+    72,
+    "abd984ac",
+    "repeat"
+   ],
+   [
+    "drop",
+    17,
+    "170e335a",
+    "repeat"
+   ],
+   [
+    "width",
+    82,
+    "52b48dbe",
+    "flags"
+   ],
+   [
+    "literal",
+    113,
+    "0841f868",
+    "identical code"
+   ],
+   [
+    "drop",
+    126,
+    "dc5e7852",
+    "repeat"
+   ],
+   [
+    "drop",
+    96,
+    "9eecb7db",
+    null
+   ],
+   [
+    "drop",
+    69,
+    "249ab8f4",
+    "repeat"
+   ],
+   [
+    "drop",
+    63,
+    "3a2b7d5a",
+    "repeat"
+   ],
+   [
+    "drop",
+    115,
+    "19cd58b6",
+    "repeat"
+   ],
+   [
+    "literal",
+    61,
+    "00be3c4e",
+    null
+   ],
+   [
+    "drop",
+    116,
+    "acc465db",
+    "repeat"
+   ],
+   [
+    "drop",
+    20,
+    "1c36d86a",
+    "repeat"
+   ],
+   [
+    "drop",
+    97,
+    "9eecb7db",
+    null
+   ]
+  ],
+  "0x4c5976": [
+   [
+    "alu",
+    137,
+    "73079cb0",
+    null
+   ],
+   [
+    "alu",
+    11,
+    "8509e371",
+    null
+   ],
+   [
+    "jump",
+    42,
+    "5e889b75",
+    null
+   ],
+   [
+    "alu",
+    41,
+    "8f7b2420",
+    null
+   ],
+   [
+    "width",
+    95,
+    "902c7701",
+    null
+   ],
+   [
+    "jump",
+    42,
+    "87a03315",
+    null
+   ],
+   [
+    "jump",
+    35,
+    "2a97096c",
+    null
+   ],
+   [
+    "jump",
+    38,
+    "8c772bde",
+    null
+   ],
+   [
+    "jump",
+    40,
+    "162e52ae",
+    null
+   ],
+   [
+    "register",
+    37,
+    "c84ba59a",
+    "dead flags"
+   ],
+   [
+    "jump",
+    12,
+    "9df5858e",
+    null
+   ],
+   [
+    "width",
+    97,
+    "ea69508d",
+    null
+   ],
+   [
+    "jump",
+    38,
+    "7a33b153",
+    null
+   ],
+   [
+    "alu",
+    39,
+    "2632c715",
+    null
+   ],
+   [
+    "register",
+    34,
+    "69e385de",
+    "dead flags"
+   ],
+   [
+    "register",
+    41,
+    "65efde9b",
+    "dead flags"
+   ],
+   [
+    "width",
+    118,
+    "bdf789e3",
+    null
+   ],
+   [
+    "width",
+    91,
+    "b806675d",
+    null
+   ],
+   [
+    "register",
+    39,
+    "b41d878a",
+    "dead flags"
+   ],
+   [
+    "width",
+    39,
+    "9673c397",
+    null
+   ],
+   [
+    "width",
+    10,
+    "e5a4be78",
+    null
+   ],
+   [
+    "drop",
+    115,
+    "77503d16",
+    null
+   ],
+   [
+    "width",
+    117,
+    "51ee91b8",
+    null
+   ],
+   [
+    "width",
+    90,
+    "06b1b866",
+    null
+   ],
+   [
+    "drop",
+    28,
+    "90fa3b4d",
+    null
+   ],
+   [
+    "drop",
+    29,
+    "64cd7e90",
+    null
+   ],
+   [
+    "width",
+    115,
+    "89f990f3",
+    null
+   ],
+   [
+    "width",
+    126,
+    "f5157a15",
+    null
+   ],
+   [
+    "width",
+    98,
+    "0bfb0925",
+    null
+   ],
+   [
+    "drop",
+    97,
+    "3bd2f7bf",
+    null
+   ],
+   [
+    "width",
+    148,
+    "c74cc126",
+    "masked read"
+   ],
+   [
+    "drop",
+    18,
+    "a80f3297",
+    "repeat"
+   ],
+   [
+    "width",
+    135,
+    "794f8491",
+    null
+   ],
+   [
+    "width",
+    41,
+    "9a210e01",
+    null
+   ],
+   [
+    "width",
+    130,
+    "802e31f6",
+    null
+   ],
+   [
+    "drop",
+    37,
+    "c65d7f85",
+    null
+   ],
+   [
+    "width",
+    133,
+    "9205fe4b",
+    null
+   ],
+   [
+    "width",
+    104,
+    "7846442c",
+    null
+   ],
+   [
+    "width",
+    134,
+    "8bb60fff",
+    null
+   ],
+   [
+    "drop",
+    19,
+    "40478af4",
+    "repeat"
+   ],
+   [
+    "drop",
+    116,
+    "4446b05a",
+    null
+   ]
+  ],
+  "0x48ad26": [
+   [
+    "register",
+    43,
+    "52c613f3",
+    "flags"
+   ],
+   [
+    "width",
+    24,
+    "00f7b868",
+    "masked read"
+   ],
+   [
+    "width",
+    52,
+    "56ccfd16",
+    null
+   ],
+   [
+    "jump",
+    67,
+    "59da2141",
+    "range"
+   ],
+   [
+    "width",
+    52,
+    "1f4760bb",
+    null
+   ],
+   [
+    "jump",
+    44,
+    "65b198f8",
+    null
+   ],
+   [
+    "jump",
+    26,
+    "9792ab3e",
+    null
+   ],
+   [
+    "alu",
+    43,
+    "2333b374",
+    "identical code"
+   ],
+   [
+    "alu",
+    66,
+    "e3425b7a",
+    null
+   ],
+   [
+    "literal",
+    24,
+    "1f105216",
+    null
+   ],
+   [
+    "width",
+    25,
+    "b7106dad",
+    null
+   ],
+   [
+    "width",
+    43,
+    "9f8bc629",
+    null
+   ],
+   [
+    "width",
+    27,
+    "a8589411",
+    null
+   ],
+   [
+    "width",
+    31,
+    "e9a584b5",
+    null
+   ],
+   [
+    "width",
+    18,
+    "da2d6db2",
+    null
+   ],
+   [
+    "drop",
+    18,
+    "4b645947",
+    "repeat"
+   ],
+   [
+    "literal",
+    48,
+    "59da8dce",
+    null
+   ],
+   [
+    "drop",
+    41,
+    "c57ec775",
+    "repeat"
+   ]
+  ],
+  "0x4be2c6": [
+   [
+    "alu",
+    27,
+    "26d8939b",
+    "identical code"
+   ],
+   [
+    "alu",
+    15,
+    "cd5d0df7",
+    null
+   ],
+   [
+    "drop",
+    26,
+    "0d5dc2d5",
+    "repeat"
+   ],
+   [
+    "alu",
+    8,
+    "ec3fd376",
+    "identical code"
+   ],
+   [
+    "width",
+    8,
+    "7fd47885",
+    null
+   ],
+   [
+    "jump",
+    16,
+    "89bc3eed",
+    "range"
+   ],
+   [
+    "alu",
+    40,
+    "6debb432",
+    null
+   ],
+   [
+    "register",
+    15,
+    "c33283db",
+    "flags"
+   ],
+   [
+    "alu",
+    50,
+    "8346ed50",
+    "identical code"
+   ],
+   [
+    "drop",
+    40,
+    "eb45dbde",
+    null
+   ],
+   [
+    "jump",
+    9,
+    "a8f8b352",
+    "range"
+   ],
+   [
+    "jump",
+    18,
+    "f0dc5b32",
+    null
+   ],
+   [
+    "register",
+    17,
+    "1f6dcb03",
+    "flags"
+   ],
+   [
+    "register",
+    8,
+    "39bff02f",
+    "flags"
+   ],
+   [
+    "literal",
+    40,
+    "02c93596",
+    null
+   ],
+   [
+    "jump",
+    41,
+    "2a6dddc9",
+    null
+   ],
+   [
+    "drop",
+    27,
+    "ebd1e968",
+    null
+   ],
+   [
+    "jump",
+    28,
+    "fc01cfd0",
+    null
+   ],
+   [
+    "literal",
+    50,
+    "962280df",
+    "identical code"
+   ],
+   [
+    "drop",
+    50,
+    "05ecee50",
+    "dead"
+   ],
+   [
+    "literal",
+    50,
+    "d0ac0189",
+    null
+   ],
+   [
+    "drop",
+    39,
+    "5eb8fca5",
+    "repeat"
+   ],
+   [
+    "literal",
+    27,
+    "bae0fba0",
+    null
+   ],
+   [
+    "literal",
+    40,
+    "8e664c80",
+    null
+   ],
+   [
+    "literal",
+    27,
+    "49363dc4",
+    null
+   ]
+  ],
+  "0x4c4c2b": [
+   [
+    "drop",
+    76,
+    "e33fc096",
+    null
+   ],
+   [
+    "register",
+    64,
+    "233410d0",
+    "identical code"
+   ],
+   [
+    "alu",
+    64,
+    "33e6978a",
+    null
+   ],
+   [
+    "literal",
+    29,
+    "695a8bdb",
+    null
+   ],
+   [
+    "width",
+    62,
+    "800fa144",
+    null
+   ],
+   [
+    "jump",
+    70,
+    "48ceddf7",
+    null
+   ],
+   [
+    "drop",
+    26,
+    "517b6d1c",
+    "repeat"
+   ],
+   [
+    "width",
+    63,
+    "dcdac6ca",
+    null
+   ],
+   [
+    "drop",
+    35,
+    "f20dfa8b",
+    "repeat"
+   ],
+   [
+    "register",
+    30,
+    "523f99b2",
+    "flags"
+   ],
+   [
+    "drop",
+    12,
+    "f57bc04a",
+    "repeat"
+   ],
+   [
+    "width",
+    68,
+    "a99497ee",
+    null
+   ],
+   [
+    "drop",
+    72,
+    "b498d053",
+    null
+   ],
+   [
+    "literal",
+    72,
+    "175ac9ac",
+    null
+   ],
+   [
+    "literal",
+    69,
+    "0135b00c",
+    null
+   ],
+   [
+    "drop",
+    33,
+    "b7ad7d6f",
+    "repeat"
+   ],
+   [
+    "width",
+    29,
+    "f37ec4bf",
+    "masked read"
+   ],
+   [
+    "drop",
+    27,
+    "285e9d7d",
+    "repeat"
+   ],
+   [
+    "drop",
+    45,
+    "025e94ce",
+    "repeat"
+   ],
+   [
+    "drop",
+    54,
+    "2e6d1c66",
+    "repeat"
+   ],
+   [
+    "drop",
+    40,
+    "e7ab76dd",
+    "repeat"
+   ],
+   [
+    "drop",
+    82,
+    "ed550842",
+    null
+   ],
+   [
+    "literal",
+    76,
+    "6d267d2f",
+    null
+   ],
+   [
+    "drop",
+    66,
+    "8eb7c091",
+    "repeat"
+   ],
+   [
+    "drop",
+    71,
+    "94ba4d90",
+    "repeat"
+   ],
+   [
+    "drop",
+    79,
+    "899a6764",
+    "repeat"
+   ],
+   [
+    "literal",
+    82,
+    "8057f255",
+    null
+   ]
+  ],
+  "0x4be504": [
+   [
+    "alu",
+    73,
+    "e121ce5f",
+    "identical code"
+   ],
+   [
+    "jump",
+    17,
+    "18dfcdb5",
+    null
+   ],
+   [
+    "alu",
+    92,
+    "f248d26b",
+    "copy count"
+   ],
+   [
+    "jump",
+    74,
+    "b0749af0",
+    null
+   ],
+   [
+    "width",
+    73,
+    "bf063a45",
+    null
+   ],
+   [
+    "alu",
+    46,
+    "a3de372f",
+    "identical code"
+   ],
+   [
+    "width",
+    103,
+    "c74cc126",
+    "masked read"
+   ],
+   [
+    "register",
+    73,
+    "cdf3c58a",
+    "flags"
+   ],
+   [
+    "jump",
+    47,
+    "9356774e",
+    null
+   ],
+   [
+    "alu",
+    29,
+    "c86de6ba",
+    "identical code"
+   ],
+   [
+    "register",
+    13,
+    "9a3dc9d5",
+    "flags"
+   ],
+   [
+    "jump",
+    30,
+    "565b7aff",
+    null
+   ],
+   [
+    "literal",
+    81,
+    "9aa47930",
+    null
+   ],
+   [
+    "literal",
+    34,
+    "86c7ecf8",
+    null
+   ],
+   [
+    "width",
+    12,
+    "bf6d0c07",
+    null
+   ],
+   [
+    "drop",
+    18,
+    "2cdf8c0c",
+    "repeat"
+   ],
+   [
+    "drop",
+    11,
+    "c03240b1",
+    "repeat"
+   ],
+   [
+    "drop",
+    38,
+    "9eecb7db",
+    null
+   ],
+   [
+    "width",
+    81,
+    "52b48dbe",
+    "flags"
+   ],
+   [
+    "width",
+    13,
+    "eac9393c",
+    null
+   ],
+   [
+    "drop",
+    25,
+    "45ef4b90",
+    "repeat"
+   ],
+   [
+    "literal",
+    16,
+    "a06103d7",
+    null
+   ],
+   [
+    "drop",
+    19,
+    "8149b35f",
+    "repeat"
+   ],
+   [
+    "literal",
+    51,
+    "4e68e5ff",
+    null
+   ],
+   [
+    "drop",
+    65,
+    "efbae661",
+    null
+   ],
+   [
+    "drop",
+    15,
+    "81acc24b",
+    "repeat"
+   ],
+   [
+    "drop",
+    31,
+    "410c52e0",
+    "repeat"
+   ],
+   [
+    "literal",
+    16,
+    "1c8b23ac",
+    null
+   ],
+   [
+    "drop",
+    55,
+    "9eecb7db",
+    null
+   ]
+  ],
+  "0x4a0ac4": [
+   [
+    "register",
+    6,
+    "6a671be9",
+    "frame"
+   ],
+   [
+    "literal",
+    17,
+    "5a7bee19",
+    null
+   ],
+   [
+    "alu",
+    26,
+    "deb1a19e",
+    null
+   ],
+   [
+    "drop",
+    49,
+    "03cb6ef6",
+    null
+   ],
+   [
+    "alu",
+    6,
+    "8f24ebfc",
+    "frame"
+   ],
+   [
+    "literal",
+    26,
+    "82b46857",
+    null
+   ],
+   [
+    "alu",
+    44,
+    "daa604e1",
+    null
+   ],
+   [
+    "literal",
+    25,
+    "85a4a624",
+    null
+   ],
+   [
+    "literal",
+    44,
+    "a0ba6fef",
+    null
+   ],
+   [
+    "drop",
+    47,
+    "dfb6d5a4",
+    null
+   ],
+   [
+    "alu",
+    35,
+    "58f1c529",
+    null
+   ],
+   [
+    "width",
+    37,
+    "8df15b6f",
+    null
+   ],
+   [
+    "width",
+    13,
+    "d9c053fa",
+    "range"
+   ],
+   [
+    "literal",
+    16,
+    "b0ccf530",
+    null
+   ],
+   [
+    "width",
+    46,
+    "6c044169",
+    null
+   ],
+   [
+    "drop",
+    55,
+    "a0b832cd",
+    null
+   ],
+   [
+    "width",
+    15,
+    "ebf11528",
+    "range"
+   ],
+   [
+    "literal",
+    14,
+    "47440448",
+    null
+   ],
+   [
+    "width",
+    43,
+    "20c89d0a",
+    "range"
+   ],
+   [
+    "width",
+    54,
+    "a1f958a7",
+    null
+   ],
+   [
+    "width",
+    25,
+    "6f11f822",
+    "range"
+   ],
+   [
+    "width",
+    19,
+    "37410551",
+    null
+   ],
+   [
+    "literal",
+    9,
+    "9ef45334",
+    null
+   ],
+   [
+    "literal",
+    44,
+    "66c6b65f",
+    null
+   ],
+   [
+    "width",
+    48,
+    "4aa58165",
+    null
+   ],
+   [
+    "width",
+    11,
+    "296268a6",
+    "range"
+   ],
+   [
+    "literal",
+    12,
+    "c5015012",
+    null
+   ],
+   [
+    "drop",
+    6,
+    "2441c1a4",
+    "dead"
+   ],
+   [
+    "width",
+    34,
+    "f7d97752",
+    "range"
+   ],
+   [
+    "width",
+    28,
+    "7c3c90d6",
+    null
+   ],
+   [
+    "width",
+    9,
+    "3a34f5a1",
+    "range"
+   ],
+   [
+    "width",
+    51,
+    "44c5011e",
+    null
+   ],
+   [
+    "drop",
+    52,
+    "de2a1cc7",
+    null
+   ],
+   [
+    "literal",
+    6,
+    "5df405c5",
+    "frame"
+   ],
+   [
+    "drop",
+    15,
+    "583b06e9",
+    null
+   ],
+   [
+    "literal",
+    34,
+    "a4f77b73",
+    null
+   ],
+   [
+    "literal",
+    13,
+    "80325e76",
+    null
+   ],
+   [
+    "literal",
+    35,
+    "197a0125",
+    null
+   ],
+   [
+    "literal",
+    10,
+    "380d4d27",
+    null
+   ],
+   [
+    "literal",
+    15,
+    "6275b050",
+    null
+   ],
+   [
+    "literal",
+    35,
+    "91b9d5f5",
+    null
+   ],
+   [
+    "literal",
+    25,
+    "b79d072d",
+    null
+   ],
+   [
+    "literal",
+    26,
+    "463c9108",
+    null
+   ],
+   [
+    "literal",
+    13,
+    "e523346d",
+    null
+   ],
+   [
+    "literal",
+    11,
+    "e8612197",
+    null
+   ],
+   [
+    "literal",
+    6,
+    "310854ff",
+    "frame"
+   ],
+   [
+    "literal",
+    43,
+    "65ed5eff",
+    null
+   ],
+   [
+    "literal",
+    43,
+    "144c3c10",
+    null
+   ],
+   [
+    "literal",
+    19,
+    "77ecd655",
+    null
+   ],
+   [
+    "literal",
+    34,
+    "282cd5b6",
+    null
+   ],
+   [
+    "literal",
+    15,
+    "c6d67422",
+    null
+   ]
+  ],
+  "0x4a0bbd": [
+   [
+    "literal",
+    9,
+    "33563330",
+    null
+   ],
+   [
+    "drop",
+    41,
+    "937779d6",
+    null
+   ],
+   [
+    "register",
+    6,
+    "93f11ec2",
+    "frame"
+   ],
+   [
+    "alu",
+    6,
+    "53c85bad",
+    "frame"
+   ],
+   [
+    "drop",
+    36,
+    "0c480a1e",
+    null
+   ],
+   [
+    "literal",
+    24,
+    "0589cf7a",
+    null
+   ],
+   [
+    "alu",
+    33,
+    "f9139d08",
+    null
+   ],
+   [
+    "width",
+    40,
+    "14d71478",
+    null
+   ],
+   [
+    "width",
+    17,
+    "1b7cf45f",
+    null
+   ],
+   [
+    "drop",
+    40,
+    "793945de",
+    null
+   ],
+   [
+    "width",
+    26,
+    "cf53adb7",
+    null
+   ],
+   [
+    "width",
+    32,
+    "604ca47f",
+    "range"
+   ],
+   [
+    "literal",
+    12,
+    "48f6b1b7",
+    null
+   ],
+   [
+    "width",
+    23,
+    "52230145",
+    "range"
+   ],
+   [
+    "drop",
+    6,
+    "2faf736d",
+    "dead"
+   ],
+   [
+    "literal",
+    6,
+    "451015b9",
+    "frame"
+   ],
+   [
+    "width",
+    11,
+    "dc7b023e",
+    "range"
+   ],
+   [
+    "alu",
+    39,
+    "4637a344",
+    null
+   ],
+   [
+    "alu",
+    24,
+    "761f38b0",
+    null
+   ],
+   [
+    "literal",
+    13,
+    "082ef644",
+    null
+   ],
+   [
+    "width",
+    13,
+    "86bdd6fc",
+    "range"
+   ],
+   [
+    "literal",
+    32,
+    "e4df0471",
+    null
+   ],
+   [
+    "width",
+    35,
+    "4b4e159e",
+    null
+   ],
+   [
+    "literal",
+    23,
+    "6eae45c4",
+    null
+   ],
+   [
+    "width",
+    9,
+    "da106dd7",
+    "range"
+   ],
+   [
+    "literal",
+    33,
+    "1bd1cc64",
+    null
+   ],
+   [
+    "width",
+    37,
+    "5107f4f7",
+    null
+   ],
+   [
+    "literal",
+    14,
+    "e62149cc",
+    null
+   ],
+   [
+    "literal",
+    32,
+    "2ae8e1eb",
+    null
+   ],
+   [
+    "drop",
+    38,
+    "1399922a",
+    null
+   ],
+   [
+    "literal",
+    17,
+    "ecfb4465",
+    null
+   ],
+   [
+    "literal",
+    13,
+    "73f6fc3b",
+    null
+   ],
+   [
+    "literal",
+    15,
+    "4214fa8a",
+    null
+   ],
+   [
+    "literal",
+    24,
+    "3d63f6b8",
+    null
+   ],
+   [
+    "literal",
+    6,
+    "dacd854a",
+    "frame"
+   ],
+   [
+    "literal",
+    33,
+    "be4d8357",
+    null
+   ],
+   [
+    "literal",
+    10,
+    "dd595db4",
+    null
+   ],
+   [
+    "literal",
+    23,
+    "17619dea",
+    null
+   ],
+   [
+    "literal",
+    11,
+    "713cbb12",
+    null
+   ]
+  ]
+ }
+}

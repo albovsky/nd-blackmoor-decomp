@@ -1,0 +1,2 @@
+0x4af96e mutants killed by the step budget [('alu', 23, '51926390'), ('register', 28, '2572e47b'), ('jump', 29, '85f7cee1'), ('drop', 24, 'c5e23544'), ('jump', 29, 'e53c879d'), ('drop', 23, '4d35dc69')]
+0x4af96e mutants 6 killed 6 survivors []

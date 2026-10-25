@@ -52,6 +52,10 @@ class WrittenReasons(unittest.TestCase):
                     self.assertIn((i['kind'], i['line'], i['ident']), {(k, n, M.line_hash(t, n)) for k, n, t in muts}, (row, i['kind'], i['line']))
 
 
+# FL-52 re-ran these FL-48 rows with its own budget accounting (tests/test_fl52_reasons.py); the FL-48 budget logs of these rows predate the long-alarm rerun
+FL52_RECHECKED = {'0x489722', '0x4af96e'}
+
+
 class StepBudget(unittest.TestCase):
     def test_hang_listed_mutants_are_killed_by_the_budget_or_explained(self):
         surv = json.loads((PROJECT / 'tasks/fl48-survivors-5.json').read_text())
@@ -59,7 +63,7 @@ class StepBudget(unittest.TestCase):
         before = set(json.loads((PROJECT / 'tasks/fl48-credited-before.json').read_text()))
         self.assertEqual(rows & set(surv['unexplained_rows']), set())
         hang = json.loads((PROJECT / 'tasks/fl48-hang-lists-all.json').read_text())
-        for row in sorted(rows - before):
+        for row in sorted(rows - before - FL52_RECHECKED):
             if row not in hang:
                 continue
             log = PROJECT / ('tasks/fl48-budget-log-%s.txt' % row)

@@ -2193,12 +2193,8 @@
   ]
  },
  "0x48905b": {
-  "detail": "exhaustive check (FL-48: tasks/fl48-merged-e.txt, tasks/fl48-budget2-log-*.txt, tasks/fl48-survivors-final.json): a surviving mutant is neither identical -O2 code, a proven no-op nor covered by a reviewed written reason",
-  "status": "mutation survivor"
- },
- "0x489722": {
-  "detail": "exhaustive check (FL-48: tasks/fl48-merged-e.txt, tasks/fl48-budget2-log-*.txt, tasks/fl48-survivors-final.json): a surviving mutant is neither identical -O2 code, a proven no-op nor covered by a reviewed written reason",
-  "status": "mutation survivor"
+  "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
+  "status": "mutation check not run"
  },
  "0x48a3db": {
   "directions": [
@@ -2254,6 +2250,10 @@
     "fall-through"
    ]
   ]
+ },
+ "0x48ad26": {
+  "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
+  "status": "mutation check not run"
  },
  "0x48ae05": {
   "directions": [
@@ -2650,8 +2650,8 @@
   ]
  },
  "0x48efe8": {
-  "detail": "exhaustive check (FL-48: tasks/fl48-merged-e.txt, tasks/fl48-budget2-log-*.txt, tasks/fl48-survivors-final.json): a surviving mutant is neither identical -O2 code, a proven no-op nor covered by a reviewed written reason",
-  "status": "mutation survivor"
+  "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
+  "status": "mutation check not run"
  },
  "0x48f181": {
   "directions": [
@@ -3217,8 +3217,8 @@
   ]
  },
  "0x494f1f": {
-  "detail": "exhaustive check (FL-48: tasks/fl48-merged-e.txt, tasks/fl48-budget2-log-*.txt, tasks/fl48-survivors-final.json): a surviving mutant is neither identical -O2 code, a proven no-op nor covered by a reviewed written reason",
-  "status": "mutation survivor"
+  "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
+  "status": "mutation check not run"
  },
  "0x495536": {
   "directions": [
@@ -3488,8 +3488,8 @@
   "status": "mutation survivor"
  },
  "0x49d55d": {
-  "detail": "exhaustive check (FL-48: tasks/fl48-merged-e.txt, tasks/fl48-budget2-log-*.txt, tasks/fl48-survivors-final.json): a surviving mutant is neither identical -O2 code, a proven no-op nor covered by a reviewed written reason",
-  "status": "mutation survivor"
+  "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
+  "status": "mutation check not run"
  },
  "0x49d945": {
   "directions": [
@@ -3572,9 +3572,17 @@
    ]
   ]
  },
+ "0x4a0ac4": {
+  "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
+  "status": "mutation check not run"
+ },
+ "0x4a0bbd": {
+  "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
+  "status": "mutation check not run"
+ },
  "0x4a0d73": {
-  "detail": "exhaustive check (FL-48: tasks/fl48-merged-e.txt, tasks/fl48-budget2-log-*.txt, tasks/fl48-survivors-final.json): a surviving mutant is neither identical -O2 code, a proven no-op nor covered by a reviewed written reason",
-  "status": "mutation survivor"
+  "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
+  "status": "mutation check not run"
  },
  "0x4a0ec3": {
   "directions": [
@@ -3620,8 +3628,8 @@
   ]
  },
  "0x4a10f1": {
-  "detail": "exhaustive check (FL-48: tasks/fl48-merged-e.txt, tasks/fl48-budget2-log-*.txt, tasks/fl48-survivors-final.json): a surviving mutant is neither identical -O2 code, a proven no-op nor covered by a reviewed written reason",
-  "status": "mutation survivor"
+  "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
+  "status": "mutation check not run"
  },
  "0x4a14c6": {
   "directions": [
@@ -4287,8 +4295,8 @@
   ]
  },
  "0x4a4c15": {
-  "detail": "exhaustive check (FL-48: tasks/fl48-merged-e.txt, tasks/fl48-budget2-log-*.txt, tasks/fl48-survivors-final.json): a surviving mutant is neither identical -O2 code, a proven no-op nor covered by a reviewed written reason",
-  "status": "mutation survivor"
+  "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
+  "status": "mutation check not run"
  },
  "0x4a4d55": {
   "directions": [
@@ -4526,8 +4534,8 @@
   ]
  },
  "0x4a5eea": {
-  "detail": "exhaustive check (FL-48: tasks/fl48-merged-e.txt, tasks/fl48-budget2-log-*.txt, tasks/fl48-survivors-final.json): a surviving mutant is neither identical -O2 code, a proven no-op nor covered by a reviewed written reason",
-  "status": "mutation survivor"
+  "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
+  "status": "mutation check not run"
  },
  "0x4a67f3": {
   "directions": [
@@ -6133,6 +6141,10 @@
    ]
   ]
  },
+ "0x4adae8": {
+  "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
+  "status": "mutation check not run"
+ },
  "0x4adb6c": {
   "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
   "status": "mutation check not run"
@@ -6392,8 +6404,8 @@
   ]
  },
  "0x4aef4a": {
-  "detail": "exhaustive check (FL-48: tasks/fl48-merged-e.txt, tasks/fl48-budget2-log-*.txt, tasks/fl48-survivors-final.json): a surviving mutant is neither identical -O2 code, a proven no-op nor covered by a reviewed written reason",
-  "status": "mutation survivor"
+  "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
+  "status": "mutation check not run"
  },
  "0x4af225": {
   "directions": [
@@ -6621,10 +6633,6 @@
    ]
   ]
  },
- "0x4af96e": {
-  "detail": "exhaustive check (FL-48: tasks/fl48-merged-e.txt, tasks/fl48-budget2-log-*.txt, tasks/fl48-survivors-final.json): a surviving mutant is neither identical -O2 code, a proven no-op nor covered by a reviewed written reason",
-  "status": "mutation survivor"
- },
  "0x4afec1": {
   "directions": [
    9,
@@ -6837,8 +6845,8 @@
   ]
  },
  "0x4b0f9f": {
-  "detail": "exhaustive check (FL-48: tasks/fl48-merged-e.txt, tasks/fl48-budget2-log-*.txt, tasks/fl48-survivors-final.json): a surviving mutant is neither identical -O2 code, a proven no-op nor covered by a reviewed written reason",
-  "status": "mutation survivor"
+  "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
+  "status": "mutation check not run"
  },
  "0x4b10e3": {
   "directions": [
@@ -8859,6 +8867,14 @@
    ]
   ]
  },
+ "0x4be2c6": {
+  "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
+  "status": "mutation check not run"
+ },
+ "0x4be504": {
+  "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
+  "status": "mutation check not run"
+ },
  "0x4be6a4": {
   "directions": [
    35,
@@ -9190,8 +9206,8 @@
   ]
  },
  "0x4c4c2b": {
-  "detail": "exhaustive check (FL-48: tasks/fl48-merged-e.txt, tasks/fl48-budget2-log-*.txt, tasks/fl48-survivors-final.json): a surviving mutant is neither identical -O2 code, a proven no-op nor covered by a reviewed written reason",
-  "status": "mutation survivor"
+  "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
+  "status": "mutation check not run"
  },
  "0x4c558b": {
   "detail": "exhaustive check (FL-48: tasks/fl48-merged-e.txt, tasks/fl48-budget2-log-*.txt, tasks/fl48-survivors-final.json): a surviving mutant is neither identical -O2 code, a proven no-op nor covered by a reviewed written reason",
@@ -9202,12 +9218,12 @@
   "status": "mutation survivor"
  },
  "0x4c5976": {
-  "detail": "exhaustive check (FL-48: tasks/fl48-merged-e.txt, tasks/fl48-budget2-log-*.txt, tasks/fl48-survivors-final.json): a surviving mutant is neither identical -O2 code, a proven no-op nor covered by a reviewed written reason",
-  "status": "mutation survivor"
+  "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
+  "status": "mutation check not run"
  },
  "0x4c5d4b": {
-  "detail": "exhaustive check (FL-48: tasks/fl48-merged-e.txt, tasks/fl48-budget2-log-*.txt, tasks/fl48-survivors-final.json): a surviving mutant is neither identical -O2 code, a proven no-op nor covered by a reviewed written reason",
-  "status": "mutation survivor"
+  "detail": "translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet",
+  "status": "mutation check not run"
  },
  "0x4c6c2a": {
   "detail": "exhaustive check (FL-48: tasks/fl48-merged-e.txt, tasks/fl48-budget2-log-*.txt, tasks/fl48-survivors-final.json): a surviving mutant is neither identical -O2 code, a proven no-op nor covered by a reviewed written reason",

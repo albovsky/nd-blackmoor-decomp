@@ -1,0 +1,18 @@
+[
+ {"kind": "width", "line": 15, "ident": "c695365c", "verdict": "equivalent",
+  "reason": "On every path reaching 0x48e7a8 the dword at 0x5b44f0 was last written by this function's own store at 0x48e788 (value 9). The only stores between 0x48e788 and 0x48e7a8 are 0x48e798 (bytes 0x5d162d..0x5d1630) and 0x48e79e (bytes 0x5b44f4..0x5b44f7), neither overlapping bytes 0x5b44f0..0x5b44f3. So both the 32-bit and the 16-bit read return 9 (upper half is zero), edx is identical."},
+ {"kind": "width", "line": 17, "ident": "8975fb7d", "verdict": "equivalent",
+  "reason": "The dword at 0x5b44f4 was last written by the store at 0x48e79e (value 1); the only later store before the read at 0x48e7b1 is none (0x48e7a8 is a load, 0x48e7ae a shift), and the earlier stores 0x48e788 (0x5b44f0..f3) and 0x48e798 (0x5d162d..30) do not overlap bytes 0x5b44f4..f7. So RD32 and RD16 both return 1 and eax is identical."},
+ {"kind": "literal", "line": 27, "ident": "70837340", "verdict": "not equivalent",
+  "reason": "The cmp at 0x48e7e3 tests the dword at this+arg2*4+0x46a against 0; the mutant tests the dword one byte higher (0x46b). With this=0, arg2=0 and byte 0x46a=1, bytes 0x46b..0x46e=0, the original sees nonzero and jumps to the return at 0x48e84b, the mutant sees zero and runs the stores of 0x48e7ed..0x48e841. Lab scenario seed 1 with --set 0x46a:4:1 kills it and is saved."},
+ {"kind": "jump", "line": 28, "ident": "67f0366b", "verdict": "equivalent",
+  "reason": "The jne at 0x48e7eb follows cmp dword [eax+edx*4+0x46a], 0 at 0x48e7e3 which computes a-0 with no borrow: cf = (a < 0) = 0 for every a. So (!cf && !zf) equals !zf, the original condition; no other instruction sets flags between 0x48e7e3 and 0x48e7eb."},
+ {"kind": "drop", "line": 30, "ident": "3b1123cc", "verdict": "equivalent",
+  "reason": "At 0x48e7dc edx was loaded by movsx from word [ebp+0xc], so its low 16 bits already equal that word. Between 0x48e7dc and 0x48e7f0 there are no stores at all (0x48e7e0 and 0x48e7ed are loads, 0x48e7e3 a cmp), so the word at [ebp+0xc] is unchanged and the mov dx at 0x48e7f0 rewrites the same low 16 bits. The store at 0x48e7f4 uses only dx, and edx is reloaded at 0x48e822 before any other use, so dropping the statement changes nothing."},
+ {"kind": "literal", "line": 30, "ident": "7725f3b0", "verdict": "equivalent",
+  "reason": "Mutant keeps bit 0 of the old edx in addition to the new low word. The old edx came from movsx of the same word [ebp+0xc] at 0x48e7dc with no stores in between (0x48e7e0..0x48e7ed are loads and a cmp), so old bit 0 equals bit 0 of the new word and OR-ing it in changes nothing. The result is then used only as dx at the store 0x48e7f4, and edx is reloaded at 0x48e822."},
+ {"kind": "width", "line": 36, "ident": "b1c19190", "verdict": "equivalent",
+  "reason": "The dword at 0x5b44f0 was written with 0x16 by the store at 0x48e7fb. Stores between it and the read at 0x48e819 are 0x48e80a (bytes 0x5d162d..0x5d1630) and 0x48e80f (bytes 0x5b44f4..0x5b44f7), neither overlapping bytes 0x5b44f0..0x5b44f3, so RD32 and RD16 both return 0x16 and ecx is identical."},
+ {"kind": "width", "line": 38, "ident": "a95526ca", "verdict": "equivalent",
+  "reason": "The dword at 0x5b44f4 was written with 1 by the store at 0x48e80f, and the only instructions between it and the read at 0x48e822 are loads and a shift (0x48e819, 0x48e81f), so there is no intervening store; the earlier stores 0x48e7fb and 0x48e80a do not overlap bytes 0x5b44f4..0x5b44f7. RD32 and RD16 both return 1 (upper half zero), edx is identical."}
+]

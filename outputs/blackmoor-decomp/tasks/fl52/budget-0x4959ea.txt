@@ -1,0 +1,2 @@
+0x4959ea mutants killed by the step budget [('drop', 23, 'a74e4ef9'), ('register', 5, '0b3d222e'), ('drop', 13, 'c3566f26'), ('drop', 12, 'b4fa9c6d'), ('drop', 5, 'ab7e4cac'), ('drop', 25, '1bf22401'), ('drop', 4, '1ace213a')]
+0x4959ea mutants 7 killed 7 survivors []

@@ -1,0 +1,2 @@
+0x4959ea mutants killed by the step budget [('width', 11, '2cc01dac')]
+0x4959ea mutants 1 killed 1 survivors []

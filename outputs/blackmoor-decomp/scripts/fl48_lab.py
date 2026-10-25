@@ -45,6 +45,7 @@ def main():
     ap.add_argument('--stub', action='append', default=[])
     ap.add_argument('--stubwrite', action='append', default=[], help='K:ADDRESS:VALUE the K-th callee also stores the dword VALUE at ADDRESS')
     ap.add_argument('--save', action='store_true')
+    ap.add_argument('--hang-save', action='store_true', help='FL-52: with --save, keep the scenario although it kills nothing here (a mutant that never terminates on it is skipped with --skip; the normal run then lists it as hang-killed and the step-budget rerun decides)')
     ap.add_argument('--skip', default='', help='comma-separated mutant numbers (as printed) not to run, e.g. a mutant that never terminates and would kill the lab by its alarm')
     a = ap.parse_args()
     corpus = json.loads((PROJECT / 'tests/fl41_corpus.json').read_text())
@@ -131,7 +132,7 @@ def main():
             print('%-7s #%d %s line %d: %s' % (res, i, kind, n, t.split('\n')[n].strip()[:110]))
             if res.startswith('KILLED'):
                 killed.append([kind, n])
-        if a.save and killed:
+        if a.save and (killed or a.hang_save):
             found = json.loads(FOUND.read_text()) if FOUND.exists() else {}
             found.setdefault(a.row, {'found': [], 'alive': -1, 'tried': 0})['found'].append([a.seed, [list(x) for x in ov], killed])
             FOUND.write_text(json.dumps(found, indent=1, sort_keys=True) + '\n')

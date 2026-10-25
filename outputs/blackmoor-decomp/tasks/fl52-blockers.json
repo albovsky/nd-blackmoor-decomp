@@ -1,0 +1,12 @@
+{
+ "0x489722": [
+  {
+   "id": "RT-14:16358bcf024bb808",
+   "rationale": "The item says the native app never hides render-slot overlays (0x43da93 sets visible to 0 on slots 24..63, 0x489722 re-shows them): a gap in the app's overlay behaviour around the caller, not in this function. Here the function's own instructions and the jump directions all run in the oracle and match the translation, with callees as recording stubs."
+  },
+  {
+   "id": "RT-18:27c1dee8f42c5dd9",
+   "rationale": "The item says only the render pass order and the hide/re-show cycle of 0x43da93 and 0x489722 are unverified beyond layers 10 and 11 in the corpus: a gap in how the app's render pass is checked around the caller, not in this function's own code. Here the function's own instructions and the jump directions all run in the oracle and match the translation, with callees as recording stubs."
+  }
+ ]
+}

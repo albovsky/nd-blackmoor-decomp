@@ -1,0 +1,14 @@
+[
+ {"kind": "literal", "line": 16, "ident": "55972aca", "verdict": "not equivalent",
+  "reason": "Differs only by non-termination, so no scenario can be saved by the lab (a hang is inconclusive there). The mask 0x10000 zeroes the loaded 16-bit counter, so after add ax,1 at 0x48e9ea the stored counter is always 1 instead of counter+1. Input: [this+0x1e]=0, [0x5bb5e5]=0, word [0xb0]=3, dwords [this+0x46a], [this+0x46e] = 1 and [this+0x472] = 0. The original returns 0 at index 2 (jne at 0x48ea13 not skipped); the mutant's counter stays at 1 forever and the function never returns."},
+ {"kind": "width", "line": 16, "ident": "dbc247a9", "verdict": "not equivalent",
+  "reason": "Differs only by non-termination, so no scenario can be saved by the lab. RD8 at 0x48e9e6 drops the high byte of the 16-bit counter, so after the counter 256 the add gives 1 and the counter cycles. Input: [this+0x1e]=0, [0x5bb5e5]=0, word [0xb0]=300, dwords [this+0x46a+4i]=1 for i<300. The original returns 1 at counter 300 via jge at 0x48ea02; the mutant cycles through 1..256 and never terminates."},
+ {"kind": "literal", "line": 17, "ident": "d744ffcd", "verdict": "not equivalent",
+  "reason": "Differs only by non-termination, so no scenario can be saved by the lab (observed: the lab's alarm ends the mutant run). The mask 0x10000 on the operand of add ax,1 at 0x48e9ea leaves 0 or bit 16, so the 16-bit sum is 1 and the stored counter is always 1. Input: [this+0x1e]=0, [0x5bb5e5]=0, word [0xb0]=4, dwords [this+0x46a], [this+0x46e], [this+0x476] = 1 and [this+0x472] = 0: the original returns 0 at index 2, the mutant loops forever on index 1."},
+ {"kind": "literal", "line": 17, "ident": "3b1ad143", "verdict": "not equivalent",
+  "reason": "Scenario saved (seed 1): [0x5bb5e5]=0, word [0xb0]=4, dwords at [this+0x46a+4i] = 1,1,0,1,1 for i=0..4. For an odd counter the mutant keeps bit 0 of eax, so the counter goes 1 -> 3 and skips index 2; the original stops at index 2 (value 0) and returns 0, the mutant reaches the limit and returns 1."},
+ {"kind": "width", "line": 20, "ident": "099457d4", "verdict": "not equivalent",
+  "reason": "Scenario saved (seed 1): [0x5bb5e5]=0, word [0xb0]=300, dwords [this+0x46a+4i]=1 for i<300 and 0 at i=300. The original stops at counter 300 by jge at 0x48ea02 and returns 1. The mutant compares only the low byte of the counter against 300 so it keeps going, reads index 300 (0) and returns 0."},
+ {"kind": "width", "line": 25, "ident": "d690e357", "verdict": "not equivalent",
+  "reason": "Scenario saved (seed 1): [0x5bb5e5]=0, word [0xb0]=300, dwords [this+0x46a+4i]=1 for all i<300 except i=256 which is 0. The original returns 0 at counter 256. The mutant indexes the array with the low byte (counter 0), sees 1, and runs on to the limit returning 1."}
+]

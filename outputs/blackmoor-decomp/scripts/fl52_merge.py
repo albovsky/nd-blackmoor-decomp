@@ -1,0 +1,80 @@
+#!/usr/bin/env python3
+"""FL-52: merge the normal mutation log of a row with its step-budget rerun log into one log that scripts/fl41_o2_classify.py and scripts/fl41_survivors.py read.
+
+A mutant that the normal run lists under 'killed by a hang or crash' is NOT killed (Glib's ruling): only the budget rerun (FL45_STRICT_HANG, a fixed step budget on scenarios where the
+unmutated translation agrees with the original) can kill it. The merged line of the row lists as survivors (label 'survives') the normal run's 'survives' entries and the budget rerun's
+survivors; it fails when the budget log does not account for every hang-listed mutant of the normal log (each must be either killed by the budget or a budget survivor).
+
+  fl52_merge.py OUT.txt NORMAL.txt[:BUDGET.txt[+BUDGET2.txt]] [NORMAL.txt[:BUDGET.txt] ...]      (BUDGET2: a rerun of the budget survivors with a longer safety alarm)       (run from outputs/blackmoor-decomp)
+
+A normal log without a budget log must have no hang-listed mutant."""
+import ast
+from pathlib import Path
+import re
+import sys
+
+
+def parse(path):
+    """(row, mutants, hang-listed, budget-killed, survivors) of one log; exactly one result line, and every other line of the log must name the same row"""
+    row = hangs = budgets = surv = None
+    n = 0
+    results = 0
+    rows = set()
+    for line in Path(path).read_text().splitlines():
+        m = re.match(r'(0x[0-9a-f]+) mutants killed by a hang or crash (\[.*\])$', line)
+        if m:
+            hangs = [tuple(x) for x in ast.literal_eval(m.group(2))]
+            rows.add(m.group(1))
+        elif ' mutants killed by a hang' in line:
+            raise SystemExit('%s: a hang line this parser does not read: %r' % (path, line[:80]))
+        m = re.match(r'(0x[0-9a-f]+) mutants killed by the step budget (\[.*\])$', line)
+        if m:
+            budgets = [tuple(x) for x in ast.literal_eval(m.group(2))]
+            rows.add(m.group(1))
+        elif ' mutants killed by the step' in line:
+            raise SystemExit('%s: a budget line this parser does not read: %r' % (path, line[:80]))
+        m = re.match(r'(0x[0-9a-f]+) mutants (\d+) killed (\d+) survivors (\[.*\])$', line)
+        if m:
+            row, n, surv = m.group(1), int(m.group(2)), ast.literal_eval(m.group(4))
+            results += 1
+            rows.add(row)
+    if results != 1:
+        raise SystemExit('%s: %d result lines, expected exactly one' % (path, results))
+    if rows != {row}:
+        raise SystemExit('%s: lines for several rows %s' % (path, sorted(rows)))
+    return row, n, hangs or [], budgets or [], surv
+
+
+def bsurv_all(budget):
+    return [x for blog in budget.split('+') for x in parse(blog)[4]]
+
+
+def main():
+    out = []
+    for arg in sys.argv[2:]:
+        normal, _, budget = arg.partition(':')
+        row, n, hangs, _, surv = parse(normal)
+        hang_idents = {h[2] for h in hangs}
+        merged = [s for s in surv if s[2] == 'survives']
+        if hang_idents:
+            if not budget:
+                raise SystemExit('%s: %d hang-listed mutants and no budget log' % (row, len(hang_idents)))
+            killed, alive_all = set(), set()
+            for blog in budget.split('+'):
+                brow, _, _, bbud, bsurv = parse(blog)
+                if brow != row:
+                    raise SystemExit('%s: budget log is for %s' % (row, brow))
+                killed |= {b[2] for b in bbud}
+                alive_all |= {s[3] for s in bsurv}
+            alive = alive_all - killed          # a later budget log (a longer safety alarm) may kill what an earlier one left alive
+            missing = hang_idents - killed - alive
+            if missing:
+                raise SystemExit('%s: the budget log accounts for neither kill nor survivor of %s' % (row, sorted(missing)))
+            merged += [(s[0], s[1], 'survives', s[3]) for s in {x[3]: x for x in bsurv_all(budget)}.values() if s[3] in hang_idents and s[3] in alive]
+        out.append('%s mutants %d killed %d survivors %r' % (row, n, n - len(merged), merged))
+        print(row, 'survivors', len(merged), 'hang-listed', len(hang_idents))
+    Path(sys.argv[1]).write_text('\n'.join(out) + '\n')
+
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,9 @@
+[
+ {"kind": "width", "line": 15, "ident": "c695365c", "verdict": "confirmed", "note": "Re-derived: line 11 stores dword 9 to 0x5b44f0, the only later stores before line 15 are 0x5d162d..30 and 0x5b44f4..f7 (no overlap), no call, so RD32 and RD16 both give 9."},
+ {"kind": "width", "line": 17, "ident": "8975fb7d", "verdict": "confirmed", "note": "Re-derived: line 14 stores dword 1 to 0x5b44f4 and no store follows before line 17 (line 15 read, line 16 shift), earlier stores at 0x5b44f0..f3 and 0x5d162d..30 do not overlap, so both widths read 1."},
+ {"kind": "jump", "line": 28, "ident": "67f0366b", "verdict": "confirmed", "note": "Re-derived from FL41_SUB: line 27 compares against 0 so cf = (a < 0 unsigned) is always 0, and the jne directly follows, so (!cf && !zf) == !zf."},
+ {"kind": "drop", "line": 30, "ident": "3b1123cc", "verdict": "confirmed", "note": "Re-derived: edx from line 25 is movsx of the same word [ebp+0xc], with no stores in lines 26-29 so dx rewrite is a no-op on edx; in any case edx is only used as dx at line 31 and is overwritten at line 38 before any other use (lines 32-37 do not read edx)."},
+ {"kind": "literal", "line": 30, "ident": "7725f3b0", "verdict": "confirmed", "note": "Re-derived: old edx low half equals the reloaded word (no stores between lines 25 and 30), so bit 0 matches and the extra mask bit adds nothing; edx is also overwritten at line 38 after the dx store at line 31."},
+ {"kind": "width", "line": 36, "ident": "b1c19190", "verdict": "confirmed", "note": "Re-derived: line 32 stores dword 0x16 to 0x5b44f0; stores in lines 34-35 hit 0x5d162d..30 and 0x5b44f4..f7 only, no overlap, so RD32 and RD16 both return 0x16."},
+ {"kind": "width", "line": 38, "ident": "a95526ca", "verdict": "confirmed", "note": "Re-derived: line 35 stores dword 1 to 0x5b44f4, with only a load and shift (lines 36-37) before the read at line 38; earlier stores at 0x5b44f0..f3 and 0x5d162d..30 do not overlap, so both widths read 1."}
+]
