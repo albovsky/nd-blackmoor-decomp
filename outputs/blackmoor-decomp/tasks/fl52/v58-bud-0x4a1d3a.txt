@@ -1,0 +1,2 @@
+0x4a1d3a mutants killed by the step budget [('alu', 16, '7c9e20fe'), ('drop', 54, '9eecb7db'), ('literal', 43, '3a85131b'), ('drop', 17, '2537dbd2'), ('drop', 62, '9eecb7db'), ('width', 17, '7f278cf3'), ('drop', 14, 'de378841')]
+0x4a1d3a mutants 11 killed 11 survivors []

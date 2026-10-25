@@ -13,8 +13,8 @@
 # locals:       none resolved: no ebp frame so slots are listed under fields as esp-relative stk symbols
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      calls tail jump FUN_0051397b
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 2 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl56_unverified.c:m44753b_lifted (function ledger class candidate_port; also m47d788_lifted; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 2 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
 # note:         further_unindexed_code_at:0x0050de0a
 .intel_syntax noprefix
 .code32

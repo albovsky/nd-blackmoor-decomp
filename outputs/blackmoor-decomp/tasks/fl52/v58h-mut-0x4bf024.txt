@@ -1,0 +1,1 @@
+0x4bf024 mutants 103 killed 95 survivors [('jump', 13, 'survives', '1562ec38'), ('alu', 12, 'survives', 'c4f7240a'), ('literal', 34, 'survives', 'f19313a4'), ('register', 12, 'survives', 'cdf83e6f'), ('width', 17, 'survives', '2df59b44'), ('drop', 8, 'survives', '5052d93d'), ('width', 12, 'survives', '0817dc1a'), ('drop', 38, 'survives', 'b99144f7')]

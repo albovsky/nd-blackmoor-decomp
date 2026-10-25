@@ -14,7 +14,7 @@
 # fields:       none: no register-relative displacement below 0x400000 other than frame slots
 # callees:      calls KERNEL32.dll!GetTickCount, FUN_004d3836, FUN_0044aa79, FUN_0050ca3e, FUN_004c924d, FUN_004d2c20, FUN_004d36ed, FUN_004c92c5, FUN_0044a2b7
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 670 instruction(s), 8 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# unverified:   machine annotation only: the 670 instruction(s), 8 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

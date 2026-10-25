@@ -1,0 +1,1 @@
+0x4db1ad mutants 49 killed 47 survivors [('width', 11, 'survives', 'f039e011'), ('drop', 18, 'survives', 'e03afe93')]

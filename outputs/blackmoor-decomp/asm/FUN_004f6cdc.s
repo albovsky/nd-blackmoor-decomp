@@ -15,7 +15,7 @@
 # locals:       8 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c, local_20
 # fields:       [eax + n] field_176, field_182, field_28f, field_2e1, field_3be, field_3c2; [ecx + n] field_17a, field_186, field_2ed, field_3be, field_3c2; [edx + n] field_144, field_162, field_176, field_17e, field_3be, field_3c2, field_3ce
 # callees:      calls FUN_004f709c, FUN_0050ce04, FUN_004f6334, FUN_004f6059, FUN_0050ca3e, FUN_0044a2b7
-# track-n:      host-adapter: none
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl56_unverified.c:m420c17_lifted (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
 # unverified:   machine annotation only: the 132 instruction(s), 7 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
