@@ -555,6 +555,11 @@
     "statement": "{ uint32_t a_ = (ecx & 0xffffu), b_ = 0x1u, r_; FL40_ADD(a_, b_, 0u, r_, 16); ecx = (ecx & 0xffff0000u) | ((r_) & 0xffffu); }  /* 0x416f67: add cx, 1 */"
    },
    {
+    "kind": "width",
+    "line": 19,
+    "statement": "ecx = (ecx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffff0u))) & 0xffffu);  /* 0x416f63: mov cx, word ptr [ebp - 0x10] */"
+   },
+   {
     "kind": "drop",
     "line": 21,
     "statement": "WR16((uint32_t)(ebp + 0xfffffff0u), (ecx & 0xffffu));  /* 0x416f6b: mov word ptr [ebp - 0x10], cx */"

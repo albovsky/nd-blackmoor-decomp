@@ -1,21 +1,12 @@
 {
  "note": "FL-49: row-specific written reasons that a lifted-C survivor (kind, line) is equivalent to the original, same rules as tasks/fl46-written-reasons.json. Each was written by one Sonnet reader from the function alone and confirmed by a second, independent Sonnet reviewer who tried to break it (reviewer note kept); rejected reasons are not here. The statement must equal the current line of the row, else the reason is ignored (scripts/fl44_final.py).",
  "rows": {
-  "0x416f2d": [
-   {
-    "kind": "width",
-    "line": 19,
-    "statement": "ecx = (ecx & 0xffff0000u) | ((RD16((uint32_t)(ebp + 0xfffffff0u))) & 0xffffu);  /* 0x416f63: mov cx, word ptr [ebp - 0x10] */",
-    "reason": "The loop counter slot [ebp-0x10] is stored only by explicit WR16 at 0x416f5b (value 0) and 0x416f6b (cx = old+1); assuming no pointer into the frame changes it, and the slot is only incremented by 1 and the loop is left when the sign-extended slot is >= 0x1e (jge at 0x416f76), so at 0x416f63 it holds 0..29 and the high byte at [ebp-0xf] is 0. RD8 therefore returns the same 16-bit value as RD16 into cx (the upper half of ecx is kept in both), so add cx,1, the store at 0x416f6b, the call argument (eax set at 0x416f78 from the same slot) and every register and flag are identical.",
-    "review": "Checked 0x416f5b-0x416f85: slot word [ebp-0x10] is written only at 0x416f5b (0) and 0x416f6b (cx=old+1 after add cx,1). 0x416f63 is reached only from 0x416f85 after jge at 0x416f76 was not taken (signed slot <0x1e); slot starts at 0 and grows by 1, so it is 0..29 and high byte at [ebp-0xf] is 0. RD8 then equals RD16 in cx (upper half of ecx kept in both), so add cx,1 result and flags, the store at 0x416f6b, ax/push at 0x416f78 and the later ecx reloads (0x416f7d, 0x416f8b) are identical. Uses only the accepted frame-slot and increment-range assumptions."
-   }
-  ],
   "0x445c8a": [
    {
     "kind": "width",
     "line": 62,
     "statement": "edx = RD32((uint32_t)(ebp + 0xfffffe24u));  /* 0x445d14: mov edx, dword ptr [ebp - 0x1dc] */",
-    "reason": "The dword [ebp-0x1dc] is stored at 0x445d01 (ecx) and the only instructions between that store and the read at 0x445d14 are cmp dword ptr [ebp-0x1dc],3 (0x445d07) and ja (0x445d0e), neither of which writes memory or calls, so the read sees the same value. The ja not taken means that value is <= 3 unsigned, so bits 16..31 are 0 and RD16 returns the same value as RD32. edx is therefore identical (the table read at 0x445d1a uses the same address, and edx is later clobbered by the call stub at 0x445dd3 anyway), so memory writes, calls, registers and flags are unchanged.",
+    "reason": "The dword [ebp-0x1dc] is stored at 0x445d01 (ecx) and the only instructions between that store and the read at 0x445d14 are cmp dword ptr [ebp-0x1dc],3 (0x445d07) and ja (0x445d0e), neither of which writes memory or calls, so the read sees the same value. The ja not taken means that value is <= 3 unsigned, so bits 16..31 are 0 and RD16 returns the same value as RD32. edx is therefore identical, so memory writes, calls, registers and flags are unchanged.",
     "review": "Checked 0x445cfd-0x445d1a: dword [ebp-0x1dc] stored at 0x445d01 (ecx), only cmp (0x445d07, reads, no write) and ja (0x445d0e) in between, no call, so the 0x445d14 read sees ecx. ja not taken (the taken path goes to 0x445dc7 and never reaches 0x445d14) means value <=3 unsigned, so RD16 == RD32; edx, the table read at 0x445d1a, the switch and all later writes/calls/flags are identical. Rests only on the function's own store and its own cmp/ja, not on the callee clobbering edx."
    }
   ],

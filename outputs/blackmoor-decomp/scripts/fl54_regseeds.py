@@ -133,7 +133,7 @@ def work(args):
                         data = os.read(r_fd, 4)
                         os.close(r_fd)
                         os.waitpid(pid, 0)
-                        if data != b'0':
+                        if data == b'1':
                             killed.append(k)
                     if killed:
                         found.append((sd, [list(c) for c in scen], [named[k][:2] for k in killed]))
@@ -189,7 +189,7 @@ def work(args):
                             data = os.read(r_fd, 4)
                             os.close(r_fd)
                             os.waitpid(pid, 0)
-                            if data != b'0':
+                            if data == b'1':
                                 killed.append(k)
                         if killed:
                             found.append((sd, [list(c) for c in scen2], [named[k][:2] for k in killed]))

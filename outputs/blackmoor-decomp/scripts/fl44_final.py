@@ -69,7 +69,7 @@ def main():
             for row, items in doc['rows_with_survivors'].items():
                 asked.setdefault(row, set()).update((kind, n) for kind, cls, _, n in items if cls is None)
     reasons = {}        # FL-46: row-specific written reasons, tied to the exact statement they were written for
-    for reasons_path in sorted(TASKS.glob('fl[45]*-written-reasons.json')):          # FL-46, FL-49
+    for reasons_path in sorted(TASKS.glob('fl4*-written-reasons.json')) + sorted(TASKS.glob('fl54-written-reasons.json')):          # FL-46, FL-49
         for row, items in json.loads(reasons_path.read_text())['rows'].items():
             for i in items:
                 if len(' '.join(i['reason'].split())) >= 80 and len(i.get('review', '').strip()) >= 40:        # a reason without its independent review does not count
