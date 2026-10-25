@@ -25,7 +25,7 @@ ORACLE = 'tests/fl40_original_oracle.py'
 class WrittenReasons(unittest.TestCase):
     def setUp(self):
         self.doc = {'rows': {}}
-        for path in sorted((PROJECT / 'tasks').glob('fl4[69]-written-reasons.json')):          # FL-46, FL-49
+        for path in sorted((PROJECT / 'tasks').glob('fl[45][469]-written-reasons.json')):          # FL-46, FL-49
             for row, items in json.loads(path.read_text())['rows'].items():
                 self.doc['rows'].setdefault(row, []).extend(items)
         self.funcs = M.split_functions((PROJECT / 'src/original_methods_fl40.c').read_text())

@@ -43,6 +43,8 @@ DATA_START = 0x537000          # first writable page of .data (the .rdata ends b
 INSTRUCTION_LIMIT = 200000
 ARGS = 8                       # stack dwords above the return address
 LOGGED = 6                     # stack dwords of a stub call that are logged
+REG_OVERRIDE = 0xffff0000        # FL-54: an override at REG_OVERRIDE + 4 * index (eax ecx edx ebx esi edi ebp) sets that start register, e.g. an odd `this` (a seed's own `this` is aligned)
+REG_NAMES = ('eax', 'ecx', 'edx', 'ebx', 'esi', 'edi', 'ebp')
 SENTINELS = dict(eax=0x11111111, ebx=0x22222222, edx=0x44444444, esi=0x55555555, edi=0x66666666, ebp=0x77777777)
 
 
@@ -172,6 +174,12 @@ def page_fill(seed, magic, page):
     return struct.pack('<%dI' % (PAGE // 4), *words)
 
 
+def apply_register_overrides(regs, overrides):
+    for address, size_, value in overrides:
+        if address >= REG_OVERRIDE:
+            regs[REG_NAMES[(address - REG_OVERRIDE) // 4]] = value & 0xffffffff
+
+
 def initial_state(row, seed):
     """(registers dict, stack arguments, image patches [(address, bytes)]) of the scenario."""
     rng = random.Random(seed * 7919 + row['va'])
@@ -238,13 +246,14 @@ def run_original(row, seed, overrides=(), observe=False, setup=None, probes=None
     pe = od.load_image()
     va, size = row['va'], row['body']
     regs, args, patches = initial_state(row, seed)
+    apply_register_overrides(regs, overrides)
     magic = row['magic']
     uc = unicorn.Uc(unicorn.UC_ARCH_X86, unicorn.UC_MODE_32)
     image = bytearray(pe.image)
     for address, data in patches:
         image[address - IMAGE_BASE:address - IMAGE_BASE + len(data)] = data
     for address, size_, value in overrides:
-        if IMAGE_BASE <= address and address + size_ <= IMAGE_BASE + len(image):
+        if address < REG_OVERRIDE and IMAGE_BASE <= address and address + size_ <= IMAGE_BASE + len(image):
             image[address - IMAGE_BASE:address - IMAGE_BASE + size_] = (value & ((1 << (8 * size_)) - 1)).to_bytes(size_, 'little')
     stubs = {callee: (callee, cleanup) for callee, cleanup in row['callees'].items()}
     fpret = row.get('fpret') or {}        # FL-51: callees that leave a value in st(0) (+1) or take one off it (-1): the stub is a real instruction there
@@ -375,6 +384,8 @@ def run_original(row, seed, overrides=(), observe=False, setup=None, probes=None
     uc.reg_write(X.UC_X86_REG_ESP, sp)
     uc.reg_write(X.UC_X86_REG_EFLAGS, 2)
     for address, size_, value in overrides:
+        if address >= REG_OVERRIDE:
+            continue
         if not (IMAGE_BASE <= address and address + size_ <= IMAGE_BASE + len(image)):
             ensure(address)
             ensure(address + size_ - 1)
@@ -480,6 +491,7 @@ class Mem:
 def run_native(lib, row, seed, overrides=()):
     va = row['va']
     regs, args, patches = initial_state(row, seed)
+    apply_register_overrides(regs, overrides)
     magic = row['magic']
     mem = Mem(seed, magic, patches)
     trace = Trace()
@@ -531,7 +543,8 @@ def run_native(lib, row, seed, overrides=()):
     for k, v in enumerate([STOP, *args]):
         mem.write(sp + 4 * k, 4, v)
     for address, size_, value in overrides:
-        mem.write(address, size_, value)
+        if address < REG_OVERRIDE:
+            mem.write(address, size_, value)
     r = Regs(regs['eax'], regs['ecx'], regs['edx'], regs['ebx'], sp, regs['ebp'], regs['esi'], regs['edi'])
     getattr(lib, 'm%x_lifted' % va)(ctypes.byref(r), ctypes.byref(host))
     trace.regs = {n: getattr(r, n) for n in ('eax', 'ecx', 'edx', 'ebx', 'esp', 'ebp', 'esi', 'edi')}
