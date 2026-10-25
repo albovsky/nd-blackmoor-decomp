@@ -203,6 +203,30 @@ def mutants_of(lines, row, kind, n):
 
 
 RD_WIDTH = re.compile(r'\bRD(8|16|32)\(')
+CF_READ = re.compile(r'\bcf\b(?!\s*=[^=])')
+BLOCK_OPEN = re.compile(r'^\{ uint32_t a_ = [^;{}]*, b_ = [^;{}]*, r_;$')
+BYTE_ARITH = re.compile(r'FL40_(ADD|SUB)\(a_, b_, 0u, r_, 8\); \}')
+
+
+def carry_only(lines, n, row):
+    """(FL-53) `{ uint32_t a_ = RD8(x), b_ = RD8(y), r_; FL40_SUB(a_, b_, 0u, r_, 8); ... }` (the compare of `repe cmpsb`, `cmp` of two bytes) with a wider read: FL40_ADD and FL40_SUB mask the
+    result to 8 bits, take the overflow flag from bit 7 and zf sf pf from the masked result, so a wider operand changes the carry flag only. The rule holds when the carry-in of the statement
+    is the constant 0u and the name `cf` is read nowhere in the function (no jump, no adc/sbb, no flag copy). It covers a C loop, which the liveness analysis skips. Like `masked read`, it
+    assumes that no real read reaches the top of the model's address space."""
+    if any(CF_READ.search(re.sub(r'/\*.*?\*/', '', l)) for l in lines):
+        return None
+    t, nxt = stmt(lines[n]), stmt(lines[n + 1]) if n + 1 < len(lines) else ''
+    if not BLOCK_OPEN.match(t) or not BYTE_ARITH.fullmatch(nxt):
+        return None
+    if not RD_WIDTH.search(t) or any(w != '8' for w in RD_WIDTH.findall(t)):
+        return None
+    mut = [stmt(m) for m in mutants_of(lines, row, 'width', n)]
+    if not mut:
+        return None
+    for x in mut:
+        if x == t or RD_WIDTH.sub('RD(', x) != RD_WIDTH.sub('RD(', t):
+            return None
+    return 'carry only'
 
 
 def explain(kind, lines, n, row):
