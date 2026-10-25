@@ -97,7 +97,14 @@ def callee_shape(target, depth=0):
     a body that is not a ledger function)."""
     spans = ledger_spans()
     if target not in spans:
-        raise Unsupported("callee 0x%x is not a ledger function" % target)
+        if not UNVERIFIED:
+            raise Unsupported("callee 0x%x is not a ledger function" % target)
+        GUESSED_CALLEES.add(target)       # FL-56 unverified mode: a call target that starts no ledger function (inside a function or in a gap): the first `ret` of its linear code decides the pop
+        img = od.load_image()
+        for i in md().disasm(img.image[target - img.image_base:][:400], target):
+            if i.mnemonic == "ret":
+                return i.operands[0].imm if i.operands else 0
+        raise Unsupported("callee 0x%x is not a ledger function and has no ret within 400 bytes" % target)
     size = spans[target]
     try:
         ins = disasm(target, size)
@@ -169,10 +176,19 @@ def fpu_net(target, depth=0):
     if target in _FPU_NET:
         return _FPU_NET[target]
     entry = ledger_entry(target)
+    if (entry is None or depth > 6) and UNVERIFIED:
+        ASSUMED_NEUTRAL.add(target)
+        return 0
     if entry is None or depth > 6:
         raise Unsupported("callee 0x%x is not a ledger function" % target)
     if entry["origin"] != "game":
-        _FPU_NET[target] = library_fpu_net(target)
+        try:
+            _FPU_NET[target] = library_fpu_net(target)
+        except Unsupported:
+            if not UNVERIFIED:
+                raise
+            ASSUMED_NEUTRAL.add(target)       # FL-56 unverified mode: the x87 effect of this library routine is ASSUMED to be none
+            return 0
         return _FPU_NET[target]
     spans = ledger_spans()
     ins = list(md().disasm(od.load_image().image[target - od.load_image().image_base:][:spans[target]], target))
@@ -203,7 +219,8 @@ def fpu_net(target, depth=0):
                 if o.type == X.X86_OP_MEM and not o.mem.base and not o.mem.index and o.mem.disp in import_slots():
                     pass                                    # an import: it does not touch the x87 stack
                 elif o.type != X.X86_OP_IMM:
-                    raise Unsupported("callee 0x%x: indirect call at 0x%x" % (target, i.address))
+                    if not UNVERIFIED:
+                        raise Unsupported("callee 0x%x: indirect call at 0x%x" % (target, i.address))
                 elif o.imm != target:
                     d += fpu_net(o.imm, depth + 1)
             if mn == "ret":
@@ -421,6 +438,40 @@ def jump_table(ins, k, va, end):
     return targets
 
 
+GUESSED_CALLEES = set()  # FL-56: call targets whose stack cleanup an unverified translation guessed from their first ret
+ASSUMED_NEUTRAL = set()  # FL-56: library callees whose x87 stack effect an unverified translation assumes to be none (scripts/fl56_unverified.py records them per row)
+UNVERIFIED = False       # FL-56: the "translated, unverified" mode (scripts/fl56_unverified.py): indirect and recursive calls are translated, the callee's stack cleanup of an indirect call is INFERRED, not proven
+
+
+def indirect_cleanup(c, i):
+    """bytes an indirect callee is assumed to pop: none when the caller cleans up (`add esp, N` right after the call), else the dwords pushed since the last call, jump, label or esp write (callee-cleans conventions)"""
+    k = c.ins.index(i)
+    nxt = c.ins[k + 1] if k + 1 < len(c.ins) else None
+    if nxt is not None and nxt.mnemonic == "add" and nxt.operands[0].type == X.X86_OP_REG and nxt.operands[0].reg == X.X86_REG_ESP:
+        return 0
+    n = 0
+    for j in range(k - 1, -1, -1):
+        p = c.ins[j]
+        if p.mnemonic in ("call", "ret", "leave") or p.mnemonic[0] == "j" or (p.operands and p.operands[0].type == X.X86_OP_REG and p.operands[0].reg == X.X86_REG_ESP):
+            break
+        if p.mnemonic == "push":
+            n += 4
+        if p.address in c.targets:
+            break
+    return n
+
+
+def indirect_call(c, i):
+    a = i.address
+    cleanup = indirect_cleanup(c, i)
+    c.emit("{ uint32_t t_ = %s;  /* UNVERIFIED: indirect call, callee pop of %d bytes inferred from the pushes before it */" % (get(i, i.operands[0], 32), cleanup))
+    c.emit("  esp -= 4u; WR32(esp, 0x%xu);" % (a + i.size))
+    c.emit("  FL40_CALL(t_);")
+    if cleanup:
+        c.emit("  esp += %du;" % cleanup)
+    c.emit("  esp += 4u; }")
+
+
 def lift_one(c, i):
     mn = i.mnemonic
     ops = i.operands
@@ -530,6 +581,8 @@ def lift_one(c, i):
             t = ops[0].mem.disp & 0xffffffff
             name = import_slots().get(t)
             if name is None or name[1] not in IMPORT_ARGS:
+                if UNVERIFIED:
+                    return indirect_call(c, i)
                 raise Unsupported("indirect call through 0x%x at 0x%x" % (t, a))
             cleanup = 4 * IMPORT_ARGS[name[1]]
             c.imports[t] = cleanup
@@ -540,9 +593,11 @@ def lift_one(c, i):
             e("esp += 4u;")
             return
         if ops[0].type != X.X86_OP_IMM:
+            if UNVERIFIED:
+                return indirect_call(c, i)
             raise Unsupported("indirect call at 0x%x" % a)
         t = ops[0].imm
-        if t == c.va:
+        if t == c.va and not UNVERIFIED:
             raise Unsupported("recursive call at 0x%x" % a)
         if t in INLINE_CALLEES:
             c.inline.add(t)
