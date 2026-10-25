@@ -39,6 +39,8 @@ SP = od.STACK_BASE + od.STACK_SIZE - 0x100 - 4 * 9      # esp at the call: the r
 REGION_BASE, REGION_STEP, REGIONS = 0x20000000, 0x10000, 8
 TIB, GDT = 0x7d000000, 0x7d010000        # the thread information block behind fs, and the descriptor table that puts it there
 STUB_BASE = od.STUB_BASE
+FPSLOT = STUB_BASE + 0x800          # FL-52: where the stub of a callee that returns a value in st(0) leaves the double
+FCW = 0x27f                          # the x87 control word of the Win32 process (53-bit precision, round to nearest, every exception masked)
 DATA_START = 0x537000          # first writable page of .data (the .rdata ends before it): globals below it are constants and tables
 PAGE_CAP = 0
 INSTRUCTION_LIMIT = int(os.environ.get("FL48_INSTR_LIMIT", "4000000"))
@@ -57,6 +59,13 @@ def magic_of(row):
     return row['magic']
 
 
+FLOAT_SEEDS = 100000    # seeds from here on (FL-52, as FL-51 for the lower rows) fill the pages with words that are IEEE floats and callees that return a value in st(0) give floats: only rows that use the x87 unit are searched with them
+
+
+def style_of(seed):
+    return 7 if seed >= FLOAT_SEEDS else seed % 5
+
+
 def mixture(rng, style, magic):
     """One dword. The five styles weigh the sources differently so that some scenarios are mostly zeros and pointers, others mostly large random values."""
     weights = [(28, 'zero'), (10, 'one'), (10, 'small'), (5, 'neg'), (10, 'magic'), (17, 'ptr'), (14, 'rand')]
@@ -68,12 +77,16 @@ def mixture(rng, style, magic):
         weights = [(15, 'zero'), (25, 'one'), (25, 'small'), (3, 'neg'), (12, 'magic'), (15, 'ptr'), (5, 'rand')]
     elif style == 4:
         weights = [(40, 'zero'), (3, 'one'), (3, 'small'), (3, 'neg'), (36, 'magic'), (10, 'ptr'), (5, 'rand')]
+    elif style == 7:       # style 7 (seeds from FLOAT_SEEDS on, FL-52): words that are the bits of a float, mostly small and ordinary ones
+        weights = [(6, 'zero'), (46, 'f32'), (8, 'one'), (8, 'small'), (8, 'ptr'), (10, 'rand'), (8, 'magic'), (6, 'f32wild')]
     total = sum(w for w, _ in weights)
     pick = rng.randrange(total)
     for w, kind in weights:
         if pick < w:
             break
         pick -= w
+    if kind in ('f32', 'f32wild'):
+        return float_bits(rng, kind == 'f32wild')
     if kind == 'zero':
         return 0
     if kind == 'one':
@@ -90,9 +103,49 @@ def mixture(rng, style, magic):
     return rng.getrandbits(32)
 
 
+def float_bits(rng, wild=False):
+    """The bits of a float32 (FL-52): usually a small ordinary value, so that sums, products and compares of two of them come out in all the ways; sometimes a boundary value."""
+    k = rng.randrange(12)
+    if wild:
+        v = rng.choice((float('inf'), -float('inf'), 1e-40, -1e-40, 3.4e38, 1e30, 1e-30, 16777216.0, 16777217.0, 0.1))
+    elif k == 0:
+        v = 0.0
+    elif k < 4:
+        v = float(rng.randrange(-6, 7))
+    elif k < 6:
+        v = rng.choice((0.5, 0.25, 1.5, 2.5, 10.0, 100.0, 255.0, 360.0, 3.14159265, 0.017453292, 57.29578, 0.001, 1000.0))
+    else:
+        v = rng.uniform(-200.0, 200.0)
+    if rng.random() < 0.04:
+        v = -v
+    return struct.unpack('<I', struct.pack('<f', v))[0]
+
+
+def fret_bits(rng):
+    """The double that a callee leaves in st(0) (FL-52): drawn after the callee's other draws, only for callees that return a value in st(0)."""
+    k = rng.randrange(10)
+    if k == 0:
+        v = 0.0
+    elif k < 3:
+        v = float(rng.randrange(-8, 9))
+    elif k == 3:
+        v = rng.choice((0.5, 1.0, 2.0, 0.25, 100.0, -1.0, 3.14159, 1e-9, 1e9))
+    elif k < 7:
+        v = rng.uniform(-100.0, 100.0)
+    elif k == 7:
+        v = rng.uniform(-1e6, 1e6)
+    elif k == 8:
+        v = struct.unpack('<f', struct.pack('<I', rng.getrandbits(32)))[0]
+    else:
+        return rng.getrandbits(64) & ~(1 << 62) if rng.random() < 0.5 else rng.getrandbits(64)
+    if v != v:
+        v = 0.0
+    return struct.unpack('<Q', struct.pack('<d', v))[0]
+
+
 def page_fill(seed, magic, page):
     rng = random.Random(seed * 1000003 + page)
-    style = seed % 5
+    style = style_of(seed)
     words = [mixture(rng, style, magic) for _ in range(PAGE // 4)]
     return struct.pack('<%dI' % (PAGE // 4), *words)
 
@@ -100,7 +153,7 @@ def page_fill(seed, magic, page):
 def initial_state(row, seed):
     """(registers dict, stack arguments, image patches [(address, bytes)]) of the scenario."""
     rng = random.Random(seed * 7919 + row['va'])
-    style = seed % 5
+    style = style_of(seed)
     magic = row['magic']
     this = REGION_BASE + rng.choice((0, 0, 0, 0x40, 0x100, 0x480, 0x1000))
     r = rng.random()
@@ -214,6 +267,11 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None):
         if IMAGE_BASE <= address and address + size_ <= IMAGE_BASE + len(image):
             image[address - IMAGE_BASE:address - IMAGE_BASE + size_] = (value & ((1 << (8 * size_)) - 1)).to_bytes(size_, 'little')
     stubs = {callee: (callee, cleanup) for callee, cleanup in row['callees'].items()}
+    fpret = row.get('fpret') or {}        # FL-52: callees that leave a value in st(0) (+1) or take one off it (-1): the stub is a real instruction there
+    for callee, net in fpret.items():
+        cleanup = row['callees'][callee]
+        code = (b'\xdd\x05' + struct.pack('<I', FPSLOT) if net > 0 else b'\xdd\xd8') + (b'\xc2' + struct.pack('<H', cleanup) if cleanup else b'\xc3')
+        image[callee - IMAGE_BASE:callee - IMAGE_BASE + len(code)] = code
     for k, (slot, cleanup) in enumerate(sorted(row['imports'].items())):
         entry = STUB_BASE + 0x10 * (k + 1)
         image[slot - IMAGE_BASE:slot - IMAGE_BASE + 4] = struct.pack('<I', entry)
@@ -226,6 +284,8 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None):
     uc.mem_write(STACK_BASE, b'\x71' * STACK_SIZE)
     uc.mem_map(STOP & ~0xfff, 0x1000)
     uc.mem_write(STOP, b'\x90' * 16)
+    if row.get('fpu'):
+        uc.reg_write(X.UC_X86_REG_FPCW, FCW)
     trace = Trace()
     mapped = set()
     if row['fs']:
@@ -268,7 +328,15 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None):
         return True
 
     uc.hook_add(unicorn.UC_HOOK_MEM_READ_UNMAPPED | unicorn.UC_HOOK_MEM_WRITE_UNMAPPED | unicorn.UC_HOOK_MEM_FETCH_UNMAPPED, unmapped)
-    uc.hook_add(unicorn.UC_HOOK_MEM_WRITE, lambda uc_, access, address, size_, value, user: trace.writes.append((address, size_, value & ((1 << (8 * size_)) - 1))))
+    def write_seen(uc_, access, address, size_, value, user):
+        value &= (1 << (8 * size_)) - 1
+        if size_ == 8:          # FL-52: a qword store of the x87 unit is logged as the two dwords the translation writes
+            trace.writes.append((address, 4, value & 0xffffffff))
+            trace.writes.append((address + 4, 4, value >> 32))
+        else:
+            trace.writes.append((address, size_, value))
+
+    uc.hook_add(unicorn.UC_HOOK_MEM_WRITE, write_seen)
     prev = [None]
 
     def count(uc_, address, size_, user):
@@ -310,11 +378,19 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None):
             uc.mem_write(at, data)
         ident, cleanup = stubs[address]
         held = tuple(uc.reg_read(getattr(X, 'UC_X86_REG_' + n)) for n in ('EAX', 'EDX', 'EBX', 'ESI', 'EDI', 'EBP'))
-        trace.calls.append((ident, ecx, held, words, eax, ecx_out, edx, writes))
+        net = fpret.get(address, 0)
+        if net > 0:
+            bits = fret_bits(stub_rng)
+            uc.mem_write(FPSLOT, struct.pack('<Q', bits))
+            trace.calls.append((ident, ecx, held, words, eax, ecx_out, edx, writes, bits))
+        else:
+            trace.calls.append((ident, ecx, held, words, eax, ecx_out, edx, writes))
         ret = struct.unpack('<I', uc.mem_read(esp, 4))[0]
         uc.reg_write(X.UC_X86_REG_EAX, eax)
         uc.reg_write(X.UC_X86_REG_ECX, ecx_out)
         uc.reg_write(X.UC_X86_REG_EDX, edx)
+        if net:
+            return              # the instructions at the callee's address (see above) push or pop st(0) and return
         uc.reg_write(X.UC_X86_REG_ESP, esp + 4 + cleanup)
         uc.reg_write(X.UC_X86_REG_EIP, ret)
 
@@ -342,6 +418,14 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None):
         trace.fault = 'instruction limit'
         return trace
     trace.regs = {name: uc.reg_read(getattr(X, 'UC_X86_REG_' + name.upper())) for name in ('eax', 'ecx', 'edx', 'ebx', 'esp', 'ebp', 'esi', 'edi')}
+    if row.get('fpu'):
+        sw = uc.reg_read(X.UC_X86_REG_FPSW)
+        top = (sw >> 11) & 7
+        regs80 = []
+        for k in range((8 - top) & 7):
+            mant, se = uc.reg_read(getattr(X, 'UC_X86_REG_FP%d' % ((top + k) & 7)))
+            regs80.append((mant, se))
+        trace.regs['fpu'] = (sw, uc.reg_read(X.UC_X86_REG_FPCW), tuple(regs80))
     return trace
 
 
@@ -357,8 +441,16 @@ WR = ctypes.CFUNCTYPE(None, ctypes.c_void_p, ctypes.c_uint32, ctypes.c_int, ctyp
 CALL = ctypes.CFUNCTYPE(None, ctypes.c_void_p, ctypes.c_uint32, ctypes.POINTER(Regs))
 
 
+FRET = ctypes.CFUNCTYPE(ctypes.c_uint64, ctypes.c_void_p)
+
+
+class Fpu(ctypes.Structure):
+    """Fl41Fpu of src/original_methods_fl41_x87.h"""
+    _fields_ = [('st', ctypes.c_longdouble * 8), ('sw', ctypes.c_uint16), ('cw', ctypes.c_uint16), ('valid', ctypes.c_uint8 * 8)]
+
+
 class Host(ctypes.Structure):
-    _fields_ = [('ctx', ctypes.c_void_p), ('rd', RD), ('wr', WR), ('call', CALL)]
+    _fields_ = [('ctx', ctypes.c_void_p), ('rd', RD), ('wr', WR), ('call', CALL), ('fret', FRET), ('fpu', ctypes.POINTER(Fpu))]
 
 
 class Mem:
@@ -458,12 +550,22 @@ def run_native(lib, row, seed, overrides=()):
         for at, data in writes:
             mem.write_bytes(at, data)
         held = tuple(getattr(rr.contents, n) for n in ('eax', 'edx', 'ebx', 'esi', 'edi', 'ebp'))
-        trace.calls.append((callee, ecx, held, words, eax, ecx_out, edx, writes))
+        if fpret.get(callee, 0) > 0:
+            fret_last[0] = fret_bits(stub_rng)
+            trace.calls.append((callee, ecx, held, words, eax, ecx_out, edx, writes, fret_last[0]))
+        else:
+            trace.calls.append((callee, ecx, held, words, eax, ecx_out, edx, writes))
         rr.contents.eax = eax
         rr.contents.ecx = ecx_out
         rr.contents.edx = edx
 
-    host = Host(None, RD(rd), WR(wr), CALL(call))
+    fpret = row.get('fpret') or {}
+    fret_last = [0]
+    fpu = None
+    if row.get('fpu'):
+        fpu = Fpu()
+        fpu.cw = FCW
+    host = Host(None, RD(rd), WR(wr), CALL(call), FRET(lambda ctx: fret_last[0]), ctypes.pointer(fpu) if fpu is not None else None)
     sp = STACK_BASE + STACK_SIZE - 0x100 - 4 * (ARGS + 1)
     for k, v in enumerate([STOP, *args]):
         mem.write(sp + 4 * k, 4, v)
@@ -474,6 +576,14 @@ def run_native(lib, row, seed, overrides=()):
     r = Regs(regs['eax'], regs['ecx'], regs['edx'], regs['ebx'], sp, regs['ebp'], regs['esi'], regs['edi'])
     getattr(lib, 'm%x_lifted' % va)(ctypes.byref(r), ctypes.byref(host))
     trace.regs = {n: getattr(r, n) for n in ('eax', 'ecx', 'edx', 'ebx', 'esp', 'ebp', 'esi', 'edi')}
+    if fpu is not None:
+        top = (fpu.sw >> 11) & 7
+        raw = ctypes.string_at(ctypes.addressof(fpu), 128)
+        regs80 = []
+        for k in range((8 - top) & 7):
+            at = 16 * ((top + k) & 7)
+            regs80.append((int.from_bytes(raw[at:at + 8], 'little'), int.from_bytes(raw[at + 8:at + 10], 'little')))
+        trace.regs['fpu'] = (fpu.sw, fpu.cw, tuple(regs80))
     return trace
 
 
@@ -501,7 +611,10 @@ def row_info(va, body, callees, imports=None, fs=False):
     md.detail = True
     off = va - pe.image_base
     magic, globs, rets = set(), set(), set()
+    fpu = False
     for i in md.disasm(pe.image[off:off + body], va):
+        if i.mnemonic.startswith('f') and i.mnemonic != 'fs':
+            fpu = True
         if i.mnemonic == 'ret':
             rets.add(i.operands[0].imm if i.operands else 0)
         for op in i.operands:
@@ -521,7 +634,12 @@ def row_info(va, body, callees, imports=None, fs=False):
                     pass
                 elif 2 < d < 0x2000:
                     magic.add(d)
-    return {'va': va, 'body': body, 'callees': {int(k): v for k, v in callees.items()}, 'imports': {int(k): v for k, v in (imports or {}).items()}, 'fs': bool(fs), 'ret': sorted(rets), 'magic': sorted(magic)[:24], 'globals': sorted(globs)[:16]}
+    info = {'va': va, 'body': body, 'callees': {int(k): v for k, v in callees.items()}, 'imports': {int(k): v for k, v in (imports or {}).items()}, 'fs': bool(fs), 'ret': sorted(rets), 'magic': sorted(magic)[:24], 'globals': sorted(globs)[:16]}
+    if fpu:         # FL-52: the row uses the x87 unit; the callees that leave a value in st(0) or take one off it (scripts/lift_fl41.py fpu_net)
+        import lift_fl41 as L
+        info['fpu'] = True
+        info['fpret'] = {t: n for t in info['callees'] for n in [L.fpu_net(t)] if n}
+    return info
 
 
 # ---- what the guided search watches: the compares of a function --------------------------------------------------------------------------

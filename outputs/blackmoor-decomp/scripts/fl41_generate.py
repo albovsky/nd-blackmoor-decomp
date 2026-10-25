@@ -160,7 +160,10 @@ def search_row(args):
         return a == b and c == d
 
     try:
-        for seed in range(max_seeds):
+        seeds = range(max_seeds)
+        if row.get('fpu'):          # FL-52: a row that uses the x87 unit is also searched with the float seeds (style 7), alternately with the plain ones
+            seeds = [s for pair in zip(range(max_seeds), range(W.FLOAT_SEEDS, W.FLOAT_SEEDS + max_seeds)) for s in pair]
+        for seed in seeds:
             o = run(seed, ())
             if o is not None and consider(seed, (), o) and full():
                 break
@@ -207,6 +210,7 @@ stored. It also requires that the seeds together run every instruction of the or
 """
 import json
 from pathlib import Path
+import platform
 import sys
 import tempfile
 import unittest
@@ -220,6 +224,7 @@ import fl41_world as W
 
 PROJECT = Path(__file__).resolve().parents[1]
 CORPUS = json.loads((Path(__file__).resolve().parent / 'fl41_corpus.json').read_text())
+X87_HOST = platform.machine().lower() in ('x86_64', 'amd64', 'i386', 'i686')       # FL-52: the x87 model of the rows that use the FPU runs on the host's own unit
 
 
 @unittest.skipUnless(od.available(), 'needs Unicorn and the pinned private work/original/GAME.EXE')
@@ -235,6 +240,8 @@ class Fl41Differential(unittest.TestCase):
         c = CORPUS[key]
         va = int(key, 16)
         row = W.row_info(va, c['body'], {int(k, 16): v for k, v in c['callees'].items()}, {int(k, 16): v for k, v in c['imports'].items()}, c['fs'])
+        if row.get('fpu') and not X87_HOST:
+            self.skipTest('the x87 model of %s is bit-exact only on an x86 host' % key)
         executed, edges = set(), set()
         for seed, overrides in c['seeds']:
             overrides = [tuple(o) for o in overrides]
