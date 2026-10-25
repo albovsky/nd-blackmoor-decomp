@@ -16,7 +16,7 @@ TAG = os.environ.get('FL52_TAG', 'p')          # a rerun of a row with new scena
 
 def run(row, log, env):
     with open(log, 'w') as fh:
-        subprocess.run(['timeout', '5400', sys.executable, 'scripts/fl48_onerow.py', row], stdout=fh, stderr=subprocess.STDOUT, env=dict(os.environ, FL48_RLIMIT_MB='6000', **env))
+        subprocess.run(['timeout', os.environ.get('FL52_TIMEOUT', '5400'), sys.executable, 'scripts/fl48_onerow.py', row], stdout=fh, stderr=subprocess.STDOUT, env=dict(os.environ, FL48_RLIMIT_MB='6000', **env))
 
 
 def main():

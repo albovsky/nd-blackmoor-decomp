@@ -74,6 +74,7 @@ typedef struct Fl41Host {
     } while (0)
 
 void m50c920_lifted(Fl41Regs *r, const Fl41Host *h);
+void m50f978_lifted(Fl41Regs *r, const Fl41Host *h);      /* FL-58: __EH_prolog, the second shared helper */
 
 #define FL41_MASK(bits) ((bits) == 32 ? 0xffffffffu : ((1u << (bits)) - 1u))
 static inline uint32_t fl41_parity(uint32_t v)

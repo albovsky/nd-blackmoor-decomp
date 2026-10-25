@@ -16,7 +16,7 @@
 # fields:       [eax + n] field_8, field_44, field_48, field_4c, field_50, field_58, field_2a0, field_510, field_6a7, field_6d7, field_6db; [ecx + n] field_48, field_58, field_2a0, field_2a4, field_510, field_6a7, field_6d3, field_6db, field_6df; [edx + n] field_1c, field_20, field_44, field_50, field_54, field_ac, field_2a0, field_6a7, field_6d3, field_6d7, field_6db, field_6df
 # callees:      calls KERNEL32.dll!GetTickCount, FUN_004c51a5, FUN_004540bd
 # track-n:      host-adapter: none
-# unverified:   machine annotation only: the 156 instruction(s), 11 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
+# unverified:   machine annotation only: the 156 instruction(s), 11 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

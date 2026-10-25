@@ -1,0 +1,1 @@
+0x4db1e8 mutants 52 killed 50 survivors [('literal', 21, 'survives', '7ad30cfd'), ('width', 11, 'survives', '0a2c3d33')]

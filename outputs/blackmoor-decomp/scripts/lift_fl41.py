@@ -75,8 +75,8 @@ def disasm(va, size):
 _LEDGER = None
 ASSUMED_MATH = {}         # FL-57 bulk: library math wrappers whose x87 effect is guessed from the wrapper shape
 GUESSED_CALLEES = set()   # FL-57 bulk: call targets that start no ledger function, their pop taken from the first `ret` (recorded per row by scripts/fl57_bulk.py)
-# callees that are not played by the host: `__chkstk` takes its size in eax and lowers esp, so it is translated too (the original bytes run in the oracle)
-INLINE_CALLEES = {0x50c920}
+# callees that are not played by the host: `__chkstk` takes its size in eax and lowers esp, and `__EH_prolog` (0x50f978, FL-58) sets ebp and moves esp, so they are translated too (the original bytes run in the oracle)
+INLINE_CALLEES = {0x50c920, 0x50f978}
 
 
 def ledger_spans():
@@ -476,7 +476,7 @@ FL57_HELPERS = r"""
         long double r;                                                                                                                         \
         uint16_t s;                                                                                                                            \
         __asm__ volatile("fldcw %3\n\tfldt %2\n\tfnclex\n\t" INSN "\n\tfnstsw %1\n\tfstpt %0" : "=m"(r), "=m"(s) : "m"(a), "m"(f->cw) : "st", "cc");     \
-        (void)s;                                                                                                                               \
+        f->sw = (uint16_t)((f->sw & ~0x0400u) | (s & 0x0400u));                                                                                 \
         return r;                                                                                                                              \
     }
 FL57_UNARY(fl57_frndint, "frndint")
@@ -486,20 +486,21 @@ FL57_UNARY(fl57_fsin, "fsin")
 FL57_UNARY(fl57_fcos, "fcos")
 FL57_UNARY(fl57_f2xm1, "f2xm1")
 /* a (st(0)) and b (st(1)) in, the result in st(0) after the operation: fprem and fprem1 leave the remainder, fpatan atan2(b, a) and fyl2x b * log2(a) (both pop), fscale a * 2^trunc(b) */
-#define FL57_BINARY(NAME, INSN)                                                                                                                \
+#define FL57_BINARY(NAME, INSN, CLEANUP)                                                                                                       \
     static inline long double NAME(Fl41Fpu *f, long double a, long double b)                                                                    \
     {                                                                                                                                          \
         long double r;                                                                                                                         \
         uint16_t s;                                                                                                                            \
-        __asm__ volatile("fldcw %4\n\tfldt %3\n\tfldt %2\n\tfnclex\n\t" INSN "\n\tfnstsw %1\n\tfstpt %0\n\tfstp %%st(0)" : "=m"(r), "=m"(s) : "m"(a), "m"(b), "m"(f->cw) : "st", "st(1)", "cc"); \
+        __asm__ volatile("fldcw %4\n\tfldt %3\n\tfldt %2\n\tfnclex\n\t" INSN "\n\tfnstsw %1\n\tfstpt %0" CLEANUP : "=m"(r), "=m"(s) : "m"(a), "m"(b), "m"(f->cw) : "st", "st(1)", "cc"); \
         f->sw = (uint16_t)((f->sw & ~0x4700u) | (s & 0x4700u));                                                                                \
         return r;                                                                                                                              \
     }
-FL57_BINARY(fl57_fprem, "fprem")
-FL57_BINARY(fl57_fprem1, "fprem1")
-FL57_BINARY(fl57_fpatan, "fpatan")
-FL57_BINARY(fl57_fyl2x, "fyl2x")
-FL57_BINARY(fl57_fscale, "fscale")
+/* fprem, fprem1 and fscale leave a second value on the host stack (st(1)) that is dropped; fpatan and fyl2x pop it themselves */
+FL57_BINARY(fl57_fprem, "fprem", "\n\tfstp %%st(0)")
+FL57_BINARY(fl57_fprem1, "fprem1", "\n\tfstp %%st(0)")
+FL57_BINARY(fl57_fpatan, "fpatan", "")
+FL57_BINARY(fl57_fyl2x, "fyl2x", "")
+FL57_BINARY(fl57_fscale, "fscale", "\n\tfstp %%st(0)")
 static inline void fl57_fxam(Fl41Fpu *f, long double a)
 {
     uint16_t s;
@@ -547,22 +548,52 @@ def indirect_cleanup(c, i):
         if x.mnemonic in ("call", "ret") or x.mnemonic[0] == "j":
             break
     start = 0
-    for n, x in enumerate(c.ins):                                  # the prologue: push ebp / mov ebp, esp / sub esp, N / pushes of saved registers right after
-        if x.mnemonic in ("push", "mov", "sub", "lea") and n < 8 and not (x.mnemonic == "push" and x.operands[0].type == X.X86_OP_IMM):
+    for n, x in enumerate(c.ins):                                  # the prologue: push ebp / mov ebp, esp / sub esp, N right at the start
+        if n < 3 and ((x.mnemonic == "push" and x.operands[0].type == X.X86_OP_REG and x.operands[0].reg == X.X86_REG_EBP) or
+                      (x.mnemonic == "mov" and x.operands[0].type == X.X86_OP_REG and x.operands[0].reg == X.X86_REG_EBP) or
+                      (x.mnemonic == "sub" and x.operands[0].type == X.X86_OP_REG and x.operands[0].reg == X.X86_REG_ESP)):
             start = n + 1
         else:
             break
+    # FL-58: the saved registers are the first K register pushes, K being the run of `pop reg` right before a `ret` (the registers the epilogue restores); any push beyond them is an argument
+    saved = set()
+    runs = []
+    for n, x in enumerate(c.ins):
+        if x.mnemonic == "ret":
+            j = n - 1
+            framed = start > 0 and c.ins[0].mnemonic == "push"
+            if framed and j >= 0 and c.ins[j].mnemonic == "leave":
+                j -= 1
+            elif framed and j >= 0 and c.ins[j].mnemonic == "pop" and c.ins[j].operands[0].type == X.X86_OP_REG and c.ins[j].operands[0].reg == X.X86_REG_EBP:
+                j -= 1
+                if j >= 0 and c.ins[j].mnemonic == "mov" and c.ins[j].operands[0].type == X.X86_OP_REG and c.ins[j].operands[0].reg == X.X86_REG_ESP:
+                    j -= 1
+            m = 0
+            while j - m >= 0 and c.ins[j - m].mnemonic == "pop" and c.ins[j - m].operands[0].type == X.X86_OP_REG:
+                m += 1
+            runs.append(m)
+    if runs:
+        k_saved = min(runs)
+        for x in c.ins[start:]:
+            if k_saved == 0:
+                break
+            if x.mnemonic == "push" and x.operands[0].type == X.X86_OP_REG:
+                saved.add(x.address)
+                k_saved -= 1
     pushes = 0
     for x in reversed(c.ins[start:k]):
         if x.mnemonic in ("call", "ret") or x.mnemonic[0] == "j" or x.mnemonic in ("leave", "pushfd"):
             break
         if x.operands and x.operands[0].type == X.X86_OP_REG and x.operands[0].reg == X.X86_REG_ESP and x.mnemonic in ("add", "sub", "mov", "lea", "and"):
             break
-        if x.mnemonic == "push":
+        if x.mnemonic == "push" and x.address not in saved:
             pushes += 1
         if x.address in c.targets:
             break
     return 4 * pushes
+
+
+INDIRECT_SITES = {}   # FL-58: {row va: {address of a call through a register or pointer: bytes the target is taken to pop}}; the original side plays such a call as a stub as well (tests/fl41_world.py)
 
 
 def indirect_tail_jump(c, i, op):
@@ -574,6 +605,7 @@ def indirect_tail_jump(c, i, op):
 def indirect_call(c, i, op):
     """FL-55b: `call reg`, `call [mem]` (any address): the target is computed before the return address is pushed; the host sees the target address in h->call"""
     cleanup = indirect_cleanup(c, i)
+    INDIRECT_SITES.setdefault(c.va, {})[i.address] = cleanup
     c.emit("{ uint32_t t_ = %s; esp -= 4u; WR32(esp, 0x%xu); FL41_CALL(t_); %sesp += 4u; }" % (get(i, op, 32), i.address + i.size, "esp += %du; " % cleanup if cleanup else ""))
 
 
@@ -1015,7 +1047,7 @@ def lift_x87(c, i, mn):
         e("fl41_fpush(fp, %s);" % const)
         return
     if mn == "fxch":
-        k = st_index(i, ops[0]) if ops else 1
+        k = st_index(i, ops[-1]) if ops else 1                     # capstone lists `fxch st(1)` as two operands, st(0) and st(1): the exchange partner is the last one
         e("{ long double t_ = FL41_FST(fp, 0); FL41_FST(fp, 0) = FL41_FST(fp, %d); FL41_FST(fp, %d) = t_; fp->sw &= (uint16_t)~0x0200u; }" % (k, k))
         return
     if mn == "fnstcw":
@@ -1087,6 +1119,7 @@ def lift_string(c, i, prefix, mn):
 def lift(va, body_size):
     """(C source of m<va>_lifted, {callee va: bytes it pops}) or raises Unsupported."""
     ins = disasm(va, body_size)
+    INDIRECT_SITES.pop(va, None)
     c = Ctx(ins, va, body_size)
     for i in ins:
         if i.mnemonic in ("jmp",) or (i.mnemonic[0] == "j") or i.mnemonic == "jecxz":
