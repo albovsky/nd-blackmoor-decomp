@@ -85,6 +85,7 @@ def main():
             L.GUESSED_CALLEES.clear()
             L.ASSUMED_MATH.clear()
             L._FPU_NET.clear()
+            L._FPU_NET_BULK.clear()
             try:
                 text, callees, imports, fs, inline = L.lift(va, size)
             except L.Unsupported as ex:
