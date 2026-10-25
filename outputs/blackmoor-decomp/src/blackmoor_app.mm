@@ -10681,6 +10681,24 @@ static bool native_a1c_pointer_scope(const NativeApp *app)
     return count == 1u;
 }
 
+/* S2175 is the installed alarm-clock scene. Only this modeled singleton
+ * may replace the conservative all-cascade-members-idle prerequisite. */
+static bool native_aaa_pointer_scope(const NativeApp *app)
+{
+    if (app == nullptr || app->scene == nullptr || app->aaa == nullptr) return false;
+#ifdef BLACKMOOR_NATIVE_APP_TEST_HOOKS
+    if (app->test_members_busy) return false;
+#endif
+    size_t count = 0u;
+    for (size_t row = 0; row < scene_resource_action_count(app->scene); ++row) {
+        SceneActionInfo action{};
+        if (scene_resource_action_at(app->scene, row, &action) != SCENE_RESOURCE_OK) return false;
+        if (action.type == SESSION_AAA_TYPE) ++count;
+        else if (session_navigation_member_type(action.type)) return false;
+    }
+    return count == 1u;
+}
+
 static InteractiveVideoInputView native_a1c_input_view(NativeApp *app)
 {
     InteractiveVideoInputView view{};
@@ -10751,7 +10769,8 @@ static void native_pointer_context(NativeApp *app, SessionInputContext *out)
      * The existing UI guard cells remain mandatory in both cases. */
     out->priority_clear = (cursor.guard_5b5158 == 0 && cursor.guard_5b61af == 0 &&
                            cursor.guard_5b615e == 0 &&
-                           (app->nav_members_idle || native_d1_pointer_scope(app) || native_a1c_pointer_scope(app))) ? 1u : 0u;
+                           (app->nav_members_idle || native_d1_pointer_scope(app) || native_a1c_pointer_scope(app) ||
+                            native_aaa_pointer_scope(app))) ? 1u : 0u;
     out->excluded_0 = -1; /* 0x5b4e89 / 0x5b5100: set only by types 0x33/0x34 */
     out->excluded_1 = -1;
 }
@@ -10950,13 +10969,10 @@ static int native_pointer_consume(void *context, SceneExecutorFrameInput *frame,
             }
         }
     }
-    /* RT-52: the Alarm Clock's click method 0x44d624 (accepted-release chain 0x43b3bd). The original calls it on every accepted
-     * release and the method guards itself (active, not canceled, pointer inside the clock, row phase 1); the app has no other
-     * source of accepted releases for this object, so it is called only when the retained candidate is the button candidate
-     * 0x276e that the pointer hit test wrote. */
+    /* 0x43b3bd calls the clock on every accepted release in normal modes.
+     * The method owns its active/canceled/over/phase guards, not a candidate. */
     if (status == SESSION_INPUT_OK && edge_before != 0u && (input.cursor_mode < 2 || input.cursor_mode > 5) &&
-        app->aaa != nullptr && session_aaa_object(app->aaa)->active != 0 && app->session != nullptr &&
-        app->input_state.candidate == ALC_CANDIDATE_BUTTON) {
+        app->aaa != nullptr && session_aaa_object(app->aaa)->active != 0 && app->session != nullptr) {
         const AlcObject *clock = session_aaa_object(app->aaa);
         SceneActionRuntimeState clock_state{};
         AlcClickResult click_result{};
@@ -10967,6 +10983,7 @@ static int native_pointer_consume(void *context, SceneExecutorFrameInput *frame,
             if (click != ALC_OK) {
                 record(app, "scene_aaa_click_error row=%d status=%d detail=%s", clock->row, click,
                        session_aaa_failure(app->aaa));
+                return SESSION_INPUT_INVALID_ARGUMENT;
             } else if (click_result.fired != 0u) {
                 record(app, "scene_aaa_click row=%d button=%d sound=%s (0x44d624)", clock->row, clock->button,
                        click_result.sound_played != 0u ? "issued" : "none");
@@ -11203,12 +11220,6 @@ static int native_pointer_consume(void *context, SceneExecutorFrameInput *frame,
         session_ad0_object(app->ad0)->active != 0)
         (void)session_ad0_pointer_move(app->ad0, static_cast<int32_t>(frame->pointer_x),
                                        static_cast<int32_t>(frame->pointer_y), &app->ad0_pointer);
-    app->aaa_pointer = AlcPointerResult{};
-    app->aaa_pointer.candidate = -1;
-    if (status == SESSION_INPUT_OK && frame->pointer_valid != 0 && app->aaa != nullptr &&
-        session_aaa_object(app->aaa)->active != 0)
-        (void)session_aaa_pointer_move(app->aaa, static_cast<int32_t>(frame->pointer_x),
-                                       static_cast<int32_t>(frame->pointer_y), &app->aaa_pointer);
     app->ad3_pointer = CpzPointerResult{};
     app->ad3_pointer.candidate = -1;
     if (status == SESSION_INPUT_OK && frame->pointer_valid != 0 && app->ad3 != nullptr &&
@@ -11292,6 +11303,41 @@ static int native_pointer_scan(void *context, const SessionInputHotspot *rows,
     native_pointer_context(app, &input);
     /* 0x4d3073 resets the global candidate before the 0x4f0059 scan. */
     (void)session_input_publish_candidate(&app->input_state, -1);
+    app->aaa_pointer = AlcPointerResult{};
+    app->aaa_pointer.candidate = -1;
+    if (native_aaa_pointer_scope(app) && input.priority_clear != 0u) {
+        SessionInputState projection_state = app->input_state;
+        SceneExecutorFrameInput projected{};
+        const int projection = session_input_tick(&projection_state, &input, &projected);
+        if (projection != SESSION_INPUT_OK) { *candidate = -1; return projection; }
+        if (projected.pointer_valid != 0u) {
+            /* Held-item prelude 0x4f0126, then clock 0x4f1004, before
+             * overlay 0x4f1054, navigation zones and generic rows. */
+            const int16_t *held = app->new_game.view.inventory.selected_item_candidate;
+            const int16_t item = held != nullptr ? *held : static_cast<int16_t>(-1);
+            app->nav.state = NAV_STATE_NONE;
+            if (item == -1) app->nav_cursor = {0, 0};
+            else app->nav_cursor.index = static_cast<int32_t>(item) + 0x25;
+            const int hit = session_aaa_pointer_move(app->aaa, projected.pointer_x,
+                                                     projected.pointer_y, &app->aaa_pointer);
+            if (hit != ALC_OK) {
+                record(app, "scene_aaa_pointer_error status=%d detail=%s", hit, session_aaa_failure(app->aaa));
+                *candidate = -1;
+                return SESSION_INPUT_INVALID_ARGUMENT;
+            }
+            if (app->aaa_pointer.hit != 0u) {
+                app->nav_cursor.index = app->aaa_pointer.cursor_kind;
+                app->nav_cursor.variant = app->aaa_pointer.cursor_sub;
+                (void)session_input_publish_candidate(&app->input_state, app->aaa_pointer.candidate);
+                *candidate = app->input_state.candidate;
+                if (*candidate != app->logged_candidate)
+                    record(app, "scene_aaa_pointer candidate=%d button=%d before=overlay-navigation-generic",
+                           *candidate, session_aaa_object(app->aaa)->button);
+                app->logged_candidate = *candidate;
+                return SESSION_INPUT_OK;
+            }
+        }
+    }
     /* D1 is at 0x4f0b23, before overlays (0x4f104f), navigation and generic
      * rows. Project with a private state copy: only the real consume callback
      * may consume the release edge or publish an activation for this tick. */
@@ -11446,11 +11492,6 @@ static int native_pointer_scan(void *context, const SessionInputHotspot *rows,
             record(app, "scene_ada_pointer candidate=%d cursor=%d (cursor sprite not drawn by the app)",
                    app->ada_pointer.candidate, cursor);
         }
-    }
-    if (status == SESSION_INPUT_OK && app->aaa_pointer.hit != 0u) {
-        /* 0x44d28c (cascade 0x4f0059 at 0x4f1004): the Alarm Clock's hit test returns before the generic row loop and has written
-         * the candidate (0x276e). The cursor cells (0x5b44f0, 0x5b44f4) it also writes are not drawn by the app. */
-        (void)session_input_publish_candidate(&app->input_state, app->aaa_pointer.candidate);
     }
     if (status == SESSION_INPUT_OK && app->ad3_pointer.hit != 0u) {
         /* 0x462c39 (cascade 0x4f0059): the Collision Puzzle's hit test returns before the generic row loop and has written the
@@ -11636,7 +11677,8 @@ static bool bind_native_pointer(NativeApp *app)
     if (scene_session_bind_pointer(app->session, &host) != SCENE_SESSION_OK) return false;
     const ProvisionalCursorProvider &c = app->cursor_provider;
     const bool clear = c.guard_5b5158 == 0 && c.guard_5b61af == 0 && c.guard_5b615e == 0 &&
-                       (app->nav_members_idle || native_d1_pointer_scope(app) || native_a1c_pointer_scope(app));
+                       (app->nav_members_idle || native_d1_pointer_scope(app) || native_a1c_pointer_scope(app) ||
+                        native_aaa_pointer_scope(app));
     record(app, "pointer_provider provisional sprite=%dx%d hot=%d,%d scroll=%d "
            "guards[5b5158,5b61af,5b615e]=%u,%u,%u cascade_members_idle=%d priority_clear=%d "
            "excluded=-1,-1 reason=cursor-sprite-size/hot-point/scroll-unrecovered "
