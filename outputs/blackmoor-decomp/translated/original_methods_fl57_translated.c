@@ -10,7 +10,7 @@
         long double r;                                                                                                                         \
         uint16_t s;                                                                                                                            \
         __asm__ volatile("fldcw %3\n\tfldt %2\n\tfnclex\n\t" INSN "\n\tfnstsw %1\n\tfstpt %0" : "=m"(r), "=m"(s) : "m"(a), "m"(f->cw) : "st", "cc");     \
-        (void)s;                                                                                                                               \
+        f->sw = (uint16_t)((f->sw & ~0x0400u) | (s & 0x0400u));                                                                                 \
         return r;                                                                                                                              \
     }
 FL57_UNARY(fl57_frndint, "frndint")
@@ -20,20 +20,21 @@ FL57_UNARY(fl57_fsin, "fsin")
 FL57_UNARY(fl57_fcos, "fcos")
 FL57_UNARY(fl57_f2xm1, "f2xm1")
 /* a (st(0)) and b (st(1)) in, the result in st(0) after the operation: fprem and fprem1 leave the remainder, fpatan atan2(b, a) and fyl2x b * log2(a) (both pop), fscale a * 2^trunc(b) */
-#define FL57_BINARY(NAME, INSN)                                                                                                                \
+#define FL57_BINARY(NAME, INSN, CLEANUP)                                                                                                       \
     static inline long double NAME(Fl41Fpu *f, long double a, long double b)                                                                    \
     {                                                                                                                                          \
         long double r;                                                                                                                         \
         uint16_t s;                                                                                                                            \
-        __asm__ volatile("fldcw %4\n\tfldt %3\n\tfldt %2\n\tfnclex\n\t" INSN "\n\tfnstsw %1\n\tfstpt %0\n\tfstp %%st(0)" : "=m"(r), "=m"(s) : "m"(a), "m"(b), "m"(f->cw) : "st", "st(1)", "cc"); \
+        __asm__ volatile("fldcw %4\n\tfldt %3\n\tfldt %2\n\tfnclex\n\t" INSN "\n\tfnstsw %1\n\tfstpt %0" CLEANUP : "=m"(r), "=m"(s) : "m"(a), "m"(b), "m"(f->cw) : "st", "st(1)", "cc"); \
         f->sw = (uint16_t)((f->sw & ~0x4700u) | (s & 0x4700u));                                                                                \
         return r;                                                                                                                              \
     }
-FL57_BINARY(fl57_fprem, "fprem")
-FL57_BINARY(fl57_fprem1, "fprem1")
-FL57_BINARY(fl57_fpatan, "fpatan")
-FL57_BINARY(fl57_fyl2x, "fyl2x")
-FL57_BINARY(fl57_fscale, "fscale")
+/* fprem, fprem1 and fscale leave a second value on the host stack (st(1)) that is dropped; fpatan and fyl2x pop it themselves */
+FL57_BINARY(fl57_fprem, "fprem", "\n\tfstp %%st(0)")
+FL57_BINARY(fl57_fprem1, "fprem1", "\n\tfstp %%st(0)")
+FL57_BINARY(fl57_fpatan, "fpatan", "")
+FL57_BINARY(fl57_fyl2x, "fyl2x", "")
+FL57_BINARY(fl57_fscale, "fscale", "\n\tfstp %%st(0)")
 static inline void fl57_fxam(Fl41Fpu *f, long double a)
 {
     uint16_t s;
@@ -3622,7 +3623,7 @@ L_50e07a:
     FL41_CALL(0x513ccbu); esp += 4u; goto done;  /* 0x50e092: jmp 0x513ccb */
 L_50e097:
     fl41_fpush(fp, fl41_fmake(((uint64_t)RD32((uint32_t)((uint32_t)(0x53054au) + 4u)) << 32) | RD32((uint32_t)(0x53054au)), (uint16_t)RD16((uint32_t)((uint32_t)(0x53054au) + 8u))));  /* 0x50e097: fld xword ptr [0x53054a] */
-    { long double t_ = FL41_FST(fp, 0); FL41_FST(fp, 0) = FL41_FST(fp, 0); FL41_FST(fp, 0) = t_; fp->sw &= (uint16_t)~0x0200u; }  /* 0x50e09d: fxch st(1) */
+    { long double t_ = FL41_FST(fp, 0); FL41_FST(fp, 0) = FL41_FST(fp, 1); FL41_FST(fp, 1) = t_; fp->sw &= (uint16_t)~0x0200u; }  /* 0x50e09d: fxch st(1) */
 L_50e09f:
     FL41_FST(fp, 0) = fl57_fprem1(fp, FL41_FST(fp, 0), FL41_FST(fp, 1));  /* 0x50e09f: fprem1  */
     /* 0x50e0a1: wait  */
@@ -3686,7 +3687,7 @@ L_50e12a:
     FL41_CALL(0x513ccbu); esp += 4u; goto done;  /* 0x50e142: jmp 0x513ccb */
 L_50e147:
     fl41_fpush(fp, fl41_fmake(((uint64_t)RD32((uint32_t)((uint32_t)(0x53054au) + 4u)) << 32) | RD32((uint32_t)(0x53054au)), (uint16_t)RD16((uint32_t)((uint32_t)(0x53054au) + 8u))));  /* 0x50e147: fld xword ptr [0x53054a] */
-    { long double t_ = FL41_FST(fp, 0); FL41_FST(fp, 0) = FL41_FST(fp, 0); FL41_FST(fp, 0) = t_; fp->sw &= (uint16_t)~0x0200u; }  /* 0x50e14d: fxch st(1) */
+    { long double t_ = FL41_FST(fp, 0); FL41_FST(fp, 0) = FL41_FST(fp, 1); FL41_FST(fp, 1) = t_; fp->sw &= (uint16_t)~0x0200u; }  /* 0x50e14d: fxch st(1) */
 L_50e14f:
     FL41_FST(fp, 0) = fl57_fprem1(fp, FL41_FST(fp, 0), FL41_FST(fp, 1));  /* 0x50e14f: fprem1  */
     /* 0x50e151: wait  */
@@ -4472,7 +4473,7 @@ void m50f440_lifted(Fl41Regs *r, const Fl41Host *h)
     FL41_PROLOGUE
     FL41_FPU_PROLOGUE
     { uint32_t a_ = esp, b_ = 0x10u, r_; FL41_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x50f440: sub esp, 0x10 */
-    { long double t_ = FL41_FST(fp, 0); FL41_FST(fp, 0) = FL41_FST(fp, 0); FL41_FST(fp, 0) = t_; fp->sw &= (uint16_t)~0x0200u; }  /* 0x50f443: fxch st(1) */
+    { long double t_ = FL41_FST(fp, 0); FL41_FST(fp, 0) = FL41_FST(fp, 1); FL41_FST(fp, 1) = t_; fp->sw &= (uint16_t)~0x0200u; }  /* 0x50f443: fxch st(1) */
     { long double v_ = fl41_fpop(fp); uint64_t w_ = fl41_st_f64(fp, v_); WR32((uint32_t)(esp), (uint32_t)w_); WR32((uint32_t)((uint32_t)(esp) + 4u), (uint32_t)(w_ >> 32)); }  /* 0x50f445: fstp qword ptr [esp] */
     { long double v_ = FL41_FST(fp, 0); uint64_t w_ = fl41_st_f64(fp, v_); WR32((uint32_t)(esp + 0x8u), (uint32_t)w_); WR32((uint32_t)((uint32_t)(esp + 0x8u) + 4u), (uint32_t)(w_ >> 32)); }  /* 0x50f448: fst qword ptr [esp + 8] */
     eax = RD32((uint32_t)(esp + 0xcu));  /* 0x50f44c: mov eax, dword ptr [esp + 0xc] */
@@ -4538,7 +4539,7 @@ L_50f741:
     { long double d_ = FL41_FST(fp, 1), s_ = FL41_FST(fp, 0); FL41_FST(fp, 1) = fl41_fx_mul(fp, d_, s_); }
     fl41_fpop(fp);
     FL41_FST(fp, 0) = fl57_fsqrt(fp, FL41_FST(fp, 0));  /* 0x50f752: fsqrt  */
-    { long double t_ = FL41_FST(fp, 0); FL41_FST(fp, 0) = FL41_FST(fp, 0); FL41_FST(fp, 0) = t_; fp->sw &= (uint16_t)~0x0200u; }  /* 0x50f754: fxch st(1) */
+    { long double t_ = FL41_FST(fp, 0); FL41_FST(fp, 0) = FL41_FST(fp, 1); FL41_FST(fp, 1) = t_; fp->sw &= (uint16_t)~0x0200u; }  /* 0x50f754: fxch st(1) */
     { long double r_ = fl57_fpatan(fp, FL41_FST(fp, 0), FL41_FST(fp, 1)); fl41_fpop(fp); FL41_FST(fp, 0) = r_; }  /* 0x50f756: fpatan  */
 L_50f758:
     { uint32_t a_ = RD32((uint32_t)(0x63ca04u)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x50f758: cmp dword ptr [0x63ca04], 0 */
@@ -6865,9 +6866,9 @@ L_51379b:
     esp = ebp; ebp = RD32(esp); esp += 4u;  /* 0x5137ad: leave  */
     esp += 4u; goto done;  /* 0x5137ae: ret  */
 L_5137af:
-    { long double t_ = FL41_FST(fp, 0); FL41_FST(fp, 0) = FL41_FST(fp, 0); FL41_FST(fp, 0) = t_; fp->sw &= (uint16_t)~0x0200u; }  /* 0x5137af: fxch st(1) */
+    { long double t_ = FL41_FST(fp, 0); FL41_FST(fp, 0) = FL41_FST(fp, 1); FL41_FST(fp, 1) = t_; fp->sw &= (uint16_t)~0x0200u; }  /* 0x5137af: fxch st(1) */
     { long double v_ = FL41_FST(fp, 0); uint64_t w_ = fl41_st_f64(fp, v_); WR32((uint32_t)(ebp + 0xffffff7au), (uint32_t)w_); WR32((uint32_t)((uint32_t)(ebp + 0xffffff7au) + 4u), (uint32_t)(w_ >> 32)); }  /* 0x5137b1: fst qword ptr [ebp - 0x86] */
-    { long double t_ = FL41_FST(fp, 0); FL41_FST(fp, 0) = FL41_FST(fp, 0); FL41_FST(fp, 0) = t_; fp->sw &= (uint16_t)~0x0200u; }  /* 0x5137b7: fxch st(1) */
+    { long double t_ = FL41_FST(fp, 0); FL41_FST(fp, 0) = FL41_FST(fp, 1); FL41_FST(fp, 1) = t_; fp->sw &= (uint16_t)~0x0200u; }  /* 0x5137b7: fxch st(1) */
     { long double v_ = FL41_FST(fp, 0); uint64_t w_ = fl41_st_f64(fp, v_); WR32((uint32_t)(ebp + 0xffffff82u), (uint32_t)w_); WR32((uint32_t)((uint32_t)(ebp + 0xffffff82u) + 4u), (uint32_t)(w_ >> 32)); }  /* 0x5137b9: fst qword ptr [ebp - 0x7e] */
     goto L_51379b;  /* 0x5137bc: jmp 0x51379b */
 done:
@@ -6980,7 +6981,7 @@ L_5138a7:
 L_5138bf:
     WR32((uint32_t)(ebp + 0xffffff72u), 0x4u);  /* 0x5138bf: mov dword ptr [ebp - 0x8e], 4 */
     fl41_fpush(fp, fl41_ld_f64(fp, ((uint64_t)RD32((uint32_t)((uint32_t)(0x530528u) + 4u)) << 32) | RD32((uint32_t)(0x530528u))));  /* 0x5138c9: fld qword ptr [0x530528] */
-    { long double t_ = FL41_FST(fp, 0); FL41_FST(fp, 0) = FL41_FST(fp, 0); FL41_FST(fp, 0) = t_; fp->sw &= (uint16_t)~0x0200u; }  /* 0x5138cf: fxch st(1) */
+    { long double t_ = FL41_FST(fp, 0); FL41_FST(fp, 0) = FL41_FST(fp, 1); FL41_FST(fp, 1) = t_; fp->sw &= (uint16_t)~0x0200u; }  /* 0x5138cf: fxch st(1) */
     FL41_FST(fp, 0) = fl57_fscale(fp, FL41_FST(fp, 0), FL41_FST(fp, 1));  /* 0x5138d1: fscale  */
     /* 0x5138d3: fstp st(1) */
     FL41_FST(fp, 1) = FL41_FST(fp, 0);
@@ -6999,7 +7000,7 @@ L_5138bf:
 L_5138ed:
     WR32((uint32_t)(ebp + 0xffffff72u), 0x3u);  /* 0x5138ed: mov dword ptr [ebp - 0x8e], 3 */
     fl41_fpush(fp, fl41_ld_f64(fp, ((uint64_t)RD32((uint32_t)((uint32_t)(0x530520u) + 4u)) << 32) | RD32((uint32_t)(0x530520u))));  /* 0x5138f7: fld qword ptr [0x530520] */
-    { long double t_ = FL41_FST(fp, 0); FL41_FST(fp, 0) = FL41_FST(fp, 0); FL41_FST(fp, 0) = t_; fp->sw &= (uint16_t)~0x0200u; }  /* 0x5138fd: fxch st(1) */
+    { long double t_ = FL41_FST(fp, 0); FL41_FST(fp, 0) = FL41_FST(fp, 1); FL41_FST(fp, 1) = t_; fp->sw &= (uint16_t)~0x0200u; }  /* 0x5138fd: fxch st(1) */
     FL41_FST(fp, 0) = fl57_fscale(fp, FL41_FST(fp, 0), FL41_FST(fp, 1));  /* 0x5138ff: fscale  */
     /* 0x513901: fstp st(1) */
     FL41_FST(fp, 1) = FL41_FST(fp, 0);
@@ -7179,12 +7180,12 @@ L_513a72:
     /* 0x513a8c: wait  */
     WR16((uint32_t)(ebp + 0xffffff60u), fp->sw);  /* 0x513a8d: fnstsw word ptr [ebp - 0xa0] */
     WR8((uint32_t)(ebp + 0xffffff70u), 0x0u);  /* 0x513a93: mov byte ptr [ebp - 0x90], 0 */
-    { long double t_ = FL41_FST(fp, 0); FL41_FST(fp, 0) = FL41_FST(fp, 0); FL41_FST(fp, 0) = t_; fp->sw &= (uint16_t)~0x0200u; }  /* 0x513a9a: fxch st(1) */
+    { long double t_ = FL41_FST(fp, 0); FL41_FST(fp, 0) = FL41_FST(fp, 1); FL41_FST(fp, 1) = t_; fp->sw &= (uint16_t)~0x0200u; }  /* 0x513a9a: fxch st(1) */
     ecx = (ecx & 0xffffff00u) | ((RD8((uint32_t)(ebp + 0xffffff61u))) & 0xffu);  /* 0x513a9c: mov cl, byte ptr [ebp - 0x9f] */
     fl57_fxam(fp, FL41_FST(fp, 0));  /* 0x513aa2: fxam  */
     /* 0x513aa4: wait  */
     WR16((uint32_t)(ebp + 0xffffff60u), fp->sw);  /* 0x513aa5: fnstsw word ptr [ebp - 0xa0] */
-    { long double t_ = FL41_FST(fp, 0); FL41_FST(fp, 0) = FL41_FST(fp, 0); FL41_FST(fp, 0) = t_; fp->sw &= (uint16_t)~0x0200u; }  /* 0x513aab: fxch st(1) */
+    { long double t_ = FL41_FST(fp, 0); FL41_FST(fp, 0) = FL41_FST(fp, 1); FL41_FST(fp, 1) = t_; fp->sw &= (uint16_t)~0x0200u; }  /* 0x513aab: fxch st(1) */
     ecx = (ecx & 0xffff00ffu) | (((RD8((uint32_t)(ebp + 0xffffff61u))) & 0xffu) << 8);  /* 0x513aad: mov ch, byte ptr [ebp - 0x9f] */
     { uint32_t a_ = ((ecx >> 8) & 0xffu), n_ = 0x1u, r_; if (n_ != 0u) { FL41_SHL(r_, a_, n_, 8); ecx = (ecx & 0xffff00ffu) | (((r_) & 0xffu) << 8); } }  /* 0x513ab3: shl ch, 1 */
     { uint32_t a_ = ((ecx >> 8) & 0xffu), n_ = 0x1u, r_; if (n_ != 0u) { FL41_SAR(r_, a_, n_, 8); ecx = (ecx & 0xffff00ffu) | (((r_) & 0xffu) << 8); } }  /* 0x513ab5: sar ch, 1 */
@@ -7393,7 +7394,7 @@ L_513d58:
     esp += 4u; goto done;  /* 0x513d59: ret  */
 L_513d5a:
     fl41_fpush(fp, fl41_ld_f64(fp, ((uint64_t)RD32((uint32_t)((uint32_t)(0x53056cu) + 4u)) << 32) | RD32((uint32_t)(0x53056cu))));  /* 0x513d5a: fld qword ptr [0x53056c] */
-    { long double t_ = FL41_FST(fp, 0); FL41_FST(fp, 0) = FL41_FST(fp, 0); FL41_FST(fp, 0) = t_; fp->sw &= (uint16_t)~0x0200u; }  /* 0x513d60: fxch st(1) */
+    { long double t_ = FL41_FST(fp, 0); FL41_FST(fp, 0) = FL41_FST(fp, 1); FL41_FST(fp, 1) = t_; fp->sw &= (uint16_t)~0x0200u; }  /* 0x513d60: fxch st(1) */
     FL41_FST(fp, 0) = fl57_fscale(fp, FL41_FST(fp, 0), FL41_FST(fp, 1));  /* 0x513d62: fscale  */
     /* 0x513d64: fstp st(1) */
     FL41_FST(fp, 1) = FL41_FST(fp, 0);
@@ -7412,7 +7413,7 @@ L_513d5a:
     goto L_513d42;  /* 0x513d81: jmp 0x513d42 */
 L_513d83:
     fl41_fpush(fp, fl41_ld_f64(fp, ((uint64_t)RD32((uint32_t)((uint32_t)(0x530564u) + 4u)) << 32) | RD32((uint32_t)(0x530564u))));  /* 0x513d83: fld qword ptr [0x530564] */
-    { long double t_ = FL41_FST(fp, 0); FL41_FST(fp, 0) = FL41_FST(fp, 0); FL41_FST(fp, 0) = t_; fp->sw &= (uint16_t)~0x0200u; }  /* 0x513d89: fxch st(1) */
+    { long double t_ = FL41_FST(fp, 0); FL41_FST(fp, 0) = FL41_FST(fp, 1); FL41_FST(fp, 1) = t_; fp->sw &= (uint16_t)~0x0200u; }  /* 0x513d89: fxch st(1) */
     FL41_FST(fp, 0) = fl57_fscale(fp, FL41_FST(fp, 0), FL41_FST(fp, 1));  /* 0x513d8b: fscale  */
     /* 0x513d8d: fstp st(1) */
     FL41_FST(fp, 1) = FL41_FST(fp, 0);
