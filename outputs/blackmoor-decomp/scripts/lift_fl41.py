@@ -168,6 +168,15 @@ def library_fpu_net(target, depth=0):
 
 
 def fpu_net(target, depth=0):
+    try:
+        return _fpu_net(target, depth)
+    except Unsupported:
+        if not BULK:
+            raise
+        return 0                                                   # FL-55b bulk: a callee whose x87 effect is not known is taken not to change the x87 stack
+
+
+def _fpu_net(target, depth=0):
     """Net change of the x87 stack depth that a call of the function at `target` leaves (1: it returns a value in st(0)); raises Unsupported for a callee whose
     paths disagree, that calls through a register, or that uses an x87 instruction the model does not know."""
     if target in _FPU_NET:
@@ -207,7 +216,8 @@ def fpu_net(target, depth=0):
                 if o.type == X.X86_OP_MEM and not o.mem.base and not o.mem.index and o.mem.disp in import_slots():
                     pass                                    # an import: it does not touch the x87 stack
                 elif o.type != X.X86_OP_IMM:
-                    raise Unsupported("callee 0x%x: indirect call at 0x%x" % (target, i.address))
+                    if not BULK:
+                        raise Unsupported("callee 0x%x: indirect call at 0x%x" % (target, i.address))     # FL-55b bulk: an indirect call is taken not to change the x87 stack
                 elif o.imm != target:
                     d += fpu_net(o.imm, depth + 1)
             if mn == "ret":
@@ -251,6 +261,8 @@ IMPORT_ARGS = {"GetTickCount": 0, "SendMessageA": 4, "GetPrivateProfileIntA": 4,
                "GetSystemInfo": 1, "CreateFileA": 7, "GetFileTime": 4, "FileTimeToLocalFileTime": 2, "FileTimeToDosDateTime": 3, "CopyRect": 2,
                "EqualRect": 2}
 _SLOTS = None
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from fl55_imports import import_args    # noqa: E402
 
 
 def import_slots():
@@ -425,6 +437,44 @@ def jump_table(ins, k, va, end):
     return targets
 
 
+BULK = False          # FL-55b: the lifts of scripts/fl55_bulk.py (calls through registers and pointers, unknown x87 effect of a callee); the credited rows are lifted with BULK off
+PROLOGUE_MN = {"push", "mov", "sub", "lea", "and"}
+
+
+def indirect_cleanup(c, i):
+    """FL-55b heuristic: the bytes the target of an indirect call pops. A caller that cleans up (`add esp, N` within the next instructions, before another call or jump) gives 0; otherwise the callee
+    is taken to pop the arguments pushed since the last call, jump, label or esp change, not counting the pushes of the prologue (saved registers)"""
+    k = next(n for n, x in enumerate(c.ins) if x.address == i.address)
+    for x in c.ins[k + 1:k + 5]:
+        if x.mnemonic == "add" and x.operands and x.operands[0].type == X.X86_OP_REG and x.operands[0].reg == X.X86_REG_ESP:
+            return 0
+        if x.mnemonic in ("call", "ret") or x.mnemonic[0] == "j":
+            break
+    start = 0
+    for n, x in enumerate(c.ins):                                  # the prologue: push ebp / mov ebp, esp / sub esp, N / pushes of saved registers right after
+        if x.mnemonic in ("push", "mov", "sub", "lea") and n < 8 and not (x.mnemonic == "push" and x.operands[0].type == X.X86_OP_IMM):
+            start = n + 1
+        else:
+            break
+    pushes = 0
+    for x in reversed(c.ins[start:k]):
+        if x.mnemonic in ("call", "ret") or x.mnemonic[0] == "j" or x.mnemonic in ("leave", "pushfd"):
+            break
+        if x.operands and x.operands[0].type == X.X86_OP_REG and x.operands[0].reg == X.X86_REG_ESP and x.mnemonic in ("add", "sub", "mov", "lea", "and"):
+            break
+        if x.mnemonic == "push":
+            pushes += 1
+        if x.address in c.targets:
+            break
+    return 4 * pushes
+
+
+def indirect_call(c, i, op):
+    """FL-55b: `call reg`, `call [mem]` (any address): the target is computed before the return address is pushed; the host sees the target address in h->call"""
+    cleanup = indirect_cleanup(c, i)
+    c.emit("{ uint32_t t_ = %s; esp -= 4u; WR32(esp, 0x%xu); FL41_CALL(t_); %sesp += 4u; }" % (get(i, op, 32), i.address + i.size, "esp += %du; " % cleanup if cleanup else ""))
+
+
 def lift_one(c, i):
     mn = i.mnemonic
     ops = i.operands
@@ -436,7 +486,7 @@ def lift_one(c, i):
         prefix, mn = m.group(1), m.group(2)
     if prefix == "lock":
         raise Unsupported("lock prefix at 0x%x" % a)
-    if mn in ("nop", "int3", "cld"):
+    if mn in ("nop", "int3", "cld", "wait"):
         if mn == "int3":
             raise Unsupported("int3 inside the code at 0x%x" % a)
         return
@@ -533,9 +583,12 @@ def lift_one(c, i):
         if ops[0].type == X.X86_OP_MEM and not ops[0].mem.base and not ops[0].mem.index and ops[0].mem.segment in (0, X.X86_REG_DS):
             t = ops[0].mem.disp & 0xffffffff
             name = import_slots().get(t)
-            if name is None or name[1] not in IMPORT_ARGS:
-                raise Unsupported("indirect call through 0x%x at 0x%x" % (t, a))
-            cleanup = 4 * IMPORT_ARGS[name[1]]
+            count = None if name is None else (IMPORT_ARGS[name[1]] if name[1] in IMPORT_ARGS else import_args(name[1]))
+            if count is None:
+                if not BULK:
+                    raise Unsupported("indirect call through 0x%x at 0x%x" % (t, a))
+                return indirect_call(c, i, ops[0])                 # FL-55b: a function pointer kept in a global
+            cleanup = 4 * count
             c.imports[t] = cleanup
             e("esp -= 4u; WR32(esp, 0x%xu);  /* call [%s!%s] */" % (a + i.size, name[0], name[1]))
             e("FL41_CALL(0x%xu);" % t)
@@ -544,6 +597,8 @@ def lift_one(c, i):
             e("esp += 4u;")
             return
         if ops[0].type != X.X86_OP_IMM:
+            if BULK:
+                return indirect_call(c, i, ops[0])                 # FL-55b: a call through a register or a memory operand
             raise Unsupported("indirect call at 0x%x" % a)
         t = ops[0].imm
         if t == c.va:
@@ -555,7 +610,12 @@ def lift_one(c, i):
             return
         cleanup = callee_shape(t)
         c.callees[t] = cleanup
-        net = fpu_net(t) if c.fpu else 0
+        try:
+            net = fpu_net(t) if c.fpu else 0
+        except Unsupported:
+            if not BULK:
+                raise
+            net = 0                                                # FL-55b: the callee's effect on the x87 stack is not known
         if net not in (-1, 0, 1):
             raise Unsupported("callee 0x%x changes the x87 stack by %d at 0x%x" % (t, net, a))
         e("esp -= 4u; WR32(esp, 0x%xu);" % (a + i.size))

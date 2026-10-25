@@ -1672,3 +1672,7 @@ Details: `tasks/fl56-handoff.md`. No new ported credits (ledger as on main after
 ## FL-57 handoff (2026-10-25, PDT): rows below 0x480000, round eleven (lower half fully translated)
 
 Details: `tasks/fl57-handoff.md`. No new ported credits (2,181 of 4,188). All 202 pending lower game rows have a lifter translation: 91 in the corpus (held) and 111 **translated, unverified** (`src/original_methods_fl56_unverified.c`, `tasks/fl56-translated-unverified.json`; not ported credits). The last five lower rows opened by letting the unverified lifter follow x87 call chains 40 deep and classifying the CRT math wrappers (`assumed_x87_math` in the manifest).
+
+## FL-55b handoff (2026-10-25, PDT): bulk "translated, unverified" rows at or above 0x480000
+
+Details: `tasks/fl55-bulk-handoff.md`. Ledger unchanged (2,181 ported). **1,546 of the 1,676 pending upper rows are now translated, unverified** (`translated/original_methods_fl41_translated.c`, `tests/fl41_translated.json`; 1,379 agree with the original on at least one seed, 167 compile with no comparable seed), found with no mutation check and no coverage search, as Glib asked. Not port credits. 6 lifter defects, 4 hang rows, 120 rows the lifter still refuses (callee not a ledger function 35, esp-writing callees 13, `fnstcw` 11, others). Lifter extensions: calls through registers and pointers, 290 Win32 import argument counts, `wait`. Porting PRs now run only the targeted tests.
