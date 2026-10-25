@@ -1,0 +1,57 @@
+# NATIVE-10: muted piano audio completion and solve/win flow
+
+Original direct human authorization in this /root chat: make native ARM64 macOS playable, one slice per PR (merge main first, tests, independent review, then merge). Latest request: "Keep going and fix the piano sound completion and solve/win flow. Keep the game muted and avoid the tests that caused crash popups." This original chat alone publishes; delegates only prepare tests/evidence. Root owns shared blackmoor_app.mm; tests worker owns only tests/native_piano_input_glue_test.mm and tests/test_native_piano_input.py in its own worktree. Claude owns whole-file decompilation/ledger.
+
+Original game files/GAME.EXE/game-source.json stay unchanged. Do not edit ledger/evidence/extract/build outputs, tests/fl40_* or tasks/flNN-handoff.md. Persistent game mute1; other Mac audio untouched. NEVER broad discovery, sanitizer/mutation/Unicorn/original-x86/deliberate-fault/output-device tests. Use normal focused offline tests, signal handlers/CHECK exit1 and fresh scratch builds. GUI tool last reports locked despite owner unlock; no repeated unlock prompt or new visual claim.
+
+## Root cause and implementation boundary
+
+PR191 fixed D0 input. App D0 sound_prepare/stop/play are no-op success and busy always0. Reuse existing PuzzleSound over live_audio backend for each original descriptor boundary, with a D0-specific cache and authoritative provider loaded-state refresh before play/busy (as reviewed D1/clock). Preserve descriptor validation, missing-resource semantics and explicit host errors; no synthetic completion. Keep kernel action ordering/deadline/solved/render/transition logic unchanged unless a reproducible further blocker demands a separately explained fix. Expose a bounded D0 state log if needed to verify real win progression. No parity/ledger claims.
+
+Key sound descriptor at body+0x715 is mutated in binding-owned memory from key names, channel at+0x736. Win descriptor+0x761/channel+0x782. Both use 0x31-byte original descriptor shape. Confirm actual installed descriptor flags/loop/gains before relying on the bounded adapter. The existing kernel releases keys at the original500ms deadline (and stops/unloads key sound), checks real last-L-key sequence in render, waits body delay, prepares/plays win sound, waits for real busy0, stops/unloads it, then phase2 applies solved block/event flag and original scene transition. Do not inject flags, phases, candidate, order, deadline, win state or transition target to prove gameplay.
+
+## Acceptance
+
+Tests first against merged main3f02d62e (includes PR191 at061a8450). Extend existing actual-app fixture with optional real muted offline live_audio and production D0 callbacks; components may sink unrelated rendering/text/host actions, not sound/busy or D0 state. Derive key geometry/solution from real S3395 body; independently assert channel loaded/playing/stopped and original solve target/flag. Provide early metadata (solution, key/window coordinates, key and win descriptors, solved/exit blocks) to root. No original payload dumps committed.
+
+Meaningful checks: real key busy and500ms unload; real full solution via pointer gestures -> wait/delay/win-sound state held until native audio naturally completes -> phase2 cleanup/solved block/flag; exit or scene-reset lifecycle without invented cleanup, per original semantics; missing descriptor and externally changed shared channel refreshed from authoritative live provider. Prove post-master PCM finite/allzero while decoding/completion continue, using offline render only. If S3395 has NO SOUND win, cover its real branch honestly and use another real installed D0 body/descriptor for natural-completion branch, never silently substitute and claim real route.
+
+At least one normal app entry run with original resources must follow bedroom/hall/stairs into3395, play actual solution keys (20-tick gesture queue supported), reach real solved transition/flag with no session/media/D0 error; --mute persists. No world injection. Test full path can discover a next blocker after leaving the piano; report it, do not hide errors or claim subsequent scene works. Verify narrow existing D0 input, D1 audio and/or clock audio regressions relevant to shared provider. No broad full-suite rerun: historical suite notgreen and crash-producing paths prohibited by owner.
+
+Record exact checks/RED/GREEN, normal ARM64 hashes, original/resource/clip pins, independent frozen Sonnet static review and short playability log. Root alone creates/merges PR and rebuilds canonical main, preserving unrelated progress-map edit. Never claim whole-game or whole-file completion.
+
+## Installed metadata and precise win scope
+
+Worker verified both installed D0 scenes: S3394row0 and S3395row1, each7keys and1979-byte bodies. Both solutions are zero-based1,0,3,2,0,3,4,4. Logical window key centers0..6:47,131,222,319,414,509,592 atY250. Key names Boat_A..Boat_G. Key descriptor template NO SOUND (binding overwrites name at actual key press), channel8, flags2, loop1, unused1, control1, gains100/100. BOTH win descriptors explicitly NO SOUND, channel9, same flags/control/gains. Thus actual installed win follows the one-second delay then phase2 without a win clip; never insert one or claim the win-audio state was exercised by real data. Component-only native completion coverage may call D0 callbacks with a genuine named key descriptor, without replacing a win body or injecting puzzle state.
+
+S3395 solved block: target3396, words0,0,1, dwords0,0,1, start2, eventflag2013value1, delay1s; exit3380, flag2086value1. S3394 solvedtarget3394 (self), no eventflag; exit3380, noflag. Metadata source log `/private/tmp/blackmoor-piano-audio-tests/work/piano-audio-fixture/metadata.log`; no asset payloads committed. Exact metadata informs gestures only, not world/phase injection.
+
+## Root checks and pins (pre-review)
+
+- Ordinary audio RED at base3f02d62e: real key0 pointer release reports loaded0/started0/frames0/busy0; expected native Boat_A load/play/busy1 fails by CHECK exit1,16.441s (`/private/tmp/blackmoor-piano-audio-tests/work/piano-audio-fixture/red.log`). Baseline normal eight-key route already reached3397status0 but made24 stub sound calls (`work/playability-20261024/piano-audio-baseline-solve.log`); this slice replaces those calls rather than claiming to invent solved logic.
+- Normal candidate ARM64 build passes (`piano-audio-build.log`). App source SHA-256 `a0b9ea7645e05298d2ae8599bb2f4ffdff06e63ff050c12ffe3ce87216e05ee0`; native `fd15844da3a3c055eafb902aec6768e87c7741740f7636d1b876efffe13cc23c`.
+- Root normal app executes exactly the real eight-key sequence1,0,3,2,0,3,4,4, logs native prepare/play/stop success, applies flag2013value1, transitions3395->3396->3397, and ends3397status0 with no D0 errors (`piano-audio-solve-green.log`). No original state/body/phase/order/flag/target injection; pointers only. Installed NO SOUND win is respected. This path reaches42 distinct scenes/42 entries. No GUI claim.
+- Three narrow shared-provider regressions pass28.502s (`piano-audio-regressions.log`): D1 real-audio20clips/11solve/11exit, clock native natural completion, clock missing/shared-channel refresh. D1's offline-only PCM control capture can be nonzero, with no output device; the live game mute preference remains1. No global Mac sound setting changed. No broad/unsafe tests run; historical full suite remains notgreen and is not rerun due the owner's prohibition.
+- Original GAME.EXE remains pinned `afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45`. Static original solve check0x48d89e,118B, SHA-256 `55dd6272c2e9078c8e422f614795c611341a334b0430382047c21ca69dce4303`; handler0x48d914 code1439B `419c9644e2a18bc30bb475c29e1bf8418b0ac08c559f2706cff52e7d7c66c4c2`; render0x48ded7 code655B `dfbb7f7b66b96fa8afd7398629b9b4ecd32cbc096a5e40fc6db5ae9261643225`. Descriptor loader0x4fb77a751B `2ce29dc83367fe0fbde3a901b3fc7e1c9e98397a66754680f8fa74707c8ce556`; unload0x4fba69,29B, `1b43a3f31f3008e22293f89e0e702167dee2cd34edf390865c770777edc60e2d`. Read-only static assembly and immutable bytes are evidence; no new original-x86 execution, decoder/DirectSound equivalence or ledger acceptance is claimed.
+
+Original clip pins (metadata only, no original bytes committed):
+
+| Clip | Bytes | SHA-256 |
+|---|---:|---|
+| Boat_A.HIS |7898|e65028f377a9b4a06f4382f82d7b2f2d32c7a574d70df6bc56687d91f09851ca|
+| Boat_B.HIS |9673|d4d7cbfbea1c4e3420b93a9a4065b63739b760f0cf5cd03f0e289457a2f38267|
+| Boat_C.HIS |10396|1ad8a0e0a69187b24838811742c8983a5b1cea1bbcbe0214b09a8340979d7b7a|
+| Boat_D.HIS |9354|001b49573bc61e3733fe9af9890f389bef608c829b55998fa19041bda3d80ba3|
+| Boat_E.HIS |7190|5e1443e023df37cffef3b0a4f9f1fc5c0cc03114d0584e997f2a49b5a373b2e7|
+| Boat_F.HIS |8535|71120e0ef882fc521835aca77c349c908dce86cbae6585e2afb8768a1ab46f49|
+| Boat_G.HIS |6867|bb26457809f9bc25498f4f2aefbf9df2262fd7794adea38afc2c508a06bb5992|
+
+## Limits carried into review
+
+The real-data win-sound state4 remains unexecuted because neither installed D0 body specifies a win clip; natural completion is observed on a genuine piano key without substituting a win descriptor. S3394 practice/self-loop is metadata-verified but not a normal story-route playthrough. Components sink text, blits and unrelated host actions/finish transitions; the normal route uses production providers. No new GUI, speaker audibility, original decoder equivalence, full difficulty campaign or whole-game/whole-file completion claim. Next room progression beyondS3397 still needs exploration. Independent frozen review and publication pending.
+
+## Collected combined verification
+
+Tests-only worker8efbe46519e25f187e141587b30af42a86bae2f0 collected as491e70f3. Worker full14 passed68.837s; affected all-seven-note extension passed15.094s. Root independently reran final combined `PYTHONPATH=outputs/blackmoor-decomp/tests python3 -m unittest test_native_piano_input -v`:14/14 pass77.487s (`work/playability-20261024/piano-audio-tests-green.log`). No skips/failures. Includes the earlier9input checks and5new audio/solve checks. All7named notes load/play with fresh generations and unload/idle at500ms; real Boat_A26462decodedframes completes naturally with32768finite zero-output offline frames while the logical release deadline remains held. The actual8-note sequence,1000ms silent-win boundary, phase2once, flag2013value1, target3396 and surface/slot cleanup pass. Missing/shared external load/unload refresh passes. Normal production-callback route entry/8keys/flag/transition passes with8 prepare/play/stop successes each. No win clip or body/order/phase/flag/deadline injection.
+
+Copied worker RED/GREEN/metadata/hash logs under `work/playability-20261024/piano-audio-worker-*` for durable local review; originals remain in worker scratch. Fixture SHA-256 `eb9909510c8039ba903ed6f6dd8ff4c5f0e324796c9a801593b805db4dfc0968`; Python runner `af11e682e8247020ae774f106499e7da8020f08e9f659a63cc0c25622fdf63ce`. App/native pins above unchanged after combined checks. Root independently re-read original GAME.EXE and all five listed function extents; every hash matches. Original files and all reserved ledger/evidence/FL paths are unchanged by this diff. Root diff inspection/whitespace check pass. Broad full suite is not green historically and remains deliberately unrun under the owner's crash-test prohibition. Frozen independent Sonnet static review pending; reviewers must not execute tests/builds/binaries.
