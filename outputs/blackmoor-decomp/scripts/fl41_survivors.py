@@ -39,7 +39,9 @@ BARRIER = re.compile(r'FL41_CALL|goto|^L_|^done:|while|switch|case |FL41_EPILOGU
 
 
 def stmt(line):
-    return re.sub(r'\s*/\*.*', '', line).strip()
+    """the statement of a line without its comments. FL-60: every `/* ... */` span goes, not everything from the first `/*` on: a call to an import carries `/* call [DLL!name] */` BEFORE
+    its FL4x_CALL, and cutting at the first comment hid the call from the barrier test (rule `same value` then excused a mutant across a call)"""
+    return re.sub(r'\s*/\*.*', '', re.sub(r'\s*/\*.*?\*/', '', line)).strip()
 
 
 def aliasing_write(t, k):
@@ -252,7 +254,7 @@ def esp_adjust_ok(lines, n):
 
 
 def stmt_full(line):
-    return re.sub(r'\s*/\*.*', '', line).strip()
+    return stmt(line)
 
 
 def instruction_address(lines, n):

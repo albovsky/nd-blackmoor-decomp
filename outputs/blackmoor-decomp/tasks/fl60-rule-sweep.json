@@ -1,0 +1,98 @@
+{
+ "fix": "stmt() in fl40_survivors.py, fl41_survivors.py (stmt_full too) and fl46_rules.py removes every /* ... */ span instead of cutting at the first /*, so FL4x_CALL after an inline import comment reaches the BARRIER test",
+ "fl41_corpus_rows": 157,
+ "mutants_a_rule_calls_harmless": 1963,
+ "changed_by_fix": [
+  [
+   "0x4ba13d",
+   "drop",
+   17,
+   "568c8930",
+   "same value",
+   null
+  ],
+  [
+   "0x4ba13d",
+   "drop",
+   19,
+   "a9416c90",
+   "same value",
+   null
+  ],
+  [
+   "0x4db0d6",
+   "drop",
+   16,
+   "92d76ce9",
+   "same value",
+   null
+  ],
+  [
+   "0x4db147",
+   "drop",
+   14,
+   "08669b0d",
+   "same value",
+   null
+  ]
+ ],
+ "changed_by_fix_note": "none of the four is a survivor in the definitive logs of its row (tasks/fl43-mutation-log.txt for 0x4ba13d, tasks/fl58-mutation-log.txt for 0x4db0d6 and 0x4db147): a corpus seed kills each, so no credit rested on them",
+ "lower_fl40_corpus": {
+  "rows": 376,
+  "clean_before": 285,
+  "clean_after": 285
+ },
+ "killed_in_old_fl41_log_but_survive_now": [
+  [
+   "0x494ccc",
+   "drop",
+   25,
+   "b8602ad6",
+   "repeat"
+  ],
+  [
+   "0x494ccc",
+   "literal",
+   36,
+   "e7cd6525",
+   "cleanup"
+  ],
+  [
+   "0x494ccc",
+   "drop",
+   26,
+   "f029fd4e",
+   "repeat"
+  ],
+  [
+   "0x4c9b25",
+   "literal",
+   19,
+   "63b5d7b7",
+   "cleanup"
+  ],
+  [
+   "0x4c9ca0",
+   "literal",
+   18,
+   "9becc315",
+   "cleanup"
+  ],
+  [
+   "0x4d51c0",
+   "literal",
+   12,
+   "7738acf8",
+   "cleanup"
+  ],
+  [
+   "0x4d51c0",
+   "drop",
+   11,
+   "13dd3253",
+   "repeat"
+  ]
+ ],
+ "killed_note": "tasks/fl41-mutation-log.txt (FL-41, first harness) lists these 7 as killed; rerun with the current harness and corpus (FL48_ONLY) all 7 survive, so no seed of the current corpus contradicts their rules",
+ "demoted": []
+}
