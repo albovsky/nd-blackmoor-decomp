@@ -91,6 +91,11 @@ class NativeInteractiveVideoTests(unittest.TestCase):
         self.assertIsNotNone(hover, summary + '\nActual IV hover never published an original candidate')
         self.assertIsNotNone(release, summary + '\nActual primary release did not store flag 1000=1')
         self.assertIsNotNone(transition, summary + '\nReal flag-dependent row did not enter S2188')
+        frames = re.findall(r'^scene_a1c_frame frame=(\d+) record=(\d+) origin=(\d+),(\d+)',
+                            contents[:release.start()], re.MULTILINE)
+        self.assertTrue(any(int(frame) > 0 and record == '0' and x == '207' and y == '74'
+                            for frame, record, x, y in frames),
+                        summary + '\nIV must follow presented movie frames beyond its fixed view-record index')
         self.assertLess(active.start(), hover.start(), summary)
         self.assertLess(hover.start(), release.start(), summary)
         self.assertLess(release.start(), transition.start(), summary)

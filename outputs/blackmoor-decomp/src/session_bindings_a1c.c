@@ -11,6 +11,11 @@ struct SessionA1cBinding {
     unsigned long visits;
 };
 
+C1cObject *session_a1c_input_object(SessionA1cBinding *binding)
+{
+    return binding != NULL ? &binding->object : NULL;
+}
+
 SessionA1cBinding *session_a1c_create(const C1cHost *host)
 {
     SessionA1cBinding *b;
