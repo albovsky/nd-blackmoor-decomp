@@ -347,6 +347,8 @@ def classify(kind, lines, n, equivalent, row=None):
         return 'frame'
     if row:
         import fl46_rules       # FL-46: dead flags, dead registers, equal pushes (liveness on the statements)
+        if kind == 'width' and fl46_rules.carry_only(lines, n, row):
+            return 'carry only'
         return fl46_rules.explain(kind, lines, n, row)
     return None
 

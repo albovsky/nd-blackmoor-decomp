@@ -28,6 +28,10 @@ int session_a1c_handler(void *context, size_t action_index, const SceneActionInf
 int session_a1c_render(SessionA1cBinding *binding, int32_t view_x, int32_t view_y, C1cFill *fills, size_t capacity,
                        size_t *count);
 const C1cObject *session_a1c_object(const SessionA1cBinding *binding);
+/* Main-thread native input receiver owns the mutable hover marker. Borrow
+ * only until the next handler/scene replacement; pointer identities live in
+ * its separate native sidecar rather than the original 32-bit fields. */
+C1cObject *session_a1c_input_object(SessionA1cBinding *binding);
 const char *session_a1c_failure(const SessionA1cBinding *binding);
 unsigned long session_a1c_visits(const SessionA1cBinding *binding);
 

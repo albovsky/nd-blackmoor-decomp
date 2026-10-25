@@ -58,7 +58,7 @@ class Coverage(unittest.TestCase):
         import fl44_final
         budget = set(re.findall(r'^(0x[0-9a-f]+) mutants', (PROJECT / 'tasks/fl46-budget3-log.txt').read_text(), re.M))
         for name in fl44_final.LOGS:
-            if name.startswith(('fl49-', 'fl50-', 'fl51-')):                      # run under FL46_BUDGET=1: a line with hang kills must say that budget kills decided them
+            if name.startswith(('fl49-', 'fl50-', 'fl51-', 'fl53-')):                      # run under FL46_BUDGET=1: a line with hang kills must say that budget kills decided them
                 for line in (PROJECT / 'tasks' / name).read_text().split('\n'):
                     if re.match(r'^0x[0-9a-f]+ mutants .* hang-kills [1-9]', line) and (name.startswith('fl49-') or line.split()[0] not in held):       # FL-50: a held row may list wall-clock hangs; they decide nothing
                         self.assertIn('killed by step budget', line, (name, line[:20]))
@@ -68,7 +68,7 @@ class Coverage(unittest.TestCase):
             for row in re.findall(r'^(0x[0-9a-f]+) mutants .* hang-kills [1-9]', (PROJECT / 'tasks' / name).read_text(), re.M):
                 if row not in held:
                     self.assertIn(row, budget, (name, row))
-        self.assertEqual(fl44_final.LOGS[-7:], ['fl46-budget3-log.txt', 'fl49-recheck-log.txt', 'fl49-recheck2-log.txt', 'fl49-recheck3-log.txt', 'fl50-recheck-log.txt', 'fl50-large-log.txt', 'fl51-mutation-log.txt'])       # the later log wins in fl44_final.main
+        self.assertEqual(fl44_final.LOGS[-8:], ['fl46-budget3-log.txt', 'fl49-recheck-log.txt', 'fl49-recheck2-log.txt', 'fl49-recheck3-log.txt', 'fl50-recheck-log.txt', 'fl50-large-log.txt', 'fl51-mutation-log.txt', 'fl53-mutation-log.txt'])       # the later log wins in fl44_final.main
 
 
 class HeldRows(unittest.TestCase):
