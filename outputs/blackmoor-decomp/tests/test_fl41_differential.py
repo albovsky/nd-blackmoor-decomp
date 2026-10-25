@@ -370,6 +370,21 @@ class Fl41Differential(unittest.TestCase):
     def test_4d9632_lifted(self):
         self.check_row('0x4d9632', 'm4d9632_lifted')
 
+    def test_4db0d6_lifted(self):
+        self.check_row('0x4db0d6', 'm4db0d6_lifted')
+
+    def test_4db10c_lifted(self):
+        self.check_row('0x4db10c', 'm4db10c_lifted')
+
+    def test_4db147_lifted(self):
+        self.check_row('0x4db147', 'm4db147_lifted')
+
+    def test_4db178_lifted(self):
+        self.check_row('0x4db178', 'm4db178_lifted')
+
+    def test_4db223_lifted(self):
+        self.check_row('0x4db223', 'm4db223_lifted')
+
     def test_4db29b_lifted(self):
         self.check_row('0x4db29b', 'm4db29b_lifted')
 

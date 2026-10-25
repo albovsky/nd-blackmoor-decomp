@@ -1,0 +1,1 @@
+0x4db0d6 mutants 45 killed 45 survivors [('width', 11, 'killed only by an extra seed', 'e0deb0f3')]

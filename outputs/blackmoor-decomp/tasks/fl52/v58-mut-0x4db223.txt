@@ -1,0 +1,1 @@
+0x4db223 mutants 48 killed 47 survivors [('register', 19, 'killed only by an extra seed', '7cf7bcf4'), ('literal', 20, 'survives', 'a20adc35'), ('width', 18, 'killed only by an extra seed', 'd7e0fc2f'), ('drop', 18, 'killed only by an extra seed', '4d67f339')]

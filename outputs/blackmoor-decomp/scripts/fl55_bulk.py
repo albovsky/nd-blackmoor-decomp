@@ -264,6 +264,11 @@ def main():
     table = {**{k: v for k, v in old_table.items() if int(k, 16) not in lifted}, **table}
     (out / 'tests/fl41_translated.json').write_text(json.dumps(table, indent=1, sort_keys=True) + '\n')
     bad = {'0x%x' % v: results[v] for v in lifted if v not in done}
+    defects = out / 'tasks/fl55-translation-defects.json'
+    if a.merge and defects.is_file():
+        old = json.loads(defects.read_text())
+        refused = {**{k: v for k, v in old['refused'].items() if int(k, 16) not in lifted}, **refused}
+        bad = {**{k: v for k, v in old['failed'].items() if int(k, 16) not in lifted}, **bad}
     (out / 'tasks/fl55-translation-defects.json').write_text(json.dumps({'refused': refused, 'failed': bad}, indent=1, sort_keys=True) + '\n')
     import collections
     print('translated %d (agrees %d, no seed %d); mismatch %d, error %d; refused by the lifter %d, %.0f s'

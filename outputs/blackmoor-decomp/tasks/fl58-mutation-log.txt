@@ -1,0 +1,5 @@
+0x4db0d6 mutants 45 killed 45 survivors []
+0x4db10c mutants 54 killed 53 survivors [('literal', 16, 'survives', 'a48d34c5')]
+0x4db147 mutants 49 killed 48 survivors [('literal', 20, 'survives', 'd692236d')]
+0x4db178 mutants 45 killed 44 survivors [('drop', 17, 'survives', '20b9f4a2')]
+0x4db223 mutants 48 killed 47 survivors [('literal', 20, 'survives', 'a20adc35')]

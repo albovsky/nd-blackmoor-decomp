@@ -73,8 +73,8 @@ def disasm(va, size):
 # ---- the callees -----------------------------------------------------------------------------------------------------------------
 
 _LEDGER = None
-# callees that are not played by the host: `__chkstk` takes its size in eax and lowers esp, so it is translated too (the original bytes run in the oracle)
-INLINE_CALLEES = {0x50c920}
+# callees that are not played by the host: `__chkstk` takes its size in eax and lowers esp, and `__EH_prolog` (0x50f978, FL-58) sets ebp and moves esp, so they are translated too (the original bytes run in the oracle)
+INLINE_CALLEES = {0x50c920, 0x50f978}
 
 
 def ledger_spans():

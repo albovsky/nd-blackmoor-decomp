@@ -1,0 +1,1 @@
+0x4db178 mutants 45 killed 44 survivors [('drop', 17, 'survives', '20b9f4a2')]

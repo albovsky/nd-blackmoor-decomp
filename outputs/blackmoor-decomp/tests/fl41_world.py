@@ -466,10 +466,10 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None):
         elif address >= DATA_START:                 # FL-48: a writable global may hold any value (code and constant tables below DATA_START stay as they are)
             uc.mem_write(address, (value & ((1 << (8 * size_)) - 1)).to_bytes(size_, 'little'))
     at_end = []
-    if not row['ret']:              # FL-58: a fragment with no `ret` (it ends in a call that does not return, or runs into the next function): the run ends where the span ends
-        def span_end(uc_, address, size_, user):
-            at_end.append(address)
-            uc.emu_stop()
+    def span_end(uc_, address, size_, user):          # FL-58: a function that ends in a call that does not return (or a fragment with no `ret`) runs into the next function in the original; the run ends where the span ends
+        at_end.append(address)
+        uc.emu_stop()
+    if va + size not in stubs:           # (a callee that starts right after the function is played as a stub, not a fall-off)
         uc.hook_add(unicorn.UC_HOOK_CODE, span_end, begin=va + size, end=va + size)
     try:
         uc.emu_start(va, STOP, count=INSTRUCTION_LIMIT)

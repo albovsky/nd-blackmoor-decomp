@@ -1,0 +1,71 @@
+{
+ "rows_with_survivors": {
+  "0x4db10c": [
+   [
+    "literal",
+    "identical code",
+    "esp -= 4u; WR32(esp, 0x4db130u);  /* call [USER32.dll!ScreenToClient] */ FL41_CALL(0x52a47cu); esp += 8u; esp += 4u;  /* 0x4db12a: call dword ptr [0x52a47c] */",
+    16
+   ]
+  ],
+  "0x4db147": [
+   [
+    "literal",
+    "identical code",
+    "esp -= 4u; WR32(esp, 0x4db172u);  /* call [USER32.dll!SetCursorPos] */ FL41_CALL(0x52a488u); esp += 8u; esp += 4u;  /* 0x4db16c: call dword ptr [0x52a488] */",
+    20
+   ]
+  ],
+  "0x4db178": [
+   [
+    "drop",
+    "repeat",
+    "eax = RD32((uint32_t)(ebp + 0xfffffff8u));  /* 0x4db19d: mov eax, dword ptr [ebp - 8] */",
+    17
+   ]
+  ],
+  "0x4db223": [
+   [
+    "literal",
+    "cleanup",
+    "esp -= 4u; WR32(esp, 0x4db252u);  /* call [USER32.dll!SetClassLongA] */ FL41_CALL(0x52a470u); esp += 12u; esp += 4u;  /* 0x4db24c: call dword ptr [0x52a470] */",
+    20
+   ]
+  ]
+ },
+ "unexplained_rows": [],
+ "mutants": {
+  "0x4db10c": [
+   [
+    "literal",
+    16,
+    "a48d34c5",
+    "identical code"
+   ]
+  ],
+  "0x4db147": [
+   [
+    "literal",
+    20,
+    "d692236d",
+    "identical code"
+   ]
+  ],
+  "0x4db178": [
+   [
+    "drop",
+    17,
+    "20b9f4a2",
+    "repeat"
+   ]
+  ],
+  "0x4db223": [
+   [
+    "literal",
+    20,
+    "a20adc35",
+    "cleanup"
+   ]
+  ]
+ }
+}
