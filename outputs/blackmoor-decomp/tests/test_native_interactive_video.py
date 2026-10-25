@@ -76,7 +76,7 @@ class NativeInteractiveVideoTests(unittest.TestCase):
         result = subprocess.run(args, capture_output=True, text=True, timeout=150)
         contents = log.read_text() if log.is_file() else ''
         active = re.search(r'^scene_a1c_active\b[^\n]*\brow=6\b[^\n]*\bphase=1\b', contents, re.MULTILINE)
-        hover = re.search(r'^scene_a1c_pointer\b[^\n]*\bcandidate=(?:10160|10162|0x27b0|0x27b2)\b',
+        hover = re.search(r'^scene_a1c_pointer\b[^\n]*\bcandidate=10160\b',
                           contents, re.MULTILINE)
         release = re.search(r'^scene_a1c_release\b[^\n]*\bflag=1000\b[^\n]*\bvalue=1\b', contents, re.MULTILINE)
         # Original S2186 row 7 is raw 0x0a, target 2188, gated by flag 1000=1.
@@ -103,6 +103,8 @@ class NativeInteractiveVideoTests(unittest.TestCase):
         through_transition = contents[:transition.end()]
         self.assertNotIn('scene_session_blocked', through_transition, summary)
         self.assertNotIn('session_frozen', through_transition, summary)
+        self.assertNotIn('scene_a1c_release_error', through_transition, summary)
+        self.assertNotIn('scene_a1c_pointer_error', through_transition, summary)
 
     def test_single_iv_owner_projects_but_opaque_earlier_owner_remains_limited(self):
         result = subprocess.run([str(self.executable), '--unknown-owner', str(self.game)],

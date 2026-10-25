@@ -2,7 +2,7 @@
 
 Original human goal: playable native ARM64 macOS game, real-data checks, one slice per PR, tests then independent review then merge. Latest steering: continue room navigation and fix the next blocker, avoid tests that caused crash alerts, and keep game audio completely muted while the owner uses other Mac audio. Original authorizing root chat is the sole publisher; delegates only prepare reviewed commits. Never edit original installation/EXE/game-source, ledger/evidence/extract-build outputs, tests/fl40_* or tasks/flNN-handoff.md.
 
-Baseline reviewed navigation: main `8c0e693d` (PR179). NATIVE-03 mute is being reviewed separately and must merge before this slice is published. Root owns shared app/binding/build integration. Codex gpt-6.1-sol xhigh worker may create only `src/interactive_video_input.[ch]` and `tests/test_interactive_video_input.py` in its separate worktree after confirming an API proposal with root. The worker may read existing original_methods files and evidence but must never edit them. Root will add actual app integration and a focused real-scene regression separately.
+Integration base: main `3b09101fd4a2c9cebbb05e135237e4907d2eb360`, including merged native mute PR180. Root owns shared app/binding/build integration. Codex gpt-6.1-sol xhigh worker may create only `src/interactive_video_input.[ch]` and `tests/test_interactive_video_input.py` in its separate worktree after confirming an API proposal with root. The worker may read existing original_methods files and evidence but must never edit them. Root will add actual app integration and a focused real-scene regression separately.
 
 ## Reproduced blocker
 
@@ -75,3 +75,22 @@ These are native-port checks. No new original oracle coverage, ledger acceptance
 Live GUI cradle play, S3420's separate content, held-item restore in the actual app, overlapping live overlay/IV hits, physical cursor sprites and provisional hot-point geometry, movie-selector changes with a retained origin, and both complete difficulty campaigns remain unverified. Helper unit cases cover retained rectangle identity across current-record changes, outer fallback, inclusive hit order, held/cursor/flag effects and native refusal bounds; this does not promote the app's unbound restore callback to supported. There is no new original-x86 oracle run. Full-suite failures remain as documented inNATIVE01.
 
 GUI room evidence remains separate: the muted real GUI reachesS2010, and an ordinary primary release at210,85 consumescandidate5 and entersS2008 (`muted-gui.log`, screenshotsmuted-room-S2010/S2008.png). CUA returned a desktop-change guard during one action, so the click's automation attribution is uncertain; no continuous GUI click-through or GUI cradle success is claimed. The native game stays muted; current display remains proportional4:3 with side bars. Owner-selected proportional/stretch modes are the next independent presentation slice.
+
+
+## Independent review and root disposition
+
+Sonnet slice-reviewer inspected frozen a95402d5861040b86cadc67636b11fcf900b1fe2 against the original disassembly and accepted the bounded S2186 fix with no P1. It confirmed hover/release ordering and signedness, retained rectangle identity, generation invalidation, scope and actual player mapping. Root accepts the review with the following concrete resolutions/disclosures.
+
+P2.1 held-restore reachability: a read-only native game_resources/HIFF census of BOTH installed raw1c scenes found S2186 row6 cursor words1,6,7,0,0 and S3420 row15 words0,0,0,0,0 (body105B SHA256 b55c1b8912b2cd179f9fe11b747edfb7b82fde9a968568ccc7c759807cc6ef27 and dd2c960d6a26c65495a22365e13d2039bdf19d30643d8514f0e6c52ad20521e2). Neither body[0x5f] is200. Therefore the unbound restore callback is unreachable in these installed bodies, even if the held word changes; any foreign/modified body that requires it remains explicitly blocked. The census used existing native parsers, no original-x86 run, and emitted metadata only (private ivi-body-census.log).
+
+P2.2 coverage scope: the predicate admits other sole1c scenes, but S3420 is explicitly unverified as a gameplay route. The structural provider is real for both; no S3420 playability claim is granted. Existing unknown-owner refusals stay intact.
+
+P2.3 route assertions now require rectangle candidate10160 (0x27b0) exactly, and reject either IV pointer or release errors before the observed S2188 transition. Outer, held-cursor and stale/generation branches remain helper-tested but not actual-app-played.
+
+P2.4 retained origin is a snapshot of the captured record's four raw dwords. This native selected-body storage is immutable until scene replacement; changes of selection do not mutate an earlier record. Original behavior for a dynamically mutated record or selector change with the same presented frame remains unverified.
+
+P2.5 malformed bounds, stale identity and unsupported host errors are deliberate native fail-closed policies. Release errors are returned after consuming the edge; SceneSession blocks instead of falling through or repeating the click. The original performs unchecked reads, so no equivalence is claimed for these invalid/unsupported host states. The original debug logger gated by0x63a4cd remains unmodeled.
+
+The broad/fault tests remain stopped. Final tightened test result and review acceptance are recorded before publication; production code and native pins are unchanged since the frozen review.
+
+Tightened route/ownership regression rerun:2 passed in41.235s, with rectangle candidate10160, no IV pointer/release errors beforeS2188, actual activation/frame advancement/flag write/dependent transition and unknown-owner limit intact (ivi-app-review-check.log). Production code and native artifacts are unchanged froma95402d5.
