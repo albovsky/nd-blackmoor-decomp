@@ -1668,3 +1668,7 @@ Details: `tasks/fl55-handoff.md`. 2,171 (main after PR 186) -> **2,181 ported** 
 ## FL-56 handoff (2026-10-25, PDT): rows below 0x480000, round ten (translate first, verify later)
 
 Details: `tasks/fl56-handoff.md`. No new ported credits (ledger as on main after FL-55). Glib asked for speed: seed searches and mutation checks stopped; 106 lower rows are now **translated, unverified** (`src/original_methods_fl56_unverified.c`, `tasks/fl56-translated-unverified.json`, not ported credits), 8 more rows entered the corpus (held), four jump directions proven impossible mechanically (`scripts/fl56_untaken.py`, `untaken_ok`). Lifter accepts indirect/recursive calls in unverified mode (callee pop inferred). 482 lower rows have a lifter translation (376 corpus + 106 unverified); 5 rows still refused. Testing policy: no full suite in porting PRs (a separate thread runs it every second night); targeted set listed in the handoff.
+
+## FL-57 handoff (2026-10-25, PDT): rows below 0x480000, round eleven (lower half fully translated)
+
+Details: `tasks/fl57-handoff.md`. No new ported credits (2,181 of 4,188). All 202 pending lower game rows have a lifter translation: 91 in the corpus (held) and 111 **translated, unverified** (`src/original_methods_fl56_unverified.c`, `tasks/fl56-translated-unverified.json`; not ported credits). The last five lower rows opened by letting the unverified lifter follow x87 call chains 40 deep and classifying the CRT math wrappers (`assumed_x87_math` in the manifest).
