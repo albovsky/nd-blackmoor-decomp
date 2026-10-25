@@ -163,3 +163,13 @@ hardware UI/audio, and both complete difficulty playthroughs. This regression
 does not extend any ledger or oracle claim.
 
 Test observation correction after root integration: S4376 has 7 frames and one animation substep. The release callback starts ANIMATE, then the same tick's real ACT visit advances the clicked tile and its declared links and returns to IDLE with moving flags cleared. The regression now checks all six resulting frames, deriving affected tiles from the immutable body link table and wrapping modulo 7. It still fails on the baseline because no frame advances. This is an observable-result assertion, not a relaxed transient-state check.
+
+## Root integration and targeted checks
+
+Root merged main after PR178 before final validation. Production changes are confined to blackmoor_app.mm: a loaded-scene ownership proof admits exactly one D1 member and no other possible unmodeled member; the original UI guard cells remain required. The real release is consumed once before ACT, and a copied state supplies only projection fields for the post-ACT D1 receiver. Hits return before overlays/navigation/generic rows; misses retain the existing fallback. The startup pointer-provider diagnostic now reports the same scoped readiness. No session_input/navigation kernel or ledger/evidence source changed.
+
+The regression now has four cases, including the real live_audio backend in offline mode: a playing turn clip rejects the second release, and actual completion permits the next frame advance. Other host fixtures remain rendering/inventory/event/transition sinks; no output device or GUI is opened. Test-only signal handlers turn unexpected fixture faults into explicit nonzero exits.
+
+Amended frame-based regression was also compiled against unchanged pre-fix app source37cb43c7: it still fails normally with priority limit3, candidate-1 and frame0=4->4. With the fix, tile0 advances4->5 and linked tiles match the original body; no candidates, latches, phases or moving flags are forced by the fixture.
+
+Targeted command: `python3 -m unittest discover -s outputs/blackmoor-decomp/tests -p test_native_puzzle_pointer.py -v`. Four cases pass. Normal and test-hook ARM64 bundles build. Combined startup/session/phone/movie and real-audio lifecycle checks, native hashes and independent frozen-commit review are recorded in the final validation addendum before publication. Broad suite status remains the explicitly interrupted/failing baseline from NATIVE-01; it will not be restarted while legacy sanitizer children raise crash dialogs.

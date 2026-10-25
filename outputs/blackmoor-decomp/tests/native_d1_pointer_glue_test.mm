@@ -85,12 +85,13 @@ struct Fixture {
     {
         scene_session_destroy(app.session);
         session_ad1_destroy(app.ad1);
+        if (app.live_audio != nullptr) live_audio_destroy(app.live_audio);
         if (app.scene != session_scene) scene_resource_close(app.scene);
         scene_resource_close(session_scene);
         if (app.log != nullptr) std::fclose(app.log);
     }
 
-    bool initialize(const char *path, bool unknown)
+    bool initialize(const char *path, bool unknown, const char *game_directory = nullptr)
     {
         std::ifstream input(path, std::ios::binary);
         bytes.assign(std::istreambuf_iterator<char>(input), {});
@@ -117,6 +118,15 @@ struct Fixture {
         app.scene_destination = {10, 10, 629, 384};
         app.bar_missing = true; /* No taskbar/BOOT assets; pointer is inside the scene. */
         app.session_tick_sample = 1000;
+        if (game_directory != nullptr) {
+            LiveAudioConfig audio{};
+            audio.game_directory = game_directory;
+            audio.mode = MAC_AUDIO_MODE_OFFLINE;
+            if (live_audio_create(&audio, &app.live_audio, error, sizeof(error)) != LIVE_AUDIO_OK) {
+                std::fprintf(stderr, "fixture audio: %s\n", error);
+                return false;
+            }
+        }
         SessionAd1Host host{};
         host.kernel.context = &app;
         host.kernel.alloc_slot = overlay_slot;
@@ -128,10 +138,10 @@ struct Fixture {
         host.kernel.mark_dirty = overlay_slot_op;
         host.kernel.view_origin = native_ad1_view_origin;
         host.kernel.clear_pending_item = clear_item;
-        host.kernel.sound_prepare = sound_record;
-        host.kernel.sound_stop = sound_record;
-        host.kernel.sound_play = sound_channel;
-        host.kernel.sound_busy = sound_idle;
+        host.kernel.sound_prepare = app.live_audio != nullptr ? native_ad1_sound_prepare : sound_record;
+        host.kernel.sound_stop = app.live_audio != nullptr ? native_ad1_sound_stop : sound_record;
+        host.kernel.sound_play = app.live_audio != nullptr ? native_ad1_sound_play : sound_channel;
+        host.kernel.sound_busy = app.live_audio != nullptr ? native_ad1_sound_busy : sound_idle;
         host.kernel.tick = native_ad1_tick;
         host.kernel.event_flag_invalid = flag_invalid;
         host.kernel.transition = transition_unused;
@@ -193,8 +203,14 @@ struct Fixture {
         return true;
     }
 
-    bool tick()
+    bool tick(bool advance_audio = true)
     {
+        if (advance_audio && app.live_audio != nullptr) {
+            LiveAudioOfflineStats stats{};
+            if (live_audio_advance_offline(app.live_audio, 4096u, &stats, nullptr, 0u) != LIVE_AUDIO_OK ||
+                stats.nonfinite_samples != 0u) return false;
+        }
+        app.session_tick_sample += 85u;
         SceneSessionTickResult result{};
         const int status = scene_session_tick(app.session, &result);
         if (status != SCENE_SESSION_OK)
@@ -250,11 +266,11 @@ static int exercise_miss(Fixture &f)
     return 0;
 }
 
-static int exercise(const char *path, const char *kind)
+static int exercise(const char *path, const char *kind, const char *game_directory)
 {
     const bool unknown = std::strcmp(kind, "unknown") == 0;
     Fixture f;
-    if (!f.initialize(path, unknown)) {
+    if (!f.initialize(path, unknown, std::strcmp(kind, "audio") == 0 ? game_directory : nullptr)) {
         std::fprintf(stderr, "fixture initialization failed\n");
         return 2;
     }
@@ -315,6 +331,33 @@ static int exercise(const char *path, const char *kind)
             : "FAIL: a real D1 tile must publish candidate 0x276c and advance exactly its linked tiles through the actual app release path");
         return 1;
     }
+    if (std::strcmp(kind, "audio") == 0) {
+        const int16_t channel = word(0x2fau);
+        int32_t busy = 0;
+        if (native_ad1_sound_busy(&f.app, channel, &busy) != 0 || busy != 1) return 2;
+        const int16_t after_first = object->frame[0];
+        pointer(&f.app, BLACKMOOR_POINTER_DOWN, 234, 280, 0);
+        pointer(&f.app, BLACKMOOR_POINTER_UP, 11, 11, 0);
+        /* Keep the offline sound pending for this tick: the real busy answer
+         * must reject a second turn, without mutating the retained input. */
+        if (!f.tick(false) || object->frame[0] != after_first) {
+            std::fprintf(stderr, "FAIL: a playing real turn clip must gate the next pointer release\n");
+            return 1;
+        }
+        for (unsigned tick = 0; busy && tick < 800u; ++tick) {
+            LiveAudioOfflineStats stats{};
+            if (live_audio_advance_offline(f.app.live_audio, 4096u, &stats, nullptr, 0u) != LIVE_AUDIO_OK ||
+                stats.nonfinite_samples != 0u || native_ad1_sound_busy(&f.app, channel, &busy) != 0) return 2;
+        }
+        if (busy) return 2;
+        pointer(&f.app, BLACKMOOR_POINTER_DOWN, 234, 280, 0);
+        pointer(&f.app, BLACKMOOR_POINTER_UP, 11, 11, 0);
+        if (!f.tick(false) || object->frame[0] != (after_first + 1) % frame_count) {
+            std::fprintf(stderr, "FAIL: real sound completion must unblock the next pointer release\n");
+            return 1;
+        }
+        std::printf("D1_AUDIO_POINTER busy_blocked=1 completion_unblocked=1 frame0=%d\n", object->frame[0]);
+    }
     return 0;
 }
 
@@ -334,9 +377,12 @@ int main(int argc, char **argv)
     std::signal(SIGBUS, fixture_signal);
     std::signal(SIGSEGV, fixture_signal);
     std::signal(SIGABRT, fixture_signal);
+    std::signal(SIGILL, fixture_signal);
     @autoreleasepool {
-        if (argc != 3 || (std::strcmp(argv[2], "real") != 0 && std::strcmp(argv[2], "unknown") != 0 &&
-                          std::strcmp(argv[2], "miss") != 0)) return 2;
-        return exercise(argv[1], argv[2]);
+        if ((argc != 3 && argc != 4) ||
+            (std::strcmp(argv[2], "real") != 0 && std::strcmp(argv[2], "unknown") != 0 &&
+             std::strcmp(argv[2], "miss") != 0 && std::strcmp(argv[2], "audio") != 0)) return 2;
+        if (std::strcmp(argv[2], "audio") == 0 && argc != 4) return 2;
+        return exercise(argv[1], argv[2], argc == 4 ? argv[3] : nullptr);
     }
 }

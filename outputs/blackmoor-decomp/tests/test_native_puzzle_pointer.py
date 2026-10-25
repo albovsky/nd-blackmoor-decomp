@@ -7,6 +7,7 @@ pins, coverage/ledger outputs or shared build directories are written.
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 from pathlib import Path
 import re
@@ -73,15 +74,25 @@ class NativePuzzlePointerTests(unittest.TestCase):
             raise RuntimeError('Native pointer fixture compile failed:\n' + result.stderr)
 
     def run_fixture(self, kind):
-        result = subprocess.run([str(self.executable), str(self.scene), kind],
+        args = [str(self.executable), str(self.scene), kind]
+        if kind == 'audio':
+            source = WORK / 'analysis/game-source.json'
+            if not source.is_file():
+                self.skipTest('Owner-local game source descriptor unavailable')
+            args.append(json.loads(source.read_text())['game_dir'])
+        result = subprocess.run(args,
                                 capture_output=True, text=True, timeout=30)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        print(result.stdout.strip())
 
     def test_real_d1_tile_hover_and_primary_release_turn_the_tile(self):
         self.run_fixture('real')
 
     def test_d1_miss_preserves_guarded_generic_fallthrough(self):
         self.run_fixture('miss')
+
+    def test_real_audio_busy_gates_then_unblocks_the_pointer_release(self):
+        self.run_fixture('audio')
 
     def test_unimplemented_earlier_receiver_keeps_an_explicit_priority_limit(self):
         self.run_fixture('unknown')
