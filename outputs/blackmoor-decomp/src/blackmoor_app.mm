@@ -13455,6 +13455,7 @@ int main(int argc, char **argv)
         (void)session_input_init(&app.input_state);
         app.game_directory = default_game_directory;
         std::string log_path;
+        int audio_mute_override = -1;
         bool inspect_only = false;
         bool inspect_actions = false;
         bool inspect_audio = false;
@@ -13481,6 +13482,8 @@ int main(int argc, char **argv)
         long dump_scene = -1;
         for (int i = 1; i < argc; ++i) {
             const std::string argument = argv[i];
+            if (argument == "--mute") { audio_mute_override = 1; continue; }
+            if (argument == "--unmute") { audio_mute_override = 0; continue; }
             if (argument == "--live-double-click") { live_double_click = true; continue; }
             if (argument == "--live-hover-only") { live_hover_only = true; continue; }
             /* RT-13: after the session blocks, deliver ordinary clicks at the last
@@ -13690,6 +13693,9 @@ int main(int argc, char **argv)
             std::fprintf(stderr, "--live-tick-ms requires --inspect-live-session\n");
             return 2;
         }
+        if (audio_mute_override >= 0)
+            [[NSUserDefaults standardUserDefaults] setBool:audio_mute_override != 0
+                                                   forKey:@"BlackmoorAudioMuted"];
         app.scene_runtime_enabled = !inspect_only || inspect_session_boundary || inspect_live_session ||
                                     inspect_condition_providers;
         if (log_path.empty()) {
@@ -13704,6 +13710,8 @@ int main(int argc, char **argv)
         } else app.log = std::fopen(log_path.c_str(), "wx");
         if (!app.log) return 3;
         NSLog(@"Blackmoor reconstruction log: %s", log_path.c_str());
+        record(&app, "native_audio_output_muted=%d scope=application-master-mixer",
+               [[NSUserDefaults standardUserDefaults] boolForKey:@"BlackmoorAudioMuted"] ? 1 : 0);
         int external = 0;
         char error[256] = {};
         GameResourceBytes boot_bytes = GAME_RESOURCE_BYTES_INIT;

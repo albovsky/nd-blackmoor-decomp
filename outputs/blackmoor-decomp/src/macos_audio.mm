@@ -259,6 +259,10 @@ extern "C" int mac_audio_host_open(MacAudioMode mode,
         return fail(MAC_AUDIO_ERR_MEMORY, error, error_capacity,
                     "allocating AVAudioEngine failed");
     }
+    /* Owner-requested host policy: mute the complete bus without changing
+     * player scheduling, individual gains or natural completion. */
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"BlackmoorAudioMuted"])
+        state->engine.mainMixerNode.outputVolume = 0.0f;
 
     if (mode == MAC_AUDIO_MODE_OFFLINE) {
         state->render_format = float_format(offline_sample_rate, offline_channels);
