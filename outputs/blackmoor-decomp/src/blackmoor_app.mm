@@ -28,6 +28,8 @@
 #include "session_bindings_a78.h"
 #include "inventory_view_runtime.h"
 #include "native_inventory_render.h"
+#include "native_conversation_caption.h"
+#include "action_family_3f.h"
 #include "inventory_examine_runtime.h"
 #include "inventory_button_runtime.h"
 #include "session_bindings_a36.h"
@@ -272,6 +274,15 @@ struct NativeApp {
      * keeps a pointer to a3f_sound, so it lives as long as the binding. */
     SessionA3fBinding *a3f = nullptr;
     ActionSoundBackend a3f_sound{};
+    AutoText *a3f_text = nullptr; /* separately owned CONVO table, never AUTOTEXT */
+    struct {
+        std::vector<uint8_t> pixels[2];
+        CaptionSurface surface[2]{};
+        bool active[2] = {false, false};
+        bool ready = false; /* host ownership, not an additional original global */
+        int row = -1;
+        NativeConversationCaptionResult result{};
+    } a3f_caption;
     /* RT-24: raw 0xd9 Mouselight puzzle (dispatcher arm 0x42a383 -> handler 0x47d788, render
      * callback 0x47df57). The slot table stands in for the generic Z entries 0x18..0x3f; the
      * background is the saved scene frame (0x5d15e3), snapshotted from the seeded back buffer. */
@@ -1189,6 +1200,8 @@ static bool native_caption_view_for_handle(NativeApp *app, uint32_t handle,
 /* Build the host's persistent RGB555/565 destination from the actual saved
  * Frame surface, then overlay only the decoded Bink scene viewport. The Frame
  * is a CIFTREE taskbar image; it is not treated as a captured scene frame. */
+static void native_a3f_caption_reset(NativeApp *app);
+static bool native_a3f_caption_render(NativeApp *app);
 static bool native_a35_compose(NativeApp *app);
 static bool native_ad9_render(NativeApp *app);
 static bool native_ad1_render(NativeApp *app);
@@ -1643,6 +1656,11 @@ static bool native_caption_finish_tick(NativeApp *app, uint8_t dispatch_attempte
         /* RT-60: the Memory puzzle's generic z entry (type 0xb, callback 0x47d24e), same slot range. */
         (void)native_aee_render(app);
     }
+    if (!native_a3f_caption_render(app)) {
+        record(app, "scene_a3f_caption_render_error");
+        captions.transfer_failed_sticky = true;
+        return false;
+    }
     if (dispatch_attempted != 0u && captions.action_caption_attempted &&
         captions.last_writer_status != CAPTION_OK) {
         record(app, "caption_composition_stopped reason=writer-failed status=%d "
@@ -1914,6 +1932,18 @@ static bool initialize_caption_runtime(NativeApp *app)
         hiff_close(font_container);
         game_resource_bytes_destroy(&font_bytes);
         return false;
+    }
+    if (app->a3f_text == nullptr) {
+        GameResourceBytes convo = GAME_RESOURCE_BYTES_INIT;
+        if (!game_resources_load_bytes(app->resources, "CONVO", &convo, error, sizeof(error))) {
+            record(app, "caption_runtime_error provider=CONVO detail=%s", error); return false;
+        }
+        const int status = autotext_open_memory(convo.bytes, convo.length, 0, &app->a3f_text, error, sizeof(error));
+        game_resource_bytes_destroy(&convo);
+        if (status != AUTOTEXT_OK) {
+            record(app, "caption_runtime_error provider=CONVO status=%d detail=%s", status, error); return false;
+        }
+        record(app, "scene_a3f_text_table resource=CONVO entries=%zu", autotext_entry_count(app->a3f_text));
     }
     if (app->closed_captioning != 0u) {
         GameResourceBytes text_bytes = GAME_RESOURCE_BYTES_INIT;
@@ -2239,6 +2269,7 @@ static void cleanup(NativeApp *app)
     session_a97_destroy(app->a97);
     session_aa1_destroy(app->aa1);
     session_a83_destroy(app->a83);
+    native_a3f_caption_reset(app);
     session_a3f_destroy(app->a3f);
     session_ad9_destroy(app->ad9);
     session_ad1_destroy(app->ad1);
@@ -2298,6 +2329,8 @@ static void cleanup(NativeApp *app)
     if (app->nav_player) bink_player_close(app->nav_player);
     app->nav_player = nullptr;
     if (app->boot) engine_boot_close(app->boot);
+    autotext_close(app->a3f_text);
+    app->a3f_text = nullptr;
     autotext_close(app->captions.auto_text);
     app->captions.auto_text = nullptr;
     if (app->resources) game_resources_close(app->resources);
@@ -3785,10 +3818,101 @@ static void inventory_view_pointer_event(NativeApp *app, int event_kind, int32_t
 }
 
 /* ---- RT-23: raw 0x3f sound conversation (handler 0x420c17) ----------------
- * Tier A (sound line, secondary event flags, default scene change) runs on the live audio
- * backend of raw 0x9f. Text-box rows (response lists, captions) stay UNSUPPORTED because
- * acquire_surface/layout_text_box are left NULL; hook-builder rows (tier C) are refused by the
- * kernel. The CONVO text table has no native lookup yet, so resolve_text is NULL. */
+ * NATIVE-12 wires zero-response sound captions with original CONVO/FONT/TBOX.
+ * Primary response tables remain explicitly unsupported before phase0; hook
+ * builders and cel providers retain their existing kernel refusals. */
+static void native_a3f_caption_reset(NativeApp *app)
+{
+    if (!app) return;
+    const bool owned = app->a3f_caption.active[0] || app->a3f_caption.active[1] || app->a3f_caption.ready;
+    for (unsigned i = 0; i < 2; ++i) {
+        app->a3f_caption.active[i] = false;
+        app->a3f_caption.pixels[i].clear();
+        app->a3f_caption.surface[i] = {};
+    }
+    app->a3f_caption.ready = false; app->a3f_caption.row = -1; app->a3f_caption.result = {};
+    if (owned) {
+        app->captions.writer_globals.framed_ready = 0;
+        app->captions.lifecycle.g.framed_layer_enabled = 0;
+        if (app->captions.lifecycle.g.overlay_ui == 2) app->captions.lifecycle.g.overlay_ui = 0;
+        app->captions.lifecycle.g.cursor_override = 0;
+        record(app, "scene_a3f_caption_reset owned_surfaces=cleared");
+    }
+}
+
+static int native_a3f_resolve_text(void *context, const uint8_t *key, size_t length,
+                                  const uint8_t **text, size_t *text_length)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    size_t raw = 0;
+    if (!app || !app->a3f_text || !text || !text_length) return 1;
+    return autotext_lookup(app->a3f_text, key, length, text, &raw, text_length) == AUTOTEXT_OK ? 0 : 1;
+}
+
+static int native_a3f_acquire_surface(void *context, const char *name, int16_t width, int16_t height, int16_t *slot)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (!app || !name || !slot || width != app->captions.geometry.framed_surface_width ||
+        height != app->captions.geometry.framed_surface_height || width <= 0 || height <= 0) return 1;
+    int i = std::strcmp(name, CONVO3F_SURFACE_NORMAL_NAME) == 0 ? 0 :
+            std::strcmp(name, CONVO3F_SURFACE_HILITE_NAME) == 0 ? 1 : -1;
+    if (i < 0 || app->a3f_caption.active[i]) return 1;
+    try { app->a3f_caption.pixels[i].assign((size_t)width * (size_t)height * 2u, 0); }
+    catch (...) { return 1; }
+    app->a3f_caption.surface[i] = {app->a3f_caption.pixels[i].data(), width, height, (int16_t)(width * 2)};
+    app->a3f_caption.active[i] = true; *slot = (int16_t)i;
+    return 0;
+}
+
+static int native_a3f_release_surface(void *context, int16_t slot)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (!app || slot < 0 || slot > 1 || !app->a3f_caption.active[slot]) return 1;
+    app->a3f_caption.active[slot] = false;
+    app->a3f_caption.surface[slot] = {};
+    app->a3f_caption.pixels[slot].clear();
+    app->a3f_caption.ready = false;
+    return 0;
+}
+
+static int native_a3f_layout_caption(void *context, const Convo3fLayoutRequest *request, Convo3fWorld *world)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (!app || !request || !world || request->response_count != 0 || request->slot_normal != 0 ||
+        request->slot_hilite != 1 || !app->a3f_caption.active[0] || !app->a3f_caption.active[1]) return 1;
+    NativeConversationCaptionResult result{};
+    const int status = native_conversation_caption_write(request->caption, request->caption_length,
+        &app->captions.fonts, &app->captions.geometry, &app->captions.pixel_format,
+        &app->captions.writer_globals, &app->captions.writer_backend, app->a3f_caption.surface, &result);
+    record(app, "scene_a3f_caption_layout row=%d bytes=%zu status=%d normal_glyphs=%u hilite_glyphs=%u scroll=%d",
+           request->row, request->caption_length, status, result.glyphs[0], result.glyphs[1], result.scroll_lines);
+    if (status != CAPTION_OK || app->a3f_caption.pixels[0].size() != app->captions.framed_pixels.size()) return 1;
+    std::copy(app->a3f_caption.pixels[0].begin(), app->a3f_caption.pixels[0].end(), app->captions.framed_pixels.begin());
+    app->a3f_caption.result = result; app->a3f_caption.ready = true; app->a3f_caption.row = request->row;
+    world->ui_5b0a7c = result.scroll_lines; world->ui_5b15c8 = 0; world->ui_5b15d6 = 1;
+    app->captions.writer_globals.caption_visible_flag = 0;
+    app->captions.lifecycle.g.scroll_src = {read_i32_le(app->captions.geometry.tbox),
+        read_i32_le(app->captions.geometry.tbox + 4), read_i32_le(app->captions.geometry.tbox + 8),
+        read_i32_le(app->captions.geometry.tbox + 12)};
+    return 0;
+}
+
+static bool native_a3f_caption_render(NativeApp *app)
+{
+    if (!app->a3f_caption.ready) return true;
+    const uint8_t *ui = nullptr; size_t bytes = 0;
+    if (!find_boot_payload(app, "UICO", &ui, &bytes) || bytes < 0x300 || read_i32_le(ui + 0x67) != 0) return false;
+    char name[34] = {}; std::memcpy(name, ui, 33);
+    if (std::strlen(name) == 0 || std::strlen(name) > 32) return false;
+    const uint32_t handle = native_caption_load_image(app, name, "CUIConvo original popup");
+    if (!handle) return false;
+    CaptionRect src = {read_i32_le(ui + 0x27), read_i32_le(ui + 0x2b), read_i32_le(ui + 0x2f), read_i32_le(ui + 0x33)};
+    CaptionRect dst = {read_i32_le(ui + 0x47), read_i32_le(ui + 0x4b), read_i32_le(ui + 0x4f), read_i32_le(ui + 0x53)};
+    /* Original popup before shared layer8; slider input/animation is not claimed. */
+    const CaptionBlit blit = {CAPTION_BLIT_OPAQUE, handle, src, dst, "CUIConvo popup normal frame"};
+    return native_caption_lifecycle_blit(app, &blit) == CAPTION_LIFECYCLE_BACKEND_OK;
+}
+
 static int native_a3f_load_world(void *context, Convo3fWorld *world)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
@@ -3807,6 +3931,10 @@ static int native_a3f_load_world(void *context, Convo3fWorld *world)
     world->stall_limit_5b028e = 0; /* BSS, never written (RT-25) */
     world->view_x_583186 = app->scene_destination.left;
     world->view_y_58318a = app->scene_destination.top;
+    world->ui_5b0a74 = app->captions.geometry.framed_surface_width;
+    world->ui_5b0a76 = app->captions.geometry.framed_surface_height;
+    world->ui_5b0a16 = read_i32_le(app->captions.geometry.tbox + 4);
+    world->ui_5b0a1e = read_i32_le(app->captions.geometry.tbox + 12);
     return 0;
 }
 
@@ -3815,6 +3943,11 @@ static void native_a3f_store_world(void *context, const Convo3fWorld *world)
     NativeApp *app = static_cast<NativeApp *>(context);
     if (app == nullptr || world == nullptr) return;
     app->start_flag_5bb1ca = world->start_5bb1ca;
+    app->captions.writer_globals.framed_ready = world->ui_5b15d6;
+    app->captions.writer_globals.framed_scroll_lines = world->ui_5b0a7c;
+    app->captions.lifecycle.g.framed_clear_request = world->ui_5b15c8;
+    app->captions.lifecycle.g.overlay_ui = world->engine_583204;
+    app->captions.lifecycle.g.cursor_override = world->flag_5c39e9;
     /* 0x4e8d96 stores 0xffff to [0x583a29] after putting the held item back (0x4e8dbb); the
      * kernel clears only its private copy, so mirror it into the live cursor state here. */
     int16_t *selected = app->new_game.view.inventory.selected_item_candidate;
@@ -3873,6 +4006,26 @@ static int native_a3f_handler(void *context, size_t row, const SceneActionInfo *
     NativeApp *app = static_cast<NativeApp *>(context);
     if (app == nullptr || before == nullptr || out == nullptr) return SCENE_ACTION_HANDLER_ERROR;
     const uint32_t phase_before = before->phase;
+    if (phase_before == 0u && action && action->type == SESSION_A3F_TYPE) {
+        ActionFamily3fDecoded decoded{};
+        if (action_family_3f_decode(action->raw_body, action->raw_body_length, &decoded) != ACTION_FAMILY_3F_OK)
+            return SCENE_ACTION_HANDLER_ERROR;
+        if (decoded.primary_count != 0) {
+            record(app, "scene_a3f_blocker row=%zu status=1 detail=native-primary-response-UI-unimplemented", row);
+            return SCENE_ACTION_HANDLER_UNSUPPORTED;
+        }
+        const uint8_t *image = session_a3f_image(app->a3f, row);
+        if (image && app->world_clock_session.captions_enabled_5bb202 != 0) {
+            const uint8_t *end = static_cast<const uint8_t *>(std::memchr(image + C3F_CAPTION, 0, 1500));
+            const int caption_status = end ? native_conversation_caption_validate(image + C3F_CAPTION,
+                (size_t)(end - image - C3F_CAPTION), &app->captions.fonts, &app->captions.geometry,
+                &app->captions.pixel_format) : CAPTION_ERR_FORMAT;
+            if (caption_status != CAPTION_OK) {
+                record(app, "scene_a3f_blocker row=%zu status=1 detail=native-caption-preflight caption_status=%d", row, caption_status);
+                return SCENE_ACTION_HANDLER_UNSUPPORTED;
+            }
+        }
+    }
     const int status = session_a3f_handler(app->a3f, row, action, before, out);
     const Convo3fStepResult *last = session_a3f_last_result(app->a3f);
     if (status == SCENE_ACTION_HANDLER_OK && (phase_before != out->phase ||
@@ -9772,6 +9925,10 @@ static bool create_native_session_bindings(NativeApp *app)
     a3f_host.kernel.sound = &app->a3f_sound;
     a3f_host.kernel.inventory_add = native_a3f_inventory_add;
     a3f_host.kernel.inventory_remove = native_a3f_inventory_remove;
+    a3f_host.kernel.acquire_surface = native_a3f_acquire_surface;
+    a3f_host.kernel.release_surface = native_a3f_release_surface;
+    a3f_host.kernel.layout_text_box = native_a3f_layout_caption;
+    a3f_host.resolve_text = native_a3f_resolve_text;
     a3f_host.load_world = native_a3f_load_world;
     a3f_host.store_world = native_a3f_store_world;
     a3f_host.transition = native_a3f_transition;
@@ -10518,6 +10675,7 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
                session_a83_failure(app->a83));
         return false;
     }
+    native_a3f_caption_reset(app);
     if (session_a3f_begin_scene(app->a3f, app->scene) != CONVO3F_OK) {
         record(app, "scene_session_create_error provider=action-family-3f detail=%s",
                session_a3f_failure(app->a3f));

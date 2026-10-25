@@ -1,0 +1,54 @@
+# NATIVE-12: telephone conversation captions on the lock acquisition path
+
+## Authorization and ownership
+
+The original human in this chat authorized the native ARM64 macOS port, real-data navigation and one reviewed PR per slice followed by merge. Latest request: "Keep going with key/lock progression beyond S3448 and fix the next blocker. Keep the game muted and avoid the tests that caused crash popups." This chat alone publishes. Base main9d4a78e73850d61dc7af682148e11efcb7b1208f, branch codex/native-lock-conversation-captions. Root owns app integration/new caption adapter/build inventory; independent Codex workers supply new tests and static research only.
+
+Original game files/GAME.EXE/game-source and reserved function ledger/evidence/extract/build outputs, tests/fl40_* and tasks/flNN-handoff.md remain unchanged. No broad test discovery, sanitizer/mutation/Unicorn/original-x86/deliberate-fault/output-device tests. Use focused normal CHECK/exit1 checks and muted offline audio only. GUI remains unverified; no repeated unlock prompt.
+
+## Reproduction and selected gap
+
+The genuine owned-key route clicks again after inserting17 and reaches S3448->S3446->S3448, ending status0 (57 distinct scenes/61 entries). This is expected story behavior: S3448 row9 routes held17 to3446 and held25 to3445. S3445 sets2094; only then does S3448 row10 enable key17 and set2009 for the3449 unlock movie. Item25 is acquired from actual food-tray scenes, not injected. Static metadata and route logs are private under work/playability-20261024/.
+
+Normal telephone route from New Game/Junior: S2010 left11 (selector5->16), row9->S2013 row3->S2020 row3->S2098 row3->S2099->S1800. At2351 ticks, S1800 row9 raw0x3f explicitly blocks: captions enabled without layout_text_box/acquire_surface/release_surface. This is the next confirmed native blocker on the grease acquisition path. Log butter-phone-route.log. The D3 input gap found statically for S3450 remains a future gap, not a normal-route claim.
+
+## Intended bounded implementation
+
+Resolve conversation text from the actual CONVO resource through the existing TEXT/CVTX parser (1244 entries), separately from AUTOTEXT. Wire real normal/hilite surface ownership and caption-only layout using the original FONT/TBOX data and existing glyph primitives. Preserve the 0x3f kernel, sound completion and transition order. Primary response lists, hook builders and cel conversations remain explicitly unsupported; do not fabricate selection or disable captions to bypass the blocker. Confirm the exact layout subset against annotated original code before implementation. Surface reset/phase2/scene replacement/cleanup must leave no stale text or orphaned surface.
+
+## Acceptance and current state
+
+Before production changes, record an ordinary failing regression for the actual S1800 caption path. Focused component checks must verify actual CONVO resolution and visible original glyphs, muted real sound remaining busy until natural completion, completion/cleanup/re-entry and explicit unsupported response behavior without leaked effects. Run normal ARM64 build, meaningful existing caption/inventory regressions and the normal real-data telephone route. Pin source/native/original/resource hashes, enumerate unverified branches, freeze and independently review before this chat publishes/merges and rebuilds canonical main.
+
+## Implemented behavior and recovery boundary
+
+The new native_conversation_caption.[ch] adapter implements the zero-response builder/writer subset of0x41e3c0/0x41e647/0x41f5b1, sharing the existing original glyph/width/font-sheet primitives. It uses FONT8 normal/FONT9 hilite, original TBOX578x1001 backing surfaces, first pen10,15, default/color variants, strict word-wrap width and pending newline/half-spacing behavior. Supported markup is i/o(no-op delimiters),c,n,w,e; e stops without flushing, backslashes are skipped. The builder appends w/e as the original caption-on path does. Markers, tags, font/color/geometry/wrap bounds are dry-run before kernel phase0 and before visible effects; other branches return explicit unsupported. No response text is silently dropped. The conservative primary-count precheck refuses even a primary table whose conditions might otherwise exclude every entry.
+
+The app loads actual CONVO independently through the existing TEXT/CVTX parser and supplies the binding lookup before row construction. It owns distinct normal/hilite surfaces, copies the complete normal backing image into the existing shared framed surface, mirrors ready/scroll/clear/modal/view cells and presents the original578x81 layer8 viewport at51,392..628,472. It draws the original UICO normal popup frame at0,389..639,479 without setting SCTB.frame_open. Popup slider artwork/input, animation and scrolling remain unimplemented. Layer order against other unsupported UI paths is unverified. Native ownership/slots and reset helpers are host boundaries, not extra recovered original globals.
+
+The existing conversation kernel/sound backend is unchanged. Real channel12 busy/completion determines when state4 advances; state5 stops the clip; phase2 releases both surfaces, clears ready/modal state, applies the original transition and completes directly. App ownership cleanup also releases surfaces on active scene replacement and destruction, because the existing binding's manager reset does not release textbox slots. No forced sound completion, response choice, story flag or inventory grant is introduced.
+
+Static recovery report: work/analysis/NATIVE-12-conversation-caption-research.md. Original GAME.EXE1511424B SHA256afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45. Bounded original windows verified statically against immutable bytes/annotated assembly:
+
+| Window | SHA-256 |
+|---|---|
+|41e3c0..41e647|96668493d1f4eda163a3da88b563ae49ba32c1e86b0f33da83c40544fdd961da|
+|41e647..41f56c|92850e8da321903030ba1b73262d2b566e58497ba812d51f9edb678c347d253c|
+|41f5b1..41f986|843f2d1c2e96c298f048749fd2396ca24580c90837bb9f9d02c4437bd99c1aae|
+|4c51a5..4c5377|dc7b9a9ed6c6241cef6a4b866d5beb55aa030f2a9263d521b3c28f917702eb0b|
+|423259..423368|05577fdc25bbcff3f5b8e48c31cedc4836a90d77f41d1f59886594953693f7e3|
+|420c17..422920|d06d5f9282abd3275dc31826fb9b03e687564a9736545c18ec737ec5b3a1f29a|
+
+Decoded CONVO153166B SHA2566c53d43e74bf2c1d536460de504ec23d3450b4efe9322273a914917b6e98b9b9;1244 entries. Selected S1800row9 text48visiblebytes SHA25662ca4b17dda21ec32cee8e682ce6b25f169a05e08bb561ce0f6155a4e9e30dab. BOOT69442B SHA256167ca6479ac93f5e4465557549d663c46a1ad48cf376ca81a4e6e6248191f6ac. TBOX98B SHA256a8f6e6478cd9a230f10e013192cfdc1433a1fe71e1edf13cbecead2a53b2594b; UICO768B SHA2565af5274067158eb96257c1e8a258bcafed7f152ff9b269c8b880067b9320cdf9. No proprietary payload bytes are committed. These are static anchors, not new original execution, native function/ledger acceptance or full-frame parity evidence.
+
+## Recorded validation and limits
+
+- Tests-only workerfb00090c31934b462d5d126d3dc5319887299441 collected asc8621309. Baseline actual-row RED exits1 normally at missing-caption callbacks; snapshots/log retained privately. Initial sandboxed AVFAudio registration refusal exited normally, then the exact focused run used the supported offline execution environment; no crash occurred.
+- Worker4/4 pass17.542s; independent root final4/4 pass16.782s (conversation-caption-root-tests.log). Actual CONVO resolution, FONT8/FONT9 first-glyph raw-sheet comparisons and presentedRGBA, real channel12 busy until natural completion106496 finite zeroPCMframes, original target1810 tuple, phase2 surface/Frame restoration, active2098->1800 reset/reentry and unchanged flags pass. Actual S1807row0 primary6 is refused before kernel visits/effects. An initial fixture assumption that the two original font buffers must differ was removed after raw-sheet evidence showed equal color1 artwork; independent checks of both fonts remain. These are component checks, not a story playthrough.
+- Four existing inventory checks pass (17.477s combined invocation); a fifth selector initially named the wrong test class and raised ordinary unittest AttributeError before running. The correctly qualified single normal caption/audio transition regression passes0.208s in conversation-caption-existing-caption.log. No test was skipped or weakened to hide a failure.
+- Normal ARM64 build passes, conversation-caption-final-build.log. App SHA2562a6d5a14dcddb4b6a2d3d5f5946c061b2dbb19b743bd72b50719b7f0dcf67c0f; moduleC38c4e48430bdc599b20ee06d96a6f58b0cebfe4977dbed9e8650542729d90589; headereeb9695eb9f73628acbe0fbc283bb4fb3d08b5023eab261e24ed5c4ed9348445; native95e2c66ea78e97bb0854d836a50839ed4ec00258d2c7ffd6b983122b6d16db05.
+- Normal real-data route now advances1800->1810->1802->1803->1804->1805->1806->1807 (36distinct/36entries). Seven captions lay out and actual voices complete; the explicit next blocker is S1807row0 primary response UI, status2 with0effects before refusal. Existing conversation-caption-route-green.log predates only the UICO relative-flag full-dword safety check and C formatting; a final pinned-build route is being recorded separately.
+- Private conversation-caption-offscreen.png is the actual component framebuffer,640x480,SHA25699e61e885633a21a035cfd621fb87e55c88a2876c6aeace30220b90718603039. Root inspected it. It is NOT a desktop GUI check. No preview/resource bytes are committed.
+- Persistent mute1. Full historical suite remains notgreen and was not rerun under the human's crash-popup restriction. No new GUI/hardware-audio, original-x86, sanitizer/mutation/fault or output-device execution.
+
+Unverified: complete text/caption branch and original framebuffer parity, f/u/l/t/r/h/p/s and other markup, response/hook/cel UI, popup slider art/input/scrolling/animation, failure branches not covered by these focused checks, every frame-layer and engine/view callback interaction, captions-off playthrough, other dialogue routes and both campaigns. Food/grease acquisition, actual unlock beyond3448 and S3450 D3 gameplay still await the dialogue-choice slice. No whole-game, ledger or whole-file match claim. Frozen independent review and publication pending.
