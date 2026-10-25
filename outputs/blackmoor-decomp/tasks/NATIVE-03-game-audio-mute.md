@@ -56,3 +56,10 @@ Final pins supersede the initial-candidate source/build pins above:
 | Normal ARM64 app | `93d66eb6454b85e845b414783b808e84c5d6b634e89d4e4da5bcb0467e4e889e` |
 
 Residual test limits: same-format late player is covered; format reconnect under mute and live GUI unmute are not exercised. An early test failure may leave its temporary offline graph until process exit; it still returns a failed test and never opens an output device. No full-suite or original-equivalence claim is made.
+
+
+## Final independent acceptance
+
+Sonnet `slice-reviewer` inspected frozen `d72d6af5fde81638298b0eb4969916c45fe24a96` and accepted the bounded native host convenience: no P1 or blocking P2. Root accepts that review. The actual GUI output-mode run used the earlier candidate with the identical property assignment; the final binary's added catch/logging delta was built and tested offline, not relaunched for another GUI run. The new Objective-C exception-return path was reviewed by inspection but not injected or executed. Both remain disclosed limits.
+
+Log `master_muted` records the requested preference, not a getter of applied mixer volume; measured zero PCM comes from the real offline graph test. The D1 helper's nonzero PCM with the application preference still1 is recorded in `mute-combined-audio.log`; its executable runs outside this application bundle, consistent with Foundation's process/bundle preference scoping. Existing historical inspection evidence was left untouched. Physical capture, full suite and original mixer equivalence remain unverified. Only documentation records this acceptance after frozen review; production/tests are unchanged.
