@@ -58,7 +58,7 @@ class Fl56Translated(unittest.TestCase):
             lib = ctypes.CDLL(str(Path(tmp) / 'fl41.so'))
             for k in sample:
                 t = TABLE[k]
-                row = W.row_info(int(k, 16), t['body'], {int(a, 16): n for a, n in t['callees'].items()}, {int(a, 16): n for a, n in t['imports'].items()}, t['fs'])
+                row = W.row_info(int(k, 16), t['body'], {int(a, 16): n for a, n in t['callees'].items()}, {int(a, 16): n for a, n in t['imports'].items()}, t['fs'], {int(a, 16): n for a, n in t.get('sites', {}).items()}, t.get('frame', False))
                 for seed, overrides in t['seeds'][:3]:
                     ov = tuple(tuple(o) for o in overrides)
                     original = W.run_original(row, seed, ov)

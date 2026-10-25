@@ -43,6 +43,7 @@ FPSLOT = STUB_BASE + 0x800          # FL-52: where the stub of a callee that ret
 FCW = 0x27f                          # the x87 control word of the Win32 process (53-bit precision, round to nearest, every exception masked)
 DATA_START = 0x537000          # first writable page of .data (the .rdata ends before it): globals below it are constants and tables
 PAGE_CAP = 0
+ORIG_PAGE_LIMIT = 30000        # FL-58: the bulk driver lowers it (a seed that walks through a thousand pages of memory costs seconds and is not worth keeping)
 INSTRUCTION_LIMIT = int(os.environ.get("FL48_INSTR_LIMIT", "4000000"))
 FIXED = os.environ.get('FL43_WORLD_FIXED', '1') != '0'      # FL-43: closes two gaps of the model that only show on rare seeds (see Mem and stub_filter); the recorded runs of the corpus seeds are identical with and without it (FL43_WORLD_FIXED=0)
 ORDER = None                   # set to a list to get the executed instruction addresses of run_original in order (debugging aid, FL-43)
@@ -162,6 +163,8 @@ def initial_state(row, seed):
     elif r < 0.12:
         this = rng.getrandbits(32)
     regs = dict(SENTINELS, ecx=this)
+    if row.get('frame'):
+        regs['ebp'] = SP - 4          # FL-58: a fragment that runs on the frame of the function it was cut from (`leave; ret` at its end): ebp points one dword below the return address
     args = [mixture(rng, style, magic) for _ in range(ARGS)]
     patches = []
     for address in row['globals']:
@@ -317,7 +320,7 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None):
     def unmapped(uc_, access, address, size_, value, user):
         if address >= 0xfff00000:
             return False
-        if len(mapped) >= 30000:              # FL-48: a scenario that walks through memory without end (closing such an emulator took hours): the access faults
+        if len(mapped) >= ORIG_PAGE_LIMIT:    # FL-48: a scenario that walks through memory without end (closing such an emulator took hours): the access faults
             return False
         page = address >> 12
         for p in (page, (address + size_ - 1) >> 12):
@@ -365,6 +368,9 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None):
     stub_rng = random.Random(seed * 104729 + 13)
 
     def stub(uc_, address, size_, user):
+        play(address, *stubs[address])
+
+    def play(address, ident, cleanup):
         esp = uc.reg_read(X.UC_X86_REG_ESP)
         ecx = uc.reg_read(X.UC_X86_REG_ECX)
         words = struct.unpack('<%dI' % LOGGED, uc.mem_read(esp + 4, 4 * LOGGED))
@@ -376,9 +382,8 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None):
             ensure(at)
             ensure(at + len(data) - 1)
             uc.mem_write(at, data)
-        ident, cleanup = stubs[address]
         held = tuple(uc.reg_read(getattr(X, 'UC_X86_REG_' + n)) for n in ('EAX', 'EDX', 'EBX', 'ESI', 'EDI', 'EBP'))
-        net = fpret.get(address, 0)
+        net = fpret.get(address, 0) if address in stubs else 0
         if net > 0:
             bits = fret_bits(stub_rng)
             uc.mem_write(FPSLOT, struct.pack('<Q', bits))
@@ -399,6 +404,54 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None):
 
     for entry in stubs:
         uc.hook_add(unicorn.UC_HOOK_CODE, stub, begin=entry, end=entry)
+
+    def site_hook(uc_, address, size_, user):
+        """FL-58: a call through a register or a pointer is a stub call on both sides (the translation cannot run the real code at the target)"""
+        target_of, after, cleanup = user
+        target = target_of()
+        if target is not None:
+            target &= 0xffffffff
+        if target is None or target >= 0xfff00000:          # the access, or the fetch at the target, faults in the original (0xffffffff is also the translation's divide-error marker)
+            trace.fault = 'access in a call target'
+            uc.emu_stop()
+            return
+        esp = (uc.reg_read(X.UC_X86_REG_ESP) - 4) & 0xffffffff
+        uc.mem_write(esp, struct.pack('<I', after))
+        trace.writes.append((esp, 4, after))            # the push of the return address, which a real call would log
+        uc.reg_write(X.UC_X86_REG_ESP, esp)
+        play(target, target, cleanup)
+
+    if row.get('sites'):
+        import capstone
+        from capstone import x86_const as CX
+        md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
+        md.detail = True
+        regmap = {CX.X86_REG_EAX: X.UC_X86_REG_EAX, CX.X86_REG_ECX: X.UC_X86_REG_ECX, CX.X86_REG_EDX: X.UC_X86_REG_EDX, CX.X86_REG_EBX: X.UC_X86_REG_EBX,
+                  CX.X86_REG_ESP: X.UC_X86_REG_ESP, CX.X86_REG_EBP: X.UC_X86_REG_EBP, CX.X86_REG_ESI: X.UC_X86_REG_ESI, CX.X86_REG_EDI: X.UC_X86_REG_EDI}
+
+        def target_reader(op):
+            if op.type == CX.X86_OP_REG:
+                return lambda: uc.reg_read(regmap[op.reg])
+
+            def read():
+                m = op.mem
+                a = m.disp
+                if m.base:
+                    a += uc.reg_read(regmap[m.base])
+                if m.index:
+                    a += uc.reg_read(regmap[m.index]) * m.scale
+                if m.segment == CX.X86_REG_FS:
+                    a += TIB
+                a &= 0xffffffff
+                if a + 3 >= 0xfff00000 or len(mapped) >= ORIG_PAGE_LIMIT:
+                    return None                                  # the access faults (as in `unmapped` above)
+                ensure(a)
+                ensure(a + 3)
+                return struct.unpack('<I', bytes(uc.mem_read(a, 4)))[0]
+            return read
+        for site, cleanup in row['sites'].items():
+            ins = next(md.disasm(pe.image[site - pe.image_base:site - pe.image_base + 16], site))
+            uc.hook_add(unicorn.UC_HOOK_CODE, site_hook, (target_reader(ins.operands[0]), site + ins.size, cleanup), begin=site, end=site)
     for name in ('eax', 'ebx', 'ecx', 'edx', 'esi', 'edi', 'ebp'):
         uc.reg_write(getattr(X, 'UC_X86_REG_' + name.upper()), regs[name])
     sp = STACK_BASE + STACK_SIZE - 0x100 - 4 * (ARGS + 1)
@@ -412,12 +465,18 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None):
             uc.mem_write(address, (value & ((1 << (8 * size_)) - 1)).to_bytes(size_, 'little'))
         elif address >= DATA_START:                 # FL-48: a writable global may hold any value (code and constant tables below DATA_START stay as they are)
             uc.mem_write(address, (value & ((1 << (8 * size_)) - 1)).to_bytes(size_, 'little'))
+    at_end = []
+    if not row['ret']:              # FL-58: a fragment with no `ret` (it ends in a call that does not return, or runs into the next function): the run ends where the span ends
+        def span_end(uc_, address, size_, user):
+            at_end.append(address)
+            uc.emu_stop()
+        uc.hook_add(unicorn.UC_HOOK_CODE, span_end, begin=va + size, end=va + size)
     try:
         uc.emu_start(va, STOP, count=INSTRUCTION_LIMIT)
     except unicorn.UcError as ex:
         trace.fault = str(ex)
         return trace
-    if uc.reg_read(X.UC_X86_REG_EIP) != STOP:
+    if uc.reg_read(X.UC_X86_REG_EIP) != STOP and not at_end:
         trace.fault = 'instruction limit'
         return trace
     trace.regs = {name: uc.reg_read(getattr(X, 'UC_X86_REG_' + name.upper())) for name in ('eax', 'ecx', 'edx', 'ebx', 'esp', 'ebp', 'esi', 'edi')}
@@ -521,6 +580,8 @@ def run_native(lib, row, seed, overrides=()):
     regs, args, patches = initial_state(row, seed)
     magic = row['magic']
     mem = Mem(seed, magic, patches)
+    for k, (slot, _) in enumerate(sorted(row['imports'].items())):      # FL-58: the original reads the stub entry from an import slot (see _run_original); so does the translation, e.g. `mov esi, [slot]` / `call esi`
+        mem.image[slot - IMAGE_BASE:slot - IMAGE_BASE + 4] = struct.pack('<I', STUB_BASE + 0x10 * (k + 1))
     trace = Trace()
     stub_rng = random.Random(seed * 104729 + 13)
 
@@ -609,7 +670,26 @@ def build_library(directory, sources=None, extra=()):
 # ---- rows: what a row needs to know to run -------------------------------------------------------------------------------------------
 
 
-def row_info(va, body, callees, imports=None, fs=False):
+def frame_start(pe, va, body):
+    """FL-58: True when the code reads ebp (a [ebp + k] operand, `leave`, `mov esp, ebp`) before anything in straight-line order has written it: the row is the tail of a function (an exception funclet,
+    a shared epilogue) that runs on a frame its caller built"""
+    import capstone
+    from capstone import x86_const as X
+    md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
+    md.detail = True
+    off = va - pe.image_base
+    for i in md.disasm(pe.image[off:off + body], va):
+        read, written = i.regs_access()
+        if i.mnemonic == 'push' and i.operands[0].type == X.X86_OP_REG and i.operands[0].reg == X.X86_REG_EBP:
+            continue                  # saving ebp is not using it
+        if X.X86_REG_EBP in read:
+            return True
+        if X.X86_REG_EBP in written or i.mnemonic in ('call', 'jmp', 'ret') or i.mnemonic[0] == 'j':
+            return False
+    return False
+
+
+def row_info(va, body, callees, imports=None, fs=False, sites=None, frame=False):
     """The static facts of a row: its body size, its callees ({address: bytes the callee pops}), the immediates of its code (the magic values), and the writable globals it names."""
     import capstone
     from capstone import x86_const as X
@@ -642,6 +722,10 @@ def row_info(va, body, callees, imports=None, fs=False):
                 elif 2 < d < 0x2000:
                     magic.add(d)
     info = {'va': va, 'body': body, 'callees': {int(k): v for k, v in callees.items()}, 'imports': {int(k): v for k, v in (imports or {}).items()}, 'fs': bool(fs), 'ret': sorted(rets), 'magic': sorted(magic)[:24], 'globals': sorted(globs)[:16]}
+    if frame:
+        info['frame'] = True
+    if sites:       # FL-58: calls through a register or a pointer ({address: bytes the target pops}); both sides play them as stub calls
+        info['sites'] = {int(a): int(n) for a, n in sites.items()}
     if fpu:         # FL-52: the row uses the x87 unit; the callees that leave a value in st(0) or take one off it (scripts/lift_fl41.py fpu_net)
         import lift_fl41 as L
         info['fpu'] = True

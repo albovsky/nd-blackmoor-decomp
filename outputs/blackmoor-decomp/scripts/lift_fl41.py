@@ -453,27 +453,58 @@ def indirect_cleanup(c, i):
         if x.mnemonic in ("call", "ret") or x.mnemonic[0] == "j":
             break
     start = 0
-    for n, x in enumerate(c.ins):                                  # the prologue: push ebp / mov ebp, esp / sub esp, N / pushes of saved registers right after
-        if x.mnemonic in ("push", "mov", "sub", "lea") and n < 8 and not (x.mnemonic == "push" and x.operands[0].type == X.X86_OP_IMM):
+    for n, x in enumerate(c.ins):                                  # the prologue: push ebp / mov ebp, esp / sub esp, N right at the start
+        if n < 3 and ((x.mnemonic == "push" and x.operands[0].type == X.X86_OP_REG and x.operands[0].reg == X.X86_REG_EBP) or
+                      (x.mnemonic == "mov" and x.operands[0].type == X.X86_OP_REG and x.operands[0].reg == X.X86_REG_EBP) or
+                      (x.mnemonic == "sub" and x.operands[0].type == X.X86_OP_REG and x.operands[0].reg == X.X86_REG_ESP)):
             start = n + 1
         else:
             break
+    # FL-58: the saved registers are the first K register pushes, K being the run of `pop reg` right before a `ret` (the registers the epilogue restores); any push beyond them is an argument
+    saved = set()
+    runs = []
+    for n, x in enumerate(c.ins):
+        if x.mnemonic == "ret":
+            j = n - 1
+            framed = start > 0 and c.ins[0].mnemonic == "push"
+            if framed and j >= 0 and c.ins[j].mnemonic == "leave":
+                j -= 1
+            elif framed and j >= 0 and c.ins[j].mnemonic == "pop" and c.ins[j].operands[0].type == X.X86_OP_REG and c.ins[j].operands[0].reg == X.X86_REG_EBP:
+                j -= 1
+                if j >= 0 and c.ins[j].mnemonic == "mov" and c.ins[j].operands[0].type == X.X86_OP_REG and c.ins[j].operands[0].reg == X.X86_REG_ESP:
+                    j -= 1
+            m = 0
+            while j - m >= 0 and c.ins[j - m].mnemonic == "pop" and c.ins[j - m].operands[0].type == X.X86_OP_REG:
+                m += 1
+            runs.append(m)
+    if runs:
+        k_saved = min(runs)
+        for x in c.ins[start:]:
+            if k_saved == 0:
+                break
+            if x.mnemonic == "push" and x.operands[0].type == X.X86_OP_REG:
+                saved.add(x.address)
+                k_saved -= 1
     pushes = 0
     for x in reversed(c.ins[start:k]):
         if x.mnemonic in ("call", "ret") or x.mnemonic[0] == "j" or x.mnemonic in ("leave", "pushfd"):
             break
         if x.operands and x.operands[0].type == X.X86_OP_REG and x.operands[0].reg == X.X86_REG_ESP and x.mnemonic in ("add", "sub", "mov", "lea", "and"):
             break
-        if x.mnemonic == "push":
+        if x.mnemonic == "push" and x.address not in saved:
             pushes += 1
         if x.address in c.targets:
             break
     return 4 * pushes
 
 
+INDIRECT_SITES = {}   # FL-58: {row va: {address of a call through a register or pointer: bytes the target is taken to pop}}; the original side plays such a call as a stub as well (tests/fl41_world.py)
+
+
 def indirect_call(c, i, op):
     """FL-55b: `call reg`, `call [mem]` (any address): the target is computed before the return address is pushed; the host sees the target address in h->call"""
     cleanup = indirect_cleanup(c, i)
+    INDIRECT_SITES.setdefault(c.va, {})[i.address] = cleanup
     c.emit("{ uint32_t t_ = %s; esp -= 4u; WR32(esp, 0x%xu); FL41_CALL(t_); %sesp += 4u; }" % (get(i, op, 32), i.address + i.size, "esp += %du; " % cleanup if cleanup else ""))
 
 
@@ -876,6 +907,7 @@ def lift_string(c, i, prefix, mn):
 def lift(va, body_size):
     """(C source of m<va>_lifted, {callee va: bytes it pops}) or raises Unsupported."""
     ins = disasm(va, body_size)
+    INDIRECT_SITES.pop(va, None)
     c = Ctx(ins, va, body_size)
     for i in ins:
         if i.mnemonic in ("jmp",) or (i.mnemonic[0] == "j") or i.mnemonic == "jecxz":
