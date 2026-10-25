@@ -10733,6 +10733,24 @@ static bool native_aaa_pointer_scope(const NativeApp *app)
     return count == 1u;
 }
 
+/* NATIVE-09: execute the modeled piano receiver at its original post-ACT
+ * position. An additional possible cascade owner still forbids projection. */
+static bool native_ad0_pointer_scope(const NativeApp *app)
+{
+    if (app == nullptr || app->scene == nullptr || app->ad0 == nullptr) return false;
+#ifdef BLACKMOOR_NATIVE_APP_TEST_HOOKS
+    if (app->test_members_busy) return false;
+#endif
+    size_t count = 0u;
+    for (size_t row = 0; row < scene_resource_action_count(app->scene); ++row) {
+        SceneActionInfo action{};
+        if (scene_resource_action_at(app->scene, row, &action) != SCENE_RESOURCE_OK) return false;
+        if (action.type == SESSION_AD0_TYPE) ++count;
+        else if (session_navigation_member_type(action.type)) return false;
+    }
+    return count == 1u;
+}
+
 static InteractiveVideoInputView native_a1c_input_view(NativeApp *app)
 {
     InteractiveVideoInputView view{};
@@ -10804,7 +10822,7 @@ static void native_pointer_context(NativeApp *app, SessionInputContext *out)
     out->priority_clear = (cursor.guard_5b5158 == 0 && cursor.guard_5b61af == 0 &&
                            cursor.guard_5b615e == 0 &&
                            (app->nav_members_idle || native_d1_pointer_scope(app) || native_a1c_pointer_scope(app) ||
-                            native_aaa_pointer_scope(app))) ? 1u : 0u;
+                            native_aaa_pointer_scope(app) || native_ad0_pointer_scope(app))) ? 1u : 0u;
     out->excluded_0 = -1; /* 0x5b4e89 / 0x5b5100: set only by types 0x33/0x34 */
     out->excluded_1 = -1;
 }
@@ -11248,12 +11266,6 @@ static int native_pointer_consume(void *context, SceneExecutorFrameInput *frame,
         session_a77_state(app->a77)->active != 0u)
         (void)session_a77_pointer_move(app->a77, static_cast<int32_t>(frame->pointer_x),
                                        static_cast<int32_t>(frame->pointer_y), &app->a77_pointer);
-    app->ad0_pointer = D0PointerResult{};
-    app->ad0_pointer.candidate = -1;
-    if (status == SESSION_INPUT_OK && frame->pointer_valid != 0 && app->ad0 != nullptr &&
-        session_ad0_object(app->ad0)->active != 0)
-        (void)session_ad0_pointer_move(app->ad0, static_cast<int32_t>(frame->pointer_x),
-                                       static_cast<int32_t>(frame->pointer_y), &app->ad0_pointer);
     app->ad3_pointer = CpzPointerResult{};
     app->ad3_pointer.candidate = -1;
     if (status == SESSION_INPUT_OK && frame->pointer_valid != 0 && app->ad3 != nullptr &&
@@ -11337,6 +11349,45 @@ static int native_pointer_scan(void *context, const SessionInputHotspot *rows,
     native_pointer_context(app, &input);
     /* 0x4d3073 resets the global candidate before the 0x4f0059 scan. */
     (void)session_input_publish_candidate(&app->input_state, -1);
+    /* 0x4f0ad3 calls the piano before D1, clock, overlays and navigation.
+     * Only consume may drain the real release edge; this projection is private. */
+    app->ad0_pointer = D0PointerResult{};
+    app->ad0_pointer.candidate = -1;
+    if (native_ad0_pointer_scope(app) && input.priority_clear != 0u) {
+        SessionInputState projection_state = app->input_state;
+        SceneExecutorFrameInput projected{};
+        const int projection = session_input_tick(&projection_state, &input, &projected);
+        if (projection != SESSION_INPUT_OK) { *candidate = -1; return projection; }
+        if (projected.pointer_valid != 0u) {
+            /* Held-item cursor prelude at0x4f0126 precedes the receiver even
+             * when it misses; the original reset also clears navigation. */
+            const int16_t *held = app->new_game.view.inventory.selected_item_candidate;
+            const int16_t item = held != nullptr ? *held : static_cast<int16_t>(-1);
+            app->nav.state = NAV_STATE_NONE;
+            if (item == -1) app->nav_cursor = {0, 0};
+            else app->nav_cursor.index = static_cast<int32_t>(item) + 0x25;
+            const int hit = session_ad0_pointer_move(app->ad0, projected.pointer_x,
+                                                     projected.pointer_y, &app->ad0_pointer);
+            if (hit != D0_OK) {
+                record(app, "scene_ad0_pointer_error status=%d detail=%s", hit, session_ad0_failure(app->ad0));
+                *candidate = -1;
+                return SESSION_INPUT_INVALID_ARGUMENT;
+            }
+            if (app->ad0_pointer.cursor_written != 0u) {
+                app->nav_cursor.index = app->ad0_pointer.cursor_kind;
+                app->nav_cursor.variant = app->ad0_pointer.cursor_sub;
+            }
+            if (app->ad0_pointer.hit != 0u) {
+                (void)session_input_publish_candidate(&app->input_state, app->ad0_pointer.candidate);
+                *candidate = app->input_state.candidate;
+                if (*candidate != app->logged_candidate)
+                    record(app, "scene_ad0_pointer candidate=%d key=%d before=overlay-navigation-generic",
+                           *candidate, session_ad0_object(app->ad0)->hover);
+                app->logged_candidate = *candidate;
+                return SESSION_INPUT_OK;
+            }
+        }
+    }
     app->aaa_pointer = AlcPointerResult{};
     app->aaa_pointer.candidate = -1;
     if (native_aaa_pointer_scope(app) && input.priority_clear != 0u) {
@@ -11495,11 +11546,6 @@ static int native_pointer_scan(void *context, const SessionInputHotspot *rows,
         /* 0x4f0270..0x4f04b6: the Ordering Puzzle's case returns 1 before the generic row loop and has written the candidate
          * (0x2719 button, 0x271a exit). The cursor cells (0x5b44f0, 0x5b44f4) it also writes are not drawn by the app. */
         (void)session_input_publish_candidate(&app->input_state, app->a77_pointer.candidate);
-    }
-    if (status == SESSION_INPUT_OK && app->ad0_pointer.hit != 0u) {
-        /* 0x48d1e8 (cascade 0x4f0059 at 0x4f0acf): the Piano Puzzle's hit test returns before the generic row loop and has written
-         * the candidate (0x2765 key, 0x2766 exit). The cursor cells (0x5b44f0, 0x5b44f4) it also writes are not drawn by the app. */
-        (void)session_input_publish_candidate(&app->input_state, app->ad0_pointer.candidate);
     }
     if (status == SESSION_INPUT_OK && app->ae4_pointer.hit != 0u) {
         /* 0x475da4 (cascade 0x4f0059 at 0x4f0c3b) returns before the generic row loop and 0x475fb1 has written the candidate

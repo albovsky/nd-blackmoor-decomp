@@ -177,7 +177,7 @@ class NativeAvfBackgroundTests(unittest.TestCase):
                          '6dfff5282a76f73749751daa7f720d2f867485ac183fe42a1333aea43898fbc6')
         self.component(self.game, 'roundtrip')
 
-    def test_actual_stairs_route_loads_static_avf_and_retains_d0_input_limit(self):
+    def test_actual_stairs_route_loads_static_avf_with_piano_input_ready(self):
         log = Path(self.temp.name) / 'stairs-avf-route.log'
         args = [str(self.executable), '--inspect-live-session', '--live-click-row', '34',
                 '--live-nav', '2010:left:3', '--live-scene-row', '2010:8',
@@ -199,7 +199,7 @@ class NativeAvfBackgroundTests(unittest.TestCase):
         self.assertIsNotNone(transition, summary)
         self.assertIsNotNone(end, summary)
         self.assertIn('native_audio_output_muted=1', contents, summary)
-        self.assertIn('pointer_scan_limit status=3', contents[transition.end():], summary)
+        self.assertNotIn('pointer_scan_limit status=3', contents[transition.end():], summary)
         for error in ('scene_transition_error', 'scene_session_blocked', 'session_frozen', 'scene_media_error'):
             self.assertNotIn(error, contents, summary)
 
