@@ -15,6 +15,7 @@ instruction) pairs. `Trace.digest()` hashes everything that is compared.
 """
 from __future__ import annotations
 
+import gc
 import ctypes
 import hashlib
 import os
@@ -39,7 +40,8 @@ REGION_BASE, REGION_STEP, REGIONS = 0x20000000, 0x10000, 8
 TIB, GDT = 0x7d000000, 0x7d010000        # the thread information block behind fs, and the descriptor table that puts it there
 STUB_BASE = od.STUB_BASE
 DATA_START = 0x537000          # first writable page of .data (the .rdata ends before it): globals below it are constants and tables
-INSTRUCTION_LIMIT = 200000
+PAGE_CAP = 0
+INSTRUCTION_LIMIT = int(os.environ.get("FL48_INSTR_LIMIT", "4000000"))
 FIXED = os.environ.get('FL43_WORLD_FIXED', '1') != '0'      # FL-43: closes two gaps of the model that only show on rare seeds (see Mem and stub_filter); the recorded runs of the corpus seeds are identical with and without it (FL43_WORLD_FIXED=0)
 ORDER = None                   # set to a list to get the executed instruction addresses of run_original in order (debugging aid, FL-43)
 ARGS = 8                       # stack dwords above the return address
@@ -117,6 +119,7 @@ def initial_state(row, seed):
     return regs, args, patches
 
 
+STUB_WR = 0xffd00000       # FL-48: overrides at STUB_WR + 16*k (target address) and + 4 (value) make the k-th callee stub also store that dword (a callee may write any cell); both sides honour it
 STUB_OVR = 0xfff00000      # FL-45: an override at STUB_OVR + 16*k + {0, 4, 8} sets eax, ecx, edx that the k-th callee stub returns (instead of the seeded draw); both sides honour it
 
 
@@ -126,6 +129,8 @@ def split_stub_overrides(overrides):
     for a, n, v in overrides:
         if STUB_OVR <= a < STUB_OVR + 0x10000:
             stub[((a - STUB_OVR) // 16, ((a - STUB_OVR) % 16) // 4)] = v & 0xffffffff
+        elif STUB_WR <= a < STUB_WR + 0x10000:
+            stub[((a - STUB_WR) // 16, 8 + ((a - STUB_WR) % 16) // 4)] = v & 0xffffffff
         else:
             mem.append((a, n, v))
     return mem, stub
@@ -133,6 +138,13 @@ def split_stub_overrides(overrides):
 
 def apply_stub_overrides(stub, k, eax, ecx_out, edx):
     return stub.get((k, 0), eax), stub.get((k, 1), ecx_out), stub.get((k, 2), edx)
+
+
+def extra_stub_writes(stub, k):
+    """FL-48: the dword the scenario makes the k-th callee store, as a stub write"""
+    if (k, 8) in stub and (k, 9) in stub:
+        return [(stub[(k, 8)], struct.pack('<I', stub[(k, 9)]))]
+    return []
 
 
 def stub_filter(row, writes):
@@ -179,6 +191,14 @@ class Trace:
 
 
 def run_original(row, seed, overrides=(), observe=False, probes=None):
+    """FL-48: collect the emulator's reference cycles after every run (a few hundred runs in one process used 13 GB and the container's OOM killer ended the mutation check)"""
+    try:
+        return _run_original(row, seed, overrides, observe, probes)
+    finally:
+        gc.collect()
+
+
+def _run_original(row, seed, overrides=(), observe=False, probes=None):
     overrides, stub_ovr = split_stub_overrides(overrides)
     import unicorn
     from unicorn import x86_const as X
@@ -237,6 +257,8 @@ def run_original(row, seed, overrides=(), observe=False, probes=None):
     def unmapped(uc_, access, address, size_, value, user):
         if address >= 0xfff00000:
             return False
+        if len(mapped) >= 30000:              # FL-48: a scenario that walks through memory without end (closing such an emulator took hours): the access faults
+            return False
         page = address >> 12
         for p in (page, (address + size_ - 1) >> 12):
             if p not in mapped:
@@ -280,6 +302,7 @@ def run_original(row, seed, overrides=(), observe=False, probes=None):
         words = struct.unpack('<%dI' % LOGGED, uc.mem_read(esp + 4, 4 * LOGGED))
         eax, ecx_out, edx, writes = stub_effect(stub_rng, magic, ecx, words)
         eax, ecx_out, edx = apply_stub_overrides(stub_ovr, len(trace.calls), eax, ecx_out, edx)
+        writes = writes + extra_stub_writes(stub_ovr, len(trace.calls))
         writes = stub_filter(row, writes)
         for at, data in writes:
             ensure(at)
@@ -307,6 +330,8 @@ def run_original(row, seed, overrides=(), observe=False, probes=None):
         if not (IMAGE_BASE <= address and address + size_ <= IMAGE_BASE + len(image)):
             ensure(address)
             ensure(address + size_ - 1)
+            uc.mem_write(address, (value & ((1 << (8 * size_)) - 1)).to_bytes(size_, 'little'))
+        elif address >= DATA_START:                 # FL-48: a writable global may hold any value (code and constant tables below DATA_START stay as they are)
             uc.mem_write(address, (value & ((1 << (8 * size_)) - 1)).to_bytes(size_, 'little'))
     try:
         uc.emu_start(va, STOP, count=INSTRUCTION_LIMIT)
@@ -367,6 +392,8 @@ class Mem:
             raise Fault('access across pages at 0x%x' % address)
         page = address >> 12
         if page not in self.pages:
+            if PAGE_CAP and len(self.pages) >= PAGE_CAP:       # FL-48: a mutant that walks through memory without end; the mutation check's child ends (the parent lists it as a hang and the step budget decides)
+                os._exit(0)
             self.pages[page] = bytearray(page_fill(self.seed, self.magic, page))
         return self.pages[page], address & 0xfff
 
@@ -426,6 +453,7 @@ def run_native(lib, row, seed, overrides=()):
             return
         eax, ecx_out, edx, writes = stub_effect(stub_rng, magic, ecx, words)
         eax, ecx_out, edx = apply_stub_overrides(stub_ovr, len(trace.calls), eax, ecx_out, edx)
+        writes = writes + extra_stub_writes(stub_ovr, len(trace.calls))
         writes = stub_filter(row, writes)
         for at, data in writes:
             mem.write_bytes(at, data)
@@ -440,6 +468,8 @@ def run_native(lib, row, seed, overrides=()):
     for k, v in enumerate([STOP, *args]):
         mem.write(sp + 4 * k, 4, v)
     for address, size_, value in overrides:
+        if IMAGE_BASE <= address < DATA_START:          # FL-48: the original ignores an override of its code or constant tables, and so does the translation
+            continue
         mem.write(address, size_, value)
     r = Regs(regs['eax'], regs['ecx'], regs['edx'], regs['ebx'], sp, regs['ebp'], regs['esi'], regs['edi'])
     getattr(lib, 'm%x_lifted' % va)(ctypes.byref(r), ctypes.byref(host))

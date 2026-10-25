@@ -13,8 +13,8 @@
 # locals:       10 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18, local_1c, local_20, local_24, local_28
 # fields:       [eax + n] field_4, field_8, field_c, field_b6, field_ba, field_361, field_365, field_3e5, field_3f1, field_3f5, field_3f9, field_40d and 2 more; [ecx + n] field_361, field_365, field_369, field_36d, field_3d5, field_3e1, field_3ed, field_3f1, field_3f9, field_411, field_415, field_minus_1; [edx + n] field_4, field_8, field_c, field_365, field_3d9, field_3ed, field_3f5, field_3f9, field_40d, field_411, field_415
 # callees:      calls USER32.dll!CopyRect, KERNEL32.dll!GetTickCount, FUN_0044bebb, FUN_0044c0e6, FUN_0044bf4b, FUN_0050ce04, FUN_00473e8a, USER32.dll!EqualRect
-# track-n:      outputs/blackmoor-decomp/src/original_methods_fl40.c:m473651_lifted (function ledger class candidate_port; also m473ac5_lifted; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 255 instruction(s), 9 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses
+# track-n:      host-adapter: none
+# unverified:   machine annotation only: the 255 instruction(s), 9 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; function ledger class partial_native is a native-touch record, not a counterpart claim
 .intel_syntax noprefix
 .code32
 .text

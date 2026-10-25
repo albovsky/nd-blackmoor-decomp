@@ -1,0 +1,1 @@
+0x4c8757 mutants 7 killed 2 survivors [('alu', 6, 'survives', '01ce021d'), ('literal', 6, 'survives', 'b825f7f4'), ('register', 6, 'survives', 'b15c7518'), ('literal', 6, 'survives', '70f22535'), ('drop', 6, 'survives', 'e5a2f4ff')]

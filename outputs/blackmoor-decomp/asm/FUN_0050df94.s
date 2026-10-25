@@ -14,8 +14,8 @@
 # locals:       none resolved: no ebp frame so slots are listed under fields as esp-relative stk symbols
 # fields:       [esp + n] stk_4
 # callees:      calls FUN_00513c65
-# track-n:      outputs/blackmoor-decomp/src/original_methods_fl40.c:m44bed5_lifted (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 2 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; the code part ends in a call with no instruction after it, whether the callee returns is not proven here, and the entry is counted only bound together with the range at 0x0050df9d that follows it (owner ruling of 2026-10-16)
+# track-n:      host-adapter: none
+# unverified:   machine annotation only: the 2 instruction(s), 0 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; names are generated from offsets and addresses; the code part ends in a call with no instruction after it, whether the callee returns is not proven here, and the entry is counted only bound together with the range at 0x0050df9d that follows it (owner ruling of 2026-10-16); function ledger class partial_native is a native-touch record, not a counterpart claim
 # note:         call_without_fallthrough:0x0050df98
 .intel_syntax noprefix
 .code32

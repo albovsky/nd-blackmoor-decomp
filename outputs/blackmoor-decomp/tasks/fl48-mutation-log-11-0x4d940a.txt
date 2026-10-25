@@ -1,0 +1,1 @@
+0x4d940a mutants 7 killed 2 survivors [('width', 114, 'survives', '52f9326d'), ('width', 126, 'survives', '0930a8a3'), ('jump', 121, 'survives', '21b8c71a'), ('width', 123, 'survives', 'f5388d11'), ('width', 129, 'survives', 'b5857d15')]

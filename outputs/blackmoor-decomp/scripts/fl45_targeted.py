@@ -26,6 +26,7 @@ import signal
 import subprocess
 import sys
 import tempfile
+import time
 
 sys.dont_write_bytecode = True
 PROJECT = Path(__file__).resolve().parents[1]
@@ -168,7 +169,15 @@ def alive_instructions(text_lines, wanted):
 
 
 def work(args):
+    try:
+        return work_inner(args)
+    except Exception as ex_:                                    # FL-48: an unpicklable UcError from a worker hung the pool
+        return args[0], {'error': '%s: %s' % (type(ex_).__name__, str(ex_)[:200]), 'found': [], 'alive': -1, 'tried': 0}
+
+
+def work_inner(args):
     key, entry, text, helper, wanted, seed_limit = args
+    deadline = time.time() + int(os.environ.get('FL48_ROW_SECONDS', '100000'))      # FL-48: a wall-clock cap per row for the search (not a verdict: the search just stops)
     va = int(key, 16)
     row = W.row_info(va, entry['body'], {int(k, 16): v for k, v in entry['callees'].items()}, {int(k, 16): v for k, v in entry['imports'].items()}, entry['fs'])
     muts = M.mutants(text, va, random.Random(va), 100000, True)
@@ -210,14 +219,17 @@ def work(args):
             reaching = []
             for sd, ov in base:
                 store = []
-                o = W.run_original(row, sd, ov, observe=True, probes={address: make_probe(md, ins, store)})
+                try:
+                    o = W.run_original(row, sd, ov, observe=True, probes={address: make_probe(md, ins, store)})
+                except Exception:
+                    continue
                 if o.fault or not store:
                     continue
                 reaching.append((sd, ov, o, store[0], 0))
                 if len(reaching) >= seed_limit:
                     break
             for sd, ov, o, (cells, values, wc), depth in reaching:
-                if not (alive & targets):
+                if not (alive & targets) or time.time() > deadline:
                     break
                 first_write = {}
                 for k, (a, n, v) in enumerate(o.writes):
@@ -240,10 +252,14 @@ def work(args):
                             if a2 <= a and a + n <= a2 + n2:
                                 chosen[(a2, n2)] = v2
                 for (a, n), v in inputs.items():                          # the cells whose value reached the instruction by a copy chain
-                    if v in values and len(chosen) < 12:
+                    if (v in values or (os.environ.get('FL48_LOOPS') and (a >= W.STUB_OVR or any(v & 0xffff == x or v & 0xff == x for x in values)))) and len(chosen) < 12:     # FL-48: a wide cell reaches a narrow operand (ax, al) through its low bits; what a callee returned may always matter
                         chosen.setdefault((a, n), v)
                 if ins.mnemonic.startswith('j') and not chosen:                  # FL-47: a conditional jump has no operand cells: any input cell may decide a later compare, try them one at a time
                     chosen = dict(list(inputs.items())[:48])
+                if os.environ.get('FL48_LOOPS') and any(k_ in ('width', 'literal') for k_, _ in kinds):     # FL-48: a counter wider than 16 bits needs a loop that runs 65537 times: try every 4-byte input cell as the bound
+                    for (a, n), v in list(inputs.items())[:24]:
+                        if n == 4:
+                            chosen.setdefault((a, n), v)
                 extra = {}
                 if cells:                                                 # FL-47 alias scenarios: make an earlier store through a register hit the cell this instruction reads
                     a_r = cells[0][0]
@@ -265,17 +281,22 @@ def work(args):
                 for (a, n), (v, news) in extra.items():
                     chosen.setdefault((a, n), v)
                 for (a, n), v in sorted(chosen.items()):
-                    for new in (list(variants(v, n, imms, [x for x in values if x != v])) if depth == 0 else []) + sorted(extra.get((a, n), (v, ()))[1]):
-                        if not (alive & targets):
+                    if time.time() > deadline:
+                        break
+                    for new in (list(variants(v, n, imms, [x for x in values if x != v])) if depth == 0 else []) + sorted(extra.get((a, n), (v, ()))[1]) + ([0x10001] if os.environ.get('FL48_LOOPS') and n == 4 and depth == 0 else []):
+                        if not (alive & targets) or time.time() > deadline:
                             break
                         merged = {(x, y): z for x, y, z in ov}
                         merged[(a, n)] = new
                         scen = tuple(sorted((x, y, z) for (x, y), z in merged.items()))
                         tried += 1
-                        o2 = W.run_original(row, sd, scen)
-                        if o2.fault:
+                        try:
+                            o2 = W.run_original(row, sd, scen)
+                            if o2.fault:
+                                continue
+                            t = W.run_native(lib, row, sd, scen)
+                        except Exception:                                  # FL-48: an override that cannot be mapped (UC_ERR_NOMEM) is no scenario
                             continue
-                        t = W.run_native(lib, row, sd, scen)
                         if t.fault or t.digest() != o2.digest():
                             continue
                         ref = o2.digest()
@@ -328,6 +349,9 @@ def main():
         wanted = {(i[0], i[3]) for i in surv['rows_with_survivors'][key] if i[1] is None}
         jobs.append((key, corpus[key], funcs[key], helper if 'FL41_CALL_LIFTED' in funcs[key] else '', wanted, a.seeds))
     result = {}
+    if os.environ.get('FL48_RESUME') and Path(a.out).exists():                 # FL-48: keep the rows an interrupted run finished
+        result = {k: v for k, v in json.loads(Path(a.out).read_text()).items() if v.get('alive', -1) >= 0}
+        jobs = [j for j in jobs if j[0] not in result]
     with mp.Pool(a.jobs, maxtasksperchild=1) as pool:
         for key, res in pool.imap_unordered(work, jobs):
             result[key] = res

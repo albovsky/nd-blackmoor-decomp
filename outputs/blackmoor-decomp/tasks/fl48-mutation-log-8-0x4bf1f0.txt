@@ -1,0 +1,1 @@
+0x4bf1f0 mutants 8 killed 1 survivors [('drop', 9, 'survives', '867199cc'), ('jump', 25, 'survives', '42dd0763'), ('alu', 11, 'survives', 'd97131b2'), ('alu', 24, 'survives', '4e832a9f'), ('register', 11, 'survives', '8f06a97a'), ('jump', 12, 'survives', 'bc5ccf7b'), ('literal', 57, 'survives', 'd4dab774')]

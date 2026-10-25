@@ -1,0 +1,2 @@
+0x4bb3de mutants killed by the step budget [('alu', 12, 'fda971b3'), ('drop', 13, 'c89cc589'), ('drop', 12, 'f04b84e5')]
+0x4bb3de mutants 3 killed 3 survivors []

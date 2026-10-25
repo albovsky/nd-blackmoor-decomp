@@ -1,0 +1,1 @@
+0x495a5b mutants 9 killed 0 survivors [('alu', 15, 'survives', 'c77b1476'), ('jump', 25, 'survives', 'fffd315b'), ('drop', 23, 'survives', '465e95aa'), ('drop', 19, 'survives', '18271c12'), ('drop', 31, 'survives', 'db35c6e4'), ('drop', 17, 'survives', 'fa9b6832'), ('drop', 28, 'survives', 'f612fa8f'), ('drop', 12, 'survives', 'a395746d'), ('drop', 26, 'survives', '3eaee5f1')]

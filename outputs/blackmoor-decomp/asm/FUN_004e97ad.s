@@ -8,15 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_inventory_panel_render
-# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/4e97ad.c.txt, not original source) refers to the data labelled s_write_empty_inventory_cell_icon_t_0055c770, s_write_hilited_inventory_box_icon_0055c730, s_write_tab_string_0055c6d8
-# name-note:    Renders the inventory panel: tab strings, empty cell icons and hilited or non-hilited inventory box icons, each tagged with write_* strings.
+# name:         m4e97ad_lifted
+# naming:       native port src/original_methods_fl41.c:m4e97ad_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port
+# name-note:    Machine-translated (scripts/lift_fl41.py), 14 seeds; oracle: 157/157 instructions, 16/16 jump directions; every mutant killed, identical -O2 code, or explained.
 # arguments:    no [ebp+n] stack argument slot referenced; plain ret (caller pops any stack arguments); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       3 ebp-relative slot(s): local_4, local_8, local_c
 # fields:       [eax + n] field_7012, field_764c, field_7654, field_7fb2, field_7fc6, field_822e, field_8232; [ecx + n] field_695, field_784, field_7016, field_75dc, field_764c, field_7fb6, field_7fc6, field_822e; [edx + n] field_695, field_794, field_7fae, field_7fc6, field_822e
 # callees:      calls FUN_004ee86f, FUN_004e2b99, FUN_004ee630, FUN_004c5377
-# track-n:      host-adapter: none
-# unverified:   machine annotation only: the 157 instruction(s), 8 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl41.c:m4e97ad_lifted (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 157 instruction(s), 8 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

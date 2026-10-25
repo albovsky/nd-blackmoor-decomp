@@ -34,9 +34,9 @@ def main():
     pending = json.loads(pending_path.read_text())
     for k in sorted(set(corpus) - keep):
         if k in surv['unexplained_rows']:
-            pending[k] = {'status': 'mutation survivor', 'detail': 'FL-45 exhaustive check (tasks/fl45-mutation-log-final.txt, tasks/fl45-survivors.json): a surviving mutant is neither identical -O2 code nor a proven no-op'}
+            pending[k] = {'status': 'mutation survivor', 'detail': 'exhaustive check (FL-48: tasks/fl48-merged-e.txt, tasks/fl48-budget2-log-*.txt, tasks/fl48-survivors-final.json): a surviving mutant is neither identical -O2 code, a proven no-op nor covered by a reviewed written reason'}
         elif k in checked:
-            pending[k] = {'status': 'mutation survivor', 'detail': 'FL-45 check incomplete for this row'}
+            pending[k] = {'status': 'mutation survivor', 'detail': 'mutation check incomplete for this row'}
         else:
             pending[k] = {'status': 'mutation check not run', 'detail': 'translated and agreeing with the original on a full-coverage corpus (FL-45 pool); the exhaustive mutation check has not been run on it yet'}
         del corpus[k]

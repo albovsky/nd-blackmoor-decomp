@@ -8,15 +8,15 @@
 # region:       game
 # frame:        ebp
 # annotation:  machine (scripts/annotate_machine.py; names and comments are derived from the instruction bytes and the function ledger, not from recovered intent)
-# name:         inferred_direct_sound_fill_stream_buffer
-# naming:       INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/4f57e3.c.txt, not original source) refers to the data labelled s_CDirectSound__FillStreamBuffer___0055e5c0
-# name-note:    Fills part of a stream channel buffer when the play cursor has passed; failure reports CDirectSound::FillStreamBuffer.
+# name:         m4f57e3_lifted
+# naming:       native port src/original_methods_fl41.c:m4f57e3_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port
+# name-note:    Machine-translated (scripts/lift_fl41.py), 26 seeds; oracle: 110/110 instructions, 22/22 jump directions; every mutant killed, identical -O2 code, or explained.
 # arguments:    1 ebp-relative stack slot(s) referenced: arg_8; ret 0x4 (callee pops 4 bytes); ecx is read before it is written, a probable this pointer in the thiscall style
 # locals:       5 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14
 # fields:       [eax + n] field_4, field_10, field_3c2; [ecx + n] field_15e; [edx + n] field_4, field_c, field_10, field_3ce
 # callees:      calls FUN_004f594d, FUN_004f356e, FUN_004fa2a8, FUN_0050ca3e, FUN_0044a2b7, FUN_0052139c
-# track-n:      outputs/blackmoor-decomp/src/original_methods_fl41.c:m4f572b_lifted (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
-# unverified:   machine annotation only: the 110 instruction(s), 11 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl41.c:m4f57e3_lifted (function ledger class native_oracle_verified; this machine pass does not re-verify the equivalence)
+# unverified:   machine annotation only: the 110 instruction(s), 11 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name and note are copied from the evidence in the naming line, not read from this code
 .intel_syntax noprefix
 .code32
 .text

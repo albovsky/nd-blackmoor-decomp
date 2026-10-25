@@ -1,0 +1,1 @@
+0x4a0d73 mutants 12 killed 6 survivors [('register', 35, 'survives', '63a61704'), ('register', 59, 'survives', '2e895c22'), ('literal', 82, 'survives', '6940a68b'), ('register', 83, 'survives', '3a415abb'), ('literal', 58, 'survives', 'd0bb1eda'), ('drop', 15, 'survives', 'cc674a97')]
