@@ -135,6 +135,13 @@ class NativeAlarmClockTests(unittest.TestCase):
         self.assertRegex(contents, r'scene_aaa_click row=3 button=1\b', summary)
         self.assertRegex(contents, r'scene_aaa_click row=3 button=6\b', summary)
         self.assertIn('native_audio_output_muted=1', contents, summary)
+        # The real installed clips must resolve through the app's provider;
+        # accepting NO_RESOURCE must not make this real-data route vacuous.
+        self.assertEqual(contents.count('scene_aaa_sound call=0x4fb77a native_status=0'), 2, summary)
+        self.assertEqual(contents.count('scene_aaa_sound channel=9 call=0x4fb2e3 native_status=0'), 3, summary)
+        self.assertEqual(contents.count('scene_aaa_sound call=0x4fba69 native_status=0'), 2, summary)
+        self.assertIn('scene_aaa_sound channel=9 call=0x4fb2e3 native_status=0', contents[set_up:], summary)
+        self.assertNotRegex(contents, r'(?m)^scene_aaa_sound .*native_status=[1-9]\d*', summary)
         for error in ('scene_session_blocked', 'session_frozen', 'scene_aaa_click_error', 'scene_aaa_pointer_error'):
             self.assertNotIn(error, contents, summary)
 

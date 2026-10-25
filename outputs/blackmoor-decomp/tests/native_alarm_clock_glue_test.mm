@@ -297,12 +297,21 @@ static int retained_release(ClockFixture &f)
     return 0;
 }
 
-static int cancel_clock(ClockFixture &f)
+static int cancel_clock(ClockFixture &f, bool require_playing = false)
 {
     transition_target = -1;
     CHECK_CLOCK(f.hover(0x81) && f.app.input_state.candidate == ALC_CANDIDATE_BUTTON && f.object()->button == 8,
                 "real Cancel rectangle must hover");
     CHECK_CLOCK(f.release(), "Cancel release tick succeeds");
+    if (require_playing) {
+        int32_t busy = -1;
+        LiveAudioChannelInfo playing{};
+        CHECK_CLOCK(native_aaa_sound_busy(&f.app, 9, &busy) == 0 && busy == 1 &&
+                    live_audio_get_channel_info(f.app.live_audio, 9, &playing) == LIVE_AUDIO_OK &&
+                    playing.loaded == 1u && playing.started == 1u,
+                    "Cancel must start its real beep before testing unload-while-playing");
+        std::printf("CLOCK_AUDIO_CANCEL busy_before_cleanup=%d started=%u\n", busy, playing.started);
+    }
     for (unsigned i = 0; i < 35 && f.object()->active != 0; ++i) CHECK_CLOCK(f.tick(), "Cancel timed progression succeeds");
     SceneActionRuntimeState state{};
     CHECK_CLOCK(scene_session_get_action_state(f.app.session, f.row, &state) == SCENE_SESSION_OK, "completed clock row available");
@@ -388,7 +397,7 @@ static int clock_audio_cancel(ClockFixture &f)
     LiveAudioChannelInfo prepared{};
     CHECK_CLOCK(live_audio_get_channel_info(f.app.live_audio, 9, &prepared) == LIVE_AUDIO_OK && prepared.loaded == 1u,
                 "Cancel cleanup begins with a real prepared Beep12 channel");
-    const int status = cancel_clock(f);
+    const int status = cancel_clock(f, true);
     if (status != 0) return status;
     LiveAudioChannelInfo channel{};
     CHECK_CLOCK(live_audio_get_channel_info(f.app.live_audio, 9, &channel) == LIVE_AUDIO_OK && channel.loaded == 0u,
