@@ -684,6 +684,7 @@ struct NativeApp {
     /* RT-6: the recovered pointer producer (RT-2). One retained candidate
      * (0x5c39e5) lives in input_state; the session sequences it. */
     SessionInputState input_state{};
+    int pointer_last_logged_status = SESSION_INPUT_OK;
     ProvisionalCursorProvider cursor_provider{};
     int32_t logged_candidate = -2;
     /* RT-17: the view-navigation producer (session_navigation). The globals
@@ -9005,6 +9006,10 @@ static void taskbar_post_tick(NativeApp *app, uint32_t now)
 static bool taskbar_pointer_event(NativeApp *app, int event_kind, unsigned button, int32_t x,
                                   int32_t y)
 {
+    /* Native fit-mode bars have no game controls. Preserve UP ownership below
+     * so moving outside after a valid press cannot leave a swallowed release. */
+    if (event_kind != BLACKMOOR_POINTER_UP && (x < 0 || y < 0 || x >= 640 || y >= 480))
+        return false;
     if (app->inv_view.screen_state == INVVIEW_STATE_INVENTORY && button == 1u &&
         event_kind == BLACKMOOR_POINTER_DOWN) {
         /* NOT original: the in-view close controls (frame button 0x4ee517, keys) are not
@@ -11265,7 +11270,9 @@ static int native_pointer_consume(void *context, SceneExecutorFrameInput *frame,
             }
         }
     }
-    if (edge_before != 0u || status != SESSION_INPUT_OK) {
+    /* A pointer resting in a fit-mode bar has no cursor geometry. Record
+     * status transitions and every edge, rather than repeating at 60 Hz. */
+    if (edge_before != 0u || status != app->pointer_last_logged_status) {
         record(app, "pointer_consume status=%d edge=%u candidate=%d activation=%u "
                "modal=%u mode=%d provisional-geometry=1 projected=%d,%d valid=%u",
                status, (unsigned)edge_before, *candidate,
@@ -11273,6 +11280,7 @@ static int native_pointer_consume(void *context, SceneExecutorFrameInput *frame,
                input.cursor_mode, frame->pointer_x, frame->pointer_y,
                (unsigned)frame->pointer_valid);
     }
+    app->pointer_last_logged_status = status;
     return status;
 }
 
