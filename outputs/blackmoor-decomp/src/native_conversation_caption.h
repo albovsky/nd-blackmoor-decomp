@@ -14,7 +14,7 @@ typedef struct {
  * Other markup and non-progressing word wrapping are explicitly refused.
  * Callers supply private staging surfaces; publish them only on success.
  * No response/hotspot, scrolling-input or complete original UI parity claim. */
-/* Pure geometry/markup preflight; no sheets, allocations or visible effects. */
+/* Geometry/markup preflight; no sheet callbacks or visible effects. */
 int native_conversation_caption_validate(const uint8_t *text, size_t length,
     const CaptionFonts *fonts, const CaptionGeometry *geometry,
     const CaptionPixelFormat *format);

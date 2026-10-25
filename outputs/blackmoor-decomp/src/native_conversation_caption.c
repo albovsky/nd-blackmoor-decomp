@@ -45,7 +45,10 @@ static int flush(Writer *w, const char *text)
             }
             --count; --at; line[count] = 0;
             while (count > 0 && line[count] != ' ') { --count; --at; }
-            if (line[count] != ' ') return CAPTION_ERR_UNSUPPORTED;
+            if (line[count] != ' ') {
+                if (w->x == w->left) return CAPTION_ERR_UNSUPPORTED;
+                at = start; w->x = w->left; w->pending = 1; continue;
+            }
             ++count; ++at; line[count] = 0;
         }
         if (at <= start || w->x < INT16_MIN || w->x > INT16_MAX || w->y < INT16_MIN || w->y > INT16_MAX)
@@ -71,6 +74,7 @@ static int write_one(Writer *w, const uint8_t *text, size_t length)
         size_t pos = at < length ? at : at - length;
         size_t available = at < length ? length - at : length + 6u - at;
         if (source[pos] == '\\') { ++at; continue; }
+        if (source[pos] == '>') return CAPTION_ERR_UNSUPPORTED;
         if (source[pos] != '<') {
             if (count + 1 >= sizeof buffer) return CAPTION_ERR_LIMIT;
             buffer[count++] = (char)source[pos]; buffer[count] = 0; ++at; continue;

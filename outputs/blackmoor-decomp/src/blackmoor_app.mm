@@ -1911,6 +1911,19 @@ static void native_caption_fatal(void *context, const char *message)
     if (app != nullptr) record(app, "caption_lifecycle_fatal=%s", message ? message : "");
 }
 
+/* Layer9's text-area restore is coalesced with this host's per-tick Frame /
+ * scene reseed and fresh popup composition, both preceding present_layers.
+ * The original 0x4e79ca source rectangle is not claimed to be a raw-sheet
+ * coordinate here; no inferred crop or stale previous frame is copied. */
+static CaptionLifecycleBackendStatus native_a3f_restore_text(void *context)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (!app || !app->captions.backbuffer_ready || app->captions.transfer_failed_sticky)
+        return CAPTION_LIFECYCLE_BACKEND_ERROR;
+    record(app, "scene_a3f_convo_restore source=fresh-Frame-scene-popup-composition host_coalesced=1 original-source-rectangle=unverified");
+    return CAPTION_LIFECYCLE_BACKEND_OK;
+}
+
 static bool initialize_caption_runtime(NativeApp *app)
 {
     if (app == nullptr || app->boot == nullptr || app->resources == nullptr) return false;
@@ -2022,6 +2035,7 @@ static bool initialize_caption_runtime(NativeApp *app)
     app->captions.lifecycle_backend.load_image = native_caption_load_image;
     app->captions.lifecycle_backend.blit = native_caption_lifecycle_blit;
     app->captions.lifecycle_backend.write_framed_text = native_caption_write_framed;
+    app->captions.lifecycle_backend.convo_restore = native_a3f_restore_text;
     app->captions.lifecycle_backend.fatal = native_caption_fatal;
     app->captions.writer_backend.context = app;
     app->captions.writer_backend.load_font_sheet = native_caption_load_font_sheet;
@@ -3899,7 +3913,7 @@ static int native_a3f_layout_caption(void *context, const Convo3fLayoutRequest *
 
 static bool native_a3f_caption_render(NativeApp *app)
 {
-    if (!app->a3f_caption.ready) return true;
+    if (app->captions.lifecycle.g.overlay_ui != 2 || !app->a3f || session_a3f_modal_active(app->a3f) == 0) return true;
     const uint8_t *ui = nullptr; size_t bytes = 0;
     if (!find_boot_payload(app, "UICO", &ui, &bytes) || bytes < 0x300 || read_i32_le(ui + 0x67) != 0) return false;
     char name[34] = {}; std::memcpy(name, ui, 33);
@@ -3931,6 +3945,11 @@ static int native_a3f_load_world(void *context, Convo3fWorld *world)
     world->stall_limit_5b028e = 0; /* BSS, never written (RT-25) */
     world->view_x_583186 = app->scene_destination.left;
     world->view_y_58318a = app->scene_destination.top;
+    /* These shared UI cells can be changed by the main-loop clear block
+     * between conversation visits; read its latest values before the kernel. */
+    world->ui_5b15c8 = app->captions.lifecycle.g.framed_clear_request;
+    world->ui_5b15d6 = app->captions.writer_globals.framed_ready;
+    world->ui_5b0a7c = app->captions.writer_globals.framed_scroll_lines;
     world->ui_5b0a74 = app->captions.geometry.framed_surface_width;
     world->ui_5b0a76 = app->captions.geometry.framed_surface_height;
     world->ui_5b0a16 = read_i32_le(app->captions.geometry.tbox + 4);
