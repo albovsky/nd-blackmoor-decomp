@@ -1,0 +1,4 @@
+[
+ {"kind": "alu", "line": 11, "ident": "c3f67b33", "verdict": "confirmed", "note": "Re-derived: a_ and b_ are both ecx, so a_&b_ == a_|b_ == ecx; FL41_LOGIC uses only r_ and r_ is not stored to a register, so zf/sf/pf/cf/of are identical for jne at 0x4af989."},
+ {"kind": "literal", "line": 13, "ident": "8a5b78c6", "verdict": "confirmed", "note": "Re-derived: the only stores before 0x4af98b are [ebp-0xc..-9] (dword) and [ebp-8] word=0xffff, so under assumption (a) the loaded word is 0xffff, making the low 16 bits 0xffff in both versions; the extra mask bit 0 only affects bit 0 of the low half which is overwritten, upper half kept by both."}
+]

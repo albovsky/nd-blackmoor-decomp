@@ -1652,3 +1652,7 @@ Details: `tasks/fl48-handoff.md`. 2,064 (main after PR 175) -> **2,122 ported**:
 ## FL-53 handoff (2026-10-24, PDT): rows below 0x480000, eighth round
 
 Details: `tasks/fl53-handoff.md`. 2,137 (main after PR 177) -> **2,157 ported** (279 of 368 translated lower rows credited, 89 held). Ten `repe cmpsb` clone rows cleared by a new, soundness-checked `carry only` rule (a wider byte read in an 8-bit ADD/SUB compare changes only the carry flag, which is read nowhere in the function), ten more rows by targeted killing seeds. Same rulings as FL-49 to FL-51; no new written reasons. Open: 89 held rows (0x41c29a needs a windowed recheck), 8 never-checked large rows, the x87 leftovers of FL-51; Glib's open assumption question is unchanged.
+
+## FL-52 handoff (2026-10-25, PDT): rows at or above 0x480000, round seven
+
+Details: `tasks/fl52-handoff.md`. 2,157 (main after PR 184) -> **2,165 ported** (8 upper rows: 0x488da5 0x489722 0x48e776 0x48e9bf 0x4959ea 0x4a0cea 0x4a6bde 0x4af96e). Every mutant killed, covered by a rule or a reviewed written reason; hang kills only under the step budget and kept separate. The x87 model now runs on the FL-41 stack. Reasons for 0x488da5 0x489722 0x48e776 0x4959ea 0x4af96e include no-alias / explicit-store-only assumptions (Glib's open question, recommendation keep). Full suite: 127 files fail on the branch and on clean main alike. Open: 0x4adae8 (one hang mutant), seven rows in targeted search, first-pass rows in `tasks/fl52/`, the six too-large rows.

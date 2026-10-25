@@ -449,6 +449,9 @@ def classify(kind, lines, n, equivalent, proofs=None, mutline=None, ranges=None,
 
 WRITTEN_PATH = PROJECT / 'tasks/fl48-written-reasons.json'
 WRITTEN = json.loads(WRITTEN_PATH.read_text())['rows'] if WRITTEN_PATH.exists() else {}      # FL-48: {row: [{kind, line, statement, reason, review}]}, read by one Sonnet reader and checked by a second
+for _p in sorted((PROJECT / 'tasks').glob('fl5*-written-reasons.json')):          # FL-52: later rounds keep their reasons in tasks/fl5N-written-reasons.json
+    for _row, _items in json.loads(_p.read_text())['rows'].items():
+        WRITTEN.setdefault(_row, []).extend(_items)
 
 
 def main():

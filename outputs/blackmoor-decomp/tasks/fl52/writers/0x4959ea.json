@@ -1,0 +1,18 @@
+[
+ {"kind": "width", "line": 11, "ident": "2cc01dac", "verdict": "not equivalent",
+  "reason": "Differs only by non-termination, so the lab cannot save a scenario (confirmed: the original finishes, the mutant run ends in the lab alarm). RD16 at 0x4959fc drops the high half of the dword counter, so once the counter is 65536 the add gives 1 and the counter cycles. Input: dword [this+0x4765]=66000 and the arg [ebp+8] = 0x20020ac0 (no element has [p+4] equal to it). The original runs to 66000 and returns 0 at 0x495a53; the mutant never leaves the loop."},
+ {"kind": "width", "line": 16, "ident": "da486a37", "verdict": "not equivalent",
+  "reason": "Scenario saved (seed 1): arg [0x100fee0]=0x20020ac0, [this+0x4765]=70000, and element 70000 (p = this+0x45c1+0x1c*70000) with [p+4]=arg, [p]=1, [p+0xc]=1. The original leaves at counter 70000 by jge at 0x495a11 and returns 0. The mutant compares only the low 16 bits (4464 < 70000), enters element 70000 and returns 1."},
+ {"kind": "width", "line": 19, "ident": "ec68eebe", "verdict": "not equivalent",
+  "reason": "Scenario saved (seed 1): arg [0x100fee0]=0x20020ac0, [this+0x4765]=66000, element 65541 with [p+4]=arg, [p]=1, [p+0xc]=1. The original returns 1 at counter 65541. The mutant's RD16 at 0x495a13 makes it examine element 5 instead, finds no match, and runs on to the limit returning 0."},
+ {"kind": "width", "line": 26, "ident": "af77f87a", "verdict": "not equivalent",
+  "reason": "Scenario saved (seed 1): [ebp+8]=0x10005 (address 0x100fee0), element 0 has [p+4]=5, [p]=1, [p+0xc]=1, limit [this+0x4765]=1. The original compares 5 with 0x10005, does not match and returns 0; the mutant compares with the low 16 bits (5), matches and returns 1."},
+ {"kind": "jump", "line": 30, "ident": "578b766e", "verdict": "not equivalent",
+  "reason": "Scenario saved (seed 1): element 0 has [p+4]=[ebp+8]=5, [p]=0x80000000 (nonzero but negative), [p+0xc]=1. The original takes jne at 0x495a37 and returns 1; the mutant also requires sf==of (positive), so it falls through to xor eax,eax at 0x495a39 and returns 0."},
+ {"kind": "jump", "line": 30, "ident": "b0444fd4", "verdict": "equivalent",
+  "reason": "The condition at 0x495a37 follows cmp dword [edx], 0 at 0x495a34, i.e. FL41_SUB(a_, 0, 0): cf = (a_ < 0 + 0) as unsigned, which is always 0 since 0 is the smallest unsigned value. So !cf is always true and (!cf && !zf) equals !zf; no instruction between 0x495a34 and 0x495a37 touches flags. Uses no callee or data."},
+ {"kind": "literal", "line": 35, "ident": "8df333fd", "verdict": "not equivalent",
+  "reason": "Scenario saved (seed 1): element 0 has [p+4]=[ebp+8]=5, [p]=0x80000000, [p+0xc]=1 (byte 0 set, bytes p+0xd.. random/zero). The original sees the dword at p+0xc nonzero and returns 1; the mutant reads the dword at p+0xd (bytes 0xd..0x10) and in the lab got a different outcome (KILLED). Any input with [p+0xc]=1 and [p+0xd..0x10]=0 distinguishes it."},
+ {"kind": "jump", "line": 36, "ident": "d8b9687a", "verdict": "equivalent",
+  "reason": "The je at 0x495a44 follows cmp dword [eax+0xc], 0 at 0x495a40, i.e. FL41_SUB(a_, 0, 0), where cf = (a_ < 0) as unsigned is always 0. So (cf || zf) equals zf; no flag-changing instruction lies between 0x495a40 and 0x495a44. No callee or data value is used."}
+]

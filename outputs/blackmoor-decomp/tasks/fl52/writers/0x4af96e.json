@@ -1,0 +1,6 @@
+[
+ {"kind": "alu", "line": 11, "ident": "c3f67b33", "verdict": "equivalent",
+  "reason": "At 0x4af987 both operands of the test are ecx (a_ = b_ = ecx), so a_ | b_ and a_ & b_ are both equal to ecx. FL41_LOGIC then sets zf/sf/pf from that same r_ and clears cf/of; r_ is not stored in any register. The flags consumed by jne at 0x4af989 are therefore identical."},
+ {"kind": "literal", "line": 13, "ident": "8a5b78c6", "verdict": "equivalent",
+  "reason": "Line 13 (0x4af98b) is reached only by falling through jne at 0x4af989. The word at [ebp-8] is stored 0xffff at 0x4af977 and no other instruction before 0x4af98b stores to [ebp-8..-7] (the dword store at 0x4af974 covers [ebp-0xc..-9]; assumption: the frame slot changes only through the function's own stores). So the loaded 16-bit value is 0xffff, whose bit 0 is already 1. The mutant mask 0xffff0001 only keeps bit 0 of the old eax, which is OR-ed with that already-set bit 0, so eax is identical (bits 16-31 are kept by both masks)."}
+]
