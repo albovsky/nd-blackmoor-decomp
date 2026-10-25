@@ -5423,6 +5423,10 @@
    ]
   ]
  },
+ "0x4348b0": {
+  "detail": "FL-51 diff review: the x87 stack effect of a callee cannot be established from its bytes (a thunk into x87 code, an indirect call, a conditional jump out of the span or a jump chain); the row had 8 seeds and was never credited",
+  "status": "refused callee"
+ },
  "0x435015": {
   "directions": [
    26,
@@ -10761,6 +10765,14 @@
    ]
   ]
  },
+ "0x44753b": {
+  "detail": "FL-51 diff review: the x87 stack effect of a callee cannot be established from its bytes (a thunk into x87 code, an indirect call, a conditional jump out of the span or a jump chain); the row had 8 seeds and was never credited",
+  "status": "refused callee"
+ },
+ "0x4477d1": {
+  "detail": "FL-51 diff review: the x87 stack effect of a callee cannot be established from its bytes (a thunk into x87 code, an indirect call, a conditional jump out of the span or a jump chain); the row had 4 seeds and was never credited",
+  "status": "refused callee"
+ },
  "0x447eaf": {
   "directions": [
    7,
@@ -11947,6 +11959,10 @@
     "fall-through"
    ]
   ]
+ },
+ "0x45468e": {
+  "detail": "FL-51 diff review: the x87 stack effect of a callee cannot be established from its bytes (a thunk into x87 code, an indirect call, a conditional jump out of the span or a jump chain); the row had 14 seeds and was never credited",
+  "status": "refused callee"
  },
  "0x455cc3": {
   "directions": [
@@ -17398,6 +17414,18 @@
    ]
   ]
  },
+ "0x469259": {
+  "detail": "FL-51 diff review: the x87 stack effect of a callee cannot be established from its bytes (a thunk into x87 code, an indirect call, a conditional jump out of the span or a jump chain); the row had 21 seeds and was never credited",
+  "status": "refused callee"
+ },
+ "0x469374": {
+  "detail": "FL-51 diff review: the x87 stack effect of a callee cannot be established from its bytes (a thunk into x87 code, an indirect call, a conditional jump out of the span or a jump chain); the row had 31 seeds and was never credited",
+  "status": "refused callee"
+ },
+ "0x46ab7f": {
+  "detail": "FL-51 diff review: the x87 stack effect of a callee cannot be established from its bytes (a thunk into x87 code, an indirect call, a conditional jump out of the span or a jump chain); the row had 4 seeds and was never credited",
+  "status": "refused callee"
+ },
  "0x46c41e": {
   "directions": [
    21,
@@ -22455,5 +22483,9 @@
     "taken"
    ]
   ]
+ },
+ "0x47d788": {
+  "detail": "FL-51 diff review: the x87 stack effect of a callee cannot be established from its bytes (a thunk into x87 code, an indirect call, a conditional jump out of the span or a jump chain); the row had 15 seeds and was never credited",
+  "status": "refused callee"
  }
 }

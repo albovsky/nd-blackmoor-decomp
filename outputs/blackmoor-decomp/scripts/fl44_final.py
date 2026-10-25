@@ -21,8 +21,8 @@ import fl40_mutation_check as M
 import fl40_survivors as S
 
 TASKS = PROJECT / 'tasks'
-LOGS = ['fl44-recheck-credited-log-part1.txt', 'fl44-recheck-credited-log-part2.txt', 'fl44-recheck-credited-log-part3.txt', 'fl44-recheck-credited-log-part4.txt', 'fl44-recheck-big5-log.txt', 'fl44-new-rows-mutation-log.txt', 'fl46-unchecked-log.txt', 'fl46-budget3-log.txt', 'fl49-recheck-log.txt', 'fl49-recheck2-log.txt', 'fl49-recheck3-log.txt', 'fl50-recheck-log.txt', 'fl50-large-log.txt']
-EQUIV = ['fl44-recheck-equivalence.json', 'fl44-recheck-equivalence-big.json', 'fl44-recheck-equivalence-big5.json', 'fl44-recheck-equivalence-part4.json', 'fl44-new-equivalence.json', 'fl46-equivalence.json']
+LOGS = ['fl44-recheck-credited-log-part1.txt', 'fl44-recheck-credited-log-part2.txt', 'fl44-recheck-credited-log-part3.txt', 'fl44-recheck-credited-log-part4.txt', 'fl44-recheck-big5-log.txt', 'fl44-new-rows-mutation-log.txt', 'fl46-unchecked-log.txt', 'fl46-budget3-log.txt', 'fl49-recheck-log.txt', 'fl49-recheck2-log.txt', 'fl49-recheck3-log.txt', 'fl50-recheck-log.txt', 'fl50-large-log.txt', 'fl51-mutation-log.txt']
+EQUIV = ['fl44-recheck-equivalence.json', 'fl44-recheck-equivalence-big.json', 'fl44-recheck-equivalence-big5.json', 'fl44-recheck-equivalence-part4.json', 'fl44-new-equivalence.json', 'fl46-equivalence.json', 'fl51-equivalence.json']
 RESCUE = ['fl44-rescue-base40000.txt', 'fl44-new-rescue-40000.txt', 'fl44-recheck-rescue-40000-part1.txt', 'fl44-recheck-rescue-40000-part2.txt', 'fl44-recheck-rescue-40000-part4.txt', 'fl44-recheck-rescue-40000-part5.txt', 'fl46-rescue-40000.txt', 'fl46-rescue-454065.txt']
 REQUESTS = ['fl44-requests-held-fl42.json', 'fl44-new-survivors.json', 'fl44-recheck-survivors.json', 'fl44-part4-survivors.json', 'fl44-part5-survivors.json', 'fl46-survivors.json', 'fl46-rescue-454065-request.json']      # what the rescue runs were asked to retry
 STRICT = '--strict' in sys.argv       # FL-46: a mutant killed only by the step budget is a survivor (Glib's first reading); by default it is killed (Glib's ruling of 2026-10-23)
