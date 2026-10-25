@@ -13437,9 +13437,11 @@ static bool inspect_audio_graph(NativeApp *app)
             finite = finite && std::isfinite(rendered.interleaved_pcm[i]);
             squares += (double)rendered.interleaved_pcm[i] * rendered.interleaved_pcm[i];
         }
-        record(app, "audio_graph rendered_frames=%llu channels=%u rms=%.8f finite=%d mode=offline gain=diagnostic-unity",
+        record(app, "audio_graph rendered_frames=%llu channels=%u rms=%.8f finite=%d mode=offline "
+                    "gain=diagnostic-channel-unity master_muted=%d capture=post-master",
             (unsigned long long)rendered.frame_count, rendered.channels,
-            samples ? std::sqrt(squares / samples) : 0, finite);
+            samples ? std::sqrt(squares / samples) : 0, finite,
+            [[NSUserDefaults standardUserDefaults] boolForKey:@"BlackmoorAudioMuted"] ? 1 : 0);
         if (!finite) status = MAC_AUDIO_ERR_FORMAT;
     } else record(app, "audio_graph_error status=%d detail=%s", status, error);
     mac_audio_render_destroy(&rendered);
@@ -13455,6 +13457,7 @@ int main(int argc, char **argv)
         (void)session_input_init(&app.input_state);
         app.game_directory = default_game_directory;
         std::string log_path;
+        int audio_mute_override = -1;
         bool inspect_only = false;
         bool inspect_actions = false;
         bool inspect_audio = false;
@@ -13481,6 +13484,8 @@ int main(int argc, char **argv)
         long dump_scene = -1;
         for (int i = 1; i < argc; ++i) {
             const std::string argument = argv[i];
+            if (argument == "--mute") { audio_mute_override = 1; continue; }
+            if (argument == "--unmute") { audio_mute_override = 0; continue; }
             if (argument == "--live-double-click") { live_double_click = true; continue; }
             if (argument == "--live-hover-only") { live_hover_only = true; continue; }
             /* RT-13: after the session blocks, deliver ordinary clicks at the last
@@ -13690,6 +13695,9 @@ int main(int argc, char **argv)
             std::fprintf(stderr, "--live-tick-ms requires --inspect-live-session\n");
             return 2;
         }
+        if (audio_mute_override >= 0)
+            [[NSUserDefaults standardUserDefaults] setBool:audio_mute_override != 0
+                                                   forKey:@"BlackmoorAudioMuted"];
         app.scene_runtime_enabled = !inspect_only || inspect_session_boundary || inspect_live_session ||
                                     inspect_condition_providers;
         if (log_path.empty()) {
@@ -13704,6 +13712,8 @@ int main(int argc, char **argv)
         } else app.log = std::fopen(log_path.c_str(), "wx");
         if (!app.log) return 3;
         NSLog(@"Blackmoor reconstruction log: %s", log_path.c_str());
+        record(&app, "native_audio_output_muted=%d scope=application-master-mixer",
+               [[NSUserDefaults standardUserDefaults] boolForKey:@"BlackmoorAudioMuted"] ? 1 : 0);
         int external = 0;
         char error[256] = {};
         GameResourceBytes boot_bytes = GAME_RESOURCE_BYTES_INIT;
@@ -13713,7 +13723,7 @@ int main(int argc, char **argv)
                                         &app.closed_captioning))
                 throw std::runtime_error("Cannot read original game configuration");
             record(&app, "external_cif_checking=%d closed_captioning=%u "
-                   "gameplay_audio=absent engine=incomplete",
+                   "audio_provider=native-host-adapter engine=incomplete",
                    external, app.closed_captioning);
             app.resources = game_resources_open((app.game_directory + "/Ciftree").c_str(), external, error, sizeof(error));
             if (!app.resources) throw std::runtime_error(error);
@@ -13745,6 +13755,9 @@ int main(int argc, char **argv)
                 audio_config.random_context = &app;
                 if (live_audio_create(&audio_config, &app.live_audio, error, sizeof(error)) != LIVE_AUDIO_OK)
                     throw std::runtime_error(error);
+                record(&app, "live_audio_host_ready mode=%s master_muted=%d",
+                       inspect_only ? "offline" : "output",
+                       [[NSUserDefaults standardUserDefaults] boolForKey:@"BlackmoorAudioMuted"] ? 1 : 0);
                 if (inspect_only) app.offline_audio_frames_per_update = live_tick_ms_set
                     ? live_tick_ms * (LIVE_AUDIO_DEFAULT_OFFLINE_SAMPLE_RATE / 1000u) : 4096u;
             }
