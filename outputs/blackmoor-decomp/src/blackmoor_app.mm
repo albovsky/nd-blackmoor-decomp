@@ -13638,6 +13638,7 @@ int main(int argc, char **argv)
         app.game_directory = default_game_directory;
         std::string log_path;
         int audio_mute_override = -1;
+        int display_mode_override = -1;
         bool inspect_only = false;
         bool inspect_actions = false;
         bool inspect_audio = false;
@@ -13842,6 +13843,10 @@ int main(int argc, char **argv)
                 const unsigned long count = std::strtoul(value, &end, 10);
                 if (!*value || *end || count == 0 || count > 1000000) return 2;
                 live_ticks = (uint32_t)count;
+            } else if (argument == "--display-mode") {
+                if (std::strcmp(value, "fit") == 0) display_mode_override = 0;
+                else if (std::strcmp(value, "stretch") == 0) display_mode_override = 1;
+                else { std::fprintf(stderr, "--display-mode requires fit or stretch\n"); return 2; }
             } else if (argument == "--game-dir") app.game_directory = value;
             else if (argument == "--log") log_path = value;
             else if (argument == "--stop-after-ms") {
@@ -13878,6 +13883,9 @@ int main(int argc, char **argv)
         if (audio_mute_override >= 0)
             [[NSUserDefaults standardUserDefaults] setBool:audio_mute_override != 0
                                                    forKey:@"BlackmoorAudioMuted"];
+        if (display_mode_override >= 0)
+            [[NSUserDefaults standardUserDefaults] setBool:display_mode_override != 0
+                                                   forKey:@"BlackmoorDisplayStretch"];
         app.scene_runtime_enabled = !inspect_only || inspect_session_boundary || inspect_live_session ||
                                     inspect_condition_providers;
         if (log_path.empty()) {
@@ -13894,6 +13902,8 @@ int main(int argc, char **argv)
         NSLog(@"Blackmoor reconstruction log: %s", log_path.c_str());
         record(&app, "native_audio_output_muted=%d scope=application-master-mixer",
                [[NSUserDefaults standardUserDefaults] boolForKey:@"BlackmoorAudioMuted"] ? 1 : 0);
+        record(&app, "native_display_preference=%s logical_surface=640x480",
+               [[NSUserDefaults standardUserDefaults] boolForKey:@"BlackmoorDisplayStretch"] ? "stretch" : "fit");
         int external = 0;
         char error[256] = {};
         GameResourceBytes boot_bytes = GAME_RESOURCE_BYTES_INIT;

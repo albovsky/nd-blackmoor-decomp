@@ -1,0 +1,45 @@
+# NATIVE-05: proportional and stretched native display modes
+
+Owner requested widescreen support and chose BOTH proportional and stretched modes in this original root chat. Preserve current logical640x480 gameplay, original assets, and persistent game mute. This is native presentation work; Claude owns full decompilation/matching and reserved ledger/evidence files. Root alone publishes after tests and independent frozen review, one slice per PR. Never modify original game files/GAME.EXE/game-source, ledger/evidence/extract/build outputs, tests/fl40_* or tasks/flNN-handoff.md. Avoid the crash-popup tests entirely.
+
+Depends on reviewed/merged NATIVE04. Root owns macos_platform.[h/mm], app option parsing and build integration. Codex gpt-6.1-sol xhigh worker owns only NEW src/native_display_geometry.[ch] and tests/test_native_display_geometry.py in its separate worktree. No worker publishes.
+
+## Behavior
+
+Default proportional mode preserves aspect ratio with letter/pillar boxes. Optional stretch-to-fill uses the entire view bounds. Both use one shared geometry result for rendering and inverse pointer mapping; logical coordinates stay640x480, top-left origin. Preserve out-of-surface coordinates in proportional mode so clicks in bars cannot become valid game hits. Stretch uses separate x/y scale factors. Original framebuffers/resources never change.
+
+Provide native View menu choices (Proportional / Stretch to Fill), persist the choice in this app's NSUserDefaults, redraw immediately on change, and allow ordinary arbitrary-aspect window resizing instead of the old fixed contentAspectRatio. Optional --display-mode fit|stretch launch selection may set the same saved preference after validation. Do not crop game controls or invent extra scene imagery. The explicit stretched option may distort proportions; the proportional option remains available.
+
+## Geometry helper contract
+
+Portable C host adapter with enum FIT=0/STRETCH=1, rectangle of doubles, layout(logical uint32 width/height, finite positive view width/height, mode, rectout), and map-point using that same rectangle to signed int32 logical x/y via floor. No AppKit/audio/assets or globals. Reject invalid/NaN/infinite/zero sizes/mode/pointers; leave outputs unchanged on refusal. Clamp finite points whose inverse conversion exceeds signed32 so floating-to-integer conversion stays defined, preserving outside-range semantics. Origin is top-left; caller performs AppKit coordinate conversion. Do not clamp ordinary outside points into the game surface.
+
+## Acceptance
+
+Tests first: meaningful observable fit/stretch layout, pointer corner/center/inverse mapping, widescreen/ultrawide/tall windows, points in bars/outside view, invalid/fractional/tiny bounds and safe overflow behavior. Keep proportional to a small geometry function; normal nonzero failures, no abort/fault/sanitizer/mutation/Unicorn/audio-output tests.
+
+Root uses helper in actual draw and pointer callbacks, verifies normal ARM64 build, and exercises the real View menu/persistence and both display modes with captures where CUA permits. Coordinate automation has intermittent noWindowsAvailable; do not describe captures alone as click-through proof. Record hashes, exact checks, independent review and unverified branches. Source/runtime logic, sound state and original asset bytes remain unchanged. Whole game remains incomplete.
+
+## Root validation (2026-10-24)
+
+Merged main e81575cb before this slice. Geometry commits7e80a992 and21a41c39; root integrated the native View menu, persistent BlackmoorDisplayStretch preference, --display-mode fit|stretch, arbitrary-aspect resizing, shared draw/input geometry, and both native build inventories.
+
+- Focused normal geometry suite:8 passed in0.289s (`python3 -m unittest discover -s outputs/blackmoor-decomp/tests -p test_native_display_geometry.py -v`). Worker confirmed failing stubs and the rounded multiplication overflow regression before correction.
+- Normal ARM64 app and standalone platform dylib build passed with warnings as errors. Local build logs: work/playability-20261024/display-first-build.log and display-platform-build.log. git diff --check passed.
+- Actual GUI: copied generated bundle under /private/tmp/blackmoor-display-check.TduX7A, changed ONLY its generated bundle ID to com.blackmoor.reconstruction.displaycheck and ad-hoc resigned to keep test preferences separate. Launched explicitly --mute --display-mode fit against unchanged owner-local GOG data; zoomed ordinary window to3024x1748 capture. Proportional preserved centered4:3 image with black side bars; View > Stretch to Fill immediately filled the content width. Actual coordinate clicks New Game then Junior Detective advanced through S5900/S5901; log records mapped logical461,269 and candidate34 consumed. Command-Option-1/2 switched modes and preferences0/1.
+- Quit/relaunch same private bundle WITHOUT mode override: log reports native_display_preference=stretch logical_surface=640x480 and native_audio_output_muted=1. Captured persisted stretched layout, returned test preference to fit, quit only this temporary instance. Main app mute preference remained1; no system audio setting changed.
+- Captures remain local (game resource imagery is not committed): work/playability-20261024/display-fit.png, display-stretch.png, display-fit-opening.png, display-relaunch-stretch.png. Runtime logs display-gui.log and display-relaunch.log.
+- No broad discovery, sanitizer/mutation, original-x86/Unicorn or intentional fault tests run for this slice, per owner's explicit crash-popup restriction. Earlier full-suite failures remain unresolved; this is bounded display validation.
+
+SHA-256 pins:
+
+| Artifact | SHA-256 |
+|---|---|
+| Original GAME.EXE (unchanged) | afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45 |
+| native_display_geometry.c | 09e67a37f976d8c436e3598051dd2aec5062178b39a164446f7df6b41fadc28d |
+| native_display_geometry.h | 73fe4b7ca5effd11ea37620de1758aa9e263e8ef5bc88d7115275b66d1c9d4a3 |
+| macos_platform.mm | 6fb0bfbaa5c66225e76f1922320ecdc18fbf920b2179dbf69494285bc1d06fa2 |
+| blackmoor_app.mm | 5a0c80a00b77fffee31254f7d10e81856f621f5c38d52c05a3fb2bc0741be4ab |
+| Normal ARM64 executable before private-bundle resign | bd051b6ed28365063d1c08507cc357aff89296ed9cab0b3c2c3fcd88afb064d9 |
+
+Unverified: manual drag-resizing through every aspect ratio, external displays/Retina scale changes, actual puzzle clicks in both modes, fullscreen switching under every macOS Space arrangement, malformed AppKit geometry, multi-window concurrent platforms. Portable tests cover wide/ultrawide/tall/fractional/tiny/invalid/overflow layouts and points outside bars. No added scene imagery, controls cropping or whole-game playability claim. Independent frozen review pending.
