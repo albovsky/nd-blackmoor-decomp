@@ -1,4 +1,4 @@
-"""FL-56: the "translated, unverified" rows (translated/original_methods_fl41_translated.c, tests/fl41_translated.json, written by scripts/fl56_bulk.py).
+"""FL-55b: the "translated, unverified" rows (translated/original_methods_fl41_translated.c, tests/fl41_translated.json, written by scripts/fl55_bulk.py).
 
 These rows are NOT port credits: they were translated by scripts/lift_fl41.py without the mutation check and compared with the original only on the few seeds the table keeps.
 The tests check that the table and the C file belong together, that the C file compiles with the FL-41 model, and that a deterministic sample of the rows agrees with the original again.

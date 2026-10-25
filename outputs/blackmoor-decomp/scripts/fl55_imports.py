@@ -1,4 +1,4 @@
-"""FL-56: stdcall argument counts (in dwords) of the Win32 functions that GAME.EXE imports, from their documented signatures, for the import calls the lifter translates
+"""FL-55b: stdcall argument counts (in dwords) of the Win32 functions that GAME.EXE imports, from their documented signatures, for the import calls the lifter translates
 (scripts/lift_fl41.py merges them into IMPORT_ARGS). wsprintfA is cdecl: the caller pops its arguments, so the callee pops none. The binkw32 imports carry their byte count in
 the name (`_BinkOpen@8`)."""
 

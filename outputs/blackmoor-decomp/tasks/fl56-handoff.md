@@ -1,36 +1,31 @@
-# FL-56 handoff: bulk "translated, unverified" rows at or above 0x480000
+# FL-56 handoff (rows below 0x480000, round ten): translate first, verify later
 
-Glib's instruction (25 Oct 2026): speed over verification for now. Translate every pending upper row with the lifter, skip the mutation checks and the seed searches, record the result under a separate status, merge in big batches with only light checks.
+No new ported credits this round (the ledger count is whatever main had after FL-55: 2,181 of 4,188). Glib changed the approach mid-thread: stop the seed searches and mutation checks, translate every lower row the lifter can take, and keep the verified count honest. Result: **482 lower rows have a lifter translation** (376 in the verified-coverage corpus: 285 credited, 91 held; 106 new "translated, unverified"). 5 lower rows are still refused by the lifter.
 
-**This is not a port credit.** The ledger is unchanged (2,181 of 4,188 ported). The count below is the "translated, unverified" count that the status reports quote.
+## What is new
 
-## Result
+- **Translated, unverified** (`src/original_methods_fl56_unverified.c`, manifest `tasks/fl56-translated-unverified.json`, generator `scripts/fl56_unverified.py`, test `tests/test_fl56_unverified.py`). 106 rows. Each compiles, and where seeds exist (66 rows) agrees with the original bytes on every kept seed; the seeds do not cover every instruction or jump direction (9 rows cover every instruction), and no mutation check was run. They are NOT ported credits; the ledger does not count them. The manifest records per row the coverage, the seeds, `assumed_x87_neutral` (library callees whose x87 stack effect was assumed to be none) and `guessed_callee_pops` (call targets that start no ledger function, pop taken from the first `ret`). Indirect calls (`call reg` / `call [mem]`) are translated with `FL40_CALL(target)` and a callee pop INFERRED from the pushes before the call (none when `add esp, N` follows): this is an assumption, not a proof, and the harness cannot run those rows yet.
+- **Lifter** (`scripts/lift_function.py`): `UNVERIFIED = True` (set only by `fl56_unverified.py`) allows indirect and recursive calls, non-ledger call targets and unclassified library x87 callees. The strict mode used by the corpus is unchanged.
+- **Impossible jump directions** (`scripts/fl56_untaken.py`, corpus field `untaken_ok`, checked by `tests/test_fl40_differential.py`, `tests/fl40_original_oracle.py` and `tests/test_fl56_unverified.py`): a direction is allowed only when a small mechanical proof shows that the flags of the jump are constant for every input (`mov r, 1; test r, r; je`, `xor r, r; mov r8, <byte>; cmp r, -1; je`). Four rows use it (0x4230d1, 0x433eaa, 0x41f5b1, 0x46f4b0). The prover walks back only over instructions whose capstone register-write list (implicit writes and 16/8-bit parts included) misses the register, and it refuses conditions it cannot evaluate (jo, jp, ...); Codex and a Sonnet review found three unsound cases in the first version, fixed and covered by `ValueWalk` and `UnknownConditions` tests. Rows whose never-run instructions sit behind such a direction (0x42e693) stay out: the ledger needs every byte executed.
+- 8 rows entered the verified-coverage corpus and the mutation check (0x4230d1 0x433eaa 0x41f5b1 0x46f4b0 0x44a177 0x4570c4 0x44a5ca 0x4484ba). All are held: after equivalence and the 40000-seed rescue they still have 2, 16, 54, 59, 19, 13, 11 and 88 open survivors. `tasks/fl56-mutation-log.txt` is listed in `scripts/fl44_final.py` and pinned by `tests/test_fl46_verdicts.py`; `tasks/fl56-rescue-40000.txt` holds the two finished rescue runs but is not in `fl44_final.RESCUE` (they did not clear their rows).
+- Tools: `scripts/fl56_add_rows.py` (move a covered pending row into corpus/source/test), `scripts/fl56_cover.py` (coverage lab with compare operands in front of an untaken jump), `scripts/fl56_bulk.py` (which pending rows are provably complete).
 
-Of the 1,676 pending rows at or above 0x480000 (303 game, 1,373 library), **1,546 are translated** (`translated/original_methods_fl41_translated.c`, table in `tests/fl41_translated.json`):
+## Left
 
-- 1,379 `agrees`: the translation and the original (Unicorn) give the same registers, writes and callee calls on at least one seed that ran without a fault (the first 8 plain seeds, plus 8 float seeds for an x87 row; a seed is kept when it runs new instructions or edges). Coverage is partial: the table records instructions executed/total and jump directions taken/total per row.
-- 167 `no seed`: the C compiles but no seed gave a comparable run (every seed faulted in the original, or a call through a pointer ran real code in the original where the translation has a stub).
-- 6 lifter defects (`tasks/fl56-translation-defects.json`, `failed`): 0x513843, 0x50df94, 0x50e054, 0x50e104, 0x50e284 (CRT x87 math and a thunk chain) and 0x50f978 (stack discipline). Not in the C file.
-- 4 hang rows: 0x4933ff, 0x4a1d3a, 0x4adb6c, 0x4ae178 (a run did not return in the row budget; the translation or the original loops on a seed). Not in the C file.
-- 120 rows the lifter still refuses (`refused` in the same file): callee not a ledger function 35, callee writes esp 13, `fnstcw` 11, disassembly stops 10, indirect jump 9, `sahf` 9, `fldcw` 7, conditional jump out of the function 6, recursive call 3, `rcr` 3, `shld` 3, `lock` 2, others.
+- 5 rows refused: 0x427a50 0x4381f4 (callee 0x4f95a4), 0x42babf 0x432d1a (callee 0x4f9b50), 0x43a7ca (callee 0x47d788): the x87 depth of the callee differs on two paths.
+- 66 corpus-pending rows with incomplete coverage (guided search, 14000 runs each, left 10 near-complete rows open: 0x411b16 0x44e9ae 0x45eadc 0x45e6bd 0x44efcd 0x42b510 0x44887c (one direction each), 0x478396 (3), 0x467c0e (1 instruction), 0x467eb0 (6)). Directed scenarios for these were started and stopped on Glib's instruction; `scripts/fl56_cover.py --show` is the tool for them.
+- The 91 held rows and the unverified rows need the usual verification (mutation check, killing scenarios, written reasons) later.
+- Open questions for Glib are unchanged (assumption-based reasons; seven older credits with an untaken direction). The new `untaken_ok` rows are not credited.
 
-The generated C is kept in `translated/`, NOT in `src/`: the evidence extractor scans `src/*.c`, and 1,546 start-address comments there moved 40 compiler EH funclets out of `not_needed` (their rule needs the address to appear nowhere in native source).
+## Testing policy (Glib, Oct 25)
 
-## Tools
+No full suite in porting PRs, not even every 4th merge; a separate thread runs the full suite every second night. A porting PR runs only: `test_function_names`, the ledger/evidence tests (`test_function_ledger`, `test_extract_function_evidence`, `test_function_xrefs`, `test_record_function_execution`), every `tests/test_fl*.py`, and any runtime test that cites a row the PR credited. This round: 167 files, all passed except `test_extract_function_evidence` (one Mac-path failure, `/private/tmp`, identical on clean main) and `test_fl46_verdicts` (fixed: it pins the FL-56 log).
 
-- `scripts/fl56_bulk.py [--rows ...] [--seeds 8] [--jobs 4] [--timeout 25] [--cache FILE]`: lifts, builds one library, runs the quick comparison per row (small rows first; a per-row alarm; a row stuck inside native code cannot be interrupted, so rows that hang are recorded by hand as `hang` in the cache and not retried), writes the C file, the table and the defects file.
-- `scripts/lift_fl41.py` gained `BULK` (off for the credited rows, so their text is unchanged): calls through a register or a pointer (`indirect_call`: the target is computed first; the bytes the target pops are a heuristic, `indirect_cleanup`: 0 when `add esp, N` follows, else 4 bytes per push since the last call or label, not counting the prologue), unknown x87 effect of a callee taken as none, `wait` as a no-op. Always on: `scripts/fl56_imports.py` (stdcall argument counts for 290 more Win32 imports; `_f@N` names carry their size) and the `wait` no-op.
-- `tests/test_fl56_translated.py`: table and C file belong together, the C compiles with the FL-41 model, a deterministic sample of 30+ rows agrees with the original again, no translated row is in the corpus or ported.
+## Regeneration (worked)
 
-## Next
+`record_function_execution.py run --root <repo> --trace-dir work/analysis/FL-56/traces --only fl40_original_oracle`, then `collect --write --merge` WITH the same `--trace-dir` and `--root` (without them it reads the default trace dir and silently changes nothing), `extract_function_evidence.py --write`, `build_function_ledger.py --write`, both again, `function_names.py write` (no new names without new credits, so no audits), `fl44_final.py --write`.
 
-1. Fix the 6 defects and the refusals that open the most rows: callee not a ledger function (35), esp-writing callees (13), `fnstcw`/`fldcw`/`sahf`/`rcr`/`shld` (30), disassembly stops and indirect jumps (19).
-2. More seeds for the `no seed` rows and for rows with low coverage; pointer-call rows need a world that stubs the targets of indirect calls.
-3. To turn a translated row into a port credit it still needs the FL-41 pipeline: full instruction and jump coverage, then the exhaustive mutation check with the soundness-checked rules of FL-55 (`tasks/fl55-handoff.md`). Run that tool-first and in bulk over all translated rows before looking at single rows.
-4. Policy: porting PRs run only the targeted tests (function names, ledger/evidence, `test_fl*`, tests citing new rows); a separate thread runs the full suite every second night.
+## Caveats found in review
 
-## Lessons
-
-- A native loop that never returns cannot be interrupted from Python (signal handlers run only between bytecodes, and an exception raised inside a ctypes callback is swallowed): check a flag after every run and expect rare hangs.
-- Run the cheap rows first; the large ones dominate the time (a 40 s alarm per row, 4 jobs, 1,300 rows took about 25 minutes in total once the small rows were ordered first).
-- `pgrep -f` / `pkill -f` matches the calling shell when the pattern appears in the same command line (exit 144): kill by pid from a command of its own.
+- Recursive self-calls are translated in unverified mode, but the original-bytes harness installs a callee stub at the function's own entry, so such a row cannot be verified until the harness learns recursion.
+- `indirect_cleanup` guesses the callee pop from the pushes before an indirect call; saved-register pushes in front of a no-argument call make it over-count. Every inferred pop is recorded per row in the manifest (`indirect_calls_pop_inferred`) so verification can find them first.

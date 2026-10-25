@@ -173,7 +173,7 @@ def fpu_net(target, depth=0):
     except Unsupported:
         if not BULK:
             raise
-        return 0                                                   # FL-56 bulk: a callee whose x87 effect is not known is taken not to change the x87 stack
+        return 0                                                   # FL-55b bulk: a callee whose x87 effect is not known is taken not to change the x87 stack
 
 
 def _fpu_net(target, depth=0):
@@ -217,7 +217,7 @@ def _fpu_net(target, depth=0):
                     pass                                    # an import: it does not touch the x87 stack
                 elif o.type != X.X86_OP_IMM:
                     if not BULK:
-                        raise Unsupported("callee 0x%x: indirect call at 0x%x" % (target, i.address))     # FL-56 bulk: an indirect call is taken not to change the x87 stack
+                        raise Unsupported("callee 0x%x: indirect call at 0x%x" % (target, i.address))     # FL-55b bulk: an indirect call is taken not to change the x87 stack
                 elif o.imm != target:
                     d += fpu_net(o.imm, depth + 1)
             if mn == "ret":
@@ -262,7 +262,7 @@ IMPORT_ARGS = {"GetTickCount": 0, "SendMessageA": 4, "GetPrivateProfileIntA": 4,
                "EqualRect": 2}
 _SLOTS = None
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from fl56_imports import import_args    # noqa: E402
+from fl55_imports import import_args    # noqa: E402
 
 
 def import_slots():
@@ -437,12 +437,12 @@ def jump_table(ins, k, va, end):
     return targets
 
 
-BULK = False          # FL-56: the lifts of scripts/fl56_bulk.py (calls through registers and pointers, unknown x87 effect of a callee); the credited rows are lifted with BULK off
+BULK = False          # FL-55b: the lifts of scripts/fl55_bulk.py (calls through registers and pointers, unknown x87 effect of a callee); the credited rows are lifted with BULK off
 PROLOGUE_MN = {"push", "mov", "sub", "lea", "and"}
 
 
 def indirect_cleanup(c, i):
-    """FL-56 heuristic: the bytes the target of an indirect call pops. A caller that cleans up (`add esp, N` within the next instructions, before another call or jump) gives 0; otherwise the callee
+    """FL-55b heuristic: the bytes the target of an indirect call pops. A caller that cleans up (`add esp, N` within the next instructions, before another call or jump) gives 0; otherwise the callee
     is taken to pop the arguments pushed since the last call, jump, label or esp change, not counting the pushes of the prologue (saved registers)"""
     k = next(n for n, x in enumerate(c.ins) if x.address == i.address)
     for x in c.ins[k + 1:k + 5]:
@@ -470,7 +470,7 @@ def indirect_cleanup(c, i):
 
 
 def indirect_call(c, i, op):
-    """FL-56: `call reg`, `call [mem]` (any address): the target is computed before the return address is pushed; the host sees the target address in h->call"""
+    """FL-55b: `call reg`, `call [mem]` (any address): the target is computed before the return address is pushed; the host sees the target address in h->call"""
     cleanup = indirect_cleanup(c, i)
     c.emit("{ uint32_t t_ = %s; esp -= 4u; WR32(esp, 0x%xu); FL41_CALL(t_); %sesp += 4u; }" % (get(i, op, 32), i.address + i.size, "esp += %du; " % cleanup if cleanup else ""))
 
@@ -587,7 +587,7 @@ def lift_one(c, i):
             if count is None:
                 if not BULK:
                     raise Unsupported("indirect call through 0x%x at 0x%x" % (t, a))
-                return indirect_call(c, i, ops[0])                 # FL-56: a function pointer kept in a global
+                return indirect_call(c, i, ops[0])                 # FL-55b: a function pointer kept in a global
             cleanup = 4 * count
             c.imports[t] = cleanup
             e("esp -= 4u; WR32(esp, 0x%xu);  /* call [%s!%s] */" % (a + i.size, name[0], name[1]))
@@ -598,7 +598,7 @@ def lift_one(c, i):
             return
         if ops[0].type != X.X86_OP_IMM:
             if BULK:
-                return indirect_call(c, i, ops[0])                 # FL-56: a call through a register or a memory operand
+                return indirect_call(c, i, ops[0])                 # FL-55b: a call through a register or a memory operand
             raise Unsupported("indirect call at 0x%x" % a)
         t = ops[0].imm
         if t == c.va:
@@ -615,7 +615,7 @@ def lift_one(c, i):
         except Unsupported:
             if not BULK:
                 raise
-            net = 0                                                # FL-56: the callee's effect on the x87 stack is not known
+            net = 0                                                # FL-55b: the callee's effect on the x87 stack is not known
         if net not in (-1, 0, 1):
             raise Unsupported("callee 0x%x changes the x87 stack by %d at 0x%x" % (t, net, a))
         e("esp -= 4u; WR32(esp, 0x%xu);" % (a + i.size))
