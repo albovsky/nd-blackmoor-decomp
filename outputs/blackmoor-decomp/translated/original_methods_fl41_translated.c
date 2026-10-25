@@ -94575,6 +94575,16 @@ done:
     FL41_FPU_EPILOGUE
 }
 
+/* GAME.EXE 0x50df94 (9 bytes): machine translation of the original instructions, see the note at the top of this file. */
+void m50df94_lifted(Fl41Regs *r, const Fl41Host *h)
+{
+    FL41_PROLOGUE
+    edx = (uint32_t)(esp + 0x4u);  /* 0x50df94: lea edx, [esp + 4] */
+    esp -= 4u; WR32(esp, 0x50df9du); FL41_CALL(0x513c65u); esp += 4u;  /* 0x50df98: call 0x513c65 */
+done:
+    FL41_EPILOGUE
+}
+
 /* GAME.EXE 0x50e040 (20 bytes): machine translation of the original instructions, see the note at the top of this file. */
 void m50e040_lifted(Fl41Regs *r, const Fl41Host *h)
 {
@@ -94589,6 +94599,16 @@ void m50e040_lifted(Fl41Regs *r, const Fl41Host *h)
 done:
     FL41_EPILOGUE
     FL41_FPU_EPILOGUE
+}
+
+/* GAME.EXE 0x50e054 (9 bytes): machine translation of the original instructions, see the note at the top of this file. */
+void m50e054_lifted(Fl41Regs *r, const Fl41Host *h)
+{
+    FL41_PROLOGUE
+    edx = (uint32_t)(esp + 0x4u);  /* 0x50e054: lea edx, [esp + 4] */
+    esp -= 4u; WR32(esp, 0x50e05du); FL41_CALL(0x513c65u); esp += 4u;  /* 0x50e058: call 0x513c65 */
+done:
+    FL41_EPILOGUE
 }
 
 /* GAME.EXE 0x50e0f0 (20 bytes): machine translation of the original instructions, see the note at the top of this file. */
@@ -94607,6 +94627,16 @@ done:
     FL41_FPU_EPILOGUE
 }
 
+/* GAME.EXE 0x50e104 (9 bytes): machine translation of the original instructions, see the note at the top of this file. */
+void m50e104_lifted(Fl41Regs *r, const Fl41Host *h)
+{
+    FL41_PROLOGUE
+    edx = (uint32_t)(esp + 0x4u);  /* 0x50e104: lea edx, [esp + 4] */
+    esp -= 4u; WR32(esp, 0x50e10du); FL41_CALL(0x513c65u); esp += 4u;  /* 0x50e108: call 0x513c65 */
+done:
+    FL41_EPILOGUE
+}
+
 /* GAME.EXE 0x50e270 (20 bytes): machine translation of the original instructions, see the note at the top of this file. */
 void m50e270_lifted(Fl41Regs *r, const Fl41Host *h)
 {
@@ -94621,6 +94651,16 @@ void m50e270_lifted(Fl41Regs *r, const Fl41Host *h)
 done:
     FL41_EPILOGUE
     FL41_FPU_EPILOGUE
+}
+
+/* GAME.EXE 0x50e284 (9 bytes): machine translation of the original instructions, see the note at the top of this file. */
+void m50e284_lifted(Fl41Regs *r, const Fl41Host *h)
+{
+    FL41_PROLOGUE
+    edx = (uint32_t)(esp + 0x4u);  /* 0x50e284: lea edx, [esp + 4] */
+    esp -= 4u; WR32(esp, 0x50e28du); FL41_CALL(0x513c65u); esp += 4u;  /* 0x50e288: call 0x513c65 */
+done:
+    FL41_EPILOGUE
 }
 
 /* GAME.EXE 0x50e3de (181 bytes): machine translation of the original instructions, see the note at the top of this file. */
@@ -95756,6 +95796,24 @@ L_50f914:
     eax = esi;  /* 0x50f914: mov eax, esi */
     esi = RD32(esp); esp += 4u;  /* 0x50f916: pop esi */
     esp += 8u; goto done;  /* 0x50f917: ret 4 */
+done:
+    FL41_EPILOGUE
+}
+
+/* GAME.EXE 0x50f978 (31 bytes): machine translation of the original instructions, see the note at the top of this file. */
+void m50f978_lifted(Fl41Regs *r, const Fl41Host *h)
+{
+    FL41_PROLOGUE
+    esp -= 4u; WR32(esp, 0xffffffffu);  /* 0x50f978: push -1 */
+    esp -= 4u; WR32(esp, eax);  /* 0x50f97a: push eax */
+    eax = RD32((uint32_t)(FL41_TIB));  /* 0x50f97b: mov eax, dword ptr fs:[0] */
+    esp -= 4u; WR32(esp, eax);  /* 0x50f981: push eax */
+    eax = RD32((uint32_t)(esp + 0xcu));  /* 0x50f982: mov eax, dword ptr [esp + 0xc] */
+    WR32((uint32_t)(FL41_TIB), esp);  /* 0x50f986: mov dword ptr fs:[0], esp */
+    WR32((uint32_t)(esp + 0xcu), ebp);  /* 0x50f98d: mov dword ptr [esp + 0xc], ebp */
+    ebp = (uint32_t)(esp + 0xcu);  /* 0x50f991: lea ebp, [esp + 0xc] */
+    esp -= 4u; WR32(esp, eax);  /* 0x50f995: push eax */
+    esp += 4u; goto done;  /* 0x50f996: ret  */
 done:
     FL41_EPILOGUE
 }
@@ -99373,6 +99431,15 @@ void m513546_lifted(Fl41Regs *r, const Fl41Host *h)
 L_51356e:
     esi = RD32(esp); esp += 4u;  /* 0x51356e: pop esi */
     esp += 4u; goto done;  /* 0x51356f: ret  */
+done:
+    FL41_EPILOGUE
+}
+
+/* GAME.EXE 0x513843 (7 bytes): machine translation of the original instructions, see the note at the top of this file. */
+void m513843_lifted(Fl41Regs *r, const Fl41Host *h)
+{
+    FL41_PROLOGUE
+    { uint32_t a_ = RD8((uint32_t)(ebp + 0xfffffd38u)), b_ = 0xfeu, r_; r_ = a_ & b_; FL41_LOGIC(r_, 8); WR8((uint32_t)(ebp + 0xfffffd38u), r_); }  /* 0x513843: and byte ptr [ebp - 0x2c8], 0xfe */
 done:
     FL41_EPILOGUE
 }
