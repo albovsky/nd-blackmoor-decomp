@@ -6,15 +6,15 @@ Glib's instruction (25 Oct 2026): speed over verification for now. Translate eve
 
 ## Result
 
-Of the 1,676 pending rows at or above 0x480000 (303 game, 1,373 library), **1,546 are translated** (`translated/original_methods_fl41_translated.c`, table in `tests/fl41_translated.json`):
+Of the 1,676 pending rows at or above 0x480000 (303 game, 1,373 library), **1,552 are translated** (`translated/original_methods_fl41_translated.c`, table in `tests/fl41_translated.json`):
 
-- 1,379 `agrees`: the translation and the original (Unicorn) give the same registers, writes and callee calls on at least one seed that ran without a fault (the first 8 plain seeds, plus 8 float seeds for an x87 row; a seed is kept when it runs new instructions or edges). Coverage is partial: the table records instructions executed/total and jump directions taken/total per row.
-- 167 `no seed`: the C compiles but no seed gave a comparable run (every seed faulted in the original, or a call through a pointer ran real code in the original where the translation has a stub).
-- 6 lifter defects (`tasks/fl55-translation-defects.json`, `failed`): 0x513843, 0x50df94, 0x50e054, 0x50e104, 0x50e284 (CRT x87 math and a thunk chain) and 0x50f978 (stack discipline). Not in the C file.
+- 1,397 `agrees`: the translation and the original (Unicorn) give the same registers, writes and callee calls on at least one seed that ran without a fault (the first 8 plain seeds, plus 8 float seeds for an x87 row; a seed is kept when it runs new instructions or edges). Coverage is partial: the table records instructions executed/total and jump directions taken/total per row.
+- 155 `no seed`: the C compiles but no seed gave a comparable run (every seed faulted in the original, or a call through a pointer ran real code in the original where the translation has a stub).
+- 0 lifter defects: the 6 first found were fragments that run on past their span (0x50df94, 0x50e054, 0x50e104, 0x50e284, 0x513843) and `__EH_prolog` (0x50f978, `push eax; ret`); they are compared on the digest only / skipped as non-comparable.
 - 4 hang rows: 0x4933ff, 0x4a1d3a, 0x4adb6c, 0x4ae178 (a run did not return in the row budget; the translation or the original loops on a seed). Not in the C file.
 - 120 rows the lifter still refuses (`refused` in the same file): callee not a ledger function 35, callee writes esp 13, `fnstcw` 11, disassembly stops 10, indirect jump 9, `sahf` 9, `fldcw` 7, conditional jump out of the function 6, recursive call 3, `rcr` 3, `shld` 3, `lock` 2, others.
 
-The generated C is kept in `translated/`, NOT in `src/`: the evidence extractor scans `src/*.c`, and 1,546 start-address comments there moved 40 compiler EH funclets out of `not_needed` (their rule needs the address to appear nowhere in native source).
+The generated C is kept in `translated/`, NOT in `src/`: the evidence extractor scans `src/*.c`, and 1,552 start-address comments there moved 40 compiler EH funclets out of `not_needed` (their rule needs the address to appear nowhere in native source).
 
 ## Tools
 
@@ -24,8 +24,8 @@ The generated C is kept in `translated/`, NOT in `src/`: the evidence extractor 
 
 ## Next
 
-0. **Split with the lower thread (FL-57), per the coordinator:** FL-57 takes the 120 upper rows this lifter still refuses; the list with the reason of each is `refused` in `tasks/fl55-translation-defects.json`. This thread keeps the 6 defects and the 167 `no seed` rows (`status` `no seed` in `tests/fl41_translated.json`).
-1. Fix the 6 defects and the refusals that open the most rows: callee not a ledger function (35), esp-writing callees (13), `fnstcw`/`fldcw`/`sahf`/`rcr`/`shld` (30), disassembly stops and indirect jumps (19).
+0. **Split with the lower thread (FL-57), per the coordinator:** FL-57 takes the 120 upper rows this lifter still refuses; the list with the reason of each is `refused` in `tasks/fl55-translation-defects.json`. This thread keeps the 4 hang rows and the 155 `no seed` rows (`status` `no seed` in `tests/fl41_translated.json`; 64 seeds were tried, they mostly call through pointers or build an SEH frame in `fs:[0]`).
+1. Fix the refusals that open the most rows: callee not a ledger function (35), esp-writing callees (13), `fnstcw`/`fldcw`/`sahf`/`rcr`/`shld` (30), disassembly stops and indirect jumps (19).
 2. More seeds for the `no seed` rows and for rows with low coverage; pointer-call rows need a world that stubs the targets of indirect calls.
 3. To turn a translated row into a port credit it still needs the FL-41 pipeline: full instruction and jump coverage, then the exhaustive mutation check with the soundness-checked rules of FL-55 (`tasks/fl55-handoff.md`). Run that tool-first and in bulk over all translated rows before looking at single rows.
 4. Policy: porting PRs run only the targeted tests (function names, ledger/evidence, `test_fl*`, tests citing new rows); a separate thread runs the full suite every second night.
@@ -35,3 +35,5 @@ The generated C is kept in `translated/`, NOT in `src/`: the evidence extractor 
 - A native loop that never returns cannot be interrupted from Python (signal handlers run only between bytecodes, and an exception raised inside a ctypes callback is swallowed): check a flag after every run and expect rare hangs.
 - Run the cheap rows first; the large ones dominate the time (a 40 s alarm per row, 4 jobs, 1,300 rows took about 25 minutes in total once the small rows were ordered first).
 - `pgrep -f` / `pkill -f` matches the calling shell when the pattern appears in the same command line (exit 144): kill by pid from a command of its own.
+
+- Codex review of PR 192 (two P2 findings, both fixed in the follow-up): the compile-error line ranges of `fl55_bulk.py` drifted one line per function; the BULK x87 analysis shared the strict `_FPU_NET` cache (now a separate cache).

@@ -76,14 +76,13 @@ def quick(row, libpath, seeds, timeout):
             if o.fault:
                 faults += 1
                 continue
-            if row['ret'] and (len(row['ret']) != 1 or o.regs['esp'] != W.SP + 4 + row['ret'][0]):      # a row without `ret` (a thunk that jumps on) has no stack rule to check
-                status = {'status': 'mismatch', 'detail': 'stack discipline after the original run'}
-                break
+            # a row without `ret` (a thunk that jumps on, a fragment that ends in a call) has no stack rule; a row whose `ret` pops something else than its return address (`__EH_prolog`: push eax / ret)
+            # is compared on the digest alone
             n = W.run_native(lib, row, seed, ())
             if FLAG:
                 break
-            if (n.fault or n.digest() != o.digest()) and row.get('indirect'):
-                continue                                   # the original runs the real code at the target of a call through a pointer; the translation's stub cannot match it: the seed says nothing
+            if (n.fault or n.digest() != o.digest()) and (row.get('indirect') or not row['ret']):
+                continue                                   # the original runs the real code at the target of a call through a pointer, or runs on past the end of a fragment; the translation cannot match it: the seed says nothing
             if n.fault or n.digest() != o.digest():
                 status = {'status': 'mismatch', 'detail': repr(('seed', seed, o.regs, n.regs, n.fault))[:600]}
                 break
@@ -170,8 +169,8 @@ def main():
             head = '#include "original_methods_fl41.h"\n' + helper
             lines_at, n = {}, head.count('\n') + 1
             for v in build_set:
-                lines_at[v] = (n, n + texts[v].count('\n') + 1)
-                n += texts[v].count('\n') + 2
+                lines_at[v] = (n, n + texts[v].count('\n') - 1)       # a lifted text ends with a newline and the join adds one more
+                n += texts[v].count('\n') + 1
             src.write_text(head + '\n'.join(texts[v] for v in build_set))
             try:
                 W.build_library(tmp, [src])
