@@ -51,11 +51,12 @@ def build():
     spans = L.ledger_spans()
     ledger = json.loads((PROJECT / 'function-ledger.json').read_text())['entries']
     rows = sorted((x['va'] for x in ledger if x['status'] == 'pending' and x['region'] == 'game' and int(x['va'], 16) < 0x480000 and x['va'] not in corpus), key=lambda k: int(k, 16))
-    texts, infos, refused, assumed, guessed, indirect = {}, {}, {}, {}, {}, {}
+    texts, infos, refused, assumed, guessed, indirect, math = {}, {}, {}, {}, {}, {}, {}
     helper = L.lift(0x50c920, spans[0x50c920])[0]
     for key in rows:
         va = int(key, 16)
         L.ASSUMED_NEUTRAL.clear()
+        L.ASSUMED_MATH.clear()
         L.GUESSED_CALLEES.clear()
         del L.INDIRECT_CALLS[:]
         L._FPU_NET.clear()
@@ -71,6 +72,7 @@ def build():
         texts[key] = text
         assumed[key] = sorted(hex(x) for x in L.ASSUMED_NEUTRAL)
         guessed[key] = sorted(hex(x) for x in L.GUESSED_CALLEES)
+        math[key] = {hex(a): n for a, n in sorted(L.ASSUMED_MATH.items())}
         indirect[key] = [[hex(a), n] for a, n in L.INDIRECT_CALLS]
         infos[key] = W.row_info(va, spans[va], callees, imports, fs)
     tmp = tempfile.mkdtemp()
@@ -100,7 +102,7 @@ def build():
             continue
         got, total, taken, dirs, missing, untaken = G.covers(row, ex, ed)
         kept.append(key)
-        manifest[key] = {'body': row['body'], 'status': 'translated, unverified', 'instructions': [got, total], 'directions': [taken, dirs], 'seeds_checked': len(seeds), 'assumed_x87_neutral': assumed[key], 'guessed_callee_pops': guessed[key], 'indirect_calls_pop_inferred': indirect[key],
+        manifest[key] = {'body': row['body'], 'status': 'translated, unverified', 'instructions': [got, total], 'directions': [taken, dirs], 'seeds_checked': len(seeds), 'assumed_x87_neutral': assumed[key], 'assumed_x87_math': math[key], 'guessed_callee_pops': guessed[key], 'indirect_calls_pop_inferred': indirect[key],
                          'callees': {hex(k): n for k, n in row['callees'].items()}, 'imports': {hex(k): n for k, n in row['imports'].items()}, 'fs': row['fs'], 'seeds': seeds}
     source = HEADER + (helper if uses_helper else '') + '\n'.join(texts[k] for k in kept)
     return source, {'note': 'Translated, unverified lower rows (FL-56): not ported credits. See scripts/fl56_unverified.py.', 'rows': manifest, 'mismatch': mismatch, 'refused': refused}

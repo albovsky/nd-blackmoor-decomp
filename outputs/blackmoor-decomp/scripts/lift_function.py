@@ -170,16 +170,43 @@ def library_fpu_net(target, depth=0):
     raise Unsupported("library callee 0x%x: no ret within 400 bytes" % target)
 
 
+UNVERIFIED_LIBRARY_FPU_NET = {0x50e19e: 1}   # FL-57: floor-like routine (reads its double argument from the stack, ends in the loader 0x513e60 with the result in st(0)); read from its bytes, used by unverified rows only
+ASSUMED_MATH = {}   # FL-57: library math wrappers whose x87 effect an unverified translation guesses from the wrapper shape (scripts/fl56_unverified.py records them per row)
+
+
+def guess_math_wrapper(target, depth=0):
+    """FL-57 (unverified mode only): the C runtime's math entry points are thunks `mov edx, imm; jmp wrapper` into wrappers that open with `push ebp; mov ebp, esp; add esp, -0x2d0; push ebx`.
+    A wrapper whose next step is `fnstcw` works on st(0) in place (net 0); one that pushes its stack arguments and calls the loader at 0x5139ae takes doubles on the stack and
+    leaves the result in st(0) (net +1). Returns None for anything else."""
+    img = od.load_image()
+    for _ in range(4):
+        code = img.image[target - img.image_base:][:40]
+        ins = list(md().disasm(code, target))
+        if len(ins) >= 2 and ins[0].mnemonic == "mov" and ins[1].mnemonic == "jmp" and ins[1].operands and ins[1].operands[0].type == X.X86_OP_IMM:
+            target = ins[1].operands[0].imm
+            continue
+        break
+    code = img.image[target - img.image_base:][:40]
+    if not code.startswith(bytes.fromhex("55 8b ec 81 c4 30 fd ff ff 53".replace(" ", ""))):
+        return None
+    ins = list(md().disasm(code[10:], target + 10))
+    if ins and ins[0].mnemonic in ("wait", "fwait") and len(ins) > 1 and ins[1].mnemonic == "fnstcw":
+        return 0
+    if ins and ins[0].mnemonic == "push":
+        return 1
+    return None
+
+
 def fpu_net(target, depth=0):
     """Net change of the x87 stack depth that a call of the function at `target` leaves (1: it returns a value in st(0)); raises Unsupported for a callee whose
     paths disagree, that calls through a register, or that uses an x87 instruction the model does not know."""
     if target in _FPU_NET:
         return _FPU_NET[target]
     entry = ledger_entry(target)
-    if (entry is None or depth > 6) and UNVERIFIED:
+    if (entry is None or depth > (40 if UNVERIFIED else 6)) and UNVERIFIED:    # FL-57: the unverified mode follows call chains up to 40 deep (a cut-off chain guessed 0 and made two paths of a float-returning callee disagree)
         ASSUMED_NEUTRAL.add(target)
         return 0
-    if entry is None or depth > 6:
+    if entry is None or depth > (40 if UNVERIFIED else 6):
         raise Unsupported("callee 0x%x is not a ledger function" % target)
     if entry["origin"] != "game":
         try:
@@ -187,6 +214,11 @@ def fpu_net(target, depth=0):
         except Unsupported:
             if not UNVERIFIED:
                 raise
+            guess = UNVERIFIED_LIBRARY_FPU_NET.get(target, guess_math_wrapper(target))
+            if guess is not None:
+                ASSUMED_MATH[target] = guess  # FL-57 unverified mode: a Borland math-library wrapper, x87 effect read off its frame set-up (see guess_math_wrapper)
+                _FPU_NET[target] = guess
+                return guess
             ASSUMED_NEUTRAL.add(target)       # FL-56 unverified mode: the x87 effect of this library routine is ASSUMED to be none
             return 0
         return _FPU_NET[target]
