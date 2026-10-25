@@ -1,4 +1,4 @@
-/* NATIVE-02: actual app pointer callbacks and a complete, local S4376 scene.
+/* NATIVE-02: actual app pointer callbacks and complete, local D1 scenes.
  * No window, output device, original-x86 execution or copied resource fixture.
  * Rendering and sound host operations are inert; input and D1 state are real.
  * Failures use ordinary exit codes, never assert/abort. */
@@ -23,8 +23,10 @@ static int sound_record(void *, int, const uint8_t *) { return 0; }
 static int sound_channel(void *, int16_t) { return 0; }
 static int sound_idle(void *, int16_t, int32_t *busy) { *busy = 0; return 0; }
 static int flag_invalid(void *, int16_t flag) { return flag < 0 || flag >= 4096; }
-static int transition_unused(void *, const D1Transition *) { return 1; }
-static int flag_unused(void *, int16_t, uint32_t) { return 1; }
+/* Finish effects are non-input sinks. The exit check observes the real
+ * phase-2 dispatch/completion, without loading another scene or game assets. */
+static int transition_sink(void *, const D1Transition *) { return 0; }
+static int flag_sink(void *, int16_t, uint32_t) { return 0; }
 static SceneSessionCallbackStatus prepare(void *, SceneConditionState *, SceneExecutorFrameInput *,
                                            SceneSessionFailure *)
 { return SCENE_SESSION_CALLBACK_OK; }
@@ -81,6 +83,8 @@ struct Fixture {
     std::vector<int32_t> flags = std::vector<int32_t>(4096);
     std::vector<SceneSessionActionBinding> bindings;
     std::vector<uint8_t> bytes;
+    size_t d1_row = SIZE_MAX;
+    unsigned phase2_dispatches = 0;
     ~Fixture()
     {
         scene_session_destroy(app.session);
@@ -91,7 +95,16 @@ struct Fixture {
         if (app.log != nullptr) std::fclose(app.log);
     }
 
-    bool initialize(const char *path, bool unknown, const char *game_directory = nullptr)
+    static int d1_dispatch(void *context, size_t row, const SceneActionInfo *action,
+                           const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
+    {
+        Fixture *fixture = static_cast<Fixture *>(context);
+        if (before->phase == 2u) ++fixture->phase2_dispatches;
+        return native_ad1_handler(&fixture->app, row, action, before, out);
+    }
+
+    bool initialize(const char *path, bool unknown, const char *game_directory = nullptr,
+                    int scene_id = 4376)
     {
         std::ifstream input(path, std::ios::binary);
         bytes.assign(std::istreambuf_iterator<char>(input), {});
@@ -114,7 +127,7 @@ struct Fixture {
             app.scene = scene_resource_open_memory(bytes.data(), bytes.size(), error, sizeof(error));
             if (app.scene == nullptr) return false;
         }
-        app.current_scene_id = 4376;
+        app.current_scene_id = scene_id;
         app.scene_destination = {10, 10, 629, 384};
         app.bar_missing = true; /* No taskbar/BOOT assets; pointer is inside the scene. */
         app.session_tick_sample = 1000;
@@ -144,8 +157,8 @@ struct Fixture {
         host.kernel.sound_busy = app.live_audio != nullptr ? native_ad1_sound_busy : sound_idle;
         host.kernel.tick = native_ad1_tick;
         host.kernel.event_flag_invalid = flag_invalid;
-        host.kernel.transition = transition_unused;
-        host.kernel.store_event_flag = flag_unused;
+        host.kernel.transition = transition_sink;
+        host.kernel.store_event_flag = flag_sink;
         host.store_world = native_ad1_store_world;
         app.ad1 = session_ad1_create(&host);
         if (app.ad1 == nullptr || session_ad1_begin_scene(app.ad1, session_scene) != D1_OK) return false;
@@ -154,23 +167,31 @@ struct Fixture {
         for (size_t row = 0; row < scene_resource_action_count(session_scene); ++row) {
             SceneActionInfo info{};
             if (scene_resource_action_at(session_scene, row, &info) != SCENE_RESOURCE_OK) return false;
+            if (info.type == SESSION_AD1_TYPE) {
+                if (d1_row != SIZE_MAX) return false;
+                d1_row = row;
+            }
             if (std::find(types.begin(), types.end(), info.type) == types.end()) {
                 types.push_back(info.type);
+                /* S4377's 0x61 is an executor builtin. It must see the real
+                 * frame/pointer and event-flag world, not a fixture handler. */
+                if (info.type == 0x61) continue;
                 SceneSessionActionBinding binding{};
                 binding.type = info.type;
                 binding.provider = SCENE_SESSION_PROVIDER_HOST;
-                binding.callback = info.type == SESSION_AD1_TYPE ? native_ad1_handler : other_action;
-                binding.context = &app;
+                binding.callback = info.type == SESSION_AD1_TYPE ? d1_dispatch : other_action;
+                binding.context = this;
                 bindings.push_back(binding);
             }
         }
+        if (d1_row == SIZE_MAX) return false;
         if (unknown) types.push_back(0xcf);
         /* Same scene-derived guard used by nav_begin_scene, never forced clear. */
         app.nav_members_idle = session_navigation_members_idle(types.data(), types.size()) != 0;
         world.event_flags = flags.data(); world.event_flag_count = flags.size();
         conditions.event_flags = flags.data(); conditions.event_flag_count = flags.size();
         SceneSessionConfig config{};
-        config.scene = session_scene; config.scene_id = 4376;
+        config.scene = session_scene; config.scene_id = scene_id;
         config.action_core_world = &world; config.conditions = &conditions;
         config.action_bindings = bindings.data(); config.action_binding_count = bindings.size();
         config.prepare_tick = prepare; config.advance_media_one = media;
@@ -192,8 +213,8 @@ struct Fixture {
         if (scene_session_bind_pointer(app.session, &pointer_host) != SCENE_SESSION_OK || !tick()) return false;
         const D1Object *object = session_ad1_object(app.ad1);
         SceneActionRuntimeState state{};
-        const int state_status = scene_session_get_action_state(app.session, 1, &state);
-        if (object == nullptr || object->active == 0 || object->row != 1 || object->state != D1_STATE_IDLE ||
+        const int state_status = scene_session_get_action_state(app.session, d1_row, &state);
+        if (object == nullptr || object->active == 0 || object->row != static_cast<int16_t>(d1_row) || object->state != D1_STATE_IDLE ||
             state_status != SCENE_SESSION_OK || state.phase != 1) {
             std::fprintf(stderr, "fixture initialized active=%d row=%d state=%d phase_status=%d phase=%u\n",
                          object == nullptr ? -1 : object->active, object == nullptr ? -1 : object->row,
@@ -201,6 +222,45 @@ struct Fixture {
             return false;
         }
         return true;
+    }
+
+    SceneActionInfo action() const
+    {
+        SceneActionInfo info{};
+        (void)scene_resource_action_at(session_scene, d1_row, &info);
+        return info;
+    }
+
+    int16_t word(size_t offset) const
+    {
+        const uint8_t *body = action().typed_body;
+        return static_cast<int16_t>(body[offset] | static_cast<uint16_t>(body[offset + 1] << 8));
+    }
+
+    int32_t dword(size_t offset) const
+    {
+        const uint8_t *body = action().typed_body + offset;
+        return static_cast<int32_t>(static_cast<uint32_t>(body[0]) | (static_cast<uint32_t>(body[1]) << 8) |
+                                    (static_cast<uint32_t>(body[2]) << 16) | (static_cast<uint32_t>(body[3]) << 24));
+    }
+
+    bool contains(int32_t x, int32_t y, size_t rectangle) const
+    {
+        return dword(rectangle) <= x && x <= dword(rectangle + 8) &&
+               dword(rectangle + 4) <= y && y <= dword(rectangle + 12);
+    }
+
+    bool miss_point(int32_t *out_x, int32_t *out_y) const
+    {
+        for (int32_t y = 0; y < 375; ++y) {
+            for (int32_t x = 0; x < 620; ++x) {
+                bool hit = contains(x, y, 0x38fu);
+                for (int tile = 0; tile < word(0x21u); ++tile)
+                    hit = hit || contains(x, y, 0x147u + static_cast<size_t>(tile) * 16u);
+                if (!hit) { *out_x = x + 10; *out_y = y + 10; return true; }
+            }
+        }
+        return false;
     }
 
     bool tick(bool advance_audio = true)
@@ -222,29 +282,9 @@ struct Fixture {
 
 static int exercise_miss(Fixture &f)
 {
-    SceneActionInfo action{};
-    if (scene_resource_action_at(f.session_scene, 1, &action) != SCENE_RESOURCE_OK) return 2;
-    auto dword = [&](size_t offset) -> int32_t {
-        const uint8_t *b = action.typed_body + offset;
-        return static_cast<int32_t>(static_cast<uint32_t>(b[0]) | (static_cast<uint32_t>(b[1]) << 8) |
-                                    (static_cast<uint32_t>(b[2]) << 16) | (static_cast<uint32_t>(b[3]) << 24));
-    };
-    auto inside = [&](int32_t x, int32_t y, size_t offset) {
-        return dword(offset) <= x && x <= dword(offset + 8) &&
-               dword(offset + 4) <= y && y <= dword(offset + 12);
-    };
-    const int count = action.typed_body[0x21] | (action.typed_body[0x22] << 8);
     int32_t miss_x = -1, miss_y = -1;
-    for (int32_t y = 0; y < 375 && miss_x < 0; ++y) {
-        for (int32_t x = 0; x < 620; ++x) {
-            bool hit = inside(x, y, 0x38fu);
-            for (int tile = 0; tile < count; ++tile)
-                hit = hit || inside(x, y, 0x147u + static_cast<size_t>(tile) * 16u);
-            if (!hit) { miss_x = x; miss_y = y; break; }
-        }
-    }
-    if (miss_x < 0) return 2;
-    pointer(&f.app, BLACKMOOR_POINTER_MOVE, miss_x + 10, miss_y + 10, 0);
+    if (!f.miss_point(&miss_x, &miss_y)) return 2;
+    pointer(&f.app, BLACKMOOR_POINTER_MOVE, miss_x, miss_y, 0);
     if (!f.tick()) return 2;
     SceneSessionPointerResult missed{};
     if (scene_session_get_pointer_result(f.app.session, &missed) != SCENE_SESSION_OK) return 2;
@@ -266,15 +306,143 @@ static int exercise_miss(Fixture &f)
     return 0;
 }
 
+static int exercise_exit(Fixture &f)
+{
+    int32_t exit_x = -1, exit_y = -1;
+    /* Find a real exit point not hidden by the earlier tile rectangles. */
+    for (int32_t y = 0; y < 375 && exit_x < 0; ++y) {
+        for (int32_t x = 0; x < 620; ++x) {
+            if (!f.contains(x, y, 0x38fu)) continue;
+            bool tile_hit = false;
+            for (int tile = 0; tile < f.word(0x21u); ++tile)
+                tile_hit = tile_hit || f.contains(x, y, 0x147u + static_cast<size_t>(tile) * 16u);
+            if (!tile_hit) { exit_x = x + 10; exit_y = y + 10; break; }
+        }
+    }
+    if (exit_x < 0) return 2;
+    pointer(&f.app, BLACKMOOR_POINTER_MOVE, exit_x, exit_y, 0);
+    if (!f.tick()) return 2;
+    const int32_t hover = f.app.input_state.candidate;
+    const int16_t tile = session_ad1_object(f.app.ad1)->last_tile;
+    pointer(&f.app, BLACKMOOR_POINTER_DOWN, exit_x, exit_y, 0);
+    pointer(&f.app, BLACKMOOR_POINTER_UP, exit_x, exit_y, 0);
+    if (!f.tick()) return 2;
+    SceneActionRuntimeState row{};
+    if (scene_session_get_action_state(f.app.session, f.d1_row, &row) != SCENE_SESSION_OK) return 2;
+    const D1Object *object = session_ad1_object(f.app.ad1);
+    std::printf("D1_EXIT candidate=%d tile=%d phase2_dispatches=%u completed=%u active=%d registered=%u\n",
+                hover, tile, f.phase2_dispatches, row.completed, object->active, session_ad1_registered(f.app.ad1));
+    if (hover != 0x276d || tile != -1 || f.phase2_dispatches != 1u || row.completed != 1u ||
+        object->active != 0 || session_ad1_registered(f.app.ad1) != 0u) {
+        std::fprintf(stderr, "FAIL: a real exit release must dispatch phase 2 and complete/clear D1 in the same ACT pass\n");
+        return 1;
+    }
+    return 0;
+}
+
+static int exercise_guards(const char *path)
+{
+    for (unsigned guard = 0; guard < 3; ++guard) {
+        Fixture f;
+        if (!f.initialize(path, false)) return 2;
+        const D1Object before = *session_ad1_object(f.app.ad1);
+        switch (guard) {
+        case 0: f.app.cursor_provider.guard_5b5158 = 1; break;
+        case 1: f.app.cursor_provider.guard_5b61af = 1; break;
+        case 2: f.app.cursor_provider.guard_5b615e = 1; break;
+        }
+        pointer(&f.app, BLACKMOOR_POINTER_MOVE, 234, 280, 0);
+        if (!f.tick()) return 2;
+        SceneSessionPointerResult hover{};
+        if (scene_session_get_pointer_result(f.app.session, &hover) != SCENE_SESSION_OK) return 2;
+        pointer(&f.app, BLACKMOOR_POINTER_DOWN, 234, 280, 0);
+        pointer(&f.app, BLACKMOOR_POINTER_UP, 234, 280, 0);
+        if (!f.tick()) return 2;
+        SceneSessionPointerResult release{};
+        if (scene_session_get_pointer_result(f.app.session, &release) != SCENE_SESSION_OK) return 2;
+        const D1Object *after = session_ad1_object(f.app.ad1);
+        const bool frames_unchanged = std::equal(std::begin(before.frame), std::end(before.frame),
+                                                 std::begin(after->frame));
+        std::printf("D1_GUARD index=%u hover=%d/%d release=%d/%d candidate=%d unchanged=%d\n",
+                    guard, hover.consume_status, hover.scan_status, release.consume_status,
+                    release.scan_status, f.app.input_state.candidate, frames_unchanged);
+        if (hover.consume_status != SESSION_INPUT_LIMIT_PRIORITY_PATH ||
+            hover.scan_status != SESSION_INPUT_LIMIT_PRIORITY_PATH ||
+            release.consume_status != SESSION_INPUT_LIMIT_PRIORITY_PATH ||
+            release.scan_status != SESSION_INPUT_LIMIT_PRIORITY_PATH ||
+            f.app.input_state.candidate != -1 || !frames_unchanged || after->state != D1_STATE_IDLE) {
+            std::fprintf(stderr, "FAIL: each nonzero original guard must block D1 hover and release\n");
+            return 1;
+        }
+    }
+    return 0;
+}
+
+static int exercise_corrupted_row(Fixture &f)
+{
+    pointer(&f.app, BLACKMOOR_POINTER_MOVE, 234, 280, 0);
+    if (!f.tick()) return 2;
+    /* Explicit corrupted-state negative case, not an original game flow.
+     * Only the row is corrupted. Call the actual host scan directly: a full
+     * session would reject this object earlier during its ACT handler. */
+    D1Object *object = const_cast<D1Object *>(session_ad1_object(f.app.ad1));
+    const int16_t valid_row = object->row;
+    object->row = static_cast<int16_t>(scene_resource_action_count(f.session_scene));
+    int32_t candidate = -1;
+    const int status = native_pointer_scan(&f.app, nullptr, 0u, &candidate);
+    object->row = valid_row;
+    std::printf("D1_CORRUPTED_ROW scan_status=%d candidate=%d\n", status, candidate);
+    if (status != SESSION_INPUT_INVALID_ARGUMENT || candidate != -1 || f.app.input_state.candidate != -1) {
+        std::fprintf(stderr, "FAIL: a corrupted active D1 row must report the explicit host input error\n");
+        return 1;
+    }
+    return 0;
+}
+
+static int exercise_s4377_miss_release(Fixture &f)
+{
+    SceneActionInfo builtin{};
+    if (f.d1_row != 2u || scene_resource_action_at(f.session_scene, 1u, &builtin) != SCENE_RESOURCE_OK ||
+        builtin.type != 0x61) return 2;
+    pointer(&f.app, BLACKMOOR_POINTER_MOVE, 234, 280, 0);
+    if (!f.tick() || f.app.input_state.candidate != 0x276c) return 2;
+    int32_t x = -1, y = -1;
+    if (!f.miss_point(&x, &y)) return 2;
+    pointer(&f.app, BLACKMOOR_POINTER_MOVE, x, y, 0);
+    if (!f.tick()) return 2;
+    const int32_t missed = f.app.input_state.candidate;
+    const D1Object before = *session_ad1_object(f.app.ad1);
+    pointer(&f.app, BLACKMOOR_POINTER_DOWN, x, y, 0);
+    pointer(&f.app, BLACKMOOR_POINTER_UP, x, y, 0);
+    if (!f.tick()) return 2;
+    const D1Object *after = session_ad1_object(f.app.ad1);
+    const bool unchanged = std::equal(std::begin(before.frame), std::end(before.frame), std::begin(after->frame));
+    std::printf("D1_S4377 row=%zu builtin61=real miss_candidate=%d release_unchanged=%d\n",
+                f.d1_row, missed, unchanged);
+    if (missed != -1 || f.app.input_state.candidate != -1 || !unchanged || after->state != D1_STATE_IDLE) {
+        std::fprintf(stderr, "FAIL: S4377 with its real 0x61 row must preserve hover/miss/release semantics\n");
+        return 1;
+    }
+    return 0;
+}
+
 static int exercise(const char *path, const char *kind, const char *game_directory)
 {
+    if (std::strcmp(kind, "guard") == 0) return exercise_guards(path);
     const bool unknown = std::strcmp(kind, "unknown") == 0;
     Fixture f;
-    if (!f.initialize(path, unknown, std::strcmp(kind, "audio") == 0 ? game_directory : nullptr)) {
+    if (!f.initialize(path, unknown, std::strcmp(kind, "audio") == 0 ? game_directory : nullptr,
+                      std::strcmp(kind, "scene4377") == 0 ? 4377 : 4376)) {
         std::fprintf(stderr, "fixture initialization failed\n");
         return 2;
     }
     if (std::strcmp(kind, "miss") == 0) return exercise_miss(f);
+    if (std::strcmp(kind, "exit") == 0) return exercise_exit(f);
+    if (std::strcmp(kind, "invalid-row") == 0) return exercise_corrupted_row(f);
+    if (std::strcmp(kind, "scene4377") == 0) {
+        const int status = exercise_s4377_miss_release(f);
+        if (status != 0) return status;
+    }
     /* S4376 row 1 tile 0: original inclusive hit rect (200,238,249,303).
      * Coordinates include the app's (10,10) viewport origin. Expectations are
      * derived from immutable body bytes, not from the native hit-test output. */
@@ -285,7 +453,7 @@ static int exercise(const char *path, const char *kind, const char *game_directo
     const int32_t retained = f.app.input_state.candidate;
     const int16_t hovered_tile = session_ad1_object(f.app.ad1)->last_tile;
     SceneActionInfo action{};
-    if (scene_resource_action_at(f.session_scene, 1, &action) != SCENE_RESOURCE_OK) return 2;
+    if (scene_resource_action_at(f.session_scene, f.d1_row, &action) != SCENE_RESOURCE_OK) return 2;
     auto word = [&](size_t offset) -> int16_t {
         return static_cast<int16_t>(action.typed_body[offset] |
                                     static_cast<uint16_t>(action.typed_body[offset + 1] << 8));
@@ -298,13 +466,18 @@ static int exercise(const char *path, const char *kind, const char *game_directo
     /* Actual platform callback -> latch -> actual consume callback. No direct
      * candidate publication, latch writes, or D1 pointer/click calls here. */
     pointer(&f.app, BLACKMOOR_POINTER_DOWN, 234, 280, 0);
+    if (std::strcmp(kind, "stale") == 0) {
+        int32_t x = -1, y = -1;
+        if (!f.miss_point(&x, &y)) return 2;
+        pointer(&f.app, BLACKMOOR_POINTER_MOVE, x, y, 0); /* No tick before release. */
+    }
     pointer(&f.app, BLACKMOOR_POINTER_UP, 11, 11, 0); /* Button coordinates do not replace the last MOVE. */
     if (!f.tick()) return 2;
     const D1Object *object = session_ad1_object(f.app.ad1);
     SceneSessionPointerResult release{};
     if (scene_session_get_pointer_result(f.app.session, &release) != SCENE_SESSION_OK) return 2;
     std::printf("D1_PATH fixture=%s hover_consume=%d hover_scan=%d candidate=%d tile=%d "
-                "release_consume=%d state=%d moving0=%d frame0=%d->%d\n", unknown ? "unknown-earlier" : "real-S4376",
+                "release_consume=%d state=%d moving0=%d frame0=%d->%d\n", kind,
                 hover.consume_status, hover.scan_status, retained, hovered_tile, release.consume_status,
                 object->state, object->moving[0], frames_before[0], object->frame[0]);
     bool exact_frames = true;
@@ -330,6 +503,14 @@ static int exercise(const char *path, const char *kind, const char *game_directo
             ? "FAIL: an unimplemented earlier receiver must remain explicitly limited and cannot turn a D1 tile"
             : "FAIL: a real D1 tile must publish candidate 0x276c and advance exactly its linked tiles through the actual app release path");
         return 1;
+    }
+    if (std::strcmp(kind, "stale") == 0) {
+        std::printf("D1_STALE candidate_at_consume=%d candidate_after_scan=%d last_tile=%d\n",
+                    release.candidate_at_consume, release.candidate_after_scan, object->last_tile);
+        if (release.candidate_at_consume != 0x276c || release.candidate_after_scan != -1 || object->last_tile != -1) {
+            std::fprintf(stderr, "FAIL: moving off a tile before release must use prior hover, then refresh the miss after ACT\n");
+            return 1;
+        }
     }
     if (std::strcmp(kind, "audio") == 0) {
         const int16_t channel = word(0x2fau);
@@ -381,7 +562,10 @@ int main(int argc, char **argv)
     @autoreleasepool {
         if ((argc != 3 && argc != 4) ||
             (std::strcmp(argv[2], "real") != 0 && std::strcmp(argv[2], "unknown") != 0 &&
-             std::strcmp(argv[2], "miss") != 0 && std::strcmp(argv[2], "audio") != 0)) return 2;
+             std::strcmp(argv[2], "miss") != 0 && std::strcmp(argv[2], "audio") != 0 &&
+             std::strcmp(argv[2], "exit") != 0 && std::strcmp(argv[2], "stale") != 0 &&
+             std::strcmp(argv[2], "guard") != 0 && std::strcmp(argv[2], "scene4377") != 0 &&
+             std::strcmp(argv[2], "invalid-row") != 0)) return 2;
         if (std::strcmp(argv[2], "audio") == 0 && argc != 4) return 2;
         return exercise(argv[1], argv[2], argc == 4 ? argv[3] : nullptr);
     }

@@ -1,6 +1,6 @@
 """NATIVE-02: offline regression through the actual native app input callbacks.
 
-The complete owner-local S4376 resource is read in place and hash checked. All
+The complete owner-local S4376/S4377 resources are read in place and hash checked. All
 objects and executables are built in a temporary directory; no bundles, source
 pins, coverage/ledger outputs or shared build directories are written.
 """
@@ -19,7 +19,10 @@ import unittest
 
 PROJECT = Path(__file__).resolve().parents[1]
 WORK = Path(os.environ.get('BLACKMOOR_ORIGINAL_WORK', PROJECT.parents[1] / 'work'))
-RESOURCE_SHA256 = '3a1237be948adf4f9e4212ff9cb4ffda65e5ab366bf62675dfe6c1f075312599'
+RESOURCES = {
+    4376: (2622, '3a1237be948adf4f9e4212ff9cb4ffda65e5ab366bf62675dfe6c1f075312599'),
+    4377: (2623, '95d22215c6770efea94247cfaf1b6c34b79ec1187f05b871d735394db1c2aab6'),
+}
 
 
 class NativePuzzlePointerTests(unittest.TestCase):
@@ -27,11 +30,14 @@ class NativePuzzlePointerTests(unittest.TestCase):
     def setUpClass(cls):
         if sys.platform != 'darwin':
             raise unittest.SkipTest('The actual native app glue requires macOS')
-        cls.scene = WORK / 'analysis/hiff-resources/2622.bin'
-        if not cls.scene.is_file():
-            raise unittest.SkipTest('Owner-local S4376 resource unavailable')
-        if hashlib.sha256(cls.scene.read_bytes()).hexdigest() != RESOURCE_SHA256:
-            raise RuntimeError('Owner-local S4376 resource does not match the pinned corpus')
+        cls.scenes = {}
+        for scene_id, (resource, digest) in RESOURCES.items():
+            scene = WORK / f'analysis/hiff-resources/{resource:04d}.bin'
+            if not scene.is_file():
+                raise unittest.SkipTest(f'Owner-local S{scene_id} resource unavailable')
+            if hashlib.sha256(scene.read_bytes()).hexdigest() != digest:
+                raise RuntimeError(f'Owner-local S{scene_id} resource does not match the pinned corpus')
+            cls.scenes[scene_id] = scene
         cls.temp = tempfile.TemporaryDirectory(prefix='blackmoor-native-d1-pointer-')
         cls.addClassCleanup(cls.temp.cleanup)
         build = Path(cls.temp.name)
@@ -74,7 +80,8 @@ class NativePuzzlePointerTests(unittest.TestCase):
             raise RuntimeError('Native pointer fixture compile failed:\n' + result.stderr)
 
     def run_fixture(self, kind):
-        args = [str(self.executable), str(self.scene), kind]
+        scene_id = 4377 if kind == 'scene4377' else 4376
+        args = [str(self.executable), str(self.scenes[scene_id]), kind]
         if kind == 'audio':
             source = WORK / 'analysis/game-source.json'
             if not source.is_file():
@@ -96,6 +103,21 @@ class NativePuzzlePointerTests(unittest.TestCase):
 
     def test_unimplemented_earlier_receiver_keeps_an_explicit_priority_limit(self):
         self.run_fixture('unknown')
+
+    def test_real_exit_release_dispatches_phase2_and_completes_the_puzzle(self):
+        self.run_fixture('exit')
+
+    def test_same_tick_move_off_tile_releases_the_retained_previous_hover(self):
+        self.run_fixture('stale')
+
+    def test_s4377_with_real_builtin61_handles_hover_miss_and_release(self):
+        self.run_fixture('scene4377')
+
+    def test_each_nonzero_original_guard_blocks_d1_hover_and_release(self):
+        self.run_fixture('guard')
+
+    def test_corrupted_active_row_reports_explicit_host_scan_error(self):
+        self.run_fixture('invalid-row')
 
 
 if __name__ == '__main__':
