@@ -33,6 +33,34 @@ class UntakenProofs(unittest.TestCase):
         self.assertIsNone(U.prove('0x4230d1', 0x42311f, 'fall-through'))    # the other direction is the one that happens
 
 
+class UnknownConditions(unittest.TestCase):
+    def test_a_condition_the_evaluator_does_not_know_proves_nothing(self):
+        sys.path.insert(0, str(PROJECT / 'scripts'))
+        import fl56_untaken as U
+        for cc in ('o', 'no', 'p', 'np'):
+            self.assertIsNone(U.outcomes('cmp', ('const', 1), ('const', 1), cc), cc)
+        self.assertEqual(U.outcomes('cmp', ('const', 1), ('const', 1), 'e'), {1})
+
+
+class ValueWalk(unittest.TestCase):
+    """the abstract value of a register must be unknown after any instruction that writes it, implicit writes and 16-bit parts included"""
+    def walk(self, hexcode, reg):
+        import capstone
+        sys.path.insert(0, str(PROJECT / 'scripts'))
+        import fl56_untaken as U
+        md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
+        md.detail = True
+        ins = list(md.disasm(bytes.fromhex(hexcode), 0x1000))
+        return U.value_of(ins, len(ins) - 1, reg, U.jump_targets(ins), [])
+
+    def test_clobbers_are_not_skipped(self):
+        self.assertIsNone(self.walk('31f6668b3085f6', 'esi'))        # xor esi,esi; mov si,[eax]; test esi,esi
+        self.assertIsNone(self.walk('31c0f7e985c0', 'eax'))          # xor eax,eax; imul ecx; test eax,eax
+        self.assertIsNone(self.walk('31c00f3185c0', 'eax'))          # rdtsc
+        self.assertIsNone(self.walk('31c09f85c0', 'eax'))            # lahf
+        self.assertEqual(self.walk('b80100000085c0', 'eax'), ('const', 1))
+
+
 class UnverifiedRows(unittest.TestCase):
     def test_rows_are_not_in_the_verified_corpus_and_not_ported(self):
         ledger = json.loads((PROJECT / 'function-ledger.json').read_text())['entries']

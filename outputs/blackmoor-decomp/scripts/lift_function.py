@@ -440,6 +440,7 @@ def jump_table(ins, k, va, end):
 
 GUESSED_CALLEES = set()  # FL-56: call targets whose stack cleanup an unverified translation guessed from their first ret
 ASSUMED_NEUTRAL = set()  # FL-56: library callees whose x87 stack effect an unverified translation assumes to be none (scripts/fl56_unverified.py records them per row)
+INDIRECT_CALLS = []      # FL-56: (call address, inferred callee pop) of the indirect calls an unverified translation made
 UNVERIFIED = False       # FL-56: the "translated, unverified" mode (scripts/fl56_unverified.py): indirect and recursive calls are translated, the callee's stack cleanup of an indirect call is INFERRED, not proven
 
 
@@ -464,6 +465,7 @@ def indirect_cleanup(c, i):
 def indirect_call(c, i):
     a = i.address
     cleanup = indirect_cleanup(c, i)
+    INDIRECT_CALLS.append((a, cleanup))
     c.emit("{ uint32_t t_ = %s;  /* UNVERIFIED: indirect call, callee pop of %d bytes inferred from the pushes before it */" % (get(i, i.operands[0], 32), cleanup))
     c.emit("  esp -= 4u; WR32(esp, 0x%xu);" % (a + i.size))
     c.emit("  FL40_CALL(t_);")

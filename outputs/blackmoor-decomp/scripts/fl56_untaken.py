@@ -65,52 +65,56 @@ def jump_targets(ins):
     return out
 
 
+FAMILY = {'eax': {'eax', 'ax', 'al', 'ah'}, 'ecx': {'ecx', 'cx', 'cl', 'ch'}, 'edx': {'edx', 'dx', 'dl', 'dh'}, 'ebx': {'ebx', 'bx', 'bl', 'bh'},
+          'esi': {'esi', 'si'}, 'edi': {'edi', 'di'}}
+
+
 def value_of(ins, k, reg, targets, trace):
-    """abstract value of 32-bit register `reg` just before ins[k]: ('const', v) or ('range', lo, hi); None when unknown. Walks back through straight-line code."""
+    """abstract value of 32-bit register `reg` just before ins[k]: ('const', v) or ('range', lo, hi); None when unknown. Walks back through straight-line code. Every instruction passed over must
+    leave the register (and its 16/8-bit parts) alone according to capstone's register access list, which includes the implicit writes (cdq, mul, rdtsc, string instructions, ...)."""
+    family = FAMILY[reg]
     for j in range(k - 1, -1, -1):
         i = ins[j]
         entry = i.address in targets              # something else jumps here: fine for a plain `mov r, imm` / `xor r, r` (it IS the writer), otherwise the walk back would skip a path
         ops = i.operands
-        dest = ops[0] if ops else None
-        if i.mnemonic in ('call', 'ret', 'rep stosd', 'rep movsd') or i.mnemonic.startswith(('rep', 'j', 'loop')):
+        if i.mnemonic in ('call', 'ret', 'leave') or i.mnemonic.startswith(('rep', 'j', 'loop')):
             return None
-        if dest is not None and dest.type == X.X86_OP_REG:
-            r = dest.reg
-            if r in REG32 and REG32[r] == reg:
-                if i.mnemonic == 'mov' and ops[1].type == X.X86_OP_IMM:
-                    trace.append('%x: mov %s, 0x%x' % (i.address, reg, ops[1].imm & MASK))
-                    return ('const', ops[1].imm & MASK)
-                if i.mnemonic == 'xor' and ops[1].type == X.X86_OP_REG and ops[1].reg == r:
-                    trace.append('%x: xor %s, %s' % (i.address, reg, reg))
-                    return ('const', 0)
-                if entry:
-                    return None
-                if i.mnemonic == 'and' and ops[1].type == X.X86_OP_IMM:
-                    inner = value_of(ins, j, reg, targets, trace)
-                    if inner and inner[0] == 'const':
-                        trace.append('%x: and %s, 0x%x' % (i.address, reg, ops[1].imm & MASK))
-                        return ('const', inner[1] & ops[1].imm & MASK)
-                    return None
+        try:
+            names = {i.reg_name(r) for r in i.regs_access()[1]} - {'eflags'}
+        except Exception:
+            return None
+        if not names & family:
+            if entry:
                 return None
-            if r in LOW8 and LOW8[r] == reg:
-                if entry:
-                    return None
-                if i.mnemonic == 'mov' and ops[1].type in (X.X86_OP_MEM, X.X86_OP_REG) and (ops[1].type == X.X86_OP_MEM or ops[1].reg in {X.X86_REG_AL, X.X86_REG_BL, X.X86_REG_CL, X.X86_REG_DL}):
-                    inner = value_of(ins, j, reg, targets, trace)
-                    if inner and inner == ('const', 0):
-                        trace.append('%x: mov %s, <byte>' % (i.address, i.reg_name(r)))
-                        return ('range', 0, 255)
+            continue
+        dest = ops[0] if ops else None
+        if dest is None or dest.type != X.X86_OP_REG:
+            return None
+        r = dest.reg
+        if r in REG32 and REG32[r] == reg:
+            if i.mnemonic == 'mov' and ops[1].type == X.X86_OP_IMM:
+                trace.append('%x: mov %s, 0x%x' % (i.address, reg, ops[1].imm & MASK))
+                return ('const', ops[1].imm & MASK)
+            if i.mnemonic == 'xor' and ops[1].type == X.X86_OP_REG and ops[1].reg == r:
+                trace.append('%x: xor %s, %s' % (i.address, reg, reg))
+                return ('const', 0)
+            if entry:
                 return None
-            if r in {X.X86_REG_AX, X.X86_REG_CX, X.X86_REG_DX, X.X86_REG_BX, X.X86_REG_AH, X.X86_REG_CH, X.X86_REG_DH, X.X86_REG_BH}:
-                if {X.X86_REG_AX: 'eax', X.X86_REG_CX: 'ecx', X.X86_REG_DX: 'edx', X.X86_REG_BX: 'ebx', X.X86_REG_AH: 'eax', X.X86_REG_CH: 'ecx', X.X86_REG_DH: 'edx', X.X86_REG_BH: 'ebx'}[r] == reg:
-                    return None
-            if i.mnemonic in ('lea', 'mov', 'movzx', 'movsx', 'pop', 'add', 'sub', 'or', 'inc', 'dec', 'shl', 'shr', 'sar', 'imul', 'neg', 'not') and r in REG32 and REG32[r] == reg:
-                return None
+            if i.mnemonic == 'and' and ops[1].type == X.X86_OP_IMM and names == {reg}:
+                inner = value_of(ins, j, reg, targets, trace)
+                if inner and inner[0] == 'const':
+                    trace.append('%x: and %s, 0x%x' % (i.address, reg, ops[1].imm & MASK))
+                    return ('const', inner[1] & ops[1].imm & MASK)
+            return None
         if entry:
             return None
-        # string instructions and calls write registers implicitly
-        if i.mnemonic.startswith(('stos', 'movs', 'lods', 'scas', 'cmps', 'cdq', 'cwde', 'mul', 'div', 'idiv', 'xchg', 'cmpxchg', 'xadd', 'leave', 'enter', 'pusha', 'popa', 'in', 'out', 'cpuid')):
-            return None
+        if r in LOW8 and LOW8[r] == reg and i.mnemonic == 'mov' and names == {i.reg_name(r)} and \
+                (ops[1].type == X.X86_OP_MEM or (ops[1].type == X.X86_OP_REG and ops[1].reg in LOW8)):
+            inner = value_of(ins, j, reg, targets, trace)
+            if inner == ('const', 0):
+                trace.append('%x: mov %s, <byte>' % (i.address, i.reg_name(r)))
+                return ('range', 0, 255)
+        return None
     return None
 
 
@@ -124,7 +128,8 @@ def outcomes(kind, left, right, cc):
         if right[0] != 'const' or right[1] <= 255 or kind != 'cmp':
             return None
         return {0} if cc in ('e', 'z') else {1}
-    return {cond(cc, flags_of(kind, a, b)) for a in points(left) for b in points(right)}
+    result = {cond(cc, flags_of(kind, a, b)) for a in points(left) for b in points(right)}
+    return None if None in result else result            # a condition the evaluator does not know (jo, jno, jp, jnp, ...) decides nothing
 
 
 def prove(row, jcc, direction):

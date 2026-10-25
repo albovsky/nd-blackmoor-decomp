@@ -20,6 +20,16 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [
+    [
+     "0x4010a4",
+     12
+    ],
+    [
+     "0x4010a4",
+     12
+    ]
+   ],
    "instructions": [
     0,
     29
@@ -43,6 +53,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     0,
     1421
@@ -142,6 +153,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     1208,
     5261
@@ -508,6 +520,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     0,
     224
@@ -535,6 +548,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     210,
     223
@@ -598,6 +612,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     286,
     286
@@ -645,6 +660,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     218,
     325
@@ -689,6 +705,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     176,
     200
@@ -789,6 +806,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     0,
     1123
@@ -824,6 +842,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     0,
     464
@@ -860,6 +879,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     497,
     755
@@ -1154,6 +1174,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     409,
     506
@@ -1268,6 +1289,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     402,
     823
@@ -1398,6 +1420,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     541,
     716
@@ -1592,6 +1615,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     236,
     319
@@ -1650,6 +1674,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     167,
     254
@@ -1799,6 +1824,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     44,
     88
@@ -1843,6 +1869,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     711,
     1117
@@ -1947,6 +1974,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     0,
     971
@@ -2024,6 +2052,24 @@
    "fs": true,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [
+    [
+     "0x420f6d",
+     4
+    ],
+    [
+     "0x422290",
+     4
+    ],
+    [
+     "0x420f6d",
+     4
+    ],
+    [
+     "0x422290",
+     4
+    ]
+   ],
    "instructions": [
     0,
     1764
@@ -2053,6 +2099,7 @@
    "imports": {
     "0x52a2b0": 4
    },
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     0,
     84
@@ -2075,6 +2122,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     0,
     41
@@ -2103,6 +2151,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     462,
     975
@@ -2213,6 +2262,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     0,
     246
@@ -2240,6 +2290,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     109,
     243
@@ -2304,6 +2355,40 @@
    "imports": {
     "0x52a4c0": 20
    },
+   "indirect_calls_pop_inferred": [
+    [
+     "0x42730f",
+     4
+    ],
+    [
+     "0x42735c",
+     0
+    ],
+    [
+     "0x42736b",
+     0
+    ],
+    [
+     "0x427385",
+     4
+    ],
+    [
+     "0x42730f",
+     4
+    ],
+    [
+     "0x42735c",
+     0
+    ],
+    [
+     "0x42736b",
+     0
+    ],
+    [
+     "0x427385",
+     4
+    ]
+   ],
    "instructions": [
     0,
     91
@@ -2328,6 +2413,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     214,
     214
@@ -2503,6 +2589,16 @@
    "imports": {
     "0x52a23c": 0
    },
+   "indirect_calls_pop_inferred": [
+    [
+     "0x42c43b",
+     4
+    ],
+    [
+     "0x42c43b",
+     4
+    ]
+   ],
    "instructions": [
     0,
     470
@@ -2547,6 +2643,16 @@
    "imports": {
     "0x52a23c": 0
    },
+   "indirect_calls_pop_inferred": [
+    [
+     "0x42d574",
+     4
+    ],
+    [
+     "0x42d574",
+     4
+    ]
+   ],
    "instructions": [
     0,
     470
@@ -2568,6 +2674,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     27,
     35
@@ -2603,6 +2710,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     318,
     386
@@ -2945,6 +3053,7 @@
    "imports": {
     "0x52a23c": 0
    },
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     795,
     847
@@ -3509,6 +3618,7 @@
    "imports": {
     "0x52a23c": 0
    },
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     320,
     373
@@ -3804,6 +3914,7 @@
    "imports": {
     "0x52a23c": 0
    },
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     331,
     382
@@ -4247,6 +4358,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     630,
     912
@@ -5288,6 +5400,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     97,
     141
@@ -5356,6 +5469,24 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [
+    [
+     "0x433923",
+     0
+    ],
+    [
+     "0x43394a",
+     0
+    ],
+    [
+     "0x433923",
+     0
+    ],
+    [
+     "0x43394a",
+     0
+    ]
+   ],
    "instructions": [
     0,
     174
@@ -5389,6 +5520,7 @@
     "0x52a298": 24,
     "0x52a29c": 16
    },
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     0,
     263
@@ -5458,6 +5590,7 @@
     "0x52a2e0": 8,
     "0x52a4cc": 4
    },
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     494,
     2089
@@ -5542,6 +5675,16 @@
     "0x52a4bc": 16,
     "0x52a4cc": 4
    },
+   "indirect_calls_pop_inferred": [
+    [
+     "0x4376e6",
+     0
+    ],
+    [
+     "0x4376e6",
+     0
+    ]
+   ],
    "instructions": [
     0,
     67
@@ -5568,6 +5711,7 @@
    "imports": {
     "0x52a4b8": 4
    },
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     371,
     397
@@ -6845,6 +6989,7 @@
    "imports": {
     "0x52a23c": 0
    },
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     738,
     868
@@ -7959,6 +8104,7 @@
    "fs": true,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     230,
     260
@@ -8553,6 +8699,7 @@
    "imports": {
     "0x52a23c": 0
    },
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     366,
     378
@@ -8643,6 +8790,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     0,
     136
@@ -8665,6 +8813,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     1761,
     1761
@@ -10830,6 +10979,7 @@
    "imports": {
     "0x52a23c": 0
    },
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     0,
     183
@@ -10855,6 +11005,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     0,
     176
@@ -10880,6 +11031,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     143,
     151
@@ -10925,6 +11077,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     297,
     297
@@ -11053,6 +11206,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     0,
     647
@@ -11086,6 +11240,7 @@
     "0x4fcee2"
    ],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     0,
     144
@@ -11110,6 +11265,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     0,
     526
@@ -11134,6 +11290,40 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [
+    [
+     "0x44cbcc",
+     4
+    ],
+    [
+     "0x44cc5d",
+     4
+    ],
+    [
+     "0x44ccee",
+     4
+    ],
+    [
+     "0x44cd7f",
+     4
+    ],
+    [
+     "0x44cbcc",
+     4
+    ],
+    [
+     "0x44cc5d",
+     4
+    ],
+    [
+     "0x44ccee",
+     4
+    ],
+    [
+     "0x44cd7f",
+     4
+    ]
+   ],
    "instructions": [
     0,
     144
@@ -11161,6 +11351,7 @@
    "imports": {
     "0x52a2b0": 4
    },
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     0,
     75
@@ -11188,6 +11379,7 @@
    "imports": {
     "0x52a2b0": 4
    },
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     0,
     75
@@ -11207,6 +11399,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     67,
     67
@@ -11247,6 +11440,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     57,
     77
@@ -11291,6 +11485,7 @@
    "imports": {
     "0x52a23c": 0
    },
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     311,
     311
@@ -11579,6 +11774,7 @@
     "0x52a23c": 0,
     "0x52a4b4": 4
    },
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     0,
     195
@@ -11608,6 +11804,7 @@
     "0x52a23c": 0,
     "0x52a4b4": 4
    },
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     0,
     426
@@ -11632,6 +11829,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     0,
     520
@@ -11654,6 +11852,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     257,
     280
@@ -11811,6 +12010,7 @@
    "imports": {
     "0x52a23c": 0
    },
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     0,
     823
@@ -11872,6 +12072,7 @@
     "0x52a23c": 0,
     "0x52a4b4": 4
    },
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     0,
     1466
@@ -11896,6 +12097,7 @@
    "imports": {
     "0x52a23c": 0
    },
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     128,
     156
@@ -11939,6 +12141,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     0,
     81
@@ -11972,6 +12175,7 @@
    "imports": {
     "0x52a23c": 0
    },
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     396,
     502
@@ -12269,6 +12473,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     8,
     462
@@ -12305,6 +12510,7 @@
    "imports": {
     "0x52a23c": 0
    },
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     323,
     339
@@ -12697,6 +12903,7 @@
    "imports": {
     "0x52a23c": 0
    },
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     386,
     448
@@ -12994,6 +13201,7 @@
    "imports": {
     "0x52a23c": 0
    },
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     738,
     779
@@ -13588,6 +13796,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     0,
     69
@@ -13625,6 +13834,7 @@
    "imports": {
     "0x52a23c": 0
    },
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     519,
     1072
@@ -14990,6 +15200,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     202,
     214
@@ -15049,6 +15260,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     174,
     174
@@ -15103,6 +15315,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     43,
     43
@@ -15152,6 +15365,7 @@
    "imports": {
     "0x52a23c": 0
    },
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     496,
     1839
@@ -15356,6 +15570,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     150,
     562
@@ -15397,6 +15612,7 @@
    "imports": {
     "0x52a23c": 0
    },
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     413,
     426
@@ -15874,6 +16090,7 @@
    "imports": {
     "0x52a23c": 0
    },
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     475,
     696
@@ -16426,6 +16643,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     399,
     454
@@ -16520,6 +16738,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     81,
     82
@@ -16583,6 +16802,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     67,
     73
@@ -16641,6 +16861,7 @@
    "imports": {
     "0x52a23c": 0
    },
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     633,
     647
@@ -17038,6 +17259,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     0,
     72
@@ -17060,6 +17282,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     0,
     91
@@ -17103,6 +17326,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     0,
     1117
@@ -17124,6 +17348,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     0,
     532
@@ -17143,6 +17368,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     115,
     130
@@ -17211,6 +17437,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     929,
     1070
@@ -17650,6 +17877,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     349,
     418
@@ -17841,6 +18069,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     443,
     501
@@ -18438,6 +18667,7 @@
    "imports": {
     "0x52a23c": 0
    },
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     696,
     1076
@@ -18927,6 +19157,7 @@
    "imports": {
     "0x52a23c": 0
    },
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     0,
     1151
@@ -18949,6 +19180,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     273,
     289
@@ -19095,6 +19327,7 @@
    "imports": {
     "0x52a23c": 0
    },
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     913,
     946
@@ -19682,6 +19915,7 @@
    "imports": {
     "0x52a23c": 0
    },
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     716,
     969
@@ -20452,6 +20686,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     194,
     194
@@ -20606,6 +20841,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     196,
     289
@@ -20703,6 +20939,7 @@
    "imports": {
     "0x52a23c": 0
    },
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     405,
     484
@@ -21256,6 +21493,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     311,
     351
@@ -21370,6 +21608,7 @@
    "imports": {
     "0x52a23c": 0
    },
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     0,
     197
@@ -21395,6 +21634,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     0,
     334
@@ -21430,6 +21670,7 @@
    "fs": false,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     754,
     758
@@ -21984,6 +22225,7 @@
    "fs": true,
    "guessed_callee_pops": [],
    "imports": {},
+   "indirect_calls_pop_inferred": [],
    "instructions": [
     0,
     563

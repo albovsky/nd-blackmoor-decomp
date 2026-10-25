@@ -195,7 +195,7 @@
 {"exit": 0, "hits": 17746, "instructions": 790, "script": "outputs/blackmoor-decomp/tests/fl39e_original_oracle.py", "script_sha256": "7f587647bf3933e5e7529950a6ebd20cd4c60a2b8ed88f753d8e2c29a415d123", "trace_sha256": "3434607cb5397ac59e8419bd8015a013d731904326b4023b57223cd67b2f85f6"},
 {"exit": 0, "hits": 278276, "instructions": 988, "script": "outputs/blackmoor-decomp/tests/fl39f_original_oracle.py", "script_sha256": "9203de05439c7d810982cb6e3a14f0e49932c8cc75107256246c9a3694fb58c3", "trace_sha256": "7b2683d407c2ac28cb3f804f7c3d038ec5c43a071b7e8fd85ae012d3c3556a12"},
 {"exit": 0, "hits": 28064884, "instructions": 12347, "script": "outputs/blackmoor-decomp/tests/fl41_original_oracle.py", "script_sha256": "2ef83c935a32b64456c2489602015d5ab3a5f9e73bcf810acce15f961b65af58", "trace_sha256": "b5322dab41c28bd5381f65f6a06cddc2f0d83fc7748f55e9a7f41b80b5775004"},
-{"exit": 0, "hits": 11111784, "instructions": 30004, "script": "outputs/blackmoor-decomp/tests/fl40_original_oracle.py", "script_sha256": "31ab3802711979a1d6b75d894ce11889ac73dadbdcf6338c2492074b77a94875", "trace_sha256": "e3f12a8f8b4525ae213c3f2028e0a69c9181e31e8cae93d590acd030d13f2b00"}
+{"exit": 0, "hits": 11111784, "instructions": 30004, "script": "outputs/blackmoor-decomp/tests/fl40_original_oracle.py", "script_sha256": "b3f145eefcc31293925512a1734f6f43fac4052f9fcab9453cedad59621af4e3", "trace_sha256": "e3f12a8f8b4525ae213c3f2028e0a69c9181e31e8cae93d590acd030d13f2b00"}
 ],
 "functions": {
 "0x401000": [50, [190, 1, 50, 16]],
