@@ -48,6 +48,7 @@ def main():
     table = json.loads(TABLE.read_text())
     corpus = json.loads(CORPUS.read_text())
     spans = L.ledger_spans()
+    ledger = {e['va']: e for e in json.loads((PROJECT / 'function-ledger.json').read_text())['entries']}
     source = SOURCE.read_text()
     have = split(source)
     header = source.split('/* GAME.EXE 0x', 1)[0]
@@ -58,6 +59,12 @@ def main():
             continue
         t = table[key]
         va = int(key, 16)
+        if t.get('sites') or t.get('frame'):
+            refused[key] = 'indirect call or made-up frame'
+            continue
+        if ledger[key]['region'] != 'game' or ledger[key]['status'] != 'pending' or t['status'] != 'agrees':
+            refused[key] = 'not a pending game row that agrees'
+            continue
         text, callees, imports, fs, inline = L.lift(va, spans[va])
         row = W.row_info(va, spans[va], callees, imports, fs)
         if t.get('sites') or t.get('frame'):

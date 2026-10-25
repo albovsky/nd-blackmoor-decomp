@@ -15,7 +15,7 @@
 # locals:       6 ebp-relative slot(s): local_4, local_8, local_c, local_10, local_14, local_18
 # fields:       [eax + n] field_2, field_12b; [ecx + n] field_2, field_12b; [edx + n] field_109, field_12b
 # callees:      calls FUN_0050ca3e, FUN_0052139c, FUN_004c97b4, FUN_0051dc43, FUN_0042639d, FUN_0044a2b7, FUN_00423259
-# track-n:      outputs/blackmoor-decomp/src/scene_resource.c:known_body_length (function ledger class candidate_port; this machine pass does not re-verify the equivalence)
+# track-n:      outputs/blackmoor-decomp/src/original_methods_fl56_unverified.c:m40b34a_lifted (function ledger class candidate_port; also m41137f_lifted; this machine pass does not re-verify the equivalence)
 # unverified:   machine annotation only: the 224 instruction(s), 8 conditional branch(es) and 0 jump table(s) are reproduced byte-exactly but no branch condition, argument meaning, field meaning or return value is interpreted; frame, argument and field names are generated from offsets and addresses, and the function name is a LOWER-CONFIDENCE inference (name prefix inferred_) tied to the evidence in the naming line; it is not verified, not read from this code, and not a recovered name
 .intel_syntax noprefix
 .code32
