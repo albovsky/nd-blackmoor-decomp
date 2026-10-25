@@ -476,7 +476,7 @@ FL57_HELPERS = r"""
         long double r;                                                                                                                         \
         uint16_t s;                                                                                                                            \
         __asm__ volatile("fldcw %3\n\tfldt %2\n\tfnclex\n\t" INSN "\n\tfnstsw %1\n\tfstpt %0" : "=m"(r), "=m"(s) : "m"(a), "m"(f->cw) : "st", "cc");     \
-        (void)s;                                                                                                                               \
+        f->sw = (uint16_t)((f->sw & ~0x0400u) | (s & 0x0400u));                                                                                 \
         return r;                                                                                                                              \
     }
 FL57_UNARY(fl57_frndint, "frndint")
@@ -486,20 +486,21 @@ FL57_UNARY(fl57_fsin, "fsin")
 FL57_UNARY(fl57_fcos, "fcos")
 FL57_UNARY(fl57_f2xm1, "f2xm1")
 /* a (st(0)) and b (st(1)) in, the result in st(0) after the operation: fprem and fprem1 leave the remainder, fpatan atan2(b, a) and fyl2x b * log2(a) (both pop), fscale a * 2^trunc(b) */
-#define FL57_BINARY(NAME, INSN)                                                                                                                \
+#define FL57_BINARY(NAME, INSN, CLEANUP)                                                                                                       \
     static inline long double NAME(Fl41Fpu *f, long double a, long double b)                                                                    \
     {                                                                                                                                          \
         long double r;                                                                                                                         \
         uint16_t s;                                                                                                                            \
-        __asm__ volatile("fldcw %4\n\tfldt %3\n\tfldt %2\n\tfnclex\n\t" INSN "\n\tfnstsw %1\n\tfstpt %0\n\tfstp %%st(0)" : "=m"(r), "=m"(s) : "m"(a), "m"(b), "m"(f->cw) : "st", "st(1)", "cc"); \
+        __asm__ volatile("fldcw %4\n\tfldt %3\n\tfldt %2\n\tfnclex\n\t" INSN "\n\tfnstsw %1\n\tfstpt %0" CLEANUP : "=m"(r), "=m"(s) : "m"(a), "m"(b), "m"(f->cw) : "st", "st(1)", "cc"); \
         f->sw = (uint16_t)((f->sw & ~0x4700u) | (s & 0x4700u));                                                                                \
         return r;                                                                                                                              \
     }
-FL57_BINARY(fl57_fprem, "fprem")
-FL57_BINARY(fl57_fprem1, "fprem1")
-FL57_BINARY(fl57_fpatan, "fpatan")
-FL57_BINARY(fl57_fyl2x, "fyl2x")
-FL57_BINARY(fl57_fscale, "fscale")
+/* fprem, fprem1 and fscale leave a second value on the host stack (st(1)) that is dropped; fpatan and fyl2x pop it themselves */
+FL57_BINARY(fl57_fprem, "fprem", "\n\tfstp %%st(0)")
+FL57_BINARY(fl57_fprem1, "fprem1", "\n\tfstp %%st(0)")
+FL57_BINARY(fl57_fpatan, "fpatan", "")
+FL57_BINARY(fl57_fyl2x, "fyl2x", "")
+FL57_BINARY(fl57_fscale, "fscale", "\n\tfstp %%st(0)")
 static inline void fl57_fxam(Fl41Fpu *f, long double a)
 {
     uint16_t s;
@@ -1046,7 +1047,7 @@ def lift_x87(c, i, mn):
         e("fl41_fpush(fp, %s);" % const)
         return
     if mn == "fxch":
-        k = st_index(i, ops[0]) if ops else 1
+        k = st_index(i, ops[-1]) if ops else 1                     # capstone lists `fxch st(1)` as two operands, st(0) and st(1): the exchange partner is the last one
         e("{ long double t_ = FL41_FST(fp, 0); FL41_FST(fp, 0) = FL41_FST(fp, %d); FL41_FST(fp, %d) = t_; fp->sw &= (uint16_t)~0x0200u; }" % (k, k))
         return
     if mn == "fnstcw":
