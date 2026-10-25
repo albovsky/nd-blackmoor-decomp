@@ -205,7 +205,7 @@ def mutants_of(lines, row, kind, n):
 RD_WIDTH = re.compile(r'\bRD(8|16|32)\(')
 CF_READ = re.compile(r'\bcf\b(?!\s*=[^=])')
 BLOCK_OPEN = re.compile(r'^\{ uint32_t a_ = [^;{}]*, b_ = [^;{}]*, r_;$')
-BYTE_ARITH = re.compile(r'FL40_(ADD|SUB)\(a_, b_, 0u, r_, 8\);')
+BYTE_ARITH = re.compile(r'FL40_(ADD|SUB)\(a_, b_, 0u, r_, 8\); \}')
 
 
 def carry_only(lines, n, row):
@@ -216,7 +216,7 @@ def carry_only(lines, n, row):
     if any(CF_READ.search(re.sub(r'/\*.*?\*/', '', l)) for l in lines):
         return None
     t, nxt = stmt(lines[n]), stmt(lines[n + 1]) if n + 1 < len(lines) else ''
-    if not BLOCK_OPEN.match(t) or not BYTE_ARITH.match(nxt):
+    if not BLOCK_OPEN.match(t) or not BYTE_ARITH.fullmatch(nxt):
         return None
     if not RD_WIDTH.search(t) or any(w != '8' for w in RD_WIDTH.findall(t)):
         return None
