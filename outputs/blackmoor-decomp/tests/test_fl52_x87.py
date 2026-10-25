@@ -56,7 +56,7 @@ class Fl52X87(unittest.TestCase):
         with contextlib.redirect_stdout(io.StringIO()):
             ok, reasons = L.census()
         self.assertGreater(len(ok), 189)                      # 189 before FL-52
-        self.assertGreaterEqual(len(ok), 221)
+        self.assertGreaterEqual(len(ok), 213)                 # 221 before the eight FL-52 rows left the pending set
         for va in SMALL_X87_ROWS:
             self.assertIn(hex(va), ok)
         self.assertFalse([v for v in reasons.values() if v.startswith(('fild at', 'fld at'))])
