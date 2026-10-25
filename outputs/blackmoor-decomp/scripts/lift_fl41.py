@@ -73,6 +73,8 @@ def disasm(va, size):
 # ---- the callees -----------------------------------------------------------------------------------------------------------------
 
 _LEDGER = None
+ASSUMED_MATH = {}         # FL-57 bulk: library math wrappers whose x87 effect is guessed from the wrapper shape
+GUESSED_CALLEES = set()   # FL-57 bulk: call targets that start no ledger function, their pop taken from the first `ret` (recorded per row by scripts/fl57_bulk.py)
 # callees that are not played by the host: `__chkstk` takes its size in eax and lowers esp, and `__EH_prolog` (0x50f978, FL-58) sets ebp and moves esp, so they are translated too (the original bytes run in the oracle)
 INLINE_CALLEES = {0x50c920, 0x50f978}
 
@@ -101,7 +103,14 @@ def callee_shape(target, depth=0):
     a body that is not a ledger function)."""
     spans = ledger_spans()
     if target not in spans:
-        raise Unsupported("callee 0x%x is not a ledger function" % target)
+        if not BULK:
+            raise Unsupported("callee 0x%x is not a ledger function" % target)
+        GUESSED_CALLEES.add(target)       # FL-57 bulk: a call target that starts no ledger function (inside a function or in a gap): the first `ret` of its linear code decides the pop
+        img = od.load_image()
+        for i in md().disasm(img.image[target - img.image_base:][:400], target):
+            if i.mnemonic == "ret":
+                return i.operands[0].imm if i.operands else 0
+        raise Unsupported("callee 0x%x is not a ledger function and has no ret within 400 bytes" % target)
     size = spans[target]
     try:
         ins = disasm(target, size)
@@ -117,7 +126,7 @@ def callee_shape(target, depth=0):
             continue
         if i.mnemonic in ("mov", "xchg", "lea", "sub", "add", "and", "or", "xor") and i.operands and \
                 i.operands[0].type == X.X86_OP_REG and i.operands[0].reg == X.X86_REG_ESP:
-            if not (i.mnemonic in ("sub", "add") and len(i.operands) == 2 and i.operands[1].type == X.X86_OP_IMM) and \
+            if not BULK and not (i.mnemonic in ("sub", "add") and len(i.operands) == 2 and i.operands[1].type == X.X86_OP_IMM) and \
                     not (i.mnemonic == "mov" and i.operands[1].type == X.X86_OP_REG and i.operands[1].reg == X.X86_REG_EBP):
                 raise Unsupported("callee 0x%x writes esp (%s %s)" % (target, i.mnemonic, i.op_str))
     if not rets:
@@ -184,10 +193,20 @@ def _fpu_net(target, depth=0):
     if target in cache:
         return cache[target]
     entry = ledger_entry(target)
-    if entry is None or depth > 6:
+    if entry is None or depth > (40 if BULK else 6):       # FL-57: the bulk lifts follow call chains 40 deep (a cut-off chain guessed 0 and made two paths of a float-returning callee disagree)
         raise Unsupported("callee 0x%x is not a ledger function" % target)
     if entry["origin"] != "game":
-        cache[target] = library_fpu_net(target)
+        try:
+            cache[target] = library_fpu_net(target)
+        except Unsupported:
+            if not BULK:
+                raise
+            import lift_function as L40                      # FL-57: the Borland math wrappers are classified from their frame set-up (scripts/lift_function.py)
+            guess = L40.UNVERIFIED_LIBRARY_FPU_NET.get(target, L40.guess_math_wrapper(target))
+            if guess is None:
+                raise
+            ASSUMED_MATH[target] = guess
+            cache[target] = guess
         return cache[target]
     spans = ledger_spans()
     ins = list(md().disasm(od.load_image().image[target - od.load_image().image_base:][:spans[target]], target))
@@ -428,6 +447,14 @@ def jump_table(ins, k, va, end):
             break
     if count is None:
         count = bound_before(len(window))
+    if count is None and BULK:                                     # FL-57 bulk: no `cmp/ja` bound: take the dwords of the table while they point into the function
+        import struct as _st
+        raw = od.load_image()
+        off0 = table - raw.image_base
+        count = 0
+        while count < 256 and va <= _st.unpack_from("<I", raw.image, off0 + 4 * count)[0] < end:
+            count += 1
+        count = count or None
     if count is None:
         raise Unsupported("jump table without a bound at 0x%x" % a)
     img = od.load_image()
@@ -438,6 +465,73 @@ def jump_table(ins, k, va, end):
         raise Unsupported("jump table leaves the function at 0x%x" % a)
     return targets
 
+
+# FL-57 bulk: x87 helpers that the generated C file defines itself (the model header src/original_methods_fl41_x87.h is hash-pinned by the credited rows and stays as it is)
+FL57_HELPERS = r"""
+/* FL-57 helpers: x87 operations of the bulk translations that the pinned model header does not have. They follow the control word of the model (f->cw). */
+#if FL41_X87_EXACT
+#define FL57_UNARY(NAME, INSN)                                                                                                                 \
+    static inline long double NAME(Fl41Fpu *f, long double a)                                                                                  \
+    {                                                                                                                                          \
+        long double r;                                                                                                                         \
+        uint16_t s;                                                                                                                            \
+        __asm__ volatile("fldcw %3\n\tfldt %2\n\tfnclex\n\t" INSN "\n\tfnstsw %1\n\tfstpt %0" : "=m"(r), "=m"(s) : "m"(a), "m"(f->cw) : "st", "cc");     \
+        (void)s;                                                                                                                               \
+        return r;                                                                                                                              \
+    }
+FL57_UNARY(fl57_frndint, "frndint")
+FL57_UNARY(fl57_fsqrt, "fsqrt")
+FL57_UNARY(fl57_fabs, "fabs")
+FL57_UNARY(fl57_fsin, "fsin")
+FL57_UNARY(fl57_fcos, "fcos")
+FL57_UNARY(fl57_f2xm1, "f2xm1")
+/* a (st(0)) and b (st(1)) in, the result in st(0) after the operation: fprem and fprem1 leave the remainder, fpatan atan2(b, a) and fyl2x b * log2(a) (both pop), fscale a * 2^trunc(b) */
+#define FL57_BINARY(NAME, INSN)                                                                                                                \
+    static inline long double NAME(Fl41Fpu *f, long double a, long double b)                                                                    \
+    {                                                                                                                                          \
+        long double r;                                                                                                                         \
+        uint16_t s;                                                                                                                            \
+        __asm__ volatile("fldcw %4\n\tfldt %3\n\tfldt %2\n\tfnclex\n\t" INSN "\n\tfnstsw %1\n\tfstpt %0\n\tfstp %%st(0)" : "=m"(r), "=m"(s) : "m"(a), "m"(b), "m"(f->cw) : "st", "st(1)", "cc"); \
+        f->sw = (uint16_t)((f->sw & ~0x4700u) | (s & 0x4700u));                                                                                \
+        return r;                                                                                                                              \
+    }
+FL57_BINARY(fl57_fprem, "fprem")
+FL57_BINARY(fl57_fprem1, "fprem1")
+FL57_BINARY(fl57_fpatan, "fpatan")
+FL57_BINARY(fl57_fyl2x, "fyl2x")
+FL57_BINARY(fl57_fscale, "fscale")
+static inline void fl57_fxam(Fl41Fpu *f, long double a)
+{
+    uint16_t s;
+    __asm__ volatile("fldt %1\n\tfxam\n\tfnstsw %0\n\tfstp %%st(0)" : "=m"(s) : "m"(a) : "st", "cc");
+    f->sw = (uint16_t)((f->sw & ~0x4700u) | (s & 0x4700u));
+}
+static inline uint64_t fl57_fist(Fl41Fpu *f, long double v, int bytes)
+{
+    uint64_t r = 0;
+    uint16_t s;
+    if (bytes == 2) { int16_t x; __asm__ volatile("fldcw %3\n\tfldt %2\n\tfnclex\n\tfistps %0\n\tfnstsw %1" : "=m"(x), "=m"(s) : "m"(v), "m"(f->cw) : "st", "cc"); r = (uint16_t)x; }
+    else if (bytes == 4) { int32_t x; __asm__ volatile("fldcw %3\n\tfldt %2\n\tfnclex\n\tfistpl %0\n\tfnstsw %1" : "=m"(x), "=m"(s) : "m"(v), "m"(f->cw) : "st", "cc"); r = (uint32_t)x; }
+    else { int64_t x; __asm__ volatile("fldcw %3\n\tfldt %2\n\tfnclex\n\tfistpll %0\n\tfnstsw %1" : "=m"(x), "=m"(s) : "m"(v), "m"(f->cw) : "st", "cc"); r = (uint64_t)x; }
+    (void)s;
+    return r;
+}
+#else
+static inline long double fl57_frndint(Fl41Fpu *f, long double a) { (void)f; return (long double)(long long)(a + (a < 0 ? -0.5L : 0.5L)); }
+static inline long double fl57_fsqrt(Fl41Fpu *f, long double a) { (void)f; return a; }
+static inline long double fl57_fabs(Fl41Fpu *f, long double a) { (void)f; return a < 0 ? -a : a; }
+static inline long double fl57_fsin(Fl41Fpu *f, long double a) { (void)f; return a; }
+static inline long double fl57_fcos(Fl41Fpu *f, long double a) { (void)f; return a; }
+static inline long double fl57_f2xm1(Fl41Fpu *f, long double a) { (void)f; return a; }
+static inline long double fl57_fprem(Fl41Fpu *f, long double a, long double b) { (void)f; (void)b; return a; }
+static inline long double fl57_fprem1(Fl41Fpu *f, long double a, long double b) { (void)f; (void)b; return a; }
+static inline long double fl57_fpatan(Fl41Fpu *f, long double a, long double b) { (void)f; (void)b; return a; }
+static inline long double fl57_fyl2x(Fl41Fpu *f, long double a, long double b) { (void)f; (void)b; return a; }
+static inline long double fl57_fscale(Fl41Fpu *f, long double a, long double b) { (void)f; (void)b; return a; }
+static inline void fl57_fxam(Fl41Fpu *f, long double a) { (void)f; (void)a; }
+static inline uint64_t fl57_fist(Fl41Fpu *f, long double v, int bytes) { (void)f; (void)bytes; return (uint64_t)(long long)v; }
+#endif
+"""
 
 BULK = False          # FL-55b: the lifts of scripts/fl55_bulk.py (calls through registers and pointers, unknown x87 effect of a callee); the credited rows are lifted with BULK off
 PROLOGUE_MN = {"push", "mov", "sub", "lea", "and"}
@@ -501,6 +595,12 @@ def indirect_cleanup(c, i):
 INDIRECT_SITES = {}   # FL-58: {row va: {address of a call through a register or pointer: bytes the target is taken to pop}}; the original side plays such a call as a stub as well (tests/fl41_world.py)
 
 
+def indirect_tail_jump(c, i, op):
+    """FL-57 bulk: `jmp reg` / `jmp [mem]` out of a jump-table-free function is a tail call; the target pops what this function's own `ret N` pops (the arguments it was given)"""
+    own = next((x.operands[0].imm if x.operands else 0 for x in c.ins if x.mnemonic == "ret"), 0)
+    c.emit("{ uint32_t t_ = %s; FL41_CALL(t_); esp += %du; goto done; }" % (get(i, op, 32), 4 + own))
+
+
 def indirect_call(c, i, op):
     """FL-55b: `call reg`, `call [mem]` (any address): the target is computed before the return address is pushed; the host sees the target address in h->call"""
     cleanup = indirect_cleanup(c, i)
@@ -518,7 +618,9 @@ def lift_one(c, i):
     if m:
         prefix, mn = m.group(1), m.group(2)
     if prefix == "lock":
-        raise Unsupported("lock prefix at 0x%x" % a)
+        if not BULK:
+            raise Unsupported("lock prefix at 0x%x" % a)
+        prefix = ""                                                # FL-57 bulk: one thread, the prefix changes nothing
     if mn in ("nop", "int3", "cld", "wait"):
         if mn == "int3":
             raise Unsupported("int3 inside the code at 0x%x" % a)
@@ -634,7 +736,7 @@ def lift_one(c, i):
                 return indirect_call(c, i, ops[0])                 # FL-55b: a call through a register or a memory operand
             raise Unsupported("indirect call at 0x%x" % a)
         t = ops[0].imm
-        if t == c.va:
+        if t == c.va and not BULK:
             raise Unsupported("recursive call at 0x%x" % a)
         if t in INLINE_CALLEES:
             c.inline.add(t)
@@ -662,6 +764,8 @@ def lift_one(c, i):
         return
     if mn == "jmp" and ops[0].type == X.X86_OP_MEM:
         m = ops[0].mem
+        if BULK and not (m.index and m.scale == 4 and not m.base):
+            return indirect_tail_jump(c, i, ops[0])                # FL-57 bulk: `jmp [mem]` that is not a jump table
         if m.base or not m.index or m.scale != 4 or m.segment not in (0, X.X86_REG_DS):
             raise Unsupported("indirect jump at 0x%x" % a)
         targets = jump_table(c.ins, c.ins.index(i), c.va, c.end)
@@ -674,6 +778,8 @@ def lift_one(c, i):
         e("  } }")
         return
     if mn == "jmp":
+        if ops[0].type != X.X86_OP_IMM and BULK:
+            return indirect_tail_jump(c, i, ops[0])                # FL-57 bulk: `jmp reg`
         if ops[0].type != X.X86_OP_IMM:
             raise Unsupported("indirect jump at 0x%x" % a)
         t = ops[0].imm
@@ -689,7 +795,12 @@ def lift_one(c, i):
     if mn[0] == "j" and mn[1:] in COND:
         t = ops[0].imm
         if not (c.va <= t < c.end):
-            raise Unsupported("conditional jump out of the function at 0x%x" % a)
+            if not BULK:
+                raise Unsupported("conditional jump out of the function at 0x%x" % a)
+            cleanup = callee_shape(t)                              # FL-57 bulk: a tail jump into another function, taken under a condition
+            c.callees[t] = cleanup
+            e("if (%s) { FL41_CALL(0x%xu); esp += %du; goto done; }" % (COND[mn[1:]], t, 4 + cleanup))
+            return
         e("if (%s) goto %s;" % (COND[mn[1:]], label(t)))
         return
     if mn == "jecxz":
@@ -718,6 +829,44 @@ def lift_one(c, i):
         e("    " + put(i, ops[0], "r_", bits))
         e("  }")
         e("}")
+        return
+    if mn in ("rcl", "rcr") and BULK:                              # FL-57 bulk: rotate through the carry flag, one bit at a time
+        bits = ops[0].size * 8
+        cnt = "(%s & 0x1fu)" % get(i, ops[1], 8) if ops[1].type != X.X86_OP_IMM else "0x%xu" % (ops[1].imm & 0x1f)
+        e("{ uint32_t a_ = %s, n_ = %s %% %du, k_;" % (get(i, ops[0], bits), cnt, bits + 1))
+        e("  for (k_ = 0u; k_ < n_; k_++) {")
+        if mn == "rcr":
+            e("    uint32_t c_ = a_ & 1u; of = ((a_ >> %d) ^ cf) & 1u; a_ = (a_ >> 1) | (cf << %d); cf = c_;" % (bits - 1, bits - 1))
+        else:
+            e("    uint32_t c_ = (a_ >> %d) & 1u; a_ = ((a_ << 1) | cf) & %s; of = ((a_ >> %d) ^ c_) & 1u; cf = c_;" % (bits - 1, MASK[bits], bits - 1))
+        e("  }")
+        e("  " + put(i, ops[0], "a_", bits))
+        e("}")
+        return
+    if mn in ("shld", "shrd") and BULK:
+        bits = ops[0].size * 8
+        if bits != 32:
+            raise Unsupported("%s of %d bits at 0x%x" % (mn, bits, a))
+        cnt = "(%s & 0x1fu)" % get(i, ops[2], 8) if ops[2].type != X.X86_OP_IMM else "0x%xu" % (ops[2].imm & 0x1f)
+        e("{ uint32_t a_ = %s, b_ = %s, n_ = %s, r_;" % (get(i, ops[0], 32), get(i, ops[1], 32), cnt))
+        e("  if (n_ != 0u) {")
+        if mn == "shld":
+            e("    r_ = (a_ << n_) | (b_ >> (32u - n_)); cf = (a_ >> (32u - n_)) & 1u;")
+        else:
+            e("    r_ = (a_ >> n_) | (b_ << (32u - n_)); cf = (a_ >> (n_ - 1u)) & 1u;")
+        e("    of = ((r_ ^ a_) >> 31) & 1u; FL41_ZSP(r_, 32);")
+        e("    " + put(i, ops[0], "r_", 32))
+        e("  }")
+        e("}")
+        return
+    if mn == "xlatb" and BULK:
+        e("eax = (eax & 0xffffff00u) | RD8(ebx + (eax & 0xffu));")
+        return
+    if mn == "sahf" and BULK:
+        e("{ uint32_t h_ = (eax >> 8) & 0xffu; cf = h_ & 1u; pf = (h_ >> 2) & 1u; zf = (h_ >> 6) & 1u; sf = (h_ >> 7) & 1u; }")
+        return
+    if mn == "lahf" and BULK:
+        e("eax = (eax & 0xffff00ffu) | ((cf | 2u | (pf << 2) | (zf << 6) | (sf << 7)) << 8);")
         return
     if mn == "imul":
         if len(ops) == 1:
@@ -817,7 +966,10 @@ def lift_x87(c, i, mn):
     ops = i.operands
     a = i.address
     if mn == "fld":
-        if ops[0].type == X.X86_OP_MEM:
+        if ops[0].type == X.X86_OP_MEM and ops[0].size == 10 and BULK:
+            ad = mem_addr(i, ops[0])
+            e("fl41_fpush(fp, fl41_fmake(((uint64_t)RD32((uint32_t)(%s + 4u)) << 32) | RD32(%s), (uint16_t)RD16((uint32_t)(%s + 8u))));" % (ad, ad, ad))
+        elif ops[0].type == X.X86_OP_MEM:
             e("fl41_fpush(fp, %s);" % f_load(i, ops[0], "f"))
         else:
             e("fl41_fpush(fp, FL41_FST(fp, %d));" % st_index(i, ops[0]))
@@ -826,10 +978,19 @@ def lift_x87(c, i, mn):
         e("fl41_fpush(fp, %s);" % f_load(i, ops[0], "i"))
         return
     if mn in ("fst", "fstp"):
+        if ops[0].type != X.X86_OP_MEM and BULK:                   # FL-57 bulk: fst st(i) / fstp st(i)
+            k = st_index(i, ops[0])
+            e("FL41_FST(fp, %d) = FL41_FST(fp, 0);" % k)
+            if mn == "fstp":
+                e("fl41_fpop(fp);")
+            return
         if ops[0].type != X.X86_OP_MEM:
             raise Unsupported("%s to a register at 0x%x" % (mn, a))
         pop = "fl41_fpop(fp)" if mn == "fstp" else "FL41_FST(fp, 0)"
-        if ops[0].size == 4:
+        if ops[0].size == 10 and BULK:
+            ad = mem_addr(i, ops[0])
+            e("{ long double v_ = %s; WR32(%s, (uint32_t)fl41_fmant(v_)); WR32((uint32_t)(%s + 4u), (uint32_t)(fl41_fmant(v_) >> 32)); WR16((uint32_t)(%s + 8u), fl41_fexp(v_)); }" % (pop, ad, ad, ad))
+        elif ops[0].size == 4:
             e("{ long double v_ = %s; WR32(%s, fl41_st_f32(fp, v_)); }" % (pop, mem_addr(i, ops[0])))
         elif ops[0].size == 8:
             e("{ long double v_ = %s; uint64_t w_ = fl41_st_f64(fp, v_); WR32(%s, (uint32_t)w_); WR32((uint32_t)(%s + 4u), (uint32_t)(w_ >> 32)); }" % (pop, mem_addr(i, ops[0]), mem_addr(i, ops[0])))
@@ -845,7 +1006,9 @@ def lift_x87(c, i, mn):
         else:
             di = st_index(i, ops[0]) if ops else 1
             si = st_index(i, ops[1]) if len(ops) > 1 else 0
-            if not ops or (len(ops) == 1 and not pop):
+            if len(ops) == 1 and not pop and BULK:                  # FL-57 bulk: `fadd st(i)` is st(0) op= st(i)
+                di, si = 0, st_index(i, ops[0])
+            elif not ops or (len(ops) == 1 and not pop):
                 raise Unsupported("%s form at 0x%x" % (mn, a))
             dst, src = "FL41_FST(fp, %d)" % di, "FL41_FST(fp, %d)" % si
         e("{ long double d_ = %s, s_ = %s; %s = fl41_fx_%s(fp, %s, %s); }" % (dst, src, dst, op, "s_" if reverse else "d_", "d_" if reverse else "s_"))
@@ -868,10 +1031,58 @@ def lift_x87(c, i, mn):
         e("fl41_fpop(fp); fl41_fpop(fp);")
         return
     if mn == "fnstsw":
+        if ops and ops[0].type == X.X86_OP_MEM and BULK:
+            e("WR16(%s, fp->sw);" % mem_addr(i, ops[0]))
+            return
         if not (ops and ops[0].type == X.X86_OP_REG and reg_name(i, ops[0].reg) == "ax"):
             raise Unsupported("fnstsw operand at 0x%x" % a)
         e("eax = (eax & 0xffff0000u) | (uint32_t)fp->sw;")
         return
+    if not BULK:
+        raise Unsupported("%s at 0x%x" % (mn, a))
+    if mn in ("fldz", "fld1", "fldpi", "fldl2e", "fldl2t", "fldlg2", "fldln2"):    # FL-57 bulk (everything below): the x87 forms that only the library region and a few game rows use
+        const = {"fldz": "0.0L", "fld1": "1.0L", "fldpi": "fl41_fmake(0xc90fdaa22168c235ull, 0x4000u)", "fldl2e": "fl41_fmake(0xb8aa3b295c17f0bcull, 0x3fffu)",
+                 "fldl2t": "fl41_fmake(0xd49a784bcd1b8afeull, 0x4000u)", "fldlg2": "fl41_fmake(0x9a209a84fbcff799ull, 0x3ffdu)", "fldln2": "fl41_fmake(0xb17217f7d1cf79acull, 0x3ffeu)"}[mn]
+        e("fl41_fpush(fp, %s);" % const)
+        return
+    if mn == "fxch":
+        k = st_index(i, ops[0]) if ops else 1
+        e("{ long double t_ = FL41_FST(fp, 0); FL41_FST(fp, 0) = FL41_FST(fp, %d); FL41_FST(fp, %d) = t_; fp->sw &= (uint16_t)~0x0200u; }" % (k, k))
+        return
+    if mn == "fnstcw":
+        e("WR16(%s, fp->cw);" % mem_addr(i, ops[0]))
+        return
+    if mn == "fldcw":
+        e("fp->cw = (uint16_t)RD16(%s);" % mem_addr(i, ops[0]))
+        return
+    if mn in ("fnclex", "fclex"):
+        e("fp->sw &= (uint16_t)~0x80ffu;")
+        return
+    if mn in ("frndint", "fsqrt", "fabs", "fsin", "fcos", "f2xm1"):
+        e("FL41_FST(fp, 0) = fl57_%s(fp, FL41_FST(fp, 0));" % mn)
+        return
+    if mn in ("fprem", "fprem1", "fscale"):
+        e("FL41_FST(fp, 0) = fl57_%s(fp, FL41_FST(fp, 0), FL41_FST(fp, 1));" % mn)
+        return
+    if mn in ("fpatan", "fyl2x"):
+        e("{ long double r_ = fl57_%s(fp, FL41_FST(fp, 0), FL41_FST(fp, 1)); fl41_fpop(fp); FL41_FST(fp, 0) = r_; }" % mn)
+        return
+    if mn == "fxam":
+        e("fl57_fxam(fp, FL41_FST(fp, 0));")
+        return
+    if mn in ("fist", "fistp"):
+        n = ops[0].size
+        pop = "fl41_fpop(fp)" if mn == "fistp" else "FL41_FST(fp, 0)"
+        ad = mem_addr(i, ops[0])
+        e("{ long double v_ = %s; uint64_t w_ = fl57_fist(fp, v_, %d);" % (pop, n))
+        if n == 2:
+            e("  WR16(%s, (uint32_t)w_ & 0xffffu); }" % ad)
+        elif n == 4:
+            e("  WR32(%s, (uint32_t)w_); }" % ad)
+        else:
+            e("  WR32(%s, (uint32_t)w_); WR32((uint32_t)(%s + 4u), (uint32_t)(w_ >> 32)); }" % (ad, ad))
+        return
+    raise Unsupported("%s at 0x%x" % (mn, a))
     raise Unsupported("%s at 0x%x" % (mn, a))
 
 
