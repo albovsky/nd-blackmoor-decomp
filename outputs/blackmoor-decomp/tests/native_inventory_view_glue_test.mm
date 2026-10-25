@@ -265,7 +265,8 @@ static int close_empty(InventoryFixture &f)
     CHECK(f.crop_matches(*f.ui, 18, 65, 27, 74, 62, 60) &&
           f.crop_matches(*f.ui, 441, 93, 356, 16, 20, 19),
           "empty slot and absolute stock close control use their actual original crops");
-    /* Logical356,16 plus original CURS hotspot9,9 is the X centre365,25. */
+    /* The native system cursor's logical hot point must hit the visible X,
+     * without applying the offset of a legacy cursor sprite not being drawn. */
     pointer(&f.app, BLACKMOOR_POINTER_MOVE, 356, 16, 0);
     CHECK(f.tick() && f.crop_matches(*f.ui, 462, 93, 356, 16, 20, 19), "X hover draws original hover crop");
     pointer(&f.app, BLACKMOOR_POINTER_DOWN, 356, 16, 0);
@@ -276,10 +277,11 @@ static int close_empty(InventoryFixture &f)
           f.app.input_state.latch[0] == 0u, "MOVE outside before accepted UP must not start close or leak a scene release");
     for (unsigned gate = 0; gate < 2u; ++gate) {
         if (gate != 0u) CHECK(f.open(), "empty inventory reopens through the actual request after close");
-        pointer(&f.app, BLACKMOOR_POINTER_MOVE, 356, 16, 0);
+        const int32_t x = gate == 0u ? 375 : 356, y = gate == 0u ? 34 : 16;
+        pointer(&f.app, BLACKMOOR_POINTER_MOVE, x, y, 0);
         CHECK(f.tick(), "X re-hover succeeds");
-        pointer(&f.app, BLACKMOOR_POINTER_DOWN, 356, 16, 0);
-        pointer(&f.app, BLACKMOOR_POINTER_UP, 356, 16, 0);
+        pointer(&f.app, BLACKMOOR_POINTER_DOWN, x, y, 0);
+        pointer(&f.app, BLACKMOOR_POINTER_UP, x, y, 0);
         CHECK(f.tick(0) && f.app.inv_view.screen_state == INVVIEW_STATE_INVENTORY &&
               f.crop_matches(*f.ui, 483, 93, 356, 16, 20, 19), "accepted X draws pressed art while close remains pending");
         LiveAudioChannelInfo click{};
