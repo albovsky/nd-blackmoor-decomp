@@ -1,0 +1,22 @@
+[
+ {"kind": "width", "line": 22, "ident": "2164ee41", "verdict": "not equivalent",
+  "reason": "Slot [ebp-8] is the inner index j, incremented at 0x4a0d19..0x4a0d1f. The mutant increments only the low 16 bits, so at j=0x10000 it stores 1 and the inner loop restarts, never ending when [this+0x1c] > 0x10000 (e.g. 0x10002), while the original ends after 0x10002 iterations. The lab alarm would end the process for the hanging mutant, so no scenario was saved."},
+ {"kind": "width", "line": 27, "ident": "733f102e", "verdict": "not equivalent",
+  "reason": "The signed cmp at 0x4a0d28 uses only the low 16 bits of j in the mutant. With [this+0x1c] = 0x10000 (and [this+0x20]=1) the original leaves the inner loop at j=0x10000, the mutant compares RD16(j) < 0x10000 forever, so it never terminates (writes keep walking memory). Not recordable by the lab (alarm), so no scenario saved."},
+ {"kind": "width", "line": 31, "ident": "ecd3550c", "verdict": "not equivalent",
+  "reason": "The outer index i is truncated to 16 bits when computing the first write address (0x4a0d30, imul 0x4a0d33, store 0x4a0d46). With [this+0x20]=0x10002, [this+0x1c]=1, [this+0xe30]=0x20100000 the iteration i=0x10000 writes 0xffff at p1+0x20000 in the original but at p1+0 in the mutant. Lab scenario seed 1 saved."},
+ {"kind": "width", "line": 32, "ident": "b965b101", "verdict": "not equivalent",
+  "reason": "The imul at 0x4a0d33 multiplies i by only the low 16 bits of [this+0x1c]. With [this+0x20]=2, [this+0x1c]=0x10002, [this+0xe30]=0x20100000 the iteration i=1 writes at p1+2*(1*0x10002) in the original but at p1+2*(1*2) in the mutant. Lab scenario seed 1 saved."},
+ {"kind": "width", "line": 34, "ident": "d6c0cce1", "verdict": "not equivalent",
+  "reason": "The pointer [this+0xe30] loaded at 0x4a0d3a is truncated to 16 bits. With [this+0xe30]=0x20100000, [this+0x1c]=[this+0x20]=1 the original writes 0xffff at 0x20100000 and the mutant at 0x0. Lab scenario seed 1 saved."},
+ {"kind": "width", "line": 36, "ident": "d5d92329", "verdict": "not equivalent",
+  "reason": "The index j is truncated to 16 bits in the store address at 0x4a0d46. With [this+0x1c]=0x10002, [this+0x20]=1 the iteration j=0x10000 writes at p1+0x20000 in the original but at p1+0 in the mutant. Lab scenario seed 1 saved."},
+ {"kind": "width", "line": 39, "ident": "1041e2ff", "verdict": "not equivalent",
+  "reason": "The outer index i is truncated to 16 bits for the second write (0x4a0d4f, imul 0x4a0d52, store 0x4a0d65). With [this+0x20]=0x10002, [this+0x1c]=1, [this+0xe34]=0x20400000 the iteration i=0x10000 writes at p2+0x20000 in the original but at p2+0 in the mutant. Lab scenario seed 1 saved."},
+ {"kind": "width", "line": 40, "ident": "3d912064", "verdict": "not equivalent",
+  "reason": "The second imul at 0x4a0d52 multiplies i by only the low 16 bits of [this+0x1c]. With [this+0x20]=2, [this+0x1c]=0x10002, [this+0xe34]=0x20400000 the iteration i=1 writes at p2+2*0x10002 in the original but p2+2*2 in the mutant. Lab scenario seed 1 saved."},
+ {"kind": "width", "line": 42, "ident": "6b0cb192", "verdict": "not equivalent",
+  "reason": "The pointer [this+0xe34] loaded at 0x4a0d59 is truncated to 16 bits. With [this+0xe34]=0x20200000, [this+0x1c]=[this+0x20]=1 the second write goes to 0x20200000 in the original and to 0x0 in the mutant. Lab scenario seed 1 saved."},
+ {"kind": "width", "line": 44, "ident": "548dcd37", "verdict": "not equivalent",
+  "reason": "The index j is truncated to 16 bits in the second store address at 0x4a0d65. With [this+0x1c]=0x10002, [this+0x20]=1 the iteration j=0x10000 writes at p2+0x20000 in the original but at p2+0 in the mutant. Lab scenario seed 1 saved."}
+]

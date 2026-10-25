@@ -1,0 +1,12 @@
+[
+ {"kind": "alu", "line": 26, "ident": "57899e1e", "verdict": "confirmed",
+  "note": "With b=0 the macros give identical flags for SUB and ADD: res=a, cf=0 (a<0 false vs no carry), of=0, and zf/sf/pf from a (no af modeled), so every flag matches, not just zf. The mutant still performs the same RD32."},
+ {"kind": "jump", "line": 27, "ident": "fa1c24d0", "verdict": "confirmed",
+  "note": "Flags at 0x489768 come directly from the cmp [eax+0xab2],0 at line 26 (FL41_SUB with b=0, borrow 0), where cf = (a < 0) as unsigned = 0 always; so (cf||zf) == zf."},
+ {"kind": "drop", "line": 35, "ident": "055ab31f", "verdict": "confirmed",
+  "note": "Line 29 sets edx=[ecx+0x1c] with ecx=[ebp-8]; lines 30-33 write only eax and flags and do no stores, and line 34 reloads the same [ebp-8], so the dropped load would re-read the same, unmodified dword (only way to line 35 is fallthrough from 34). edx is reloaded at 0x489740 on every later path and the exit edx comes from line 16."},
+ {"kind": "drop", "line": 40, "ident": "79fed917", "verdict": "confirmed",
+  "note": "Between the edx load at line 35 and line 40 there are only eax writes, loads, a cmp and a je (no stores), and line 39 reloads the same [ebp-8], so line 40 would load the identical dword already in edx. No label enters between, and edx is overwritten at 0x489740 before any later use."},
+ {"kind": "drop", "line": 45, "ident": "f6bb6290", "verdict": "confirmed",
+  "note": "edx holds [ecx+0x1c] from line 40 and lines 41-44 only write eax and flags, with no stores; line 44 reloads the same [ebp-8], so the dropped load is redundant and the use at 0x4897b0 sees the same edx. After 0x4897ba the flow goes to the loop head, which reloads edx at 0x489740."}
+]

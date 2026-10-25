@@ -1,0 +1,14 @@
+[
+ {"kind": "drop", "line": 23, "ident": "4dfd84e5", "verdict": "equivalent",
+  "reason": "Line 23 (0x488de3) is reached only from the fallthrough of je at 0x488dde. ecx was loaded at 0x488dd1 as [[ebp-4]+0x1c] and not changed by 0x488dd4..0x488de0 (those write only edx and eax). 0x488de0 reloads eax from [ebp-4] with no store anywhere between 0x488dce and 0x488de3, so the dropped load would read the same address and the same unmodified cell, giving the same ecx. ecx is consumed at 0x488de6 and is redefined at 0x488df9 or 0x488e0b before any other use."},
+ {"kind": "drop", "line": 24, "ident": "4c632c2c", "verdict": "equivalent",
+  "reason": "edx was set at 0x488dd4 by movsx edx, word [ecx+0xaa2]; ecx at 0x488de6 holds the same pointer (see 0x488dd1/0x488de3) and there is no store between 0x488dd4 and 0x488de6. The mov dx at 0x488de6 therefore rewrites the low 16 bits of edx with the same word already there and keeps the upper 16 bits, so edx is unchanged and dropping it changes nothing (edx is pushed at 0x488ded)."},
+ {"kind": "literal", "line": 24, "ident": "10328e3f", "verdict": "equivalent",
+  "reason": "At 0x488de6 edx already equals the sign-extended word [ecx+0xaa2] (loaded by movsx at 0x488dd4, same ecx pointer, no store in between). Its bit 0 equals bit 0 of the word loaded again by mov dx, so the mutant mask 0xffff0001 that keeps bit 0 of the old edx ORs bit 0 with an identical bit; the resulting edx is the same."},
+ {"kind": "drop", "line": 38, "ident": "a6af905b", "verdict": "equivalent",
+  "reason": "eax at 0x488e08 is [[ebp-4]+0x1c]; between 0x488e08 and 0x488e1a there are only loads and a cmp/je (0x488e0b-0x488e15) and no store, so the reload at 0x488e1a (edx = [ebp-4], eax = [edx+0x1c]) reads the same cells and gives the same eax, whether 0x488e05 was reached by je at 0x488dde or after the call and the store at 0x488dfc (0x488e08 recomputes eax in both cases). Only the following 0x488e1d reads eax."},
+ {"kind": "drop", "line": 39, "ident": "4c7b7c75", "verdict": "equivalent",
+  "reason": "ecx was set at 0x488e0b by movsx ecx, word [eax+0xaa4] with eax = [[ebp-4]+0x1c]; the address at 0x488e1d is the same (no store between 0x488e08 and 0x488e1d) so mov cx only rewrites the low 16 bits of ecx with the same word, leaving the sign-extended ecx unchanged. The value pushed at 0x488e24 is identical."},
+ {"kind": "literal", "line": 39, "ident": "1eedfa73", "verdict": "equivalent",
+  "reason": "At 0x488e1d ecx already holds the sign-extended word [eax+0xaa4] loaded by movsx at 0x488e0b from the same address (no store between 0x488e08 and 0x488e1d), so bit 0 of the old ecx equals bit 0 of the word reloaded by mov cx. The mutant mask 0xffff0001 therefore only ORs bit 0 with an identical bit, and ecx pushed at 0x488e24 is unchanged."}
+]
