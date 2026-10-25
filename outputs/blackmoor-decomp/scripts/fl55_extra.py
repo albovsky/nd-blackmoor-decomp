@@ -110,7 +110,7 @@ def work_inner(args):
                 data = os.read(r_fd, 4)
                 os.close(r_fd)
                 os.waitpid(pid, 0)
-                if data != b'0':
+                if data == b'1':      # a child that crashed, timed out or raised writes nothing: never a kill
                     killed.append(k)
             return killed
 
@@ -219,7 +219,7 @@ def work_inner(args):
                         data = os.read(r_fd, 4)
                         os.close(r_fd)
                         os.waitpid(pid, 0)
-                        if data != b'0':
+                        if data == b'1':      # a child that crashed, timed out or raised writes nothing: never a kill
                             killed.append(k)
                     if killed:
                         found.append((sd, [list(c) for c in scen], [named[k][:2] for k in killed]))

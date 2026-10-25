@@ -38,6 +38,8 @@ def compiling_mutants(key, text, helper):
                 raise RuntimeError(built.stderr[:500])
             muts = [(kind, n, t.replace('m%x_mut%d' % (va, i), 'm%x_mutX' % va)) for i, (kind, n, t) in enumerate(muts) if i not in bad]
             muts = [(kind, n, re.sub(r'm%x_mutX' % va, 'm%x_mut%d' % (va, i), t, count=1)) for i, (kind, n, t) in enumerate(muts)]
+        else:
+            raise RuntimeError('mutants of %s still do not compile after 4 rounds' % key)
     return [(kind, n, M.line_hash(t, n)) for kind, n, t in muts]
 
 
@@ -73,7 +75,9 @@ def main():
             if cls is None or cls in ('written reason',):
                 continue
             claimed += 1
-            if key in real and ident not in real[key]:
+            if key not in real:
+                raise SystemExit('%s is not in the merged log: cannot check its rules' % key)
+            if ident not in real[key]:
                 bad.append((key, kind, n, ident, cls))
     print('mutants classified harmless by a rule: %d; of them killed by a corpus seed: %d' % (claimed, len(bad)))
     for b in bad:

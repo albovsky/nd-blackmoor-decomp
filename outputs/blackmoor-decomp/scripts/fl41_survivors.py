@@ -43,12 +43,15 @@ def stmt(line):
 
 
 def aliasing_write(t, k):
-    """a store in statement `t` that could overwrite the frame slot [ebp + k]: through ebp/esp with an overlapping slot, or with an address that is not register + offset of another register"""
-    if not re.search(r'\bWR\d+\(', t):
-        return False
-    m = re.search(r'\bWR(\d+)\(\(uint32_t\)\((\w+)(?: \+ (0x[0-9a-f]+)u)?\)', t)
+    """a store in statement `t` that could overwrite the frame slot [ebp + k]: through ebp/esp with an overlapping slot, or with an address that is not register + offset of another register.
+    FL-55: every store of the statement counts (an x87 qword store emits two, at addr and addr + 4)"""
+    return any(_aliasing_one(t[m.start():], k) for m in re.finditer(r'\bWR\d+\(', t))
+
+
+def _aliasing_one(t, k):
+    m = re.match(r'WR(\d+)\(\(uint32_t\)\((\w+)(?: \+ (0x[0-9a-f]+)u)?\)', t)
     if not m:
-        m2 = re.search(r'\bWR(\d+)\((\w+),', t)
+        m2 = re.match(r'WR(\d+)\((\w+),', t)
         return not (m2 and m2.group(2) == 'esp')            # a push: below the locals
     width, base, off = m.group(1), m.group(2), m.group(3)
     if base == 'ebp':
@@ -120,7 +123,7 @@ def sext16_slot_ok(lines, n, mut):
             continue
         if sext.match(u):
             return True
-        if BARRIER.search(u) or re.search(r'\b%s = ' % reg, u) or u.startswith('{') and not fpu_block(u):
+        if BARRIER.search(u) or re.search(r'\b%s [-+*/|&^]?= ' % reg, u) or u.startswith('{') and not fpu_block(u):
             return False
     return False
 
@@ -134,8 +137,12 @@ def const_reads_substituted(text):
     changes them) replaced by the number it reads from the original bytes; None when the text has no such read"""
     if not _IMAGE:
         import fl41_world as W
-        _IMAGE.append((W.od.load_image(), W.DATA_START))
-    pe, limit = _IMAGE[0]
+        import struct
+        pe0 = W.od.load_image()
+        opt = struct.unpack_from('<I', pe0.image, 0x3c)[0] + 24
+        iat_rva, iat_size = struct.unpack_from('<II', pe0.image, opt + 96 + 8 * 12)          # the import address table: the world stores callee stubs there
+        _IMAGE.append((pe0, W.DATA_START, (pe0.image_base + iat_rva, pe0.image_base + iat_rva + iat_size)))
+    pe, limit, iat = _IMAGE[0]
     out, pos, found = [], 0, False
     while True:
         m = CONST_RD.search(text, pos)
@@ -155,7 +162,7 @@ def const_reads_substituted(text):
             continue
         address = eval(arith, {'__builtins__': {}}) & 0xffffffff
         width = int(m.group(1)) // 8
-        if not (pe.image_base <= address and address + width <= limit):
+        if not (pe.image_base <= address and address + width <= limit) or (address < iat[1] and iat[0] < address + width):
             out.append(text[pos:j])
             pos = j
             continue
@@ -179,7 +186,8 @@ ONE_F64 = re.compile(r'fl41_ld_f64\(fp, \(\(uint64_t\)1072693248 << 32\) \| 0\)'
 def mul_one_ok(lines, n, orig, mut):
     """FL-55: `fmul` of st(0) by a constant 1.0 (a 4- or 8-byte float constant of the image) is the identity, so the mutant that drops it, or turns the multiplication into a division by the
     same constant, changes nothing. The model is the host's x87 unit at 53 bits of precision (control word 0x27f), where x * 1.0 and x / 1.0 are exact for a value that holds at most 53
-    significant bits; a row that loads a 64-bit integer (`fild qword`) can hold more, so it is excluded"""
+    significant bits (a NaN cannot be a signalling one: on the x87 unit a load of a signalling NaN quiets it, and a quiet NaN passes through x * 1.0 and x / 1.0 unchanged; fldcw is not lifted, so the
+    precision stays at 53 bits); a row that loads a 64-bit integer (`fild qword`) can hold more, so it is excluded"""
     if 'fl41_fx_mul(fp, d_, s_)' not in orig or any('fl41_ld_i64' in l or 'fl41_ld_f80' in l for l in lines):
         return False
     sub = const_reads_substituted(orig)

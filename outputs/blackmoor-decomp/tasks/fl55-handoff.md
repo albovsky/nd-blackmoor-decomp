@@ -1,0 +1,30 @@
+# FL-55 handoff (rows at or above 0x480000, round eight)
+
+Ledger 2,171 (main after PR 186, FL-54) -> **2,181 ported of 4,188** (+10 upper rows). Same rulings as FL-49 to FL-54: every mutant killed on seeds where the unmutated port matches the original, identical -O2 code, a rule, or a reviewed row-specific written reason; wall-clock timeouts and SIGKILLs never count; hang kills only under the step budget max(100 x unmutated steps, 200,000). Every one of the 10 rows is explained by rules and kills alone, with no written reason.
+
+## The 10 credited rows
+
+0x4939e6, 0x4ccacf, 0x4ccb50, 0x4ccbd0, 0x4ccc81, 0x4d3137, 0x4d335c, 0x4de440, 0x4e40a6, 0x4fc9f1. All instructions and all conditional-jump directions run in the oracle (`tests/fl41_original_oracle.py`, 152 rows, 0 gaps). 0x4de440 needed a reviewed S05 receipt (`tasks/fl55-blockers.json`): the frame text-box lifecycle is native UI work around the function, not in it. The exhaustive logs of the working set are `tasks/fl52/{t,s,r,u,v}-mut-*.txt` with their `-bud-` reruns; the merged log of the final 35-row triage is `tasks/fl55-mutation-log.txt`.
+
+## What changed in the toolchain
+
+- **x87 harness gap (`tests/fl41_world.py`).** A callee that consumes st(0) (`fpret < 0`, such as `__ftol` 0x50ce04) now has the value it took off the stack recorded in the call record on both sides (`('st0', ...)`). Before, a mutant that changed a float right before such a call looked identical, which left most x87 survivors alive. The unmutated port still agrees with the original on every seed of the 152 rows (`tests/test_fl41_differential.py`: 153 pass).
+- **Survivor rules (`scripts/fl41_survivors.py`, `scripts/fl46_rules.py`, `scripts/fl43_equiv.py`).** New soundness-checked rules: esp adjustments and frame teardown (esp liveness), prefix demand (`ADDSUB_BLOCK`), the x87 stack as data flow (`X87_OK`, stores detected), constant reads (`const_read_ok`), sign-extension slots (`sext16_slot_ok`), `fmul` by 1.0 (`mul_one_ok`), cleanup splits. A rule must disprove nothing: `scripts/fl55_rule_soundness.py` regenerates every compiling mutant of a row, classifies them all as if no seed had killed any, and checks that no rule-explained mutant is killed in the real merged log. Result on the 35 triage rows: 495 mutants explained by a rule, 0 killed by a corpus seed.
+- **`scripts/fl55_extra.py`.** A second kind of killing scenario for survivors the cell search cannot reach: a callee stub also stores a dword at a cell the mutated instruction reads (`STUB_WR`), a stub returns a chosen eax/ecx/edx, neighbour-cell variants, and float inputs for x87 rows (image cells below DATA_START are constant and mismatch between the sides, so they are skipped). It found nothing on the nine near-clean rows tried, so the remaining survivors there need hand-built scenarios or written reasons.
+
+## Left for the next upper-address thread
+
+- **Approach (Glib approved, 25 Oct 2026): tool-first and bulk.** Do not work row by row. First apply the x87 callee-st(0) harness fix (already in `tests/fl41_world.py`) and the new proof rules to ALL held and queued upper rows at once: rerun the exhaustive mutation check on every row of `tests/fl41_pending.json` at or above 0x480000 (and the rows of the first-pass queue in `tasks/fl52/`), reclassify them all with `scripts/fl41_survivors.py`, check any new rule with `scripts/fl55_rule_soundness.py`, then bank everything that comes out clean. Only after that look at what is left. From now on PRs merge every second round, to bank more rows per merge and halve the fixed suite and map cost.
+
+- 25 rows held (translated, mutation-checked, survivors not all explained; in `tests/fl41_pending.json`). Closest: 0x4de322 (5 jump-condition survivors, lines 10 13 30 37 and an alu at 36), 0x4e0559 (6), 0x4e0619 (6), 0x4d9302 (10), 0x4d912a (11), 0x4e1305 (11), then 0x48ad26 0x49d755 0x4be2c6 0x4d3eba (12 each). Big tails: 0x490598 (38), 0x4ca81e (57), 0x4ef2d1 (48).
+- **Test policy (Glib, 25 Oct 2026): the 2 to 3 hour full suite is gone from porting PRs.** A PR runs only a targeted set: `test_function_names`, the ledger and evidence tests, every `tests/test_fl*` file, and any test that cites a newly credited row; failures are rerun on clean main. A separate thread runs the full suite every second night. FL-55 started a full run, stopped it after 139 of 375 files (84 failing, the usual Mac-bound set, none compared) and ran the targeted set instead.
+- First-pass queue not yet mutation-checked to the end: the remaining rows of the `r` queue (0x4a0d73 0x4fa127 0x4f9f92 0x48efe8 0x4ae4d7 0x4dfff3 0x49d55d 0x4a10f1 0x4aef4a 0x4c5d4b 0x48905b 0x4bbe46 and others); one was stopped mid-run.
+- Open questions for Glib are unchanged (assumption-based reasons; seven credits with an untaken jump direction).
+
+## Lessons
+
+- A coarse (kind, line) "alive" set gave fake kills in `fl55_extra.py` and `fl45_targeted.py`: filter by the mutant's ident, and always rerun the whole pipeline after adding scenarios (the apply step alone does not change kills).
+- Float scenarios that override image constants (below 0x537000) are unusable: the original and the native side treat the image differently.
+- `pgrep -f` / `pkill -f` inside a Bash call matches the calling shell (exit 144); stop background jobs with TaskStop or explicit pids.
+- Regeneration order (worked): oracle docstring edit (row count; its hash decides whether `collect --merge` records a new run), `record_function_execution.py run --only fl41_original_oracle`, `collect --write --merge`, `fl41_accept.py --reviewer ... --blockers-reviewed tasks/fl55-blockers.json`, evidence, ledger, `function_names.py write`, `annotate_machine.py annotate` (plain, `--named`, `--derived --named`), `refresh`, ten audits, evidence and ledger again, every `--check`. After merging main, take main's `function-execution.json` and `function-ledger-overrides.json` and redo the oracle record and accept (both conflict).
+- Banking was delayed by chasing tails: bank the clean rows as soon as a few are clean, and put the long-tail rows in the next round.
