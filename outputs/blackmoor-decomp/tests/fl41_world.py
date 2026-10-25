@@ -383,6 +383,9 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None):
             bits = fret_bits(stub_rng)
             uc.mem_write(FPSLOT, struct.pack('<Q', bits))
             trace.calls.append((ident, ecx, held, words, eax, ecx_out, edx, writes, bits))
+        elif net < 0:       # FL-55: the value the callee takes off st(0) is one of its inputs, so it is part of the call record (both sides)
+            top = (uc.reg_read(X.UC_X86_REG_FPSW) >> 11) & 7
+            trace.calls.append((ident, ecx, held, words, eax, ecx_out, edx, writes, ('st0', uc.reg_read(getattr(X, 'UC_X86_REG_FP%d' % top)))))
         else:
             trace.calls.append((ident, ecx, held, words, eax, ecx_out, edx, writes))
         ret = struct.unpack('<I', uc.mem_read(esp, 4))[0]
@@ -553,6 +556,10 @@ def run_native(lib, row, seed, overrides=()):
         if fpret.get(callee, 0) > 0:
             fret_last[0] = fret_bits(stub_rng)
             trace.calls.append((callee, ecx, held, words, eax, ecx_out, edx, writes, fret_last[0]))
+        elif fpret.get(callee, 0) < 0 and fpu is not None:       # FL-55: the value on top of st(0) goes into the call record, as on the original side
+            at = 16 * ((fpu.sw >> 11) & 7)
+            raw = ctypes.string_at(ctypes.addressof(fpu), 128)
+            trace.calls.append((callee, ecx, held, words, eax, ecx_out, edx, writes, ('st0', (int.from_bytes(raw[at:at + 8], 'little'), int.from_bytes(raw[at + 8:at + 10], 'little')))))
         else:
             trace.calls.append((callee, ecx, held, words, eax, ecx_out, edx, writes))
         rr.contents.eax = eax

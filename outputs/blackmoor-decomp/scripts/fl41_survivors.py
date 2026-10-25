@@ -43,12 +43,15 @@ def stmt(line):
 
 
 def aliasing_write(t, k):
-    """a store in statement `t` that could overwrite the frame slot [ebp + k]: through ebp/esp with an overlapping slot, or with an address that is not register + offset of another register"""
-    if not re.search(r'\bWR\d+\(', t):
-        return False
-    m = re.search(r'\bWR(\d+)\(\(uint32_t\)\((\w+)(?: \+ (0x[0-9a-f]+)u)?\)', t)
+    """a store in statement `t` that could overwrite the frame slot [ebp + k]: through ebp/esp with an overlapping slot, or with an address that is not register + offset of another register.
+    FL-55: every store of the statement counts (an x87 qword store emits two, at addr and addr + 4)"""
+    return any(_aliasing_one(t[m.start():], k) for m in re.finditer(r'\bWR\d+\(', t))
+
+
+def _aliasing_one(t, k):
+    m = re.match(r'WR(\d+)\(\(uint32_t\)\((\w+)(?: \+ (0x[0-9a-f]+)u)?\)', t)
     if not m:
-        m2 = re.search(r'\bWR(\d+)\((\w+),', t)
+        m2 = re.match(r'WR(\d+)\((\w+),', t)
         return not (m2 and m2.group(2) == 'esp')            # a push: below the locals
     width, base, off = m.group(1), m.group(2), m.group(3)
     if base == 'ebp':
@@ -76,9 +79,123 @@ def same_value(lines, n):
             continue
         if t.startswith(want) or t.startswith('%s = RD32((uint32_t)(ebp + %su));' % (reg, k)):
             return True
-        if BARRIER.search(t) or t.startswith('{') or re.match(r'^%s\b' % reg, t) or re.search(r'\b%s = ' % reg, t) or aliasing_write(t, k):
+        if BARRIER.search(t) or (t.startswith('{') and not fpu_block(t)) or re.match(r'^%s\b' % reg, t) or re.search(r'\b%s = ' % reg, t) or aliasing_write(t, k):
             return False
     return False
+
+
+def fpu_block(t):
+    """FL-55: a statement block of an x87 instruction (`{ long double v_ = ...; ... }`): it changes only the FPU state and, for a store, one memory cell (aliasing_write checks that cell);
+    it never writes a general register or the flags"""
+    return t.startswith('{ long double ') and not re.search(r'\b(e[a-d]x|e[sd]i|e[sb]p|esp|zf|sf|cf|of|pf)\b ?=[^=]', t)
+
+
+def sext16_slot_ok(lines, n, mut):
+    """FL-55: `fild dword ptr [ebp + K]` mutated to `fild word ptr [ebp + K]` (fl41_ld_i32 -> fl41_ld_i16, same address): the slot was stored from a register that a `movsx reg, word ptr [...]` defined
+    just before on straight-line code (no call, label or jump, no later write to the register, no store that could overwrite the slot), so the dword is the sign extension of a 16-bit value and
+    its low word, read as a signed 16-bit integer, is the same number"""
+    t = stmt(lines[n])
+    m = re.match(r'^fl41_fpush\(fp, fl41_ld_i32\(fp, RD32\(\(uint32_t\)\(ebp \+ (0x[0-9a-f]+)u\)\)\)\);$', t)
+    if not m or stmt(mut) != t.replace('fl41_ld_i32(', 'fl41_ld_i16(', 1):
+        return False
+    k = m.group(1)
+    store = re.compile(r'^WR32\(\(uint32_t\)\(ebp \+ %su\), (e[a-d]x|e[sd]i)\);$' % k)
+    j = n - 1
+    reg = None
+    while j >= 0:
+        u = stmt(lines[j])
+        j -= 1
+        if not u:
+            continue
+        ms = store.match(u)
+        if ms:
+            reg = ms.group(1)
+            break
+        if BARRIER.search(u) or u.startswith('{') and not fpu_block(u) or aliasing_write(u, k):
+            return False
+    if reg is None:
+        return False
+    sext = re.compile(r'^%s = \(\(uint32_t\)\(int32_t\)\(int16_t\)\(RD16\(.*\)\)\) & 0xffffffffu;$' % reg)
+    while j >= 0:
+        u = stmt(lines[j])
+        j -= 1
+        if not u:
+            continue
+        if sext.match(u):
+            return True
+        if BARRIER.search(u) or re.search(r'\b%s [-+*/|&^]?= ' % reg, u) or u.startswith('{') and not fpu_block(u):
+            return False
+    return False
+
+
+CONST_RD = re.compile(r'\bRD(8|16|32)\(')
+_IMAGE = []
+
+
+def const_reads_substituted(text):
+    """FL-55: `text` with every read RD<w>(<constant address>) of the image below the data section (code and constant tables: the world ignores overrides there, and the executable never
+    changes them) replaced by the number it reads from the original bytes; None when the text has no such read"""
+    if not _IMAGE:
+        import fl41_world as W
+        import struct
+        pe0 = W.od.load_image()
+        opt = struct.unpack_from('<I', pe0.image, 0x3c)[0] + 24
+        iat_rva, iat_size = struct.unpack_from('<II', pe0.image, opt + 96 + 8 * 12)          # the import address table: the world stores callee stubs there
+        _IMAGE.append((pe0, W.DATA_START, (pe0.image_base + iat_rva, pe0.image_base + iat_rva + iat_size)))
+    pe, limit, iat = _IMAGE[0]
+    out, pos, found = [], 0, False
+    while True:
+        m = CONST_RD.search(text, pos)
+        if not m:
+            out.append(text[pos:])
+            break
+        depth, j = 1, m.end()
+        while j < len(text) and depth:
+            depth += {'(': 1, ')': -1}.get(text[j], 0)
+            j += 1
+        inner = text[m.end():j - 1]
+        arith = re.sub(r'\(uint32_t\)', '', inner)
+        arith = re.sub(r'\b(0x[0-9a-f]+|\d+)u\b', r'\1', arith)
+        if not arith.strip() or not re.fullmatch(r'[+\s()]*', re.sub(r'0x[0-9a-f]+|\d+', '', arith)):
+            out.append(text[pos:j])
+            pos = j
+            continue
+        address = eval(arith, {'__builtins__': {}}) & 0xffffffff
+        width = int(m.group(1)) // 8
+        if not (pe.image_base <= address and address + width <= limit) or (address < iat[1] and iat[0] < address + width):
+            out.append(text[pos:j])
+            pos = j
+            continue
+        off = address - pe.image_base
+        out.append(text[pos:m.start()] + str(int.from_bytes(pe.image[off:off + width], 'little')))
+        pos = j
+        found = True
+    return ''.join(out) if found else None
+
+
+def const_read_ok(orig, mut):
+    """the mutant changes only the width or the address of reads of constants in the image, and every such read gives the same number"""
+    a, b = const_reads_substituted(orig), const_reads_substituted(mut)
+    return a is not None and a == b
+
+
+ONE_F32 = re.compile(r'fl41_ld_f32\(fp, 1065353216\)')
+ONE_F64 = re.compile(r'fl41_ld_f64\(fp, \(\(uint64_t\)1072693248 << 32\) \| 0\)')
+
+
+def mul_one_ok(lines, n, orig, mut):
+    """FL-55: `fmul` of st(0) by a constant 1.0 (a 4- or 8-byte float constant of the image) is the identity, so the mutant that drops it, or turns the multiplication into a division by the
+    same constant, changes nothing. The model is the host's x87 unit at 53 bits of precision (control word 0x27f), where x * 1.0 and x / 1.0 are exact for a value that holds at most 53
+    significant bits (a NaN cannot be a signalling one: on the x87 unit a load of a signalling NaN quiets it, and a quiet NaN passes through x * 1.0 and x / 1.0 unchanged; fldcw is not lifted, so the
+    precision stays at 53 bits); a row that loads a 64-bit integer (`fild qword`) can hold more, so it is excluded"""
+    if 'fl41_fx_mul(fp, d_, s_)' not in orig or any('fl41_ld_i64' in l or 'fl41_ld_f80' in l for l in lines):
+        return False
+    sub = const_reads_substituted(orig)
+    if sub is None or not (ONE_F32.search(sub) or ONE_F64.search(sub)):
+        return False
+    if re.fullmatch(r';', mut.strip()):
+        return True
+    return mut == orig.replace('fl41_fx_mul(fp, d_, s_)', 'fl41_fx_div(fp, d_, s_)', 1)
 
 
 def forward(lines, n, ok, stop):
@@ -96,6 +213,19 @@ def forward(lines, n, ok, stop):
 def cleanup_ok(lines, n):
     return 'FL41_CALL' in lines[n] and forward(lines, n, lambda t: t.startswith('esp = ebp;'),
                                                lambda t: 'esp' in t or BARRIER.search(t) or re.search(r'\bR?D\d+|\bWR\d+', t) and 'esp' in t)
+
+
+def cleanup_split_ok(lines, n):
+    """FL-55: the `esp += N;` line of a call written over several lines (a callee that takes st(0) is followed by `fl41_fpop`): the previous statement is the `FL41_CALL(...);`, and the next
+    statement that touches esp is `esp = ebp;`"""
+    if not re.match(r'^esp \+= \d+u;$', stmt(lines[n])):
+        return False
+    j = n - 1
+    while j >= 0 and not stmt(lines[j]):
+        j -= 1
+    if j < 0 or not re.match(r'^FL41_CALL\(0x[0-9a-f]+u\);$', stmt(lines[j])):
+        return False
+    return forward(lines, n, lambda t: t.startswith('esp = ebp;'), lambda t: 'esp' in t or BARRIER.search(t) or re.search(r'\bWR\d+', t) and 'esp' in t)
 
 
 def frame_ok(lines, n):
@@ -416,6 +546,12 @@ def flags_ok(kind, orig, mut, ranges, addr):
 def classify(kind, lines, n, equivalent, proofs=None, mutline=None, ranges=None, row=None):
     if equivalent:
         return 'identical code'
+    if kind in ('drop', 'alu') and mutline is not None and mul_one_ok(lines, n, stmt_full(lines[n]), stmt_full(mutline)):
+        return 'range'
+    if kind in ('width', 'literal') and mutline is not None and const_read_ok(stmt_full(lines[n]), stmt_full(mutline)):
+        return 'range'
+    if kind == 'width' and mutline is not None and sext16_slot_ok(lines, n, mutline):
+        return 'range'
     if kind == 'width' and mutline is not None:
         change = read_change(stmt_full(lines[n]), stmt_full(mutline))
         if change and masked_ok(change):
@@ -436,6 +572,8 @@ def classify(kind, lines, n, equivalent, proofs=None, mutline=None, ranges=None,
     if kind == 'drop' and same_value(lines, n):
         return 'same value'
     if kind == 'literal' and cleanup_ok(lines, n):
+        return 'cleanup'
+    if kind == 'drop' and cleanup_split_ok(lines, n):
         return 'cleanup'
     if kind == 'register' and frame_ok(lines, n):
         return 'frame'

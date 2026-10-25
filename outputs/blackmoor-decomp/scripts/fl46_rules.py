@@ -29,6 +29,10 @@ SIMPLE_DEF = re.compile(r'^(eax|ecx|edx|ebx|esi|edi) = ([^;{}]*);$')
 BLOCK_DEF = re.compile(r'^\{ uint32_t a_ = [^;]*, b_ = [^;]*, r_;( r_ = a_ [-+&|^] b_;)? FL40_(ADD|SUB|LOGIC)\([^;]*\); (eax|ecx|edx|ebx|esi|edi) = r_; \}$')
 FLAG_ONLY = re.compile(r'^\{ uint32_t a_ = [^;]*, b_ = [^;]*, r_;( r_ = a_ [-+&|^] b_;)? FL40_(ADD|SUB|LOGIC)\([^;]*\); \}$')
 SWAP_SUB = re.compile(r'^\{ uint32_t a_ = [^;]*, b_ = [^;]*, r_; FL40_SUB\(a_, b_, 0u, r_, \d+\); \}$')
+ESP_ADJ = re.compile(r'^esp [-+]= \d+u;$')
+ESP_BLOCK = re.compile(r'^\{ uint32_t a_ = esp, b_ = 0x[0-9a-f]+u, r_;( r_ = a_ [-+&|^] b_;)? FL40_(ADD|SUB)\(a_, b_, 0u, r_, 32\); esp = r_; \}$')
+ESP_BLOCK_ANY = re.compile(r'^\{ uint32_t a_ = esp, b_ = 0x[0-9a-f]+u, r_;( r_ = a_ [-+&|^] b_;)? FL40_(ADD|SUB)\(a_, b_, \d+u, r_, \d+\); esp = r_; \}$')       # the shapes of the mutants of ESP_BLOCK (a literal changed)
+ESP_FRAME = re.compile(r'^esp = ebp;$')
 PUSH = re.compile(r'^esp -= 4u; WR32\(esp, (eax|ecx|edx|ebx|esi|edi)\);$')
 
 
@@ -123,6 +127,10 @@ def effects(t):
     """-> (uses {reg: bits}, kills {reg: bits}, copy (dst, src) or None, keeps {reg: bits} the bits a partial definition passes through)"""
     if 'FL40_CALL' in t:
         return {r: FULL for r in REGS}, {}, None, {}
+    if ESP_ADJ.match(t) or ESP_BLOCK.match(t):          # FL-55: an adjustment of esp by a constant passes esp through: it is live before it exactly when it is live after it
+        return {}, {}, None, {}
+    if ESP_FRAME.match(t):
+        return {'ebp': FULL}, {'esp': FULL}, None, {}
     m = PARTIAL.match(t)
     if m:
         keep, mask = int(m.group(2), 16), int(m.group(4), 16)
@@ -148,6 +156,27 @@ def flag_effect(t):
     if t.startswith('while (') or t.startswith('{ uint32_t a_ = ') and 'if (n_ != 0u)' in t and not re.search(r'n_ = 0x[1-9a-f][0-9a-f]*u,', t):
         kills = set()       # a rep loop that may run zero times, a shift whose count may be zero: the flags may stay as they were
     return reads, kills
+
+
+ADDSUB_BLOCK = re.compile(r'^\{ uint32_t a_ = ([^,]*), b_ = ([^,]*), r_;( r_ = a_ [-+] b_;)? FL40_(ADD|SUB)\(a_, b_, (?:0u|cf), r_, 32\); (eax|ecx|edx|ebx|esi|edi) = r_; \}$')
+
+
+def prefix_uses(t, uses, o_r, o_f):
+    """FL-55: an add or subtract whose flags are dead afterwards needs only the low bits of its register operands that its result is used in (carries run upward): the bits of the destination
+    that are live afterwards, from bit 0 up to the highest one. A register inside an address expression, and a carry-in that reads cf, are used whole as before."""
+    m = ADDSUB_BLOCK.match(t)
+    if not m or o_f:
+        return uses
+    d = o_r[m.group(5)]
+    prefix = (1 << d.bit_length()) - 1
+    new = {}
+    for operand in (m.group(1), m.group(2)):
+        if operand in REGS:
+            new[operand] = new.get(operand, 0) | prefix
+        else:
+            for reg, mask in expr_uses(operand).items():
+                new[reg] = new.get(reg, 0) | mask
+    return new
 
 
 _CACHE = {}
@@ -177,6 +206,7 @@ def liveness(lines):
                             o_r[r] |= live_r[j][r]
                         o_f |= live_f[j]
                     uses, kills, copy, keeps = eff[i]
+                    uses = prefix_uses(texts[i], uses, o_r, o_f)
                     in_r = {r: (o_r[r] & ~kills.get(r, 0) & FULL) | uses.get(r, 0) for r in REGS}
                     if copy:
                         in_r[copy[1]] |= o_r[copy[0]]
@@ -244,6 +274,12 @@ def explain(kind, lines, n, row):
     if not mut:
         return None
     flags_live = out_f[n]
+    if ESP_ADJ.match(t) or ESP_BLOCK.match(t):          # FL-55: esp is dead after the adjustment (the next use of esp on every path is `esp = ebp`), and so are the flags the block sets
+        block = ESP_BLOCK.match(t)
+        shape = ESP_BLOCK_ANY if block else ESP_ADJ
+        if all(x in ('', ';') or shape.match(x) for x in mut) and out_r[n]['esp'] == 0 and not (block and flags_live):
+            return 'dead register'
+        return None
     if FLAG_ONLY.match(t):
         if not flags_live:
             return 'dead flags'
@@ -254,7 +290,18 @@ def explain(kind, lines, n, row):
     if m:
         if kind != 'drop' and not all(('%s = r_;' % m.group(3)) in x for x in mut):
             return None         # a mutant that moves the destination is not covered by the liveness of this one
-        return 'dead register' if out_r[n][m.group(3)] == 0 and not flags_live else None
+        if out_r[n][m.group(3)] == 0 and not flags_live:
+            return 'dead register'
+        if kind == 'width' and not flags_live and len(RD_WIDTH.findall(t)) == 1:          # FL-55: a narrowed or widened read changes the result only from bit min(width) up
+            wo = int(RD_WIDTH.search(t).group(1))
+            changed = 0
+            for x in mut:
+                mw = RD_WIDTH.search(x)
+                if not mw or len(RD_WIDTH.findall(x)) != 1 or t.replace('RD%d(' % wo, 'RD%s(' % mw.group(1), 1) != x:
+                    return None
+                changed |= FULL & ~((1 << min(wo, int(mw.group(1)))) - 1)
+            return 'narrow demand' if out_r[n][m.group(3)] & changed == 0 else None
+        return None
     uses, kills, copy, keeps = effects(t)
     single = [r for r in kills if r in GP]
     if len(single) == 1 and (PARTIAL.match(t) or (SIMPLE_DEF.match(t) and not re.search(r'\bWR\d+|FL40_', SIMPLE_DEF.match(t).group(2)))):
