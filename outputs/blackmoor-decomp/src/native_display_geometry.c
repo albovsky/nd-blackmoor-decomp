@@ -1,6 +1,5 @@
 #include "native_display_geometry.h"
 
-#include <float.h>
 #include <math.h>
 #include <stddef.h>
 
@@ -46,11 +45,11 @@ static int32_t inverse_coordinate(double point, double origin, double extent,
     const double logical = (double)logical_dimension;
     double scaled;
     if (isfinite(delta)) {
-        /* Multiply first when safe: this retains small deltas and avoids
-         * needless rounding near exact logical-pixel boundaries. */
-        scaled = fabs(delta) <= DBL_MAX / logical
-            ? (delta * logical) / extent
-            : (delta / extent) * logical;
+        /* Multiply first when the product is finite: this retains small
+         * deltas and avoids needless rounding near pixel boundaries. A
+         * precomputed MAX/logical threshold can itself round upward. */
+        const double product = delta * logical;
+        scaled = isfinite(product) ? product / extent : (delta / extent) * logical;
     } else {
         /* Finite, opposite-sign coordinates can overflow the subtraction
          * even when the normalized result fits: MAX - (-MAX), extent MAX. */

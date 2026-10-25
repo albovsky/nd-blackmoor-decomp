@@ -112,6 +112,9 @@ class NativeDisplayGeometryTests(unittest.TestCase):
         huge = sys.float_info.max
         rect = Rect(0, 0, 640, 480)
         self.assertEqual(self.mapped(rect, huge, -huge), (INT32_MAX, INT32_MIN))
+        # MAX/3 rounds upward: its product overflows although the quotient fits.
+        self.assertEqual(self.mapped(Rect(0, 0, huge, huge), huge / 3, 0, logical=(3, 3)),
+                         (1, 0))
         self.assertEqual(self.mapped(Rect(-huge, huge, huge, huge), huge, -huge), (1280, -960))
         origin = 1e300
         step = math.nextafter(origin, math.inf) - origin
