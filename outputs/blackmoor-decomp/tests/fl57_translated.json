@@ -464,7 +464,7 @@
     []
    ]
   ],
-  "stack_rule": "skipped",
+  "stack_rule": "checked",
   "status": "agrees"
  },
  "0x50cc9c": {
@@ -641,7 +641,7 @@
    41
   ],
   "seeds": [],
-  "stack_rule": "skipped",
+  "stack_rule": "checked",
   "status": "no seed"
  },
  "0x50e05d": {
@@ -665,7 +665,7 @@
    43
   ],
   "seeds": [],
-  "stack_rule": "skipped",
+  "stack_rule": "checked",
   "status": "no seed"
  },
  "0x50e10d": {
@@ -689,7 +689,7 @@
    43
   ],
   "seeds": [],
-  "stack_rule": "skipped",
+  "stack_rule": "checked",
   "status": "no seed"
  },
  "0x50e19e": {
@@ -751,7 +751,7 @@
    34
   ],
   "seeds": [],
-  "stack_rule": "skipped",
+  "stack_rule": "checked",
   "status": "no seed"
  },
  "0x50e30f": {
@@ -1022,7 +1022,7 @@
    51
   ],
   "seeds": [],
-  "stack_rule": "skipped",
+  "stack_rule": "checked",
   "status": "no seed"
  },
  "0x50f7e0": {
@@ -3376,7 +3376,7 @@
     []
    ]
   ],
-  "stack_rule": "skipped",
+  "stack_rule": "checked",
   "status": "agrees"
  },
  "0x52540b": {
@@ -3412,7 +3412,7 @@
     []
    ]
   ],
-  "stack_rule": "skipped",
+  "stack_rule": "checked",
   "status": "agrees"
  },
  "0x5254fe": {
@@ -3447,7 +3447,7 @@
     []
    ]
   ],
-  "stack_rule": "skipped",
+  "stack_rule": "checked",
   "status": "agrees"
  },
  "0x5267f2": {
