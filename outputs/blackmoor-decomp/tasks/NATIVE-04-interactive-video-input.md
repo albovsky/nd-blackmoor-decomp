@@ -72,7 +72,7 @@ These are native-port checks. No new original oracle coverage, ledger acceptance
 
 ## Unverified branches and remaining limits
 
-Live GUI cradle play, S3420's separate content, held-item restore in the actual app, overlapping live overlay/IV hits, physical cursor sprites and provisional hot-point geometry, movie-selector changes with a retained origin, and both complete difficulty campaigns remain unverified. Helper unit cases cover retained rectangle identity across current-record changes, outer fallback, inclusive hit order, held/cursor/flag effects and native refusal bounds; this does not promote the app's unbound restore callback to supported. There is no new original-x86 oracle run. Full-suite failures remain as documented inNATIVE01.
+Live GUI cradle play, S3420's separate content, the original debug logger gated by0x63a4cd, foreign-body held-item restore in the actual app, overlapping live overlay/IV hits, physical cursor sprites and provisional hot-point geometry, movie-selector changes with a retained origin, and both complete difficulty campaigns remain unverified. Helper unit cases cover retained rectangle identity across current-record changes, outer fallback, inclusive hit order, held/cursor/flag effects and native refusal bounds; this does not promote the app's unbound restore callback to supported. There is no new original-x86 oracle run. Full-suite failures remain as documented inNATIVE01.
 
 GUI room evidence remains separate: the muted real GUI reachesS2010, and an ordinary primary release at210,85 consumescandidate5 and entersS2008 (`muted-gui.log`, screenshotsmuted-room-S2010/S2008.png). CUA returned a desktop-change guard during one action, so the click's automation attribution is uncertain; no continuous GUI click-through or GUI cradle success is claimed. The native game stays muted; current display remains proportional4:3 with side bars. Owner-selected proportional/stretch modes are the next independent presentation slice.
 
@@ -94,3 +94,8 @@ P2.5 malformed bounds, stale identity and unsupported host errors are deliberate
 The broad/fault tests remain stopped. Final tightened test result and review acceptance are recorded before publication; production code and native pins are unchanged since the frozen review.
 
 Tightened route/ownership regression rerun:2 passed in41.235s, with rectangle candidate10160, no IV pointer/release errors beforeS2188, actual activation/frame advancement/flag write/dependent transition and unknown-owner limit intact (ivi-app-review-check.log). Production code and native artifacts are unchanged froma95402d5.
+
+
+## Final independent acceptance
+
+Independent Sonnet slice-reviewer inspected frozen598fb84f6a2c0a7e4a3c3f59ca3687c5bb48b619 after its originala954 review and found no P1 or blocking P2. Root accepts every disposition above. The reviewer confirmed production/native artifacts were unchanged, exact rectangle/error assertions were strengthened, both installed bodies exclude the held-restore branch, and all residual gameplay limits remain explicit. Private final review text is recorded in independent-ivi-final-review.txt. These final changes only record acceptance and update the short playability log; reviewed production and test code is unchanged. Root alone publishes from the original authorizing chat. No complete-game or matching claim is made.
