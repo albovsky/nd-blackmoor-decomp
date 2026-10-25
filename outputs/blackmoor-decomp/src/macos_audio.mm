@@ -261,8 +261,14 @@ extern "C" int mac_audio_host_open(MacAudioMode mode,
     }
     /* Owner-requested host policy: mute the complete bus without changing
      * player scheduling, individual gains or natural completion. */
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"BlackmoorAudioMuted"])
-        state->engine.mainMixerNode.outputVolume = 0.0f;
+    @try {
+        if ([[NSUserDefaults standardUserDefaults] boolForKey:@"BlackmoorAudioMuted"])
+            state->engine.mainMixerNode.outputVolume = 0.0f;
+    } @catch (NSException *exception) {
+        write_error(error, error_capacity, "configuring master mute raised: %s",
+                    exception.reason.UTF8String != nullptr ? exception.reason.UTF8String : "unknown exception");
+        return MAC_AUDIO_ERR_ENGINE;
+    }
 
     if (mode == MAC_AUDIO_MODE_OFFLINE) {
         state->render_format = float_format(offline_sample_rate, offline_channels);

@@ -35,3 +35,24 @@ Normal ARM64 app builds (`mute-build.log`). Root launched the real-data GUI with
 A broad SIGTERM restart command was rejected by automatic review because it could affect other native test instances. Root inspected actual process state and used the supported safer alternative: only the specific paused GUI test PID62360 was replaced. The independent offline room-investigation process was preserved. No system audio preference or original game file changed.
 
 Remaining limits: mute is read at host creation; no live settings UI or hardware capture was added. Command-line `--unmute` is implemented but not exercised in a real GUI. Offline audio naturally completes under mute; exact original sound timing/mixer parity remains unverified. No ledger, function evidence or whole-game completion claim is changed.
+
+
+## Review response and final candidate
+
+Initial independent Sonnet review of `fafb4ed3` found no P1 or blocking P2. Root clarified the intentionally shared preference: all builds with this bundle ID, including the test bundle and offline app diagnostics, read it. Diagnostic PCM is captured after the master mixer and is therefore zero while muted; channel gain logs still describe pre-master scalars. The audio-graph diagnostic now explicitly logs `master_muted` and `capture=post-master` instead of implying the final capture is unity gain. This owner-requested preference behavior is retained, not an audio-equivalence claim. Other test helper executables use their own defaults domains.
+
+Root wrapped mixer configuration in an Objective-C exception boundary so failures return MAC_AUDIO_ERR_ENGINE through the C ABI. Startup now reports the native adapter and explicitly logs host readiness/mode rather than the obsolete `gameplay_audio=absent` label. The mute setting is intentionally saved after argument validation even if later log or asset setup fails; metadata-only invocations may set it, and when both flags appear the last wins.
+
+The real output-mode GUI evidence is now complete: `muted-gui.log` includes actual `live_audio loaded/started` and independent movie-bus playback through the opening, then S2010. Ordinary MOVE/DOWN/UP at logical210,85 latches an edge, consumes candidate5 and enters S2008. Screenshots: `muted-room-S2010.png`, `muted-room-S2008.png`. This GUI used the initial production mute candidate (same mute property assignment); the final changes only add the exception boundary and more precise logging. Thus no claim of physical capture is needed to distinguish output-mode execution from the offline test. The saved preference remains1.
+
+After those changes: focused mute test passes1case in2.214s, zero PCM for muted game/movie slots, nonzero control, natural completion2 in each subcase (`mute-final-focused.log`); normal app rebuild passes (`mute-final-build.log`). Existing real D1 audio lifecycle also passed1test in9.053s,20clips/11solves/11exits, no output device (`mute-combined-audio.log`), showing default helper behavior remains intact.
+
+Final pins supersede the initial-candidate source/build pins above:
+
+| Artifact | SHA-256 |
+|---|---|
+| `src/blackmoor_app.mm` | `5b3cf4b4ad28e686aed59dcd4fd93a5e538ae788f866e51804b6f8690c509c8a` |
+| `src/macos_audio.mm` | `9dc8e1cc4fbcb5b1d48959abea19a3a714022144a2f21c07cf3d900f960ba17b` |
+| Normal ARM64 app | `93d66eb6454b85e845b414783b808e84c5d6b634e89d4e4da5bcb0467e4e889e` |
+
+Residual test limits: same-format late player is covered; format reconnect under mute and live GUI unmute are not exercised. An early test failure may leave its temporary offline graph until process exit; it still returns a failed test and never opens an output device. No full-suite or original-equivalence claim is made.

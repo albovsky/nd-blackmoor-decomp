@@ -13437,9 +13437,11 @@ static bool inspect_audio_graph(NativeApp *app)
             finite = finite && std::isfinite(rendered.interleaved_pcm[i]);
             squares += (double)rendered.interleaved_pcm[i] * rendered.interleaved_pcm[i];
         }
-        record(app, "audio_graph rendered_frames=%llu channels=%u rms=%.8f finite=%d mode=offline gain=diagnostic-unity",
+        record(app, "audio_graph rendered_frames=%llu channels=%u rms=%.8f finite=%d mode=offline "
+                    "gain=diagnostic-channel-unity master_muted=%d capture=post-master",
             (unsigned long long)rendered.frame_count, rendered.channels,
-            samples ? std::sqrt(squares / samples) : 0, finite);
+            samples ? std::sqrt(squares / samples) : 0, finite,
+            [[NSUserDefaults standardUserDefaults] boolForKey:@"BlackmoorAudioMuted"] ? 1 : 0);
         if (!finite) status = MAC_AUDIO_ERR_FORMAT;
     } else record(app, "audio_graph_error status=%d detail=%s", status, error);
     mac_audio_render_destroy(&rendered);
@@ -13721,7 +13723,7 @@ int main(int argc, char **argv)
                                         &app.closed_captioning))
                 throw std::runtime_error("Cannot read original game configuration");
             record(&app, "external_cif_checking=%d closed_captioning=%u "
-                   "gameplay_audio=absent engine=incomplete",
+                   "audio_provider=native-host-adapter engine=incomplete",
                    external, app.closed_captioning);
             app.resources = game_resources_open((app.game_directory + "/Ciftree").c_str(), external, error, sizeof(error));
             if (!app.resources) throw std::runtime_error(error);
@@ -13753,6 +13755,9 @@ int main(int argc, char **argv)
                 audio_config.random_context = &app;
                 if (live_audio_create(&audio_config, &app.live_audio, error, sizeof(error)) != LIVE_AUDIO_OK)
                     throw std::runtime_error(error);
+                record(&app, "live_audio_host_ready mode=%s master_muted=%d",
+                       inspect_only ? "offline" : "output",
+                       [[NSUserDefaults standardUserDefaults] boolForKey:@"BlackmoorAudioMuted"] ? 1 : 0);
                 if (inspect_only) app.offline_audio_frames_per_update = live_tick_ms_set
                     ? live_tick_ms * (LIVE_AUDIO_DEFAULT_OFFLINE_SAMPLE_RATE / 1000u) : 4096u;
             }
