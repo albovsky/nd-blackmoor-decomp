@@ -15,20 +15,33 @@ import sys
 
 
 def parse(path):
+    """(row, mutants, hang-listed, budget-killed, survivors) of one log; exactly one result line, and every other line of the log must name the same row"""
     row = hangs = budgets = surv = None
     n = 0
+    results = 0
+    rows = set()
     for line in Path(path).read_text().splitlines():
         m = re.match(r'(0x[0-9a-f]+) mutants killed by a hang or crash (\[.*\])$', line)
         if m:
             hangs = [tuple(x) for x in ast.literal_eval(m.group(2))]
+            rows.add(m.group(1))
+        elif ' mutants killed by a hang' in line:
+            raise SystemExit('%s: a hang line this parser does not read: %r' % (path, line[:80]))
         m = re.match(r'(0x[0-9a-f]+) mutants killed by the step budget (\[.*\])$', line)
         if m:
             budgets = [tuple(x) for x in ast.literal_eval(m.group(2))]
+            rows.add(m.group(1))
+        elif ' mutants killed by the step' in line:
+            raise SystemExit('%s: a budget line this parser does not read: %r' % (path, line[:80]))
         m = re.match(r'(0x[0-9a-f]+) mutants (\d+) killed (\d+) survivors (\[.*\])$', line)
         if m:
             row, n, surv = m.group(1), int(m.group(2)), ast.literal_eval(m.group(4))
-    if row is None:
-        raise SystemExit('%s: no result line' % path)
+            results += 1
+            rows.add(row)
+    if results != 1:
+        raise SystemExit('%s: %d result lines, expected exactly one' % (path, results))
+    if rows != {row}:
+        raise SystemExit('%s: lines for several rows %s' % (path, sorted(rows)))
     return row, n, hangs or [], budgets or [], surv
 
 

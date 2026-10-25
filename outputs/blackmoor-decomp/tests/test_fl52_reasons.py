@@ -64,10 +64,23 @@ class FinalLog(unittest.TestCase):
         self.assertEqual(set(surv['unexplained_rows']) & set(CREDITED), set())
 
     def test_hang_listed_mutants_were_killed_by_the_budget_or_are_classified(self):
-        # every hang-listed mutant of a credited row is accounted for by its step-budget log (scripts/fl52_merge.py refuses a missing one)
-        for row, budget in (('0x4a6bde', 'budget3'), ('0x48e9bf', 'budget3'), ('0x4af96e', 'p-bud')):
-            text = (PROJECT / 'tasks/fl52' / ('%s-%s.txt' % (budget, row))).read_text()
-            self.assertIn(' mutants killed by the step budget ', text, row)
+        """every hang-listed mutant of a credited row is either killed by the step budget or a budget survivor that the classification explains"""
+        sys.path.insert(0, str(PROJECT / 'scripts'))
+        import fl52_merge
+        logs = {'0x4a6bde': ('mut3', 'budget3'), '0x48e9bf': ('mut3', 'budget3'), '0x4af96e': ('p-mut', 'p-bud'), '0x48e776': ('mut3', None), '0x488da5': ('mut', None)}
+        surv = json.loads((PROJECT / 'tasks/fl52/final1/surv.json').read_text())
+        for row, (normal, budget) in logs.items():
+            _, _, hangs, _, _ = fl52_merge.parse(PROJECT / 'tasks/fl52' / ('%s-%s.txt' % (normal, row)))
+            idents = {h[2] for h in hangs}
+            if not idents:
+                self.assertIsNone(budget, row)
+                continue
+            _, _, _, killed, alive = fl52_merge.parse(PROJECT / 'tasks/fl52' / ('%s-%s.txt' % (budget, row)))
+            killed = {k[2] for k in killed}
+            alive = {a[3] for a in alive}
+            self.assertEqual(idents - killed - alive, set(), row)
+            explained = {m[2] for m in surv['mutants'].get(row, []) if m[3] is not None}
+            self.assertEqual((idents & alive) - explained, set(), row)
 
 
 if __name__ == '__main__':
