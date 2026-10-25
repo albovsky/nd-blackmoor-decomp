@@ -6,6 +6,7 @@
 #include "startup_menu.h"
 #include "scene_resource.h"
 #include "bink_player.h"
+#include "avf_decoder.h"
 #include "scene_executor.h"
 #include "action_ui.h"
 #include "action_sound.h"
@@ -703,7 +704,7 @@ struct NativeApp {
     int32_t nav_auto_move = 1;                  /* Game.ini AutoMove, default 1 */
     bool nav_auto_move_from_ini = false;
     bool nav_members_idle = true;               /* no row of a cascade-member type */
-    int32_t scene_native_frames = 0;            /* BIK frame count of the current scene */
+    int32_t scene_native_frames = 0;            /* decoded background frame count */
     int32_t scene_native_width = 0, scene_native_height = 0;
     int32_t logged_nav_state = -1;
     uint64_t nav_steps = 0, nav_selector_moves = 0;
@@ -12178,6 +12179,74 @@ static bool advance_scene_video(NativeApp *app)
     return true;
 }
 
+/* Native static-background adapter over the recovered AVF reader. Animated
+ * controllers remain separate: only a complete, single type-0 frame is
+ * supported here, with no worker, timing or seek policy invented for it. */
+static bool load_static_avf_background(NativeApp *app, const std::string &path)
+{
+    std::unique_ptr<FILE, decltype(&std::fclose)> input(std::fopen(path.c_str(), "rb"), &std::fclose);
+    if (!input || std::fseek(input.get(), 0, SEEK_END) != 0) {
+        record(app, "scene_media_error branch=AVF-static stage=open-or-seek");
+        return false;
+    }
+    const long length = std::ftell(input.get());
+    constexpr size_t cap = 128u * 1024u * 1024u;
+    if (length <= 0 || static_cast<unsigned long>(length) > cap ||
+        std::fseek(input.get(), 0, SEEK_SET) != 0) {
+        record(app, "scene_media_error branch=AVF-static stage=file-size");
+        return false;
+    }
+    try {
+        std::vector<uint8_t> bytes(static_cast<size_t>(length));
+        if (std::fread(bytes.data(), 1u, bytes.size(), input.get()) != bytes.size()) {
+            record(app, "scene_media_error branch=AVF-static stage=read");
+            return false;
+        }
+        AvfFile file{};
+        AvfRecord frame{};
+        int status = avf_open(bytes.data(), bytes.size(), &file);
+        if (status != AVF_OK || file.frame_count != 1 || file.frame_bytes > cap ||
+            file.max_unpacked > cap || avf_record(&file, 0, &frame) != AVF_OK ||
+            frame.type != AVF_TYPE_KEY || frame.unpacked_bytes != file.frame_bytes) {
+            record(app, "scene_media_error branch=AVF-static stage=format status=%d frames=%d "
+                   "(requires one full type-0 frame)", status, file.frame_count);
+            return false;
+        }
+        std::vector<uint8_t> pixels(file.frame_bytes), scratch(file.max_unpacked);
+        AvfStream stream{};
+        AvfLzssState expanded{};
+        status = avf_stream_init(&stream, &file, pixels.data(), nullptr, pixels.size(),
+                                 scratch.data(), scratch.size(), nullptr, nullptr);
+        if (status == AVF_OK) status = avf_decode_single(&stream, 0, &expanded);
+        if (status != AVF_OK || expanded.produced != file.frame_bytes) {
+            record(app, "scene_media_error branch=AVF-static stage=decode status=%d", status);
+            return false;
+        }
+        HostImage image{};
+        image.width = static_cast<uint32_t>(file.width);
+        image.height = static_cast<uint32_t>(file.height);
+        image.frame_index = 0;
+        image.rgba.resize(static_cast<size_t>(file.frame_bytes) * 2u);
+        if (!cif_pixels_rgb555_to_rgba(pixels.data(), pixels.size(), image.rgba.data(), image.rgba.size()))
+            return false;
+        app->scene_frame = std::move(image);
+        app->scene_current_frame = 0;
+        app->scene_video_path = path;
+        app->scene_native_frames = 1;
+        app->scene_native_width = file.width;
+        app->scene_native_height = file.height;
+        record(app, "scene_static_avf_open width=%d height=%d frames=1 decoded_bytes=%u delay=%u "
+               "source=RGB555 host=opaque-RGBA8 timing=static", file.width, file.height,
+               file.frame_bytes, file.header_1c);
+        record(app, "scene_frame_decoded width=%u height=%u frame=0 codec=recovered-AVF "
+               "scope=single-full-key-frame", app->scene_frame.width, app->scene_frame.height);
+        return true;
+    } catch (const std::bad_alloc &) {
+        record(app, "scene_media_error branch=AVF-static stage=allocation");
+        return false;
+    }
+}
+
 /* With a live session the previous scene is parked in app->retired_scene
  * instead of closed, because the session executor still borrows it. */
 static bool load_scene(NativeApp *app, int16_t scene_id, bool keep_previous_open = false)
@@ -12201,6 +12270,8 @@ static bool load_scene(NativeApp *app, int16_t scene_id, bool keep_previous_open
     app->nav_player = nullptr;
     app->nav_shown_frame = -1;
     app->has_scene_frame = false;
+    app->scene_video_path.clear();
+    app->scene_native_frames = app->scene_native_width = app->scene_native_height = 0;
     app->scene = scene_resource_open_memory(resource.bytes, resource.length, error, sizeof(error));
     game_resource_bytes_destroy(&resource);
     if (!app->scene) { record(app, "scene_error name=%s detail=%s", name, error); return false; }
@@ -12217,68 +12288,81 @@ static bool load_scene(NativeApp *app, int16_t scene_id, bool keep_previous_open
     }
     record(app, "scene_parsed name=%s title=%s background=%s audio=%s actions=%zu",
            name, summary.title, summary.background, summary.audio, summary.action_count);
-    /* The original opener probes BIK before AVF. This adapter currently covers
-     * the BIK branch only. File lookup follows Windows ASCII case folding. */
-    const std::string wanted = std::string(summary.background) + ".bik";
+    /* 0x4163b4 probes BIK before AVF. Missing BIK permits fallback; a present
+     * invalid or ambiguous BIK does not. Both use Windows ASCII case folding. */
+    std::string wanted = std::string(summary.background) + ".bik";
     if (wanted.size() > 37 || wanted.find_first_of("/\\") != std::string::npos) return false;
     const std::string video_directory = app->game_directory + "/CDVideo";
     DIR *directory = opendir(video_directory.c_str());
     if (!directory) return false;
     std::string path;
     unsigned matches = 0;
-    while (dirent *entry = readdir(directory)) {
-        const std::string candidate = entry->d_name;
-        if (candidate.size() != wanted.size()) continue;
-        bool same = true;
-        for (size_t i = 0; i < wanted.size(); ++i) {
-            unsigned char a = (unsigned char)candidate[i], b = (unsigned char)wanted[i];
-            if (a >= 'a' && a <= 'z') a -= 'a' - 'A';
-            if (b >= 'a' && b <= 'z') b -= 'a' - 'A';
-            if (a != b) { same = false; break; }
+    bool use_avf = false;
+    for (const char *extension : {".bik", ".avf"}) {
+        wanted = std::string(summary.background) + extension;
+        matches = 0;
+        path.clear();
+        rewinddir(directory);
+        while (dirent *entry = readdir(directory)) {
+            const std::string candidate = entry->d_name;
+            if (candidate.size() != wanted.size()) continue;
+            bool same = true;
+            for (size_t i = 0; i < wanted.size(); ++i) {
+                unsigned char a = (unsigned char)candidate[i], b = (unsigned char)wanted[i];
+                if (a >= 'a' && a <= 'z') a -= 'a' - 'A';
+                if (b >= 'a' && b <= 'z') b -= 'a' - 'A';
+                if (a != b) { same = false; break; }
+            }
+            if (same) { ++matches; path = video_directory + "/" + candidate; }
         }
-        if (same) { ++matches; path = video_directory + "/" + candidate; }
+        use_avf = std::strcmp(extension, ".avf") == 0;
+        if (matches != 0u) break;
     }
     closedir(directory);
     if (matches != 1) { record(app, "scene_media_error missing-or-ambiguous=%s", wanted.c_str()); return false; }
-    BinkPlayer *opened_player = nullptr;
-    std::unique_ptr<BinkPlayer, decltype(&bink_player_close)> player(
-        nullptr, &bink_player_close);
-    BinkPlayerInfo info{};
-    int video_status = bink_player_open(path.c_str(), &opened_player, &info,
-                                        error, sizeof(error));
-    player.reset(opened_player);
-    if (video_status != BINK_PLAYER_OK) {
-        record(app, "scene_media_error status=%d detail=%s", video_status, error);
-        return false;
+    if (use_avf) {
+        if (!load_static_avf_background(app, path)) return false;
+    } else {
+        BinkPlayer *opened_player = nullptr;
+        std::unique_ptr<BinkPlayer, decltype(&bink_player_close)> player(
+            nullptr, &bink_player_close);
+        BinkPlayerInfo info{};
+        int video_status = bink_player_open(path.c_str(), &opened_player, &info,
+                                            error, sizeof(error));
+        player.reset(opened_player);
+        if (video_status != BINK_PLAYER_OK) {
+            record(app, "scene_media_error status=%d detail=%s", video_status, error);
+            return false;
+        }
+        const uint64_t playback_origin_ns = monotonic_now_ns();
+        video_status = bink_player_set_mode(player.get(), 0, playback_origin_ns,
+                                            error, sizeof(error));
+        if (video_status != BINK_PLAYER_OK) {
+            record(app, "scene_media_error status=%d detail=%s", video_status, error);
+            return false;
+        }
+        BinkPlayerFrame first_frame{};
+        video_status = bink_player_advance(player.get(), playback_origin_ns,
+                                           &first_frame, error, sizeof(error));
+        if (video_status != BINK_PLAYER_OK || !copy_player_frame(app, first_frame)) {
+            record(app, "scene_media_error status=%d detail=%s", video_status,
+                   video_status == BINK_PLAYER_OK ? "invalid first-frame buffer" : error);
+            return false;
+        }
+        app->video = player.release();
+        /* RT-17: the BIK branch of 0x4163b4 (0x416870..0x4169b4) derives the frame
+         * range [0, frames-1] and the image extent from the movie header. */
+        app->scene_video_path = path;
+        app->scene_native_frames = static_cast<int32_t>(info.total_frames);
+        app->scene_native_width = static_cast<int32_t>(info.width);
+        app->scene_native_height = static_cast<int32_t>(info.height);
+        record(app, "scene_video_open width=%u height=%u frames=%u rate=%d/%d retained_bytes=%llu "
+               "mode=0 pacing=native-FFmpeg-timestamps BinkWait-parity=unverified",
+               info.width, info.height, info.total_frames, info.frame_rate_num,
+               info.frame_rate_den, (unsigned long long)info.decoded_frame_storage_bytes);
+        record(app, "scene_frame_decoded width=%u height=%u frame=%d codec=native-FFmpeg original-Bink-equivalence=unverified",
+               app->scene_frame.width, app->scene_frame.height, app->scene_current_frame);
     }
-    const uint64_t playback_origin_ns = monotonic_now_ns();
-    video_status = bink_player_set_mode(player.get(), 0, playback_origin_ns,
-                                        error, sizeof(error));
-    if (video_status != BINK_PLAYER_OK) {
-        record(app, "scene_media_error status=%d detail=%s", video_status, error);
-        return false;
-    }
-    BinkPlayerFrame first_frame{};
-    video_status = bink_player_advance(player.get(), playback_origin_ns,
-                                       &first_frame, error, sizeof(error));
-    if (video_status != BINK_PLAYER_OK || !copy_player_frame(app, first_frame)) {
-        record(app, "scene_media_error status=%d detail=%s", video_status,
-               video_status == BINK_PLAYER_OK ? "invalid first-frame buffer" : error);
-        return false;
-    }
-    app->video = player.release();
-    /* RT-17: the BIK branch of 0x4163b4 (0x416870..0x4169b4) derives the frame
-     * range [0, frames-1] and the image extent from the movie header. */
-    app->scene_video_path = path;
-    app->scene_native_frames = static_cast<int32_t>(info.total_frames);
-    app->scene_native_width = static_cast<int32_t>(info.width);
-    app->scene_native_height = static_cast<int32_t>(info.height);
-    record(app, "scene_video_open width=%u height=%u frames=%u rate=%d/%d retained_bytes=%llu "
-           "mode=0 pacing=native-FFmpeg-timestamps BinkWait-parity=unverified",
-           info.width, info.height, info.total_frames, info.frame_rate_num,
-           info.frame_rate_den, (unsigned long long)info.decoded_frame_storage_bytes);
-    record(app, "scene_frame_decoded width=%u height=%u frame=%d codec=native-FFmpeg original-Bink-equivalence=unverified",
-           app->scene_frame.width, app->scene_frame.height, app->scene_current_frame);
     app->has_scene_frame = true;
     if (!render_scene_preview(app) ||
         (app->scene_runtime_enabled &&
