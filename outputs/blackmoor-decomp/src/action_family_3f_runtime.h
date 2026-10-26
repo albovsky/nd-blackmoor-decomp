@@ -46,8 +46,8 @@ extern "C" {
  *   A  hooks 0x14/0x14, no primary entries: sound, secondary flags, transition.
  *   B  hooks 0x14/0x14 with primary entries: response list, selection, response
  *      sound; needs layout_text_box + acquire_surface (host UI).
- *   C  a hook index != 0x14 (flag-dependent response builders 0x43f31a..
- *      0x44499c): explicit ERR_UNSUPPORTED, reason "hook builder".
+ *   C  hook builders require the additive Convo3fHookBuilders interface.
+ *      The legacy entry points continue to refuse every non-0x14 hook.
  * Captions (world.captions_5bb202 != 0) need layout_text_box as well. */
 
 #define CONVO3F_RUNTIME_TYPE UINT8_C(0x3f)
@@ -421,6 +421,26 @@ void convo3f_manager_reset(Convo3fManager *manager);
 int convo3f_preview_responses(const Convo3fManager *manager, const Convo3fObject *object,
     const Convo3fWorld *world, Convo3fManager *preview, const char **why);
 
+/* Additive extension: existing public host/world/manager layouts stay fixed.
+ * build runs after primary entries, in A/B order. preview=1 must not mutate
+ * host state or draw from the live RNG. The real build (preview=0) runs at
+ * 0x4205c1, after held-item put-back and cache teardown. A real-build failure
+ * is ERR_HOST after committed effects. Unsupported hooks must refuse during
+ * preview, before any phase0 effects. */
+typedef struct {
+    void *context;
+    int (*build)(void *context, uint8_t hook_a, uint8_t hook_b,
+        const Convo3fWorld *world, Convo3fManager *manager, int preview,
+        const char **why);
+} Convo3fHookBuilders;
+
+int convo3f_preview_responses_with_hooks(const Convo3fManager *, const Convo3fObject *,
+    const Convo3fWorld *, const Convo3fHookBuilders *, Convo3fManager *, const char **why);
+/* Hook entry semantics of 0x41fa11 / 0x41fd08: capacity-before-dedupe for
+ * add; remove first equal then append for replace. Copies owned text and
+ * initialized metadata, preserving bytes after the sound-name terminator. */
+int convo3f_apply_hook_response(Convo3fManager *, const Convo3fResponse *, int replace);
+
 
 typedef enum {
     CONVO3F_BLIT_RESTORE = 1,     /* 0x4c5377: saved frame -> back buffer */
@@ -477,6 +497,10 @@ int convo3f_step(Convo3fManager *manager, const Convo3fObject *object, int32_t r
 int convo3f_step_type(Convo3fManager *manager, const Convo3fObject *object, uint8_t type,
                       int32_t row, uint32_t phase, Convo3fWorld *world, const Convo3fHost *host,
                       Convo3fStepResult *result, const char **why);
+
+int convo3f_step_type_with_hooks(Convo3fManager *, const Convo3fObject *, uint8_t type,
+    int32_t row, uint32_t phase, Convo3fWorld *, const Convo3fHost *,
+    const Convo3fHookBuilders *, Convo3fStepResult *, const char **why);
 
 #ifdef __cplusplus
 }
