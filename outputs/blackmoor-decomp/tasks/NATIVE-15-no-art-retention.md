@@ -73,3 +73,10 @@ P3 limits remain explicit: post-loop4234b5→42347b manager clears at43e6da are 
 
 
 Review-fix result: the actual suite now has6cases, all passing in20.791s in the worker, including ordinary busy-greeting refusal and inherited-movie host stop→normal4412 cleanup→4408 frame0 re-entry. The stop is explicitly a direct host boundary after the natural second no-art load; no natural UI exit is claimed. The real source control row supplies target/word values and the component uses the public continuation transition boundary. The busy guard fails normally against frozen b538 (CHECK exit1 with no later dispatch), then passes against the fix. Provider checks now5/5 including the independent busy-owned-arena refusal; unrelated survivor ownership checks remain intact. Final root rerun and review of the small delta follow.
+
+
+## Accepted publication
+
+[PR214](https://github.com/albovsky/nd-blackmoor-decomp/pull/214). Independent Sonnet high reviewed frozen b5388b76 and final delta4b3081b47268aa9a9d6d2129923c30588d2e54b5: ACCEPT, no P1 or blocking P2. Started-retirement and retained-source cleanup conditions are resolved. Root's final6case rerun passes20.850s; provider5/5 passes1.030s, and the new provider guard also fails normally against the b538 export (CHECK exit1,0.903s). Logs and both independent reviews are under work/playability-20261024. Further source changes require review; only this status documentation follows the accepted freeze.
+
+Remaining unrun app suites: a35, ad1_audio, a83, d1_pointer and test_native_app. The standalone provider guard checks its busy flags, while the production app additionally checks phase; it does not gain a universal interruption-lifetime claim. Unsupported refusal still stops the product session rather than becoming a recoverable cancel. A failed state-query sanity check has no specific log; valid canonical indices cannot reach it in the current single-threaded loader. All other P3 limits above remain explicit. No proprietary bytes or protected parallel outputs were published.
