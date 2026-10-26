@@ -33,7 +33,7 @@ Both review regressions first failed through ordinary CHECK/exit1 (two checks20.
 
 ## Independent review and disposition
 
-Independent Sonnet high static review of frozen1db5d934e1fb4c84ab7b162c6deefa5e197c93b0 found no P1 and no P2 blocking collection. Root accepted and fixed two regressions: the factory now resolves relative --game-dir paths once without chdir, and active-movie scene changes stop before destructive clearing. Binding-entry failure also returns false instead of running fresh rows against old tables. A revised frozen review is pending.
+Independent Sonnet high static review of frozen1db5d934e1fb4c84ab7b162c6deefa5e197c93b0 found no P1 and no P2 blocking collection. Root accepted and fixed two regressions: the factory now resolves relative --game-dir paths once without chdir, and active-movie scene changes stop before destructive clearing. Binding-entry failure also returns false instead of running fresh rows against old tables. Final independent Sonnet high static review of7328892e08c7b0aa2255093725d700dcaed543f0 found no P1 or blocking P2 and confirmed both fixes. Root accepts the final candidate. Changes after that frozen commit are documentation only.
 
 Destination clipping was not recovered. The adapter explicitly rejects out-of-bounds/scaled plans; do not invent clipping. The corpus check confirms all three owned group rectangles are0,0..619,374; unusual geometry remains unverified. Direct app-handler refusal ordering is statically checked; metadata preflight runtime checks call the provider directly. Pause/resume mode2, pending25a across reload and delay_min>=delay_max are unchanged kernel branches without new runtime coverage. Whole-container decode on each open is existing native host policy; its performance is unmeasured.
 
@@ -51,7 +51,7 @@ Original GAME.EXE: afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485
 | Focused test executable | 63a0ce12518b50154107b081d6c46355ed07499c4b9967e58249b5525e343f7a |
 | Normal native executable | 907ca2a51e024337746007bb2d9b03f03293e3cbc088df92739b48a9b029dbc2 |
 
-Worker commits: media b9cfcaeef13aaa2cabf2750496fdb4c6ff7d170f; tests7437658cd4b5fdc8f9ecfdb876455f528b242532.
+Worker commits: media b9cfcaeef13aaa2cabf2750496fdb4c6ff7d170f; initial tests7437658cd4b5fdc8f9ecfdb876455f528b242532; review-test follow-up4941f80cf072370ce3a14ef7dad2684d6c1cf9b3.
 
 Static original code hashes, matched to immutable annotated extents (no fresh original-code execution): handler4cd6ff..4cdfd3 bdca476b91db9275c96c89775550a1cfaea685fec114b5a215e1f82cab7e0eb5; Bink step4ce8ea..4ceb3b 6a37c4f21041be9ea11ddeedd55c1f838c622fad3abafe1d90d6b97f2f43854f; stream open44c4c1..44c9db 8dd6a87ff43cc31725db8afa3dfd0c7740e39e6b738b109f71072a9cd21911e7; render4cf9f4..4d00c2 6fcb7a40f64f86eff07574b45064e0735a72bc4817166662d426a7730b4948f8.
 
@@ -59,4 +59,6 @@ Static original code hashes, matched to immutable annotated extents (no fresh or
 
 Full Loulou gameplay, decoding every frame of all49 clips, nonzero entry-first gameplay, unusual crop/dimension sets, casefold ambiguity on case-sensitive storage, original cursor/full renderer ordering, both campaigns and original Bink SDK codec/RGB555/BinkWait parity remain unverified. No new GUI or audible-output check is claimed. Next blocker is full NO_ART_SCENE loading: retained art/media/navigation and selective retirement/reuse of stable ACT slots. An art-only shortcut is excluded. Grease25, the S3448 unlock and the whole game remain unfinished.
 
-Initial main refresh completed at d3ab. A later local refresh to46806c0f (other-agent PR202) was rejected by automatic approval review because it would update protected ledger/evidence files. No local retry or indirect merge occurred. Publication must use a native-only PR with protected target-main files unchanged; native paths do not overlap that decompilation PR. Final review and publication are pending in the original authorizing chat.
+Initial main refresh completed at d3ab. A later local refresh to46806c0f (other-agent PR202) was rejected by automatic approval review because it would update protected ledger/evidence files. No local retry or indirect merge occurred. Publication must use a native-only PR with protected target-main files unchanged; native paths do not overlap that decompilation PR. Final review is accepted; publication remains with the original authorizing chat.
+
+Final P3 disposition: source usability after refusal is proved by a direct transition-boundary component. The product caller has already entered its load state and stops the session with status1/failure1; this is not a recoverable cancel/back action. The defensive binding-entry failure now also stops initial creation or a load; its exceptional malformed/duplicate/allocation branches were reviewed statically, not exercised. Invalid relative-directory branches are likewise unexercised. The binding's before-effects comment describes its local table contract; the app guard supplies the global before-clear boundary. Its RT36 recovery wording is historical. No functional source/test changes followed final review.
