@@ -372,7 +372,16 @@ def forwarded_store_ok(lines, n):
     return False
 
 
-def classify(kind, lines, n, equivalent, row=None):
+def classify(kind, lines, n, equivalent, row=None, variants=None, ranges=None, proofs=None, cells=None):
+    """`variants`, `ranges`, `proofs` (FL-64): the mutant lines the checker builds for this kind and line, the FL-45 ranges and the FL-43 proofs of the row; they switch on scripts/fl64_rules.py"""
+    cls = classify_old(kind, lines, n, equivalent, row)
+    if cls is None and variants:
+        import fl64_rules
+        cls = fl64_rules.explain(kind, lines, n, row, variants, ranges, proofs, cells)
+    return cls
+
+
+def classify_old(kind, lines, n, equivalent, row=None):
     if equivalent:
         return 'identical code'
     if kind == 'alu' and rep_count_ok(lines, n):
@@ -401,6 +410,37 @@ def classify(kind, lines, n, equivalent, row=None):
     return None
 
 
+def fl64_context(row, text, wanted):
+    """FL-64: the mutant lines of every survivor (kind, line), the FL-45 ranges and the FL-43 proofs of the original instructions of `row`; {} when GAME.EXE or the corpus entry is missing"""
+    import random
+    import fl43_equiv as E
+    import fl45_ranges as RG
+    corpus = json.loads((PROJECT / 'tests/fl40_corpus.json').read_text())
+    if row not in corpus:
+        return {}
+    va = int(row, 16)
+    variants = {}
+    for mk, mn, mt in M.mutants(text, va, random.Random(va), 100000):
+        if wanted is None or (mk, mn) in wanted:
+            variants.setdefault((mk, mn), []).append(mt.split('\n')[mn])
+    try:
+        ranges = RG.Ranges(va, corpus[row]['body'])
+    except E.NoProof:
+        ranges = None
+    proofs = {}
+    try:
+        addrs = []
+        for n in ([k for k in range(len(text.split('\n')))] if wanted is None else [n for _, n in wanted]):
+            mm = re.search(r'/\* (0x[0-9a-f]+): ', text.split('\n')[n])
+            if mm:
+                addrs.append(int(mm.group(1), 16))
+        proofs = E.prove(va, corpus[row]['body'], addrs, ranges.feasible if ranges else None, RG.TableFunction if ranges else None, exposed_ok=True)
+    except E.NoProof:
+        pass
+    import fl64_cells
+    return {'variants': variants, 'ranges': ranges, 'proofs': proofs, 'cells': fl64_cells.explore(va, corpus[row]['body'])}
+
+
 def main():
     log = sys.argv[1]
     equiv = {}
@@ -415,9 +455,12 @@ def main():
             continue
         text = funcs[m.group(1)].split('\n')
         items = []
-        for kind, n, why in eval(m.group(2)[:m.group(2).rindex(']') + 1]):
+        survivors = eval(m.group(2)[:m.group(2).rindex(']') + 1])
+        rich = fl64_context(m.group(1), funcs[m.group(1)], [(k, n) for k, n, why in survivors if why == 'survives']) if '--fl64' in sys.argv else {}
+        for kind, n, why in survivors:
             if why == 'survives':
-                items.append((kind, classify(kind, text, n, equiv.get(m.group(1), {}).get((kind, n), False), m.group(1)), text[n].strip()[:160], n))
+                items.append((kind, classify(kind, text, n, equiv.get(m.group(1), {}).get((kind, n), False), m.group(1), rich.get('variants', {}).get((kind, n)), rich.get('ranges'), rich.get('proofs'), rich.get('cells')),
+                              text[n].strip()[:160], n))
         if items:
             out['rows_with_survivors'][m.group(1)] = items
             if any(c is None for _, c, _, _ in items):
