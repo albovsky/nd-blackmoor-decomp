@@ -11,12 +11,14 @@
 
 typedef struct scene_action {
     SceneActionInfo info;
+    SceneResourceActionRef origin;
 } SceneAction;
 
 struct SceneResource {
     Hiff *hiff;
     SceneResourceSummary summary;
     SceneAction *actions;
+    int is_action_view;
 };
 
 static void set_error(char *error, size_t capacity, const char *message)
@@ -948,6 +950,53 @@ SceneResource *scene_resource_open_memory(const void *bytes, size_t length,
         }
     }
     return scene;
+}
+
+int scene_resource_action_origin(const SceneResource *scene, size_t index,
+    SceneResourceActionRef *out)
+{
+    if (scene == NULL || out == NULL) return SCENE_RESOURCE_ERR_ARGUMENT;
+    if (index >= scene->summary.action_count) return SCENE_RESOURCE_ERR_NOT_FOUND;
+    if (scene->is_action_view) {
+        if (scene->actions[index].origin.source == NULL) return SCENE_RESOURCE_ERR_NOT_FOUND;
+        *out = scene->actions[index].origin;
+    } else {
+        out->source = scene;
+        out->index = index;
+    }
+    return SCENE_RESOURCE_OK;
+}
+
+SceneResource *scene_resource_open_action_view(const SceneResource *descriptor,
+    const SceneResourceActionRef *rows, size_t count, char *error, size_t capacity)
+{
+    SceneResource *view;
+    if (descriptor == NULL || count > SCENE_RESOURCE_MAX_ACTIONS || (count != 0u && rows == NULL)) {
+        set_error(error, capacity, "invalid action metadata view");
+        return NULL;
+    }
+    view = calloc(1u, sizeof(*view));
+    if (view == NULL) { set_error(error, capacity, "action view allocation"); return NULL; }
+    view->summary = descriptor->summary;
+    view->summary.action_count = count;
+    view->is_action_view = 1;
+    if (count != 0u) {
+        view->actions = calloc(count, sizeof(*view->actions));
+        if (view->actions == NULL) { free(view); set_error(error, capacity, "action view rows allocation"); return NULL; }
+    }
+    for (size_t i = 0; i < count; ++i) {
+        if (rows[i].source == NULL) {
+            view->actions[i].info.payload_kind = SCENE_ACTION_PAYLOAD_FIXED;
+            continue;
+        }
+        if (scene_resource_action_at(rows[i].source, rows[i].index, &view->actions[i].info) != SCENE_RESOURCE_OK ||
+            scene_resource_action_origin(rows[i].source, rows[i].index, &view->actions[i].origin) != SCENE_RESOURCE_OK) {
+            scene_resource_close(view);
+            set_error(error, capacity, "invalid action view source row");
+            return NULL;
+        }
+    }
+    return view;
 }
 
 void scene_resource_close(SceneResource *scene)

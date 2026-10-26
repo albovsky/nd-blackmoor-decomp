@@ -98,7 +98,7 @@ class NativeRandomMovieTests(unittest.TestCase):
     def test_valid_avf_audio_and_bad_bounds_refuse_before_effects_with_probe_priority(self):
         self.component('preflight')
 
-    def test_active_normal_art_transition_refuses_before_any_clear_and_preserves_source_scene(self):
+    def test_active_popup_transition_refuses_before_any_clear_and_preserves_source_scene(self):
         self.component('active-transition')
 
 

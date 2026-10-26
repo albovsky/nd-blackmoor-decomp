@@ -264,6 +264,12 @@ typedef struct SceneSessionAppend SceneSessionAppend;
  * callback. Source resources remain caller-owned for every surviving slot. */
 int scene_session_prepare_no_art(SceneSession *, const SceneResource *, int32_t scene_id,
     const SceneActionSlotPlan *, SceneSessionAppend **, SceneSessionFailure *);
+/* Normal retained-ACT load: metadata contains only accepted constructor rows;
+ * logical_source remains the actual scene, independent of a temporary view. */
+int scene_session_prepare_normal(SceneSession *, const SceneResource *logical_source,
+    const SceneResource *metadata, int32_t scene_id, const SceneActionSlotPlan *,
+    SceneSessionAppend **, SceneSessionFailure *);
+int scene_session_commit_normal(SceneSession *, SceneSessionAppend *);
 int scene_session_can_commit_no_art(const SceneSession *, const SceneSessionAppend *);
 int scene_session_commit_no_art(SceneSession *, SceneSessionAppend *);
 void scene_session_discard_no_art(SceneSessionAppend *);
