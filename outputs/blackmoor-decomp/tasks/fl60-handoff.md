@@ -34,7 +34,7 @@ Reading: below 100 bytes about half of the candidates are credited automatically
 
 ## Regeneration (done)
 
-Merged main (FL-59, PR 202) once. Oracle docstring row count (160), `record_function_execution.py run --only fl41_original_oracle` (about 3 min), `collect --write --merge`, `fl41_accept.py --reviewer ... --blockers-reviewed tasks/fl60-blockers.json`, evidence, ledger, `function_names.py write`, `annotate_machine.py annotate` (plain, `--named`, `--derived --named`), `refresh`, audits of batches 003 to 006 (pinned binutils 2.43.1 in `work/tools/s08-binutils-2.43.1`; archive from old-releases.ubuntu.com `binutils_2.43.1.orig.tar.xz`, `scripts/bootstrap_matching_s08_2_gas.sh`, about 8 min), evidence and ledger again. Needs `pip install unicorn capstone` in a fresh container.
+Merged main (FL-59, PR 202) once. Oracle docstring row count (160), `record_function_execution.py run --only fl41_original_oracle` (about 3 min), `collect --write --merge`, `fl41_accept.py --reviewer ... --blockers-reviewed tasks/fl60-blockers.json`, evidence, ledger, `function_names.py write`, `annotate_machine.py annotate` (plain, `--named`, `--derived --named`), `refresh`, audits of ALL ten batches (003 to 006 in PR 204; 001, 002 and 007 to 010 in the follow-up PR, because every batch report is bound to the hash of `asm/function-names.json`, which changes when rows are credited, and `decomp-progress/generate.py` refuses a stale report) (pinned binutils 2.43.1 in `work/tools/s08-binutils-2.43.1`; archive from old-releases.ubuntu.com `binutils_2.43.1.orig.tar.xz`, `scripts/bootstrap_matching_s08_2_gas.sh`, about 8 min), evidence and ledger again. Needs `pip install unicorn capstone` in a fresh container.
 
 ## Lessons
 
