@@ -208,7 +208,8 @@ def safe_original(row, sd, ov=()):
 
 
 def check_row_inner(args):
-    key, entry, text, helper, per_row, harden, rescue = args
+    key, entry, text, helper, per_row, harden, rescue = args[:7]
+    scen = args[7] if len(args) > 7 else None          # FL-61: boundary scenarios [[seed, overrides], ...] a survivor is retried on (tests/fl40_mutation_check.py --scen)
     va = int(key, 16)
     row = W.row_info(va, entry['body'], {int(k, 16): v for k, v in entry['callees'].items()}, {int(k, 16): v for k, v in entry['imports'].items()}, entry['fs'])
     rng = random.Random(va)
@@ -237,6 +238,8 @@ def check_row_inner(args):
             lib.fl46_get_steps.restype = ctypes.c_ulonglong
         reference = [(sd, ov, dig(W.run_original(row, sd, ov))) for sd, ov in scenarios]
         extra = None
+        scen_items = None
+        scen_killers = set()
         wide = None
         killed, survivors, killers = 0, [], set()
         mutant_survivors = []       # FL-49: (index of the mutant, kind, line) of every survivor, for the per-mutant detail (FL49_DETAIL=1)
@@ -374,6 +377,15 @@ def check_row_inner(args):
                     survivors.append((kind, n, 'killed only by an extra seed'))
                     killed += 1
                     continue
+                if scen:        # FL-61: scenarios with cells set to boundary values; the one that kills is added to the corpus
+                    if scen_items is None:
+                        scen_items = guard([(sd, [tuple(o) for o in ov], dig(t)) for sd, ov in scen for t in [safe_original(row, sd, [tuple(o) for o in ov])] if t is not None and not t.fault], 'scen')
+                    hit = first_mismatch(k, scen_items)
+                    if hit is not None:
+                        scen_killers.add((scen_items[hit][0], tuple(tuple(o) for o in scen_items[hit][1])))
+                        survivors.append((kind, n, 'killed by boundary scenario'))
+                        killed += 1
+                        continue
             if dead:
                 killed += 1
             else:
@@ -404,7 +416,7 @@ def check_row_inner(args):
                         continue
                 survivors.append((kind, n, 'killed by step budget' if k in budget_hit else 'survives'))
                 mutant_survivors.append((k, kind, n))
-        return key, {'mutants': len(muts), 'killed': killed, 'survivors': survivors, 'killers': sorted(killers), 'mutant_survivors': mutant_survivors, 'mutant_texts': {k: muts[k][2] for k, _, _ in mutant_survivors} if os.environ.get('FL49_DETAIL') else {}, 'guard_dropped': dropped[0], 'hang_kills': len(set(hangs)), 'budget_kills': len(budget_hit)}
+        return key, {'mutants': len(muts), 'killed': killed, 'survivors': survivors, 'killers': sorted(killers), 'scen_killers': sorted(scen_killers), 'mutant_survivors': mutant_survivors, 'mutant_texts': {k: muts[k][2] for k, _, _ in mutant_survivors} if os.environ.get('FL49_DETAIL') else {}, 'guard_dropped': dropped[0], 'hang_kills': len(set(hangs)), 'budget_kills': len(budget_hit)}
 
 
 class Shim:
@@ -428,6 +440,7 @@ def main():
     ap.add_argument('--harden', action='store_true', help='add to the corpus a seed that kills each survivor, where one of 300 more seeds does')
     ap.add_argument('--corpus', help='read and write this copy of the corpus instead of tests/fl40_corpus.json (two runs at once must not share one file; merge the seeds afterwards)')
     ap.add_argument('--window', help='lo:hi, only the picked mutants lo..hi-1 of each row')
+    ap.add_argument('--scen', help='FL-61: a JSON {row: [[seed, overrides], ...]} of boundary scenarios (scripts/fl61_boundary.py); a survivor is retried on them and the killing ones are added to the corpus')
     a = ap.parse_args()
     global WINDOW, CORPUS
     if a.corpus:
@@ -450,7 +463,8 @@ def main():
             lo += size
         for v in rescue.values():
             v['stages'] = stages
-    work = [(k, corpus[k], funcs[k], helper if 'FL40_CALL_LIFTED' in funcs[k] else '', a.per_row, a.harden or bool(a.rescue), rescue.get(k)) for k in keys]
+    scen = json.loads(Path(a.scen).read_text()) if a.scen else {}
+    work = [(k, corpus[k], funcs[k], helper if 'FL40_CALL_LIFTED' in funcs[k] else '', a.per_row, a.harden or bool(a.rescue), rescue.get(k), scen.get(k)) for k in keys]
     total = killed = 0
     bad = []
     with mp.Pool(a.jobs, maxtasksperchild=1) as pool:        # a fresh process per row: the emulator instances of a long run add up
@@ -459,9 +473,10 @@ def main():
                 print('%s COMPILE ERROR %s' % (key, res['error']))
                 bad.append(key)
                 continue
-            if res['killers']:
+            if res['killers'] or res['scen_killers']:
                 corpus[key]['seeds'].extend([sd, []] for sd in res['killers'])
-                if a.harden or a.rescue:        # kept as it goes: a long run that dies still leaves its seeds
+                corpus[key]['seeds'].extend([sd, [list(o) for o in ov]] for sd, ov in res['scen_killers'])
+                if a.harden or a.rescue or a.scen:        # kept as it goes: a long run that dies still leaves its seeds
                     CORPUS.write_text(json.dumps(corpus, indent=1, sort_keys=True) + '\n')
             total += res['mutants']
             killed += res['killed']
@@ -472,7 +487,7 @@ def main():
             print('%s mutants %d killed %d survivors %s%s' % (key, res['mutants'], res['killed'], res['survivors'], ((' guard-dropped-scenarios %d' % res['guard_dropped']) if res['guard_dropped'] else '') + ((' hang-kills %d' % res['hang_kills']) if res['hang_kills'] else '') + ((' budget-kills %d' % res['budget_kills']) if res['budget_kills'] else '')), flush=True)
             if hard:
                 bad.append(key)
-    if a.harden or a.rescue:
+    if a.harden or a.rescue or a.scen:
         CORPUS.write_text(json.dumps(corpus, indent=1, sort_keys=True) + '\n')
     print('TOTAL mutants %d killed %d rows with a survivor %d' % (total, killed, len(bad)))
     return 1 if bad else 0
