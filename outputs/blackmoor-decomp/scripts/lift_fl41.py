@@ -107,6 +107,16 @@ def callee_shape(target, depth=0):
             raise Unsupported("callee 0x%x is not a ledger function" % target)
         GUESSED_CALLEES.add(target)       # FL-57 bulk: a call target that starts no ledger function (inside a function or in a gap): the first `ret` of its linear code decides the pop
         img = od.load_image()
+        first = next(md().disasm(img.image[target - img.image_base:][:16], target), None)
+        if first is not None and first.mnemonic == "jmp":      # FL-68: a thunk jumps on, so the `ret` below it belongs to another function: an import thunk pops what the import pops, a thunk to code is followed
+            op = first.operands[0]
+            if op.type == X.X86_OP_MEM and not op.mem.base and not op.mem.index and op.mem.segment in (0, X.X86_REG_DS):
+                name = import_slots().get(op.mem.disp & 0xffffffff)
+                count = None if name is None else (IMPORT_ARGS[name[1]] if name[1] in IMPORT_ARGS else import_args(name[1]))
+                if count is not None:
+                    return 4 * count
+            elif op.type == X.X86_OP_IMM and depth < 3 and op.imm != target:
+                return callee_shape(op.imm, depth + 1)
         for i in md().disasm(img.image[target - img.image_base:][:400], target):
             if i.mnemonic == "ret":
                 return i.operands[0].imm if i.operands else 0

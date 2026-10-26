@@ -2845,7 +2845,7 @@
   "body": 28,
   "callees": {
    "0x51dc6c": 0,
-   "0x5267ed": 4
+   "0x5267ed": 0
   },
   "directions": [
    0,
@@ -2868,7 +2868,7 @@
   "assumed_x87_math": {},
   "body": 46,
   "callees": {
-   "0x519a3c": 16,
+   "0x519a3c": 4,
    "0x51e0c4": 0,
    "0x51e0fe": 0
   },
@@ -2893,7 +2893,7 @@
   "assumed_x87_math": {},
   "body": 16,
   "callees": {
-   "0x519a3c": 16
+   "0x519a3c": 4
   },
   "directions": [
    0,
@@ -3206,9 +3206,9 @@
   "assumed_x87_math": {},
   "body": 173,
   "callees": {
-   "0x519a48": 16,
-   "0x519a4e": 16,
-   "0x519a54": 16,
+   "0x519a48": 4,
+   "0x519a4e": 24,
+   "0x519a54": 12,
    "0x5211ff": 4
   },
   "directions": [
@@ -3242,7 +3242,7 @@
   "assumed_x87_math": {},
   "body": 86,
   "callees": {
-   "0x519a42": 16,
+   "0x519a42": 12,
    "0x52658e": 12
   },
   "directions": [
@@ -3310,7 +3310,7 @@
   "assumed_x87_math": {},
   "body": 182,
   "callees": {
-   "0x519a2a": 16,
+   "0x519a2a": 20,
    "0x519a30": 16,
    "0x51d657": 0,
    "0x525371": 0
@@ -3454,7 +3454,7 @@
   "assumed_x87_math": {},
   "body": 181,
   "callees": {
-   "0x519a36": 16,
+   "0x519a36": 0,
    "0x5211ff": 4,
    "0x5265e4": 4
   },

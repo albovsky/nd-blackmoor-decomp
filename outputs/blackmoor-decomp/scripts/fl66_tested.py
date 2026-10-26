@@ -32,7 +32,8 @@ PROJECT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT / 'tests'))
 sys.path.insert(0, str(PROJECT / 'scripts'))
 
-ROWS_DIR = PROJECT / 'tasks/fl66/rows'
+SCEN_DIR = Path(os.environ['FL66_SCEN']) if os.environ.get('FL66_SCEN') else PROJECT / 'tasks/fl66/scen'
+ROWS_DIR = Path(os.environ['FL66_ROWS']) if os.environ.get('FL66_ROWS') else PROJECT / 'tasks/fl66/rows'
 MANIFEST = PROJECT / 'tasks/fl66-tested-equivalent.json'
 SCENARIOS = PROJECT / 'tests/fl66_scenarios.json'
 CACHE = Path(os.environ.get('FL66_CACHE', '/tmp/fl66-cache'))
@@ -47,6 +48,7 @@ POOLS = {
     'lower': {'world': 40, 'source': 'src/original_methods_fl56_unverified.c', 'table': 'tasks/fl56-translated-unverified.json', 'key': 'rows'},
     'upper': {'world': 41, 'source': 'translated/original_methods_fl41_translated.c', 'table': 'tests/fl41_translated.json'},
     'upper57': {'world': 41, 'source': 'translated/original_methods_fl57_translated.c', 'table': 'tests/fl57_translated.json'},
+    'fl68': {'world': 41, 'source': 'translated/original_methods_fl41_translated.c', 'table': 'tests/fl68_rows.json', 'lib': 'upper'},      # FL-68: rows whose translation sits in the upper file but whose table entry does not (the inline helpers)
 }
 WORLD_FILES = {40: 'tests/fl40_pending.json', 41: 'tests/fl41_pending.json'}
 
@@ -102,7 +104,7 @@ def looks_like_scenarios(v):
 
 
 def scenario_files():
-    fs = sorted(glob.glob(str(PROJECT / 'tasks/fl6*/*.json')) + glob.glob(str(PROJECT / 'tasks/fl6*-*.json')) + glob.glob(str(PROJECT / 'tasks/fl66/scen/*.json')))
+    fs = sorted(glob.glob(str(PROJECT / 'tasks/fl6*/*.json')) + glob.glob(str(PROJECT / 'tasks/fl6*-*.json')) + glob.glob(str(SCEN_DIR / '*.json')))
     return [f for f in fs if '/rows/' not in f and 'mutation' not in f]
 
 
@@ -189,7 +191,7 @@ def library(pool):
     p = POOLS[pool]
     world(p['world'])
     CACHE.mkdir(parents=True, exist_ok=True)
-    so = CACHE / ('%s-%s.so' % (pool, library_key(pool)[:16]))
+    so = CACHE / ('%s-%s.so' % (p.get('lib', pool), library_key(pool)[:16]))
     if not so.exists():
         tmp = CACHE / ('%s-%d.tmp.so' % (so.stem, os.getpid()))
         cmd = ['cc', '-std=c11', '-O1', '-shared', '-fPIC', '-w', '-I%s' % (PROJECT / 'src'), str(PROJECT / p['source']), '-o', str(tmp)]
@@ -201,6 +203,13 @@ def library(pool):
     return ctypes.CDLL(str(so))
 
 
+SITES = PROJECT / 'tests/fl68_sites.json'
+
+
+def extra_sites():
+    return _cached(SITES) or {}
+
+
 def row_info(pool, key):
     p = POOLS[pool]
     W, _ = world(p['world'])
@@ -210,7 +219,9 @@ def row_info(pool, key):
     imp = {int(a, 16): n for a, n in t.get('imports', {}).items()}
     if p['world'] == 40:
         return W.row_info(va, t['body'], cal, imp, t.get('fs', False))
-    return W.row_info(va, t['body'], cal, imp, t.get('fs', False), {int(a, 16): n for a, n in t.get('sites', {}).items()}, t.get('frame', False))
+    sites = {int(a, 16): n for a, n in t.get('sites', {}).items()}
+    sites.update({int(a, 16): n for a, n in extra_sites().get(key, {}).items()})            # FL-68: indirect calls and tail jumps registered by scripts/fl68_sites.py
+    return W.row_info(va, t['body'], cal, imp, t.get('fs', False), sites, t.get('frame', False))
 
 
 def row_text(source, key):
@@ -295,7 +306,7 @@ def generate_then_check(key, args, before):
     pool = pool_of(key)
     p = POOLS[pool]
     script = 'fl62_concolic.py' if p['world'] == 41 else 'fl61_concolic.py'
-    gen = PROJECT / 'tasks/fl66/scen'
+    gen = SCEN_DIR
     gen.mkdir(parents=True, exist_ok=True)
     out, rep = gen / ('gen-%s.json' % key), gen / ('rep-%s.json' % key)
     for f in (out, rep):

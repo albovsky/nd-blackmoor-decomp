@@ -379,7 +379,12 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None, watch=Non
         uc.hook_add(unicorn.UC_HOOK_CODE, lambda uc_, a, s, u, fn=fn: fn(uc, ensure, len(trace.writes)), begin=address, end=address)
     stub_rng = random.Random(seed * 104729 + 13)
 
+    entered = []
+
     def stub(uc_, address, size_, user):
+        if address == va and not entered:        # FL-68: a recursive row lists itself as a callee; its first instruction is the row, only a call to the entry is a stub call
+            entered.append(1)
+            return
         play(address, *stubs[address])
 
     def play(address, ident, cleanup):
@@ -419,7 +424,7 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None, watch=Non
 
     def site_hook(uc_, address, size_, user):
         """FL-58: a call through a register or a pointer is a stub call on both sides (the translation cannot run the real code at the target)"""
-        target_of, after, cleanup = user
+        target_of, after, cleanup, tail = user
         target = target_of()
         if target is not None:
             target &= 0xffffffff
@@ -427,10 +432,11 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None, watch=Non
             trace.fault = 'access in a call target'
             uc.emu_stop()
             return
-        esp = (uc.reg_read(X.UC_X86_REG_ESP) - 4) & 0xffffffff
-        uc.mem_write(esp, struct.pack('<I', after))
-        trace.writes.append((esp, 4, after))            # the push of the return address, which a real call would log
-        uc.reg_write(X.UC_X86_REG_ESP, esp)
+        if not tail:                                    # FL-68: a `jmp` through a register or a pointer is a tail call: no return address is pushed, the target returns to the caller of the function
+            esp = (uc.reg_read(X.UC_X86_REG_ESP) - 4) & 0xffffffff
+            uc.mem_write(esp, struct.pack('<I', after))
+            trace.writes.append((esp, 4, after))        # the push of the return address, which a real call would log
+            uc.reg_write(X.UC_X86_REG_ESP, esp)
         play(target, target, cleanup)
 
     if row.get('sites'):
@@ -463,7 +469,7 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None, watch=Non
             return read
         for site, cleanup in row['sites'].items():
             ins = next(md.disasm(pe.image[site - pe.image_base:site - pe.image_base + 16], site))
-            uc.hook_add(unicorn.UC_HOOK_CODE, site_hook, (target_reader(ins.operands[0]), site + ins.size, cleanup), begin=site, end=site)
+            uc.hook_add(unicorn.UC_HOOK_CODE, site_hook, (target_reader(ins.operands[0]), site + ins.size, cleanup, ins.mnemonic == 'jmp'), begin=site, end=site)
     for name in ('eax', 'ebx', 'ecx', 'edx', 'esi', 'edi', 'ebp'):
         uc.reg_write(getattr(X, 'UC_X86_REG_' + name.upper()), regs[name])
     sp = STACK_BASE + STACK_SIZE - 0x100 - 4 * (ARGS + 1)
