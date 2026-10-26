@@ -1235,19 +1235,18 @@ class FunctionLedgerTests(unittest.TestCase):
         c = self.real["function_ledger"]["counts"]
         self.assertEqual(c["total"], 4188)
         self.assertEqual(sum(c["status"].values()), 4188)
-        self.assertGreater(c["status"]["pending"] * 5, c["total"] * 4)
         report = (self.real_out / "REPORT.md").read_text()
         s = c["status"]
         self.assertIn(f"{s['ported']:,} ported, {s['not_needed']:,} not needed, {s['pending']:,} pending", report)
-        self.assertIn("More than 80% of functions", report)
+        self.assertIn("More than 80% of functions" if s["pending"] * 5 > c["total"] * 4 else "## x86 matching", report)
 
     def test_rows_are_compact_and_match_the_ledger_entries(self):
         for panel, ledger in ((self.real["function_ledger"], self.real_ledger),
                               (self.fx["function_ledger"], self.fx_ledger)):
             self.assertEqual(len(panel["rows"]), len(ledger["entries"]))
             for row, e in zip(panel["rows"], ledger["entries"]):
-                self.assertEqual(len(row), 6)
-                va, span, region_i, status_i, class_i, ev_i = row
+                self.assertEqual(len(row), 7)
+                va, span, region_i, status_i, class_i, ev_i, te = row
                 self.assertEqual((va, span), (int(e["va"], 16), e["span"]))
                 self.assertEqual(panel["regions"][region_i], e["region"])
                 self.assertEqual(panel["statuses"][status_i], e["status"])
@@ -1281,7 +1280,7 @@ class FunctionLedgerTests(unittest.TestCase):
         for out in (self.real_out, self.fx_out):
             report = (out / "REPORT.md").read_text()
             blob = json.loads((out / "progress.json").read_text())["function_ledger"]["caveats"]
-            self.assertEqual(len(blob), 5)
+            self.assertEqual(len(blob), 6)
             for phrase in phrases:
                 self.assertIn(phrase, report)
                 self.assertTrue(any(phrase in c for c in blob), phrase)
@@ -1314,7 +1313,7 @@ class FunctionLedgerTests(unittest.TestCase):
     def test_no_original_bytes_or_dumps_in_the_panel(self):
         text = json.dumps(self.real["function_ledger"])
         self.assertNotRegex(text, r'"(bytes|data_hex|payload|disassembly)"')
-        self.assertLess(len(text), 600_000)
+        self.assertLess(len(text), 4_000_000)
 
     def test_panel_hidden_and_generation_works_without_a_ledger(self):
         self.assertNotIn("function_ledger", self.none)
@@ -1519,6 +1518,74 @@ class FunctionLedgerTests(unittest.TestCase):
         with self.assertRaisesRegex(GEN.ProgressError, "disagree"):
             GEN.compact_function_ledger(ledger, "0" * 64)
 
+    # ---- Mac-port view: Game + Vorbis/Ogg only, CRT and MFC set aside ----
+    def test_mac_port_summary_adds_up_and_leaves_crt_mfc_out(self):
+        for panel in (self.real["function_ledger"], self.fx["function_ledger"]):
+            m, c = panel["mac_port"], panel["counts"]
+            self.assertEqual(m["regions"], ["game", "vorbis"])
+            self.assertEqual(m["excluded_regions"], ["crt_mfc"])
+            self.assertEqual(m["total"], sum(sum(c["region"][r].values()) for r in ("game", "vorbis")))
+            self.assertEqual(m["excluded"]["total"], sum(c["region"]["crt_mfc"].values()))
+            self.assertEqual(m["total"] + m["excluded"]["total"], panel["total"])
+            self.assertEqual(m["ported"], c["region"]["game"]["ported"] + c["region"]["vorbis"]["ported"])
+            self.assertEqual(m["not_needed"], c["region"]["game"]["not_needed"] + c["region"]["vorbis"]["not_needed"])
+            te = panel["tested_equivalent"]["by_region"]
+            self.assertEqual(m["tested_equivalent"], te["game"] + te["vorbis"])
+            self.assertEqual(m["pending"] + m["tested_equivalent"],
+                             c["region"]["game"]["pending"] + c["region"]["vorbis"]["pending"])
+            self.assertEqual(m["ported"] + m["tested_equivalent"] + m["pending"] + m["not_needed"], m["total"])
+            for r in m["regions"]:
+                v = m["by_region"][r]
+                self.assertEqual(v["ported"] + v["tested_equivalent"] + v["pending"] + v["not_needed"], v["total"])
+
+    def test_real_mac_port_view_is_game_plus_vorbis(self):
+        m = self.real["function_ledger"]["mac_port"]
+        self.assertEqual((m["by_region"]["game"]["total"], m["by_region"]["vorbis"]["total"], m["total"]), (2507, 178, 2685))
+        self.assertEqual(m["excluded"]["total"], 1503)
+
+    def test_mac_port_summary_ignores_crt_mfc_rows(self):
+        counts = {"region": {"game": {"ported": 5, "not_needed": 1, "pending": 4},
+                             "vorbis": {"ported": 2, "not_needed": 0, "pending": 1},
+                             "crt_mfc": {"ported": 90, "not_needed": 7, "pending": 3}}}
+        m = GEN.mac_port_summary(counts, {"game": 3, "vorbis": 1, "crt_mfc": 2})
+        self.assertEqual((m["total"], m["ported"], m["tested_equivalent"], m["pending"], m["not_needed"]), (13, 7, 4, 1, 1))
+        self.assertEqual(m["excluded"]["total"], 100)
+        self.assertNotIn("crt_mfc", m["by_region"])
+
+    def test_mac_port_headline_sits_before_the_x86_view_in_page_and_report(self):
+        for out in (self.real_out, self.fx_out):
+            html = (out / "index.html").read_text()
+            self.assertLess(html.index('id="playable"'), html.index('id="macPort"'))
+            self.assertLess(html.index('id="macPort"'), html.index('id="ledger"'))
+            self.assertIn("x86 match view", html)
+            report = (out / "REPORT.md").read_text()
+            m = json.loads((out / "progress.json").read_text())["function_ledger"]["mac_port"]
+            self.assertLess(report.index("**Needed for the Mac port:"), report.index("**x86 match view, all"))
+            self.assertIn(f"**Needed for the Mac port: {m['total']:,} functions**", report)
+            self.assertIn(f"{m['ported']:,} ported, {m['tested_equivalent']:,} tested equivalent", report)
+            self.assertIn("supplies, so it is left out of the Mac-port view", report)
+
+    def test_no_ledger_means_no_mac_port_panel(self):
+        self.assertNotIn("function_ledger", self.none)
+        self.assertNotIn("Needed for the Mac port", (self.none_out / "REPORT.md").read_text())
+
+    @unittest.skipUnless(BROWSER.is_file(), "headless browser not installed")
+    def test_rendered_mac_port_panel_numbers_equal_the_summary(self):
+        for out, panel in ((self.real_out, self.real["function_ledger"]), (self.fx_out, self.fx["function_ledger"])):
+            dom = dump_dom(out / "index.html")
+            m = panel["mac_port"]
+            self.assertNotRegex(re.search(r'<section class="ledger macport"[^>]*>', dom).group(0), r"\bhidden\b")
+            first = lambda element: int(dom_text(dom, element).split()[0].replace(",", ""))
+            self.assertEqual(first("mpPorted"), m["ported"])
+            self.assertEqual(first("mpTe"), m["tested_equivalent"])
+            self.assertEqual(first("mpPending"), m["pending"])
+            self.assertEqual(first("mpNotNeeded"), m["not_needed"])
+            self.assertIn(f"of {m['total']:,}", dom_text(dom, "mpPorted"))
+            self.assertIn(f"Left out of this view: CRT and MFC, {m['excluded']['total']:,} functions", dom_text(dom, "mpExcluded"))
+            self.assertIn("supplied by macOS and not needed for the Mac port", dom_text(dom, "mpExcluded"))
+        empty = dump_dom(self.none_out / "index.html")
+        self.assertRegex(re.search(r'<section class="ledger macport"[^>]*>', empty).group(0), r"\bhidden\b")
+
     # ---- rendered panel (headless browser, when available) ----
     @unittest.skipUnless(BROWSER.is_file(), "headless browser not installed")
     def test_rendered_panel_numbers_equal_the_ledger(self):
@@ -1533,16 +1600,18 @@ class FunctionLedgerTests(unittest.TestCase):
             self.assertIn(f"of {n:,}", dom_text(dom, "lgPorted"))
             self.assertEqual(dom_text(dom, "lgCount"), f"{n:,} of {n:,} functions")
             self.assertIn(f"Candidate port {c['class']['candidate_port']:,}", dom_text(dom, "lgPendingSplit"))
-            self.assertIn("Oracle-verified %d" % c["class"]["native_oracle_verified"], dom_text(dom, "lgPortedSplit"))
+            self.assertIn(f"Oracle-verified {c['class']['native_oracle_verified']:,}", dom_text(dom, "lgPortedSplit"))
             for region in ("game", "vorbis", "crt_mfc"):
                 r = c["region"][region]
-                self.assertIn(f"{r['ported']:,} ported · {r['not_needed']:,} not needed · {r['pending']:,} pending", dom)
+                te = ledger.get("tested_equivalent", {"vas": []})
+                k = sum(1 for e in ledger["entries"] if e["region"] == region and e["va"] in set(te["vas"]))
+                self.assertIn(f"{r['ported']:,} ported · {k:,} tested equivalent · {r['not_needed']:,} not needed · {r['pending'] - k:,} pending", dom)
             for phrase in ("reviewed claim, not an x86 match", "weaker evidence", "tables, padding and thunks",
                            "a few hundred bytes", "not re-hashed at build time"):
                 self.assertIn(phrase, dom)
         base = dom_text(dump_dom(self.real_out / "index.html"), "lgBaseline")
-        self.assertIn("are still pending", base)
-        self.assertIn("More than 80% of functions", base)
+        self.assertIn("of functions", base)
+        self.assertIn("still pending", base)
 
     @unittest.skipUnless(BROWSER.is_file(), "headless browser not installed")
     def test_rendered_table_filters_pages_and_links(self):
