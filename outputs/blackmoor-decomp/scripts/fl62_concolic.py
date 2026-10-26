@@ -10,6 +10,7 @@ per row) that `scripts/fl62_add_rows.py ROW --scen FILE` takes.
 Rows whose lift needs an inline helper (__EH_prolog, __chkstk) or has calls through registers are searched too when the shadow can follow them; the report says which ones were skipped and why.
 """
 import json
+import os
 from pathlib import Path
 import sys
 import tempfile
@@ -24,6 +25,7 @@ import lift_fl41 as L41
 import fl41_generate as G41
 
 C.W, C.L, C.G = W41, L41, G41
+SITES = os.environ.get('FL67_SITES', '1') != '0'      # FL-67: rows whose indirect calls the world plays as stub calls (`sites`) are searched too
 
 
 def helper_chunk(spans):
@@ -38,11 +40,22 @@ class Row41(C.Row):
         self.key = key
         self.va = int(key, 16)
         spans = L41.ledger_spans()
-        text, callees, imports, fs, inline = L41.lift(self.va, spans[self.va])
+        self.committed = None
+        try:
+            text, callees, imports, fs, inline = L41.lift(self.va, spans[self.va])
+            table = json.loads((PROJECT / 'tests/fl41_translated.json').read_text()).get(key, {})
+        except L41.Unsupported:                  # FL-67: a row the bulk lifter refuses (indirect calls) but that a committed translation and its table cover
+            import fl66_tested as T66
+            pool = T66.pool_of(key)
+            table = T66.pool_table(pool)[key]
+            callees = {int(a, 16): n for a, n in table['callees'].items()}
+            imports = {int(a, 16): n for a, n in table.get('imports', {}).items()}
+            fs, inline = table.get('fs', False), False
+            text = T66.row_text(T66.POOLS[pool]['source'], key)
+            self.committed = pool
         self.inline = inline
         self.text = text
-        table = json.loads((PROJECT / 'tests/fl41_translated.json').read_text()).get(key, {})
-        self.sites = table.get('sites')
+        self.sites = {int(a, 16): n for a, n in table['sites'].items()} if table.get('sites') else None
         self.frame = table.get('frame')
         self.info = W41.row_info(self.va, spans[self.va], callees, imports, fs, self.sites, self.frame)
         self.md = C.capstone.Cs(C.capstone.CS_ARCH_X86, C.capstone.CS_MODE_32)
@@ -52,11 +65,15 @@ class Row41(C.Row):
         self.insns = {i.address: i for i in self.md.disasm(pe.image[off:off + self.info['body']], self.va)}
         self.lib = None
         self.indirect = [hex(i.address) for i in self.insns.values() if i.mnemonic == 'call' and i.operands[0].type != C.CX.X86_OP_IMM
-                         and not (i.operands[0].type == C.CX.X86_OP_MEM and not i.operands[0].mem.base and not i.operands[0].mem.index and (i.operands[0].mem.disp & 0xffffffff) in self.info['imports'])]
-        if self.sites or self.frame:
+                         and not (i.operands[0].type == C.CX.X86_OP_MEM and not i.operands[0].mem.base and not i.operands[0].mem.index and (i.operands[0].mem.disp & 0xffffffff) in self.info['imports'])
+                         and not (SITES and str(i.address) in {str(k) for k in (self.info.get('sites') or {})})]
+        if (self.sites or self.frame) and not SITES:
             self.indirect = self.indirect or ['sites/frame']
 
     def native_lib(self):
+        if self.lib is None and self.committed:
+            import fl66_tested as T66
+            self.lib = T66.library(self.committed)
         if self.lib is None:
             spans = L41.ledger_spans()
             tmp = tempfile.mkdtemp()

@@ -37,6 +37,15 @@ MANIFEST = PROJECT / 'tasks/fl66-tested-equivalent.json'
 SCENARIOS = PROJECT / 'tests/fl66_scenarios.json'
 CACHE = Path(os.environ.get('FL66_CACHE', '/tmp/fl66-cache'))
 SCHEMA = 'blackmoor-tested-equivalent/1'
+MANIFEST2 = PROJECT / 'tasks/fl67-infeasible.json'
+SCENARIOS2 = PROJECT / 'tests/fl67_scenarios.json'
+SCHEMA2 = 'blackmoor-tested-equivalent-infeasible/1'
+RULE_ID2 = 'T-EQ-INFEASIBLE'
+RULE_TEXT2 = ('A pending function is tested equivalent by proof when its committed translation equals the original on every scenario kept for it, and every instruction and conditional-jump direction '
+              'those scenarios do not reach is PROVED unreachable: scripts/fl67_infeasible.py symbolically executes the original bytes (all paths at once, z3) and shows that no start state of the '
+              'function reaches it in a run that does not fault. Modelling assumptions: ebx/esi/edi/ebp survive a call and esp returns by the bytes the callee pops; the direction flag is clear; '
+              'an access at or above 0xfff00000, a division by zero and a quotient overflow fault; the image below .data is constant; a function that never forms the address of its own frame '
+              'keeps its frame slots out of reach of stores through other pointers and of callees (except the argument slots pushed for the call). Not a verified port: never added to the verified count.')
 RULE_ID = 'T-EQ-COVERED'
 RULE_TEXT = ('A pending function is tested equivalent when its committed translation runs under Unicorn-vs-native differential scenarios that execute every instruction of the original function and take both '
              'directions of every conditional jump, and the translation equals the original on every one of those scenarios (final registers, written memory, callee calls and their arguments, return). '
@@ -265,8 +274,8 @@ def check_row(key, extra=(), scenarios=None, max_scen=4000, lib=None):
         res['status'] = 'tested_equivalent'
     else:
         res['status'] = 'partial'
-        res['missing'] = [hex(x) for x in missing][:40]
-        res['untaken'] = [[hex(a), n] for a, n in untaken][:20]
+        res['missing'] = [hex(x) for x in missing]
+        res['untaken'] = [[hex(a), n] for a, n in untaken]
     return res
 
 
@@ -285,6 +294,8 @@ def one(args):
         res = check_row(key, args.scen)
         if args.gen and res['status'] == 'partial':
             res = generate_then_check(key, args, res)
+        if res['status'] == 'partial' and args.prove:
+            res = prove_leftovers(key, res)
     except Exception as ex:                                    # a defect of the harness, never a credit
         res = {'status': 'error', 'error': '%s: %s' % (type(ex).__name__, str(ex)[:300])}
     write_row(key, res)
@@ -311,6 +322,21 @@ def generate_then_check(key, args, before):
     return res
 
 
+def prove_leftovers(key, res):
+    """FL-67: a partial row whose every missing instruction and untaken direction is PROVED unreachable (scripts/fl67_infeasible.py) becomes `proved`."""
+    import fl67_infeasible as P
+    out = P.prove_row(key, {'missing': res['missing'], 'untaken': res['untaken']}, timeout_ms=20000, fail_fast=True)
+    res['proof_status'] = out['status']
+    if out['status'] == 'proved':
+        res['status'] = 'proved'
+        res['proofs'] = {'checker': out['checker'], 'plan': out.get('plan'), 'instructions': {a: v[1] for a, v in out['instructions'].items()},
+                         'directions': {a: v[1] for a, v in out['directions'].items()}}
+    else:
+        res['proof_reason'] = out.get('reason', '')
+        res['proof_open'] = {a: v[0] for a, v in list(out['instructions'].items()) + list(out['directions'].items()) if v[0] != 'unsat'}
+    return res
+
+
 def supervise(args):
     """Run the rows of a pool (or the listed rows) one subprocess each with a timeout; skip rows that already have a result unless --redo."""
     keys = list(args.rows) or pool_keys(args.pool)
@@ -324,7 +350,7 @@ def supervise(args):
             prev = jload(path)
             if not (args.gen and prev.get('status') == 'partial' and not prev.get('generated')):
                 continue
-        cmd = [sys.executable, '-u', str(Path(__file__).resolve()), '_one', key] + (['--gen'] if args.gen else []) + ['--budget-s', str(args.budget_s)] + sum((['--scen', s] for s in args.scen), [])
+        cmd = [sys.executable, '-u', str(Path(__file__).resolve()), '_one', key] + (['--gen'] if args.gen else []) + (['--prove'] if args.prove else []) + ['--budget-s', str(args.budget_s)] + sum((['--scen', s] for s in args.scen), [])
         try:
             r = subprocess.run(cmd, cwd=PROJECT, capture_output=True, text=True, timeout=args.timeout)
             sys.stdout.write(r.stdout[-300:])
@@ -356,6 +382,8 @@ def merge(write):
     prev_sc = jload(SCENARIOS) if SCENARIOS.exists() else {}
     rows, scen, partial, mismatch, error = dict(prev['rows']), dict(prev_sc), {}, {}, {}
     psc = {}
+    prev2 = jload(MANIFEST2) if MANIFEST2.exists() else {'rows': {}}
+    proved, pscen = dict(prev2['rows']), (jload(SCENARIOS2) if SCENARIOS2.exists() else {})
     for key, r in res.items():
         if led.get(key, {}).get('status') != 'pending':
             rows.pop(key, None)
@@ -366,6 +394,14 @@ def merge(write):
             rows[key] = {k: r[k] for k in ('pool', 'body', 'instructions', 'directions', 'scenarios_run', 'translation_sha256', 'source')}
             rows[key]['scenarios_kept'] = len(r['kept'])
             scen[key] = r['kept']
+            partial.pop(key, None)
+        elif st == 'proved':
+            proved[key] = {k: r[k] for k in ('pool', 'body', 'instructions', 'directions', 'scenarios_run', 'translation_sha256', 'source')}
+            proved[key]['scenarios_kept'] = len(r['kept'])
+            proved[key]['proofs'] = r['proofs']
+            pscen[key] = r['kept']
+            rows.pop(key, None)
+            scen.pop(key, None)
             partial.pop(key, None)
         elif st == 'partial':
             partial[key] = {'instructions': r['instructions'], 'directions': r['directions'], 'body': r['body'], 'pool': r['pool']}
@@ -379,10 +415,17 @@ def merge(write):
     for key in [k for k in rows if led.get(k, {}).get('status') != 'pending']:
         rows.pop(key)
         scen.pop(key, None)
+    for key in [k for k in proved if led.get(k, {}).get('status') != 'pending' or k in rows]:
+        proved.pop(key)
+        pscen.pop(key, None)
     manifest = {'schema': SCHEMA, 'rule': {'id': RULE_ID, 'text': RULE_TEXT}, 'rows': {k: rows[k] for k in sorted(rows, key=lambda x: int(x, 16))}}
     scen = {k: scen[k] for k in sorted(rows, key=lambda x: int(x, 16))}
-    print('tested equivalent %d, partial %d, mismatch %d, error %d' % (len(rows), len(partial), len(mismatch), len(error)))
+    pscen = {k: pscen[k] for k in sorted(proved, key=lambda x: int(x, 16))}
+    manifest2 = {'schema': SCHEMA2, 'rule': {'id': RULE_ID2, 'text': RULE_TEXT2}, 'rows': {k: proved[k] for k in sorted(proved, key=lambda x: int(x, 16))}}
+    print('tested equivalent %d, proved %d, partial %d, mismatch %d, error %d' % (len(rows), len(proved), len(partial), len(mismatch), len(error)))
     if write:
+        MANIFEST2.write_text(json.dumps(manifest2, indent=1, sort_keys=True) + '\n')
+        SCENARIOS2.write_text(json.dumps(pscen, separators=(',', ':'), sort_keys=True) + '\n')
         MANIFEST.write_text(json.dumps(manifest, indent=1, sort_keys=True) + '\n')
         SCENARIOS.write_text(json.dumps(scen, separators=(',', ':'), sort_keys=True) + '\n')
         (PROJECT / 'tasks/fl66-partial-scenarios.json').write_text(json.dumps({k: psc[k] for k in sorted(psc, key=lambda x: int(x, 16))}, separators=(',', ':')) + '\n')
@@ -395,6 +438,7 @@ def counts():
     led = ledger_entries()
     verified = sum(1 for e in led.values() if e['status'] == 'ported')
     te = set(jload(MANIFEST)['rows']) if MANIFEST.exists() else set()
+    te |= set(jload(MANIFEST2)['rows']) if MANIFEST2.exists() else set()
     translated = set()
     for name in POOLS:
         translated |= {k for k in (held_rows() if name == 'held' else pool_table(name)) if led.get(k, {}).get('status') == 'pending'}
@@ -406,7 +450,8 @@ def counts():
 
 def status():
     v, t, o, p, tr = counts()
-    print('verified %d, tested equivalent %d, translated only %d (partial coverage %d of those; %d rows translated)' % (v, t, o, p, tr))
+    byproof = len(jload(MANIFEST2)['rows']) if MANIFEST2.exists() else 0
+    print('verified %d, tested equivalent %d (%d of them by proof), translated only %d (partial coverage %d of those; %d rows translated)' % (v, t, byproof, o, p, tr))
     return 0
 
 
@@ -439,6 +484,7 @@ def main():
     ap.add_argument('--redo', action='store_true')
     ap.add_argument('--write', action='store_true')
     ap.add_argument('--gen', action='store_true')
+    ap.add_argument('--prove', action='store_true', help='FL-67: after the check (or generation), try to prove the missing items unreachable')
     ap.add_argument('--sample', type=int, default=0)
     ap.add_argument('--rows', dest='rows_csv', help='replay: comma-separated rows')
     a = ap.parse_args()
