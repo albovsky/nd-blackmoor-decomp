@@ -26,14 +26,15 @@ typedef struct SceneExecutorPreGate {
 } SceneExecutorPreGate;
 
 struct SceneActionExecutor {
-    const SceneResource *scene;
     ActionCoreWorld *world;
+    uint64_t slot_revision;
+    SceneExecutorSlotInfo slots[SCENE_EXECUTOR_MAX_ACTIONS];
     size_t action_count;
-    SceneConditionTree **conditions;
-    SceneActionRuntimeState *states;
+    SceneConditionTree *conditions[SCENE_EXECUTOR_MAX_ACTIONS];
+    SceneActionRuntimeState states[SCENE_EXECUTOR_MAX_ACTIONS];
     /* RT-32: rows whose handler turned them into runtime-0x36 overlays (gate mode 1 from then on). */
-    uint8_t *overlay36;
-    SceneExecutorHotspotState *hotspots;
+    uint8_t overlay36[SCENE_EXECUTOR_MAX_ACTIONS];
+    SceneExecutorHotspotState hotspots[SCENE_EXECUTOR_MAX_ACTIONS];
     int in_external_callback;
     int callback_transition_requested;
     SceneTransitionRequest callback_transition;
@@ -164,26 +165,11 @@ int scene_executor_create(const SceneResource *scene,
     if (executor == NULL) {
         return SCENE_EXECUTOR_ERR_MEMORY;
     }
-    executor->scene = scene;
     executor->world = world;
     executor->candidate_decision.action_index = SIZE_MAX;
     executor->candidate_decision.label = -1;
     executor->candidate_decision.first_chain_label = -1;
     executor->action_count = action_count;
-    if (action_count != 0u) {
-        executor->conditions = (SceneConditionTree **)calloc(
-            action_count, sizeof(*executor->conditions));
-        executor->states = (SceneActionRuntimeState *)calloc(
-            action_count, sizeof(*executor->states));
-        executor->hotspots = (SceneExecutorHotspotState *)calloc(
-            action_count, sizeof(*executor->hotspots));
-        executor->overlay36 = (uint8_t *)calloc(action_count, 1u);
-        if (executor->conditions == NULL || executor->states == NULL ||
-            executor->hotspots == NULL || executor->overlay36 == NULL) {
-            scene_executor_destroy(executor);
-            return SCENE_EXECUTOR_ERR_MEMORY;
-        }
-    }
 
     for (index = 0u; index < action_count; ++index) {
         SceneActionInfo action;
@@ -196,6 +182,10 @@ int scene_executor_create(const SceneResource *scene,
             scene_executor_destroy(executor);
             return SCENE_EXECUTOR_ERR_FORMAT;
         }
+        executor->slots[index].action = action;
+        executor->slots[index].source = scene;
+        executor->slots[index].source_index = index;
+        executor->slots[index].occupied = 1u;
         if (action.payload_kind == SCENE_ACTION_PAYLOAD_OPAQUE ||
             (action.typed_body_length != 0u && action.typed_body == NULL) ||
             (action.dependency_count != 0u && action.dependency_records == NULL)) {
@@ -267,14 +257,8 @@ void scene_executor_destroy(SceneActionExecutor *executor)
         return;
     }
     for (index = 0u; index < executor->action_count; ++index) {
-        scene_conditions_destroy(executor->conditions == NULL
-                                     ? NULL
-                                     : executor->conditions[index]);
+        scene_conditions_destroy(executor->conditions[index]);
     }
-    free(executor->conditions);
-    free(executor->states);
-    free(executor->overlay36);
-    free(executor->hotspots);
     free(executor);
 }
 
@@ -670,6 +654,11 @@ int scene_executor_step_frame(SceneActionExecutor *executor,
         *step_info = local_info;
         return SCENE_EXECUTOR_ERR_STATE_MISMATCH;
     }
+    if (executor->slot_revision == UINT64_MAX) {
+        *step_info = local_info;
+        return SCENE_EXECUTOR_ERR_LIMIT;
+    }
+    ++executor->slot_revision; /* A staged load cannot survive an intervening dispatch. */
     dispatch_state = *state;
     if (executor->transition_requested) {
         local_info.kind = SCENE_EXECUTOR_STEP_STOPPED;
@@ -693,14 +682,14 @@ int scene_executor_step_frame(SceneActionExecutor *executor,
         if (!frame_input->modal_event_active &&
             candidate < executor->action_count &&
             candidate < SCENE_EXECUTOR_MAX_ACTIONS &&
+            executor->slots[candidate].occupied &&
             !executor->states[candidate].completed) {
             SceneActionInfo candidate_action;
             int candidate_eligible = 0;
             int candidate_status;
             uint16_t candidate_opcode = 0u;
-            candidate_status = scene_resource_action_at(executor->scene,
-                                                        candidate,
-                                                        &candidate_action);
+            candidate_action = executor->slots[candidate].action;
+            candidate_status = SCENE_RESOURCE_OK;
             if (candidate_status != SCENE_RESOURCE_OK) {
                 fill_failure(&local_info, candidate, 0u,
                              SCENE_RESOURCE_ERR_NOT_FOUND);
@@ -774,15 +763,10 @@ int scene_executor_step_frame(SceneActionExecutor *executor,
         uint16_t unsupported_opcode = 0u;
         int status;
 
-        if (runtime_state->completed) {
+        if (!executor->slots[index].occupied || runtime_state->completed) {
             continue;
         }
-        if (scene_resource_action_at(executor->scene, index, &action) !=
-            SCENE_RESOURCE_OK) {
-            fill_failure(&local_info, index, 0u, SCENE_RESOURCE_ERR_NOT_FOUND);
-            *step_info = local_info;
-            return SCENE_EXECUTOR_ERR_FORMAT;
-        }
+        action = executor->slots[index].action;
         ++local_info.actions_considered;
         /* 0x427a50 stores the request clear before the type switch and the
          * dependency gate (see SceneActionPreGateFn). */
@@ -1071,6 +1055,7 @@ int scene_executor_get_hotspot_state(const SceneActionExecutor *executor,
         return SCENE_EXECUTOR_ERR_ARGUMENT;
     }
     *state = executor->hotspots[action_index];
+    if (!executor->slots[action_index].occupied) state->active = 0u;
     return SCENE_EXECUTOR_OK;
 }
 
@@ -1094,6 +1079,8 @@ int scene_executor_retire_action(SceneActionExecutor *executor, size_t action_in
     if (executor == NULL || action_index >= executor->action_count) {
         return SCENE_EXECUTOR_ERR_ARGUMENT;
     }
+    if (executor->slot_revision == UINT64_MAX) return SCENE_EXECUTOR_ERR_LIMIT;
+    ++executor->slot_revision;
     executor->states[action_index].completed = 1u;
     executor->states[action_index].phase = 0u;
     scene_conditions_reset(executor->conditions[action_index]);
@@ -1135,3 +1122,111 @@ int scene_executor_test_condition_node_status(
                : SCENE_EXECUTOR_ERR_ARGUMENT;
 }
 #endif
+
+
+struct SceneExecutorAppend {
+    SceneActionExecutor *incoming;
+    SceneActionExecutor *owner;
+    uint64_t revision;
+    SceneActionSlotPlan plan;
+};
+
+size_t scene_executor_action_high_water(const SceneActionExecutor *e)
+{ return e == NULL ? 0u : e->action_count; }
+
+int scene_executor_get_slot(const SceneActionExecutor *e, size_t i, SceneExecutorSlotInfo *out)
+{
+    if (e == NULL || out == NULL || i >= e->action_count) return SCENE_EXECUTOR_ERR_ARGUMENT;
+    *out = e->slots[i];
+    out->runtime_type = !out->occupied ? 0u : e->overlay36[i] ? UINT8_C(0x36) :
+        out->action.type == SCENE_ACTION_RANDOM_SOUND ? UINT8_C(0x9f) :
+        (uint8_t)action_runtime_type(&out->action);
+    return SCENE_EXECUTOR_OK;
+}
+
+int scene_executor_erase_action(SceneActionExecutor *e, size_t i, uint8_t completed)
+{
+    if (e == NULL || i >= e->action_count || e->slot_revision == UINT64_MAX)
+        return SCENE_EXECUTOR_ERR_ARGUMENT;
+    scene_conditions_destroy(e->conditions[i]);
+    e->conditions[i] = NULL;
+    memset(&e->slots[i], 0, sizeof(e->slots[i]));
+    memset(&e->states[i], 0, sizeof(e->states[i]));
+    e->states[i].completed = completed != 0u;
+    e->overlay36[i] = 0u;
+    memset(&e->hotspots[i], 0, sizeof(e->hotspots[i]));
+    ++e->slot_revision;
+    return SCENE_EXECUTOR_OK;
+}
+
+int scene_executor_prepare_append(SceneActionExecutor *e, const SceneResource *source,
+    const SceneActionSlotPlan *plan, SceneExecutorAppend **out, size_t *failed)
+{
+    SceneExecutorAppend *p;
+    uint8_t used[SCENE_EXECUTOR_MAX_ACTIONS] = {0};
+    int status;
+    if (out != NULL) *out = NULL;
+    if (e == NULL || source == NULL || plan == NULL || out == NULL || e->in_external_callback ||
+        e->slot_revision == UINT64_MAX || plan->source_high_water != e->action_count ||
+        plan->final_high_water > SCENE_EXECUTOR_MAX_ACTIONS ||
+        plan->incoming_count != scene_resource_action_count(source) ||
+        plan->incoming_count > SCENE_EXECUTOR_MAX_ACTIONS) return SCENE_EXECUTOR_ERR_ARGUMENT;
+    for (size_t i = 0; i < plan->incoming_count; ++i) {
+        const size_t slot = plan->assigned[i];
+        if (slot >= plan->final_high_water || used[slot] ||
+            (slot < e->action_count && e->slots[slot].occupied && !plan->retired[slot]))
+            return SCENE_EXECUTOR_ERR_ARGUMENT;
+        used[slot] = 1u;
+    }
+    for (size_t i = plan->final_high_water; i < e->action_count; ++i)
+        if (e->slots[i].occupied && !plan->retired[i]) return SCENE_EXECUTOR_ERR_ARGUMENT;
+    p = calloc(1u, sizeof(*p));
+    if (p == NULL) return SCENE_EXECUTOR_ERR_MEMORY;
+    status = scene_executor_create(source, e->world, SCENE_EXECUTOR_MAX_ACTIONS, &p->incoming, failed);
+    if (status != SCENE_EXECUTOR_OK) { free(p); return status; }
+    p->owner = e;
+    p->revision = e->slot_revision;
+    p->plan = *plan;
+    *out = p;
+    return SCENE_EXECUTOR_OK;
+}
+
+int scene_executor_can_commit_append(const SceneActionExecutor *e, const SceneExecutorAppend *p)
+{
+    return e != NULL && p != NULL && p->owner == e && p->revision == e->slot_revision &&
+        !e->in_external_callback && e->slot_revision != UINT64_MAX;
+}
+
+int scene_executor_commit_append(SceneActionExecutor *e, SceneExecutorAppend *p)
+{
+    if (!scene_executor_can_commit_append(e, p)) return SCENE_EXECUTOR_ERR_ARGUMENT;
+    for (size_t i = 0; i < e->action_count; ++i) if (p->plan.retired[i]) {
+        scene_conditions_destroy(e->conditions[i]);
+        e->conditions[i] = NULL;
+        memset(&e->slots[i], 0, sizeof(e->slots[i]));
+        memset(&e->states[i], 0, sizeof(e->states[i]));
+        e->overlay36[i] = 0u;
+        memset(&e->hotspots[i], 0, sizeof(e->hotspots[i]));
+    }
+    for (size_t i = 0; i < p->plan.incoming_count; ++i) {
+        const size_t slot = p->plan.assigned[i];
+        e->slots[slot] = p->incoming->slots[i];
+        e->states[slot] = p->incoming->states[i];
+        e->overlay36[slot] = p->incoming->overlay36[i];
+        e->hotspots[slot] = p->incoming->hotspots[i];
+        e->conditions[slot] = p->incoming->conditions[i];
+        p->incoming->conditions[i] = NULL;
+    }
+    e->action_count = p->plan.final_high_water;
+    e->transition_requested = e->callback_transition_requested = 0;
+    memset(&e->transition, 0, sizeof(e->transition));
+    memset(&e->callback_transition, 0, sizeof(e->callback_transition));
+    ++e->slot_revision;
+    p->owner = NULL;
+    return SCENE_EXECUTOR_OK;
+}
+
+void scene_executor_discard_append(SceneExecutorAppend *p)
+{
+    if (p != NULL) { scene_executor_destroy(p->incoming); free(p); }
+}

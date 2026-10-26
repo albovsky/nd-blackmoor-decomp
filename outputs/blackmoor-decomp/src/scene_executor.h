@@ -8,6 +8,7 @@
 #include "action_family_64.h"
 #include "scene_conditions.h"
 #include "scene_resource.h"
+#include "scene_action_slots.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -334,6 +335,32 @@ int scene_executor_request_transition(SceneActionExecutor *executor,
  * a reset dependency state, so the pass skips it from now on. Raw 0x2e mode 0 (RT-36) asks for this through its host
  * while the 0x2e handler runs. An index outside the scene is rejected. */
 int scene_executor_retire_action(SceneActionExecutor *executor, size_t action_index);
+
+/* Active ACT identity is separate from the latest parsed resource. Borrowed
+ * body pointers remain owned by source until this slot is erased/replaced. */
+typedef struct SceneExecutorSlotInfo {
+    SceneActionInfo action;
+    const SceneResource *source;
+    size_t source_index;
+    uint8_t occupied;
+    uint8_t runtime_type;
+} SceneExecutorSlotInfo;
+typedef struct SceneExecutorAppend SceneExecutorAppend;
+size_t scene_executor_action_high_water(const SceneActionExecutor *);
+int scene_executor_get_slot(const SceneActionExecutor *, size_t, SceneExecutorSlotInfo *);
+/* Prepare compiles only incoming trees and leaves all live rows unchanged.
+ * commit transfers them into the supplied stable-slot plan without allocation.
+ * The caller stages provider ownership before commit, without dispatch or
+ * another slot mutation in between, and retains source bytes. */
+int scene_executor_prepare_append(SceneActionExecutor *, const SceneResource *,
+    const SceneActionSlotPlan *, SceneExecutorAppend **, size_t *failed_action);
+int scene_executor_can_commit_append(const SceneActionExecutor *, const SceneExecutorAppend *);
+int scene_executor_commit_append(SceneActionExecutor *, SceneExecutorAppend *);
+void scene_executor_discard_append(SceneExecutorAppend *);
+/* True original vacancy, independent of completion. Legal in a handler after
+ * its condition evaluation. The D2 stop subsequently stores completed=1. */
+int scene_executor_erase_action(SceneActionExecutor *, size_t, uint8_t completed);
+
 
 const char *scene_executor_status_string(int status);
 

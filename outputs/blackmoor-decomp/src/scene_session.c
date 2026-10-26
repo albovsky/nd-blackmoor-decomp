@@ -400,7 +400,7 @@ static int pointer_scan(SceneSession *session)
 {
     SessionInputHotspot rows[SCENE_EXECUTOR_MAX_ACTIONS];
     size_t count = 0u;
-    size_t actions = scene_resource_action_count(session->scene);
+    size_t actions = scene_executor_action_high_water(session->executor);
     size_t index;
     int32_t candidate = -1;
     int status;
@@ -408,6 +408,8 @@ static int pointer_scan(SceneSession *session)
     for (index = 0u; index < actions; ++index) {
         SceneExecutorHotspotState hotspot;
         SessionInputHotspot row;
+        SceneExecutorSlotInfo slot;
+        if (scene_executor_get_slot(session->executor, index, &slot) != SCENE_EXECUTOR_OK || !slot.occupied) continue;
         memset(&row, 0, sizeof(row));
         if (scene_executor_get_hotspot_state(session->executor, index, &hotspot) ==
                 SCENE_EXECUTOR_OK && hotspot.active && hotspot.rectangle_valid) {
@@ -919,4 +921,89 @@ int scene_session_request_transition(SceneSession *session,
                    SCENE_EXECUTOR_OK
                ? SCENE_SESSION_OK
                : SCENE_SESSION_ERR_STATE;
+}
+
+
+struct SceneSessionAppend {
+    SceneSession *owner;
+    SceneExecutorAppend *executor;
+    const SceneResource *source;
+    int32_t scene_id;
+    uint64_t generation;
+    uint64_t ticks;
+};
+
+size_t scene_session_action_high_water(const SceneSession *s)
+{ return s == NULL ? 0u : scene_executor_action_high_water(s->executor); }
+
+int scene_session_get_slot(const SceneSession *s, size_t i, SceneExecutorSlotInfo *out)
+{ return s == NULL ? SCENE_EXECUTOR_ERR_ARGUMENT : scene_executor_get_slot(s->executor, i, out); }
+
+int scene_session_erase_action(SceneSession *s, size_t i, uint8_t completed)
+{ return s == NULL ? SCENE_EXECUTOR_ERR_ARGUMENT : scene_executor_erase_action(s->executor, i, completed); }
+
+int scene_session_prepare_no_art(SceneSession *s, const SceneResource *source, int32_t scene_id,
+    const SceneActionSlotPlan *plan, SceneSessionAppend **out, SceneSessionFailure *failure)
+{
+    SceneSessionAppend *p;
+    size_t failed = SIZE_MAX;
+    int status;
+    if (out != NULL) *out = NULL;
+    clear_failure(failure);
+    if (s == NULL || source == NULL || plan == NULL || out == NULL || s->frozen ||
+        s->scene_generation == UINT64_MAX || (s->transition_pending && scene_id != s->transition.target_scene))
+        return SCENE_SESSION_ERR_STATE;
+    if (plan->incoming_count > SIZE_MAX - s->action_ui.phone_count ||
+        !reserve_phone_rows(s, s->action_ui.phone_count + plan->incoming_count)) return SCENE_SESSION_ERR_MEMORY;
+    p = calloc(1u, sizeof(*p));
+    if (p == NULL) return SCENE_SESSION_ERR_MEMORY;
+    status = scene_executor_prepare_append(s->executor, source, plan, &p->executor, &failed);
+    if (status != SCENE_EXECUTOR_OK) {
+        if (failure != NULL) {
+            SceneActionInfo action;
+            failure->stage = SCENE_SESSION_STAGE_SCENE_REPLACE;
+            failure->provider = status == SCENE_EXECUTOR_ERR_MEMORY ? SCENE_SESSION_PROVIDER_HOST : SCENE_SESSION_PROVIDER_SCENE_RESOURCE;
+            failure->action_index = failed < plan->incoming_count ? plan->assigned[failed] : SIZE_MAX;
+            failure->detail_status = status;
+            if (scene_resource_action_at(source, failed, &action) == SCENE_RESOURCE_OK) failure->action_type = action.type;
+        }
+        free(p);
+        return status == SCENE_EXECUTOR_ERR_MEMORY ? SCENE_SESSION_ERR_MEMORY : SCENE_SESSION_ERR_EXECUTOR;
+    }
+    p->owner = s;
+    p->source = source;
+    p->scene_id = scene_id;
+    p->generation = s->scene_generation;
+    p->ticks = s->tick_count;
+    *out = p;
+    return SCENE_SESSION_OK;
+}
+
+int scene_session_can_commit_no_art(const SceneSession *s, const SceneSessionAppend *p)
+{
+    return s != NULL && p != NULL && p->owner == s && !s->frozen &&
+        p->generation == s->scene_generation && p->ticks == s->tick_count &&
+        scene_executor_can_commit_append(s->executor, p->executor);
+}
+
+int scene_session_commit_no_art(SceneSession *s, SceneSessionAppend *p)
+{
+    if (!scene_session_can_commit_no_art(s, p) ||
+        scene_executor_commit_append(s->executor, p->executor) != SCENE_EXECUTOR_OK)
+        return SCENE_SESSION_ERR_STATE;
+    s->scene = p->source;
+    s->scene_id = p->scene_id;
+    ++s->scene_generation;
+    s->transition_pending = 0;
+    memset(&s->transition, 0, sizeof(s->transition));
+    memset(&s->last_result, 0, sizeof(s->last_result));
+    s->last_result.status = SCENE_SESSION_OK;
+    s->last_result.scene_generation = s->scene_generation;
+    p->owner = NULL;
+    return SCENE_SESSION_OK;
+}
+
+void scene_session_discard_no_art(SceneSessionAppend *p)
+{
+    if (p != NULL) { scene_executor_discard_append(p->executor); free(p); }
 }

@@ -17,6 +17,7 @@ typedef struct {
 
 struct SessionA3fBinding {
     SessionA3fHost host;
+    uint64_t rows_revision;
     Convo3fManager manager;
     Convo3fWorld world;
     A3fRow *rows;
@@ -224,6 +225,12 @@ int session_a3f_begin_scene(SessionA3fBinding *b, const SceneResource *scene)
                             ? ROW_READY
                             : ROW_BAD;
     }
+    if (b->rows_revision == UINT64_MAX) {
+        for (i = 0; i < count; ++i) free(rows[i].arena);
+        free(rows);
+        return CONVO3F_ERR_HOST;
+    }
+    ++b->rows_revision;
     clear_rows(b);
     b->rows = rows;
     b->count = count;
@@ -263,6 +270,8 @@ int session_a3f_handler(void *context, size_t index, const SceneActionInfo *acti
         b->failure = "0x3f row not owned";
         return SCENE_ACTION_HANDLER_ERROR;
     }
+    if (b->rows_revision == UINT64_MAX) return SCENE_ACTION_HANDLER_ERROR;
+    ++b->rows_revision;
     row = &b->rows[index];
     if (row->state == ROW_BAD) {
         b->failure = row->reason != NULL ? row->reason : "0x3f row could not be built";
@@ -406,6 +415,11 @@ const char *session_a3f_row_reason(const SessionA3fBinding *b, size_t row)
     return b->rows[row].state == ROW_RELEASED ? "released" : NULL;
 }
 
+int session_a3f_phase0_guarded(const SessionA3fBinding *b)
+{
+    return b != NULL && (b->world.flag_5c39e9 != 0 || b->world.flag_5c39ed != 0);
+}
+
 int session_a3f_modal_active(const SessionA3fBinding *b)
 {
     return b != NULL && b->world.flag_5c39e9 != 0;
@@ -458,4 +472,111 @@ const uint8_t *session_a3f_response_text(const SessionA3fBinding *b, int index)
         return NULL;
     }
     return b->manager.responses[index].text;
+}
+
+
+struct SessionA3fAppend {
+    SessionA3fBinding *owner;
+    uint64_t revision;
+    A3fRow *rows;
+    size_t count;
+    uint8_t new_owned[SCENE_ACTION_SLOT_LIMIT];
+    uint8_t retired[SCENE_ACTION_SLOT_LIMIT];
+};
+
+void session_a3f_discard_no_art(SessionA3fAppend *p)
+{
+    if (p == NULL) return;
+    if (p->rows != NULL) for (size_t i = 0; i < p->count; ++i)
+        if (p->new_owned[i]) free(p->rows[i].arena);
+    free(p->rows);
+    free(p);
+}
+
+int session_a3f_prepare_no_art(SessionA3fBinding *b, const SceneResource *source,
+    const SceneActionSlotPlan *plan, SessionA3fAppend **out)
+{
+    SessionA3fAppend *p;
+    int status = CONVO3F_ERR_BOUNDS;
+    uint8_t assigned[SCENE_ACTION_SLOT_LIMIT] = {0};
+    if (out != NULL) *out = NULL;
+    if (b == NULL || source == NULL || plan == NULL || out == NULL ||
+        b->count > SCENE_ACTION_SLOT_LIMIT || plan->final_high_water > SCENE_ACTION_SLOT_LIMIT ||
+        plan->source_high_water > SCENE_ACTION_SLOT_LIMIT ||
+        plan->incoming_count != scene_resource_action_count(source) ||
+        plan->incoming_count > SCENE_ACTION_SLOT_LIMIT || b->rows_revision == UINT64_MAX)
+        return CONVO3F_ERR_ARGUMENT;
+    /* A started conversation can still own modal/voice/UI state after its
+     * row is removed. That lifetime is not recovered by this bounded loader;
+     * reject before constructing/releasing anything instead of soft-locking
+     * the next row behind the old phase0 guards. */
+    if (session_a3f_phase0_guarded(b) && b->manager.row >= 0 &&
+        (size_t)b->manager.row < b->count && (size_t)b->manager.row < plan->source_high_water &&
+        plan->retired[b->manager.row] && b->rows[b->manager.row].state == ROW_READY) {
+        b->failure = "no-art retirement of a busy conversation is not modelled";
+        return CONVO3F_ERR_UNSUPPORTED;
+    }
+    /* The record release 0x41db40 is not a cel-thread teardown. Do not guess
+     * that larger lifetime when an in-flight cel record would be removed. */
+    if (b->manager.cel_thread != 0 && b->manager.row >= 0 &&
+        (size_t)b->manager.row < plan->source_high_water && plan->retired[b->manager.row]) {
+        b->failure = "no-art retirement of an active cel reader is not modelled";
+        return CONVO3F_ERR_UNSUPPORTED;
+    }
+    p = calloc(1u, sizeof(*p));
+    if (p == NULL) return CONVO3F_ERR_HOST;
+    p->count = plan->final_high_water;
+    p->rows = calloc(p->count != 0u ? p->count : 1u, sizeof(*p->rows));
+    if (p->rows == NULL) { free(p); return CONVO3F_ERR_HOST; }
+    p->owner = b;
+    p->revision = b->rows_revision;
+    memcpy(p->retired, plan->retired, sizeof(p->retired));
+    for (size_t i = 0; i < b->count; ++i) {
+        if (i < plan->source_high_water && plan->retired[i]) continue;
+        if (i < p->count) p->rows[i] = b->rows[i];
+        else if (b->rows[i].arena != NULL) goto fail;
+    }
+    for (size_t i = 0; i < plan->incoming_count; ++i) {
+        SceneActionInfo info;
+        const size_t slot = plan->assigned[i];
+        if (slot >= p->count || assigned[slot] || p->rows[slot].arena != NULL || p->new_owned[slot] ||
+            scene_resource_action_at(source, i, &info) != SCENE_RESOURCE_OK) goto fail;
+        assigned[slot] = 1u;
+        memset(&p->rows[slot], 0, sizeof(p->rows[slot]));
+        if (info.type != SESSION_A3F_TYPE && info.type != SESSION_A3E_TYPE) continue;
+        p->new_owned[slot] = 1u;
+        if (!(info.type == SESSION_A3E_TYPE ? build_row_3e(b, &info, &p->rows[slot]) :
+                                              build_row(b, &info, &p->rows[slot]))) {
+            b->failure = p->rows[slot].reason;
+            status = CONVO3F_ERR_UNSUPPORTED;
+            goto fail;
+        }
+        p->rows[slot].state = ROW_READY;
+    }
+    *out = p;
+    return CONVO3F_OK;
+fail:
+    session_a3f_discard_no_art(p);
+    return status;
+}
+
+int session_a3f_can_commit_no_art(const SessionA3fBinding *b, const SessionA3fAppend *p)
+{
+    return b != NULL && p != NULL && p->owner == b && p->revision == b->rows_revision &&
+        b->rows_revision != UINT64_MAX;
+}
+
+int session_a3f_commit_no_art(SessionA3fBinding *b, SessionA3fAppend *p)
+{
+    if (!session_a3f_can_commit_no_art(b, p)) return CONVO3F_ERR_ARGUMENT;
+    /* Completed objects are ROW_RELEASED with a NULL arena; unfinished
+     * objects own one flattened native allocation, released exactly once. */
+    for (size_t i = 0; i < b->count; ++i) if (p->retired[i]) free(b->rows[i].arena);
+    free(b->rows);
+    b->rows = p->rows;
+    b->count = p->count;
+    ++b->rows_revision;
+    p->rows = NULL;
+    p->owner = NULL;
+    return CONVO3F_OK;
 }

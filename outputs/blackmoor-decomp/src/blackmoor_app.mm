@@ -259,6 +259,10 @@ struct NativeApp {
     /* The previous scene resource stays open while a session executor still
      * borrows it; it is closed after scene_session_replace_scene succeeds. */
     SceneResource *retired_scene = nullptr;
+    /* Every surviving ACT/body/tree keeps its immutable resource owner. */
+    std::vector<SceneResource *> retained_scenes;
+    int16_t last_art_scene_id = 0; /* 5bb57f, distinct from logical5bb57b */
+    SceneResourceSummary last_art_summary{};
     BinkPlayer *video = nullptr;
     SceneSession *session = nullptr;
     LiveAudio *live_audio = nullptr;
@@ -649,6 +653,12 @@ struct NativeApp {
     uint32_t exit_sequence_presents = 0;
     /* DAT_005bb1ca, shared "cursor allowed" process global written by 0x62. */
     int32_t start_flag_5bb1ca = 0;
+    uint32_t first_load_5bb210 = 0;
+    int16_t profile_won_5bb218 = 0;
+    bool profile_initialized = false;
+    uint32_t restoring_5e32b5 = 0, scene_bookkeeping_5e32b9 = 0;
+    int32_t alternate_mode_5bb1de = 0, test_mode_63a4d9 = 0, debug_sweep_63a4e9 = 0;
+    bool audio_serviced_this_update = false;
     /* DAT_005bb50b as set at scene entry (0x439f20..0x439f41 copies
      * DAT_005bb599, the frame word of the scene-change request). */
     int32_t selector_entry_frame = 0;
@@ -785,6 +795,22 @@ static void record(NativeApp *app, const char *format, ...)
         std::fflush(app->log);
     }
     va_end(arguments);
+}
+
+static size_t native_action_count(const NativeApp *app)
+{
+    return app->session ? scene_session_action_high_water(app->session) : scene_resource_action_count(app->scene);
+}
+
+static int native_action_at(const NativeApp *app, size_t row, SceneActionInfo *out)
+{
+    if (!app->session) return scene_resource_action_at(app->scene, row, out);
+    SceneExecutorSlotInfo slot{};
+    if (scene_session_get_slot(app->session, row, &slot) != SCENE_EXECUTOR_OK)
+        return SCENE_RESOURCE_ERR_BOUNDS;
+    if (!slot.occupied) return SCENE_RESOURCE_ERR_NOT_FOUND;
+    *out = slot.action;
+    return SCENE_RESOURCE_OK;
 }
 
 static std::string trim(const std::string &value)
@@ -2358,6 +2384,8 @@ static void cleanup(NativeApp *app)
     if (app->startup) startup_menu_destroy(app->startup);
     if (app->scene) scene_resource_close(app->scene);
     if (app->retired_scene) scene_resource_close(app->retired_scene);
+    for (SceneResource *resource : app->retained_scenes) scene_resource_close(resource);
+    app->retained_scenes.clear();
     if (app->video) bink_player_close(app->video);
     if (app->nav_player) bink_player_close(app->nav_player);
     app->nav_player = nullptr;
@@ -3468,7 +3496,7 @@ static bool create_phone_list_binding(NativeApp *app, const uint8_t *uicl, size_
  * What 0x4e812f derives (lists 0x583abd/0x583b49, words 0x583a2d/0x583a2f, the
  * per-page slot table, paging floats) is therefore NOT maintained: UNVERIFIED,
  * nothing in the native app reads it yet. */
-static void inventory_view_sync(NativeApp *app);
+static bool inventory_view_sync(NativeApp *app);
 
 static int native_a79_rebuild_view(void *context, int16_t removed_item)
 {
@@ -3567,7 +3595,7 @@ static void inventory_view_ensure(NativeApp *app)
     app->inv_data_ready = true;
 }
 
-static void inventory_view_sync(NativeApp *app)
+static bool inventory_view_sync(NativeApp *app)
 {
     inventory_view_ensure(app);
     const Action79Model model = inventory_model(app);
@@ -3575,6 +3603,7 @@ static void inventory_view_sync(NativeApp *app)
     const int status = inventory_view_rebuild(&app->inv_view, &model, &why);
     if (status != INVVIEW_OK)
         record(app, "inventory_view_rebuild_error status=%d detail=%s", status, why);
+    return status == INVVIEW_OK;
 }
 
 static int native_inv_view_sound(void *context, uint16_t slot)
@@ -4227,7 +4256,8 @@ static int native_a3f_handler(void *context, size_t row, const SceneActionInfo *
     NativeApp *app = static_cast<NativeApp *>(context);
     if (app == nullptr || before == nullptr || out == nullptr) return SCENE_ACTION_HANDLER_ERROR;
     const uint32_t phase_before = before->phase;
-    if (phase_before == 0u && action && action->type == SESSION_A3F_TYPE) {
+    if (phase_before == 0u && action && action->type == SESSION_A3F_TYPE &&
+        !session_a3f_phase0_guarded(app->a3f)) {
         ActionFamily3fDecoded decoded{};
         if (action_family_3f_decode(action->raw_body, action->raw_body_length, &decoded) != ACTION_FAMILY_3F_OK)
             return SCENE_ACTION_HANDLER_ERROR;
@@ -4415,7 +4445,7 @@ static int native_a20_load_world(void *context, Action20World *world)
     world->view_cell_63aa10 = app->a20_view_cell_63aa10;
     world->view_cell_55cd94 = app->captions.lifecycle.g.popup_gate;
     world->scene_5bb57b = app->current_scene_id;
-    world->scene_5bb57f = app->current_scene_id;
+    world->scene_5bb57f = app->last_art_scene_id;
     world->word_5c3a4f = app->a20_word_5c3a4f;
     return 0;
 }
@@ -4688,7 +4718,7 @@ static int native_a1c_movie_view(NativeApp *app, A35Snapshot *snapshot, A35Rect 
     if (origin != nullptr && snapshot->record >= 0) {
         SceneActionInfo action{};
         ActionFamily35Record34 selected{};
-        if (scene_resource_action_at(app->scene, app->movie_owner_row, &action) != SCENE_RESOURCE_OK ||
+        if (native_action_at(app, app->movie_owner_row, &action) != SCENE_RESOURCE_OK ||
             action.type != SESSION_A35_TYPE ||
             action_family_35_record34_at(action.typed_body, action.typed_body_length,
                 static_cast<size_t>(snapshot->record), &selected) != ACTION_FAMILY_35_OK) return -1;
@@ -4950,7 +4980,7 @@ static int native_a6e_load_current(void *context, SceneStackCurrent *current)
     if (app == nullptr || current == nullptr) return 1;
     const SceneTransitionRequest words = app->loaded_words_valid ? app->loaded_words : SceneTransitionRequest{};
     current->scene_5bb57b = app->current_scene_id;
-    current->scene_5bb57f = app->current_scene_id;
+    current->scene_5bb57f = app->last_art_scene_id;
     /* 0x5bb50b is the live view selector (scene entry copies the request's frame word, then the navigation block
      * 0x43c2b7..0x43c87f changes it), so it comes from the mirror of nav.selector, not from the load-time request. */
     current->word_5bb50b = app->selector_entry_valid ? static_cast<int16_t>(app->selector_entry_frame)
@@ -5402,7 +5432,7 @@ static int native_a2e_stop_movie(void *context, int32_t *retire_row)
     }
     if (*retire_row != SESSION_A2E_NO_ROW &&
         (app->session == nullptr ||
-         scene_session_retire_action(app->session, static_cast<size_t>(*retire_row)) != SCENE_EXECUTOR_OK)) {
+         scene_session_erase_action(app->session, static_cast<size_t>(*retire_row), 1u) != SCENE_EXECUTOR_OK)) {
         return 1;
     }
     record(app, "scene_a2d_stop retired_row=%d (0x4ceb3b via raw 0x2e mode 0)", *retire_row);
@@ -5540,7 +5570,12 @@ static int native_a2d_handler(void *context, size_t row, const SceneActionInfo *
         d2_set_free(&set);
         if (supported != 0) return SCENE_ACTION_HANDLER_UNSUPPORTED;
     }
+    const bool was_active = session_a2d_object(app->a2d)->movie.active != 0;
     const int status = session_a2d_handler(app->a2d, row, action, before, out);
+    if (status == SCENE_ACTION_HANDLER_OK && was_active &&
+        session_a2d_object(app->a2d)->movie.active == 0 &&
+        scene_session_erase_action(app->session, row, 1u) != SCENE_EXECUTOR_OK)
+        return SCENE_ACTION_HANDLER_ERROR;
     if (status != SCENE_ACTION_HANDLER_OK)
         record(app, "scene_a2d_blocker row=%zu status=%d detail=%s", row, status, session_a2d_failure(app->a2d));
     return status;
@@ -10940,9 +10975,9 @@ static void nav_begin_scene(NativeApp *app)
     /* Cascade members before the zone tests: any row of their runtime types may
      * enable a UI hit test that native does not model. */
     std::vector<uint8_t> types;
-    for (size_t row = 0; row < scene_resource_action_count(app->scene); ++row) {
+    for (size_t row = 0; row < native_action_count(app); ++row) {
         SceneActionInfo info{};
-        if (scene_resource_action_at(app->scene, row, &info) == SCENE_RESOURCE_OK)
+        if (native_action_at(app, row, &info) == SCENE_RESOURCE_OK)
             types.push_back(info.type);
     }
     app->nav_members_idle = session_navigation_members_idle(types.data(), types.size()) != 0;
@@ -11329,10 +11364,12 @@ static bool native_d1_pointer_scope(const NativeApp *app)
     if (app->test_members_busy) return false;
 #endif
     size_t d1_rows = 0u;
-    const size_t count = scene_resource_action_count(app->scene);
+    const size_t count = native_action_count(app);
     for (size_t row = 0; row < count; ++row) {
         SceneActionInfo action{};
-        if (scene_resource_action_at(app->scene, row, &action) != SCENE_RESOURCE_OK) return false;
+        const int status = native_action_at(app, row, &action);
+        if (status == SCENE_RESOURCE_ERR_NOT_FOUND) continue;
+        if (status != SCENE_RESOURCE_OK) return false;
         if (action.type == SESSION_AD1_TYPE) ++d1_rows;
         else if (session_navigation_member_type(action.type)) return false;
     }
@@ -11348,9 +11385,11 @@ static bool native_a1c_pointer_scope(const NativeApp *app)
     if (app->test_members_busy) return false;
 #endif
     size_t count = 0;
-    for (size_t row = 0; row < scene_resource_action_count(app->scene); ++row) {
+    for (size_t row = 0; row < native_action_count(app); ++row) {
         SceneActionInfo action{};
-        if (scene_resource_action_at(app->scene, row, &action) != SCENE_RESOURCE_OK) return false;
+        const int status = native_action_at(app, row, &action);
+        if (status == SCENE_RESOURCE_ERR_NOT_FOUND) continue;
+        if (status != SCENE_RESOURCE_OK) return false;
         if (action.type == SESSION_A1C_TYPE) ++count;
         else if (session_navigation_member_type(action.type)) return false;
     }
@@ -11366,9 +11405,11 @@ static bool native_aaa_pointer_scope(const NativeApp *app)
     if (app->test_members_busy) return false;
 #endif
     size_t count = 0u;
-    for (size_t row = 0; row < scene_resource_action_count(app->scene); ++row) {
+    for (size_t row = 0; row < native_action_count(app); ++row) {
         SceneActionInfo action{};
-        if (scene_resource_action_at(app->scene, row, &action) != SCENE_RESOURCE_OK) return false;
+        const int status = native_action_at(app, row, &action);
+        if (status == SCENE_RESOURCE_ERR_NOT_FOUND) continue;
+        if (status != SCENE_RESOURCE_OK) return false;
         if (action.type == SESSION_AAA_TYPE) ++count;
         else if (session_navigation_member_type(action.type)) return false;
     }
@@ -11384,9 +11425,11 @@ static bool native_ad0_pointer_scope(const NativeApp *app)
     if (app->test_members_busy) return false;
 #endif
     size_t count = 0u;
-    for (size_t row = 0; row < scene_resource_action_count(app->scene); ++row) {
+    for (size_t row = 0; row < native_action_count(app); ++row) {
         SceneActionInfo action{};
-        if (scene_resource_action_at(app->scene, row, &action) != SCENE_RESOURCE_OK) return false;
+        const int status = native_action_at(app, row, &action);
+        if (status == SCENE_RESOURCE_ERR_NOT_FOUND) continue;
+        if (status != SCENE_RESOURCE_OK) return false;
         if (action.type == SESSION_AD0_TYPE) ++count;
         else if (session_navigation_member_type(action.type)) return false;
     }
@@ -12411,6 +12454,74 @@ static bool bind_native_pointer(NativeApp *app)
     return true;
 }
 
+/* Host policy imports this one profile scalar read-only; future writes live
+ * in native preferences and never in the owner's Game.ini. */
+static bool initialize_native_profile(NativeApp *app)
+{
+    if (app->profile_initialized) return true;
+    NSUserDefaults *preferences = [NSUserDefaults standardUserDefaults];
+    if ([preferences objectForKey:@"BlackmoorPlayerWonTheGame"] != nil) {
+        app->profile_won_5bb218 = [preferences boolForKey:@"BlackmoorPlayerWonTheGame"] ? 1 : 0;
+    } else {
+        FILE *file = std::fopen((app->game_directory + "/Game.ini").c_str(), "rb");
+        if (!file) return false;
+        char line[4096]{};
+        bool section = false;
+        while (std::fgets(line, sizeof(line), file)) {
+            std::string value = trim(line);
+            const size_t comment = value.find(';');
+            if (comment != std::string::npos) value = trim(value.substr(0, comment));
+            if (value.empty()) continue;
+            if (value.front() == '[') { section = value == "[Nancy Data]"; continue; }
+            const size_t equal = value.find('=');
+            if (!section || equal == std::string::npos || trim(value.substr(0, equal)) != "PlayerWonTheGame") continue;
+            app->profile_won_5bb218 = trim(value.substr(equal + 1u)) == "AcedTheGame" ? 1 : 0;
+            break;
+        }
+        const bool ok = !std::ferror(file);
+        std::fclose(file);
+        if (!ok) return false;
+    }
+    app->profile_initialized = true;
+    return true;
+}
+
+/* LoadNewSceneData's common tail,43a676..43a799. The inventory adapter
+ * remains bounded to its existing full-list/page0 support. */
+static bool finish_native_scene_load(NativeApp *app, uint32_t now)
+{
+    if (app->first_load_5bb210 == 0u) {
+        app->start_flag_5bb1ca = 1;
+        app->first_load_5bb210 = 1u;
+    }
+    if (!inventory_view_sync(app)) return false;
+    app->exit_state.g.redraw_request = 1;
+    app->exit_state.g.redraw_counter = 0;
+    if (!initialize_native_profile(app) || app->new_game.action_core.event_flag_count <= 1032u) return false;
+    int32_t &won = app->new_game.action_core.event_flags[1032];
+    if (won == 1 && app->profile_won_5bb218 == 0) {
+        app->profile_won_5bb218 = 1; /*44a6ad precedes the ignored persistence result*/
+        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"BlackmoorPlayerWonTheGame"];
+    } else if (won == 0 && app->profile_won_5bb218 != 0) {
+        won = 1;
+    }
+    if (world_init_record_successful_scene_load(&app->new_game.view, app->current_scene_id,
+            app->restoring_5e32b5 != 0u) != WORLD_INIT_OK) return false;
+    if (app->nav_delay_override) {
+        app->nav.hover_delay = app->nav_delay_words[0];
+        app->nav.key_delay = app->nav_delay_words[1];
+    }
+    if (app->live_audio && live_audio_service(app->live_audio, now, nullptr) != LIVE_AUDIO_OK) return false;
+    app->audio_serviced_this_update = true;
+    if (!app->restoring_5e32b5 && !app->scene_bookkeeping_5e32b9 &&
+        app->current_scene_id != 0 && !app->alternate_mode_5bb1de) app->scene_bookkeeping_5e32b9 = 1;
+    app->restoring_5e32b5 = 0;
+    if (app->test_mode_63a4d9) app->debug_sweep_63a4e9 = 0;
+    record(app, "scene_load_tail target=%d retained_art=%d first_load=%u restoring=0 bookkeeping=%u",
+           app->current_scene_id, app->last_art_scene_id, app->first_load_5bb210, app->scene_bookkeeping_5e32b9);
+    return true;
+}
+
 static bool create_native_scene_session(NativeApp *app)
 {
     if (app == nullptr || app->scene == nullptr || app->session != nullptr) return false;
@@ -12823,6 +12934,7 @@ static bool create_native_scene_session(NativeApp *app)
         record(app, "scene_session_create_error provider=pointer-input detail=bind");
         return false;
     }
+    if (!finish_native_scene_load(app, app->session_tick_sample)) return false;
     record(app, "scene_session_created scene=%d generation=%llu ui_phone_rows=%zu "
            "world=borrowed lifetime=app-owned transition=opaque-tuple-retained "
            "clock=world-clock-normal+timer-records post-clock-gates=guarded "
@@ -12937,16 +13049,36 @@ static bool load_static_avf_background(NativeApp *app, const std::string &path)
     }
 }
 
-/* With a live session the previous scene is parked in app->retired_scene
- * instead of closed, because the session executor still borrows it. */
-static bool load_scene(NativeApp *app, int16_t scene_id, bool keep_previous_open = false)
+static SceneResource *open_scene_resource(NativeApp *app, int16_t scene_id)
 {
-    char name[33], error[256];
+    char name[33], error[256]{};
     std::snprintf(name, sizeof(name), "S%d", scene_id);
-    GameResourceBytes resource = GAME_RESOURCE_BYTES_INIT;
-    if (!game_resources_load_bytes(app->resources, name, &resource, error, sizeof(error))) {
-        record(app, "scene_error name=%s detail=%s", name, error); return false;
+    GameResourceBytes bytes = GAME_RESOURCE_BYTES_INIT;
+    if (!game_resources_load_bytes(app->resources, name, &bytes, error, sizeof(error))) {
+        record(app, "scene_error name=%s detail=%s", name, error);
+        return nullptr;
     }
+    SceneResource *scene = scene_resource_open_memory(bytes.bytes, bytes.length, error, sizeof(error));
+    game_resource_bytes_destroy(&bytes);
+    if (!scene) record(app, "scene_error name=%s detail=%s", name, error);
+    return scene;
+}
+
+/* Normal-art loader takes ownership of an optional already-parsed target. */
+static bool load_scene(NativeApp *app, int16_t scene_id, bool keep_previous_open = false,
+                       SceneResource *prepared = nullptr)
+{
+    std::unique_ptr<SceneResource, decltype(&scene_resource_close)> incoming(
+        prepared ? prepared : open_scene_resource(app, scene_id), scene_resource_close);
+    SceneResourceSummary summary{};
+    if (!incoming || scene_resource_get_summary(incoming.get(), &summary) != SCENE_RESOURCE_OK) return false;
+    if (std::strcmp(summary.background, "NO_ART_SCENE") == 0 ||
+        std::strcmp(summary.background, "POPUP_PREP_SCENE") == 0) {
+        record(app, "scene_error target=%d detail=special-scene-requires-live-retention", scene_id);
+        return false;
+    }
+    char name[33], error[256]{};
+    std::snprintf(name, sizeof(name), "S%d", scene_id);
     if (keep_previous_open && app->scene != nullptr) {
         if (app->retired_scene != nullptr) scene_resource_close(app->retired_scene);
         app->retired_scene = app->scene;
@@ -12962,20 +13094,10 @@ static bool load_scene(NativeApp *app, int16_t scene_id, bool keep_previous_open
     app->has_scene_frame = false;
     app->scene_video_path.clear();
     app->scene_native_frames = app->scene_native_width = app->scene_native_height = 0;
-    app->scene = scene_resource_open_memory(resource.bytes, resource.length, error, sizeof(error));
-    game_resource_bytes_destroy(&resource);
-    if (!app->scene) { record(app, "scene_error name=%s detail=%s", name, error); return false; }
+    app->scene = incoming.release();
     app->current_scene_id = scene_id;
-    SceneResourceSummary summary{};
-    if (scene_resource_get_summary(app->scene, &summary) != SCENE_RESOURCE_OK) return false;
-    if (app->new_game.view.action_core != nullptr) {
-        const int visit_status = world_init_record_successful_scene_load(
-            &app->new_game.view, scene_id, 0);
-        if (visit_status != WORLD_INIT_OK) {
-            record(app, "world_init_visit_error scene=%d status=%d", scene_id, visit_status);
-            return false;
-        }
-    }
+    app->last_art_scene_id = scene_id;
+    app->last_art_summary = summary;
     record(app, "scene_parsed name=%s title=%s background=%s audio=%s actions=%zu",
            name, summary.title, summary.background, summary.audio, summary.action_count);
     /* 0x4163b4 probes BIK before AVF. Missing BIK permits fallback; a present
@@ -13339,8 +13461,14 @@ static bool prepare_a28_handoff_frames(NativeApp *app, const SceneResource *outg
 
 static bool initialize_new_game(NativeApp *app, uint32_t now_tick)
 {
+    if (!initialize_native_profile(app)) return false;
+    app->first_load_5bb210 = 0;
+    app->start_flag_5bb1ca = 0;
+    app->session_tick_sample = now_tick;
     EngineBootStartupSettings settings{};
     WorldInitStartupOverrides overrides{};
+    overrides.alternate_tuple_active = app->alternate_mode_5bb1de;
+    overrides.test_mode_enabled = app->test_mode_63a4d9;
     overrides.forced_scene_id = -1;
     if (engine_boot_get_startup_settings(app->boot, &settings) != ENGINE_BOOT_OK) {
         record(app, "world_init_error startup-settings");
@@ -13750,6 +13878,103 @@ static bool unload_scene_sound_object(NativeApp *app)
  * General audio persists through this load. State 2 later resets the scene
  * subset. ClearSceneData's dialogue-object-owned sound cleanup remains
  * unbound, as does that dialogue object; movie audio closes with its player. */
+/* Bounded provider delta for a no-art load. Unknown constructors/teardowns
+ * refuse before table, media, input or world changes. Surviving indexed
+ * providers retain their original indices and objects. */
+static bool perform_no_art_transition(NativeApp *app, SceneResource *incoming,
+                                       const SceneTransitionRequest &requested, uint32_t now)
+{
+    if (!app->session || !app->scene || !app->has_scene_frame) {
+        record(app, "scene_no_art_refused target=%d detail=missing-retained-room before_clear=1", requested.target_scene);
+        return false;
+    }
+    const size_t high_water = scene_session_action_high_water(app->session);
+    std::array<uint8_t, SCENE_ACTION_SLOT_LIMIT> occupied{}, types{};
+    if (high_water > occupied.size()) return false;
+    for (size_t i = 0; i < high_water; ++i) {
+        SceneExecutorSlotInfo slot{};
+        if (scene_session_get_slot(app->session, i, &slot) != SCENE_EXECUTOR_OK) return false;
+        occupied[i] = slot.occupied;
+        types[i] = slot.runtime_type;
+    }
+    SceneActionSlotPlan plan{};
+    const int plan_status = scene_action_slots_plan_no_art(high_water, occupied.data(), types.data(),
+            app->exit_state.g.load_game_flag != 0, scene_resource_action_count(incoming), &plan);
+    if (plan_status != SCENE_ACTION_SLOTS_OK) {
+        record(app, "scene_no_art_refused target=%d detail=slot-plan status=%d high_water=%zu incoming=%zu before_clear=1",
+               requested.target_scene, plan_status, high_water, scene_resource_action_count(incoming));
+        return false;
+    }
+    for (size_t i = 0; i < high_water; ++i) {
+        if (!occupied[i]) continue;
+        SceneExecutorSlotInfo slot{};
+        (void)scene_session_get_slot(app->session, i, &slot);
+        const uint8_t type = slot.action.type;
+        if (plan.retired[i] && (type == SESSION_A3F_TYPE || type == SESSION_A3E_TYPE)) {
+            SceneActionRuntimeState state{};
+            if (scene_session_get_action_state(app->session, i, &state) != SCENE_SESSION_OK) return false;
+            if (!state.completed && state.phase != 0u) {
+                record(app, "scene_no_art_refused row=%zu type=0x%02x phase=%u detail=started-conversation-retirement-unimplemented before_clear=1",
+                       i, type, state.phase);
+                return false;
+            }
+        }
+        const bool supported = plan.retired[i] ? (type == 0x3f || type == 0x3e || type == 0x0a) :
+            (type == 0x2d || type == 0x0b || type == 0x62 || type == 0x2e || type == 0x97 || type == 0x4d || type == 0x95);
+        if (!supported) {
+            record(app, "scene_no_art_refused row=%zu type=0x%02x retired=%u detail=provider-delta-unimplemented before_clear=1",
+                   i, type, plan.retired[i]);
+            return false;
+        }
+    }
+    for (size_t i = 0; i < plan.incoming_count; ++i) {
+        SceneActionInfo action{};
+        if (scene_resource_action_at(incoming, i, &action) != SCENE_RESOURCE_OK) return false;
+        if (action.type != 0x4d && action.type != 0x95 && action.type != 0x3f &&
+            action.type != 0x3e && action.type != 0x0a && action.type != 0x2e) {
+            record(app, "scene_no_art_refused incoming=%zu type=0x%02x detail=constructor-delta-unimplemented before_clear=1", i, action.type);
+            return false;
+        }
+    }
+    try { app->retained_scenes.reserve(app->retained_scenes.size() + 1u); }
+    catch (...) { return false; }
+    SceneSessionAppend *table = nullptr;
+    SessionA3fAppend *conversations = nullptr;
+    SceneSessionFailure failure{};
+    const int table_status = scene_session_prepare_no_art(app->session, incoming, requested.target_scene, &plan, &table, &failure);
+    const int convo_status = table_status == SCENE_SESSION_OK ? session_a3f_prepare_no_art(app->a3f, incoming, &plan, &conversations) : CONVO3F_ERR_ARGUMENT;
+    if (table_status != SCENE_SESSION_OK || convo_status != CONVO3F_OK ||
+        !scene_session_can_commit_no_art(app->session, table) || !session_a3f_can_commit_no_art(app->a3f, conversations)) {
+        record(app, "scene_no_art_refused target=%d table=%d conversations=%d action=%zu detail=%s before_clear=1",
+               requested.target_scene, table_status, convo_status, failure.action_index, session_a3f_failure(app->a3f));
+        scene_session_discard_no_art(table);
+        session_a3f_discard_no_art(conversations);
+        return false;
+    }
+    /* Single-threaded loader: no callback, allocation or dispatch between
+     * validation and these two commits. Each has only infallible ownership
+     * transfers after the exact predicates checked above. */
+    const int provider_commit = session_a3f_commit_no_art(app->a3f, conversations);
+    const int table_commit = scene_session_commit_no_art(app->session, table);
+    scene_session_discard_no_art(table);
+    session_a3f_discard_no_art(conversations);
+    if (provider_commit != CONVO3F_OK || table_commit != SCENE_SESSION_OK) {
+        record(app, "scene_no_art_commit_error provider=%d table=%d", provider_commit, table_commit);
+        return false;
+    }
+    const int16_t source = app->current_scene_id;
+    app->retained_scenes.push_back(app->scene); /* capacity reserved before commit */
+    app->scene = incoming;
+    app->current_scene_id = requested.target_scene;
+    if (!finish_native_scene_load(app, now)) return false;
+    app->session_block_reported = false;
+    app->session_transition_reported = false;
+    record(app, "scene_transition_applied source=%d target=%d generation=%llu kind=no-art retained_art=%d slots=%zu",
+           source, requested.target_scene, (unsigned long long)scene_session_scene_generation(app->session),
+           app->last_art_scene_id, plan.final_high_water);
+    return true;
+}
+
 static bool perform_session_transition(NativeApp *app,
                                        const SceneTransitionRequest &requested,
                                        uint32_t now)
@@ -13768,6 +13993,21 @@ static bool perform_session_transition(NativeApp *app,
         return false;
     }
     const int16_t source = app->current_scene_id;
+    std::unique_ptr<SceneResource, decltype(&scene_resource_close)> incoming(
+        open_scene_resource(app, transition.target_scene), scene_resource_close);
+    SceneResourceSummary incoming_summary{};
+    if (!incoming || scene_resource_get_summary(incoming.get(), &incoming_summary) != SCENE_RESOURCE_OK) return false;
+    if (std::strcmp(incoming_summary.background, "NO_ART_SCENE") == 0) {
+        SceneResource *resource = incoming.get();
+        const bool result = perform_no_art_transition(app, resource, requested, now);
+        /* Ownership transfers at commit, including a later host-tail failure. */
+        if (app->scene == resource) incoming.release();
+        return result;
+    }
+    if (std::strcmp(incoming_summary.background, "POPUP_PREP_SCENE") == 0) {
+        record(app, "scene_transition_error target=%d detail=popup-retention-unimplemented before_clear=1", transition.target_scene);
+        return false;
+    }
     const D2Object *random_movie = session_a2d_object(app->a2d);
     if (random_movie != nullptr && random_movie->movie.active != 0) {
         /* Both normal and NO_ART loads can retain original D2/ACT slots.
@@ -13802,7 +14042,7 @@ static bool perform_session_transition(NativeApp *app,
                source, transition.target_scene, caption_status);
         return false;
     }
-    if (!load_scene(app, transition.target_scene, true)) {
+    if (!load_scene(app, transition.target_scene, true, incoming.release())) {
         record(app, "scene_transition_error source=%d target=%d detail=target-load-failed",
                source, transition.target_scene);
         return false;
@@ -13822,10 +14062,6 @@ static bool perform_session_transition(NativeApp *app,
     }
     app->loaded_words = transition;       /* after replace: 0x439f20..0x439f64 copies the request words at load */
     app->loaded_words_valid = true;
-    if (app->retired_scene != nullptr) {
-        scene_resource_close(app->retired_scene);
-        app->retired_scene = nullptr;
-    }
     session_exit_clear_latches(&app->exit_state);
     record(app, "scene_clear_latches order=0x5c39ff,0x5c39e9,0x5c39ed,0x5c39f1,0x5c39f5,0x5c39f9,"
            "0x5c39e5,0x5bb1c4,0x63a5c0,0x63a5c4 input_latch_5c39e5=%d cursor_override_5c39e9=%d "
@@ -13859,6 +14095,11 @@ static bool perform_session_transition(NativeApp *app,
                source, transition.target_scene);
         return false;
     }
+    if (app->retired_scene) scene_resource_close(app->retired_scene);
+    app->retired_scene = nullptr;
+    for (SceneResource *resource : app->retained_scenes) scene_resource_close(resource);
+    app->retained_scenes.clear();
+    if (!finish_native_scene_load(app, now)) return false;
     app->session_block_reported = false;
     app->session_transition_reported = false;
     record_scene_audio(app, "after-load", source, transition.target_scene);
@@ -13959,6 +14200,7 @@ static ExitTick exit_state_tick(NativeApp *app, uint32_t now)
 
 static void update(NativeApp *app, uint32_t now)
 {
+    app->audio_serviced_this_update = false;
     app->session_tick_sample = now;
     if (app->session != nullptr) {
         /* States 4 (exit handler), 1 (load) and 2 (intro) of 0x438150 take the
@@ -14001,7 +14243,7 @@ static void update(NativeApp *app, uint32_t now)
                        (unsigned long long)stats.nonfinite_samples, (unsigned long long)hash);
             }
         }
-        if (app->live_audio != nullptr &&
+        if (app->live_audio != nullptr && !app->audio_serviced_this_update &&
             live_audio_service(app->live_audio, now, nullptr) != LIVE_AUDIO_OK) {
             /* RT-11.1: the sound pump 0x4f52a9 runs every update, ahead of the
              * scene tick: completed channels restart (0x4f55d5) before any

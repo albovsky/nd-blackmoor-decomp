@@ -340,6 +340,10 @@ static int bottom_stop_reentry(RandomMovieFixture &f)
     SceneActionRuntimeState row{};
     SceneTransitionRequest transition{};
     NativeRandomMovieFrame absent{};
+    SceneExecutorSlotInfo erased{};
+    CHECK(scene_session_get_slot(f.app.session, 0u, &erased) == SCENE_EXECUTOR_OK && !erased.occupied &&
+          erased.runtime_type == 0 && erased.source == nullptr,
+          "raw2e stop truly vacates D2 ownership while its completion byte remains observable");
     CHECK(f.row0(&row) && row.completed == 1u && row.phase == 0u && !session_a2d_object(f.app.a2d)->movie.active &&
           f.app.captions.lifecycle.g.modal_input == initial_modal && session_a2d_world(f.app.a2d)->entry_flag == 0 &&
           native_random_movie_frame(f.app.a2d_media, surface, &absent) != 0 &&
@@ -501,9 +505,11 @@ static int active_transition_refusal(RandomMovieFixture &f)
     CHECK(f.start(), "actual active AA movie exists before the unsupported non-stopping transition");
     Action0bPayload payload{};
     CHECK(session_a0b_payload(f.app.a0b, 1u, &payload) == 0 && payload.target == 1100,
-          "the transition request uses actual S4408 row1's original1100 tuple");
+          "source metadata still exposes the original S4408 row1 target1100");
     SceneTransitionRequest request{};
-    request.target_scene = payload.target;
+    /* Boundary component for the normal-art return used after Linda's
+     * dialogue. NO_ART1100 now has its own actual-pointer success regression. */
+    request.target_scene = 4408;
     request.opaque_words[0] = payload.word_04; request.opaque_words[1] = payload.word_06; request.opaque_words[2] = payload.word_08;
     request.opaque_dwords[0] = payload.dword_0a; request.opaque_dwords[1] = payload.dword_0e; request.opaque_dwords[2] = payload.dword_12;
     auto bytes = [](const auto &value) {
@@ -535,8 +541,8 @@ static int active_transition_refusal(RandomMovieFixture &f)
     MoviePixels before{}, after{};
     CHECK(copied_movie_frame(f, &before), "active transition snapshots owned movie pixels");
     /* Direct boundary component: no row phase, event, pending transition or
-     * callback is fabricated. Its original tuple must be refused before the
-     * ordinary clear/load path, leaving the source scene able to continue. */
+     * callback is fabricated. This normal-art target must be refused before
+     * the ordinary clear/load path, leaving the source able to continue. */
     const bool transitioned = perform_session_transition(&f.app, request, f.now);
     CHECK(!transitioned && f.app.scene == resource && f.app.retired_scene == retired && f.app.session == session &&
           f.app.current_scene_id == scene_id && scene_session_scene_generation(session) == generation && scene_session_tick_count(session) == ticks &&
@@ -559,7 +565,7 @@ static int active_transition_refusal(RandomMovieFixture &f)
           session_a0b_payload(f.app.a0b, 1u, &payload) == 0 && payload.target == 1100 &&
           f.tick(3200u) && copied_movie_frame(f, &after) && after.frame == 1,
           "refused transition leaves original rows and real movie decoder usable for the next ordinary update");
-    std::printf("RANDOM_MOVIE_ACTIVE_TRANSITION target=1100 refused_before_clear=1 source_scene=4408 next_real_frame=1\n");
+    std::printf("RANDOM_MOVIE_ACTIVE_TRANSITION target=4408 kind=normal-art refused_before_clear=1 source_scene=4408 next_real_frame=1\n");
     return 0;
 }
 static void fixture_signal(int number)

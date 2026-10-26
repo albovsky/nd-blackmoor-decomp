@@ -58,6 +58,16 @@ void session_a3f_destroy(SessionA3fBinding *);
  * still loads. Returns CONVO3F_OK, or an error for NULL arguments, allocation
  * failure or an unreadable row table. */
 int session_a3f_begin_scene(SessionA3fBinding *, const SceneResource *);
+/* NO_ART_SCENE constructs only incoming global rows and releases only retired
+ * arenas. Existing manager/world/caption/cel state is never blanket-reset.
+ * No dispatch may occur between preparation and commit. */
+typedef struct SessionA3fAppend SessionA3fAppend;
+int session_a3f_prepare_no_art(SessionA3fBinding *, const SceneResource *,
+    const SceneActionSlotPlan *, SessionA3fAppend **);
+int session_a3f_can_commit_no_art(const SessionA3fBinding *, const SessionA3fAppend *);
+int session_a3f_commit_no_art(SessionA3fBinding *, SessionA3fAppend *);
+void session_a3f_discard_no_art(SessionA3fAppend *);
+
 
 /* Executor handler. PENDING with the kernel's phase after, or DIRECT_COMPLETED
  * with phase 0 once the finish branch ran (the row's image is then released;
@@ -69,6 +79,9 @@ const char *session_a3f_failure(const SessionA3fBinding *);
 /* Host input and executor queries on the persistent conversation state. */
 /* [0x5c39e9] != 0: a conversation is active (the executor's modal flag, 0x43bfd3). */
 int session_a3f_modal_active(const SessionA3fBinding *);
+/* The two original phase0 guards precede hook/layout validation. These
+ * private world cells are retained across no-art loads. */
+int session_a3f_phase0_guarded(const SessionA3fBinding *);
 /* The pointer path 0x4e78c2: clears [0x5839b1..+0x1e] and sets entry `index`
  * to 1. Returns 0, or nonzero when no response with that index is listed. */
 int session_a3f_choose_response(SessionA3fBinding *, int index);
