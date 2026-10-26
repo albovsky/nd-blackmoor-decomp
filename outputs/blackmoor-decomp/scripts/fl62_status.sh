@@ -4,7 +4,7 @@ cd "$(dirname "$0")/.."
 tag="$1"
 rows=$(ls tasks/fl62/ | grep -E "^p2-0x" | sed 's/p2-//;s/.txt//' | while read r; do grep -q " killed " tasks/fl62/p2-$r.txt && echo $r; done | tr '\n' ' ')
 python3 -u scripts/fl62_pipe.py $rows > /dev/null 2>&1          # the step-budget reruns of the hang-listed mutants (a step that is done is skipped)
-scripts/fl62_classify.sh "$tag" $rows > "tasks/fl62/$tag-classify.log" 2>&1
+scripts/fl62_classify.sh "$tag" $rows > "tasks/fl62/$tag-classify.log" 2>&1 || { echo "classify failed, see tasks/fl62/$tag-classify.log"; exit 1; }
 python3 - "$tag" <<'PY'
 import json, sys
 d = json.load(open('tasks/fl62/%s-surv.json' % sys.argv[1]))

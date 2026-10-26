@@ -1,7 +1,8 @@
 #!/bin/bash
 # FL-62: classify the definitive logs (tasks/fl62/p3-ROW.txt, else p2-ROW.txt) of the rows named on the command line: merged log, -O2 identical code, survivor rules with no written reason; output tasks/fl62/TAG-*.
 # usage: fl62_classify.sh TAG ROW [ROW ...]      (run from outputs/blackmoor-decomp)
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/.." || exit 1
+set -e          # a failed merge or classifier must stop the run: the later steps would read the previous TAG-* files
 tag="$1"
 shift
 logs=()
