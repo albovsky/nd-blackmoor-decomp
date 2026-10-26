@@ -29,6 +29,7 @@
 #include "inventory_view_runtime.h"
 #include "native_inventory_render.h"
 #include "native_conversation_caption.h"
+#include "native_random_movie.h"
 #include "action_family_3f.h"
 #include "inventory_examine_runtime.h"
 #include "inventory_button_runtime.h"
@@ -524,10 +525,12 @@ struct NativeApp {
      * here. */
     SessionA43Binding *a43 = nullptr;
     std::vector<std::vector<uint8_t>> a43_buffers;
-    /* RT-33: raw 0x2e random-movie control (arm 0x427f62, handler 0x4ced84 on the object 0x63821d). The object stays inactive
-     * until raw 0x2d is bound, so only the row/mode stores and the completion run. Not compiled here. */
+    /* Raw 0x2e shares the live random-movie object with the native 0x2d
+     * media provider, including original stop/row retirement. */
     SessionA2EBinding *a2e = nullptr;
     SessionA2dBinding *a2d = nullptr;
+    NativeRandomMovie *a2d_media = nullptr;
+    uint64_t a2d_composed_generation = 0;
     /* RT-46: raw 0x33 secondary video with hotspots (handler 0x42c221, gate mode 1). The kernel and binding are ported and
      * oracle-tested against the original; the app has no media backend (reader thread, surfaces, stream), so phase 0 is
      * refused as UNSUPPORTED (see native_a33_media_available). Not compiled here. */
@@ -1210,6 +1213,7 @@ static bool native_a3f_popup_initialize(NativeApp *app);
 static bool native_a3f_ui_tick(NativeApp *app);
 static bool native_a3f_pointer(NativeApp *app, int kind, unsigned button, int32_t x, int32_t y);
 static bool native_a35_compose(NativeApp *app);
+static bool native_a2d_compose(NativeApp *app);
 static bool native_ad9_render(NativeApp *app);
 static bool native_ad1_render(NativeApp *app);
 static bool native_a77_render(NativeApp *app);
@@ -1585,16 +1589,19 @@ static bool native_caption_finish_tick(NativeApp *app, uint8_t dispatch_attempte
         captions.transfer_failed_sticky = true;
         return false;
     }
-    if (app->a36 != nullptr && session_a36_registered(app->a36) != 0u) {
-        /* RT-14: the overlay entries of the render pass 0x4cf9f4 (layers 0..20),
-         * drawn into the seeded back buffer before the caption layers. */
-        size_t drawn = 0u;
-        const int status = session_a36_render(app->a36, 0, 20, &drawn);
-        if (status != OVERLAY36_OK) {
-            record(app, "scene_a36_render_error status=%d detail=%s", status,
-                   session_a36_failure(app->a36));
-            captions.transfer_failed_sticky = true;
-            return false;
+    /* Slot16 has Z11, after slot15's movie and lower-Z overlays, before
+     * dynamic overlay slots at Z11 and every later caption/taskbar pass. */
+    for (unsigned range = 0; range < 2u; ++range) {
+        if (range == 1u && !native_a2d_compose(app)) {
+            record(app, "scene_a2d_render_error"); captions.transfer_failed_sticky = true; return false;
+        }
+        if (app->a36 != nullptr && session_a36_registered(app->a36) != 0u) {
+            size_t drawn = 0u;
+            const int status = session_a36_render(app->a36, range ? 11 : 0, range ? 20 : 10, &drawn);
+            if (status != OVERLAY36_OK) {
+                record(app, "scene_a36_render_error status=%d detail=%s", status, session_a36_failure(app->a36));
+                captions.transfer_failed_sticky = true; return false;
+            }
         }
     }
     if (app->ad9 != nullptr && session_ad9_registered(app->ad9) != 0u) {
@@ -2329,6 +2336,9 @@ static void cleanup(NativeApp *app)
     session_a94_destroy(app->a94);
     session_a43_destroy(app->a43);
     session_a2d_destroy(app->a2d);
+    app->a2d = nullptr;
+    native_random_movie_destroy(app->a2d_media);
+    app->a2d_media = nullptr;
     session_a33_destroy(app->a33);
     session_a2e_destroy(app->a2e);
     session_a44_destroy(app->a44);
@@ -5380,9 +5390,8 @@ static int native_a2e_transition(void *context, const SceneTransitionRequest *re
     return 0;
 }
 
-/* RT-36: raw 0x2e mode 0 stops the random movie (0x4ceb3b). The kernel erases the raw 0x2d row and resets the object; the
- * executor completes that row (0x4ceb75). The app never has an active random movie yet (media_available is 0), so this only
- * runs once a media backend exists. */
+/* Raw 0x2e mode0 stops the live random movie (0x4ceb3b). The kernel erases
+ * its raw 0x2d row and resets the object; the executor retires that row (0x4ceb75). */
 static int native_a2e_stop_movie(void *context, int32_t *retire_row)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
@@ -5400,58 +5409,140 @@ static int native_a2e_stop_movie(void *context, int32_t *retire_row)
     return 0;
 }
 
-/* RT-36: raw 0x2d process globals the app owns: the start flag 0x5bb1ca. The other kernel inputs and globals (scene key word
- * 0x5bb50b, view origin, decode thread argument, back buffer, 0x5839a9, 0x5d16cd, 0x5d1683, 0x5d1639, 0x5d1a39, 0x5d1a45) have
- * no app counterpart yet: they must be mapped here before native_a2d_media_available can return 1. */
+/* RT-36 / NATIVE-14: original D2 controller with a native silent-Bink host.
+ * The binding owns fixed slot16 and all random/phase/rectangle decisions.
+ * Existing process mirrors remain authoritative; codec handles are native. */
+static const uint32_t kNativeA2dBackBuffer = UINT32_C(0xf000002d);
 static void native_a2d_load_world(void *context, D2World *world)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
-    if (app == nullptr || world == nullptr) return;
+    if (!app || !world) return;
     world->start_flag = app->start_flag_5bb1ca;
+    world->g_5839a9 = app->captions.lifecycle.g.modal_input;
+    world->g_5831c8 = app->exit_state.g.redraw_request;
+    world->g_5831c6 = static_cast<int16_t>(app->exit_state.g.redraw_counter);
+    world->g_5d16cd = app->layer_5d16cd;
+    world->g_5d1683 = app->layer_5d1683;
+    world->g_5d1639 = app->captions.lifecycle.g.cursor_layer_enabled;
+    world->scene_key = app->nav_scene_ready ? app->nav.selector :
+        static_cast<int16_t>(app->selector_entry_valid ? app->selector_entry_frame : app->scene_current_frame);
+    world->view_x = app->scene_destination.left;
+    world->view_y = app->scene_destination.top;
+    world->back_buffer = kNativeA2dBackBuffer;
+    /* No AVF worker is created by this bounded silent-Bink provider. */
+    world->thread_arg = 0;
 }
-
 static void native_a2d_store_world(void *context, const D2World *world)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
-    if (app == nullptr || world == nullptr) return;
+    if (!app || !world) return;
     app->start_flag_5bb1ca = world->start_flag;
+    app->captions.lifecycle.g.modal_input = world->g_5839a9;
+    app->layer_5d16cd = world->g_5d16cd;
+    app->layer_5d1683 = world->g_5d1683;
+    app->captions.lifecycle.g.cursor_layer_enabled = world->g_5d1639;
+    app->exit_state.g.redraw_request = world->g_5831c8;
+    app->exit_state.g.redraw_counter = static_cast<uint16_t>(world->g_5831c6);
 }
-
-/* RT-36: there is no media backend yet (no AVF decode thread, no Bink player binding, no clip file probes), so phase 0 of
- * raw 0x2d reports UNSUPPORTED before any effect. */
-static int native_a2d_media_available(void *context)
+static uint32_t native_a2d_tick(void *context)
+{ return static_cast<NativeApp *>(context)->session_tick_sample; }
+static int native_a2d_random(void *context, uint32_t *value)
 {
-    (void)context;
-    return 0;
+    NativeApp *app = static_cast<NativeApp *>(context);
+    return !app || !value || session_conditions_crt_rand_host(&app->condition_rand, value) != CONDITION_EXTRA_HOST_OK;
 }
-
-/* RT-36: engine calls of the random-movie kernel. Only the three the scene clear makes on an object that never loaded a clip
- * (Z unregister of the object's two entries, Bink release of id 0) are answered, as no-ops because the app never registered
- * them; any other call means a media op ran without a backend and fails the visit (the original has no recovery either). */
-static int native_a2d_op(void *context, int op, const D2OpArgs *args, int32_t *ret)
+static void native_a2d_load_stream(void *context, D2Object *object)
 {
-    (void)context;
-    (void)args;
-    *ret = 0;
-    switch (op) {
-    case D2_OP_Z_UNREGISTER_A:
-    case D2_OP_Z_UNREGISTER_B:
-    case D2_OP_BINK_RELEASE:
-        return 0;
-    default:
-        return 1;
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (!app || !object || !app->a2d_media || native_random_movie_load_stream(app->a2d_media, object) != 0) {
+        if (app) { record(app, "scene_a2d_stream_error"); app->failure = true; }
     }
 }
-
+static int native_a2d_surface_dims(void *context, uint32_t surface, int16_t *width, int16_t *height)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    return !app || native_random_movie_surface_dims(app->a2d_media, surface, width, height) != 0;
+}
+static int native_a2d_media_available(void *context)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    return app && app->a2d_media && app->captions.initialized && app->has_scene_frame;
+}
+static int native_a2d_op(void *context, int op, const D2OpArgs *args, int32_t *ret)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (!app || !ret || !app->a2d_media) return 1;
+    if (native_random_movie_op(app->a2d_media, session_a2d_object(app->a2d), op, args, ret) != 0) {
+        record(app, "scene_a2d_media_op_error op=%d detail=%s", op, native_random_movie_failure(app->a2d_media));
+        return 1;
+    }
+    /* 0x44c4c1 writes dimensions/id before the kernel queries its surface.
+     * This invokes only the existing host-owned stream callback, not a step
+     * or world/shared-state refresh, and never casts away const. */
+    if ((op == D2_OP_STREAM_RESET || op == D2_OP_BINK_RELEASE) &&
+        session_a2d_refresh_stream(app->a2d) != D2_OK) return 1;
+    return 0;
+}
+static bool native_a2d_compose(NativeApp *app)
+{
+    if (!app->a2d) return true;
+    const D2World *world = session_a2d_world(app->a2d);
+    /* The renderer's outer entry-enable gate precedes the callback's own
+     * active/flag206 guard. A selector miss must hide a retained surface. */
+    if (!world || world->entry_flag == 0) return true;
+    D2RenderPlan plan{};
+    if (session_a2d_render_plan(app->a2d, &plan) != D2_OK) return false;
+    if (!plan.valid) return true;
+    NativeRandomMovieFrame frame{};
+    if (plan.target != kNativeA2dBackBuffer ||
+        native_random_movie_frame(app->a2d_media, plan.surface, &frame) != 0 || !frame.rgba ||
+        frame.width == 0 || frame.height == 0 || frame.stride < static_cast<uint64_t>(frame.width) * 4u ||
+        frame.rgba_bytes < static_cast<uint64_t>(frame.height - 1u) * frame.stride + static_cast<uint64_t>(frame.width) * 4u)
+        return false;
+    const int64_t width = static_cast<int64_t>(plan.src[2]) - plan.src[0] + 1;
+    const int64_t height = static_cast<int64_t>(plan.src[3]) - plan.src[1] + 1;
+    if (width <= 0 || height <= 0 || plan.src[0] < 0 || plan.src[1] < 0 ||
+        plan.src[2] >= static_cast<int64_t>(frame.width) || plan.src[3] >= static_cast<int64_t>(frame.height) ||
+        plan.dst[0] < 0 || plan.dst[1] < 0 || plan.dst[2] >= 640 || plan.dst[3] >= 480 ||
+        static_cast<int64_t>(plan.dst[2]) - plan.dst[0] + 1 != width ||
+        static_cast<int64_t>(plan.dst[3]) - plan.dst[1] + 1 != height ||
+        app->captions.backbuffer_pixels.size() != 640u * 480u * 2u) return false;
+    for (int64_t y = 0; y < height; ++y) for (int64_t x = 0; x < width; ++x) {
+        const size_t from = static_cast<size_t>(plan.src[1] + y) * frame.stride +
+            static_cast<size_t>(plan.src[0] + x) * 4u;
+        const size_t to = (static_cast<size_t>(plan.dst[1] + y) * 640u +
+            static_cast<size_t>(plan.dst[0] + x)) * 2u;
+        if (!native_caption_pack_rgba(app->captions, frame.rgba + from,
+            app->captions.backbuffer_pixels.data() + to)) return false;
+    }
+    if (app->a2d_composed_generation != frame.generation) {
+        app->a2d_composed_generation = frame.generation;
+        const D2Object *object = session_a2d_object(app->a2d);
+        record(app, "scene_a2d_frame_presented clip=%s frame=%d generation=%llu src=%d,%d,%d,%d dst=%d,%d,%d,%d "
+               "z=11 slot=16 clock_ns=%llu codec-pacing-parity=unverified", object->name_159, frame.current_frame,
+               (unsigned long long)frame.generation, plan.src[0], plan.src[1], plan.src[2], plan.src[3],
+               plan.dst[0], plan.dst[1], plan.dst[2], plan.dst[3], (unsigned long long)native_a35_clock(app));
+    }
+    return true;
+}
 static int native_a2d_handler(void *context, size_t row, const SceneActionInfo *action,
                               const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
-    if (app == nullptr || before == nullptr || out == nullptr) return SCENE_ACTION_HANDLER_ERROR;
-    const int status = session_a2d_handler(app->a2d, row, action, before, out);
-    if (status != SCENE_ACTION_HANDLER_OK) {
-        record(app, "scene_a2d_blocker row=%zu status=%d detail=%s", row, status, session_a2d_failure(app->a2d));
+    if (!app || !before || !out || !action) return SCENE_ACTION_HANDLER_ERROR;
+    if (before->phase == 0 && action->type == SESSION_A2D_TYPE) {
+        D2Set set{}; const char *why = "none";
+        if (d2_set_parse(action->typed_body, action->typed_body_length, &set, &why) != D2_OK)
+            return SCENE_ACTION_HANDLER_ERROR;
+        const int supported = native_random_movie_validate_set(app->a2d_media, &set);
+        record(app, "scene_a2d_preflight row=%zu entries=%d groups=%d status=%d detail=%s", row,
+               set.entry_count, set.group_count, supported, native_random_movie_failure(app->a2d_media));
+        d2_set_free(&set);
+        if (supported != 0) return SCENE_ACTION_HANDLER_UNSUPPORTED;
     }
+    const int status = session_a2d_handler(app->a2d, row, action, before, out);
+    if (status != SCENE_ACTION_HANDLER_OK)
+        record(app, "scene_a2d_blocker row=%zu status=%d detail=%s", row, status, session_a2d_failure(app->a2d));
     return status;
 }
 
@@ -10576,13 +10667,18 @@ static bool create_native_session_bindings(NativeApp *app)
     a2e_host.transition = native_a2e_transition;
     a2e_host.stop_movie = native_a2e_stop_movie;
     app->a2e = session_a2e_create(&a2e_host, &app->new_game.action_core);
+    const NativeRandomMovieHost random_media_host{app, native_a35_clock, native_a2d_tick, native_a2d_random};
+    if (native_random_movie_create(app->game_directory.c_str(), &random_media_host, &app->a2d_media) != 0) {
+        record(app, "scene_a2d_media_create_error"); return false;
+    }
     SessionA2dHost a2d_host{};
     a2d_host.kernel.context = app;
     a2d_host.kernel.op = native_a2d_op;
     a2d_host.load_world = native_a2d_load_world;
+    a2d_host.load_stream = native_a2d_load_stream;
     a2d_host.store_world = native_a2d_store_world;
     a2d_host.media_available = native_a2d_media_available;
-    a2d_host.kernel.surface_dims = nullptr;
+    a2d_host.kernel.surface_dims = native_a2d_surface_dims;
     app->a2d = session_a2d_create(&a2d_host);
     SessionA33Host a33_host{};   /* RT-46: raw 0x33 secondary video; media calls are not answered (no backend) */
     a33_host.kernel.context = app;
@@ -11164,10 +11260,11 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
     if (session_a44_begin_scene(app->a44, app->scene) != 0) {
         record(app, "scene_a44_begin_blocker detail=%s", session_a44_failure(app->a44));
     }
-    /* RT-36: parse of the scene's raw 0x2d row (the object is destroyed and its render entry registered once, at creation,
-     * as the original does at world init). A failure leaves the 0x2d row unowned (it reports the blocker). */
+    /* The singleton and render entry are created once at world init. Never
+     * run new scene rows against a refused load's old random-movie tables. */
     if (session_a2d_begin_scene(app->a2d, app->scene) != 0) {
         record(app, "scene_a2d_begin_blocker detail=%s", session_a2d_failure(app->a2d));
+        return false;
     }
     /* RT-46: the 0x33 part of the scene clear (latch 0x5c39f1, row/kind words, surfaces) and the parse of the scene's raw 0x33 rows. A failure leaves the
      * 0x33 rows unowned (they report the blocker). */
@@ -13671,6 +13768,16 @@ static bool perform_session_transition(NativeApp *app,
         return false;
     }
     const int16_t source = app->current_scene_id;
+    const D2Object *random_movie = session_a2d_object(app->a2d);
+    if (random_movie != nullptr && random_movie->movie.active != 0) {
+        /* Both normal and NO_ART loads can retain original D2/ACT slots.
+         * Until that ownership exists here, refuse before ANY scene clear,
+         * media close or table replacement. A raw2e stop permits the load. */
+        record(app, "scene_transition_error source=%d target=%d "
+               "detail=active-random-movie-retention-unimplemented before_clear=1",
+               source, transition.target_scene);
+        return false;
+    }
     record(app, "scene_audio_policy source=%d target=%d continuation=%u load_reset=none "
            "fresh_reset=state-2-MSND-and-0..13 dialogue-object-cleanup=unbound",
            source, transition.target_scene,
