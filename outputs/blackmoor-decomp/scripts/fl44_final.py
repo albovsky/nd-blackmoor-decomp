@@ -21,7 +21,7 @@ import fl40_mutation_check as M
 import fl40_survivors as S
 
 TASKS = PROJECT / 'tasks'
-LOGS = ['fl44-recheck-credited-log-part1.txt', 'fl44-recheck-credited-log-part2.txt', 'fl44-recheck-credited-log-part3.txt', 'fl44-recheck-credited-log-part4.txt', 'fl44-recheck-big5-log.txt', 'fl44-new-rows-mutation-log.txt', 'fl46-unchecked-log.txt', 'fl46-budget3-log.txt', 'fl49-recheck-log.txt', 'fl49-recheck2-log.txt', 'fl49-recheck3-log.txt', 'fl50-recheck-log.txt', 'fl50-large-log.txt', 'fl51-mutation-log.txt', 'fl53-mutation-log.txt', 'fl54-mutation-log.txt', 'fl56-mutation-log.txt']
+LOGS = ['fl44-recheck-credited-log-part1.txt', 'fl44-recheck-credited-log-part2.txt', 'fl44-recheck-credited-log-part3.txt', 'fl44-recheck-credited-log-part4.txt', 'fl44-recheck-big5-log.txt', 'fl44-new-rows-mutation-log.txt', 'fl46-unchecked-log.txt', 'fl46-budget3-log.txt', 'fl49-recheck-log.txt', 'fl49-recheck2-log.txt', 'fl49-recheck3-log.txt', 'fl50-recheck-log.txt', 'fl50-large-log.txt', 'fl51-mutation-log.txt', 'fl53-mutation-log.txt', 'fl54-mutation-log.txt', 'fl56-mutation-log.txt', 'fl64-mutation-log.txt']
 EQUIV = ['fl44-recheck-equivalence.json', 'fl44-recheck-equivalence-big.json', 'fl44-recheck-equivalence-big5.json', 'fl44-recheck-equivalence-part4.json', 'fl44-new-equivalence.json', 'fl46-equivalence.json', 'fl51-equivalence.json', 'fl56-equivalence.json']
 RESCUE = ['fl44-rescue-base40000.txt', 'fl44-new-rescue-40000.txt', 'fl44-recheck-rescue-40000-part1.txt', 'fl44-recheck-rescue-40000-part2.txt', 'fl44-recheck-rescue-40000-part4.txt', 'fl44-recheck-rescue-40000-part5.txt', 'fl46-rescue-40000.txt', 'fl46-rescue-454065.txt']
 REQUESTS = ['fl44-requests-held-fl42.json', 'fl44-new-survivors.json', 'fl44-recheck-survivors.json', 'fl44-part4-survivors.json', 'fl44-part5-survivors.json', 'fl46-survivors.json', 'fl46-rescue-454065-request.json']      # what the rescue runs were asked to retry
@@ -75,6 +75,7 @@ def main():
                 if len(' '.join(i['reason'].split())) >= 80 and len(i.get('review', '').strip()) >= 40:        # a reason without its independent review does not count
                     reasons[(row, i['kind'], i['line'])] = i['statement']
     clean, held = [], {}
+    fl64_ctx = {}
     for row in sorted(corpus, key=lambda k: int(k, 16)):
         if row not in logs:
             held[row] = [{'kind': 'unchecked', 'line': 0, 'statement': 'no exhaustive log under the guarded harness'}]
@@ -89,6 +90,14 @@ def main():
             if why != 'survives' and not (STRICT and why == BUDGET_KILL):
                 continue
             if S.classify(kind, text, n, equiv.get(row, {}).get((kind, n), False), row):
+                continue
+            if row not in fl64_ctx:                 # FL-64: the rules of scripts/fl64_rules.py (FL-45 ranges, cell values, folded constants) for what the older rules leave
+                try:
+                    fl64_ctx[row] = S.fl64_context(row, funcs[row], None)
+                except Exception:
+                    fl64_ctx[row] = {}
+            ctx = fl64_ctx[row]
+            if ctx and S.classify(kind, text, n, equiv.get(row, {}).get((kind, n), False), row, ctx['variants'].get((kind, n)), ctx['ranges'], ctx['proofs'], ctx['cells']):
                 continue
             if (kind, n) in asked.get(row, ()) and (kind, n) not in retried and row in rescued:
                 continue            # asked, retried by the rescue run and not listed again: killed (by the corpus seeds or a rescue seed)

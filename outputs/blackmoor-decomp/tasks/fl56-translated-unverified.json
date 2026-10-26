@@ -11970,40 +11970,6 @@
    "seeds_checked": 5,
    "status": "translated, unverified"
   },
-  "0x44ecaf": {
-   "assumed_x87_math": {},
-   "assumed_x87_neutral": [],
-   "body": 332,
-   "callees": {},
-   "directions": [
-    7,
-    20
-   ],
-   "fs": false,
-   "guessed_callee_pops": [],
-   "imports": {},
-   "indirect_calls_pop_inferred": [],
-   "instructions": [
-    57,
-    77
-   ],
-   "seeds": [
-    [
-     0,
-     []
-    ],
-    [
-     154,
-     []
-    ],
-    [
-     237,
-     []
-    ]
-   ],
-   "seeds_checked": 3,
-   "status": "translated, unverified"
-  },
   "0x44efcd": {
    "assumed_x87_math": {},
    "assumed_x87_neutral": [],
@@ -14332,29 +14298,6 @@
     ]
    ],
    "seeds_checked": 26,
-   "status": "translated, unverified"
-  },
-  "0x45bbd8": {
-   "assumed_x87_math": {},
-   "assumed_x87_neutral": [],
-   "body": 233,
-   "callees": {
-    "0x50cd50": 0
-   },
-   "directions": [
-    0,
-    10
-   ],
-   "fs": false,
-   "guessed_callee_pops": [],
-   "imports": {},
-   "indirect_calls_pop_inferred": [],
-   "instructions": [
-    0,
-    69
-   ],
-   "seeds": [],
-   "seeds_checked": 0,
    "status": "translated, unverified"
   },
   "0x45c18f": {
@@ -17286,69 +17229,6 @@
     ]
    ],
    "seeds_checked": 11,
-   "status": "translated, unverified"
-  },
-  "0x467c0e": {
-   "assumed_x87_math": {},
-   "assumed_x87_neutral": [],
-   "body": 337,
-   "callees": {},
-   "directions": [
-    11,
-    12
-   ],
-   "fs": false,
-   "guessed_callee_pops": [],
-   "imports": {},
-   "indirect_calls_pop_inferred": [],
-   "instructions": [
-    81,
-    82
-   ],
-   "seeds": [
-    [
-     0,
-     []
-    ],
-    [
-     361,
-     []
-    ],
-    [
-     407,
-     []
-    ],
-    [
-     436,
-     []
-    ],
-    [
-     436,
-     [
-      [
-       536871364,
-       4,
-       40370176
-      ]
-     ]
-    ],
-    [
-     436,
-     [
-      [
-       29229650,
-       4,
-       11
-      ],
-      [
-       536871364,
-       4,
-       40370176
-      ]
-     ]
-    ]
-   ],
-   "seeds_checked": 6,
    "status": "translated, unverified"
   },
   "0x467eb0": {

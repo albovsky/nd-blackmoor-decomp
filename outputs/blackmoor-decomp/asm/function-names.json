@@ -2,13 +2,13 @@
  "schema": "blackmoor-function-names/1",
  "note": "Names that committed evidence already states for assembly functions; every other source keeps the machine name fn_<va>. Written and checked by scripts/function_names.py; read by scripts/annotate_machine.py and scripts/audit_tool_assisted.py. A name is not a claim that the function is understood beyond its summary, and nothing here claims original C++ or compiler provenance.",
  "counts": {
-  "entries": 3036,
-  "native_port": 1958,
+  "entries": 3038,
+  "native_port": 1961,
   "parity_rule": 1,
   "ghidra_name": 83,
   "ghidra_funclet": 570,
   "structural": 258,
-  "inferred_prose": 75,
+  "inferred_prose": 74,
   "inferred_strings": 76,
   "inferred_import": 15
  },
@@ -8551,6 +8551,18 @@
    }
   },
   {
+   "va": "0x0044ecaf",
+   "name": "m44ecaf_lifted",
+   "basis": "native_port",
+   "summary": "Machine-translated from the original instructions (scripts/lift_function.py); 18 seeds; oracle 77/77 instructions, 20/20 jump directions; mutation survivors: tasks/fl40-survivors.json.",
+   "source": "native port src/original_methods_fl40.c:m44ecaf_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m44ecaf_lifted",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
    "va": "0x0044edfb",
    "name": "m44edfb_click_2785_2787",
    "basis": "native_port",
@@ -9874,18 +9886,15 @@
   },
   {
    "va": "0x0045bbd8",
-   "name": "inferred_bul_random_rectangle_picker",
-   "basis": "inferred_prose",
-   "confidence": "low",
-   "summary": "Random pick of four rectangles (_rand) into a working set; returns the number of moves.",
-   "source": "INFERRED (lower confidence, not verified): the repository text src/action_family_da_runtime.h:33 says \"0x45bbd8 random pick of four rectangles\"",
-   "evidence": [
-    {
-     "path": "src/action_family_da_runtime.h",
-     "line": 33,
-     "quote": "0x45bbd8 random pick of four rectangles"
-    }
-   ]
+   "name": "m45bbd8_lifted",
+   "basis": "native_port",
+   "summary": "Machine-translated from the original instructions (scripts/lift_function.py); 3 seeds; oracle 69/69 instructions, 10/10 jump directions; mutation survivors: tasks/fl40-survivors.json.",
+   "source": "native port src/original_methods_fl40.c:m45bbd8_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m45bbd8_lifted",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x0045bcc1",
@@ -11068,6 +11077,18 @@
    "native_source": {
     "path": "src/original_methods_fl24b.c",
     "symbol": "m46793a_click_27ab_27ac",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x00467c0e",
+   "name": "m467c0e_lifted",
+   "basis": "native_port",
+   "summary": "Machine-translated from the original instructions (scripts/lift_function.py); 11 seeds; oracle 82/82 instructions, 12/12 jump directions; mutation survivors: tasks/fl40-survivors.json.",
+   "source": "native port src/original_methods_fl40.c:m467c0e_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl40.c",
+    "symbol": "m467c0e_lifted",
     "class": "native_oracle_verified"
    }
   },
