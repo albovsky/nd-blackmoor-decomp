@@ -814,6 +814,51 @@ static int host_stop_after_no_art_cleanup(NoArtFixture &f)
     return 0;
 }
 
+static int unstarted_normal_refusal(NoArtFixture &f)
+{
+    SceneExecutorSlotInfo slot{};
+    SceneActionRuntimeState state{};
+    CHECK(scene_session_get_slot(f.app.session, 0u, &slot) == SCENE_EXECUTOR_OK && slot.occupied &&
+          slot.runtime_type == 0x2du && scene_session_get_action_state(f.app.session, 0u, &state) == SCENE_SESSION_OK &&
+          state.phase == 0u && !state.completed && !session_a2d_object(f.app.a2d)->movie.active,
+          "ordinary scene construction leaves one unstarted D2 before its first dispatcher tick");
+    const auto object = object_bytes(*session_a2d_object(f.app.a2d));
+    const auto nav = object_bytes(f.app.nav);
+    const auto input = object_bytes(f.app.input_state);
+    const auto caption = object_bytes(f.app.captions.lifecycle.g);
+    const auto writer = object_bytes(f.app.captions.writer_globals);
+    const auto flags = f.app.new_game.event_flags;
+    const auto visits = f.app.new_game.scene_visits;
+    const auto rng = object_bytes(f.app.condition_rand);
+    const auto clock = object_bytes(f.app.new_game.view.clock);
+    const auto background = f.app.scene_frame.rgba;
+    SceneResource *const source = f.app.scene;
+    const auto video = f.app.video, nav_player = f.app.nav_player;
+    const uint64_t generation = scene_session_scene_generation(f.app.session), ticks = scene_session_tick_count(f.app.session);
+    SceneTransitionRequest request{};
+    request.target_scene = 4408;
+    /* A host load boundary before the first ACT visit, not a fabricated phase
+     * or a natural UI walkthrough. Unknown unstarted ownership must refuse. */
+    CHECK(!perform_session_transition(&f.app, request, f.now), "unstarted D2 normal load refuses before any clear/constructor");
+    SceneExecutorSlotInfo after{}; SceneActionRuntimeState after_state{};
+    CHECK(f.app.scene == source && f.app.current_scene_id == 4408 && f.app.retired_scene == nullptr &&
+          f.app.retained_scenes.empty() && !f.app.provider_action_view && !f.app.retired_provider_action_view &&
+          scene_session_scene_generation(f.app.session) == generation && scene_session_tick_count(f.app.session) == ticks &&
+          scene_session_get_slot(f.app.session, 0u, &after) == SCENE_EXECUTOR_OK && after.occupied &&
+          after.source == slot.source && after.action.raw_body == slot.action.raw_body && after.condition_tree == slot.condition_tree &&
+          scene_session_get_action_state(f.app.session, 0u, &after_state) == SCENE_SESSION_OK &&
+          after_state.phase == state.phase && after_state.completed == state.completed &&
+          object_bytes(*session_a2d_object(f.app.a2d)) == object && object_bytes(f.app.nav) == nav &&
+          object_bytes(f.app.input_state) == input && object_bytes(f.app.captions.lifecycle.g) == caption &&
+          object_bytes(f.app.captions.writer_globals) == writer && object_bytes(f.app.condition_rand) == rng &&
+          object_bytes(f.app.new_game.view.clock) == clock && f.app.new_game.event_flags == flags && f.app.new_game.scene_visits == visits &&
+          f.app.scene_frame.rgba == background && f.app.video == video && f.app.nav_player == nav_player && !f.app.failure,
+          "unstarted refusal preserves original resource/tree/controller/input/world/background without a synthetic stop");
+    CHECK(f.start(), "direct boundary refusal leaves the unstarted source able to start its real movie normally");
+    std::printf("NORMAL_ART_UNSTARTED_REFUSAL target=4408 phase=0 active=0 before_clear=1 source_starts_after_component=1\n");
+    return 0;
+}
+
 static void fixture_signal(int number)
 {
     static const char prefix[] = "fixture/native signal failure number=";
@@ -832,6 +877,7 @@ int main(int argc, char **argv)
         const int16_t initial_scene = std::strcmp(argv[3], "slot3-return") == 0 ? 3336 : 4408;
         if (!fixture.initialize(argv[2], initial_scene)) { fixture.print_log_tail(); CHECK(false, "actual BOOT/new-game/entry-scene component initializes"); }
         if (std::strcmp(argv[3], "slot3-return") == 0) return actual_slot_three_return(fixture);
+        if (std::strcmp(argv[3], "unstarted-refusal") == 0) return unstarted_normal_refusal(fixture);
         if (std::strcmp(argv[3], "busy-refusal") == 0) return active_conversation_load_refusal(fixture);
         if (std::strcmp(argv[3], "host-stop-cleanup") == 0) return host_stop_after_no_art_cleanup(fixture);
         if (std::strcmp(argv[3], "first") == 0) return actual_no_art_retention(fixture);

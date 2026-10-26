@@ -109,5 +109,9 @@ class NativeNoArtTests(unittest.TestCase):
         self.component('slot3-return')
 
 
+    def test_unstarted_d2_refuses_normal_load_before_clear(self):
+        self.component('unstarted-refusal')
+
+
 if __name__ == '__main__':
     unittest.main()
