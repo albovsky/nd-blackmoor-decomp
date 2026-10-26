@@ -1,0 +1,8 @@
+rows 190; mutants a rule calls harmless: 2472; killed by a real seed run: 7; rows without a matching run: 0
+UNSOUND ('0x494ccc', 'drop', 25, 'b8602ad6', 'repeat', 'fl41-mutation-log.txt')
+UNSOUND ('0x494ccc', 'literal', 36, 'e7cd6525', 'cleanup', 'fl41-mutation-log.txt')
+UNSOUND ('0x494ccc', 'drop', 26, 'f029fd4e', 'repeat', 'fl41-mutation-log.txt')
+UNSOUND ('0x4c9b25', 'literal', 19, '63b5d7b7', 'cleanup', 'fl41-mutation-log.txt')
+UNSOUND ('0x4c9ca0', 'literal', 18, '9becc315', 'cleanup', 'fl41-mutation-log.txt')
+UNSOUND ('0x4d51c0', 'literal', 12, '7738acf8', 'cleanup', 'fl41-mutation-log.txt')
+UNSOUND ('0x4d51c0', 'drop', 11, '13dd3253', 'repeat', 'fl41-mutation-log.txt')

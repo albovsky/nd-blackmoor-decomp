@@ -35,6 +35,7 @@ I32 = (-(1 << 31), (1 << 31) - 1)
 I16 = (-(1 << 15), (1 << 15) - 1)
 TOP = (I32[0], I32[1], I16[0], I16[1])
 GPR = ('eax', 'ecx', 'edx', 'ebx', 'esi', 'edi')
+LOW8 = {'al': 'eax', 'cl': 'ecx', 'dl': 'edx', 'bl': 'ebx'}
 REGS = GPR + ('ebp', 'esp')
 
 
@@ -277,6 +278,15 @@ class Ranges:
                     h = self.read16(st, ins, src)
                     old = st.regs.get(full, TOP)
                     self.write_reg(st, full, (I32[0], I32[1], h[0], h[1]))
+                    handled = True
+                elif n in LOW8:
+                    # FL-65: `mov al, x` keeps bits 8..31 of the register: the new value is (old & ~0xff) + a byte, so `xor edx, edx; mov dl, [m]` leaves edx in [0, 255]
+                    full = LOW8[n]
+                    old = st.regs.get(full, TOP)
+                    byte = (src.imm & 0xff,) * 2 if src.type == IMM_OP else (0, 255)
+                    lo32, hi32 = ((old[0] >> 8) << 8) + byte[0], ((old[1] >> 8) << 8) + byte[1]
+                    lo16, hi16 = ((old[2] >> 8) << 8) + byte[0], ((old[3] >> 8) << 8) + byte[1]
+                    self.write_reg(st, full, norm((max(lo32, I32[0]), min(hi32, I32[1])), (max(lo16, I16[0]), min(hi16, I16[1]))))
                     handled = True
             elif dst.type == MEM_OP:
                 k = self.slot_of(ins, dst)

@@ -1,0 +1,215 @@
+{
+ "rows_with_survivors": {
+  "0x4fb0bf": [
+   [
+    "jump",
+    "identical code",
+    "if (zf) goto L_4fb1c0;  /* 0x4fb114: je 0x4fb1c0 */",
+    27
+   ],
+   [
+    "width",
+    "unobserved bits",
+    "ecx = RD32((uint32_t)(ebp + 0x8u));  /* 0x4fb11a: mov ecx, dword ptr [ebp + 8] */",
+    28
+   ],
+   [
+    "literal",
+    "identical code",
+    "esp -= 4u; WR32(esp, 0x4fb188u); FL41_CALL(0x4f6624u); esp += 8u; esp += 4u;  /* 0x4fb183: call 0x4f6624 */",
+    55
+   ],
+   [
+    "jump",
+    "identical code",
+    "if (zf) goto L_4fb173;  /* 0x4fb148: je 0x4fb173 */",
+    38
+   ],
+   [
+    "width",
+    "unobserved bits",
+    "edx = RD32((uint32_t)(ebp + 0x8u));  /* 0x4fb14a: mov edx, dword ptr [ebp + 8] */",
+    39
+   ],
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = eax, b_ = eax, r_; r_ = a_ & b_; FL41_LOGIC(r_, 32); }  /* 0x4fb0cd: test eax, eax */",
+    9
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = eax, b_ = 0x2u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4fb136: cmp eax, 2 */",
+    34
+   ],
+   [
+    "width",
+    "unobserved bits",
+    "eax = RD32((uint32_t)(ebp + 0x8u));  /* 0x4fb175: mov eax, dword ptr [ebp + 8] */",
+    51
+   ],
+   [
+    "jump",
+    "identical code",
+    "if (zf) goto L_4fb0fa;  /* 0x4fb0cf: je 0x4fb0fa */",
+    10
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(eax + edx + 0x12cu)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4fb10c: cmp dword ptr [eax + edx + 0x12c], 0 */",
+    26
+   ],
+   [
+    "width",
+    "unobserved bits",
+    "ecx = RD32((uint32_t)(ebp + 0x8u));  /* 0x4fb188: mov ecx, dword ptr [ebp + 8] */",
+    56
+   ],
+   [
+    "width",
+    "unobserved bits",
+    "ecx = RD32((uint32_t)(ebp + 0x8u));  /* 0x4fb0d1: mov ecx, dword ptr [ebp + 8] */",
+    11
+   ],
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(eax + edx + 0x12cu)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4fb10c: cmp dword ptr [eax + edx + 0x12c], 0 */",
+    26
+   ],
+   [
+    "width",
+    "unobserved bits",
+    "eax = RD32((uint32_t)(ebp + 0x8u));  /* 0x4fb1a4: mov eax, dword ptr [ebp + 8] */",
+    61
+   ],
+   [
+    "width",
+    "unobserved bits",
+    "edx = RD32((uint32_t)(ebp + 0x8u));  /* 0x4fb0fa: mov edx, dword ptr [ebp + 8] */",
+    22
+   ],
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = ecx, b_ = ecx, r_; r_ = a_ & b_; FL41_LOGIC(r_, 32); }  /* 0x4fb146: test ecx, ecx */",
+    37
+   ],
+   [
+    "literal",
+    "identical code",
+    "eax = (eax & 0xffff0000u) | ((RD16((uint32_t)(edx + ecx + 0x132u))) & 0xffffu);  /* 0x4fb12e: mov ax, word ptr [edx + ecx + 0x132] */",
+    33
+   ]
+  ]
+ },
+ "unexplained_rows": [],
+ "mutants": {
+  "0x4fb0bf": [
+   [
+    "jump",
+    27,
+    "58bdd8e7",
+    "identical code"
+   ],
+   [
+    "width",
+    28,
+    "af118099",
+    "unobserved bits"
+   ],
+   [
+    "literal",
+    55,
+    "dc0b101f",
+    "identical code"
+   ],
+   [
+    "jump",
+    38,
+    "54aeac86",
+    "identical code"
+   ],
+   [
+    "width",
+    39,
+    "024bd291",
+    "unobserved bits"
+   ],
+   [
+    "alu",
+    9,
+    "b3432809",
+    "identical code"
+   ],
+   [
+    "register",
+    34,
+    "2a0f982a",
+    "identical code"
+   ],
+   [
+    "width",
+    51,
+    "4d3ace45",
+    "unobserved bits"
+   ],
+   [
+    "jump",
+    10,
+    "a41c78a9",
+    "identical code"
+   ],
+   [
+    "register",
+    26,
+    "9cc43d9f",
+    "identical code"
+   ],
+   [
+    "width",
+    56,
+    "934cbd2d",
+    "unobserved bits"
+   ],
+   [
+    "width",
+    11,
+    "6d0b7883",
+    "unobserved bits"
+   ],
+   [
+    "alu",
+    26,
+    "cfe1d373",
+    "identical code"
+   ],
+   [
+    "width",
+    61,
+    "3f696359",
+    "unobserved bits"
+   ],
+   [
+    "width",
+    22,
+    "deb4be70",
+    "unobserved bits"
+   ],
+   [
+    "alu",
+    37,
+    "428ebd0b",
+    "identical code"
+   ],
+   [
+    "literal",
+    33,
+    "1d3f5f41",
+    "identical code"
+   ]
+  ]
+ }
+}

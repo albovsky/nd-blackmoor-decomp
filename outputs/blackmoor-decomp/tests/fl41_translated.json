@@ -1248,29 +1248,6 @@
   "sites": {},
   "status": "agrees"
  },
- "0x495536": {
-  "body": 210,
-  "callees": {},
-  "directions": [
-   3,
-   6
-  ],
-  "frame": false,
-  "fs": false,
-  "imports": {},
-  "instructions": [
-   61,
-   76
-  ],
-  "seeds": [
-   [
-    0,
-    []
-   ]
-  ],
-  "sites": {},
-  "status": "agrees"
- },
  "0x4956d3": {
   "body": 327,
   "callees": {
@@ -2269,33 +2246,6 @@
    ],
    [
     7,
-    []
-   ]
-  ],
-  "sites": {},
-  "status": "agrees"
- },
- "0x4a67f3": {
-  "body": 339,
-  "callees": {},
-  "directions": [
-   6,
-   14
-  ],
-  "frame": false,
-  "fs": false,
-  "imports": {},
-  "instructions": [
-   40,
-   72
-  ],
-  "seeds": [
-   [
-    0,
-    []
-   ],
-   [
-    1,
     []
    ]
   ],
@@ -7120,33 +7070,6 @@
   "sites": {},
   "status": "agrees"
  },
- "0x4e0559": {
-  "body": 192,
-  "callees": {},
-  "directions": [
-   5,
-   6
-  ],
-  "frame": false,
-  "fs": false,
-  "imports": {},
-  "instructions": [
-   42,
-   43
-  ],
-  "seeds": [
-   [
-    0,
-    []
-   ],
-   [
-    1,
-    []
-   ]
-  ],
-  "sites": {},
-  "status": "agrees"
- },
  "0x4e0619": {
   "body": 131,
   "callees": {
@@ -8631,41 +8554,6 @@
    ],
    [
     1,
-    []
-   ]
-  ],
-  "sites": {},
-  "status": "agrees"
- },
- "0x4ef2d1": {
-  "body": 284,
-  "callees": {},
-  "directions": [
-   9,
-   20
-  ],
-  "frame": false,
-  "fs": false,
-  "imports": {},
-  "instructions": [
-   39,
-   69
-  ],
-  "seeds": [
-   [
-    0,
-    []
-   ],
-   [
-    1,
-    []
-   ],
-   [
-    2,
-    []
-   ],
-   [
-    5,
     []
    ]
   ],
@@ -10744,41 +10632,6 @@
   "seeds": [
    [
     0,
-    []
-   ],
-   [
-    2,
-    []
-   ]
-  ],
-  "sites": {},
-  "status": "agrees"
- },
- "0x4fb0bf": {
-  "body": 263,
-  "callees": {
-   "0x44a2b7": 0,
-   "0x4f6624": 8,
-   "0x50ca3e": 0
-  },
-  "directions": [
-   5,
-   8
-  ],
-  "frame": false,
-  "fs": false,
-  "imports": {},
-  "instructions": [
-   34,
-   63
-  ],
-  "seeds": [
-   [
-    0,
-    []
-   ],
-   [
-    1,
     []
    ],
    [
