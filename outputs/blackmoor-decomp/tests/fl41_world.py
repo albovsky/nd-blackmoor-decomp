@@ -175,6 +175,16 @@ def initial_state(row, seed):
     return regs, args, patches
 
 
+REG_OVERRIDE = 0xffff0000        # FL-62 (as FL-54 in fl40_world): an override at REG_OVERRIDE + 4 * index (eax ecx edx ebx esi edi ebp) sets that start register; the concolic generator uses it for `this` and the other start registers
+REG_NAMES = ('eax', 'ecx', 'edx', 'ebx', 'esi', 'edi', 'ebp')
+
+
+def apply_register_overrides(regs, overrides):
+    for address, size_, value in overrides:
+        if address >= REG_OVERRIDE:
+            regs[REG_NAMES[(address - REG_OVERRIDE) // 4]] = value & 0xffffffff
+
+
 STUB_WR = 0xffd00000       # FL-48: overrides at STUB_WR + 16*k (target address) and + 4 (value) make the k-th callee stub also store that dword (a callee may write any cell); both sides honour it
 STUB_OVR = 0xfff00000      # FL-45: an override at STUB_OVR + 16*k + {0, 4, 8} sets eax, ecx, edx that the k-th callee stub returns (instead of the seeded draw); both sides honour it
 
@@ -246,28 +256,29 @@ class Trace:
 # ---- the original, under Unicorn ----------------------------------------------------------------------------------------------------
 
 
-def run_original(row, seed, overrides=(), observe=False, probes=None):
+def run_original(row, seed, overrides=(), observe=False, probes=None, watch=None):
     """FL-48: collect the emulator's reference cycles after every run (a few hundred runs in one process used 13 GB and the container's OOM killer ended the mutation check)"""
     try:
-        return _run_original(row, seed, overrides, observe, probes)
+        return _run_original(row, seed, overrides, observe, probes, watch)
     finally:
         gc.collect()
 
 
-def _run_original(row, seed, overrides=(), observe=False, probes=None):
+def _run_original(row, seed, overrides=(), observe=False, probes=None, watch=None):
     overrides, stub_ovr = split_stub_overrides(overrides)
     import unicorn
     from unicorn import x86_const as X
     pe = od.load_image()
     va, size = row['va'], row['body']
     regs, args, patches = initial_state(row, seed)
+    apply_register_overrides(regs, overrides)
     magic = row['magic']
     uc = unicorn.Uc(unicorn.UC_ARCH_X86, unicorn.UC_MODE_32)
     image = bytearray(pe.image)
     for address, data in patches:
         image[address - IMAGE_BASE:address - IMAGE_BASE + len(data)] = data
     for address, size_, value in overrides:
-        if IMAGE_BASE <= address and address + size_ <= IMAGE_BASE + len(image):
+        if address < REG_OVERRIDE and IMAGE_BASE <= address and address + size_ <= IMAGE_BASE + len(image):
             image[address - IMAGE_BASE:address - IMAGE_BASE + size_] = (value & ((1 << (8 * size_)) - 1)).to_bytes(size_, 'little')
     stubs = {callee: (callee, cleanup) for callee, cleanup in row['callees'].items()}
     fpret = row.get('fpret') or {}        # FL-52: callees that leave a value in st(0) (+1) or take one off it (-1): the stub is a real instruction there
@@ -352,11 +363,12 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None):
 
     uc.hook_add(unicorn.UC_HOOK_CODE, count, begin=va, end=va + size - 1)
     if observe:
-        trace.reads, trace.events = [], []
+        trace.reads, trace.events, trace.read_pcs = [], [], []          # FL-62: read_pcs[k] is the address of the instruction that made reads[k]
         def seen_read(uc_, access, address, size_, value, user):
             ensure(address)
             ensure(address + size_ - 1)
             trace.reads.append((address, size_, int.from_bytes(bytes(uc.mem_read(address, size_)), 'little'), len(trace.writes)))
+            trace.read_pcs.append(uc.reg_read(X.UC_X86_REG_EIP))
 
         def seen_cmp(uc_, a, size_, decode):
             trace.events.append(decode(uc, a, len(trace.writes), ensure))
@@ -459,12 +471,16 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None):
     uc.reg_write(X.UC_X86_REG_ESP, sp)
     uc.reg_write(X.UC_X86_REG_EFLAGS, 2)
     for address, size_, value in overrides:
+        if address >= REG_OVERRIDE:
+            continue
         if not (IMAGE_BASE <= address and address + size_ <= IMAGE_BASE + len(image)):
             ensure(address)
             ensure(address + size_ - 1)
             uc.mem_write(address, (value & ((1 << (8 * size_)) - 1)).to_bytes(size_, 'little'))
         elif address >= DATA_START:                 # FL-48: a writable global may hold any value (code and constant tables below DATA_START stay as they are)
             uc.mem_write(address, (value & ((1 << (8 * size_)) - 1)).to_bytes(size_, 'little'))
+    if watch:
+        watch(uc, ensure, trace, sp)       # FL-62 (as FL-61 in fl40_world): the concolic generator hooks the run here
     at_end = []
     def span_end(uc_, address, size_, user):          # FL-58: a function that ends in a call that does not return (or a fragment with no `ret`) runs into the next function in the original; the run ends where the span ends
         at_end.append(address)
@@ -578,6 +594,7 @@ def run_native(lib, row, seed, overrides=()):
     overrides, stub_ovr = split_stub_overrides(overrides)
     va = row['va']
     regs, args, patches = initial_state(row, seed)
+    apply_register_overrides(regs, overrides)
     magic = row['magic']
     mem = Mem(seed, magic, patches)
     for k, (slot, _) in enumerate(sorted(row['imports'].items())):      # FL-58: the original reads the stub entry from an import slot (see _run_original); so does the translation, e.g. `mov esi, [slot]` / `call esi`
@@ -638,6 +655,8 @@ def run_native(lib, row, seed, overrides=()):
     for k, v in enumerate([STOP, *args]):
         mem.write(sp + 4 * k, 4, v)
     for address, size_, value in overrides:
+        if address >= REG_OVERRIDE:
+            continue
         if IMAGE_BASE <= address < DATA_START:          # FL-48: the original ignores an override of its code or constant tables, and so does the translation
             continue
         mem.write(address, size_, value)

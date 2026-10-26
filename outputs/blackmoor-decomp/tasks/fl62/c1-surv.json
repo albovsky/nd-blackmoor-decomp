@@ -1,0 +1,175 @@
+{
+ "rows_with_survivors": {
+  "0x4e8d72": [
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(eax + 0x6b1cu)), b_ = 0xffffffffu, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4e8d7c: cmp dword ptr [eax + 0x6b1c], -1 */",
+    9
+   ],
+   [
+    "drop",
+    "repeat",
+    "ecx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x4e8d85: mov ecx, dword ptr [ebp - 4] */",
+    11
+   ]
+  ],
+  "0x4d57e8": [
+   [
+    "drop",
+    "repeat",
+    "eax = RD32((uint32_t)(ebp + 0x8u));  /* 0x4d5817: mov eax, dword ptr [ebp + 8] */",
+    23
+   ],
+   [
+    "drop",
+    "repeat",
+    "ecx = RD32((uint32_t)(ebp + 0xcu));  /* 0x4d580c: mov ecx, dword ptr [ebp + 0xc] */",
+    19
+   ],
+   [
+    "drop",
+    "repeat",
+    "ecx = RD32((uint32_t)(ebp + 0xcu));  /* 0x4d581a: mov ecx, dword ptr [ebp + 0xc] */",
+    24
+   ],
+   [
+    "drop",
+    "repeat",
+    "eax = RD32((uint32_t)(ebp + 0x8u));  /* 0x4d5809: mov eax, dword ptr [ebp + 8] */",
+    18
+   ],
+   [
+    "drop",
+    "repeat",
+    "ecx = RD32((uint32_t)(ebp + 0xcu));  /* 0x4d57fe: mov ecx, dword ptr [ebp + 0xc] */",
+    14
+   ],
+   [
+    "drop",
+    "repeat",
+    "eax = RD32((uint32_t)(ebp + 0x8u));  /* 0x4d57fb: mov eax, dword ptr [ebp + 8] */",
+    13
+   ]
+  ],
+  "0x4ba262": [
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(eax + 0x34u)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4ba26c: cmp dword ptr [eax + 0x34], 0 */",
+    9
+   ],
+   [
+    "drop",
+    "repeat",
+    "ecx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x4ba279: mov ecx, dword ptr [ebp - 4] */",
+    14
+   ],
+   [
+    "drop",
+    "repeat",
+    "eax = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x4ba287: mov eax, dword ptr [ebp - 4] */",
+    18
+   ],
+   [
+    "jump",
+    "identical code",
+    "if (!zf) goto L_4ba279;  /* 0x4ba270: jne 0x4ba279 */",
+    10
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(eax + 0x34u)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4ba26c: cmp dword ptr [eax + 0x34], 0 */",
+    9
+   ]
+  ]
+ },
+ "unexplained_rows": [],
+ "mutants": {
+  "0x4e8d72": [
+   [
+    "register",
+    9,
+    "ccbaf492",
+    "identical code"
+   ],
+   [
+    "drop",
+    11,
+    "ca1a0022",
+    "repeat"
+   ]
+  ],
+  "0x4d57e8": [
+   [
+    "drop",
+    23,
+    "63e03588",
+    "repeat"
+   ],
+   [
+    "drop",
+    19,
+    "1807bee9",
+    "repeat"
+   ],
+   [
+    "drop",
+    24,
+    "4b314165",
+    "repeat"
+   ],
+   [
+    "drop",
+    18,
+    "739175b7",
+    "repeat"
+   ],
+   [
+    "drop",
+    14,
+    "f01885fb",
+    "repeat"
+   ],
+   [
+    "drop",
+    13,
+    "7cae18c4",
+    "repeat"
+   ]
+  ],
+  "0x4ba262": [
+   [
+    "alu",
+    9,
+    "de26dfb1",
+    "identical code"
+   ],
+   [
+    "drop",
+    14,
+    "206a2913",
+    "repeat"
+   ],
+   [
+    "drop",
+    18,
+    "2bc1e20a",
+    "repeat"
+   ],
+   [
+    "jump",
+    10,
+    "efa16aa5",
+    "identical code"
+   ],
+   [
+    "register",
+    9,
+    "e2cf7bf2",
+    "identical code"
+   ]
+  ]
+ }
+}

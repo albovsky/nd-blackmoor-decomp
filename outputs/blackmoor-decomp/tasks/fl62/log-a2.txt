@@ -1,0 +1,183 @@
+0x4ba262 runs 14 (faults 0) solved 7  instructions 31/31 directions 10/10 kept 6  1s
+  never run: 
+  untaken: []
+  unsupported: {} errors: {}
+0x4a1f59 runs 508 (faults 0) solved 7  instructions 40/40 directions 13/14 kept 7  13s
+  retry 1 with other fresh seeds
+0x4a1f59 runs 341 (faults 0) solved 7  instructions 40/40 directions 14/14 kept 8  8s
+  never run: 
+  untaken: []
+  unsupported: {} errors: {}
+0x4a1fd1 runs 12 (faults 0) solved 12  instructions 44/44 directions 6/6 kept 4  18s
+  never run: 
+  untaken: []
+  unsupported: {} errors: {}
+0x4e78c2 runs 19 (faults 0) solved 12  instructions 45/45 directions 16/16 kept 7  0s
+  never run: 
+  untaken: []
+  unsupported: {} errors: {}
+0x4eaca8 runs 14 (faults 0) solved 7  instructions 48/48 directions 8/8 kept 5  0s
+  never run: 
+  untaken: []
+  unsupported: {} errors: {}
+0x48ad26 runs 76 (faults 0) solved 74  instructions 64/64 directions 8/8 kept 6  10s
+  never run: 
+  untaken: []
+  unsupported: {} errors: {}
+0x4d3eba runs 12 (faults 0) solved 6  instructions 56/56 directions 8/8 kept 5  0s
+  never run: 
+  untaken: []
+  unsupported: {} errors: {}
+0x4ebd85 runs 18 (faults 0) solved 5  instructions 65/65 directions 10/10 kept 5  0s
+  never run: 
+  untaken: []
+  unsupported: {} errors: {}
+0x4a2069 runs 27 (faults 0) solved 80  instructions 98/98 directions 16/16 kept 7  1s
+  never run: 
+  untaken: []
+  unsupported: {} errors: {}
+0x4d4074 runs 15 (faults 0) solved 7  instructions 77/77 directions 16/16 kept 6  1s
+  never run: 
+  untaken: []
+  unsupported: {} errors: {}
+0x49173f runs 14 (faults 9) solved 9  instructions 58/92 directions 6/12 kept 2  155s
+  retry 1 with other fresh seeds
+0x49173f runs 15 (faults 9) solved 5  instructions 91/92 directions 11/12 kept 3  129s
+  retry 2 with other fresh seeds
+0x49173f runs 8 (faults 4) solved 1  instructions 91/92 directions 11/12 kept 3  137s
+  never run: 0x491847
+  untaken: [('0x491845', 'fall-through')]
+  unsupported: {'fstp': 67, 'fld': 67, 'fild': 43, 'fmul': 43, 'fadd': 24} errors: {}
+0x4a67f3 runs 25 (faults 0) solved 39  instructions 72/72 directions 14/14 kept 8  15s
+  never run: 
+  untaken: []
+  unsupported: {'fstp': 67, 'fld': 67, 'fild': 43, 'fmul': 43, 'fadd': 24} errors: {}
+0x4ec087 runs 60 (faults 0) solved 6  instructions 85/85 directions 18/18 kept 8  3s
+  never run: 
+  untaken: []
+  unsupported: {'fstp': 67, 'fld': 67, 'fild': 43, 'fmul': 43, 'fadd': 24} errors: {}
+0x4d0275 runs 10 (faults 0) solved 7  instructions 89/89 directions 4/4 kept 3  2s
+  never run: 
+  untaken: []
+  unsupported: {'fstp': 67, 'fld': 67, 'fild': 43, 'fmul': 43, 'fadd': 24} errors: {}
+0x4e8bb4 runs 371 (faults 0) solved 18  instructions 96/99 directions 15/18 kept 5  120s
+  retry 1 with other fresh seeds
+0x4e8bb4 runs 407 (faults 0) solved 18  instructions 96/99 directions 15/18 kept 5  120s
+  retry 2 with other fresh seeds
+0x4e8bb4 runs 391 (faults 0) solved 18  instructions 96/99 directions 15/18 kept 5  120s
+  never run: 0x4e8bec 0x4e8bf3 0x4e8bf6
+  untaken: [('0x4e8bea', 'fall-through'), ('0x4e8bf6', 'taken'), ('0x4e8bf6', 'fall-through')]
+  unsupported: {'fstp': 67, 'fld': 67, 'fild': 43, 'fmul': 43, 'fadd': 24} errors: {}
+0x49581a runs 15 (faults 0) solved 14  instructions 124/124 directions 12/12 kept 3  46s
+  never run: 
+  untaken: []
+  unsupported: {'fstp': 67, 'fld': 67, 'fild': 43, 'fmul': 43, 'fadd': 24} errors: {}
+0x4e386e runs 522 (faults 0) solved 677  instructions 103/107 directions 13/14 kept 7  56s
+  retry 1 with other fresh seeds
+0x4e386e runs 508 (faults 0) solved 610  instructions 103/107 directions 13/14 kept 7  54s
+  retry 2 with other fresh seeds
+0x4e386e runs 508 (faults 0) solved 566  instructions 103/107 directions 13/14 kept 7  50s
+  never run: 0x4e38ef 0x4e38f4 0x4e38f9 0x4e38fc
+  untaken: [('0x4e38e4', 'taken')]
+  unsupported: {'fstp': 67, 'fld': 67, 'fild': 43, 'fmul': 43, 'fadd': 24} errors: {}
+0x4a42c0 runs 14 (faults 0) solved 19  instructions 95/95 directions 8/8 kept 5  1s
+  never run: 
+  untaken: []
+  unsupported: {'fstp': 67, 'fld': 67, 'fild': 43, 'fmul': 43, 'fadd': 24} errors: {}
+0x4e3cd7 runs 506 (faults 0) solved 519  instructions 121/121 directions 5/6 kept 5  50s
+  retry 1 with other fresh seeds
+0x4e3cd7 runs 506 (faults 0) solved 516  instructions 121/121 directions 5/6 kept 5  70s
+  retry 2 with other fresh seeds
+0x4e3cd7 runs 506 (faults 0) solved 521  instructions 121/121 directions 5/6 kept 5  70s
+  never run: 
+  untaken: [('0x4e3d8f', 'taken')]
+  unsupported: {'fstp': 67, 'fld': 67, 'fild': 43, 'fmul': 43, 'fadd': 24} errors: {}
+0x4e26fc runs 520 (faults 0) solved 698  instructions 142/146 directions 37/38 kept 19  87s
+  retry 1 with other fresh seeds
+0x4e26fc runs 520 (faults 0) solved 695  instructions 142/146 directions 37/38 kept 19  86s
+  retry 2 with other fresh seeds
+0x4e26fc runs 520 (faults 0) solved 692  instructions 142/146 directions 37/38 kept 19  81s
+  never run: 0x4e2833 0x4e2838 0x4e283d 0x4e2840
+  untaken: [('0x4e2828', 'taken')]
+  unsupported: {'fstp': 67, 'fld': 67, 'fild': 43, 'fmul': 43, 'fadd': 24} errors: {}
+0x4c6c2a runs 18 (faults 3) solved 19  instructions 169/173 directions 9/14 kept 4  424s
+  retry 1 with other fresh seeds
+0x4c6c2a runs 1 (faults 0) solved 2  instructions 65/173 directions 2/14 kept 1  309s
+  retry 2 with other fresh seeds
+0x4c6c2a runs 22 (faults 1) solved 12  instructions 173/173 directions 14/14 kept 7  16s
+  never run: 
+  untaken: []
+  unsupported: {'fstp': 67, 'fld': 67, 'fild': 43, 'fmul': 43, 'fadd': 24} errors: {}
+0x4a0ec3 runs 28 (faults 11) solved 7  instructions 142/154 directions 11/12 kept 3  128s
+  retry 1 with other fresh seeds
+0x4a0ec3 runs 73 (faults 7) solved 7  instructions 142/154 directions 11/12 kept 3  121s
+  retry 2 with other fresh seeds
+0x4a0ec3 runs 50 (faults 7) solved 7  instructions 142/154 directions 11/12 kept 3  120s
+  never run: 0x4a0f39 0x4a0f3c 0x4a0f3d 0x4a0f42 0x4a0f47 0x4a0f4c 0x4a0f4f 0x4a0f51 0x4a0f53 0x4a0f58 0x4a0f5d 0x4a0f62
+  untaken: [('0x4a0f37', 'fall-through')]
+  unsupported: {'fstp': 67, 'fld': 67, 'fild': 43, 'fmul': 43, 'fadd': 24} errors: {}
+0x4ec1fb runs 484 (faults 0) solved 505  instructions 168/168 directions 24/24 kept 11  107s
+  never run: 
+  untaken: []
+  unsupported: {'fstp': 67, 'fld': 67, 'fild': 43, 'fmul': 43, 'fadd': 24} errors: {}
+0x4ced84 runs 31 (faults 0) solved 30  instructions 146/146 directions 24/24 kept 13  4s
+  never run: 
+  untaken: []
+  unsupported: {'fstp': 67, 'fld': 67, 'fild': 43, 'fmul': 43, 'fadd': 24} errors: {}
+0x4889f0 runs 23 (faults 0) solved 30  instructions 132/176 directions 9/10 kept 7  127s
+  retry 1 with other fresh seeds
+0x4889f0 runs 25 (faults 0) solved 30  instructions 132/176 directions 9/10 kept 7  130s
+  retry 2 with other fresh seeds
+0x4889f0 runs 25 (faults 0) solved 30  instructions 132/176 directions 9/10 kept 7  125s
+  never run: 0x488bd8 0x488bdc 0x488be0 0x488bfa 0x488bfe 0x488c01 0x488c04 0x488c0b 0x488c11 0x488c14 0x488c18 0x488c1b 0x488c1e 0x488c25 0x488c2b 0x488c2e 0x488c32 0x488c35 0x488c38 0x488c3f 0x488c45 0x488c48 0x488c4c 0x488c4f 0x488c52 0x488c59 0x488c5f 0x488c62 0x488c67 0x488c6a 0x488c6b 0x488c6f 0x488c72 0x488c75 0x488c7c 0x488c7d 0x488c83 0x488c84 0x488c8b 0x488c8e 0x488c94 0x488c95 0x488c9a 0x488c9f
+  untaken: [('0x488bf4', 'fall-through')]
+  unsupported: {'fstp': 67, 'fld': 67, 'fild': 43, 'fmul': 43, 'fadd': 24} errors: {}
+0x4e94c1 runs 375 (faults 0) solved 19  instructions 168/170 directions 25/26 kept 10  120s
+  retry 1 with other fresh seeds
+0x4e94c1 runs 483 (faults 0) solved 19  instructions 168/170 directions 25/26 kept 10  120s
+  retry 2 with other fresh seeds
+0x4e94c1 runs 511 (faults 0) solved 19  instructions 168/170 directions 25/26 kept 10  106s
+  never run: 0x4e9591 0x4e9594
+  untaken: [('0x4e953e', 'taken')]
+  unsupported: {'fstp': 67, 'fld': 67, 'fild': 43, 'fmul': 43, 'fadd': 24} errors: {}
+0x4a9b2b runs 31 (faults 1) solved 28  instructions 173/173 directions 20/20 kept 9  39s
+  never run: 
+  untaken: []
+  unsupported: {'fstp': 67, 'fld': 67, 'fild': 43, 'fmul': 43, 'fadd': 24} errors: {}
+0x4ae683 runs 31 (faults 4) solved 53  instructions 250/250 directions 38/38 kept 18  75s
+  never run: 
+  untaken: []
+  unsupported: {'fstp': 67, 'fld': 67, 'fild': 43, 'fmul': 43, 'fadd': 24} errors: {}
+0x4e467f runs 115 (faults 0) solved 2  instructions 32/201 directions 8/30 kept 4  5s
+  retry 1 with other fresh seeds
+0x4e467f runs 167 (faults 0) solved 2  instructions 32/201 directions 8/30 kept 4  8s
+  retry 2 with other fresh seeds
+0x4e467f runs 136 (faults 0) solved 2  instructions 32/201 directions 8/30 kept 4  6s
+  never run: 0x4e46be 0x4e46c2 0x4e46c6 0x4e46f5 0x4e46f7 0x4e46fa 0x4e4701 0x4e4704 0x4e470a 0x4e470d 0x4e4714 0x4e471a 0x4e471c 0x4e471f 0x4e4724 0x4e4725 0x4e4728 0x4e472e 0x4e4731 0x4e4733 0x4e4735 0x4e4737 0x4e473a 0x4e473d 0x4e4740 0x4e4743 0x4e4746 0x4e4749 0x4e474c 0x4e4753 0x4e4754 0x4e4757 0x4e475c 0x4e475f 0x4e4766 0x4e4769 0x4e4770 0x4e4772 0x4e4775 0x4e477c 0x4e477f 0x4e4786 0x4e4789 0x4e478c 0x4e4793 0x4e4796 0x4e479c 0x4e479e 0x4e47a0 0x4e47a3 0x4e47a6 0x4e47aa 0x4e47ae 0x4e47b1 0x4e47b4 0x4e47b9 0x4e47bc 0x4e47c3 0x4e47c9 0x4e47cc 0x4e47d1 0x4e47d4 0x4e47da 0x4e47dc 0x4e47de 0x4e47e1 0x4e47e4 0x4e47e7 0x4e47ea 0x4e47ed 0x4e47f0 0x4e47f3 0x4e47fd 0x4e4803 0x4e4808 0x4e480b 0x4e4811 0x4e4818 0x4e481a 0x4e481d 0x4e4824 0x4e4827 0x4e482e 0x4e4830 0x4e4833 0x4e4839 0x4e483a 0x4e483d 0x4e4843 0x4e4844 0x4e4847 0x4e484c 0x4e4851 0x4e4857 0x4e485d 0x4e485f 0x4e4863 0x4e4867 0x4e486b 0x4e486f 0x4e4872 0x4e4879 0x4e487c 0x4e4883 0x4e4885 0x4e4888 0x4e488f 0x4e4891 0x4e4893 0x4e4895 0x4e4899 0x4e489c 0x4e48a3 0x4e48a5 0x4e48a9 0x4e48ad 0x4e48b1 0x4e48b5 0x4e48b8 0x4e48bf 0x4e48c2 0x4e48c9 0x4e48cb 0x4e48cd 0x4e48cf 0x4e48d1 0x4e48d3 0x4e48d7 0x4e48da 0x4e48df 0x4e48e0 0x4e48e3 0x4e48e9 0x4e48ea 0x4e48ed 0x4e48f2 0x4e48f7 0x4e48fa 0x4e4901 0x4e4907 0x4e490c 0x4e490e 0x4e4910 0x4e4913 0x4e491a 0x4e491d 0x4e4924 0x4e4926 0x4e4929 0x4e4930 0x4e4931 0x4e4934 0x4e4939 0x4e493c 0x4e4943 0x4e4946 0x4e494d 0x4e494f 0x4e4952 0x4e4959 0x4e495c 0x4e495e 0x4e4961 0x4e4968 0x4e496b 0x4e4972 0x4e4974 0x4e4977 0x4e497e
+  untaken: [('0x4e46d1', 'taken'), ('0x4e46ee', 'taken'), ('0x4e4704', 'taken'), ('0x4e4704', 'fall-through'), ('0x4e4714', 'taken'), ('0x4e4714', 'fall-through'), ('0x4e47c3', 'taken'), ('0x4e47c3', 'fall-through'), ('0x4e4818', 'taken'), ('0x4e4818', 'fall-through'), ('0x4e4893', 'taken'), ('0x4e4893', 'fall-through'), ('0x4e48a3', 'taken'), ('0x4e48a3', 'fall-through'), ('0x4e48cd', 'taken'), ('0x4e48cd', 'fall-through'), ('0x4e4901', 'taken'), ('0x4e4901', 'fall-through'), ('0x4e490e', 'taken'), ('0x4e490e', 'fall-through'), ('0x4e495c', 'taken'), ('0x4e495c', 'fall-through')]
+  unsupported: {'fstp': 67, 'fld': 67, 'fild': 43, 'fmul': 43, 'fadd': 24} errors: {}
+0x4e7e15 runs 252 (faults 0) solved 262  instructions 173/173 directions 16/16 kept 4  80s
+  never run: 
+  untaken: []
+  unsupported: {'fstp': 67, 'fld': 67, 'fild': 43, 'fmul': 43, 'fadd': 24} errors: {}
+0x4c8408 runs 25 (faults 2) solved 38  instructions 307/307 directions 38/38 kept 14  32s
+  never run: 
+  untaken: []
+  unsupported: {'fstp': 67, 'fld': 67, 'fild': 43, 'fmul': 43, 'fadd': 24} errors: {}
+0x4c334f runs 19 (faults 3) solved 2  instructions 251/253 directions 16/18 kept 5  144s
+  retry 1 with other fresh seeds
+0x4c334f runs 20 (faults 3) solved 2  instructions 251/253 directions 16/18 kept 5  264s
+  retry 2 with other fresh seeds
+0x4c334f runs 1 (faults 0) solved 2  instructions 166/253 directions 9/18 kept 1  141s
+  never run: 0x4c33c5 0x4c33ca 0x4c33cf 0x4c33d4 0x4c33d7 0x4c33fd 0x4c34aa 0x4c34ad 0x4c34b0 0x4c34bf 0x4c34c2 0x4c34c5 0x4c34c8 0x4c34cc 0x4c34cf 0x4c34d4 0x4c34d7 0x4c34da 0x4c34dd 0x4c34e0 0x4c34e6 0x4c34e9 0x4c34ec 0x4c34ef 0x4c34f2 0x4c34f8 0x4c34fb 0x4c34fe 0x4c3501 0x4c3504 0x4c3507 0x4c350a 0x4c350d 0x4c3510 0x4c3513 0x4c3516 0x4c3519 0x4c351c 0x4c351f 0x4c3522 0x4c3524 0x4c3527 0x4c352a 0x4c352d 0x4c3530 0x4c3533 0x4c3536 0x4c3538 0x4c353b 0x4c353e 0x4c3541 0x4c3544 0x4c3547 0x4c354a 0x4c354c 0x4c354f 0x4c3552 0x4c3555 0x4c356d 0x4c3571 0x4c3575 0x4c3579 0x4c357c 0x4c357f 0x4c358a 0x4c358d 0x4c3590 0x4c3594 0x4c3597 0x4c3599 0x4c359d 0x4c35a1 0x4c35a4 0x4c35a7 0x4c35a9 0x4c35ab 0x4c35ae 0x4c35b0 0x4c35b2 0x4c35b5 0x4c35b7 0x4c35f4 0x4c3699 0x4c369b 0x4c36a4 0x4c36a6 0x4c36a8
+  untaken: [('0x4c33c3', 'fall-through'), ('0x4c33fb', 'fall-through'), ('0x4c34b9', 'fall-through'), ('0x4c3588', 'fall-through'), ('0x4c35f2', 'fall-through'), ('0x4c363b', 'taken'), ('0x4c364d', 'taken'), ('0x4c3672', 'taken'), ('0x4c3697', 'fall-through')]
+  unsupported: {'fstp': 67, 'fld': 67, 'fild': 43, 'fmul': 43, 'fadd': 24} errors: {}
+  MISMATCH original vs translation on seed 5 overrides []
+0x4b5d17 runs 134 (faults 0) solved 12  instructions 137/246 directions 26/50 kept 9  122s
+  retry 1 with other fresh seeds
+0x4b5d17 runs 178 (faults 0) solved 10  instructions 137/246 directions 26/50 kept 9  120s
+  retry 2 with other fresh seeds
+0x4b5d17 runs 156 (faults 0) solved 10  instructions 137/246 directions 26/50 kept 9  121s
+  never run: 0x4b5eb1 0x4b5eb8 0x4b5eba 0x4b5ebd 0x4b5ec0 0x4b5ec3 0x4b5ec6 0x4b5eca 0x4b5ecd 0x4b5ed3 0x4b5ed7 0x4b5eda 0x4b5edd 0x4b5ee0 0x4b5ee4 0x4b5eea 0x4b5eee 0x4b5ef1 0x4b5ef4 0x4b5ef7 0x4b5efb 0x4b5f01 0x4b5f05 0x4b5f08 0x4b5f0b 0x4b5f0e 0x4b5f12 0x4b5f18 0x4b5f1c 0x4b5f1f 0x4b5f22 0x4b5f25 0x4b5f29 0x4b5f2f 0x4b5f32 0x4b5f35 0x4b5f3d 0x4b5f3f 0x4b5f45 0x4b5f48 0x4b5f4b 0x4b5f53 0x4b5f55 0x4b5f57 0x4b5f5a 0x4b5f5d 0x4b5f60 0x4b5f64 0x4b5f65 0x4b5f67 0x4b5f6a 0x4b5f6d 0x4b5f75 0x4b5f76 0x4b5f7a 0x4b5f7b 0x4b5f7e 0x4b5f83 0x4b5f85 0x4b5f88 0x4b5f8b 0x4b5f8e 0x4b5f92 0x4b5f93 0x4b5f96 0x4b5f9d 0x4b5fa0 0x4b5fa1 0x4b5fa4 0x4b5fa7 0x4b5faf 0x4b5fb0 0x4b5fb4 0x4b5fb5 0x4b5fb8 0x4b5fbd 0x4b5fc0 0x4b5fc7 0x4b5fcb 0x4b5fce 0x4b5fd1 0x4b5fd4 0x4b5fdb 0x4b5fdd 0x4b5fe1 0x4b5fe4 0x4b5fe7 0x4b5fea 0x4b5ff1 0x4b5ff3 0x4b5ff7 0x4b5ffa 0x4b5ffd 0x4b6000 0x4b6007 0x4b6009 0x4b600d 0x4b6010 0x4b6013 0x4b6016 0x4b601d 0x4b601f 0x4b6023 0x4b6024 0x4b6029 0x4b602c 0x4b6031 0x4b6036 0x4b6038
+  untaken: [('0x4b5d59', 'taken'), ('0x4b5d88', 'taken'), ('0x4b5ecd', 'taken'), ('0x4b5ecd', 'fall-through'), ('0x4b5ee4', 'taken'), ('0x4b5ee4', 'fall-through'), ('0x4b5efb', 'taken'), ('0x4b5efb', 'fall-through'), ('0x4b5f12', 'taken'), ('0x4b5f12', 'fall-through'), ('0x4b5f29', 'taken'), ('0x4b5f29', 'fall-through'), ('0x4b5f3f', 'taken'), ('0x4b5f3f', 'fall-through'), ('0x4b5f55', 'taken'), ('0x4b5f55', 'fall-through'), ('0x4b5fdb', 'taken'), ('0x4b5fdb', 'fall-through'), ('0x4b5ff1', 'taken'), ('0x4b5ff1', 'fall-through'), ('0x4b6007', 'taken'), ('0x4b6007', 'fall-through'), ('0x4b601d', 'taken'), ('0x4b601d', 'fall-through')]
+  unsupported: {'fstp': 67, 'fld': 67, 'fild': 43, 'fmul': 43, 'fadd': 24} errors: {}

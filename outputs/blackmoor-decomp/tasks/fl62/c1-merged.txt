@@ -1,0 +1,3 @@
+0x4e8d72 mutants 35 killed 33 survivors [('register', 9, 'survives', 'ccbaf492'), ('drop', 11, 'survives', 'ca1a0022')]
+0x4d57e8 mutants 90 killed 84 survivors [('drop', 23, 'survives', '63e03588'), ('drop', 19, 'survives', '1807bee9'), ('drop', 24, 'survives', '4b314165'), ('drop', 18, 'survives', '739175b7'), ('drop', 14, 'survives', 'f01885fb'), ('drop', 13, 'survives', '7cae18c4')]
+0x4ba262 mutants 95 killed 90 survivors [('alu', 9, 'survives', 'de26dfb1'), ('drop', 14, 'survives', '206a2913'), ('drop', 18, 'survives', '2bc1e20a'), ('jump', 10, 'survives', 'efa16aa5'), ('register', 9, 'survives', 'e2cf7bf2')]

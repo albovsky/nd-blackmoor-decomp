@@ -1,0 +1,1 @@
+0x4ba262 mutants 95 killed 90 survivors [('alu', 9, 'survives', 'de26dfb1'), ('drop', 14, 'survives', '206a2913'), ('drop', 18, 'survives', '2bc1e20a'), ('jump', 10, 'survives', 'efa16aa5'), ('register', 9, 'survives', 'e2cf7bf2')]

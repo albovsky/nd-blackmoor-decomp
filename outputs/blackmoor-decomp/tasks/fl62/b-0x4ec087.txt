@@ -1,0 +1,2 @@
+0x4ec087 mutants killed by the step budget [('literal', 28, '4998f69b')]
+0x4ec087 mutants 1 killed 1 survivors []

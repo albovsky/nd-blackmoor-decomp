@@ -1,0 +1,27 @@
+{
+ "0x40105e": {
+  "status": "setup failed: Unsupported"
+ },
+ "0x45eadc": {
+  "directions": [
+   5,
+   6
+  ],
+  "instructions": [
+   43,
+   43
+  ],
+  "mismatch": [],
+  "missing": [],
+  "runs": 36,
+  "scenarios": 2,
+  "seconds": 127,
+  "status": "incomplete",
+  "untaken": [
+   [
+    "0x45eb61",
+    "fall-through"
+   ]
+  ]
+ }
+}
