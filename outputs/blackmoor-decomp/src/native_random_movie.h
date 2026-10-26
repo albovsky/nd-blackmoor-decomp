@@ -32,7 +32,8 @@ typedef struct NativeRandomMovieFrame {
 } NativeRandomMovieFrame;
 
 /* All int results use zero for success, nonzero for failure. create leaves
- * *out NULL on failure. game_directory is an absolute local directory path.
+ * *out NULL on failure. game_directory is an existing absolute or relative
+ * local directory, resolved once without changing the process directory.
  * Required host callbacks are copied; their context must outlive the owner. */
 int native_random_movie_create(const char *game_directory,
     const NativeRandomMovieHost *host, NativeRandomMovie **out);
@@ -50,8 +51,8 @@ int native_random_movie_validate_set(NativeRandomMovie *media, const D2Set *set)
 /* state is read-only, used by STREAM_RESET to select name_159/kind_21a.
  * Op results follow D2Op's original conventions, including BINK_OPEN's zero
  * success and PREPARE's nonzero success. Unsupported AVF/thread ops fail.
- * STREAM_RESET really opens the selected stream synchronously. The binding
- * MUST call load_stream immediately after STREAM_RESET and BINK_RELEASE so
+ * STREAM_RESET really opens the selected stream synchronously. The engine
+ * op host MUST refresh load_stream immediately after STREAM_RESET and BINK_RELEASE so
  * the kernel sees its host-owned metadata in the same call, without a cast. */
 int native_random_movie_op(NativeRandomMovie *media, const D2Object *state,
     int op, const D2OpArgs *args, int32_t *ret);

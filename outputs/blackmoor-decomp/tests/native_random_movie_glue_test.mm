@@ -8,6 +8,7 @@
 #include NATIVE_RANDOM_MOVIE_APP_SOURCE
 #undef main
 #include <csignal>
+#include <filesystem>
 
 #define CHECK(condition, message) do { if (!(condition)) { \
     std::fprintf(stderr, "CHECK failed: %s\n", message); return 1; } } while (0)
@@ -373,6 +374,10 @@ static int corpus_metadata(RandomMovieFixture &f)
         CHECK(set.mode_word == 1 && set.entry_count == (which == 2u ? 9 : 40) && set.group_count == 1 &&
               native_random_movie_validate_set(f.app.a2d_media, &set) == 0,
               "every actual set passes the real silent-Bink metadata preflight");
+        const int32_t expected_rect[4] = {0, 0, 619, 374};
+        CHECK(set.groups[0].key == 0 && std::equal(std::begin(expected_rect), std::end(expected_rect), set.groups[0].src) &&
+              std::equal(std::begin(expected_rect), std::end(expected_rect), set.groups[0].dst),
+              "all3 actual groups use the same full620x375 source/destination bounds before the BOOT view offset");
         size_t records = 0;
         for (int i = 0; i < set.entry_count; ++i) {
             const D2Entry &entry = set.entries[i];
@@ -436,6 +441,20 @@ static int unsupported_preflight(RandomMovieFixture &f)
     const auto flags = f.app.new_game.event_flags;
     std::array<uint8_t, sizeof(f.app.condition_rand)> rng{};
     std::memcpy(rng.data(), &f.app.condition_rand, rng.size());
+    std::error_code path_error;
+    const auto current = std::filesystem::current_path(path_error);
+    CHECK(!path_error, "relative-path component obtains the current directory without changing it");
+    const auto relative = std::filesystem::relative(std::filesystem::path(f.app.game_directory), current, path_error);
+    CHECK(!path_error && !relative.empty() && relative.is_relative(), "actual game directory has a valid relative spelling");
+    NativeRandomMovieHost host{&f.app, native_a35_clock, native_a2d_tick, native_a2d_random};
+    NativeRandomMovie *relative_raw = nullptr;
+    const int relative_status = native_random_movie_create(relative.string().c_str(), &host, &relative_raw);
+    std::unique_ptr<NativeRandomMovie, decltype(&native_random_movie_destroy)> relative_media(relative_raw, &native_random_movie_destroy);
+    MovieSet actual;
+    std::printf("RANDOM_MOVIE_RELATIVE create_status=%d\n", relative_status);
+    CHECK(relative_status == 0 && actual.load(&f.app, 4408, 0u) &&
+          native_random_movie_validate_set(relative_media.get(), &actual.set) == 0 && std::filesystem::current_path(path_error) == current && !path_error,
+          "relative actual game path creates a media owner and preflights the original set without process-wide chdir");
     const std::string audio_name = "EXT_OpnCin_ANIM", avf_name = avf_background_name(&f.app);
     const std::string audio_path = movie_asset(f.app.game_directory, audio_name, "bik");
     const std::string avf_path = movie_asset(f.app.game_directory, avf_name, "avf");
@@ -461,7 +480,6 @@ static int unsupported_preflight(RandomMovieFixture &f)
     ScratchMovieDirectory scratch;
     CHECK(scratch.create() && scratch.link(audio_path, "HDVideo/fixture.BIK") && scratch.link(silent_path, "CDVideo/fixture.bik"),
           "private priority fixture links valid original assets without copying or changing their bytes");
-    NativeRandomMovieHost host{&f.app, native_a35_clock, native_a2d_tick, native_a2d_random};
     NativeRandomMovie *raw = nullptr;
     CHECK(native_random_movie_create(scratch.root.c_str(), &host, &raw) == 0, "private metadata-only media owner initializes");
     std::unique_ptr<NativeRandomMovie, decltype(&native_random_movie_destroy)> media(raw, &native_random_movie_destroy);
@@ -475,6 +493,73 @@ static int unsupported_preflight(RandomMovieFixture &f)
           session_a2d_object(f.app.a2d)->movie.active && !f.app.failure,
           "unsupported metadata and priority queries preserve live copied pixels, stream/controller, RNG and story state");
     std::printf("RANDOM_MOVIE_PREFLIGHT audio_refused=1 avf_refused=1 bounds_refused=1 HD_BIK_before_CD_BIK=1 CD_BIK_before_HD_AVF=1 live_unchanged=1\n");
+    return 0;
+}
+
+static int active_transition_refusal(RandomMovieFixture &f)
+{
+    CHECK(f.start(), "actual active AA movie exists before the unsupported non-stopping transition");
+    Action0bPayload payload{};
+    CHECK(session_a0b_payload(f.app.a0b, 1u, &payload) == 0 && payload.target == 1100,
+          "the transition request uses actual S4408 row1's original1100 tuple");
+    SceneTransitionRequest request{};
+    request.target_scene = payload.target;
+    request.opaque_words[0] = payload.word_04; request.opaque_words[1] = payload.word_06; request.opaque_words[2] = payload.word_08;
+    request.opaque_dwords[0] = payload.dword_0a; request.opaque_dwords[1] = payload.dword_0e; request.opaque_dwords[2] = payload.dword_12;
+    auto bytes = [](const auto &value) {
+        std::array<uint8_t, sizeof(value)> copy{};
+        std::memcpy(copy.data(), &value, copy.size()); return copy;
+    };
+    const auto object = bytes(*session_a2d_object(f.app.a2d));
+    const auto world = bytes(*session_a2d_world(f.app.a2d));
+    const auto input = bytes(f.app.input_state);
+    const auto nav = bytes(f.app.nav);
+    const auto rng = bytes(f.app.condition_rand);
+    const auto view = bytes(f.app.new_game.view);
+    const auto exit = bytes(f.app.exit_state);
+    const auto flags = f.app.new_game.event_flags, opaque = f.app.new_game.opaque_state;
+    const auto visits = f.app.new_game.scene_visits;
+    const auto art = f.app.scene_frame;
+    const auto framebuffer = f.app.framebuffer, backbuffer = f.app.captions.backbuffer_pixels;
+    const auto caption_globals = bytes(f.app.captions.writer_globals);
+    const auto caption_state = bytes(f.app.captions.lifecycle.g);
+    SceneResource *const resource = f.app.scene, *const retired = f.app.retired_scene;
+    SceneSession *const session = f.app.session;
+    BinkPlayer *const video = f.app.video, *const nav_player = f.app.nav_player;
+    const auto generation = scene_session_scene_generation(session), ticks = scene_session_tick_count(session);
+    const auto video_path = f.app.scene_video_path;
+    const int scene_id = f.app.current_scene_id, scene_frame = f.app.scene_current_frame;
+    const bool has_frame = f.app.has_scene_frame, nav_ready = f.app.nav_scene_ready;
+    const D2Set *const set = session_a2d_object(f.app.a2d)->set;
+    const uint32_t surface = session_a2d_object(f.app.a2d)->surface_212;
+    MoviePixels before{}, after{};
+    CHECK(copied_movie_frame(f, &before), "active transition snapshots owned movie pixels");
+    /* Direct boundary component: no row phase, event, pending transition or
+     * callback is fabricated. Its original tuple must be refused before the
+     * ordinary clear/load path, leaving the source scene able to continue. */
+    const bool transitioned = perform_session_transition(&f.app, request, f.now);
+    CHECK(!transitioned && f.app.scene == resource && f.app.retired_scene == retired && f.app.session == session &&
+          f.app.current_scene_id == scene_id && scene_session_scene_generation(session) == generation && scene_session_tick_count(session) == ticks &&
+          session_a2d_object(f.app.a2d)->set == set && session_a2d_object(f.app.a2d)->surface_212 == surface &&
+          bytes(*session_a2d_object(f.app.a2d)) == object && bytes(*session_a2d_world(f.app.a2d)) == world &&
+          bytes(f.app.input_state) == input && bytes(f.app.nav) == nav && bytes(f.app.condition_rand) == rng &&
+          bytes(f.app.new_game.view) == view && bytes(f.app.exit_state) == exit && f.app.new_game.event_flags == flags &&
+          f.app.new_game.opaque_state == opaque && f.app.new_game.scene_visits == visits &&
+          f.app.video == video && f.app.nav_player == nav_player && f.app.scene_video_path == video_path &&
+          f.app.scene_current_frame == scene_frame && f.app.has_scene_frame == has_frame && f.app.nav_scene_ready == nav_ready &&
+          f.app.scene_frame.width == art.width && f.app.scene_frame.height == art.height && f.app.scene_frame.frame_index == art.frame_index &&
+          f.app.scene_frame.rgba == art.rgba && f.app.framebuffer == framebuffer && f.app.captions.backbuffer_pixels == backbuffer &&
+          bytes(f.app.captions.writer_globals) == caption_globals && bytes(f.app.captions.lifecycle.g) == caption_state &&
+          copied_movie_frame(f, &after) && after.generation == before.generation && after.rgba == before.rgba && !f.app.failure,
+          "active non-stopping transition refuses before clear/load/replace and preserves scene, movie, world, input, navigation and art");
+    SceneActionRuntimeState row{};
+    SceneActionInfo action{};
+    CHECK(f.row0(&row) && row.phase == 1u && row.completed == 0u &&
+          scene_resource_action_at(f.app.scene, 0u, &action) == SCENE_RESOURCE_OK && action.type == SESSION_A2D_TYPE &&
+          session_a0b_payload(f.app.a0b, 1u, &payload) == 0 && payload.target == 1100 &&
+          f.tick(3200u) && copied_movie_frame(f, &after) && after.frame == 1,
+          "refused transition leaves original rows and real movie decoder usable for the next ordinary update");
+    std::printf("RANDOM_MOVIE_ACTIVE_TRANSITION target=1100 refused_before_clear=1 source_scene=4408 next_real_frame=1\n");
     return 0;
 }
 static void fixture_signal(int number)
@@ -499,6 +584,7 @@ int main(int argc, char **argv)
         if (std::strcmp(argv[3], "stop") == 0) return bottom_stop_reentry(fixture);
         if (std::strcmp(argv[3], "corpus") == 0) return corpus_metadata(fixture);
         if (std::strcmp(argv[3], "preflight") == 0) return unsupported_preflight(fixture);
+        if (std::strcmp(argv[3], "active-transition") == 0) return active_transition_refusal(fixture);
         return 2;
     }
 }

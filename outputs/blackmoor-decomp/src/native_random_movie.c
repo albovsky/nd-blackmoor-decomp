@@ -272,18 +272,25 @@ int native_random_movie_create(const char *directory,
     const NativeRandomMovieHost *host, NativeRandomMovie **out)
 {
     NativeRandomMovie *m;
+    char *resolved;
     struct stat info;
     size_t length = 0u;
     if (out != NULL) *out = NULL;
-    if (out == NULL || directory == NULL || directory[0] != '/' || host == NULL ||
+    if (out == NULL || directory == NULL || directory[0] == '\0' || host == NULL ||
         host->clock_ns == NULL || host->tick_ms == NULL || host->next_random == NULL) return 1;
     while (length < MOVIE_MAX_PATH && directory[length] != '\0') ++length;
-    if (length == MOVIE_MAX_PATH || stat(directory, &info) != 0 || !S_ISDIR(info.st_mode)) return 1;
+    if (length == MOVIE_MAX_PATH) return 1;
+    /* --game-dir also accepts relative local paths. Keep an absolute owned
+     * path for file-only probes without changing the process directory. */
+    resolved = realpath(directory, NULL);
+    if (resolved == NULL) return 1;
+    if (strlen(resolved) >= MOVIE_MAX_PATH || stat(resolved, &info) != 0 || !S_ISDIR(info.st_mode)) {
+        free(resolved);
+        return 1;
+    }
     m = calloc(1u, sizeof(*m));
-    if (m == NULL) return 1;
-    m->directory = malloc(length + 1u);
-    if (m->directory == NULL) { free(m); return 1; }
-    memcpy(m->directory, directory, length + 1u);
+    if (m == NULL) { free(resolved); return 1; }
+    m->directory = resolved;
     m->host = *host;
     m->next_handle = 1u;
     m->current_frame = -1;

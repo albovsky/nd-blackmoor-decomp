@@ -11260,10 +11260,11 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
     if (session_a44_begin_scene(app->a44, app->scene) != 0) {
         record(app, "scene_a44_begin_blocker detail=%s", session_a44_failure(app->a44));
     }
-    /* RT-36: parse of the scene's raw 0x2d row (the object is destroyed and its render entry registered once, at creation,
-     * as the original does at world init). A failure leaves the 0x2d row unowned (it reports the blocker). */
+    /* The singleton and render entry are created once at world init. Never
+     * run new scene rows against a refused load's old random-movie tables. */
     if (session_a2d_begin_scene(app->a2d, app->scene) != 0) {
         record(app, "scene_a2d_begin_blocker detail=%s", session_a2d_failure(app->a2d));
+        return false;
     }
     /* RT-46: the 0x33 part of the scene clear (latch 0x5c39f1, row/kind words, surfaces) and the parse of the scene's raw 0x33 rows. A failure leaves the
      * 0x33 rows unowned (they report the blocker). */
@@ -13767,6 +13768,16 @@ static bool perform_session_transition(NativeApp *app,
         return false;
     }
     const int16_t source = app->current_scene_id;
+    const D2Object *random_movie = session_a2d_object(app->a2d);
+    if (random_movie != nullptr && random_movie->movie.active != 0) {
+        /* Both normal and NO_ART loads can retain original D2/ACT slots.
+         * Until that ownership exists here, refuse before ANY scene clear,
+         * media close or table replacement. A raw2e stop permits the load. */
+        record(app, "scene_transition_error source=%d target=%d "
+               "detail=active-random-movie-retention-unimplemented before_clear=1",
+               source, transition.target_scene);
+        return false;
+    }
     record(app, "scene_audio_policy source=%d target=%d continuation=%u load_reset=none "
            "fresh_reset=state-2-MSND-and-0..13 dialogue-object-cleanup=unbound",
            source, transition.target_scene,
