@@ -1,0 +1,13 @@
+0x45e4d4 mutants 4 killed 0 survivors [('width', 28, 'survives'), ('width', 17, 'survives'), ('width', 30, 'survives'), ('width', 15, 'survives')]
+0x44ecaf mutants 4 killed 0 survivors [('width', 72, 'survives'), ('width', 20, 'survives'), ('width', 22, 'survives'), ('width', 70, 'survives')]
+0x47409e mutants 1 killed 0 survivors [('width', 11, 'survives')]
+0x46c41e mutants 7 killed 0 survivors [('width', 92, 'survives'), ('width', 94, 'survives'), ('width', 51, 'survives'), ('width', 123, 'survives'), ('width', 24, 'survives'), ('width', 125, 'survives'), ('width', 49, 'survives')]
+0x459ddc mutants 2 killed 0 survivors [('width', 16, 'survives'), ('width', 18, 'survives')]
+0x465f8e mutants 2 killed 0 survivors [('width', 39, 'survives'), ('width', 37, 'survives')]
+0x464ab5 mutants 6 killed 0 survivors [('width', 58, 'survives'), ('width', 78, 'survives'), ('width', 76, 'survives'), ('width', 17, 'survives'), ('width', 60, 'survives'), ('width', 15, 'survives')]
+0x4691ee mutants 2 killed 0 survivors [('width', 12, 'survives'), ('width', 14, 'survives')]
+0x479f72 mutants 4 killed 0 survivors [('width', 17, 'survives'), ('width', 32, 'survives'), ('width', 30, 'survives'), ('width', 15, 'survives')]
+0x4554bb mutants 6 killed 0 survivors [('width', 58, 'survives'), ('width', 76, 'survives'), ('width', 15, 'survives'), ('width', 78, 'survives'), ('width', 60, 'survives'), ('width', 17, 'survives')]
+0x45741d mutants 4 killed 0 survivors [('width', 17, 'survives'), ('width', 32, 'survives'), ('width', 30, 'survives'), ('width', 15, 'survives')]
+0x45879e mutants 2 killed 0 survivors [('width', 55, 'survives'), ('width', 53, 'survives')]
+TOTAL mutants 44 killed 0 rows with a survivor 12

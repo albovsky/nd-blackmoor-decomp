@@ -72,5 +72,29 @@ class GeneratorOnRealRows(unittest.TestCase):
         self.assertTrue(res['kept'])
 
 
+class ForwardedStoreRule(unittest.TestCase):
+    """FL-62's rule as ported to scripts/fl40_survivors.py: a narrower read of a global right after a store of a small constant to it"""
+    @classmethod
+    def setUpClass(cls):
+        import fl40_survivors
+        cls.S = fl40_survivors
+
+    def lines(self, *body):
+        return ['    ' + b for b in body]
+
+    def test_applies_after_a_small_constant_store(self):
+        L = self.lines('WR32((uint32_t)(0x5b44f0u), 0x9u);  /* a */', 'WR32((uint32_t)(0x5b44f4u), 0x1u);  /* b */', 'edx = RD32((uint32_t)(0x5b44f0u));  /* c */')
+        self.assertTrue(self.S.forwarded_store_ok(L, 2))
+
+    def test_refuses_what_could_change_the_cell(self):
+        read = 'edx = RD32((uint32_t)(0x5b44f0u));  /* c */'
+        store = 'WR32((uint32_t)(0x5b44f0u), 0x9u);  /* a */'
+        for between in ('FL40_CALL(0x401000u);', 'L_401000:', 'WR8((uint32_t)(0x5b44f2u), 0x1u);', 'WR32((uint32_t)(ecx), 0x1u);', 'WR32((uint32_t)(ebp + 0x4u), 0x1u);'):
+            self.assertFalse(self.S.forwarded_store_ok(self.lines(store, between, read), 2), between)
+        self.assertFalse(self.S.forwarded_store_ok(self.lines('WR32((uint32_t)(0x5b44f0u), 0x10000u);  /* a */', read), 1))          # the constant does not fit the narrow read
+        self.assertFalse(self.S.forwarded_store_ok(self.lines('WR32((uint32_t)(0x5b44f0u), 0x9u);  /* a */', 'WR16((uint32_t)(0x5b44f0u), 0x9u);', read), 2))
+        self.assertFalse(self.S.forwarded_store_ok(self.lines(read), 0))                  # no store at all
+
+
 if __name__ == '__main__':
     unittest.main()

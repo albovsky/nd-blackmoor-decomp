@@ -138,6 +138,7 @@ class Run:
         self.inputs = {}             # name -> (var, concrete value, kind, address or register)
         self.path = []               # [(kind, address, cond, taken-info)] in order; kinds: br, ptr, sw
         self.pending = None
+        self.cmps = []               # [(path length when it ran, address, a, b, size)] of every cmp/sub/sbb with a symbolic operand: the goals of compare_children
         self.ncalls = 0
         self.steps = 0
         self.tainted = False
@@ -587,6 +588,8 @@ class Run:
         if kind in ('adc', 'sbb'):
             f = self.flag('CF')
             cin = int(f) if isinstance(f, bool) else z3.If(f, z3.BitVecVal(1, 8 * s), z3.BitVecVal(0, 8 * s))
+        if kind in ('cmp', 'sub', 'sbb') and (sym(a) or sym(b)):
+            self.cmps.append((len(self.path), ins.address, E(a, s), E(b, s), s))
         res = self.alu(kind, a, b, s, cin)
         if write:
             self.write_op(ins, 0, res)
@@ -1261,6 +1264,70 @@ def explore(rowobj, seeds, budget_s=300, max_runs=2000, fresh_seeds=0, check_nat
     return dict(kept=kept, instructions=(got, total), directions=(taken, dirs), missing=missing, untaken=untaken, mismatch=mismatch, runs=runs, executed=ex, edges=ed)
 
 
+CMP_DELTAS = (0, 1, -1)
+CMP_PER_ADDRESS = 3
+CMP_CAP = 90
+
+
+def compare_children(run, ov, solver_ms):
+    """FL-61 boundary goals: for every compare that ran on an input, the model of the path up to it plus `a == b`, `a == b + 1`, `a == b - 1`. A mutant that turns a compare into its
+    neighbour (the borrow flipped, a greater-than into greater-or-equal) differs only where the two operands are equal or one apart, which a coverage search never asks for."""
+    _var_cache.clear()
+    by_index = collections.defaultdict(list)
+    count = collections.Counter()
+    for idx, at, a, b, s in run.cmps:
+        if count[at] < CMP_PER_ADDRESS:
+            count[at] += 1
+            by_index[idx].append((at, a, b, s))
+    sl = Slices()
+    out = []
+
+    def goals(idx):
+        for at, a, b, s in by_index.get(idx, ()):
+            for d in CMP_DELTAS:
+                if len(out) >= CMP_CAP:
+                    return
+                goal = a == (b + z3.BitVecVal(d & MASK[s], 8 * s))
+                model = solve(run, sl.group(goal), goal, solver_ms)
+                if model is not None:
+                    out.append(model_overrides(run, model, ov))
+    for idx, (kind, at, cond, info) in enumerate(run.path):
+        goals(idx)
+        sl.add(cond if kind != 'sw' else cond == z3.BitVecVal(info[1], 32))
+    goals(len(run.path))
+    return out
+
+
+def compare_scenarios(rowobj, seeds, budget_s=300, per_seed=CMP_CAP, log=print, solver_ms=3000):
+    """Scenarios that make the operands of the row's compares equal or one apart, from the paths of `seeds`; only ones the original runs to the end and the translation agrees on."""
+    row = rowobj.info
+    t0 = time.time()
+    seen = {key_of(*s) for s in seeds}
+    kept = []
+    queue = collections.deque(seeds)
+    generated = 0
+    while queue and time.time() - t0 < budget_s:
+        seed, ov = queue.popleft()
+        tr, run = trace_scenario(rowobj, seed, ov)
+        if tr.fault:
+            continue
+        for child in compare_children(run, ov, solver_ms)[:per_seed]:
+            generated += 1
+            key = key_of(seed, child)
+            if key in seen:
+                continue
+            seen.add(key)
+            tr2 = W.run_original(row, seed, [tuple(o) for o in child])
+            if tr2.fault:
+                continue
+            n = W.run_native(rowobj.native_lib(), row, seed, [tuple(o) for o in child])
+            if n.fault or n.digest() != tr2.digest():
+                continue
+            kept.append([seed, child])
+    log('%s compare goals: %d children, %d valid  %.0fs' % (rowobj.key, generated, len(kept), time.time() - t0))
+    return kept
+
+
 def starting_seeds(key):
     pending = json.loads((PROJECT / 'tests/fl40_pending.json').read_text()).get(key, {}).get('seeds', [])
     corpus = json.loads((PROJECT / 'tests/fl40_corpus.json').read_text()).get(key, {}).get('seeds', [])
@@ -1287,6 +1354,8 @@ def main():
     ap.add_argument('--report', help='JSON {row: coverage report}')
     ap.add_argument('--skip-reports', default='', help='comma-separated report files: rows they list as complete or skipped are not searched again')
     ap.add_argument('--selfcheck', action='store_true')
+    ap.add_argument('--cmp-goals', help='write compare-boundary scenarios of each row (operands equal or one apart) to this JSON instead of searching for coverage')
+    ap.add_argument('--cmp-seeds', type=int, default=12, help='with --cmp-goals: how many of the row\'s scenarios to start from')
     ap.add_argument('--debug', action='store_true')
     a = ap.parse_args()
     DEBUG = a.debug
@@ -1301,6 +1370,16 @@ def main():
             if v['status'] == 'complete' or v['status'].startswith('skipped') or v['status'].startswith('setup'):
                 done.add(k)
     keys = [k for k in keys if k not in done][i::n]
+    if a.cmp_goals:
+        res = json.loads(Path(a.cmp_goals).read_text()) if Path(a.cmp_goals).exists() else {}
+        for key in keys:
+            if key in res:
+                continue
+            rowobj = Row(key)
+            seeds = [tuple(x) for x in starting_seeds(key)][:a.cmp_seeds]
+            res[key] = compare_scenarios(rowobj, seeds, budget_s=a.budget_s)
+            Path(a.cmp_goals).write_text(json.dumps(res))
+        return
     out = json.loads(Path(a.out).read_text()) if a.out and Path(a.out).exists() else {}
     report = json.loads(Path(a.report).read_text()) if a.report and Path(a.report).exists() else {}
     for key in keys:

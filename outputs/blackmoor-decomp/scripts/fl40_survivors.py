@@ -9,6 +9,7 @@ A survivor is explained only when one of these holds for the mutated statement; 
                    equals which frame slot; a reload of a register that equals the slot on every path to it changes nothing. A call kills eax, ecx, edx; a function that takes
                    the address of a frame slot, or addresses its frame through esp, kills all slot facts at every call and every store through a register
   cleanup          the bytes a played callee pops after a call (`esp += n`) when the next statement that touches esp is `esp = ebp` on straight-line code
+  forwarded store  (FL-62) the narrower read of a global right after a store of a small constant to it on the same straight line
   frame            `ebp = esp` / `esp = ebp` where nothing reads ebp between that statement and the next `esp = ebp`, or a `sub esp, N` whose next esp-touching statement is `esp = ebp`
 The earlier "local width" class (a narrower read of a frame local that the corpus never shows) is NOT an equivalence and is gone: those rows stay pending.
 
@@ -326,6 +327,49 @@ def flow_ok(row, lines, n):
     return _FLOW[key]
 
 
+ABS_READ = re.compile(r'\bRD(16|32)\(\(uint32_t\)\((0x[0-9a-f]+)u\)\)')
+HOST_CALL = re.compile(r'h->')
+
+
+def forwarded_store_ok(lines, n):
+    """FL-62 (ported from scripts/fl41_survivors.py global_forward_ok): the width mutant of a line `reg = RDw((uint32_t)(0xADDRu))` that reads a global with the narrower width, where the nearest earlier
+    statement that touches memory is `WRw((uint32_t)(0xADDRu), 0xCu)` on the same straight line (no label in between, so no other way in) with C below 2^narrow width: the cell holds C on every
+    path to the read, so the narrower read returns the same value. Between the store and the read there may be no call and only stores to other absolute addresses that do not overlap the cell
+    (or pushes through esp); a conditional jump out of the line is fine. The mutated line must be a plain load: exactly one RD call, no store, so that the one narrowing mutant is the only width mutant."""
+    t0 = stmt(lines[n])
+    if len(re.findall(r'\bRD\d+\(', t0)) != 1 or re.search(r'\bWR\d+\(', t0) or BARRIER.search(t0) or HOST_CALL.search(t0):
+        return False
+    m = ABS_READ.search(t0)
+    if not m:
+        return False
+    wa, addr = int(m.group(1)), int(m.group(2), 16)
+    wb = 16 if wa == 32 else 8
+    if re.search(r'\bWR\d+\(', t0[:m.start()]):
+        return False
+    for j in range(n - 1, -1, -1):
+        t = stmt(lines[j])
+        if not t:
+            continue
+        s = re.match(r'^WR%d\(\(uint32_t\)\(%su\), (0x[0-9a-f]+)u\);' % (wa, re.escape(m.group(2))), t)
+        if s and not re.search(r'\bWR\d+\(', t[s.end():]) and not BARRIER.search(t[s.end():]):
+            return int(s.group(1), 16) < (1 << wb)
+        if re.match(r'^if \(.*\) goto L_[0-9a-f]+;$', t) and not re.search(r'\bWR\d+\(', t):
+            continue
+        if BARRIER.search(t) or HOST_CALL.search(t) or re.search(r'\bWR\d+\(\(uint32_t\)\((?!0x)', t):
+            return False
+        for w in re.finditer(r'\bWR(\d+)\(([^,]*),', t):
+            width, target = int(w.group(1)) // 8, w.group(2)
+            if target == 'esp':
+                continue
+            a = re.match(r'^\(uint32_t\)\((0x[0-9a-f]+)u\)$', target)
+            if not a:
+                return False
+            other = int(a.group(1), 16)
+            if other < addr + wa // 8 and addr < other + width:
+                return False
+    return False
+
+
 def classify(kind, lines, n, equivalent, row=None):
     if equivalent:
         return 'identical code'
@@ -337,6 +381,8 @@ def classify(kind, lines, n, equivalent, row=None):
         return 'masked read'
     if kind == 'width' and row and range_ok(row, lines, n):
         return 'range'
+    if kind == 'width' and forwarded_store_ok(lines, n):
+        return 'forwarded store'
     if kind == 'drop' and (same_value(lines, n) or available_copy_ok(lines, n)):
         return 'same value'
     if kind == 'literal' and cleanup_ok(lines, n):
