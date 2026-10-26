@@ -1,0 +1,18 @@
+{
+ "0x4e0559": [
+  {
+   "id": "A-83.1:f8cb510255f8d3f2",
+   "rationale": "The item says only that the host effects of 0x4e0559 (called from the action 0x83 runtime) are unverified at the app level: a gap in how the app drives this function, not in the function itself. Here its own instructions and every jump direction run in the oracle and match the translation, with callees as recording stubs."
+  },
+  {
+   "id": "RT-12:79b00fe99647ea8b",
+   "rationale": "The item says the action 0x83 family always passes active=1, so the active=0 branch is not reached by that caller: a gap in the caller's coverage. Here both directions of that branch run in the oracle (all jump directions covered) and match the translation, with callees as recording stubs."
+  }
+ ],
+ "0x4ef2d1": [
+  {
+   "id": "RT-22:8e70fcc0b86b44cf",
+   "rationale": "The item says the tab lists, paging, scroll floats, keyboard arrows and the frame control around 0x4ef2d1 are not modelled in the app: a gap in the app's UI model around the caller, not in this function. Here its own instructions and every jump direction run in the oracle and match the translation, with callees as recording stubs."
+  }
+ ]
+}

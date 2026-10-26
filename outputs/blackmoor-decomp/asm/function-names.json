@@ -2,14 +2,14 @@
  "schema": "blackmoor-function-names/1",
  "note": "Names that committed evidence already states for assembly functions; every other source keeps the machine name fn_<va>. Written and checked by scripts/function_names.py; read by scripts/annotate_machine.py and scripts/audit_tool_assisted.py. A name is not a claim that the function is understood beyond its summary, and nothing here claims original C++ or compiler provenance.",
  "counts": {
-  "entries": 3038,
-  "native_port": 1961,
+  "entries": 3042,
+  "native_port": 1966,
   "parity_rule": 1,
   "ghidra_name": 83,
   "ghidra_funclet": 570,
   "structural": 258,
   "inferred_prose": 74,
-  "inferred_strings": 76,
+  "inferred_strings": 75,
   "inferred_import": 15
  },
  "entries": [
@@ -15409,6 +15409,18 @@
    }
   },
   {
+   "va": "0x00495536",
+   "name": "m495536_lifted",
+   "basis": "native_port",
+   "summary": "Machine-translated (scripts/lift_fl41.py), 4 seeds; oracle: 76/76 instructions, 6/6 jump directions; every mutant killed, identical -O2 code, or explained.",
+   "source": "native port src/original_methods_fl41.c:m495536_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl41.c",
+    "symbol": "m495536_lifted",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
    "va": "0x00495608",
    "name": "m495608_check_object",
    "basis": "native_port",
@@ -16182,6 +16194,18 @@
    "native_source": {
     "path": "src/original_methods_fl24a.c",
     "symbol": "m4a6574_hit_test",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
+   "va": "0x004a67f3",
+   "name": "m4a67f3_lifted",
+   "basis": "native_port",
+   "summary": "Machine-translated (scripts/lift_fl41.py), 15 seeds; oracle: 72/72 instructions, 14/14 jump directions; every mutant killed, identical -O2 code, or explained.",
+   "source": "native port src/original_methods_fl41.c:m4a67f3_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl41.c",
+    "symbol": "m4a67f3_lifted",
     "class": "native_oracle_verified"
    }
   },
@@ -22742,6 +22766,18 @@
    }
   },
   {
+   "va": "0x004e0559",
+   "name": "m4e0559_lifted",
+   "basis": "native_port",
+   "summary": "Machine-translated (scripts/lift_fl41.py), 3 seeds; oracle: 43/43 instructions, 6/6 jump directions; every mutant killed, identical -O2 code, or explained.",
+   "source": "native port src/original_methods_fl41.c:m4e0559_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl41.c",
+    "symbol": "m4e0559_lifted",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
    "va": "0x004e069c",
    "name": "m4e069c_copy_in",
    "basis": "native_port",
@@ -24738,6 +24774,18 @@
    ]
   },
   {
+   "va": "0x004ef2d1",
+   "name": "m4ef2d1_lifted",
+   "basis": "native_port",
+   "summary": "Machine-translated (scripts/lift_fl41.py), 31 seeds; oracle: 69/69 instructions, 20/20 jump directions; every mutant killed, identical -O2 code, or explained.",
+   "source": "native port src/original_methods_fl41.c:m4ef2d1_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl41.c",
+    "symbol": "m4ef2d1_lifted",
+    "class": "native_oracle_verified"
+   }
+  },
+  {
    "va": "0x004ef3ed",
    "name": "m4ef3ed_lifted",
    "basis": "native_port",
@@ -25620,19 +25668,15 @@
   },
   {
    "va": "0x004fb0bf",
-   "name": "inferred_sound_restore_channel",
-   "basis": "inferred_strings",
-   "confidence": "low",
-   "summary": "Restores a saved channel by resuming it and clearing the saved flag; logs CSound::RestoreChannel.",
-   "source": "INFERRED (lower confidence, not verified): Ghidra's pseudocode of this function (unverified-pseudocode/4fb0bf.c.txt, not original source) refers to the data labelled s_CSound__RestoreChannel_____chann_005606b4",
-   "evidence": [
-    {
-     "path": "unverified-pseudocode/4fb0bf.c.txt",
-     "strings": [
-      "s_CSound__RestoreChannel_____chann_005606b4"
-     ]
-    }
-   ]
+   "name": "m4fb0bf_lifted",
+   "basis": "native_port",
+   "summary": "Machine-translated (scripts/lift_fl41.py), 11 seeds; oracle: 63/63 instructions, 8/8 jump directions; every mutant killed, identical -O2 code, or explained.",
+   "source": "native port src/original_methods_fl41.c:m4fb0bf_lifted (port_acceptances, ledger class native_oracle_verified, reviewed 2026-10-22); the note is the acceptance note, a statement about the native port",
+   "native_source": {
+    "path": "src/original_methods_fl41.c",
+    "symbol": "m4fb0bf_lifted",
+    "class": "native_oracle_verified"
+   }
   },
   {
    "va": "0x004fb2a6",

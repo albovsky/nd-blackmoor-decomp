@@ -67225,6 +67225,147 @@
    },
    "parts_accounted": [],
    "note": "Machine-translated from the original instructions (scripts/lift_function.py); 11 seeds; oracle 82/82 instructions, 12/12 jump directions; mutation survivors: tasks/fl40-survivors.json."
+  },
+  {
+   "va": "0x495536",
+   "class": "native_oracle_verified",
+   "reviewer": "FL-65: cell, flag and unobserved-bit rules; sweep clean; Sonnet review",
+   "date": "2026-10-22",
+   "native_source": {
+    "path": "src/original_methods_fl41.c",
+    "symbol": "m495536_lifted"
+   },
+   "tests": [
+    {
+     "path": "tests/test_fl41_differential.py",
+     "test_id": "Fl41Differential.test_495536_lifted"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl41_original_oracle.py",
+    "window": [
+     "0x495536",
+     "0x495608"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Machine-translated (scripts/lift_fl41.py), 4 seeds; oracle: 76/76 instructions, 6/6 jump directions; every mutant killed, identical -O2 code, or explained."
+  },
+  {
+   "va": "0x4a67f3",
+   "class": "native_oracle_verified",
+   "reviewer": "FL-65: cell, flag and unobserved-bit rules; sweep clean; Sonnet review",
+   "date": "2026-10-22",
+   "native_source": {
+    "path": "src/original_methods_fl41.c",
+    "symbol": "m4a67f3_lifted"
+   },
+   "tests": [
+    {
+     "path": "tests/test_fl41_differential.py",
+     "test_id": "Fl41Differential.test_4a67f3_lifted"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl41_original_oracle.py",
+    "window": [
+     "0x4a67f3",
+     "0x4a6946"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Machine-translated (scripts/lift_fl41.py), 15 seeds; oracle: 72/72 instructions, 14/14 jump directions; every mutant killed, identical -O2 code, or explained."
+  },
+  {
+   "va": "0x4e0559",
+   "class": "native_oracle_verified",
+   "reviewer": "FL-65: cell, flag and unobserved-bit rules; sweep clean; Sonnet review",
+   "date": "2026-10-22",
+   "native_source": {
+    "path": "src/original_methods_fl41.c",
+    "symbol": "m4e0559_lifted"
+   },
+   "tests": [
+    {
+     "path": "tests/test_fl41_differential.py",
+     "test_id": "Fl41Differential.test_4e0559_lifted"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl41_original_oracle.py",
+    "window": [
+     "0x4e0559",
+     "0x4e0619"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Machine-translated (scripts/lift_fl41.py), 3 seeds; oracle: 43/43 instructions, 6/6 jump directions; every mutant killed, identical -O2 code, or explained.",
+   "blockers_reviewed": [
+    {
+     "id": "A-83.1:f8cb510255f8d3f2",
+     "rationale": "The item says only that the host effects of 0x4e0559 (called from the action 0x83 runtime) are unverified at the app level: a gap in how the app drives this function, not in the function itself. Here its own instructions and every jump direction run in the oracle and match the translation, with callees as recording stubs."
+    },
+    {
+     "id": "RT-12:79b00fe99647ea8b",
+     "rationale": "The item says the action 0x83 family always passes active=1, so the active=0 branch is not reached by that caller: a gap in the caller's coverage. Here both directions of that branch run in the oracle (all jump directions covered) and match the translation, with callees as recording stubs."
+    }
+   ]
+  },
+  {
+   "va": "0x4ef2d1",
+   "class": "native_oracle_verified",
+   "reviewer": "FL-65: cell, flag and unobserved-bit rules; sweep clean; Sonnet review",
+   "date": "2026-10-22",
+   "native_source": {
+    "path": "src/original_methods_fl41.c",
+    "symbol": "m4ef2d1_lifted"
+   },
+   "tests": [
+    {
+     "path": "tests/test_fl41_differential.py",
+     "test_id": "Fl41Differential.test_4ef2d1_lifted"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl41_original_oracle.py",
+    "window": [
+     "0x4ef2d1",
+     "0x4ef3ed"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Machine-translated (scripts/lift_fl41.py), 31 seeds; oracle: 69/69 instructions, 20/20 jump directions; every mutant killed, identical -O2 code, or explained.",
+   "blockers_reviewed": [
+    {
+     "id": "RT-22:8e70fcc0b86b44cf",
+     "rationale": "The item says the tab lists, paging, scroll floats, keyboard arrows and the frame control around 0x4ef2d1 are not modelled in the app: a gap in the app's UI model around the caller, not in this function. Here its own instructions and every jump direction run in the oracle and match the translation, with callees as recording stubs."
+    }
+   ]
+  },
+  {
+   "va": "0x4fb0bf",
+   "class": "native_oracle_verified",
+   "reviewer": "FL-65: cell, flag and unobserved-bit rules; sweep clean; Sonnet review",
+   "date": "2026-10-22",
+   "native_source": {
+    "path": "src/original_methods_fl41.c",
+    "symbol": "m4fb0bf_lifted"
+   },
+   "tests": [
+    {
+     "path": "tests/test_fl41_differential.py",
+     "test_id": "Fl41Differential.test_4fb0bf_lifted"
+    }
+   ],
+   "oracle": {
+    "path": "tests/fl41_original_oracle.py",
+    "window": [
+     "0x4fb0bf",
+     "0x4fb1c6"
+    ]
+   },
+   "parts_accounted": [],
+   "note": "Machine-translated (scripts/lift_fl41.py), 11 seeds; oracle: 63/63 instructions, 8/8 jump directions; every mutant killed, identical -O2 code, or explained."
   }
  ],
  "not_needed_entries": [
