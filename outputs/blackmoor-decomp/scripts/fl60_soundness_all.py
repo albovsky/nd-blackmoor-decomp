@@ -5,7 +5,7 @@
 
 A mutant that a rule (any class but `written reason`; `identical code` is not asked here either) calls harmless is UNSOUND when a real run killed it with the seeds of the corpus. The real runs are all lines
 `ROW mutants N killed K survivors [...]` of tasks/*.txt and tasks/fl52/*.txt with N equal to the number of compiling mutants of the row today (the same translation text); of those the run with the fewest
-survivors is used, and a mutant listed in a `killed by a hang or crash` line of any run is never counted as killed (a hang kill is not a seed kill). Rows without such a run are reported.
+survivors is used, and a mutant listed in a `killed by a hang or crash` line of that same run's file is never counted as killed (a hang kill is not a seed kill). Rows without such a run are reported.
 """
 import ast
 import json
@@ -35,7 +35,7 @@ def main():
             m = HANG.match(line)
             if m:
                 try:
-                    hung.setdefault(m.group(1), set()).update(x[2] for x in ast.literal_eval(m.group(2)))
+                    hung.setdefault((m.group(1), f.name), set()).update(x[2] for x in ast.literal_eval(m.group(2)))
                 except Exception:
                     pass
     bad, claimed, norun = [], 0, []
@@ -50,7 +50,7 @@ def main():
             if cls is None or cls == 'written reason':
                 continue
             claimed += 1
-            if ident not in best[2] and ident not in hung.get(row, ()):
+            if ident not in best[2] and ident not in hung.get((row, best[1]), ()):
                 bad.append((row, kind, n, ident, cls, best[1]))
     print('rows %d; mutants a rule calls harmless: %d; killed by a real seed run: %d; rows without a matching run: %d' % (len(classes), claimed, len(bad), len(norun)))
     for b in bad:

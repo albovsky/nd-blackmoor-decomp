@@ -94,5 +94,11 @@
   ]
  ],
  "killed_note": "tasks/fl41-mutation-log.txt (FL-41, first harness) lists these 7 as killed; rerun with the current harness and corpus (FL48_ONLY) all 7 survive, so no seed of the current corpus contradicts their rules",
- "demoted": []
+ "demoted": [],
+ "final_tree_rerun": {
+  "rows": 160,
+  "mutants_a_rule_calls_harmless": 1973,
+  "killed_by_a_real_seed_run": 7,
+  "note": "rerun on the final tree by the reviewer: the same 7 as above, none new from the 3 rows credited in FL-60"
+ }
 }
