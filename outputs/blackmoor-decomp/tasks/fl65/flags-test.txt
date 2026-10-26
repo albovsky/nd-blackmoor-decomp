@@ -1,0 +1,1 @@
+rows checked 131, skipped 59, flag tuples checked 100993, rows with a violation 0

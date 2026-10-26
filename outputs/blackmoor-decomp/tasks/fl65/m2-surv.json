@@ -1,0 +1,335 @@
+{
+ "rows_with_survivors": {
+  "0x4a67f3": [
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xfffffff4u)), b_ = 0x276fu, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4a687b: cmp dword ptr [ebp - 0xc], 0x276f */",
+    32
+   ],
+   [
+    "jump",
+    "identical code",
+    "if (zf) goto L_4a68bf;  /* 0x4a68b1: je 0x4a68bf */",
+    47
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(edx + 0x21u)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4a6931: cmp dword ptr [edx + 0x21], 0 */",
+    76
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xfffffff4u)), b_ = 0x2771u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4a6884: cmp dword ptr [ebp - 0xc], 0x2771 */",
+    34
+   ],
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = ecx, b_ = ecx, r_; r_ = a_ & b_; FL41_LOGIC(r_, 32); }  /* 0x4a68af: test ecx, ecx */",
+    46
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xfffffff4u)), b_ = 0x2772u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4a688d: cmp dword ptr [ebp - 0xc], 0x2772 */",
+    36
+   ],
+   [
+    "register",
+    "frame",
+    "{ uint32_t a_ = esp, b_ = 0xcu, r_; FL41_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4a67f6: sub esp, 0xc */",
+    6
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = eax, b_ = 0x2770u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4a6816: cmp eax, 0x2770 */",
+    14
+   ],
+   [
+    "alu",
+    "frame",
+    "{ uint32_t a_ = esp, b_ = 0xcu, r_; FL41_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4a67f6: sub esp, 0xc */",
+    6
+   ],
+   [
+    "width",
+    "forwarded store",
+    "eax = RD32((uint32_t)(0x5b44f4u));  /* 0x4a6846: mov eax, dword ptr [0x5b44f4] */",
+    22
+   ],
+   [
+    "jump",
+    "identical code",
+    "if (zf) goto L_4a68e6;  /* 0x4a68d8: je 0x4a68e6 */",
+    59
+   ],
+   [
+    "literal",
+    "identical code",
+    "ecx = (ecx & 0xffffff00u) | ((RD8((uint32_t)(eax + 0x2ceu))) & 0xffu);  /* 0x4a68a9: mov cl, byte ptr [eax + 0x2ce] */",
+    45
+   ],
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = eax, b_ = eax, r_; r_ = a_ & b_; FL41_LOGIC(r_, 32); }  /* 0x4a68d6: test eax, eax */",
+    58
+   ],
+   [
+    "width",
+    "flags",
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xfffffff4u)), b_ = 0x2772u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4a688d: cmp dword ptr [ebp - 0xc], 0x2772 */",
+    36
+   ],
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = RD32((uint32_t)(edx + 0x21u)), b_ = 0x0u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4a6931: cmp dword ptr [edx + 0x21], 0 */",
+    76
+   ],
+   [
+    "jump",
+    "identical code",
+    "if (zf) goto L_4a68e6;  /* 0x4a68d8: je 0x4a68e6 */",
+    59
+   ],
+   [
+    "jump",
+    "identical code",
+    "if (!zf) goto L_4a6940;  /* 0x4a6935: jne 0x4a6940 */",
+    77
+   ],
+   [
+    "jump",
+    "identical code",
+    "if (zf) goto L_4a68bf;  /* 0x4a68b1: je 0x4a68bf */",
+    47
+   ],
+   [
+    "width",
+    "masked read",
+    "eax = (eax & 0xffffff00u) | ((RD8((uint32_t)(edx + 0x2ceu))) & 0xffu);  /* 0x4a68d0: mov al, byte ptr [edx + 0x2ce] */",
+    57
+   ],
+   [
+    "width",
+    "flags",
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xfffffff4u)), b_ = 0x2771u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4a6884: cmp dword ptr [ebp - 0xc], 0x2771 */",
+    34
+   ],
+   [
+    "width",
+    "forwarded store",
+    "edx = RD32((uint32_t)(0x5b44f0u));  /* 0x4a683d: mov edx, dword ptr [0x5b44f0] */",
+    20
+   ],
+   [
+    "width",
+    "flags",
+    "{ uint32_t a_ = RD32((uint32_t)(ebp + 0xfffffff4u)), b_ = 0x276fu, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4a687b: cmp dword ptr [ebp - 0xc], 0x276f */",
+    32
+   ],
+   [
+    "width",
+    "masked read",
+    "ecx = (ecx & 0xffffff00u) | ((RD8((uint32_t)(eax + 0x2ceu))) & 0xffu);  /* 0x4a68a9: mov cl, byte ptr [eax + 0x2ce] */",
+    45
+   ],
+   [
+    "drop",
+    "dead",
+    "{ uint32_t a_ = esp, b_ = 0xcu, r_; FL41_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4a67f6: sub esp, 0xc */",
+    6
+   ],
+   [
+    "literal",
+    "frame",
+    "{ uint32_t a_ = esp, b_ = 0xcu, r_; FL41_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4a67f6: sub esp, 0xc */",
+    6
+   ],
+   [
+    "literal",
+    "identical code",
+    "eax = (eax & 0xffffff00u) | ((RD8((uint32_t)(edx + 0x2ceu))) & 0xffu);  /* 0x4a68d0: mov al, byte ptr [edx + 0x2ce] */",
+    57
+   ],
+   [
+    "literal",
+    "frame",
+    "{ uint32_t a_ = esp, b_ = 0xcu, r_; FL41_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4a67f6: sub esp, 0xc */",
+    6
+   ]
+  ]
+ },
+ "unexplained_rows": [],
+ "mutants": {
+  "0x4a67f3": [
+   [
+    "register",
+    32,
+    "f30a0145",
+    "identical code"
+   ],
+   [
+    "jump",
+    47,
+    "3ea2a08e",
+    "identical code"
+   ],
+   [
+    "register",
+    76,
+    "4bf2685c",
+    "identical code"
+   ],
+   [
+    "register",
+    34,
+    "c5a08d8a",
+    "identical code"
+   ],
+   [
+    "alu",
+    46,
+    "4feca52e",
+    "identical code"
+   ],
+   [
+    "register",
+    36,
+    "0b01cc62",
+    "identical code"
+   ],
+   [
+    "register",
+    6,
+    "5a6f8715",
+    "frame"
+   ],
+   [
+    "register",
+    14,
+    "794b8548",
+    "identical code"
+   ],
+   [
+    "alu",
+    6,
+    "55d2e8ac",
+    "frame"
+   ],
+   [
+    "width",
+    22,
+    "7d30498e",
+    "forwarded store"
+   ],
+   [
+    "jump",
+    59,
+    "3689241c",
+    "identical code"
+   ],
+   [
+    "literal",
+    45,
+    "2604b075",
+    "identical code"
+   ],
+   [
+    "alu",
+    58,
+    "12dd2ad1",
+    "identical code"
+   ],
+   [
+    "width",
+    36,
+    "67b1db45",
+    "flags"
+   ],
+   [
+    "alu",
+    76,
+    "8fc0ee1b",
+    "identical code"
+   ],
+   [
+    "jump",
+    59,
+    "1b7eac32",
+    "identical code"
+   ],
+   [
+    "jump",
+    77,
+    "3d3c4c1e",
+    "identical code"
+   ],
+   [
+    "jump",
+    47,
+    "33167dc0",
+    "identical code"
+   ],
+   [
+    "width",
+    57,
+    "09b097fb",
+    "masked read"
+   ],
+   [
+    "width",
+    34,
+    "4f848079",
+    "flags"
+   ],
+   [
+    "width",
+    20,
+    "4b285c04",
+    "forwarded store"
+   ],
+   [
+    "width",
+    32,
+    "f8f2cfef",
+    "flags"
+   ],
+   [
+    "width",
+    45,
+    "87d987bf",
+    "masked read"
+   ],
+   [
+    "drop",
+    6,
+    "9a12da7b",
+    "dead"
+   ],
+   [
+    "literal",
+    6,
+    "9c562097",
+    "frame"
+   ],
+   [
+    "literal",
+    57,
+    "788e8814",
+    "identical code"
+   ],
+   [
+    "literal",
+    6,
+    "8c1ee922",
+    "frame"
+   ]
+  ]
+ }
+}

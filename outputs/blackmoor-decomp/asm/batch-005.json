@@ -360,7 +360,7 @@
       "function": "FUN_00495536",
       "va": "0x00495536",
       "source": "FUN_00495536.s",
-      "source_sha256": "47a467665e47186bef79a5d94ac3394a42278c4348908c3041f98d430c39a605",
+      "source_sha256": "7b73df90ac0cf8535923c716c80d7ce693400ffd663d0a793b62f7962da85b4d",
       "region": "game",
       "evidence_id": "ev_da254f3c66057fe0ecb1916012a485119a4ff6d747553eb5fd7a4bf04258f342",
       "code": {
@@ -1726,7 +1726,7 @@
       "function": "FUN_004a67f3",
       "va": "0x004a67f3",
       "source": "FUN_004a67f3.s",
-      "source_sha256": "a90e8566b2754df268c7edd8e2b4401696832724f61ac08e80675d6f1d732b04",
+      "source_sha256": "206eafe7e81353905516b7afb6083da1e882cc889b51faba90498c50df144d03",
       "region": "game",
       "evidence_id": "ev_fc5359404bceb01696d4d66c12c8c7af865d10a5749afed948949b75d1acc7af",
       "code": {
