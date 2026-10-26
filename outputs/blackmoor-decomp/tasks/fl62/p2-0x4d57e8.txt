@@ -1,0 +1,1 @@
+0x4d57e8 mutants 90 killed 84 survivors [('drop', 23, 'survives', '63e03588'), ('drop', 19, 'survives', '1807bee9'), ('drop', 24, 'survives', '4b314165'), ('drop', 18, 'survives', '739175b7'), ('drop', 14, 'survives', 'f01885fb'), ('drop', 13, 'survives', '7cae18c4')]

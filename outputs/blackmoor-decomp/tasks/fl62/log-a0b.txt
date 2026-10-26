@@ -1,0 +1,24 @@
+0x4edcb1 runs 23 (faults 0) solved 138  instructions 186/186 directions 18/18 kept 11  5s
+  never run: 
+  untaken: []
+  unsupported: {} errors: {}
+0x48ec4a runs 510 (faults 72) solved 530  instructions 216/216 directions 19/20 kept 9  80s
+  retry 1 with other fresh seeds
+0x48ec4a runs 510 (faults 1) solved 534  instructions 216/216 directions 19/20 kept 9  85s
+  retry 2 with other fresh seeds
+0x48ec4a runs 510 (faults 0) solved 520  instructions 216/216 directions 19/20 kept 9  84s
+  never run: 
+  untaken: [('0x48ee3c', 'fall-through')]
+  unsupported: {} errors: {}
+0x4aec35 runs 59 (faults 3) solved 71  instructions 263/263 directions 40/40 kept 18  35s
+  never run: 
+  untaken: []
+  unsupported: {} errors: {}
+0x4f52a9 runs 540 (faults 0) solved 12  instructions 178/223 directions 34/42 kept 10  77s
+  retry 1 with other fresh seeds
+0x4f52a9 runs 511 (faults 0) solved 11  instructions 178/223 directions 34/42 kept 10  96s
+  retry 2 with other fresh seeds
+0x4f52a9 runs 511 (faults 0) solved 11  instructions 178/223 directions 34/42 kept 10  83s
+  never run: 0x4f5307 0x4f530e 0x4f5310 0x4f5312 0x4f5317 0x4f531c 0x4f5321 0x4f5324 0x4f5326 0x4f5328 0x4f532d 0x4f5332 0x4f5337 0x4f533c 0x4f533f 0x4f5346 0x4f534b 0x4f5352 0x4f5466 0x4f546d 0x4f5470 0x4f5471 0x4f5474 0x4f5479 0x4f5480 0x4f5482 0x4f5484 0x4f5487 0x4f5491 0x4f5494 0x4f5499 0x4f549a 0x4f549d 0x4f549e 0x4f54a3 0x4f54a8 0x4f54ad 0x4f54b0 0x4f54b5 0x4f54ba 0x4f54bd 0x4f54bf 0x4f54c1 0x4f54c6 0x4f54cb
+  untaken: [('0x4f52fd', 'taken'), ('0x4f5303', 'taken'), ('0x4f5310', 'taken'), ('0x4f5310', 'fall-through'), ('0x4f5361', 'taken'), ('0x4f5464', 'fall-through'), ('0x4f5482', 'taken'), ('0x4f5482', 'fall-through')]
+  unsupported: {} errors: {}

@@ -45,9 +45,10 @@ def budget(row, definitive):
 
 def main():
     args = sys.argv[1:]
-    stage_b = args and args[0] == '--scen'
+    stage_b = args and args[0] in ('--scen', '--scen2')
+    second = args and args[0] == '--scen2'          # the second round of boundary scenarios (start registers and more stub returns): bound2-ROW.json, p4-ROW.txt
     for row in (args[1:] if stage_b else args):
-        bound, p1, p2, p3 = OUT / ('bound-%s.json' % row), OUT / ('p1-%s.txt' % row), OUT / ('p2-%s.txt' % row), OUT / ('p3-%s.txt' % row)
+        bound, p1, p2, p3 = OUT / ('bound%s-%s.json' % ('2' if second else '', row)), OUT / ('p1-%s.txt' % row), OUT / ('p2-%s.txt' % row), OUT / ('p%s-%s.txt' % ('4' if second else '3', row))
         if stage_b:
             if not bound.exists():
                 run(['scripts/fl62_boundary.py', row, '--out', str(bound), '--cap', os.environ.get('FL62_CAP', '800')], OUT / ('bound-%s.log' % row))
@@ -55,7 +56,7 @@ def main():
                 run(['scripts/fl62_onerow.py', row, '--scen', str(bound), '--no-harden'], p3)
             if done(p3):
                 budget(row, p3)
-            print(row, 'p3' if done(p3) else 'p3 FAILED', flush=True)
+            print(row, 'p4' if second and done(p3) else 'p3' if done(p3) else 'FAILED', flush=True)
             continue
         if not done(p1):
             run(['scripts/fl62_onerow.py', row], p1)

@@ -1,0 +1,1 @@
+0x4a1e93 mutants 66 killed 61 survivors [('width', 15, 'survives', '82b2551d'), ('jump', 10, 'killed only by an extra seed', '0070c26c'), ('register', 9, 'survives', '06afe9b9'), ('width', 12, 'survives', '2c923aa8'), ('width', 17, 'survives', 'eec59c9b'), ('literal', 12, 'survives', '38fe6dcc')]

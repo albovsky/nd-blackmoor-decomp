@@ -1,0 +1,1 @@
+0x4a1e93 mutants 66 killed 63 survivors [('width', 15, 'survives', '82b2551d'), ('register', 9, 'survives', '06afe9b9'), ('width', 12, 'killed by boundary scenario', '2c923aa8'), ('width', 17, 'survives', 'eec59c9b'), ('literal', 12, 'killed by boundary scenario', '38fe6dcc')]

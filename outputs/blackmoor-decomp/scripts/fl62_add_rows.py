@@ -123,12 +123,21 @@ def main():
         print('  ', k, v)
     if a.dry or not added:
         return 0
-    have.update({k: v if v.endswith('\n') else v + '\n' for k, v in new_text.items()})
-    keys = sorted((k for k in have if k != '0x50c920'), key=lambda x: int(x, 16))
-    order = (['0x50c920'] if '0x50c920' in have else []) + keys
-    SOURCE.write_text(header + ''.join(have[k] for k in order))
-    CORPUS.write_text(json.dumps(corpus, indent=1, sort_keys=True) + '\n')
-    TEST.write_text(G.test_source(sorted(int(k, 16) for k in corpus)))
+    import fcntl
+    with open(str(CORPUS) + '.lock', 'w') as lock:          # scripts/fl62_onerow.py adds killers to the corpus under this lock while rows are checked: merge the new rows into the file as it is now
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        fresh = json.loads(CORPUS.read_text())
+        for key in added:
+            fresh[key] = corpus[key]
+        source_now = SOURCE.read_text()
+        have = split(source_now)
+        header = source_now.split('/* GAME.EXE 0x', 1)[0]
+        have.update({k: v if v.endswith('\n') else v + '\n' for k, v in new_text.items()})
+        keys = sorted((k for k in have if k != '0x50c920'), key=lambda x: int(x, 16))
+        order = (['0x50c920'] if '0x50c920' in have else []) + keys
+        SOURCE.write_text(header + ''.join(have[k] for k in order))
+        CORPUS.write_text(json.dumps(fresh, indent=1, sort_keys=True) + '\n')
+        TEST.write_text(G.test_source(sorted(int(k, 16) for k in fresh)))
     (PROJECT / a.out).write_text(json.dumps({'added': added, 'refused': refused}, indent=1) + '\n')
     return 0
 

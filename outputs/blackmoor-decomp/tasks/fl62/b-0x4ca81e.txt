@@ -1,0 +1,2 @@
+0x4ca81e mutants killed by the step budget [('drop', 54, 'a5ac8091'), ('literal', 53, 'f838987f'), ('drop', 55, 'dc9d86a0')]
+0x4ca81e mutants 3 killed 3 survivors []

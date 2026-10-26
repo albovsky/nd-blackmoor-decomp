@@ -55,5 +55,54 @@ class ForwardedStore(unittest.TestCase):
         self.assertFalse(verdict([STORE.replace('WR32', 'WR16'), READ]))
 
 
+CMP = '{ uint32_t a_ = RD32((uint32_t)(%s)), b_ = 0x%xu, r_; FL41_SUB(a_, b_, 0u, r_, 32); }'
+
+
+def known(first_jump, second_jump_orig, second_jump_mut, c0=0, c1=1, between=(), slot_b='ecx'):
+    lines = ['eax = RD32((uint32_t)(ebp + 0xffffffdcu));', CMP % ('eax + 0x991u', c0), first_jump,
+             '%s = RD32((uint32_t)(ebp + 0xffffffdcu));' % slot_b] + list(between) + [CMP % (slot_b + ' + 0x991u', c1), second_jump_orig]
+    return S.known_compare_ok(lines, len(lines) - 1, S.stmt_full(second_jump_orig), S.stmt_full(second_jump_mut))
+
+
+class KnownCompare(unittest.TestCase):
+    def test_jne_vs_ja_after_a_nonzero_test(self):
+        self.assertTrue(known('if (zf) goto L_4de343;', 'if (!zf) goto L_4de345;', 'if ((!cf && !zf)) goto L_4de345;'))
+
+    def test_a_condition_that_differs_on_a_nonzero_value_survives(self):
+        self.assertFalse(known('if (zf) goto L_4de343;', 'if (!zf) goto L_4de345;', 'if (zf) goto L_4de345;'))
+        self.assertFalse(known('if (zf) goto L_4de343;', 'if (!zf) goto L_4de345;', 'if ((sf != of)) goto L_4de345;'))
+
+    def test_a_store_a_call_or_a_label_in_between_stops_it(self):
+        for between in (('WR32((uint32_t)(0x5b44f4u), 0x1u);',), ('FL41_CALL(0x401000u);',), ('L_4de340:',)):
+            self.assertFalse(known('if (zf) goto L_4de343;', 'if (!zf) goto L_4de345;', 'if ((!cf && !zf)) goto L_4de345;', between=between))
+
+    def test_a_different_slot_is_not_the_same_cell(self):
+        lines = ['eax = RD32((uint32_t)(ebp + 0xffffffdcu));', CMP % ('eax + 0x991u', 0), 'if (zf) goto L_4de343;', 'ecx = RD32((uint32_t)(ebp + 0xffffffe0u));', CMP % ('ecx + 0x991u', 1),
+                 'if (!zf) goto L_4de345;']
+        self.assertFalse(S.known_compare_ok(lines, 5, lines[5], 'if ((!cf && !zf)) goto L_4de345;'))
+
+    def test_the_jump_that_was_not_taken_must_exclude_the_value(self):
+        self.assertFalse(known('if (!zf) goto L_4de343;', 'if (!zf) goto L_4de345;', 'if ((!cf && !zf)) goto L_4de345;'))
+
+    def test_every_form_of_write_to_the_base_register_or_ebp_stops_it(self):
+        for between in ('{ uint32_t r_ = 0u; ecx = (ecx & 0xffff0000u) | ((r_) & 0xffffu); }', 'ecx += 4u;', '{ uint32_t t_ = ecx; ecx = edx; edx = t_; }', '{ uint32_t a_ = ecx; ecx = ~a_; }',
+                        'ebp = esp;', 'ebp = RD32(esp); esp += 4u;', 'ebp -= 8u;'):
+            self.assertFalse(known('if (zf) goto L_4de343;', 'if (!zf) goto L_4de345;', 'if ((!cf && !zf)) goto L_4de345;', between=(between,)), between)
+
+    def test_a_condition_with_side_effects_or_unknown_names_is_not_a_jump_statement(self):
+        self.assertIsNone(S.JUMP_STMT.match('if (--ecx) goto L_1;'))
+        self.assertIsNone(S.JUMP_STMT.match('if (pf != (ecx = 3)) goto L_1;'))
+        lines = ['eax = RD32((uint32_t)(ebp + 0xffffffdcu));', CMP % ('eax + 0x991u', 0), 'if (pf) goto L_1;', 'ecx = RD32((uint32_t)(ebp + 0xffffffdcu));', CMP % ('ecx + 0x991u', 1), 'if (!zf) goto L_2;']
+        self.assertFalse(S.known_compare_safe(lines, 5, lines[5], 'if ((!cf && !zf)) goto L_2;'))
+
+    def test_edge_constants(self):
+        for c0, c1 in ((0x80000000, 0x80000000), (0xffffffff, 0), (0, 0xffffffff)):
+            for mut in ('if (zf) goto L_4de345;', 'if ((cf)) goto L_4de345;', 'if ((sf != of)) goto L_4de345;', 'if ((!cf && !zf)) goto L_4de345;', 'if ((cf || zf)) goto L_4de345;'):
+                got = known('if (zf) goto L_4de343;', 'if (!zf) goto L_4de345;', mut, c0=c0, c1=c1)
+                bad = [a for a in range(0, 1 << 32, 0x01000001) if a != c0 and S.cond_eval('!zf', **S.sub_flags(a, c1)) != S.cond_eval(mut[4:mut.index(')) goto') + 1] if mut.startswith('if ((') else mut[4:mut.index(') goto')], **S.sub_flags(a, c1))]
+                if got:
+                    self.assertFalse(bad, (c0, c1, mut))
+
+
 if __name__ == '__main__':
     unittest.main()

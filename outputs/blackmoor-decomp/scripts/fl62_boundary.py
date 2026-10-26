@@ -22,20 +22,21 @@ import fl41_world as W41
 import lift_fl41 as L41
 
 B.W, B.L = W41, L41
+REG_VALUES = (0, 1, 0xffffffff, 0x80000000, 0x100, 0x10000, 0x01010101, 0xff00ff00, 0x7fffffff, 0x12345678)
 STUB_VALUES = (0, 1, 2, 0xffffffff, 0x80000000, 0x7fffffff, 0x10000, 0x100, 0x10001, 0xffff, 0xff)
 
 
 def candidates(key, corpus, rng, cap):
     """FL-61's candidates (one input cell at an edge value or at a constant of the row +-1) plus, for FL-62: a constant of the row with a high bit pattern above its low 8 or 16 bits (so that a
-    narrower read of the cell, `cmp dword [x], 2` as `cmp word [x], 2`, differs), and the eax, ecx, edx that the k-th callee stub returns set to an edge value (STUB_OVR, honoured on both sides)"""
+    narrower read of the cell, `cmp dword [x], 2` as `cmp word [x], 2`, differs), the eax, ecx, edx that the k-th callee stub returns set to an edge value (STUB_OVR, honoured on both sides), and each start register set to an edge value (REG_OVERRIDE)"""
     va = int(key, 16)
     spans = L41.ledger_spans()
     text, callees, imports, fs, inline = L41.lift(va, spans[va])
     row = W41.row_info(va, spans[va], callees, imports, fs)
     seeds = [(s[0], s[1]) for s in corpus[key]['seeds']]
     magic = [m & 0xffffffff for m in row['magic']]
-    out = []
-    for seed, ov in seeds:
+    out, forced = [], []
+    for si, (seed, ov) in enumerate(seeds):
         for (a, n), v in B.input_cells(row, seed, ov):
             mask = (1 << (8 * n)) - 1
             values = set(B.EDGES[n])
@@ -46,16 +47,22 @@ def candidates(key, corpus, rng, cap):
             values.discard(v)
             for new in sorted(values):
                 out.append((seed, [list(o) for o in ov] + [[a, n, new]]))
+        if si >= 6:
+            continue                       # the start registers and the stub returns: only on the first seeds (they multiply fast)
         tr = W41.run_original(row, seed, [tuple(o) for o in ov])
         if tr.fault:
             continue
+        for name in ('eax', 'ecx', 'edx', 'ebx', 'esi', 'edi'):          # the start registers (REG_OVERRIDE): a partial-register write such as `mov al, [ebp + 8]` keeps the rest of the register
+            for val in REG_VALUES:
+                forced.append((seed, [list(o) for o in ov] + [[W41.REG_OVERRIDE + 4 * W41.REG_NAMES.index(name), 4, val]]))
         for k in range(min(len(tr.calls), 6)):
             for reg in range(3):
                 for val in STUB_VALUES + tuple(m for m in magic[:6]):
-                    out.append((seed, [list(o) for o in ov] + [[W41.STUB_OVR + 16 * k + 4 * reg, 4, val]]))
+                    forced.append((seed, [list(o) for o in ov] + [[W41.STUB_OVR + 16 * k + 4 * reg, 4, val]]))
     rng.shuffle(out)
+    rng.shuffle(forced)
     seen, picked = set(), []
-    for seed, ov in out:
+    for seed, ov in forced[:cap // 2] + out + forced[cap // 2:]:
         k = (seed, tuple(map(tuple, ov)))
         if k in seen:
             continue

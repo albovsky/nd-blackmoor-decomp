@@ -482,6 +482,103 @@ def cond_eval(cond, **flags):
     return bool(eval(expr, {}, flags))
 
 
+CMP_CONST = re.compile(r'^\{ uint32_t a_ = (.+?), b_ = (0x[0-9a-f]+)u, r_; FL41_SUB\(a_, b_, 0u, r_, 32\); \}$')
+JUMP_STMT = re.compile(r'^if \(([a-z!()|&=\s]*)\) goto (L_[0-9a-f]+);$')          # a condition of cf zf sf of only: no side effect
+
+
+def writes_reg(t, reg):
+    """the statement assigns to `reg` anywhere in it (`reg = `, `reg += `, a partial write inside a block, a swap, ...)"""
+    return bool(re.search(r'\b%s\s*([-+*/&|^]|<<|>>)?=(?!=)' % reg, t))
+
+
+def sub_flags(a, c):
+    r = (a - c) & 0xffffffff
+    return dict(cf=a < c, zf=a == c, sf=bool(r >> 31), of=bool(((a ^ c) & (a ^ r)) >> 31))
+
+
+def operand_key(lines, i, expr):
+    """What `expr` (the first operand of the compare on line i) denotes, by value: ('cell', k) for the frame slot [ebp + k]; ('via', slot, k) for [reg + k] where reg was loaded from the frame slot by the nearest
+    earlier statement (no other write to reg in between) -> (key, first line the value depends on); None when it is neither"""
+    m = re.match(r'^RD32\(\(uint32_t\)\((\w+)(?: \+ (0x[0-9a-f]+)u)?\)\)$', expr)
+    if not m:
+        return None
+    base, off = m.group(1), m.group(2) or '0x0'
+    if base == 'ebp':
+        return ('cell', off), i
+    for j in range(i - 1, -1, -1):
+        t = stmt(lines[j])
+        if not t:
+            continue
+        d = re.match(r'^%s = RD32\(\(uint32_t\)\(ebp \+ (0x[0-9a-f]+)u\)\);$' % base, t)
+        if d:
+            return ('via', d.group(1), off), j
+        if writes_reg(t, base) or (BARRIER.search(t) and not JUMP_STMT.match(t)) or t.startswith('L_'):
+            return None
+    return None
+
+
+def known_compare_ok(lines, n, orig, mut):
+    """A conditional jump replaced by another condition where an earlier compare-and-jump on the SAME cell has already ruled out the values on which the two conditions differ. Shape (0x4de322, 0x4be2c6):
+        cmp [cell], C0 ; jcc0 away          (fall through: the cell is outside what jcc0 takes away)
+        ... only register loads, no store, call, label or jump target in between ...
+        cmp [cell], C1 ; jcc  (orig)  vs  jcc'  (mutant)
+    The cell is the same when both operands are the same frame slot, or [reg + k] with reg loaded from one frame slot, and no store lies between the earlier load of the slot and the later compare.
+    For every unsigned value a of the cell with jcc0 not taken, the original and the mutant condition (evaluated on the flags of a - C1) must agree; the flags are piecewise constant in a with breakpoints
+    at C, C + 1, C + 2^31, C + 2^31 + 1, so checking a window of values around each breakpoint of C0 and C1 is exhaustive."""
+    a, b = JUMP_STMT.match(orig), JUMP_STMT.match(mut)
+    if not a or not b or a.group(2) != b.group(2):
+        return False
+    k = n - 1
+    while k >= 0 and not stmt(lines[k]):
+        k -= 1
+    c1 = CMP_CONST.match(stmt(lines[k])) if k >= 0 else None
+    if not c1:
+        return False
+    key1 = operand_key(lines, k, c1.group(1))
+    if key1 is None:
+        return False
+    C1 = int(c1.group(2), 16)
+    for j in range(k - 1, -1, -1):
+        t = stmt(lines[j])
+        if not t:
+            continue
+        jm = JUMP_STMT.match(t)
+        if jm:
+            p = j - 1
+            while p >= 0 and not stmt(lines[p]):
+                p -= 1
+            c0 = CMP_CONST.match(stmt(lines[p])) if p >= 0 else None
+            key0 = operand_key(lines, p, c0.group(1)) if c0 else None
+            if key0 and key0[0] == key1[0]:
+                start = min(key0[1], key1[1])
+                if any(re.search(r'\bWR\d+\(', stmt(lines[q])) or writes_reg(stmt(lines[q]), 'ebp') or BARRIER.search(stmt(lines[q])) and not JUMP_STMT.match(stmt(lines[q])) or stmt(lines[q]).startswith('L_') for q in range(start, k + 1)):
+                    return False
+                C0 = int(c0.group(2), 16)
+                points = set()
+                for c in (C0, C1):
+                    for base in (c, c + 0x80000000):
+                        points |= {(base + d) & 0xffffffff for d in range(-3, 4)}
+                points |= {0, 1, 2, 0x7fffffff, 0x80000000, 0x80000001, 0xfffffffe, 0xffffffff}
+                for v in points:
+                    if cond_eval(jm.group(1), **sub_flags(v, C0)):
+                        continue                                    # jcc0 is taken: the cell is not this value here
+                    f = sub_flags(v, C1)
+                    if cond_eval(a.group(1), **f) != cond_eval(b.group(1), **f):
+                        return False
+                return True
+            continue
+        if re.search(r'\bWR\d+\(', t) or writes_reg(t, 'ebp') or (BARRIER.search(t) and not JUMP_STMT.match(t)) or t.startswith('L_'):
+            return False
+    return False
+
+
+def known_compare_safe(lines, n, orig, mut):
+    try:
+        return known_compare_ok(lines, n, orig, mut)
+    except Exception:            # a condition that names anything but cf zf sf of: not this rule's case
+        return False
+
+
 def logic_jump_ok(orig, mut, ranges, addr):
     """(FL-47) a conditional jump replaced by another one directly after a `test`/`and`/`or`/`xor` (which clear CF and OF), the jump reached only from that instruction: the two conditions
     agree for every value of ZF and SF once CF = OF = 0 (`jbe` and `je` after `test`, `jae` and always-true, ...)"""
@@ -598,6 +695,8 @@ def classify(kind, lines, n, equivalent, proofs=None, mutline=None, ranges=None,
             return 'range'
         if change and global_forward_ok(lines, n, change):
             return 'forwarded store'
+    if kind == 'jump' and mutline is not None and known_compare_safe(lines, n, stmt_full(lines[n]), stmt_full(mutline)):
+        return 'known compare'
     if kind == 'jump' and mutline is not None and logic_jump_ok(stmt_full(lines[n]), stmt_full(mutline), ranges, instruction_address(lines, n)):
         return 'range'
     if kind == 'jump' and mutline is not None and (jump_range_ok(stmt_full(lines[n]), stmt_full(mutline), ranges, instruction_address(lines, n))

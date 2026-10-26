@@ -1,0 +1,20 @@
+0x4c5d4b runs 36 (faults 15) solved 71  instructions 216/260 directions 14/20 kept 7  137s
+  retry 1 with other fresh seeds
+0x4c5d4b runs 29 (faults 5) solved 23  instructions 260/260 directions 20/20 kept 11  113s
+  never run: 
+  untaken: []
+  unsupported: {} errors: {}
+0x483ad9 runs 30 (faults 0) solved 36  instructions 235/235 directions 25/26 kept 11  121s
+  retry 1 with other fresh seeds
+0x483ad9 runs 31 (faults 0) solved 35  instructions 235/235 directions 25/26 kept 11  124s
+  retry 2 with other fresh seeds
+0x483ad9 runs 26 (faults 0) solved 35  instructions 235/235 directions 26/26 kept 12  78s
+  never run: 
+  untaken: []
+  unsupported: {} errors: {}
+0x4a5eea runs 86 (faults 0) solved 57  instructions 227/227 directions 29/30 kept 12  124s
+  retry 1 with other fresh seeds
+0x4a5eea runs 39 (faults 0) solved 23  instructions 227/227 directions 30/30 kept 13  49s
+  never run: 
+  untaken: []
+  unsupported: {} errors: {}

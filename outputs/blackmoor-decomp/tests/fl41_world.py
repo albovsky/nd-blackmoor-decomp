@@ -363,11 +363,12 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None, watch=Non
 
     uc.hook_add(unicorn.UC_HOOK_CODE, count, begin=va, end=va + size - 1)
     if observe:
-        trace.reads, trace.events = [], []
+        trace.reads, trace.events, trace.read_pcs = [], [], []          # FL-62: read_pcs[k] is the address of the instruction that made reads[k]
         def seen_read(uc_, access, address, size_, value, user):
             ensure(address)
             ensure(address + size_ - 1)
             trace.reads.append((address, size_, int.from_bytes(bytes(uc.mem_read(address, size_)), 'little'), len(trace.writes)))
+            trace.read_pcs.append(uc.reg_read(X.UC_X86_REG_EIP))
 
         def seen_cmp(uc_, a, size_, decode):
             trace.events.append(decode(uc, a, len(trace.writes), ensure))
