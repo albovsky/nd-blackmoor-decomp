@@ -42,7 +42,9 @@ def SWAP_OPERANDS(t):
 
 
 def stmt(line):
-    return re.sub(r'\s*/\*.*', '', line).strip()
+    """the statement of a line without its comments. FL-60: every `/* ... */` span goes, not everything from the first `/*` on: a call to an import carries `/* call [DLL!name] */` BEFORE
+    its FL4x_CALL, and cutting at the first comment hid the call from the barrier test (rule `same value` then excused a mutant across a call)"""
+    return re.sub(r'\s*/\*.*', '', re.sub(r'\s*/\*.*?\*/', '', line)).strip()
 
 
 def graph(lines):

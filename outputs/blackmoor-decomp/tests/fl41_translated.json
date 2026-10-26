@@ -353,29 +353,6 @@
   "sites": {},
   "status": "agrees"
  },
- "0x488e54": {
-  "body": 72,
-  "callees": {},
-  "directions": [
-   2,
-   2
-  ],
-  "frame": false,
-  "fs": false,
-  "imports": {},
-  "instructions": [
-   21,
-   21
-  ],
-  "seeds": [
-   [
-    0,
-    []
-   ]
-  ],
-  "sites": {},
-  "status": "agrees"
- },
  "0x48905b": {
   "body": 1024,
   "callees": {
@@ -7253,33 +7230,6 @@
   "sites": {},
   "status": "agrees"
  },
- "0x4de2d8": {
-  "body": 74,
-  "callees": {
-   "0x4de214": 0,
-   "0x4e053f": 4,
-   "0x4e1113": 0
-  },
-  "directions": [
-   0,
-   0
-  ],
-  "frame": false,
-  "fs": false,
-  "imports": {},
-  "instructions": [
-   18,
-   18
-  ],
-  "seeds": [
-   [
-    0,
-    []
-   ]
-  ],
-  "sites": {},
-  "status": "agrees"
- },
  "0x4de322": {
   "body": 114,
   "callees": {
@@ -8579,29 +8529,6 @@
   "instructions": [
    34,
    436
-  ],
-  "seeds": [
-   [
-    0,
-    []
-   ]
-  ],
-  "sites": {},
-  "status": "agrees"
- },
- "0x4e94a9": {
-  "body": 24,
-  "callees": {},
-  "directions": [
-   0,
-   0
-  ],
-  "frame": false,
-  "fs": false,
-  "imports": {},
-  "instructions": [
-   11,
-   11
   ],
   "seeds": [
    [

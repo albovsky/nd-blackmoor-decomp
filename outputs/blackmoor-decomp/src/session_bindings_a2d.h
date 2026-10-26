@@ -44,6 +44,10 @@ void session_a2d_attach_a2e(SessionA2dBinding *, SessionA2EBinding *a2e);
  * not at a scene load). A scene load while the movie is active is refused with D2_ERR_UNSUPPORTED before any effect (what the
  * original does to a live movie's tables is not recovered); a failed parse leaves the new rows unowned. */
 int session_a2d_begin_scene(SessionA2dBinding *, const SceneResource *scene);
+/* Host engine ops such as STREAM_RESET synchronously mutate stream metadata.
+ * Invoke ONLY load_stream on the current object, including from an op callback;
+ * never reenter a step or copy shared movie/world state. No const-cast needed. */
+int session_a2d_refresh_stream(SessionA2dBinding *);
 int session_a2d_handler(void *context, size_t row, const SceneActionInfo *action,
                         const SceneActionRuntimeState *before, SceneActionHandlerResult *out);
 /* The random-movie stop 0x4ceb3b for raw 0x2e mode 0 (SessionA2EHost.stop_movie). `retire_row` receives the erased raw

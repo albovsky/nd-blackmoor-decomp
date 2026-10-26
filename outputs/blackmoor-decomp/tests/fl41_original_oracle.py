@@ -11,7 +11,7 @@ all scenarios>. Exits 0 only when every instruction of every function was execut
 allowlist: a row with an untaken direction is not in the corpus). No original bytes or memory dumps are printed. Run from outputs/blackmoor-decomp:
 python3 tests/fl41_original_oracle.py
 
-FL-58: the corpus now holds 157 rows (the script text changes whenever the corpus does, so that `record_function_execution.py collect --merge` records a new run).
+FL-60: the corpus now holds 160 rows (the script text changes whenever the corpus does, so that `record_function_execution.py collect --merge` records a new run).
 """
 import hashlib
 import json

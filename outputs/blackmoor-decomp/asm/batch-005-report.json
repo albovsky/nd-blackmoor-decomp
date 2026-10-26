@@ -18956,7 +18956,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_004d8dca.s",
-        "sha256": "0c4421122dc9796c7f109d1771c37a1ead82523ccc55a1140b79a4722855c316"
+        "sha256": "37bdad9f5cd0b701ddf6466acb31197f8be5c1e06aa5c0b23c943c297a4c6417"
       },
       "status": "accepted",
       "va": 5082570
@@ -21029,6 +21029,7 @@
       "contains_original_byte_values": false,
       "data_items": [],
       "function": "FUN_004de2d8",
+      "naming": "native_port",
       "object": {
         "sha256": "f066a8ad0f6ba8562474cc9b26b59a9cd47c851117e65f45e8be04d36c5d68c4",
         "size": 906478
@@ -21038,7 +21039,7 @@
       "relocations": 0,
       "source": {
         "path": "FUN_004de2d8.s",
-        "sha256": "f045ba7f959dd62f4bc83cde04b09a58540b5c141993bd9757b32ac49deb7865"
+        "sha256": "28357557a9b347f1ca487980d2f0bf475b2dcce6d85b90e73240cee2b79a45b1"
       },
       "status": "accepted",
       "va": 5104344
@@ -21311,9 +21312,9 @@
       "va": 5105136
     }
   ],
-  "manifest_sha256": "db930b0ee52436269c7b76625edc3ebd5170da1d63573c055ce7fe1c678be2ca",
-  "named_functions": 585,
-  "names_sha256": "d98d4c88a94605f5f797442eb3368681b7a5a4d498e99fb30e50c2c6cc19b9c2",
+  "manifest_sha256": "542666ffd2a413f6ff91f619750483d7d187672d4f3e9ac5c5b58294eac55de3",
+  "named_functions": 586,
+  "names_sha256": "a0f36f6d6597673d89d5eab1d3a93c7536904d982f6e393b1d2d729c27d9fb5f",
   "note": "Accepted functions are candidates for the tool_assisted_reconstructed_assembly class; they count only after root accepts the independent review. No claim is made about original C++ or compiler provenance.",
   "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45"
 }

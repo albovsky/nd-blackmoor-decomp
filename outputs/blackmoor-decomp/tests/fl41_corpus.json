@@ -436,6 +436,30 @@
    ]
   ]
  },
+ "0x488e54": {
+  "body": 72,
+  "callees": {},
+  "directions": [
+   2,
+   2
+  ],
+  "fs": false,
+  "imports": {},
+  "instructions": [
+   21,
+   21
+  ],
+  "seeds": [
+   [
+    0,
+    []
+   ],
+   [
+    5014,
+    []
+   ]
+  ]
+ },
  "0x489722": {
   "body": 171,
   "callees": {},
@@ -88811,6 +88835,30 @@
    ]
   ]
  },
+ "0x4de2d8": {
+  "body": 74,
+  "callees": {
+   "0x4de214": 0,
+   "0x4e053f": 4,
+   "0x4e1113": 0
+  },
+  "directions": [
+   0,
+   0
+  ],
+  "fs": false,
+  "imports": {},
+  "instructions": [
+   18,
+   18
+  ],
+  "seeds": [
+   [
+    0,
+    []
+   ]
+  ]
+ },
  "0x4de440": {
   "body": 185,
   "callees": {
@@ -96622,6 +96670,26 @@
       16809742
      ]
     ]
+   ]
+  ]
+ },
+ "0x4e94a9": {
+  "body": 24,
+  "callees": {},
+  "directions": [
+   0,
+   0
+  ],
+  "fs": false,
+  "imports": {},
+  "instructions": [
+   11,
+   11
+  ],
+  "seeds": [
+   [
+    0,
+    []
    ]
   ]
  },
