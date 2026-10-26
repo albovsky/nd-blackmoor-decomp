@@ -52,3 +52,10 @@ Known new conservative blocker: a normal load requested while a D2 header is sti
 The Linda continuation is not a restart on load: the full D2 object (including its old timer/weighted-hold fields), surface frame15/generation80 and already-closed held stream0 are identical immediately after normal commit. Only later ordinary clock/controller processing creates frame0/generation81, using the existing weighted-repick behavior already checked by the movie regression. No original Bink pacing equivalence is claimed.
 
 A separate bounded probe now completes6real-pointer talks/returns through the natural NLP11a/b/c paths, retaining exactly the same source/tree/controller/set/surface each time and advancing decoded generations without resets. It finds no new blocker or response menu; it does not certify full story progression. The next useful static route is food delivery/grease pickup, not more Linda fluff; that combined route is still unrun.
+
+
+## Accepted publication
+
+[PR217](https://github.com/albovsky/nd-blackmoor-decomp/pull/217). Sonnet high independently reviewed production freeze2a3e9671 and final test/documentation freeze30a9a1e5ecfbe97f42b92b2568052acb8b897213. Both ACCEPT; final follow-up has no P1 or P2. Production code remains unchanged from the first accepted freeze. Root8/8 route checks pass26.417s; the normal build/source pins above remain current.
+
+Non-blocking test limits remain: the unstarted case targets the same room and uses resource/generation/tree/visit snapshots to detect an unwanted load; it does not assert the specific refusal log. Its no-D2-target refusal and product-fatal propagation are code-derived, not dynamically exercised by that direct component. New allocation/active-cel/incoherent multi-owner refusals remain unrun. The positive retained-load cases and existing popup refusal do not certify these branches. No source/test changes follow this review; only status documentation is updated for publication.
