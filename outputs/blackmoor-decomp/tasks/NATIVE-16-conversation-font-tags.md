@@ -22,3 +22,10 @@ The root actual-app six-case route passes23.059s. It keeps the NATIVE15 busy-ref
 Both existing six-case caption and six-case choice suites pass (18.615s/18.927s). Normal ARM64 app build succeeds. No broad legacy suite, GUI or whole-game claim is made. Independent frozen review is required before publication.
 
 Pins: originalGAME.EXE afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45; renderer4a9271ce83c3e24d6ed98381d2662b16f0f95039b5b216091c32339136d61a2d; unchangedappae34b8a58b126c768779faec2cb54254b1990d182d73cc194830f4c9dff094d6; native6b3b45836401327c1237e16469b89cc87689fce39e825b05266bb3a85998d069. Static source/evidence map: work/analysis/NATIVE-16-convo-font-tag-map.md; normal test receipts/logs: work/playability-20261024/native16-*. The NATIVE15 native-equivalent local base f4cc657b corresponds to mergedmainb96e665c; protected other-agent main files remain untouched.
+
+
+## Accepted review and publication
+
+[PR215](https://github.com/albovsky/nd-blackmoor-decomp/pull/215). Sonnet high independently reviewed frozen8727ae3b6c75b0db1c59efd542e45c47d3066e7b against the original f arm and cleanup: ACCEPT, no P1 or blocking P2. The source pins and default-path actual route were confirmed. No source changes follow this accepted freeze.
+
+Non-blocking verification limits: response text/open-choice geometry after a font switch is not directly tested; neither is the empty-argument font0 case nor a later draw failure after a successful switch. The argument parser and dynamic-height h handling share the reviewed path, but no additional branch claim is made. The optional test source overrides remain development-only; the root final no-art run printed font_override=False, and the pure-font build line names its core project. Rewinding the tmpfile log helper is test-only. The final root pure-font rerun passes4/4 in0.486s. Broad/native-game completion remains unproven.
