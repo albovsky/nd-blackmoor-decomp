@@ -28,3 +28,7 @@ No mutation check is run. Known limits (independent Sonnet review): eflags and r
 ## Batch 2 (PR after 216)
 
 Tested equivalent 1,101 -> 1,274 (upper 1,122-ish rows through the bigger rows, 24 of the 117 upper57 rows). About 414 rows are partial: about 60 miss exactly one jump direction after a complete search and a rerun with a larger budget gains nothing (an unsigned-overflow `jb`/`jae` pair, a `je` after a null read that faults, solver limits); about 190 larger upper rows were still being searched when this batch was cut. The lower rows (fl61 generator) gave nothing new. Rerunning: `scripts/fl66_tested.py gen --pool upper --shard i/4 --budget-s 90` skips rows that already have a result; `--redo` replaces one.
+
+## Batch 3
+
+Tested equivalent 1,274 -> 1,315. The last rows searched were the largest upper rows (200+ bytes, 4 minutes each): about 27 of them produced one new qualifier, so the bulk search has reached its yield floor with the current generator. About 500 rows are partial (agree everywhere, a direction or instruction missing): the way forward is a sound infeasible-direction proof (unsigned-overflow `jb`/`jae` pairs, `je` after a faulting null read) or a stronger solver step, not more budget. About 20 of the largest upper rows had no result yet when this batch was cut; `scripts/fl66_tested.py gen --pool upper --shard i/4` resumes them.
