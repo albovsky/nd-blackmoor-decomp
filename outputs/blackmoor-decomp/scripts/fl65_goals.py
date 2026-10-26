@@ -34,6 +34,7 @@ MAX_CAPTURES = 3          # per probe address and run: the first occurrences
 
 class ProbeRun(C.Run):
     probes = frozenset()
+    jumps = {}          # jump address -> [(original condition, mutant condition)] as C texts over cf zf sf of
 
     def __init__(self, *a, **k):
         super().__init__(*a, **k)
@@ -42,7 +43,9 @@ class ProbeRun(C.Run):
         self.counts = collections.Counter()
 
     def snapshot(self):
-        return {r: (self.R.get(r), self.creg(r)) for r in GP}
+        snap = {r: (self.R.get(r), self.creg(r)) for r in GP}
+        snap['flags'] = {f: self.flag(f) for f in ('CF', 'ZF', 'SF', 'OF')}
+        return snap
 
     def step(self, uc, address, size, user):
         if not self.dead:
@@ -68,9 +71,63 @@ def value(item):
     return expr if expr is not None else z3.BitVecVal(conc, 32)
 
 
-def goals_of(before, after):
+def cond_expr(text, flags):
+    """a C condition over cf zf sf of (`!`, `&&`, `||`, `==`, `!=`, parentheses) as a z3 Boolean (or a Python bool when every flag is concrete)"""
+    toks = re.findall(r'cf|zf|sf|of|&&|\|\||==|!=|!|\(|\)', text)
+    pos = [0]
+
+    def b(x):
+        return z3.BoolVal(x) if isinstance(x, bool) else x
+
+    def peek():
+        return toks[pos[0]] if pos[0] < len(toks) else None
+
+    def take():
+        pos[0] += 1
+        return toks[pos[0] - 1]
+
+    def atom():
+        t = take()
+        if t == '!':
+            return z3.Not(b(atom()))
+        if t == '(':
+            v = orr()
+            take()
+            return v
+        return b(flags[t.upper()])
+
+    def eq():
+        a = atom()
+        while peek() in ('==', '!='):
+            op = take()
+            c = atom()
+            a = (a == c) if op == '==' else (a != c)
+        return a
+
+    def andd():
+        a = eq()
+        while peek() == '&&':
+            take()
+            a = z3.And(a, eq())
+        return a
+
+    def orr():
+        a = andd()
+        while peek() == '||':
+            take()
+            a = z3.Or(a, andd())
+        return a
+    return orr()
+
+
+def goals_of(before, after, addr=None):
     """-> [z3 Boolean] over the register expressions of one probe"""
     out = []
+    for oc, mc in ProbeRun.jumps.get(addr, ()):
+        try:
+            out.append(z3.Xor(cond_expr(oc, before['flags']), cond_expr(mc, before['flags'])))          # the two conditions disagree on this run's flags
+        except Exception:
+            pass
     for r in GP:
         b, a = before[r], after[r]
         if b[0] is None and a[0] is None:
@@ -90,6 +147,26 @@ def goals_of(before, after):
     return out
 
 
+def jump_conditions(key, text, surv_all):
+    """{jump address: [(original condition, mutant condition)]} of the unexplained jump mutants of the row"""
+    import random
+    import fl41_mutation_check as M
+    import fl65_cells as K
+    lines = text.split('\n')
+    idents = {}
+    for mk, mn, mt in M.mutants(text, int(key, 16), random.Random(int(key, 16)), 100000, True):
+        idents[(mk, mn, M.line_hash(mt, mn))] = mt.split('\n')[mn]
+    out = collections.defaultdict(list)
+    for k, n, ident, cls in surv_all.get('__mutants__', {}).get(key, []):
+        if k != 'jump' or cls is not None:
+            continue
+        m = re.search(r'/\* (0x[0-9a-f]+):', lines[n])
+        oc, mc = K.cond_of(lines[n]), K.cond_of(idents.get((k, n, ident), ''))
+        if m and oc and mc:
+            out[int(m.group(1), 16)].append((oc[0], mc[0]))
+    return out
+
+
 def probe_addresses(text, surv):
     at = {}
     for j, line in enumerate(text.split('\n')):
@@ -105,7 +182,7 @@ AHEAD = 4          # conditions after the probe that a goal is combined with
 def children(run, ov, per_capture, solver_ms):
     """For every probe, the models of (path to the probe and a register goal) and of (path to one of the next AHEAD jumps, that jump taken the other way or the same way, and a register goal): a mutant that leaves
     bits of a register different shows only where a later jump reads them, and the seeds took those jumps one way."""
-    caps = [(a, plen, goals_of(before, after)) for a, plen, before, after in run.caps]
+    caps = [(a, plen, goals_of(before, after, a)) for a, plen, before, after in run.caps]
     sl = C.Slices()
     out = []
     used = collections.Counter()
@@ -174,7 +251,9 @@ def main():
     ap.add_argument('--budget-s', type=int, default=600)
     ap.add_argument('--per-capture', type=int, default=24)
     a = ap.parse_args()
-    surv = json.loads(Path(a.surv).read_text())['rows_with_survivors']
+    doc = json.loads(Path(a.surv).read_text())
+    surv = doc['rows_with_survivors']
+    surv['__mutants__'] = doc['mutants']
     corpus = json.loads((PROJECT / 'tests/fl41_corpus.json').read_text())
     import fl41_mutation_check as M
     funcs = M.split_functions((PROJECT / 'src/original_methods_fl41.c').read_text())
@@ -185,6 +264,7 @@ def main():
             print(key, 'skipped: inline helper or indirect calls', flush=True)
             continue
         probes = probe_addresses(funcs[key], surv.get(key, []))
+        ProbeRun.jumps = jump_conditions(key, funcs[key], surv)
         seeds = [(s[0], [list(o) for o in s[1]]) for s in corpus[key]['seeds']]
         step = max(1, len(seeds) // a.seeds)
         seeds = seeds[::step][:a.seeds]

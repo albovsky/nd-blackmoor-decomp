@@ -539,6 +539,8 @@ def known_compare_ok(lines, n, orig, mut):
     if key1 is None:
         return False
     C1 = int(c1.group(2), 16)
+    ruled_out = []          # FL-65: every earlier compare-and-jump on the same cell whose fall-through rules values out, not only the nearest one (0x4ef2d1: `cmp [c], 0; je`, `cmp [c], 1; je`, `cmp [c], 2; jne`)
+    start = key1[1]
     for j in range(k - 1, -1, -1):
         t = stmt(lines[j])
         if not t:
@@ -551,26 +553,26 @@ def known_compare_ok(lines, n, orig, mut):
             c0 = CMP_CONST.match(stmt(lines[p])) if p >= 0 else None
             key0 = operand_key(lines, p, c0.group(1)) if c0 else None
             if key0 and key0[0] == key1[0]:
-                start = min(key0[1], key1[1])
-                if any(re.search(r'\bWR\d+\(', stmt(lines[q])) or writes_reg(stmt(lines[q]), 'ebp') or BARRIER.search(stmt(lines[q])) and not JUMP_STMT.match(stmt(lines[q])) or stmt(lines[q]).startswith('L_') for q in range(start, k + 1)):
-                    return False
-                C0 = int(c0.group(2), 16)
-                points = set()
-                for c in (C0, C1):
-                    for base in (c, c + 0x80000000):
-                        points |= {(base + d) & 0xffffffff for d in range(-3, 4)}
-                points |= {0, 1, 2, 0x7fffffff, 0x80000000, 0x80000001, 0xfffffffe, 0xffffffff}
-                for v in points:
-                    if cond_eval(jm.group(1), **sub_flags(v, C0)):
-                        continue                                    # jcc0 is taken: the cell is not this value here
-                    f = sub_flags(v, C1)
-                    if cond_eval(a.group(1), **f) != cond_eval(b.group(1), **f):
-                        return False
-                return True
+                start = min(start, key0[1], p)
+                ruled_out.append((int(c0.group(2), 16), jm.group(1)))
             continue
         if re.search(r'\bWR\d+\(', t) or writes_reg(t, 'ebp') or (BARRIER.search(t) and not JUMP_STMT.match(t)) or t.startswith('L_'):
+            break
+    if not ruled_out:
+        return False
+    if any(re.search(r'\bWR\d+\(', stmt(lines[q])) or writes_reg(stmt(lines[q]), 'ebp') or BARRIER.search(stmt(lines[q])) and not JUMP_STMT.match(stmt(lines[q])) or stmt(lines[q]).startswith('L_') for q in range(start, k + 1)):
+        return False
+    points = {0, 1, 2, 0x7fffffff, 0x80000000, 0x80000001, 0xfffffffe, 0xffffffff}
+    for c in [C1] + [c0v for c0v, _ in ruled_out]:
+        for base in (c, c + 0x80000000):
+            points |= {(base + d) & 0xffffffff for d in range(-3, 4)}
+    for v in points:
+        if any(cond_eval(cj, **sub_flags(v, c0v)) for c0v, cj in ruled_out):
+            continue                                    # a jcc0 is taken: the cell is not this value here
+        f = sub_flags(v, C1)
+        if cond_eval(a.group(1), **f) != cond_eval(b.group(1), **f):
             return False
-    return False
+    return True
 
 
 def known_compare_safe(lines, n, orig, mut):

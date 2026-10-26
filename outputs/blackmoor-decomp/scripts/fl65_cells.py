@@ -65,7 +65,7 @@ def explore(va, size, max_states=None):
 
 
 JUMP = re.compile(r'if \((.*)\) goto (\w+);')
-COND = re.compile(r'[!()]|&&|\|\||==|!=|\b(?:cf|zf|sf|of)\b|\s+')
+COND = re.compile(r'==|!=|&&|\|\||[!()]|\b(?:cf|zf|sf|of)\b|\s+')
 
 
 def cond_of(line):

@@ -68,5 +68,35 @@ class Initial(unittest.TestCase):
         self.assertFalse(any(t0.values()))
 
 
+class Steps(unittest.TestCase):
+    """the cases an independent review found unsound (FL-65): each must end in Observed or keep the difference"""
+
+    def ins(self, code):
+        import capstone
+        md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
+        md.detail = True
+        return next(md.disasm(code, 0x1000))
+
+    def state(self, **kw):
+        t = {r: 0 for r in D.GP}
+        t.update(kw)
+        return t
+
+    def test_pop_with_differing_esp(self):
+        with self.assertRaises(D.Observed):
+            D.Flow(None).step(self.ins(b'\x5b'), self.state(esp=4), False)           # pop ebx
+
+    def test_sahf_keeps_overflow_difference(self):
+        t, fl = D.Flow(None).step(self.ins(b'\x9e'), self.state(), True)             # sahf
+        self.assertTrue(fl)
+
+    def test_not_memory_with_differing_address(self):
+        with self.assertRaises(D.Observed):
+            D.Flow(None).step(self.ins(b'\xf7\x10'), self.state(eax=1), False)       # not dword ptr [eax]
+
+    def test_compound_assignment_to_esp_is_not_modelled(self):
+        self.assertIsNone(D.initial_difference('    ecx = RD32(esp); esp += 4u;  /* 0x1: pop ecx */', '    ;  /* 0x1: pop ecx */'))
+
+
 if __name__ == '__main__':
     unittest.main()

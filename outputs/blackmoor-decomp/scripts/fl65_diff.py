@@ -136,6 +136,7 @@ class Flow:
             self.write(ins, ops[0], r, t)
             return t, (fl if m != 'neg' else False) or bool(a)
         if m == 'not':
+            self.write(ins, ops[0], self.read(ins, ops[0], t), t)
             return t, fl
         if m in ('shl', 'shr', 'sar', 'sal') and len(ops) == 2 and ops[1].type == E.IMM_OP and 0 < (ops[1].imm & 31) < 8 * ops[0].size:
             c = ops[1].imm & 31
@@ -180,6 +181,8 @@ class Flow:
                 raise Observed('a difference is pushed')
             return t, fl
         if m == 'pop':
+            if t['esp']:
+                raise Observed('pop with a differing stack pointer')
             self.write(ins, ops[0], 0, t)
             return t, fl
         if m == 'leave':
@@ -198,7 +201,7 @@ class Flow:
             self.write(ins, ops[0], self.read(ins, ops[0], t) | self.read(ins, ops[1], t), t)
             return t, fl
         if m == 'sahf':
-            return t, bool(t['eax'] >> 8 & 0xff)
+            return t, bool(t['eax'] >> 8 & 0xff) or fl          # sahf leaves OF alone
         if m in ('fnstsw', 'fstsw'):
             if ops and ops[0].type == E.REG_OP:
                 self.write(ins, ops[0], 0, t)
@@ -236,6 +239,8 @@ class Flow:
             try:
                 if m == 'ret' or m == 'call':
                     raise Observed(m)
+                if m in ('jecxz', 'jcxz', 'loop', 'loope', 'loopne') and t['ecx']:
+                    raise Observed('branch on a differing ecx')
                 if m == 'jmp' or (m.startswith('j') and m != 'jmp'):
                     if ins.operands[0].type == E.MEM_OP:          # a jump table: its entries are the successors (FL-45 TableFunction); the index must be the same in both
                         self.addr_check(ins, ins.operands[0], t)
@@ -248,7 +253,7 @@ class Flow:
                     nt, nfl = t, fl
                 else:
                     nt, nfl = self.step(ins, t, fl)
-            except Observed:
+            except (Observed, KeyError):
                 return False
             if pc == addr:          # the mutated instruction runs again (a loop): its inputs may differ now, and the mutation itself differs again
                 nt = {r: nt[r] | t0[r] for r in GP}
@@ -263,7 +268,7 @@ class Flow:
 
 # ---- the initial difference of a mutated statement -------------------------------------------------------------------------------------------------
 
-ASSIGN = re.compile(r'\b(eax|ecx|edx|ebx|esi|edi|ebp|esp)\s*=(?!=)')
+ASSIGN = re.compile(r'\b(eax|ecx|edx|ebx|esi|edi|ebp|esp)\s*(?:[-+*/&|^]|<<|>>)?=(?!=)')          # also `esp += 4u;`
 
 
 def strip(line):
@@ -321,6 +326,8 @@ def unobserved_ok(kind, lines, n, variants, row, fn):
     addr = int(m.group(1), 16)
     if addr not in fn.at:
         return False
+    if kind == 'drop' and re.search(r'\bRD\d+\(', strip(lines[n])) and not re.fullmatch(r'.*RD\d+\(\(uint32_t\)\((?:ebp \+ 0x[0-9a-f]+u|0x[0-9a-f]+u)\)\).*', strip(lines[n])):
+        return False          # a dropped load through a pointer can fault in the translation where the mutant does not (scripts/fl43_equiv.py restricts `dead` to frame slots and image addresses for the same reason)
     flow = Flow(fn)
     for mut in variants:
         init = initial_difference(lines[n], mut)
