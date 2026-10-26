@@ -1,0 +1,15 @@
+# NATIVE-18: native collision-puzzle sound completion
+
+Original root chat authorizes native ARM64 porting, one independently reviewed PR per slice. Root alone owns shared app integration and publication. Preserve original assets/GAME.EXE/game-source.json and all reserved ledger/evidence/fl40/flNN work. Keep the existing game-only audio preference. No output-device, crash/fault, sanitizer, mutation or original-x86/oracle tests.
+
+The D3 collision kernel already implements pointer movement, slides, solve delay, completion-sound wait and transition. The app's four sound callbacks still log requests and always return idle. Replace only these host boundaries using the existing PuzzleSound/live-audio adapter, as used by the piano. Refresh channel eligibility from the shared provider before play/busy. Preserve kernel ordering and explicit refusal of unsupported descriptor flags.
+
+Acceptance: a focused normal native-app component check must fail against the old callbacks, then prove a real D3 sound is loaded, played, busy while offline frames remain and idle after consumption. Cover shared-channel unload/reload and missing-resource behavior using existing helpers where practical. Exercise the kernel's win-sound wait before completion; label any direct component setup rather than claiming a fresh-game solve. Use owner-local D3 descriptors, no committed resource bytes. Fresh native build, independent frozen review, native-only diff and PR merge required. Keep reporting short; no general testing project.
+
+Ownership: root edits src/blackmoor_app.mm. Codex gpt-6.1-sol xhigh test worker may add only tests/native_collision_sound_glue_test.mm and tests/test_native_collision_sound.py. Reuse existing app-include/offline test build conventions. Return exact failure and concise evidence; do not edit app, runtime, ledger or existing unrelated tests.
+
+Implementation: the four D3 callbacks now use PuzzleSound with authoritative shared-channel refresh before play/busy. All three installed D3 rows (S3450 rows2/3, S3455 row0) use supported flags2/mode1. The real S3450 move and victory clips use channels8/9. Kernel code and ordering are unchanged.
+
+Verification: the old callback fails the real-load assertion (loaded0). Worker2/2 pass17.654s: move clip14935frames; victory waits through partial consumption, naturally finishes, unloads and transitions3451; missing/replaced/shared channels follow provider state. This is an explicit direct kernel component with solved-state setup and rendering/transition sinks, not a campaign solve. Two existing piano solve/shared-channel checks pass17.243s; the normal ARM64 build passes. Broader difficulty/campaign, GUI, device audio and original decoder/timing parity are unverified. No new ledger acceptance.
+
+Pins: originalGAME.EXE afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45; app source e4a22d801f94b9dbf6420a6a0851d6b2e0c60eb7582041466835336990cfbe9e; native executable 4f42c88fcfe508faf25bd680931634159a725a6b8f963854e064b54959980e7c. Logs/private receipts: /private/tmp/native18-{red,green,root-green,piano-regression,build}.log. Independent frozen review/publication pending.
