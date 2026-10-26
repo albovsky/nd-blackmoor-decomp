@@ -31,16 +31,16 @@ Test totals come from `status.json` `current_integration.full_suite` at its reco
 
 Playable evidence: `blackmoor-playable-status/2` / `seeded_committed_integration`; source `495c5ed1ea2baefcf3b44b196fd546b0342a7814`; native SHA-256 `unavailable (seed)`; 0 session ticks.
 
-`playable-status.json` sha256 `507a48ca7282edec3eadb7d6c5e7f40ca2c5848cca49db7b42a4121d82e9a880`. Derivation and limits: `README.md`.
+`playable-status.json` sha256 `828f03856fa4458c41763c6a483fa1474a98a1188da73d789e78c52f8769e108`. Derivation and limits: `README.md`.
 
 ## Function ledger
 
-**Needed for the Mac port: 2,685 functions** (Game and Vorbis/Ogg): 2,209 ported, 181 tested equivalent (a second tier, not counted as ported), 295 pending, 0 not needed. Game 2,031 of 2,507 ported; Vorbis and Ogg 178 of 178 ported.
+**Needed for the Mac port: 2,685 functions** (Game and Vorbis/Ogg): 2,209 ported, 221 tested equivalent (a second tier, not counted as ported), 255 pending, 0 not needed. Game 2,031 of 2,507 ported; Vorbis and Ogg 178 of 178 ported.
 CRT and MFC (1,503 functions) is Microsoft runtime code that macOS supplies, so it is left out of the Mac-port view and still counts in the x86 match view below.
 
 **x86 match view, all 4,188 functions:** 2,210 ported, 128 not needed, 1,850 pending (44.17%).
 
-**Tested equivalent: 1,274** of the pending functions (a second tier, not counted as ported): game 181, crt_mfc 1,093.
+**Tested equivalent: 1,315** of the pending functions (a second tier, not counted as ported): game 221, crt_mfc 1,094.
 
 | Status | Class | Functions |
 |---|---|---:|
@@ -78,7 +78,7 @@ Caveats:
 - Region seams are accurate to a few hundred bytes; a seam function is never decided by a rule.
 - Private receipts are not re-hashed at build time: the page shows only a receipt's name and sha256. Cited committed src/ and tests/ files are re-hashed, so changing one needs extract_function_evidence.py --write and build_function_ledger.py --write before this map can be rebuilt.
 
-Ledger `function-ledger.json` sha256 `94dbfca3620e41f298c2f55b1e8b691fe5a886bc36786714486876a0ca220107`; 1,792 pinned inputs; see `README.md` for how it is derived and checked.
+Ledger `function-ledger.json` sha256 `d0f85faa2f5ca0aad43bc48a14f3a9e964eab4da3335ca3495e64d231aa6faa1`; 1,799 pinned inputs; see `README.md` for how it is derived and checked.
 
 ## x86 matching
 
