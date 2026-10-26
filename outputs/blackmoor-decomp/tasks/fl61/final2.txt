@@ -1,0 +1,18 @@
+check ok: functions_with_evidence=2880 windows_verified=2318 mismatch=0 mentions=2425 unresolved=5993
+checked function-ledger.json: 4188 functions (ported 2197, not_needed 128, pending 1863)
+note: xrefs inputs not re-checked here (private, need scripts/extract_function_xrefs.py --check): ghidra_census, original
+note: private receipts not re-hashed (use --verify-private where work/ exists)
+note: 2 Ghidra body sizes exceed their span and are clamped to it: 0x50d8e0, 0x52178e
+../home/user/nd-blackmoor-decomp/outputs/blackmoor-decomp/scripts/lift_function.py:79: ResourceWarning: unclosed file <_io.TextIOWrapper name='/home/user/nd-blackmoor-decomp/outputs/blackmoor-decomp/function-ledger.json' mode='r' encoding='utf-8'>
+  entries = json.load(open(PROJECT / "function-ledger.json"))["entries"]
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+............/home/user/nd-blackmoor-decomp/outputs/blackmoor-decomp/scripts/lift_function.py:90: ResourceWarning: unclosed file <_io.TextIOWrapper name='/home/user/nd-blackmoor-decomp/outputs/blackmoor-decomp/function-ledger.json' mode='r' encoding='utf-8'>
+  _ENTRIES = {int(e["va"], 16): e for e in json.load(open(PROJECT / "function-ledger.json"))["entries"]}
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.......................batch-003.json: re-hashed 1 source(s)
+re-hashed 1 source(s) in total
+.
+----------------------------------------------------------------------
+Ran 38 tests in 148.905s
+
+OK

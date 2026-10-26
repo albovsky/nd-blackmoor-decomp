@@ -1,0 +1,293 @@
+{
+ "rows_with_survivors": {
+  "0x44ecaf": [
+   [
+    "width",
+    null,
+    "edx = RD32((uint32_t)(0x5b44f0u));  /* 0x44ecf9: mov edx, dword ptr [0x5b44f0] */",
+    20
+   ],
+   [
+    "width",
+    null,
+    "eax = RD32((uint32_t)(0x5b44f4u));  /* 0x44ed02: mov eax, dword ptr [0x5b44f4] */",
+    22
+   ],
+   [
+    "width",
+    null,
+    "edx = RD32((uint32_t)(0x5b44f0u));  /* 0x44edb8: mov edx, dword ptr [0x5b44f0] */",
+    70
+   ],
+   [
+    "width",
+    null,
+    "eax = RD32((uint32_t)(0x5b44f4u));  /* 0x44edc1: mov eax, dword ptr [0x5b44f4] */",
+    72
+   ]
+  ],
+  "0x45e4d4": [
+   [
+    "width",
+    null,
+    "edx = RD32((uint32_t)(0x5b44f0u));  /* 0x45e506: mov edx, dword ptr [0x5b44f0] */",
+    15
+   ],
+   [
+    "width",
+    null,
+    "eax = RD32((uint32_t)(0x5b44f4u));  /* 0x45e50f: mov eax, dword ptr [0x5b44f4] */",
+    17
+   ],
+   [
+    "width",
+    null,
+    "eax = RD32((uint32_t)(0x5b44f0u));  /* 0x45e550: mov eax, dword ptr [0x5b44f0] */",
+    28
+   ],
+   [
+    "width",
+    null,
+    "ecx = RD32((uint32_t)(0x5b44f4u));  /* 0x45e558: mov ecx, dword ptr [0x5b44f4] */",
+    30
+   ]
+  ],
+  "0x46c41e": [
+   [
+    "width",
+    null,
+    "edx = RD32((uint32_t)(0x5b44f4u));  /* 0x46c475: mov edx, dword ptr [0x5b44f4] */",
+    24
+   ],
+   [
+    "width",
+    null,
+    "eax = RD32((uint32_t)(0x5b44f0u));  /* 0x46c4f6: mov eax, dword ptr [0x5b44f0] */",
+    49
+   ],
+   [
+    "width",
+    null,
+    "ecx = RD32((uint32_t)(0x5b44f4u));  /* 0x46c4fe: mov ecx, dword ptr [0x5b44f4] */",
+    51
+   ],
+   [
+    "width",
+    null,
+    "ecx = RD32((uint32_t)(0x5b44f0u));  /* 0x46c5b1: mov ecx, dword ptr [0x5b44f0] */",
+    92
+   ],
+   [
+    "width",
+    null,
+    "edx = RD32((uint32_t)(0x5b44f4u));  /* 0x46c5ba: mov edx, dword ptr [0x5b44f4] */",
+    94
+   ],
+   [
+    "width",
+    null,
+    "edx = RD32((uint32_t)(0x5b44f0u));  /* 0x46c649: mov edx, dword ptr [0x5b44f0] */",
+    123
+   ],
+   [
+    "width",
+    null,
+    "eax = RD32((uint32_t)(0x5b44f4u));  /* 0x46c652: mov eax, dword ptr [0x5b44f4] */",
+    125
+   ]
+  ],
+  "0x47409e": [
+   [
+    "width",
+    null,
+    "ecx = RD32((uint32_t)(0x5b44f4u));  /* 0x4740b7: mov ecx, dword ptr [0x5b44f4] */",
+    11
+   ]
+  ],
+  "0x459ddc": [
+   [
+    "width",
+    null,
+    "eax = RD32((uint32_t)(0x5b44f0u));  /* 0x459e1b: mov eax, dword ptr [0x5b44f0] */",
+    16
+   ],
+   [
+    "width",
+    null,
+    "ecx = RD32((uint32_t)(0x5b44f4u));  /* 0x459e23: mov ecx, dword ptr [0x5b44f4] */",
+    18
+   ]
+  ],
+  "0x464ab5": [
+   [
+    "width",
+    null,
+    "edx = RD32((uint32_t)(0x5b44f0u));  /* 0x464ae7: mov edx, dword ptr [0x5b44f0] */",
+    15
+   ],
+   [
+    "width",
+    null,
+    "eax = RD32((uint32_t)(0x5b44f4u));  /* 0x464af0: mov eax, dword ptr [0x5b44f4] */",
+    17
+   ],
+   [
+    "width",
+    null,
+    "edx = RD32((uint32_t)(0x5b44f0u));  /* 0x464bc2: mov edx, dword ptr [0x5b44f0] */",
+    58
+   ],
+   [
+    "width",
+    null,
+    "eax = RD32((uint32_t)(0x5b44f4u));  /* 0x464bcb: mov eax, dword ptr [0x5b44f4] */",
+    60
+   ],
+   [
+    "width",
+    null,
+    "edx = RD32((uint32_t)(0x5b44f0u));  /* 0x464c21: mov edx, dword ptr [0x5b44f0] */",
+    76
+   ],
+   [
+    "width",
+    null,
+    "eax = RD32((uint32_t)(0x5b44f4u));  /* 0x464c2a: mov eax, dword ptr [0x5b44f4] */",
+    78
+   ]
+  ],
+  "0x465f8e": [
+   [
+    "width",
+    null,
+    "edx = RD32((uint32_t)(0x5b44f0u));  /* 0x466029: mov edx, dword ptr [0x5b44f0] */",
+    37
+   ],
+   [
+    "width",
+    null,
+    "eax = RD32((uint32_t)(0x5b44f4u));  /* 0x466032: mov eax, dword ptr [0x5b44f4] */",
+    39
+   ]
+  ],
+  "0x4691ee": [
+   [
+    "width",
+    null,
+    "ecx = RD32((uint32_t)(0x5b44f0u));  /* 0x469213: mov ecx, dword ptr [0x5b44f0] */",
+    12
+   ],
+   [
+    "width",
+    null,
+    "edx = RD32((uint32_t)(0x5b44f4u));  /* 0x46921c: mov edx, dword ptr [0x5b44f4] */",
+    14
+   ]
+  ],
+  "0x479f72": [
+   [
+    "width",
+    null,
+    "edx = RD32((uint32_t)(0x5b44f0u));  /* 0x479fa4: mov edx, dword ptr [0x5b44f0] */",
+    15
+   ],
+   [
+    "width",
+    null,
+    "eax = RD32((uint32_t)(0x5b44f4u));  /* 0x479fad: mov eax, dword ptr [0x5b44f4] */",
+    17
+   ],
+   [
+    "width",
+    null,
+    "ecx = RD32((uint32_t)(0x5b44f0u));  /* 0x479ff6: mov ecx, dword ptr [0x5b44f0] */",
+    30
+   ],
+   [
+    "width",
+    null,
+    "edx = RD32((uint32_t)(0x5b44f4u));  /* 0x479fff: mov edx, dword ptr [0x5b44f4] */",
+    32
+   ]
+  ],
+  "0x4554bb": [
+   [
+    "width",
+    null,
+    "edx = RD32((uint32_t)(0x5b44f0u));  /* 0x4554ed: mov edx, dword ptr [0x5b44f0] */",
+    15
+   ],
+   [
+    "width",
+    null,
+    "eax = RD32((uint32_t)(0x5b44f4u));  /* 0x4554f6: mov eax, dword ptr [0x5b44f4] */",
+    17
+   ],
+   [
+    "width",
+    null,
+    "edx = RD32((uint32_t)(0x5b44f0u));  /* 0x4555c8: mov edx, dword ptr [0x5b44f0] */",
+    58
+   ],
+   [
+    "width",
+    null,
+    "eax = RD32((uint32_t)(0x5b44f4u));  /* 0x4555d1: mov eax, dword ptr [0x5b44f4] */",
+    60
+   ],
+   [
+    "width",
+    null,
+    "edx = RD32((uint32_t)(0x5b44f0u));  /* 0x455627: mov edx, dword ptr [0x5b44f0] */",
+    76
+   ],
+   [
+    "width",
+    null,
+    "eax = RD32((uint32_t)(0x5b44f4u));  /* 0x455630: mov eax, dword ptr [0x5b44f4] */",
+    78
+   ]
+  ],
+  "0x45741d": [
+   [
+    "width",
+    null,
+    "edx = RD32((uint32_t)(0x5b44f0u));  /* 0x45744f: mov edx, dword ptr [0x5b44f0] */",
+    15
+   ],
+   [
+    "width",
+    null,
+    "eax = RD32((uint32_t)(0x5b44f4u));  /* 0x457458: mov eax, dword ptr [0x5b44f4] */",
+    17
+   ],
+   [
+    "width",
+    null,
+    "ecx = RD32((uint32_t)(0x5b44f0u));  /* 0x4574a1: mov ecx, dword ptr [0x5b44f0] */",
+    30
+   ],
+   [
+    "width",
+    null,
+    "edx = RD32((uint32_t)(0x5b44f4u));  /* 0x4574aa: mov edx, dword ptr [0x5b44f4] */",
+    32
+   ]
+  ],
+  "0x45879e": [
+   [
+    "width",
+    null,
+    "eax = RD32((uint32_t)(0x5b44f0u));  /* 0x458876: mov eax, dword ptr [0x5b44f0] */",
+    53
+   ],
+   [
+    "width",
+    null,
+    "ecx = RD32((uint32_t)(0x5b44f4u));  /* 0x45887e: mov ecx, dword ptr [0x5b44f4] */",
+    55
+   ]
+  ]
+ },
+ "unexplained_rows": []
+}

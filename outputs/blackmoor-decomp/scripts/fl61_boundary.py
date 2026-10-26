@@ -29,6 +29,10 @@ EDGES = {1: (0, 1, 0x7f, 0x80, 0xff), 2: (0, 1, 0x7f, 0x80, 0xff, 0x100, 0x7fff,
          4: (0, 1, 2, 0xff, 0x100, 0x7fff, 0x8000, 0xffff, 0x10000, 0x10001, 0x7fffffff, 0x80000000, 0xffffffff, 0xffff0000, 0xffff8000, 0x00018000, 0x0001ffff, 0xfffffffe)}
 
 
+DECO = (0x100, 0x8000, 0x10000, 0x1000000, 0xff00, 0x80000000, 0x10001)
+REG_EDGES = (0, 1, 2, 0x100, 0x10001, 0x8000, 0xffff, 0x10000, 0x80000000, 0xffffffff)
+
+
 def input_cells(row, seed, overrides):
     tr = W.run_original(row, seed, [tuple(o) for o in overrides], observe=True)
     if tr.fault:
@@ -47,12 +51,13 @@ def input_cells(row, seed, overrides):
     return sorted(cells.items())
 
 
-def candidates(key, corpus, rng, cap):
+def candidates(key, corpus, rng, cap, stub_parents=0, regs=False):
     va = int(key, 16)
     spans = L.ledger_spans()
     text, callees, imports, fs, inline = L.lift(va, spans[va])
     row = W.row_info(va, spans[va], callees, imports, fs)
     seeds = [(s[0], s[1]) for s in corpus[key]['seeds']]
+    seeds += [(W.STUB_SEEDS + k, []) for k in range(stub_parents)]          # parents whose callee stubs also return boundary values
     magic = [m & 0xffffffff for m in row['magic']]
     out = []
     for seed, ov in seeds:
@@ -61,9 +66,16 @@ def candidates(key, corpus, rng, cap):
             values = set(EDGES[n])
             values |= {(m + d) & mask for m in magic for d in (-1, 0, 1)}
             values |= {(v + 1) & mask, (v - 1) & mask, (~v) & mask, v ^ 0x80, v ^ 0x8000}
+            # a value that matches a constant of the row in its low byte or half but not above it: a narrower read compares equal where the full-width read does not
+            values |= {(m | d) & mask for m in magic for d in DECO} | {(v | d) & mask for d in DECO}
             values.discard(v)
             for new in sorted(values):
                 out.append((seed, [list(o) for o in ov] + [[a, n, new]]))
+    if regs:
+        for seed, ov in seeds:
+            for k in range(7):
+                for new in REG_EDGES + tuple(m for m in magic[:16]):
+                    out.append((seed, [list(o) for o in ov] + [[W.REG_OVERRIDE + 4 * k, 4, new & 0xffffffff]]))
     rng.shuffle(out)
     seen, picked = set(), []
     for seed, ov in out:
@@ -83,13 +95,15 @@ def main():
     ap.add_argument('--out', required=True)
     ap.add_argument('--cap', type=int, default=3000)
     ap.add_argument('--seed', type=int, default=1)
+    ap.add_argument('--regs', action='store_true', help='also set one start register to a boundary value')
+    ap.add_argument('--stub-parents', type=int, default=0, help='also use this many seeds from STUB_SEEDS on as parents (callee return values and outputs get the boundary styles)')
     a = ap.parse_args()
     corpus = json.loads((PROJECT / 'tests/fl40_corpus.json').read_text())
     out = json.loads(Path(a.out).read_text()) if Path(a.out).exists() else {}
     rng = random.Random(a.seed)
     for key in a.rows:
         t0 = time.time()
-        row, picked = candidates(key, corpus, rng, a.cap * 2)
+        row, picked = candidates(key, corpus, rng, a.cap * 2, a.stub_parents, a.regs)
         good = []
         for seed, ov in picked:
             tr = W.run_original(row, seed, [tuple(o) for o in ov])

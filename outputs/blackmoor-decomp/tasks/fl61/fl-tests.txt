@@ -1,0 +1,65 @@
+................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................../home/user/nd-blackmoor-decomp/outputs/blackmoor-decomp/scripts/lift_function.py:90: ResourceWarning: unclosed file <_io.TextIOWrapper name='/home/user/nd-blackmoor-decomp/outputs/blackmoor-decomp/function-ledger.json' mode='r' encoding='utf-8'>
+  _ENTRIES = {int(e["va"], 16): e for e in json.load(open(PROJECT / "function-ledger.json"))["entries"]}
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/user/nd-blackmoor-decomp/outputs/blackmoor-decomp/scripts/lift_function.py:79: ResourceWarning: unclosed file <_io.TextIOWrapper name='/home/user/nd-blackmoor-decomp/outputs/blackmoor-decomp/function-ledger.json' mode='r' encoding='utf-8'>
+  entries = json.load(open(PROJECT / "function-ledger.json"))["entries"]
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+................................................................................................................................................................................................................................................................................................................................................................/home/user/nd-blackmoor-decomp/outputs/blackmoor-decomp/scripts/lift_fl41.py:96: ResourceWarning: unclosed file <_io.TextIOWrapper name='/home/user/nd-blackmoor-decomp/outputs/blackmoor-decomp/function-ledger.json' mode='r' encoding='utf-8'>
+  _ENTRIES = {int(e["va"], 16): e for e in json.load(open(PROJECT / "function-ledger.json"))["entries"]}
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+....................................................../home/user/nd-blackmoor-decomp/outputs/blackmoor-decomp/scripts/lift_fl41.py:85: ResourceWarning: unclosed file <_io.TextIOWrapper name='/home/user/nd-blackmoor-decomp/outputs/blackmoor-decomp/function-ledger.json' mode='r' encoding='utf-8'>
+  entries = json.load(open(PROJECT / "function-ledger.json"))["entries"]
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.....................................................................................................FF.............../home/user/nd-blackmoor-decomp/outputs/blackmoor-decomp/scripts/lift_fl41.py:1158: ResourceWarning: unclosed file <_io.TextIOWrapper name='/home/user/nd-blackmoor-decomp/outputs/blackmoor-decomp/function-ledger.json' mode='r' encoding='utf-8'>
+  entries = json.load(open(PROJECT / "function-ledger.json"))["entries"]
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+...........FF............................
+======================================================================
+FAIL: test_acceptance_exactly_for_the_rows_that_are_not_held (test_fl46_verdicts.HeldRows.test_acceptance_exactly_for_the_rows_that_are_not_held)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/nd-blackmoor-decomp/outputs/blackmoor-decomp/tests/test_fl46_verdicts.py", line 100, in test_acceptance_exactly_for_the_rows_that_are_not_held
+    self.assertEqual(accepted, set(corpus) - held)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Items in the second set but not the first:
+'0x467c0e'
+'0x46c41e'
+'0x411b16'
+'0x447eaf'
+'0x4336ad'
+'0x41bbd9'
+'0x44ecaf'
+'0x45eadc'
+'0x45bbd8'
+
+======================================================================
+FAIL: test_held_file_is_what_the_final_verdict_computes (test_fl46_verdicts.HeldRows.test_held_file_is_what_the_final_verdict_computes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/nd-blackmoor-decomp/outputs/blackmoor-decomp/tests/test_fl46_verdicts.py", line 91, in test_held_file_is_what_the_final_verdict_computes
+    self.assertEqual(int(counts.group(2)), len(committed))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 100 != 91
+
+======================================================================
+FAIL: test_rows_are_not_in_the_verified_corpus_and_not_ported (test_fl56_unverified.UnverifiedRows.test_rows_are_not_in_the_verified_corpus_and_not_ported)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/nd-blackmoor-decomp/outputs/blackmoor-decomp/tests/test_fl56_unverified.py", line 68, in test_rows_are_not_in_the_verified_corpus_and_not_ported
+    self.assertFalse(set(MANIFEST['rows']) & set(CORPUS))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'0x467c0e', '0x46c41e', '0x411b16', '0x447eaf', '0x4336ad', '0x41bbd9', '0x44ecaf', '0x45eadc', '0x45bbd8'} is not false
+
+======================================================================
+FAIL: test_source_and_manifest_are_what_the_lifter_writes (test_fl56_unverified.UnverifiedRows.test_source_and_manifest_are_what_the_lifter_writes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/nd-blackmoor-decomp/outputs/blackmoor-decomp/tests/test_fl56_unverified.py", line 77, in test_source_and_manifest_are_what_the_lifter_writes
+    self.assertEqual((PROJECT / 'src/original_methods_fl56_unverified.c').read_text(), source)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: '/* F[727585 chars] 0x411b16 (1038 bytes): machine translation of[5786254 chars]n}\n' != '/* F[727585 chars] 0x412234 (1363 bytes): machine translation of[5675961 chars]n}\n'
+
+----------------------------------------------------------------------
+Ran 3719 tests in 2878.754s
+
+FAILED (failures=4)

@@ -1,0 +1,2 @@
+0x44ecaf mutants 10 killed 8 survivors [('width', 44, 'killed by boundary scenario'), ('width', 60, 'killed by boundary scenario'), ('literal', 63, 'survives'), ('literal', 44, 'killed by boundary scenario'), ('width', 59, 'killed by boundary scenario'), ('width', 16, 'killed by boundary scenario'), ('width', 37, 'killed by boundary scenario'), ('width', 68, 'killed by boundary scenario'), ('width', 61, 'killed by boundary scenario'), ('literal', 80, 'survives')]
+TOTAL mutants 10 killed 8 rows with a survivor 1
