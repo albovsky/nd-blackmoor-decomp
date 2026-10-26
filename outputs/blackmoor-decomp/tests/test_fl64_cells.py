@@ -138,7 +138,7 @@ if __name__ == '__main__':
     corpus = json.loads((HERE / ('fl%d_corpus.json' % a.world)).read_text())
     W = world(a.world)
     tot = rows = skipped = 0
-    failures = []
+    failures, errors = [], []
     for key in sorted(corpus, key=lambda k: int(k, 16)):
         if a.rows and key not in a.rows.split(','):
             continue
@@ -146,6 +146,7 @@ if __name__ == '__main__':
             res = check_row(W, key, corpus[key], corpus[key]['seeds'][:a.seeds])
         except Exception as exc:
             print(key, 'ERROR', repr(exc)[:200])
+            errors.append(key)
             continue
         if res is None:
             skipped += 1
@@ -155,5 +156,5 @@ if __name__ == '__main__':
         if res[0]:
             failures.append(key)
             print(key, 'UNSOUND', res[0][:3], flush=True)
-    print('world %d: rows checked %d, skipped %d, values checked %d, rows with a violation %d' % (a.world, rows, skipped, tot, len(failures)))
-    sys.exit(1 if failures else 0)
+    print('world %d: rows checked %d, skipped %d, values checked %d, rows with a violation %d, rows that raised %d' % (a.world, rows, skipped, tot, len(failures), len(errors)))
+    sys.exit(1 if failures or errors else 0)

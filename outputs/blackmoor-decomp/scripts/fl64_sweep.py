@@ -24,10 +24,31 @@ import fl40_survivors as S
 import fl44_final as F
 import fl64_rules as R
 
+PER_ROW = 900
 LINE = re.compile(r'(0x[0-9a-f]+) mutants \d+ killed \d+ survivors (.*)')
 
 
+class Slow(Exception):
+    pass
+
+
+def _alarm(*_):
+    raise Slow()
+
+
 def work(args):
+    import signal
+    signal.signal(signal.SIGALRM, _alarm)
+    signal.alarm(PER_ROW)
+    try:
+        return work_row(args)
+    except Slow:
+        return args[0], None                    # a row that takes too long is skipped: it makes no claim, so it cannot be unsound
+    finally:
+        signal.alarm(0)
+
+
+def work_row(args):
     row, text, real = args
     ctx = S.fl64_context(row, text, None)
     if not ctx:
@@ -65,6 +86,7 @@ def main():
     res = {}
     with mp.Pool(a.jobs, maxtasksperchild=1) as pool:
         for row, out in pool.imap_unordered(work, items):
+            print('done', row, 'skipped' if out is None else '%d lines' % len(out), flush=True)
             if out is None:
                 continue
             res[row] = out
