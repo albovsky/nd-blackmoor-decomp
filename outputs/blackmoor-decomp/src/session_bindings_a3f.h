@@ -50,6 +50,9 @@ typedef struct SessionA3fHost {
 
 SessionA3fBinding *session_a3f_create(const SessionA3fHost *);
 void session_a3f_destroy(SessionA3fBinding *);
+/* Additive opt-in; the legacy host ABI and no-hook behavior stay fixed.
+ * Copy callbacks, borrowing their context for this binding's lifetime. */
+int session_a3f_set_response_hooks(SessionA3fBinding *, const Convo3fHookBuilders *);
 
 /* Builds the object image of every raw 0x3f row (action_family_3f_construct
  * with the resolved CONVO texts, arena handle base 1) and resets the manager.

@@ -283,6 +283,39 @@ static void remove_response(Convo3fManager *m, const uint8_t *entry)
     }
 }
 
+int convo3f_apply_hook_response(Convo3fManager *m, const Convo3fResponse *entry, int replace)
+{
+    int found = -1;
+    if (!m || !entry || (replace != 0 && replace != 1)) return CONVO3F_ERR_ARGUMENT;
+    if (m->response_count < 0 || m->response_count > CONVO3F_MAX_RESPONSES ||
+        !memchr(entry->name, 0, CONVO3F_NAME_BYTES)) return CONVO3F_ERR_BOUNDS;
+    if (!replace && m->response_count == CONVO3F_MAX_RESPONSES) return CONVO3F_OK;
+    for (int i = 0; i < m->response_count; ++i) {
+        if (convo3f_text_equal(m->responses[i].text, entry->text)) { found = i; break; }
+    }
+    if (replace && found >= 0) compact_from(m, found);
+    else if (!replace && found >= 0) return CONVO3F_OK;
+    if (m->response_count == CONVO3F_MAX_RESPONSES) return CONVO3F_OK;
+    Convo3fResponse *dst = &m->responses[m->response_count];
+    memcpy(dst->text, entry->text, CONVO3F_TEXT_BYTES);
+    copy_name_cstr(dst->name, entry->name);
+    dst->scene = entry->scene;
+    dst->word_23 = entry->word_23; dst->word_25 = entry->word_25; dst->word_27 = entry->word_27;
+    dst->dword_29 = entry->dword_29; dst->dword_2d = entry->dword_2d; dst->dword_31 = entry->dword_31;
+    dst->event_index = entry->event_index; dst->event_value = entry->event_value; dst->word_38 = entry->word_38;
+    ++m->response_count;
+    return CONVO3F_OK;
+}
+
+static int build_hooks(const Convo3fHookBuilders *hooks, const Convo3fObject *o,
+    const Convo3fWorld *w, Convo3fManager *m, int preview, const char **why)
+{
+    const uint8_t a = o->arena[C3F_HOOK_A], b = o->arena[C3F_HOOK_B];
+    if (a == CONVO3F_NO_HOOK && b == CONVO3F_NO_HOOK) return CONVO3F_OK;
+    if (!hooks || !hooks->build) return fail(why, "hook builder"), CONVO3F_ERR_UNSUPPORTED;
+    return hooks->build(hooks->context, a, b, w, m, preview, why);
+}
+
 static int build_list(Convo3fManager *m, const Convo3fObject *o, const Convo3fWorld *w,
                       const char **why)
 {
@@ -962,14 +995,21 @@ int convo3f_cel_render(Convo3fManager *m, const Convo3fObject *o, Convo3fWorld *
 int convo3f_preview_responses(const Convo3fManager *manager, const Convo3fObject *object,
     const Convo3fWorld *world, Convo3fManager *preview, const char **why)
 {
+    return convo3f_preview_responses_with_hooks(manager, object, world, NULL, preview, why);
+}
+
+int convo3f_preview_responses_with_hooks(const Convo3fManager *manager, const Convo3fObject *object,
+    const Convo3fWorld *world, const Convo3fHookBuilders *hooks, Convo3fManager *preview, const char **why)
+{
     if (!manager || !object || !object->arena || !world || !preview)
         return CONVO3F_ERR_ARGUMENT;
     if (object->arena_bytes < CONVO3F_IMAGE_BYTES || manager->response_count < 0 ||
         manager->response_count > CONVO3F_MAX_RESPONSES) return CONVO3F_ERR_BOUNDS;
-    if (object->arena[C3F_HOOK_A] != CONVO3F_NO_HOOK || object->arena[C3F_HOOK_B] != CONVO3F_NO_HOOK)
-        return fail(why, "hook builder"), CONVO3F_ERR_UNSUPPORTED;
+    if ((object->arena[C3F_HOOK_A] != CONVO3F_NO_HOOK || object->arena[C3F_HOOK_B] != CONVO3F_NO_HOOK) &&
+        (!hooks || !hooks->build)) return fail(why, "hook builder"), CONVO3F_ERR_UNSUPPORTED;
     Convo3fManager built = *manager;
     int status = build_list(&built, object, world, why);
+    if (status == CONVO3F_OK) status = build_hooks(hooks, object, world, &built, 1, why);
     if (status == CONVO3F_OK) *preview = built;
     return status;
 }
@@ -1056,7 +1096,8 @@ static int phase0_cel(Convo3fManager *m, const Convo3fObject *o, int32_t row, Co
 
 
 static int phase0(Convo3fManager *m, const Convo3fObject *o, uint8_t type, int32_t row,
-                  Convo3fWorld *w, const Convo3fHost *h, Convo3fStepResult *r, const char **why)
+                  Convo3fWorld *w, const Convo3fHost *h, const Convo3fHookBuilders *hooks,
+                  Convo3fStepResult *r, const char **why)
 {
     uint8_t *img = o->arena;
     const int cel = is_cel_type(type);
@@ -1074,7 +1115,8 @@ static int phase0(Convo3fManager *m, const Convo3fObject *o, uint8_t type, int32
         return CONVO3F_OK;
     }
     /* ---- validation: no effect before this block is complete ---- */
-    if (img[C3F_HOOK_A] != CONVO3F_NO_HOOK || img[C3F_HOOK_B] != CONVO3F_NO_HOOK) {
+    if ((img[C3F_HOOK_A] != CONVO3F_NO_HOOK || img[C3F_HOOK_B] != CONVO3F_NO_HOOK) &&
+        (!hooks || !hooks->build)) {
         return fail(why, "hook builder (tier C): response builders 0x43f31a..0x44499c are not "
                          "recovered"),
                CONVO3F_ERR_UNSUPPORTED;
@@ -1125,6 +1167,7 @@ static int phase0(Convo3fManager *m, const Convo3fObject *o, uint8_t type, int32
     }
     memcpy(&built, m, sizeof(built));
     status = build_list(&built, o, w, why);
+    if (status == CONVO3F_OK) status = build_hooks(hooks, o, w, &built, 1, why);
     if (status != CONVO3F_OK) {
         return status;
     }
@@ -1234,7 +1277,15 @@ static int phase0(Convo3fManager *m, const Convo3fObject *o, uint8_t type, int32
         return status;
     }
     m->sub_state = 0u;
-    /* 0x4205c1: commit the list built during validation. */
+    /* Hook builders observe the original post-put-back world and consume
+     * randomness only here. The validation build used a private RNG copy. */
+    if (img[C3F_HOOK_A] != CONVO3F_NO_HOOK || img[C3F_HOOK_B] != CONVO3F_NO_HOOK) {
+        built = *m;
+        status = build_list(&built, o, w, why);
+        if (status == CONVO3F_OK) status = build_hooks(hooks, o, w, &built, 0, why);
+        if (status != CONVO3F_OK) return CONVO3F_ERR_HOST;
+    }
+    /* 0x4205c1: commit the finished list. */
     {
         int16_t slot0 = m->textbox_slot[0], slot1 = m->textbox_slot[1];
         const int32_t thread = m->cel_thread;
@@ -1747,6 +1798,13 @@ int convo3f_step_type(Convo3fManager *m, const Convo3fObject *o, uint8_t type, i
                       uint32_t phase, Convo3fWorld *w, const Convo3fHost *h, Convo3fStepResult *r,
                       const char **why)
 {
+    return convo3f_step_type_with_hooks(m, o, type, row, phase, w, h, NULL, r, why);
+}
+
+int convo3f_step_type_with_hooks(Convo3fManager *m, const Convo3fObject *o, uint8_t type, int32_t row,
+    uint32_t phase, Convo3fWorld *w, const Convo3fHost *h, const Convo3fHookBuilders *hooks,
+    Convo3fStepResult *r, const char **why)
+{
     if (r != NULL) {
         memset(r, 0, sizeof(*r));
         r->phase_after = phase;
@@ -1765,7 +1823,7 @@ int convo3f_step_type(Convo3fManager *m, const Convo3fObject *o, uint8_t type, i
         return fail(why, "runtime type not modelled (0x3f and 0x3e only)"), CONVO3F_ERR_UNSUPPORTED;
     }
     if (phase == 0u) {
-        return phase0(m, o, type, row, w, h, r, why);
+        return phase0(m, o, type, row, w, h, hooks, r, why);
     }
     if (phase != 1u && phase != 2u) {
         return CONVO3F_OK; /* the original's switch has no arm: no effect */
