@@ -47,12 +47,13 @@ def input_cells(row, seed, overrides):
     return sorted(cells.items())
 
 
-def candidates(key, corpus, rng, cap):
+def candidates(key, corpus, rng, cap, stub_parents=0):
     va = int(key, 16)
     spans = L.ledger_spans()
     text, callees, imports, fs, inline = L.lift(va, spans[va])
     row = W.row_info(va, spans[va], callees, imports, fs)
     seeds = [(s[0], s[1]) for s in corpus[key]['seeds']]
+    seeds += [(W.STUB_SEEDS + k, []) for k in range(stub_parents)]          # parents whose callee stubs also return boundary values
     magic = [m & 0xffffffff for m in row['magic']]
     out = []
     for seed, ov in seeds:
@@ -83,13 +84,14 @@ def main():
     ap.add_argument('--out', required=True)
     ap.add_argument('--cap', type=int, default=3000)
     ap.add_argument('--seed', type=int, default=1)
+    ap.add_argument('--stub-parents', type=int, default=0, help='also use this many seeds from STUB_SEEDS on as parents (callee return values and outputs get the boundary styles)')
     a = ap.parse_args()
     corpus = json.loads((PROJECT / 'tests/fl40_corpus.json').read_text())
     out = json.loads(Path(a.out).read_text()) if Path(a.out).exists() else {}
     rng = random.Random(a.seed)
     for key in a.rows:
         t0 = time.time()
-        row, picked = candidates(key, corpus, rng, a.cap * 2)
+        row, picked = candidates(key, corpus, rng, a.cap * 2, a.stub_parents)
         good = []
         for seed, ov in picked:
             tr = W.run_original(row, seed, [tuple(o) for o in ov])
