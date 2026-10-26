@@ -1016,6 +1016,9 @@ LEDGER_CAVEATS = (
     "oracle run executed it); oracle-verified needs a recorded Unicorn run (function-execution.json) that "
     "executed every code byte of the original function, never just a declared window. Adapter-tested covers "
     "Win32 or library behaviour replaced by a tested adapter. The three ported classes are reported separately.",
+    "Tested equivalent is a second tier, never part of Ported: the committed translation of a pending function "
+    "matches the original x86 (Unicorn) on generated scenarios that run every instruction and take both directions "
+    "of every jump, but no mutation check was run, so a difference outside what the scenarios can show is not ruled out.",
     "Spans include tables, padding and thunks: a span runs from a function start to the next indexed "
     "start, and the Ghidra body size can be smaller.",
     "Region seams are accurate to a few hundred bytes; a seam function is never decided by a rule.",
@@ -1033,6 +1036,10 @@ def function_ledger_report(panel):
     lines = ["## Function ledger", "",
              f"**{n:,} functions:** {st['ported']:,} ported, {st['not_needed']:,} not needed, "
              f"{st['pending']:,} pending ({pct(st['pending'], n)}).", ""]
+    te = panel["tested_equivalent"]
+    if te["count"]:
+        lines += [f"**Tested equivalent: {te['count']:,}** of the pending functions (a second tier, not counted as ported): "
+                  f"{', '.join(f'{r} {k:,}' for r, k in te['by_region'].items() if k)}.", ""]
     if st["ported"] == 0 and st["not_needed"] == 0:
         lines += ["With 0 ported and 0 not needed, this ledger is the honest baseline: every function is pending "
                   "until a reviewed acceptance says otherwise. The pending subclasses are leads, not progress.", ""]
@@ -1083,7 +1090,7 @@ def function_ledger_panel(root: Path, expected_functions: int):
 
 
 def compact_function_ledger(ledger: dict, ledger_sha256: str) -> dict:
-    """Rows are `[va, span, region_i, status_i, class_i, ev_i]`; `ev_i` indexes `details` (0 = none)."""
+    """Rows are `[va, span, region_i, status_i, class_i, ev_i, te]`; `ev_i` indexes `details` (0 = none); `te` is 1 for a pending function of the tested-equivalent tier."""
     statuses, regions, classes = list(FNL.STATUSES), list(FNL.REGIONS), list(FNL.CLASSES)
     uses, paths, path_ix = list(FNL.USES), [], {}
     receipts, receipt_ix, items, item_ix = [], {}, [], {}     # shared tables keep 4,188 rows small
@@ -1115,6 +1122,8 @@ def compact_function_ledger(ledger: dict, ledger_sha256: str) -> dict:
             return ["n", p["path"].rsplit("/", 1)[-1], p["symbol"] or "", p["via"]]
         return ["m", path_index(p["path"]), p["symbol"] or "", p["via"]]
 
+    te_set = set((ledger.get("tested_equivalent") or {}).get("vas", ()))
+    te_by_region = {r: 0 for r in regions}
     rows, details = [], [{}]
     cross = {key: {s: 0 for s in statuses} for key in ("complete", "partial", "none")}
     for e in ledger["entries"]:
@@ -1140,15 +1149,17 @@ def compact_function_ledger(ledger: dict, ledger_sha256: str) -> dict:
         if d:
             ev_i = len(details)
             details.append(d)
+        te = 1 if e["va"] in te_set else 0
+        te_by_region[e["region"]] += te
         rows.append([int(e["va"], 16), e["span"], regions.index(e["region"]),
-                     statuses.index(e["status"]), classes.index(e["class"]), ev_i])
+                     statuses.index(e["status"]), classes.index(e["class"]), ev_i, te])
         cross["complete" if x and x["complete"] else "partial" if x else "none"][e["status"]] += 1
     counts = ledger["counts"]
     # Defence in depth: the compact rows must reproduce the validated counts.
     by_status = [0] * len(statuses)
     by_class = [0] * len(classes)
     by_region = [[0] * len(statuses) for _ in regions]
-    for _, _, ri, si, ci, _ in rows:
+    for _, _, ri, si, ci, _, _ in rows:
         by_status[si] += 1
         by_class[ci] += 1
         by_region[ri][si] += 1
@@ -1157,13 +1168,15 @@ def compact_function_ledger(ledger: dict, ledger_sha256: str) -> dict:
             or by_region != [[counts["region"][r][s] for s in statuses] for r in regions]
             or len(rows) != counts["total"]):
         raise ProgressError("function ledger rows disagree with the ledger counts")
+    if sum(te_by_region.values()) != len(te_set):
+        raise ProgressError("function ledger tested-equivalent list names a function that is not in the ledger")
     x86 = counts["x86"]
     if (cross["complete"]["ported"] != x86["complete_ported"]
             or sum(sum(c.values()) for k, c in cross.items() if k != "none") != x86["matched"]
             or sum(cross["complete"].values()) != x86["complete"]):
         raise ProgressError("function ledger x86 cross-tab disagrees with the ledger counts")
     return {"schema": ledger["schema"], "ledger_sha256": ledger_sha256, "total": counts["total"],
-            "counts": counts, "statuses": statuses, "regions": regions, "classes": classes,
+            "counts": counts, "tested_equivalent": {"count": len(te_set), "by_region": te_by_region}, "statuses": statuses, "regions": regions, "classes": classes,
             "class_status": [statuses.index(FNL.CLASS_STATUS[c]) for c in classes],
             "uses": uses, "crosstab": cross, "caveats": list(LEDGER_CAVEATS), "input_count": len(ledger["inputs"]),
             "paths": paths, "receipts": receipts, "items": items, "details": details, "rows": rows}
