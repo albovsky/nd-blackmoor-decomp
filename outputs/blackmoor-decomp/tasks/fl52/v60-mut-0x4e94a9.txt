@@ -1,0 +1,1 @@
+0x4e94a9 mutants 28 killed 26 survivors [('width', 10, 'survives', 'ac6f5edb'), ('literal', 10, 'survives', '21be9a51')]

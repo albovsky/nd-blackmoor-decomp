@@ -1,0 +1,12 @@
+{
+ "0x4de2d8": [
+  {
+   "id": "A-51:29188def10ea4702",
+   "rationale": "The item concerns the renderer behaviour inside 0x448d11 and the frame text box 0x4de24f/0x4de2d8 being stubbed in the A-51 action tests: a gap in what that slice compared. Here the function's own instructions and jump directions all run in the oracle and match the translation, with its callee as a recording stub."
+  },
+  {
+   "id": "A-51:c6f8b288bc870891",
+   "rationale": "The item says the frame text box UI (0x4de24f/0x4de2d8) and caption layout (0x448d11) need S05/UI backends and that those callbacks must return ERROR until then. That is a statement about native UI work around this function; the function's own instructions all run in the oracle and match the translation, with its callee as a recording stub."
+  }
+ ]
+}
