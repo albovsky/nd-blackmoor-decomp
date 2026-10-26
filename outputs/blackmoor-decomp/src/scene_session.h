@@ -255,6 +255,19 @@ int scene_session_get_action_state(const SceneSession *session,
 /* RT-36: retire an action row (completed, phase 0, dependencies reset), as the random-movie stop does to the raw 0x2d row
  * (scene_executor_retire_action). Legal from inside a handler. */
 int scene_session_retire_action(SceneSession *session, size_t action_index);
+/* Global active ACT access, including retained source identity and vacancies. */
+size_t scene_session_action_high_water(const SceneSession *);
+int scene_session_get_slot(const SceneSession *, size_t, SceneExecutorSlotInfo *);
+int scene_session_erase_action(SceneSession *, size_t, uint8_t completed);
+typedef struct SceneSessionAppend SceneSessionAppend;
+/* Preparation/commit must occur without an intervening tick or provider
+ * callback. Source resources remain caller-owned for every surviving slot. */
+int scene_session_prepare_no_art(SceneSession *, const SceneResource *, int32_t scene_id,
+    const SceneActionSlotPlan *, SceneSessionAppend **, SceneSessionFailure *);
+int scene_session_can_commit_no_art(const SceneSession *, const SceneSessionAppend *);
+int scene_session_commit_no_art(SceneSession *, SceneSessionAppend *);
+void scene_session_discard_no_art(SceneSessionAppend *);
+
 int scene_session_get_hotspot_state(const SceneSession *session,
                                     size_t action_index,
                                     SceneExecutorHotspotState *state);
