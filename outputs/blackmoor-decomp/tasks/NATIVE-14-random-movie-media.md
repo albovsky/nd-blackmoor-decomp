@@ -1,0 +1,45 @@
+# NATIVE-14: native random-movie media provider
+
+## Authorization and ownership
+
+The original human in this chat authorizes the full native ARM64 macOS port, real-data navigation, one independently reviewed PR per slice and merge. Latest direction is to keep progressing beyond the key/lock route, keep the game muted and avoid crash-producing tests. This authorizing chat alone publishes. Base main d3ab38734b0e4ccbce97a0834361edba0c1a41c0 (PR201); branch codex/native-room-progression-next. Root owns app/shared binding/build integration; independent Codex6.1-sol xhigh workers may own a new isolated media module, new tests and read-only static research.
+
+Never modify original GAME.EXE/game files/game-source or reserved function-ledger/evidence/extract/build outputs, tests/fl40_* or tasks/flNN-handoff.md. No broad discovery, sanitizer/mutation/original-x86/Unicorn/deliberate-fault/output-device checks. The old RT36 oracle packet is historical evidence, not permission to run those paths. Use ordinary CHECK/exit1 failures and muted offline audio. No new GUI claim without an observed GUI check.
+
+## Confirmed blocker and route
+
+Normal packaged ARM64 app follows New Game/Junior through38distinct scenes/38entries to S4408. Route:2010 pan left3 to frame8, row8->2006 row2->2007 row1->3301 row5->3302 row13->3303 row4->3304 row5->3311 row15->3350 row7->3351 row3->4400->4405 row1->4410 row1->4412 row3->4408. Row0 raw2d stops status2 at the unimplemented media provider before effects. Private log native14-linda-baseline-route.log. No story/item/phase injection; all audio muted/offline.
+
+This is on the legitimate Linda/Jane/key7 progression needed for the mapped food delivery route. A separate private visit-aware input scheduler also confirmed the ordered-food hall route reaches3360 without key7; that is a real story gate, not bypassed. NO_ART_SCENE at1100 is not reached yet. Static recovery proves it needs retained media/navigation and selective stable ACT slots, so a media-only no-art shim is explicitly outside this slice.
+
+## Bounded implementation
+
+Wire the already recovered D2 random-movie kernel to a native silent-Bink provider. All3 owned raw2d sets are mode1;49 unique referenced BIKi assets are620x375@15fps with zero soundtracks. Linda9entries play0..15; Loulou40entries play0..14. LindaAA's container has76frames, so the kernel's entry end must win over container EOS. Preserve weighted choices, delay and frame bounds in the existing kernel, share canonical RNG/clock, map modal_input/selector/view and fixed render slot16, and honor raw2e stop/retirement. Do not advance a frame at BinkWait, confuse DoFrame with NextFrame, or silently destroy an active movie on a scene change.
+
+Add a new media adapter module using the existing native BinkPlayer. Probe original HDVideo BIK, CDVideo BIK, HDVideo AVF, CDVideo AVF order with Windows ASCII case matching and bounded local file-only decoding. Validate the silent-Bink contract before gameplay effects and map the existing canonical cursor-layer flags for the kernel's nonmode1 stores. AVF/soundtrack cases remain explicitly unsupported; nonmode1 actual gameplay remains unverified, since no owned set uses it; no claim to those branches or original Bink SDK codec/timing equivalence. STREAM_RESET must synchronously publish the real opened stream dimensions/id before kernel surface checks, through a narrow binding callback API, never const-casting the binding object.
+
+## Acceptance
+
+Record ordinary actualS4408 RED; focused normal checks for real selected clip frames/rendering, early last-frame cap despite76-frameAA container, weighted reload/delay, selector hide/show, view offset and retained final surface, original raw2e stop/row retirement/cleanup and explicit unsupported preflight. Cover metadata for all3sets/49silentBink assets and both frame bounds; no resource payloads committed. Run normal ARM64 build, meaningful existing movie/input regressions and normal Linda route; record the next real stop. Pin original/code/native hashes, enumerate unverified branches, freeze for independent Sonnet high slice-reviewer review, dispose findings, then this chat publishes/merges and rebuilds canonical main preserving other-agent changes. Whole game remains incomplete.
+
+## Validation and current boundary
+
+Ordinary actualS4408 RED was recorded against main d3ab: exit1 via CHECK, row0raw2d unsupported beforeeffects,18.995s. The native implementation then passed a normal strict ARM64 production build. Focused pre-existing renderer/input regressions passed: six dialogue-choice checks20.871s, four inventory checks18.370s, game-only master-mute check1.892s, two interactive-movie app checks45.489s. All use normal offline execution; no forbidden test paths ran.
+
+The normal packaged-app Linda route now presents real LIN_LinConvoDC_ANIM frames0..5 at logical(10,10)..(629,384), then reaches targetS1100 and fails explicitly loading NO_ART_SCENE. The route has38successfully loaded distinct scenes/38entries; S1100 is a failed target, not a loaded-scene claim. A separate real bottom-exit route repeatedly enters4408 and stops via raw2e mode0, retiresrow0 and returns4412, ending4412status0/failure0 after69entries across38distinct scenes. It uses ordinary pointer rows, canonical RNG and offline audio; no story/item/phase injection.
+
+Static immutable evidence confirms weighted stay closes the decoder but retains the copied final surface, waits, then repicks; no host replay is appropriate. Only raw2e mode2 reads/clears pending25a, so the host must preserve that field across normal clip reloads. STREAM_RESET synchronously loads real stream metadata through session_a2d_refresh_stream before kernel surface creation. Rendering applies outerentry_flag and callback active/flag206 guards, atslot16/Z11 before dynamic overlays atthatZ and later captions/taskbar.
+
+Native host adaptation remains distinct from original Bink SDK codec, RGB555 and BinkWait parity. All49 owned assets are silentBink; AVF, soundtracks and decoder-thread ops explicitly refuse before gameplayeffects. Full Loulou gameplay and decoding every frame of all49clips, actual mode!=1, nonzero first-frame gameplay, unusual valid crop/dimension sets, casefold ambiguity on case-sensitive storage, original cursor/full renderer ordering and both complete campaigns remain unverified. No new GUI or audible-output check is claimed. Next blocker is the full NO_ART_SCENE loader contract: retain last art/media/navigation and selectively retire/reuse stable action slots. An art-only shortcut is excluded.
+
+## Candidate pins and review
+
+Original GAME.EXE SHA256 afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45; unchanged. New media C aa226d4b9be630bb72db0acb8f89fab16f679166db484409aefb65ba3a61544a; header0047d249dbbd43b9fbd0903bafb3ea7003b86b178fc7029cd9f89d2e084a69f3. Worker candidate b9cfcaeef13aaa2cabf2750496fdb4c6ff7d170f. Root app34056e218d0f8ddb960ef2d24051734694172c88dd0c562cd26c2392b5854c82. Ordinary native buildfd1793ce7ce8eb6a605611288fe3f0586ba0f6822411073acbf6ace62be8b503.
+
+The worker's six new focused checks passed21.394s: real AAframe0/15 versus a separate player and232500viewport pixels, NOT_DUE stability, natural weighted hold/deadline/repick with retained final pixels, selector outer-gate hide/show, real bottom-stop/row retirement/re-entry, all3sets/89references/49unique silent assets, validAVF/audio refusal and originalHD/CD priority without live/RNG/story changes. Root reran the six checks against fresh production modules: allpass20.855s, matching worker test executable SHA25640a67196656f5f83f9c5d1c4cb11abbd7485bd535a5e0f158b6ef0580fadba4e. Final normal ARM64 rebuild passed and reproducedfd1793ce7ce8eb6a605611288fe3f0586ba0f6822411073acbf6ace62be8b503. Independent frozen-commit review is pending. Publication remains reserved to the original authorizing chat. The game is incomplete.
+
+Publication scope note: initial main refresh was completed at d3ab. A later local refresh to46806c0f (other-agent PR202) was rejected by automatic approval review because it would update protected ledger/evidence files. No local retry/indirect merge occurred. The eventual PR must contain only this native slice, with protected target-main files unchanged; native paths do not overlap that decompilation PR.
+
+Static original code pins: handler4cd6ff..4cdfd3 bdca476b91db9275c96c89775550a1cfaea685fec114b5a215e1f82cab7e0eb5; Binkstep4ce8ea..4ceb3b 6a37c4f21041be9ea11ddeedd55c1f838c622fad3abafe1d90d6b97f2f43854f; streamopen44c4c1..44c9db 8dd6a87ff43cc31725db8afa3dfd0c7740e39e6b738b109f71072a9cd21911e7; render4cf9f4..4d00c2 6fcb7a40f64f86eff07574b45064e0735a72bc4817166662d426a7730b4948f8. These were immutable static reads matching annotated extents, not fresh original-code execution.
+
+Focused test pins: native_random_movie_glue_test.mm e086f64bf792a3d7a3fb245152e098e9d6c5a7b37ad89b4abdb9bdea12972742; test_native_random_movie.py 3f96218078370a739768134a0291bfe375b24817d7a5cce551ff053ccdd04b25.
