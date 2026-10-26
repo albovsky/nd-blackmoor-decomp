@@ -5,7 +5,7 @@ The search itself is FL-61's. This wrapper swaps the world (tests/fl41_world.py:
 coverage rule (fl41_generate.covers), and takes its start seeds from tests/fl41_translated.json and tests/fl41_pending.json. The output file has the corpus format ([[seed, [[address, size, value], ...]], ...]
 per row) that `scripts/fl62_add_rows.py ROW --scen FILE` takes.
 
-  fl62_concolic.py ROW [ROW ...] | --refused tasks/fl60-added.json [--below N] [--shard i/n] [--budget-s N] --out FILE --report FILE        (run from outputs/blackmoor-decomp)
+  fl62_concolic.py ROW [ROW ...] | --all [--shard i/n] [--budget-s N] [--skip-reports FILE,FILE] --out FILE --report FILE        (run from outputs/blackmoor-decomp)
 
 Rows whose lift needs an inline helper (__EH_prolog, __chkstk) or has calls through registers are searched too when the shadow can follow them; the report says which ones were skipped and why.
 """
@@ -80,10 +80,10 @@ def starting_seeds(key):
 
 
 def upper_rows():
-    """The rows that FL-60 refused for incomplete coverage (tasks/fl60-added.json), smallest first."""
+    """The rows that FL-60 refused for incomplete coverage (tasks/fl60-added.json) and that are still translated, unverified, smallest first (--all)."""
     refused = json.loads((PROJECT / 'tasks/fl60-added.json').read_text())['refused']
     table = json.loads((PROJECT / 'tests/fl41_translated.json').read_text())
-    return sorted(refused, key=lambda k: (table[k]['body'], k))
+    return sorted((k for k in refused if k in table), key=lambda k: (table[k]['body'], k))
 
 
 C.Row = Row41

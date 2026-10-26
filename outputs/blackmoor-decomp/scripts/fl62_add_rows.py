@@ -66,7 +66,7 @@ def main():
     added, refused = [], {}
     new_text = {}
     for key in rows:
-        if key in corpus:
+        if key in corpus or key not in table:       # already in the corpus, or credited and gone from the translated table
             continue
         t = table[key]
         va = int(key, 16)

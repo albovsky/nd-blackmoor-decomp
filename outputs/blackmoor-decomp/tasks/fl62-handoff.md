@@ -26,7 +26,7 @@ Reading: coverage is no longer the wall for mid-size rows; survivors are. What i
 
 1. A liveness-based `dead flag/dead register` rule built on the same region scan as `known compare`; sweep and review it like the other two.
 2. Run stage C (`fl62_target.py`) on the seven rows with at most 3 survivors first.
-3. The 56 unsearched rows: run `fl62_concolic.py --refused tasks/fl60-added.json --shard i/n` with a lower per-row budget; skip rows that stall more than 20 minutes.
+3. The 56 unsearched rows: run `fl62_concolic.py --all --shard i/n --skip-reports tasks/fl62/report-a0.json,tasks/fl62/report-a1.json,tasks/fl62/report-a2.json` with a lower per-row budget; skip rows that stall more than 20 minutes.
 
 ## Regeneration chain used (for the next credit PR)
 
