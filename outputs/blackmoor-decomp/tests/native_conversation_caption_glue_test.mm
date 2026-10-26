@@ -1,5 +1,5 @@
 /* NATIVE-12: actual BOOT/new-game, S1800 and app conversation providers.
- * S1800 is a component, not a full story-route claim. The refusal case uses
+ * S1800 is a component, not a full story-route claim. The preview case uses
  * actual S1807 row0 with its executor's untouched fresh state.
  * No story/inventory/phase injection, oracle, window or output device. */
 #define main blackmoor_app_entry_for_conversation_caption_test
@@ -273,7 +273,7 @@ static int reset_reentry(ConversationFixture &f)
     return 0;
 }
 
-static int unsupported_responses(ConversationFixture &f)
+static int preview_responses(ConversationFixture &f)
 {
     SceneActionInfo action{};
     ActionFamily3fDecoded decoded{};
@@ -286,9 +286,13 @@ static int unsupported_responses(ConversationFixture &f)
     const auto flags_before = f.app.new_game.event_flags;
     const auto inventory_before = f.app.new_game.inventory_presence;
     const auto framebuffer_before = f.app.framebuffer;
-    SceneActionHandlerResult result{};
-    CHECK(native_a3f_handler(&f.app, 0u, &action, &before, &result) == SCENE_ACTION_HANDLER_UNSUPPORTED,
-          "the real app explicitly refuses the original primary-response row before kernel effects");
+    Convo3fManager preview{};
+    Convo3fLayoutRequest request{};
+    CHECK(session_a3f_preview_layout(f.app.a3f, 0u, &preview, &request) == CONVO3F_OK &&
+          request.response_count == 5 && request.responses == preview.responses &&
+          native_conversation_choices_validate(&request, 1, &f.app.captions.fonts,
+              &f.app.captions.geometry, &f.app.captions.pixel_format) == CAPTION_OK,
+          "the UI preview builds five eligible original responses without applying kernel effects");
     LiveAudioChannelInfo sound{};
     SceneTransitionRequest transition{};
     CHECK(scene_session_get_action_state(f.app.session, 0u, &after) == SCENE_SESSION_OK &&
@@ -300,8 +304,8 @@ static int unsupported_responses(ConversationFixture &f)
           scene_session_get_pending_transition(f.app.session, &transition) == 0 && f.app.framebuffer == framebuffer_before &&
           f.app.new_game.event_flags == flags_before && f.app.new_game.inventory_presence == inventory_before &&
           *f.app.new_game.view.inventory.selected_item_candidate == -1,
-          "unsupported responses leave no sound, surfaces, modal state, phase, transition, inventory or visible effects");
-    std::printf("CONVO_UNSUPPORTED scene=1807 row=0 primary=6 phase=0 kernel_visits=0 effects=0\n");
+          "response preview leaves no sound, surfaces, modal state, phase, transition, inventory or visible effects");
+    std::printf("CONVO_PREVIEW scene=1807 row=0 primary=6 eligible=5 phase=0 kernel_visits=0 effects=0\n");
     return 0;
 }
 
@@ -410,6 +414,32 @@ static bool popup_border_matches(ConversationFixture &f)
     if (!popup || !frame || sx < 0 || sy < 0 || dx < 0 || dy < 0 || width <= 0 || height <= 0 ||
         sx + width > static_cast<int32_t>(popup->width) || sy + height > static_cast<int32_t>(popup->height) ||
         dx + width > 640 || dy + height > 480 || frame->width != 640u || frame->height != 480u) return false;
+    /* Stock slider pixels now overlay the frame. Compute the initial thumb
+     * from original UICO geometry, independently of the candidate box. */
+    const uint8_t *slider = ui + CTB_SLIDER_CONFIG - CTB_CONFIG;
+    if (read_i32_le(slider + SLD_ORIENTATION - SLD_CONFIG) != 1 ||
+        read_i32_le(slider + SLD_DIRECTION - SLD_CONFIG) != 2 ||
+        read_i32_le(slider + SLD_RELATIVE - SLD_CONFIG) != 0) return false;
+    char slider_name[34]{}, background_name[34]{};
+    std::memcpy(slider_name, slider, 33); std::memcpy(background_name, slider + 33, 33);
+    NativeRaw555Image *art = load_native_raw555_image(&f.app, slider_name);
+    NativeRaw555Image *background = load_native_raw555_image(&f.app, background_name);
+    if (!art || !background) return false;
+    const uint8_t *track = slider + SLD_TRACK_RAW - SLD_CONFIG;
+    const uint8_t *bgsrc = slider + SLD_BG_SRC - SLD_CONFIG;
+    const uint8_t *thumbsrc = slider + SLD_SRC_RECTS - SLD_CONFIG;
+    const int32_t tx = read_i32_le(track), ty = read_i32_le(track + 4);
+    const int32_t tw = read_i32_le(track + 8) - tx + 1, th = read_i32_le(track + 12) - ty + 1;
+    const int32_t ax = read_i32_le(thumbsrc), ay = read_i32_le(thumbsrc + 4);
+    const int32_t aw = read_i32_le(thumbsrc + 8) - ax + 1, ah = read_i32_le(thumbsrc + 12) - ay + 1;
+    const int32_t ux = tx + tw / 2 - aw / 2, uy = ty;
+    const int state = read_i32_le(f.app.a3f_caption.popup.box + CTB_STATE);
+    const bool controls = state == 2 || state == 3;
+    auto pixel = [](const NativeRaw555Image *image, int32_t x, int32_t y, uint16_t *out) {
+        if (x < 0 || y < 0 || x >= static_cast<int32_t>(image->width) || y >= static_cast<int32_t>(image->height)) return false;
+        const uint8_t *p = image->pixels.data() + static_cast<size_t>(y) * image->pitch + static_cast<size_t>(x) * 2u;
+        *out = static_cast<uint16_t>(p[0] | p[1] << 8); return true;
+    };
     size_t changed_from_frame = 0;
     for (int32_t y = 0; y < height; ++y) for (int32_t x = 0; x < width; ++x) {
         const int32_t screen_x = dx + x, screen_y = dy + y;
@@ -418,7 +448,17 @@ static bool popup_border_matches(ConversationFixture &f)
         const uint8_t *source = popup->pixels.data() + static_cast<size_t>(sy + y) * popup->pitch + static_cast<size_t>(sx + x) * 2u;
         const uint8_t *base = frame->pixels.data() + static_cast<size_t>(screen_y) * frame->pitch + static_cast<size_t>(screen_x) * 2u;
         if (source[0] != base[0] || source[1] != base[1]) ++changed_from_frame;
-        const uint16_t word = static_cast<uint16_t>(source[0] | (source[1] << 8));
+        uint16_t word = static_cast<uint16_t>(source[0] | (source[1] << 8));
+        if (controls && screen_x >= tx && screen_x < tx + tw && screen_y >= ty && screen_y < ty + th) {
+            if (!pixel(background, read_i32_le(bgsrc) + screen_x - tx,
+                read_i32_le(bgsrc + 4) + screen_y - ty, &word)) return false;
+        }
+        if (controls && screen_x >= ux && screen_x < ux + aw && screen_y >= uy && screen_y < uy + ah) {
+            uint16_t top = 0;
+            if (!pixel(art, ax + screen_x - ux, ay + screen_y - uy, &top)) return false;
+            if (read_i32_le(slider + SLD_INIT_TRANSPARENT - SLD_CONFIG) != 1 ||
+                top != f.app.captions.pixel_format.color_key) word = top;
+        }
         const uint8_t wanted[4] = {static_cast<uint8_t>(((word >> 10) & 31u) * 255u / 31u),
             static_cast<uint8_t>(((word >> 5) & 31u) * 255u / 31u), static_cast<uint8_t>((word & 31u) * 255u / 31u), 255u};
         if (std::memcmp(f.app.framebuffer.data() + (static_cast<size_t>(screen_y) * 640u + static_cast<size_t>(screen_x)) * 4u,
@@ -453,7 +493,7 @@ static int captions_off(ConversationFixture &f)
         clear[i] = f.app.captions.lifecycle.g.framed_clear_request;
     }
     std::printf("CONVO_CAPTIONS_OFF popup=%d clear=%d,%d,%d,%d\n", popup, clear[0], clear[1], clear[2], clear[3]);
-    CHECK(popup, "captions-off mode2 draws the exact original UICO popup border independently of text readiness");
+    CHECK(popup, "captions-off mode2 draws the exact original UICO popup border and stock slider independently of text readiness");
     CHECK(clear[2] == 0 && clear[3] == 0, "the ordinary two-frame text clear drains without being re-armed by busy conversation visits");
     CHECK(f.saw_coalesced_restore(), "the first clear invokes the explicit host restore already performed by scene reseeding and popup redraw");
     for (unsigned i = 0; busy != 0 && i < 800u; ++i) {
@@ -487,13 +527,13 @@ int main(int argc, char **argv)
     @autoreleasepool {
         if (argc != 4 || std::strcmp(argv[1], "--conversation-component") != 0) return 2;
         ConversationFixture fixture;
-        const bool unsupported = std::strcmp(argv[3], "unsupported") == 0;
+        const bool preview = std::strcmp(argv[3], "preview") == 0;
         const bool captions_disabled = std::strcmp(argv[3], "captions-off") == 0;
-        if (!fixture.initialize(argv[2], unsupported ? 1807 : 1800, !captions_disabled)) { fixture.print_log_tail(); CHECK(false, "actual BOOT/new-game/scene component initializes"); }
+        if (!fixture.initialize(argv[2], preview ? 1807 : 1800, !captions_disabled)) { fixture.print_log_tail(); CHECK(false, "actual BOOT/new-game/scene component initializes"); }
         if (std::strcmp(argv[3], "start") == 0) return caption_start(fixture);
         if (std::strcmp(argv[3], "sound") == 0) return sound_completion(fixture);
         if (std::strcmp(argv[3], "reset") == 0) return reset_reentry(fixture);
-        if (unsupported) return unsupported_responses(fixture);
+        if (preview) return preview_responses(fixture);
         if (std::strcmp(argv[3], "boundaries") == 0) return layout_boundaries(fixture);
         if (captions_disabled) return captions_off(fixture);
         return 2;

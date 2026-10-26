@@ -89,8 +89,8 @@ class NativeConversationCaptionTests(unittest.TestCase):
     def test_scene_replacement_clears_active_caption_and_reentry_rebuilds_it(self):
         self.component('reset')
 
-    def test_original_primary_response_row_is_explicitly_unsupported_before_effects(self):
-        self.component('unsupported')
+    def test_original_response_preview_preserves_eligibility_without_effects(self):
+        self.component('preview')
 
     def test_layout_boundaries_preserve_original_wrap_and_markup_semantics(self):
         self.component('boundaries')

@@ -959,6 +959,21 @@ int convo3f_cel_render(Convo3fManager *m, const Convo3fObject *o, Convo3fWorld *
     return CONVO3F_OK;
 }
 
+int convo3f_preview_responses(const Convo3fManager *manager, const Convo3fObject *object,
+    const Convo3fWorld *world, Convo3fManager *preview, const char **why)
+{
+    if (!manager || !object || !object->arena || !world || !preview)
+        return CONVO3F_ERR_ARGUMENT;
+    if (object->arena_bytes < CONVO3F_IMAGE_BYTES || manager->response_count < 0 ||
+        manager->response_count > CONVO3F_MAX_RESPONSES) return CONVO3F_ERR_BOUNDS;
+    if (object->arena[C3F_HOOK_A] != CONVO3F_NO_HOOK || object->arena[C3F_HOOK_B] != CONVO3F_NO_HOOK)
+        return fail(why, "hook builder"), CONVO3F_ERR_UNSUPPORTED;
+    Convo3fManager built = *manager;
+    int status = build_list(&built, object, world, why);
+    if (status == CONVO3F_OK) *preview = built;
+    return status;
+}
+
 /* ---- phase 0 ---- */
 
 /* Phase 0, cel arm: the tail of 0x420c17 case 0x39/0x3b/0x3e (everything before it is

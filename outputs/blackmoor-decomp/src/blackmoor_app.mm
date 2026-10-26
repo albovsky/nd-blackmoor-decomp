@@ -282,7 +282,11 @@ struct NativeApp {
         bool ready = false; /* host ownership, not an additional original global */
         int row = -1;
         NativeConversationCaptionResult result{};
+        CaptionLifecycle popup{}; /* distinct CUIConvo object; globals sync to captions.lifecycle.g */
+        bool popup_initialized = false;
+        int hover = -1;
     } a3f_caption;
+    bool a3f_swallow_up = false; /* native gesture ownership survives scene replacement */
     /* RT-24: raw 0xd9 Mouselight puzzle (dispatcher arm 0x42a383 -> handler 0x47d788, render
      * callback 0x47df57). The slot table stands in for the generic Z entries 0x18..0x3f; the
      * background is the saved scene frame (0x5d15e3), snapshotted from the seeded back buffer. */
@@ -1202,6 +1206,9 @@ static bool native_caption_view_for_handle(NativeApp *app, uint32_t handle,
  * is a CIFTREE taskbar image; it is not treated as a captured scene frame. */
 static void native_a3f_caption_reset(NativeApp *app);
 static bool native_a3f_caption_render(NativeApp *app);
+static bool native_a3f_popup_initialize(NativeApp *app);
+static bool native_a3f_ui_tick(NativeApp *app);
+static bool native_a3f_pointer(NativeApp *app, int kind, unsigned button, int32_t x, int32_t y);
 static bool native_a35_compose(NativeApp *app);
 static bool native_ad9_render(NativeApp *app);
 static bool native_ad1_render(NativeApp *app);
@@ -2088,6 +2095,7 @@ static bool initialize_caption_runtime(NativeApp *app)
         record(app, "caption_runtime_error provider=sctb detail=chunk load failed");
         return false;
     }
+    if (!native_a3f_popup_initialize(app)) return false;
     const int lifecycle_status = caption_ctb_init(&app->captions.lifecycle,
                                                    &app->captions.lifecycle_backend);
     app->captions.last_lifecycle_status = lifecycle_status;
@@ -2175,6 +2183,7 @@ static void pointer(void *context, BlackmoorPointerKind kind,
     const int event_kind = static_cast<int>(kind);
     /* RT-22 follow-up: a left press on a task bar button (0x4e0978) is taken before the scene's
      * own hotspots; so is the release of that press. */
+    if (native_a3f_pointer(app, event_kind, button, x, y)) return;
     if (taskbar_pointer_event(app, event_kind, button, x, y)) return;
     if (native_inventory_pointer(app, event_kind, button, x, y)) return;
     /* RT-22: while the inventory screen is up (0x583204 == 3) the left click goes to
@@ -3832,9 +3841,180 @@ static void inventory_view_pointer_event(NativeApp *app, int event_kind, int32_t
 }
 
 /* ---- RT-23: raw 0x3f sound conversation (handler 0x420c17) ----------------
- * NATIVE-12 wires zero-response sound captions with original CONVO/FONT/TBOX.
- * Primary response tables remain explicitly unsupported before phase0; hook
- * builders and cel providers retain their existing kernel refusals. */
+ * NATIVE-12/13 wire sound captions and eligible primary responses using
+ * original CONVO/FONT/TBOX, popup/slider and the kernel's natural voice flow.
+ * Unsupported markup/hooks and cel providers retain explicit refusals. */
+/* The popup is a separate original object. Process globals remain owned by
+ * captions.lifecycle.g and are copied in/out only around synchronous calls. */
+static void native_a3f_put32(uint8_t *p, int32_t value)
+{
+    const uint32_t u = static_cast<uint32_t>(value);
+    for (unsigned i = 0; i < 4; ++i) p[i] = static_cast<uint8_t>(u >> (8u * i));
+}
+static int native_a3f_key_down(void *context, int32_t vk)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    return app && vk == 1 && app->primary_down;
+}
+static void native_a3f_cursor_pos(void *context, int32_t *x, int32_t *y)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    *x = app->pointer_x; *y = app->pointer_y;
+}
+static CaptionLifecycleBackend native_a3f_popup_backend(NativeApp *app)
+{
+    CaptionLifecycleBackend backend = app->captions.lifecycle_backend;
+    backend.key_down = native_a3f_key_down;
+    backend.cursor_pos = native_a3f_cursor_pos;
+    return backend;
+}
+static void native_a3f_popup_sync(NativeApp *app)
+{
+    CaptionLifecycle &popup = app->a3f_caption.popup;
+    popup.g = app->captions.lifecycle.g;
+    popup.shared = &app->captions.writer_globals;
+    popup.geometry = &app->captions.geometry;
+    popup.view_origin[0] = app->scene_destination.left;
+    popup.view_origin[1] = app->scene_destination.top;
+    /* Native mouse-button provider uses Win32's left/right virtual key IDs. */
+    popup.g.mouse_vk[0] = 1; popup.g.mouse_vk[1] = 2;
+}
+static bool native_a3f_popup_initialize(NativeApp *app)
+{
+    const uint8_t *ui = nullptr; size_t size = 0;
+    if (!find_boot_payload(app, "UICO", &ui, &size) || size < 0x300u) return false;
+    /* Shipped UICO has no popup sounds/button. Do not pretend to provide the
+     * unimplemented generic popup sound/button paths for different assets. */
+    if (read_i32_le(ui + CTB_HAS_BUTTON - CTB_CONFIG) != 0) return false;
+    for (size_t i = 0; i < 4; ++i)
+        if (std::memcmp(ui + CTB_SOUND0 - CTB_CONFIG + i * CTB_SOUND_STRIDE, "NO SOUND", 9u) != 0) return false;
+    native_a3f_popup_sync(app);
+    const CaptionLifecycleBackend backend = native_a3f_popup_backend(app);
+    int status = caption_popup_initialize(&app->a3f_caption.popup, &backend, ui, size, 1);
+    if (status == CAPTION_LIFECYCLE_OK)
+        status = caption_popup_poll(&app->a3f_caption.popup, &backend, 1, nullptr);
+    app->captions.lifecycle.g = app->a3f_caption.popup.g;
+    app->a3f_caption.popup_initialized = status == CAPTION_LIFECYCLE_OK;
+    record(app, "scene_a3f_popup_initialized status=%d gate=%d", status, app->captions.lifecycle.g.popup_gate);
+    return status == CAPTION_LIFECYCLE_OK;
+}
+static int native_a3f_engine_mode(void *context, int32_t mode)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (!app || !app->a3f_caption.popup_initialized) return 1;
+    native_a3f_put32(app->a3f_caption.popup.box + CTB_MODE, mode);
+    native_a3f_put32(app->a3f_caption.popup.box + CTB_REQUESTED, mode);
+    return 0; /* redraw/engine words are already owned by the kernel */
+}
+static int native_a3f_release_ui_hook(void *context, int32_t position)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (!app) return 1;
+    native_a3f_put32(app->a3f_caption.popup.box + CTB_SLIDER + SLD_POSITION, position);
+    native_a3f_put32(app->a3f_caption.popup.box + CTB_SLIDER + SLD_DIRTY, 1);
+    return 0;
+}
+static int native_a3f_engine_restore(void *context)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (!app) return 1;
+    native_a3f_put32(app->a3f_caption.popup.box + CTB_MODE, 0);
+    app->a3f_caption.hover = -1;
+    return 0;
+}
+static int native_a3f_refresh_surface(void *context, int16_t slot)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (!app || slot != 0 || !app->a3f_caption.ready ||
+        app->a3f_caption.pixels[0].size() != app->captions.framed_pixels.size()) return 1;
+    std::copy(app->a3f_caption.pixels[0].begin(), app->a3f_caption.pixels[0].end(), app->captions.framed_pixels.begin());
+    const int index = app->a3f_caption.hover;
+    if (index >= 0) {
+        if (index >= app->a3f_caption.result.response_count || !app->a3f_caption.active[1]) return 1;
+        const int16_t *r = app->a3f_caption.result.choices[index].rect;
+        const CaptionSurface &surface = app->a3f_caption.surface[1];
+        if (r[0] < 0 || r[1] < 0 || r[2] >= surface.width || r[3] >= surface.height ||
+            r[2] < r[0] || r[3] < r[1]) return 1;
+        for (int y = r[1]; y <= r[3]; ++y) {
+            const size_t at = static_cast<size_t>(y) * surface.pitch + static_cast<size_t>(r[0]) * 2u;
+            std::memcpy(app->captions.framed_pixels.data() + at,
+                app->a3f_caption.pixels[1].data() + at, static_cast<size_t>(r[2] - r[0] + 1) * 2u);
+        }
+    }
+    return 0;
+}
+static bool native_a3f_ui_tick(NativeApp *app)
+{
+    if (!app->a3f || !session_a3f_modal_active(app->a3f) ||
+        app->captions.lifecycle.g.overlay_ui != 2) return true;
+    if (!app->a3f_caption.popup_initialized) return false;
+    native_a3f_popup_sync(app);
+    CaptionLifecycle &popup = app->a3f_caption.popup;
+    const CaptionLifecycleBackend backend = native_a3f_popup_backend(app);
+    /* ACT precedes popup poll; slider update consumes the prior tick's hover.
+     * No OS cursor warp: logical AppKit coordinates remain under the user. */
+    int status = caption_popup_poll(&popup, &backend, 1, nullptr);
+    if (status != CAPTION_LIFECYCLE_OK) return false;
+    caption_popup_scroll(&popup); /* original 0x4d3137 percent -> backing offset */
+    int hover = -1;
+    const int state = read_i32_le(popup.box + CTB_STATE);
+    if ((state == 2 || state == 3) && popup.g.modal_input == 0) {
+        /* Native hot-point adapter. Original CURS sprite/offset rendering is
+         * separate; never add undocumented offsets to AppKit logical input. */
+        const bool in_range = app->pointer_x >= INT16_MIN && app->pointer_x <= INT16_MAX &&
+            app->pointer_y >= INT16_MIN && app->pointer_y <= INT16_MAX;
+        const bool slider = in_range && caption_popup_slider_hover(&popup,
+            static_cast<int16_t>(app->pointer_x), static_cast<int16_t>(app->pointer_y));
+        const CaptionRect &dst = app->captions.framed_destination;
+        if (!slider && app->a3f_caption.ready && app->pointer_x >= dst.left && app->pointer_x <= dst.right &&
+            app->pointer_y >= dst.top && app->pointer_y <= dst.bottom) {
+            const int x = app->pointer_x - dst.left + popup.g.scroll_src.left;
+            const int y = app->pointer_y - dst.top + popup.g.scroll_src.top;
+            for (int i = 0; i < app->a3f_caption.result.response_count; ++i) {
+                const int16_t *r = app->a3f_caption.result.choices[i].rect;
+                if (x >= r[0] && x <= r[2] && y >= r[1] && y <= r[3]) { hover = i; break; }
+            }
+        }
+    }
+    app->captions.lifecycle.g = popup.g;
+    if (hover != app->a3f_caption.hover) {
+        app->a3f_caption.hover = hover;
+        if (app->a3f_caption.ready && native_a3f_refresh_surface(app, 0) != 0) return false;
+        record(app, "scene_a3f_choice_hover index=%d scroll=%d", hover, popup.g.scroll_src.top);
+    }
+    return true;
+}
+static bool native_a3f_pointer(NativeApp *app, int kind, unsigned button, int32_t x, int32_t y)
+{
+    if (!app || (button != 0 && kind != BLACKMOOR_POINTER_MOVE)) return false;
+    const bool active = app->session && !app->session_block_reported && app->a3f &&
+        app->captions.lifecycle.g.overlay_ui == 2 && session_a3f_modal_active(app->a3f);
+    if (kind == BLACKMOOR_POINTER_UP && app->a3f_swallow_up && !active) {
+        app->a3f_swallow_up = false; app->primary_down = false;
+        return true;
+    }
+    if (!active) return false;
+    if (kind == BLACKMOOR_POINTER_MOVE) {
+        app->pointer_x = x; app->pointer_y = y;
+    } else if (kind == BLACKMOOR_POINTER_DOWN || kind == kPointerDoubleClick) {
+        app->primary_down = true; app->a3f_swallow_up = true;
+    } else if (kind == BLACKMOOR_POINTER_UP) {
+        app->primary_down = false; app->a3f_swallow_up = false;
+        const Convo3fManager *manager = session_a3f_manager(app->a3f);
+        const int hover = app->a3f_caption.hover;
+        if (manager && manager->sub_state == 4 && hover >= 0 && app->captions.lifecycle.g.modal_input == 0) {
+            if (session_a3f_choose_response(app->a3f, hover) != 0) {
+                record(app, "scene_a3f_choice_error index=%d", hover);
+                app->failure = true;
+            } else record(app, "scene_a3f_choice_release index=%d", hover);
+        }
+    }
+    /* Mode2 owns its primary messages before the underlying taskbar/scene.
+     * Keep the input latch clear so an owned release cannot select a row. */
+    session_input_init(&app->input_state);
+    return true;
+}
+
 static void native_a3f_caption_reset(NativeApp *app)
 {
     if (!app) return;
@@ -3845,6 +4025,13 @@ static void native_a3f_caption_reset(NativeApp *app)
         app->a3f_caption.surface[i] = {};
     }
     app->a3f_caption.ready = false; app->a3f_caption.row = -1; app->a3f_caption.result = {};
+    app->a3f_caption.hover = -1;
+    native_a3f_put32(app->a3f_caption.popup.box + CTB_MODE, 0);
+    native_a3f_put32(app->a3f_caption.popup.box + CTB_REQUESTED, 0);
+    native_a3f_put32(app->a3f_caption.popup.box + CTB_SLIDER + SLD_POSITION, 0);
+    native_a3f_put32(app->a3f_caption.popup.box + CTB_SLIDER + SLD_DIRTY, 1);
+    native_a3f_put32(app->a3f_caption.popup.box + CTB_SLIDER + SLD_HOVER, 0);
+    native_a3f_put32(app->a3f_caption.popup.box + CTB_SLIDER + SLD_DRAGGING, 0);
     if (owned) {
         app->captions.writer_globals.framed_ready = 0;
         app->captions.lifecycle.g.framed_layer_enabled = 0;
@@ -3892,17 +4079,26 @@ static int native_a3f_release_surface(void *context, int16_t slot)
 static int native_a3f_layout_caption(void *context, const Convo3fLayoutRequest *request, Convo3fWorld *world)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
-    if (!app || !request || !world || request->response_count != 0 || request->slot_normal != 0 ||
+    if (!app || !request || !world || request->slot_normal != 0 ||
         request->slot_hilite != 1 || !app->a3f_caption.active[0] || !app->a3f_caption.active[1]) return 1;
     NativeConversationCaptionResult result{};
-    const int status = native_conversation_caption_write(request->caption, request->caption_length,
+    const int status = native_conversation_choices_write(request, world->captions_5bb202 != 0,
         &app->captions.fonts, &app->captions.geometry, &app->captions.pixel_format,
         &app->captions.writer_globals, &app->captions.writer_backend, app->a3f_caption.surface, &result);
     record(app, "scene_a3f_caption_layout row=%d bytes=%zu status=%d normal_glyphs=%u hilite_glyphs=%u scroll=%d",
            request->row, request->caption_length, status, result.glyphs[0], result.glyphs[1], result.scroll_lines);
+    record(app, "scene_a3f_choices_layout row=%d count=%d", request->row, result.response_count);
     if (status != CAPTION_OK || app->a3f_caption.pixels[0].size() != app->captions.framed_pixels.size()) return 1;
     std::copy(app->a3f_caption.pixels[0].begin(), app->a3f_caption.pixels[0].end(), app->captions.framed_pixels.begin());
     app->a3f_caption.result = result; app->a3f_caption.ready = true; app->a3f_caption.row = request->row;
+    app->a3f_caption.hover = -1;
+    world->ui_5b0a8e = result.response_count;
+    for (int i = 0; i < result.response_count; ++i) {
+        std::memcpy(world->ui_sound_names[i], result.choices[i].sound_name, 33u);
+        record(app, "scene_a3f_choice_rect index=%d rect=%d,%d,%d,%d sound=%s", i,
+            result.choices[i].rect[0], result.choices[i].rect[1], result.choices[i].rect[2],
+            result.choices[i].rect[3], result.choices[i].sound_name);
+    }
     world->ui_5b0a7c = result.scroll_lines; world->ui_5b15c8 = 0; world->ui_5b15d6 = 1;
     app->captions.writer_globals.caption_visible_flag = 0;
     app->captions.lifecycle.g.scroll_src = {read_i32_le(app->captions.geometry.tbox),
@@ -3914,17 +4110,13 @@ static int native_a3f_layout_caption(void *context, const Convo3fLayoutRequest *
 static bool native_a3f_caption_render(NativeApp *app)
 {
     if (app->captions.lifecycle.g.overlay_ui != 2 || !app->a3f || session_a3f_modal_active(app->a3f) == 0) return true;
-    const uint8_t *ui = nullptr; size_t bytes = 0;
-    if (!find_boot_payload(app, "UICO", &ui, &bytes) || bytes < 0x300 || read_i32_le(ui + 0x67) != 0) return false;
-    char name[34] = {}; std::memcpy(name, ui, 33);
-    if (std::strlen(name) == 0 || std::strlen(name) > 32) return false;
-    const uint32_t handle = native_caption_load_image(app, name, "CUIConvo original popup");
-    if (!handle) return false;
-    CaptionRect src = {read_i32_le(ui + 0x27), read_i32_le(ui + 0x2b), read_i32_le(ui + 0x2f), read_i32_le(ui + 0x33)};
-    CaptionRect dst = {read_i32_le(ui + 0x47), read_i32_le(ui + 0x4b), read_i32_le(ui + 0x4f), read_i32_le(ui + 0x53)};
-    /* Original popup before shared layer8; slider input/animation is not claimed. */
-    const CaptionBlit blit = {CAPTION_BLIT_OPAQUE, handle, src, dst, "CUIConvo popup normal frame"};
-    return native_caption_lifecycle_blit(app, &blit) == CAPTION_LIFECYCLE_BACKEND_OK;
+    if (!app->a3f_caption.popup_initialized) return false;
+    app->a3f_caption.popup.g = app->captions.lifecycle.g;
+    /* Same mode/current-state draw guards as CUIConvo: loading/waiting
+     * states do not paint a popup over the scene. */
+    const int status = caption_ctb_draw(&app->a3f_caption.popup, &app->captions.lifecycle_backend);
+    app->captions.lifecycle.g = app->a3f_caption.popup.g;
+    return status == CAPTION_LIFECYCLE_OK;
 }
 
 static int native_a3f_load_world(void *context, Convo3fWorld *world)
@@ -4029,18 +4221,19 @@ static int native_a3f_handler(void *context, size_t row, const SceneActionInfo *
         ActionFamily3fDecoded decoded{};
         if (action_family_3f_decode(action->raw_body, action->raw_body_length, &decoded) != ACTION_FAMILY_3F_OK)
             return SCENE_ACTION_HANDLER_ERROR;
-        if (decoded.primary_count != 0) {
-            record(app, "scene_a3f_blocker row=%zu status=1 detail=native-primary-response-UI-unimplemented", row);
+        Convo3fManager preview{};
+        Convo3fLayoutRequest request{};
+        const int preview_status = session_a3f_preview_layout(app->a3f, row, &preview, &request);
+        if (preview_status != CONVO3F_OK) {
+            record(app, "scene_a3f_blocker row=%zu detail=native-response-preview status=%d", row, preview_status);
             return SCENE_ACTION_HANDLER_UNSUPPORTED;
         }
-        const uint8_t *image = session_a3f_image(app->a3f, row);
-        if (image && app->world_clock_session.captions_enabled_5bb202 != 0) {
-            const uint8_t *end = static_cast<const uint8_t *>(std::memchr(image + C3F_CAPTION, 0, 1500));
-            const int caption_status = end ? native_conversation_caption_validate(image + C3F_CAPTION,
-                (size_t)(end - image - C3F_CAPTION), &app->captions.fonts, &app->captions.geometry,
-                &app->captions.pixel_format) : CAPTION_ERR_FORMAT;
+        if (request.response_count || app->world_clock_session.captions_enabled_5bb202) {
+            const int caption_status = native_conversation_choices_validate(&request,
+                app->world_clock_session.captions_enabled_5bb202 != 0,
+                &app->captions.fonts, &app->captions.geometry, &app->captions.pixel_format);
             if (caption_status != CAPTION_OK) {
-                record(app, "scene_a3f_blocker row=%zu status=1 detail=native-caption-preflight caption_status=%d", row, caption_status);
+                record(app, "scene_a3f_blocker row=%zu detail=native-caption-preflight caption_status=%d", row, caption_status);
                 return SCENE_ACTION_HANDLER_UNSUPPORTED;
             }
         }
@@ -9301,7 +9494,10 @@ static bool taskbar_ready_now(NativeApp *app)
 /* The bar belongs to a running scene session; a blocked session is frozen as before. */
 static bool taskbar_active(NativeApp *app)
 {
-    return app->session != nullptr && !app->session_block_reported && taskbar_ready_now(app);
+    /* 0x4d3073 / 0x43cf34 mode2 dispatch to conversation UI instead of
+     * ordinary taskbar hover/process, including pending timers and flags. */
+    return app->session != nullptr && !app->session_block_reported &&
+        app->captions.lifecycle.g.overlay_ui != 2 && taskbar_ready_now(app);
 }
 
 /* 0x4d3073 -> 0x4e075a with the cursor rectangle of the last pointer position. */
@@ -9947,6 +10143,10 @@ static bool create_native_session_bindings(NativeApp *app)
     a3f_host.kernel.acquire_surface = native_a3f_acquire_surface;
     a3f_host.kernel.release_surface = native_a3f_release_surface;
     a3f_host.kernel.layout_text_box = native_a3f_layout_caption;
+    a3f_host.kernel.engine_mode = native_a3f_engine_mode;
+    a3f_host.kernel.release_ui_hook = native_a3f_release_ui_hook;
+    a3f_host.kernel.engine_restore = native_a3f_engine_restore;
+    a3f_host.kernel.refresh_hotspot_surface = native_a3f_refresh_surface;
     a3f_host.resolve_text = native_a3f_resolve_text;
     a3f_host.load_world = native_a3f_load_world;
     a3f_host.store_world = native_a3f_store_world;
@@ -13723,6 +13923,11 @@ static void update(NativeApp *app, uint32_t now)
             return;
         }
         const int session_status = scene_session_tick(app->session, &session_result);
+        if (session_status != SCENE_SESSION_BLOCKED && !native_a3f_ui_tick(app)) {
+            record(app, "scene_a3f_ui_error"); app->failure = true;
+            if (app->platform) blackmoor_macos_stop(app->platform);
+            return;
+        }
         if (session_status != SCENE_SESSION_BLOCKED) taskbar_post_tick(app, now);   /* 0x43cf9c */
         if (session_status == SCENE_SESSION_BLOCKED && !app->session_block_reported) {
             record(app, "scene_session_blocked stage=%d provider=%s action=%zu type=0x%02x detail=%d "
