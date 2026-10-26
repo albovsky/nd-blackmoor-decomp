@@ -95,6 +95,7 @@ if __name__ == '__main__':
             res = check_row(key, corpus[key], corpus[key]['seeds'][:a.seeds])
         except Exception as exc:
             print(key, 'ERROR', repr(exc)[:200])
+            failures.append(key)
             continue
         if res is None:
             skipped += 1
@@ -105,4 +106,4 @@ if __name__ == '__main__':
             failures.append(key)
             print(key, 'UNSOUND', res[0][:3], flush=True)
     print('rows checked %d, skipped %d, flag tuples checked %d, rows with a violation %d' % (rows, skipped, tot, len(failures)))
-    sys.exit(1 if failures else 0)
+    sys.exit(1 if failures or not rows else 0)
