@@ -1,4 +1,4 @@
-/* NATIVE-15/16: actual S4408 -> NO_ART_SCENE ownership and font tags.
+/* NATIVE-15/16/17: actual dialogue, font tags and retained movie return.
  * Component coverage uses real BOOT/new-game, original resources, pointer input
  * and muted offline audio. No story/item/phase/frame injection or GUI/device. */
 #define main blackmoor_app_entry_for_no_art_test
@@ -475,20 +475,150 @@ static int actual_font_caption_start(NoArtFixture &f, const char *key, const uin
     return 0;
 }
 
-static bool log_contains(NativeApp &app, const char *wanted)
+
+static int verify_normal_art_return(NoArtFixture &f, int16_t source_scene, bool host_component)
 {
-    if (!app.log) return false;
-    std::fflush(app.log);
-    const long position = std::ftell(app.log);
-    std::rewind(app.log);
-    char line[1024]{};
-    bool found = false;
-    while (std::fgets(line, sizeof(line), app.log)) if (std::strstr(line, wanted)) { found = true; break; }
-    if (position >= 0) (void)std::fseek(app.log, position, SEEK_SET);
-    return found;
+    const SceneResource *const source = f.app.scene;
+    CHECK(f.app.current_scene_id == source_scene, "return verifier starts at its actual component source scene");
+    const uint64_t generation = scene_session_scene_generation(f.app.session);
+    const D2Object *const movie = session_a2d_object(f.app.a2d);
+    const auto object = object_bytes(*movie);
+    const uint32_t rng_before = f.app.condition_rand.holdrand;
+    SceneTransitionRequest returning{};
+    CHECK(scene_session_get_pending_transition(f.app.session, &returning) && returning.target_scene == 4408,
+          "normal-art component supplies its real pending target tuple");
+    NativeRandomMovieFrame frame{}, after{};
+    CHECK(native_random_movie_frame(f.app.a2d_media, movie->surface_212, &frame) == 0 && frame.rgba,
+          "return boundary snapshots actual retained movie pixels and decoder generation");
+    const size_t high_water = scene_session_action_high_water(f.app.session);
+    std::array<SceneExecutorSlotInfo, 240> slots{};
+    std::array<SceneActionRuntimeState, 240> states{};
+    std::array<uint8_t, 240> occupied{};
+    for (size_t i = 0; i < high_water; ++i) {
+        CHECK(scene_session_get_slot(f.app.session, i, &slots[i]) == SCENE_EXECUTOR_OK &&
+              scene_session_get_action_state(f.app.session, i, &states[i]) == SCENE_SESSION_OK,
+              "all live source rows can be captured before the normal-art return");
+        occupied[i] = slots[i].occupied && slots[i].runtime_type == 0x2du;
+        if (occupied[i]) CHECK(slots[i].condition_tree != nullptr, "retained source D2 has a concrete original condition-tree identity");
+    }
+    auto visits = f.app.new_game.scene_visits;
+    visits[4408] = static_cast<uint16_t>(visits[4408] + 1u);
+    std::printf("NORMAL_ART_PENDING source=%d target=4408 host_component=%u high_water=%zu D2_frame=%d D2_generation=%llu stream=%d surface=%u controller_state=%d deadline=%u rng=%u\n",
+                source_scene, host_component, high_water, frame.current_frame, (unsigned long long)frame.generation, movie->bink_id_18e,
+                movie->surface_212, movie->movie.state_1de, movie->deadline_1c6, rng_before);
+    std::fflush(stdout);
+    for (unsigned i = 0; f.app.current_scene_id != 4408 && i < 8u; ++i)
+        CHECK(f.tick(), "ordinary normal-art return succeeds while retaining the active D2 controller and source slot");
+    CHECK(f.app.current_scene_id == 4408 && f.app.scene != source &&
+          scene_session_scene_generation(f.app.session) > generation && f.app.last_art_scene_id == 4408 &&
+          f.app.first_load_5bb210 == 1u && f.app.new_game.scene_visits == visits &&
+          session_a2d_object(f.app.a2d) == movie && movie->movie.active && object_bytes(*movie) == object &&
+          native_random_movie_frame(f.app.a2d_media, movie->surface_212, &after) == 0 &&
+          after.rgba == frame.rgba && after.generation == frame.generation && after.current_frame == frame.current_frame,
+          "normal-art load changes logical/background ownership and visit once while preserving exact D2 object/set/stream/surface/frame state");
+    CHECK(f.app.retired_scene == nullptr && f.app.provider_action_view != nullptr &&
+          f.app.retired_provider_action_view == nullptr && f.app.retained_scenes.size() == 1u,
+          "normal provider replacement closes its old view and all source resources except the one still borrowed by D2");
+    bool retained_owner = false;
+    for (size_t i = 0; i < high_water; ++i)
+        if (slots[i].occupied && slots[i].runtime_type == 0x2du)
+            retained_owner = f.app.retained_scenes[0] == slots[i].source;
+    CHECK(retained_owner, "the sole retained resource is exactly the surviving D2's original byte owner");
+    SceneResourceSummary summary{};
+    CHECK(scene_resource_get_summary(f.app.scene, &summary) == SCENE_RESOURCE_OK &&
+          std::strcmp(summary.background, "NO_ART_SCENE") != 0 && scene_resource_action_count(f.app.scene) == 5u &&
+          f.app.has_scene_frame && f.app.scene_frame.width && f.app.scene_frame.height && !f.app.scene_frame.rgba.empty() &&
+          f.app.nav_scene_ready && f.app.selector_entry_valid && f.app.nav.selector == returning.opaque_words[0] &&
+          f.app.nav.scroll == returning.opaque_words[1] && object_bytes(f.app.loaded_words) == object_bytes(returning) &&
+          f.app.input_state.candidate == -1 && !f.app.input_state.latch[0] &&
+          f.app.captions.lifecycle.g.overlay_ui == 0 && !f.app.a3f_caption.ready &&
+          !f.app.a3f_caption.active[0] && !f.app.a3f_caption.active[1],
+          "normal-art target performs its original background/navigation/input/caption setup instead of retaining no-art UI state");
+    size_t expected_high = high_water;
+    while (expected_high && !occupied[expected_high - 1u]) --expected_high;
+    uint32_t expected_rng = rng_before;
+    unsigned skipped = 0, installed = 0, constructor_draws = 0;
+    for (size_t local = 0; local < scene_resource_action_count(f.app.scene); ++local) {
+        CHECK(expected_high < 120u, "normal resource ACT guard precedes even a skipped incoming constructor");
+        SceneActionInfo incoming{};
+        CHECK(scene_resource_action_at(f.app.scene, local, &incoming) == SCENE_RESOURCE_OK,
+              "actual target resource keeps its local ACT metadata separate from canonical global slots");
+        if (incoming.type == 0x2du) { ++skipped; continue; }
+        size_t assigned = 0;
+        while (assigned < expected_high && occupied[assigned]) ++assigned;
+        occupied[assigned] = 1u;
+        if (assigned == expected_high) ++expected_high;
+        SceneExecutorSlotInfo actual{};
+        SceneActionRuntimeState state{};
+        CHECK(scene_session_get_slot(f.app.session, assigned, &actual) == SCENE_EXECUTOR_OK && actual.occupied &&
+              actual.source == f.app.scene && actual.source_index == local && actual.action.type == incoming.type &&
+              actual.action.raw_body == incoming.raw_body && actual.action.dependency_records == incoming.dependency_records &&
+              scene_session_get_action_state(f.app.session, assigned, &state) == SCENE_SESSION_OK && !state.phase && !state.completed,
+              "each accepted non-D2 incoming row has its actual new source/local identity at the independently derived first hole");
+        if (incoming.type == 0x0bu) {
+            Action0bPayload expected{}, actual_payload{};
+            CHECK(action0b_load(incoming.typed_body, incoming.typed_body_length, &expected, nullptr) == ACTION17_OK &&
+                  session_a0b_payload(f.app.a0b, assigned, &actual_payload) == 0 &&
+                  actual_payload.target == expected.target && actual_payload.cursor == expected.cursor &&
+                  actual_payload.word_04 == expected.word_04 && actual_payload.word_06 == expected.word_06 &&
+                  actual_payload.word_08 == expected.word_08 && actual_payload.frame == expected.frame &&
+                  std::equal(std::begin(actual_payload.rect), std::end(actual_payload.rect), std::begin(expected.rect)),
+                  "new scene-change provider belongs to the assigned global slot rather than its resource-local row");
+        }
+        if (incoming.type == 0x97u) {
+            ActionFamily97Decoded decoded{};
+            CHECK(action_family_97_decode(incoming.typed_body, incoming.typed_body_length, &decoded) == ACTION_FAMILY_97_OK && decoded.count > 0,
+                  "actual incoming raw97 exposes its original constructor selection metadata");
+            bool marked = false;
+            for (int i = 0; i < decoded.count; ++i) if (decoded.names[i][0] == '*') marked = true;
+            CHECK(!marked, "actual Linda raw97 consumes one unmarked original CRT constructor draw");
+            expected_rng = expected_rng * UINT32_C(214013) + UINT32_C(2531011);
+            ++constructor_draws;
+            CHECK(session_a97_selected(f.app.a97, assigned) == static_cast<int>(((expected_rng >> 16) & 0x7fffu) % static_cast<uint32_t>(decoded.count)),
+                  "new raw97 binding belongs to its assigned global slot and selects from the one legitimate constructor draw");
+        }
+        ++installed;
+        std::printf("NORMAL_ART_INCOMING local=%zu global=%zu raw=0x%02x\n", local, assigned, incoming.type);
+    }
+    CHECK(skipped == 1u && installed == 4u && constructor_draws == 1u &&
+          f.app.condition_rand.holdrand == expected_rng && scene_session_action_high_water(f.app.session) == expected_high,
+          "active incoming D2 is skipped without a slot/controller/RNG draw while all other actual incoming rows are constructed once");
+    for (size_t i = 0; i < high_water; ++i) if (slots[i].occupied && slots[i].runtime_type == 0x2du) {
+        SceneExecutorSlotInfo actual{}; SceneActionRuntimeState state{};
+        CHECK(scene_session_get_slot(f.app.session, i, &actual) == SCENE_EXECUTOR_OK && actual.occupied &&
+              actual.source == slots[i].source && actual.source_index == slots[i].source_index &&
+              actual.action.raw_body == slots[i].action.raw_body && actual.action.dependency_records == slots[i].action.dependency_records &&
+              actual.runtime_type == slots[i].runtime_type && actual.condition_tree == slots[i].condition_tree && scene_session_get_action_state(f.app.session, i, &state) == SCENE_SESSION_OK &&
+              state.phase == states[i].phase && state.completed == states[i].completed,
+              "retained D2 remains in its physical source slot with its original borrowed body/dependencies, exact condition tree and reached phase/completion");
+    }
+    pointer(&f.app, BLACKMOOR_POINTER_MOVE, 0, 0, 0);
+    for (unsigned i = 0; after.generation == frame.generation && i < 1800u; ++i) {
+        CHECK(f.tick(4096u) && native_random_movie_frame(f.app.a2d_media, movie->surface_212, &after) == 0,
+              "ordinary real offline clock and retained controller continue after normal-art setup");
+    }
+    CHECK(after.generation > frame.generation && after.rgba && movie->set && movie->movie.active,
+          "retained original movie decodes a subsequent actual frame rather than displaying only a saved picture");
+    for (size_t i = 0; i < scene_session_action_high_water(f.app.session); ++i) {
+        SceneExecutorSlotInfo slot{};
+        CHECK(scene_session_get_slot(f.app.session, i, &slot) == SCENE_EXECUTOR_OK, "continued canonical table exposes mapped provider rows");
+        if (!slot.occupied || slot.source != f.app.scene) continue;
+        if (slot.action.type == 0x0bu) {
+            Action17Slot target{};
+            CHECK(session_a0b_slot(f.app.a0b, i, &target) == 0 && target.request == 1,
+                  "ordinary continued dispatch publishes the new scene-change request at its global slot");
+        } else if (slot.action.type == 0x62u) {
+            ActionFamily62InteractionTarget target{};
+            CHECK(session_a62_get_target(f.app.a62, i, &target) == SESSION_A62_OK && target.request_pending == 1u,
+                  "ordinary continued dispatch publishes the new interaction request at its global slot");
+        }
+    }
+    std::printf("NORMAL_ART_RETURN source=%d target=4408 host_component=%u D2_preserved=1 skipped_raw2d=1 new_rows=4 constructor_draws=1 continued_frame=%d generation=%llu\n",
+                source_scene, host_component, after.current_frame, (unsigned long long)after.generation);
+    return 0;
 }
 
-static int natural_font_chain_boundary(NoArtFixture &f)
+static int natural_normal_art_return(NoArtFixture &f)
 {
     CHECK(natural_response(f) == 0, "ordinary dialogue route reaches1101 without injected state");
     const int16_t targets[] = {1102, 1103, 1104, 1105};
@@ -506,52 +636,26 @@ static int natural_font_chain_boundary(NoArtFixture &f)
     CHECK(choose_first_response(f, 1106) == 0 && wait_for_pending(f, 1107) == 0 &&
           load_next_no_art(f, 1107, nullptr) == 0 && wait_for_pending(f, 4408) == 0,
           "second actual choice and following voices naturally request the normal-art room return");
-    const SceneResource *const source = f.app.scene;
-    const uint64_t generation = scene_session_scene_generation(f.app.session);
-    const D2Object *const movie = session_a2d_object(f.app.a2d);
-    const auto object = object_bytes(*movie);
-    const auto nav = object_bytes(f.app.nav);
-    const auto rng = object_bytes(f.app.condition_rand);
-    const auto input = object_bytes(f.app.input_state);
-    const auto caption = object_bytes(f.app.captions.lifecycle.g);
-    const auto visits = f.app.new_game.scene_visits;
-    const auto source_rect = object_bytes(f.app.scene_source);
-    const auto destination_rect = object_bytes(f.app.scene_destination);
-    const size_t high_water = scene_session_action_high_water(f.app.session);
-    std::array<SceneExecutorSlotInfo, 240> slots{};
-    std::array<SceneActionRuntimeState, 240> states{};
-    for (size_t i = 0; i < high_water; ++i)
-        CHECK(scene_session_get_slot(f.app.session, i, &slots[i]) == SCENE_EXECUTOR_OK &&
-              scene_session_get_action_state(f.app.session, i, &states[i]) == SCENE_SESSION_OK,
-              "all live source rows can be captured before the normal-art ownership boundary");
-    bool failed = false;
-    for (unsigned i = 0; !failed && i < 8u; ++i) failed = !f.tick();
-    SceneTransitionRequest pending{};
-    NativeRandomMovieFrame frame{};
-    CHECK(failed && f.app.failure && !f.app.session_block_reported && f.app.current_scene_id == 1107 && f.app.scene == source &&
-          scene_session_scene_generation(f.app.session) == generation && scene_session_action_high_water(f.app.session) == high_water &&
-          f.app.last_art_scene_id == 4408 && f.app.first_load_5bb210 == 1u &&
-          session_a2d_object(f.app.a2d) == movie && movie->movie.active && object_bytes(*movie) == object &&
-          native_random_movie_frame(f.app.a2d_media, movie->surface_212, &frame) == 0 && frame.rgba &&
-          object_bytes(f.app.nav) == nav && object_bytes(f.app.condition_rand) == rng &&
-          object_bytes(f.app.input_state) == input && object_bytes(f.app.captions.lifecycle.g) == caption &&
-          f.app.new_game.scene_visits == visits && object_bytes(f.app.scene_source) == source_rect &&
-          object_bytes(f.app.scene_destination) == destination_rect &&
-          scene_session_get_pending_transition(f.app.session, &pending) && pending.target_scene == 4408 &&
-          log_contains(f.app, "active-random-movie-retention-unimplemented before_clear=1"),
-          "active-D2 normal-art return4408 is explicitly refused before clear/load/source replacement or target visit effects");
-    for (size_t i = 0; i < high_water; ++i) {
-        SceneExecutorSlotInfo slot{};
-        SceneActionRuntimeState state{};
-        CHECK(scene_session_get_slot(f.app.session, i, &slot) == SCENE_EXECUTOR_OK && slot.occupied == slots[i].occupied &&
-              scene_session_get_action_state(f.app.session, i, &state) == SCENE_SESSION_OK &&
-              state.phase == states[i].phase && state.completed == states[i].completed &&
-              (!slot.occupied || (slot.source == slots[i].source && slot.source_index == slots[i].source_index &&
-                slot.action.raw_body == slots[i].action.raw_body && slot.action.dependency_records == slots[i].action.dependency_records)),
-              "normal-art refusal preserves every retained source slot, resource borrow and completion state");
-    }
-    std::printf("NO_ART_FONT_BOUNDARY source=1107 target=4408 f1_success=1 f9_success=1 active_D2_refused_before_clear=1 target_visit_unchanged=1 successful_return=0\n");
-    return 0;
+    return verify_normal_art_return(f, 1107, false);
+}
+
+static int actual_slot_three_return(NoArtFixture &f)
+{
+    CHECK(f.app.current_scene_id == 3336 && f.start(),
+          "actual S3336 starts normally through its three builtin controls and real random-movie provider");
+    SceneExecutorSlotInfo retained{};
+    SceneActionRuntimeState state{};
+    CHECK(scene_session_get_slot(f.app.session, 3u, &retained) == SCENE_EXECUTOR_OK && retained.occupied &&
+          retained.action.type == 0x2du && retained.runtime_type == 0x2du && retained.source == f.app.scene && retained.source_index == 3u &&
+          retained.condition_tree != nullptr && scene_session_get_action_state(f.app.session, 3u, &state) == SCENE_SESSION_OK && state.phase == 1u && !state.completed,
+          "actual active nonzero D2 is physically slot3 with its own source and live condition tree");
+    SceneTransitionRequest request{};
+    request.target_scene = 4408; request.opaque_words[2] = 1; request.opaque_dwords[2] = 1;
+    /* Explicit public host-transition component, not a natural story route.
+     * Original S3336 state, providers, resources and media are otherwise live. */
+    CHECK(scene_session_request_external_transition(f.app.session, &request) == SCENE_SESSION_OK,
+          "actual slot3 component requests the normal-art target through the public host boundary");
+    return verify_normal_art_return(f, 3336, true);
 }
 
 static int active_conversation_load_refusal(NoArtFixture &f)
@@ -710,6 +814,51 @@ static int host_stop_after_no_art_cleanup(NoArtFixture &f)
     return 0;
 }
 
+static int unstarted_normal_refusal(NoArtFixture &f)
+{
+    SceneExecutorSlotInfo slot{};
+    SceneActionRuntimeState state{};
+    CHECK(scene_session_get_slot(f.app.session, 0u, &slot) == SCENE_EXECUTOR_OK && slot.occupied &&
+          slot.runtime_type == 0x2du && scene_session_get_action_state(f.app.session, 0u, &state) == SCENE_SESSION_OK &&
+          state.phase == 0u && !state.completed && !session_a2d_object(f.app.a2d)->movie.active,
+          "ordinary scene construction leaves one unstarted D2 before its first dispatcher tick");
+    const auto object = object_bytes(*session_a2d_object(f.app.a2d));
+    const auto nav = object_bytes(f.app.nav);
+    const auto input = object_bytes(f.app.input_state);
+    const auto caption = object_bytes(f.app.captions.lifecycle.g);
+    const auto writer = object_bytes(f.app.captions.writer_globals);
+    const auto flags = f.app.new_game.event_flags;
+    const auto visits = f.app.new_game.scene_visits;
+    const auto rng = object_bytes(f.app.condition_rand);
+    const auto clock = object_bytes(f.app.new_game.view.clock);
+    const auto background = f.app.scene_frame.rgba;
+    SceneResource *const source = f.app.scene;
+    const auto video = f.app.video, nav_player = f.app.nav_player;
+    const uint64_t generation = scene_session_scene_generation(f.app.session), ticks = scene_session_tick_count(f.app.session);
+    SceneTransitionRequest request{};
+    request.target_scene = 4408;
+    /* A host load boundary before the first ACT visit, not a fabricated phase
+     * or a natural UI walkthrough. Unknown unstarted ownership must refuse. */
+    CHECK(!perform_session_transition(&f.app, request, f.now), "unstarted D2 normal load refuses before any clear/constructor");
+    SceneExecutorSlotInfo after{}; SceneActionRuntimeState after_state{};
+    CHECK(f.app.scene == source && f.app.current_scene_id == 4408 && f.app.retired_scene == nullptr &&
+          f.app.retained_scenes.empty() && !f.app.provider_action_view && !f.app.retired_provider_action_view &&
+          scene_session_scene_generation(f.app.session) == generation && scene_session_tick_count(f.app.session) == ticks &&
+          scene_session_get_slot(f.app.session, 0u, &after) == SCENE_EXECUTOR_OK && after.occupied &&
+          after.source == slot.source && after.action.raw_body == slot.action.raw_body && after.condition_tree == slot.condition_tree &&
+          scene_session_get_action_state(f.app.session, 0u, &after_state) == SCENE_SESSION_OK &&
+          after_state.phase == state.phase && after_state.completed == state.completed &&
+          object_bytes(*session_a2d_object(f.app.a2d)) == object && object_bytes(f.app.nav) == nav &&
+          object_bytes(f.app.input_state) == input && object_bytes(f.app.captions.lifecycle.g) == caption &&
+          object_bytes(f.app.captions.writer_globals) == writer && object_bytes(f.app.condition_rand) == rng &&
+          object_bytes(f.app.new_game.view.clock) == clock && f.app.new_game.event_flags == flags && f.app.new_game.scene_visits == visits &&
+          f.app.scene_frame.rgba == background && f.app.video == video && f.app.nav_player == nav_player && !f.app.failure,
+          "unstarted refusal preserves original resource/tree/controller/input/world/background without a synthetic stop");
+    CHECK(f.start(), "direct boundary refusal leaves the unstarted source able to start its real movie normally");
+    std::printf("NORMAL_ART_UNSTARTED_REFUSAL target=4408 phase=0 active=0 before_clear=1 source_starts_after_component=1\n");
+    return 0;
+}
+
 static void fixture_signal(int number)
 {
     static const char prefix[] = "fixture/native signal failure number=";
@@ -725,13 +874,16 @@ int main(int argc, char **argv)
     @autoreleasepool {
         if (argc != 4 || std::strcmp(argv[1], "--no-art-component") != 0) return 2;
         NoArtFixture fixture;
-        if (!fixture.initialize(argv[2])) { fixture.print_log_tail(); CHECK(false, "actual BOOT/new-game/S4408 component initializes"); }
+        const int16_t initial_scene = std::strcmp(argv[3], "slot3-return") == 0 ? 3336 : 4408;
+        if (!fixture.initialize(argv[2], initial_scene)) { fixture.print_log_tail(); CHECK(false, "actual BOOT/new-game/entry-scene component initializes"); }
+        if (std::strcmp(argv[3], "slot3-return") == 0) return actual_slot_three_return(fixture);
+        if (std::strcmp(argv[3], "unstarted-refusal") == 0) return unstarted_normal_refusal(fixture);
         if (std::strcmp(argv[3], "busy-refusal") == 0) return active_conversation_load_refusal(fixture);
         if (std::strcmp(argv[3], "host-stop-cleanup") == 0) return host_stop_after_no_art_cleanup(fixture);
         if (std::strcmp(argv[3], "first") == 0) return actual_no_art_retention(fixture);
         if (std::strcmp(argv[3], "cleanup") == 0) return natural_second_load(fixture);
         if (std::strcmp(argv[3], "response") == 0) return natural_response(fixture);
-        if (std::strcmp(argv[3], "font-chain-boundary") == 0) return natural_font_chain_boundary(fixture);
+        if (std::strcmp(argv[3], "normal-art-return") == 0) return natural_normal_art_return(fixture);
         return 2;
     }
 }

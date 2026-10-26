@@ -342,6 +342,8 @@ typedef struct SceneExecutorSlotInfo {
     SceneActionInfo action;
     const SceneResource *source;
     size_t source_index;
+    /* Diagnostic identity only; invalidated by erasure/replacement. */
+    const void *condition_tree;
     uint8_t occupied;
     uint8_t runtime_type;
 } SceneExecutorSlotInfo;

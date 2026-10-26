@@ -73,6 +73,17 @@ SceneResource *scene_resource_open_memory(const void *bytes,
                                           size_t length,
                                           char *error,
                                           size_t error_capacity);
+/* Native metadata view. Sources/bytes remain caller-owned and must outlive
+ * every borrowed action. A NULL source is an empty global provider slot.
+ * Views flatten source provenance; they never serialize or own game bytes. */
+typedef struct SceneResourceActionRef {
+    const SceneResource *source;
+    size_t index;
+} SceneResourceActionRef;
+SceneResource *scene_resource_open_action_view(const SceneResource *descriptor,
+    const SceneResourceActionRef *rows, size_t count, char *error, size_t error_capacity);
+int scene_resource_action_origin(const SceneResource *, size_t, SceneResourceActionRef *);
+
 void scene_resource_close(SceneResource *scene);
 
 int scene_resource_get_summary(const SceneResource *scene,

@@ -942,15 +942,16 @@ int scene_session_get_slot(const SceneSession *s, size_t i, SceneExecutorSlotInf
 int scene_session_erase_action(SceneSession *s, size_t i, uint8_t completed)
 { return s == NULL ? SCENE_EXECUTOR_ERR_ARGUMENT : scene_executor_erase_action(s->executor, i, completed); }
 
-int scene_session_prepare_no_art(SceneSession *s, const SceneResource *source, int32_t scene_id,
-    const SceneActionSlotPlan *plan, SceneSessionAppend **out, SceneSessionFailure *failure)
+static int prepare_retained_scene(SceneSession *s, const SceneResource *logical_source,
+    const SceneResource *source, int32_t scene_id, const SceneActionSlotPlan *plan,
+    SceneSessionAppend **out, SceneSessionFailure *failure)
 {
     SceneSessionAppend *p;
     size_t failed = SIZE_MAX;
     int status;
     if (out != NULL) *out = NULL;
     clear_failure(failure);
-    if (s == NULL || source == NULL || plan == NULL || out == NULL || s->frozen ||
+    if (s == NULL || logical_source == NULL || source == NULL || plan == NULL || out == NULL || s->frozen ||
         s->scene_generation == UINT64_MAX || (s->transition_pending && scene_id != s->transition.target_scene))
         return SCENE_SESSION_ERR_STATE;
     if (plan->incoming_count > SIZE_MAX - s->action_ui.phone_count ||
@@ -971,12 +972,25 @@ int scene_session_prepare_no_art(SceneSession *s, const SceneResource *source, i
         return status == SCENE_EXECUTOR_ERR_MEMORY ? SCENE_SESSION_ERR_MEMORY : SCENE_SESSION_ERR_EXECUTOR;
     }
     p->owner = s;
-    p->source = source;
+    p->source = logical_source;
     p->scene_id = scene_id;
     p->generation = s->scene_generation;
     p->ticks = s->tick_count;
     *out = p;
     return SCENE_SESSION_OK;
+}
+
+int scene_session_prepare_no_art(SceneSession *s, const SceneResource *source, int32_t scene_id,
+    const SceneActionSlotPlan *plan, SceneSessionAppend **out, SceneSessionFailure *failure)
+{
+    return prepare_retained_scene(s, source, source, scene_id, plan, out, failure);
+}
+
+int scene_session_prepare_normal(SceneSession *s, const SceneResource *logical_source,
+    const SceneResource *metadata, int32_t scene_id, const SceneActionSlotPlan *plan,
+    SceneSessionAppend **out, SceneSessionFailure *failure)
+{
+    return prepare_retained_scene(s, logical_source, metadata, scene_id, plan, out, failure);
 }
 
 int scene_session_can_commit_no_art(const SceneSession *s, const SceneSessionAppend *p)
@@ -1000,6 +1014,23 @@ int scene_session_commit_no_art(SceneSession *s, SceneSessionAppend *p)
     s->last_result.status = SCENE_SESSION_OK;
     s->last_result.scene_generation = s->scene_generation;
     p->owner = NULL;
+    return SCENE_SESSION_OK;
+}
+
+int scene_session_commit_normal(SceneSession *s, SceneSessionAppend *p)
+{
+    if (!scene_session_can_commit_no_art(s, p)) return SCENE_SESSION_ERR_STATE;
+    /* Same normal-load latch constructor as replace_scene; no-art never
+     * invokes this reset. It cannot dispatch or mutate the executor. */
+    if (s->pointer_bound && s->pointer.reset(s->pointer.context) != SESSION_INPUT_OK)
+        return SCENE_SESSION_ERR_STATE;
+    const int status = scene_session_commit_no_art(s, p);
+    if (status != SCENE_SESSION_OK) return status;
+    memset(&s->pointer_result, 0, sizeof(s->pointer_result));
+    s->pointer_result.consume_status = -1;
+    s->pointer_result.scan_status = -1;
+    s->pointer_result.candidate_at_consume = -1;
+    s->pointer_result.candidate_after_scan = -1;
     return SCENE_SESSION_OK;
 }
 

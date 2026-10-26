@@ -74,3 +74,55 @@ int scene_action_slots_plan_no_art(size_t high_water,
     *out = plan;
     return SCENE_ACTION_SLOTS_OK;
 }
+
+int scene_action_slots_plan_normal(size_t high_water,
+    const uint8_t *occupied, const uint8_t *runtime_types,
+    size_t resource_count, const uint8_t *constructor_accepted,
+    SceneNormalActionSlotPlan *out)
+{
+    SceneNormalActionSlotPlan plan = { 0 };
+    uint8_t live[SCENE_ACTION_SLOT_LIMIT] = { 0 };
+    size_t current;
+
+    if (out != NULL) memset(out, 0, sizeof(*out));
+    if (high_water > SCENE_ACTION_SLOT_LIMIT || resource_count > SCENE_ACTION_RESOURCE_LIMIT)
+        return SCENE_ACTION_SLOTS_ERR_LIMIT;
+    if (out == NULL || (high_water != 0u && (occupied == NULL || runtime_types == NULL)) ||
+        (resource_count != 0u && constructor_accepted == NULL))
+        return SCENE_ACTION_SLOTS_ERR_ARGUMENT;
+
+    plan.slots.source_high_water = high_water;
+    plan.resource_count = resource_count;
+    for (size_t i = 0; i < SCENE_ACTION_RESOURCE_LIMIT; ++i) plan.resource_to_global[i] = UINT16_MAX;
+    /* 0x43dbe3 retains runtime2d in its existing physical slot, independently
+     * of completion. All other occupied rows retire; no provider is called. */
+    for (size_t i = 0; i < high_water; ++i) if (occupied[i] != 0u) {
+        if (runtime_types[i] == UINT8_C(0x2d)) live[i] = 1u;
+        else plan.slots.retired[i] = 1u;
+    }
+    current = high_water;
+    while (current != 0u && live[current - 1u] == 0u) --current;
+    plan.slots.retained_high_water = current;
+
+    for (size_t resource = 0; resource < resource_count; ++resource) {
+        size_t slot = 0u;
+        size_t accepted;
+        /* 0x43a5c1..0x43a5d4 runs before EVERY constructor, including one
+         * whose known skip restores the old high-water (0x410bf9). */
+        if (current >= SCENE_ACTION_NORMAL_SLOT_LIMIT) return SCENE_ACTION_SLOTS_ERR_LIMIT;
+        if (constructor_accepted[resource] == 0u) continue;
+        while (slot < current && live[slot] != 0u) ++slot;
+        /* Each accepted row occupies a distinct slot below120. Therefore
+         * accepted count is at most120, within the nested240-entry arrays. */
+        accepted = plan.slots.incoming_count;
+        plan.slots.assigned[accepted] = (uint16_t)slot;
+        plan.accepted_resource_indices[accepted] = (uint16_t)resource;
+        plan.resource_to_global[resource] = (uint16_t)slot;
+        ++plan.slots.incoming_count;
+        live[slot] = 1u;
+        if (slot == current) ++current;
+    }
+    plan.slots.final_high_water = current;
+    *out = plan;
+    return SCENE_ACTION_SLOTS_OK;
+}

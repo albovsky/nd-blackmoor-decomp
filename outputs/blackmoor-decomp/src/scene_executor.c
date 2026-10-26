@@ -182,9 +182,15 @@ int scene_executor_create(const SceneResource *scene,
             scene_executor_destroy(executor);
             return SCENE_EXECUTOR_ERR_FORMAT;
         }
+        SceneResourceActionRef origin;
+        if (scene_resource_action_origin(scene, index, &origin) != SCENE_RESOURCE_OK) {
+            set_failed_action(failed_action_index, index);
+            scene_executor_destroy(executor);
+            return SCENE_EXECUTOR_ERR_FORMAT;
+        }
         executor->slots[index].action = action;
-        executor->slots[index].source = scene;
-        executor->slots[index].source_index = index;
+        executor->slots[index].source = origin.source;
+        executor->slots[index].source_index = origin.index;
         executor->slots[index].occupied = 1u;
         if (action.payload_kind == SCENE_ACTION_PAYLOAD_OPAQUE ||
             (action.typed_body_length != 0u && action.typed_body == NULL) ||
@@ -1138,6 +1144,7 @@ int scene_executor_get_slot(const SceneActionExecutor *e, size_t i, SceneExecuto
 {
     if (e == NULL || out == NULL || i >= e->action_count) return SCENE_EXECUTOR_ERR_ARGUMENT;
     *out = e->slots[i];
+    out->condition_tree = out->occupied ? e->conditions[i] : NULL;
     out->runtime_type = !out->occupied ? 0u : e->overlay36[i] ? UINT8_C(0x36) :
         out->action.type == SCENE_ACTION_RANDOM_SOUND ? UINT8_C(0x9f) :
         (uint8_t)action_runtime_type(&out->action);

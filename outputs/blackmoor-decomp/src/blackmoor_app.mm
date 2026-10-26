@@ -259,6 +259,10 @@ struct NativeApp {
     /* The previous scene resource stays open while a session executor still
      * borrows it; it is closed after scene_session_replace_scene succeeds. */
     SceneResource *retired_scene = nullptr;
+    /* Indexed providers may borrow a global metadata view independently of
+     * the latest logical scene. Keep both views during a failed reset. */
+    SceneResource *provider_action_view = nullptr;
+    SceneResource *retired_provider_action_view = nullptr;
     /* Every surviving ACT/body/tree keeps its immutable resource owner. */
     std::vector<SceneResource *> retained_scenes;
     int16_t last_art_scene_id = 0; /* 5bb57f, distinct from logical5bb57b */
@@ -2382,6 +2386,9 @@ static void cleanup(NativeApp *app)
     app->live_audio = nullptr;
     if (app->platform) blackmoor_macos_close(app->platform);
     if (app->startup) startup_menu_destroy(app->startup);
+    if (app->provider_action_view) scene_resource_close(app->provider_action_view);
+    if (app->retired_provider_action_view) scene_resource_close(app->retired_provider_action_view);
+    app->provider_action_view = app->retired_provider_action_view = nullptr;
     if (app->scene) scene_resource_close(app->scene);
     if (app->retired_scene) scene_resource_close(app->retired_scene);
     for (SceneResource *resource : app->retained_scenes) scene_resource_close(resource);
@@ -10998,45 +11005,47 @@ static void nav_begin_scene(NativeApp *app)
            app->nav_bands.x2, app->nav_bands.y2, g.auto_move, app->nav_members_idle ? 1 : 0);
 }
 
-static bool begin_native_session_bindings_scene(NativeApp *app)
+static bool begin_native_session_bindings_scene(NativeApp *app,
+    const SceneResource *provider_scene = nullptr, bool preserve_random_movie = false)
 {
+    const SceneResource *rows = provider_scene ? provider_scene : app->scene;
     size_t failed_row = SIZE_MAX;
     int kernel_status = 0;
-    const int a51_status = session_a51_begin_scene(app->a51, app->scene, &failed_row,
+    const int a51_status = session_a51_begin_scene(app->a51, rows, &failed_row,
                                                    &kernel_status);
     if (a51_status != SESSION_A51_OK) {
         record(app, "scene_session_create_error provider=caption detail=0x51-loader "
                "status=%d row=%zu kernel_status=%d", a51_status, failed_row, kernel_status);
         return false;
     }
-    const int a4b_status = session_a4b_begin_scene(app->a4b, app->scene, &failed_row, &kernel_status);
+    const int a4b_status = session_a4b_begin_scene(app->a4b, rows, &failed_row, &kernel_status);
     if (a4b_status != SESSION_A4B_OK) {
         record(app, "scene_session_create_error provider=caption detail=0x4b-loader "
                "status=%d row=%zu kernel_status=%d", a4b_status, failed_row, kernel_status);
         return false;
     }
-    if (session_a62_begin_scene(app->a62, scene_resource_action_count(app->scene)) != SESSION_A62_OK) {
+    if (session_a62_begin_scene(app->a62, scene_resource_action_count(rows)) != SESSION_A62_OK) {
         record(app, "scene_session_create_error provider=action-family-62 detail=row-table");
         return false;
     }
-    if (session_a35_begin_scene(app->a35, app->scene) != A35_RUNTIME_OK) return false;
-    if (session_a83_begin_scene(app->a83, app->scene) != A83_OK) {
+    if (session_a35_begin_scene(app->a35, rows) != A35_RUNTIME_OK) return false;
+    if (session_a83_begin_scene(app->a83, rows) != A83_OK) {
         record(app, "scene_session_create_error provider=action-family-83 detail=%s",
                session_a83_failure(app->a83));
         return false;
     }
     native_a3f_caption_reset(app);
-    if (session_a3f_begin_scene(app->a3f, app->scene) != CONVO3F_OK) {
+    if (session_a3f_begin_scene(app->a3f, rows) != CONVO3F_OK) {
         record(app, "scene_session_create_error provider=action-family-3f detail=%s",
                session_a3f_failure(app->a3f));
         return false;
     }
-    if (session_ad9_begin_scene(app->ad9, app->scene) != D9_OK) {
+    if (session_ad9_begin_scene(app->ad9, rows) != D9_OK) {
         record(app, "scene_session_create_error provider=action-family-d9 detail=%s",
                session_ad9_failure(app->ad9));
         return false;
     }
-    if (session_ad1_begin_scene(app->ad1, app->scene) != D1_OK) {
+    if (session_ad1_begin_scene(app->ad1, rows) != D1_OK) {
         record(app, "scene_session_create_error provider=action-family-d1 detail=%s",
                session_ad1_failure(app->ad1));
         return false;
@@ -11044,7 +11053,7 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
     app->ad1_slot_used.fill(false);
     app->ad1_plan_signature = 0u;
     app->ad1_render_failure_logged = false;
-    if (session_af6_begin_scene(app->af6, app->scene) != F6_OK) {
+    if (session_af6_begin_scene(app->af6, rows) != F6_OK) {
         record(app, "scene_session_create_error provider=action-family-f6 detail=%s",
                session_af6_failure(app->af6));
         return false;
@@ -11054,7 +11063,7 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
     app->af6_plan_signature = 0u;
     app->af6_plan_logged = 0u;
     app->af6_render_failure_logged = false;
-    if (session_ae0_begin_scene(app->ae0, app->scene) != E0_OK) {
+    if (session_ae0_begin_scene(app->ae0, rows) != E0_OK) {
         record(app, "scene_session_create_error provider=action-family-e0 detail=%s", session_ae0_failure(app->ae0));
         return false;
     }
@@ -11063,7 +11072,7 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
     app->ae0_plan_signature = 0u;
     app->ae0_plan_logged = 0u;
     app->ae0_render_failure_logged = false;
-    if (session_ae4_begin_scene(app->ae4, app->scene) != E4R_OK) {
+    if (session_ae4_begin_scene(app->ae4, rows) != E4R_OK) {
         record(app, "scene_session_create_error provider=action-family-e4 detail=%s", session_ae4_failure(app->ae4));
         return false;
     }
@@ -11072,20 +11081,20 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
     app->ae4_plan_signature = 0u;
     app->ae4_plan_logged = 0u;
     app->ae4_render_failure_logged = false;
-    if (session_aeb_begin_scene(app->aeb, app->scene) != EB_OK) {
+    if (session_aeb_begin_scene(app->aeb, rows) != EB_OK) {
         record(app, "scene_session_create_error provider=action-family-eb detail=%s", session_aeb_failure(app->aeb));
         return false;
     }
     app->aeb_slot_used.fill(false);
     app->aeb_plan_signature = 0u;
     app->aeb_render_failure_logged = false;
-    if (session_a77_begin_scene(app->a77, app->scene) != A77_OK) {
+    if (session_a77_begin_scene(app->a77, rows) != A77_OK) {
         record(app, "scene_session_create_error provider=action-family-77 detail=%s", session_a77_failure(app->a77));
         return false;
     }
     app->a77_plan_signature = 0u;
     app->a77_render_failure_logged = false;
-    if (session_ad0_begin_scene(app->ad0, app->scene) != D0_OK) {
+    if (session_ad0_begin_scene(app->ad0, rows) != D0_OK) {
         record(app, "scene_session_create_error provider=action-family-d0 detail=%s", session_ad0_failure(app->ad0));
         return false;
     }
@@ -11093,21 +11102,21 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
     app->ad0_held = D0RenderResult{};
     app->ad0_plan_signature = 0u;
     app->ad0_render_failure_logged = false;
-    if (session_aaa_begin_scene(app->aaa, app->scene) != ALC_OK) {
+    if (session_aaa_begin_scene(app->aaa, rows) != ALC_OK) {
         record(app, "scene_session_create_error provider=action-family-aa detail=%s", session_aaa_failure(app->aaa));
         return false;
     }
     app->aaa_slot_used.fill(false);
     app->aaa_plan_signature = 0u;
     app->aaa_render_failure_logged = false;
-    if (session_ad3_begin_scene(app->ad3, app->scene) != CPZ_OK) {
+    if (session_ad3_begin_scene(app->ad3, rows) != CPZ_OK) {
         record(app, "scene_session_create_error provider=action-family-d3 detail=%s", session_ad3_failure(app->ad3));
         return false;
     }
     app->ad3_slot_used.fill(false);
     app->ad3_plan_signature = 0u;
     app->ad3_render_failure_logged = false;
-    if (session_af5_begin_scene(app->af5, app->scene) != TQZ_OK) {
+    if (session_af5_begin_scene(app->af5, rows) != TQZ_OK) {
         record(app, "scene_session_create_error provider=action-family-f5 detail=%s", session_af5_failure(app->af5));
         return false;
     }
@@ -11115,7 +11124,7 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
     app->af5_plan_signature = 0u;
     app->af5_render_failure_logged = false;
     app->af5_text_stub_logged = false;
-    if (session_a76_begin_scene(app->a76, app->scene) != PWD_OK) {
+    if (session_a76_begin_scene(app->a76, rows) != PWD_OK) {
         record(app, "scene_session_create_error provider=action-family-76 detail=%s", session_a76_failure(app->a76));
         return false;
     }
@@ -11124,7 +11133,7 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
     app->a76_text_logged = false;
     app->a76_width_stub_logged = false;
     app->a76_background_seed = UINT64_MAX;
-    if (session_aee_begin_scene(app->aee, app->scene) != MP_OK) {
+    if (session_aee_begin_scene(app->aee, rows) != MP_OK) {
         record(app, "scene_session_create_error provider=action-family-ee detail=%s", session_aee_failure(app->aee));
         return false;
     }
@@ -11149,7 +11158,7 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
             return false;
         }
     }
-    if (session_ada_begin_scene(app->ada, app->scene) != BUL_OK) {
+    if (session_ada_begin_scene(app->ada, rows) != BUL_OK) {
         record(app, "scene_session_create_error provider=action-family-da detail=%s", session_ada_failure(app->ada));
         return false;
     }
@@ -11158,7 +11167,7 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
     app->ada_plan_signature = 0u;
     app->ada_plan_logged = 0u;
     app->ada_render_failure_logged = false;
-    if (session_aea_begin_scene(app->aea, app->scene) != EA_OK) {
+    if (session_aea_begin_scene(app->aea, rows) != EA_OK) {
         record(app, "scene_session_create_error provider=action-family-ea detail=%s", session_aea_failure(app->aea));
         return false;
     }
@@ -11169,43 +11178,43 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
     app->ad9_background_seed = UINT64_MAX;
     app->ad9_plan_signature = 0u;
     app->ad9_render_failure_logged = false;
-    if (session_a97_begin_scene(app->a97, app->scene) != ACTION_SOUND_OK) {
+    if (session_a97_begin_scene(app->a97, rows) != ACTION_SOUND_OK) {
         record(app, "scene_session_create_error provider=action-sound detail=%s",
                session_a97_failure(app->a97));
         return false;
     }
-    if (session_aa1_begin_scene(app->aa1, app->scene) != ACTION_SOUND_OK) {
+    if (session_aa1_begin_scene(app->aa1, rows) != ACTION_SOUND_OK) {
         record(app, "scene_session_create_error provider=action-sound detail=%s",
                session_aa1_failure(app->aa1));
         return false;
     }
-    if (session_a79_begin_scene(app->a79, app->scene) != ACTION79_OK) {
+    if (session_a79_begin_scene(app->a79, rows) != ACTION79_OK) {
         record(app, "scene_session_create_error provider=action-kernel detail=%s",
                session_a79_failure(app->a79));
         return false;
     }
-    if (session_a78_begin_scene(app->a78, app->scene) != ACTION78_OK) {
+    if (session_a78_begin_scene(app->a78, rows) != ACTION78_OK) {
         record(app, "scene_session_create_error provider=action-kernel detail=%s",
                session_a78_failure(app->a78));
         return false;
     }
-    for (size_t row = 0; row < scene_resource_action_count(app->scene); ++row) {
+    for (size_t row = 0; row < scene_resource_action_count(rows); ++row) {
         SceneActionInfo info{};
         Action78Object a78_object{};
-        if (scene_resource_action_at(app->scene, row, &info) == SCENE_RESOURCE_OK &&
+        if (scene_resource_action_at(rows, row, &info) == SCENE_RESOURCE_OK &&
             info.type == SESSION_A78_TYPE && session_a78_object(app->a78, row, &a78_object) == 1)
             record(app, "scene_a78_construct row=%zu item=%d take=%u swap=%u (add-inventory-item, 0x4eaadc)",
                    row, (int)static_cast<int16_t>(a78_object.item_word), (unsigned)a78_object.take_flag,
                    (unsigned)a78_object.swap_flag);
-        if (scene_resource_action_at(app->scene, row, &info) == SCENE_RESOURCE_OK &&
+        if (scene_resource_action_at(rows, row, &info) == SCENE_RESOURCE_OK &&
             info.type == SESSION_A79_TYPE)
             record(app, "scene_a79_construct row=%zu item=%d (remove-inventory-item, 0x4eac4c)",
                    row, session_a79_item_word(app->a79, row));
-        if (scene_resource_action_at(app->scene, row, &info) == SCENE_RESOURCE_OK &&
+        if (scene_resource_action_at(rows, row, &info) == SCENE_RESOURCE_OK &&
             info.type == SESSION_A97_TYPE)
             record(app, "scene_a97_construct row=%zu selected=%d runtime=0x9f seed-parity=unproven",
                    row, session_a97_selected(app->a97, row));
-        if (scene_resource_action_at(app->scene, row, &info) == SCENE_RESOURCE_OK &&
+        if (scene_resource_action_at(rows, row, &info) == SCENE_RESOURCE_OK &&
             info.type == SESSION_AA1_TYPE) {
             SessionAa1Row aa1_row{};
             if (session_aa1_row(app->aa1, row, &aa1_row) == 1)
@@ -11219,21 +11228,21 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
                        row);
         }
     }
-    if (session_a36_begin_scene(app->a36, app->scene) != OVERLAY36_OK) {
+    if (session_a36_begin_scene(app->a36, rows) != OVERLAY36_OK) {
         record(app, "scene_session_create_error provider=action-kernel detail=%s",
                session_a36_failure(app->a36));
         return false;
     }
     app->a17_logged_valid = false;
-    if (session_a17_begin_scene(app->a17, app->scene) != ACTION17_OK) {
+    if (session_a17_begin_scene(app->a17, rows) != ACTION17_OK) {
         record(app, "scene_session_create_error provider=action-kernel detail=%s",
                session_a17_failure(app->a17));
         return false;
     }
-    for (size_t row = 0; row < scene_resource_action_count(app->scene); ++row) {
+    for (size_t row = 0; row < scene_resource_action_count(rows); ++row) {
         SceneActionInfo info{};
         Action17Cursor cursor{};
-        if (scene_resource_action_at(app->scene, row, &info) != SCENE_RESOURCE_OK ||
+        if (scene_resource_action_at(rows, row, &info) != SCENE_RESOURCE_OK ||
             (info.type != SESSION_A17_TYPE && info.type != SESSION_A16_TYPE) ||
             info.typed_body == nullptr || info.typed_body_length < ACTION17_PREFIX_BYTES) continue;
         const auto word = [&](size_t offset) {
@@ -11246,12 +11255,12 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
                row, static_cast<unsigned>(info.type), word(0), word(20), cursor.cursor_index);
     }
     app->a0b_logged_valid = false;
-    if (session_a0b_begin_scene(app->a0b, app->scene) != ACTION17_OK) {
+    if (session_a0b_begin_scene(app->a0b, rows) != ACTION17_OK) {
         record(app, "scene_session_create_error provider=action-kernel detail=%s",
                session_a0b_failure(app->a0b));
         return false;
     }
-    for (size_t row = 0; row < scene_resource_action_count(app->scene); ++row) {
+    for (size_t row = 0; row < scene_resource_action_count(rows); ++row) {
         Action0bPayload payload{};
         Action17Cursor cursor{};
         if (session_a0b_payload(app->a0b, row, &payload) != ACTION17_OK) continue;
@@ -11264,7 +11273,7 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
     app->a1b_logged_valid = false;
     std::memset(app->a1b_rect, 0, sizeof(app->a1b_rect));
     app->a1b_finish_row = 0;
-    if (session_a1b_begin_scene(app->a1b, app->scene) != 0) {
+    if (session_a1b_begin_scene(app->a1b, rows) != 0) {
         record(app, "scene_session_create_error provider=action-kernel detail=%s", session_a1b_failure(app->a1b));
         return false;
     }
@@ -11274,14 +11283,14 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
         record(app, "scene_a1b_construct row=%zu hover_cursor_index=%d (two-table hotspot, loader 0x414692, handler 0x414947)",
                row, cursor.cursor_index);
     }
-    app->a0c_logged_valid.assign(scene_resource_action_count(app->scene), 0u);
-    app->a0c_logged_rects.assign(scene_resource_action_count(app->scene) * 4u, 0);
-    if (session_a0c_begin_scene(app->a0c, app->scene) != ACTION17_OK) {
+    app->a0c_logged_valid.assign(scene_resource_action_count(rows), 0u);
+    app->a0c_logged_rects.assign(scene_resource_action_count(rows) * 4u, 0);
+    if (session_a0c_begin_scene(app->a0c, rows) != ACTION17_OK) {
         record(app, "scene_session_create_error provider=action-kernel detail=%s",
                session_a0c_failure(app->a0c));
         return false;
     }
-    for (size_t row = 0; row < scene_resource_action_count(app->scene); ++row) {
+    for (size_t row = 0; row < scene_resource_action_count(rows); ++row) {
         SessionA0cRowInfo info{};
         Action17Cursor cursor{};
         if (session_a0c_row_info(app->a0c, row, &info) != ACTION17_OK) continue;
@@ -11292,23 +11301,23 @@ static bool begin_native_session_bindings_scene(NativeApp *app)
     }
     /* RT-34: build the raw 0x44 objects (loader 0x41166e) and clear the previous scene's Peephole view. A failure leaves the
      * rows unowned (they report the blocker) and does not stop the scene. */
-    if (session_a44_begin_scene(app->a44, app->scene) != 0) {
+    if (session_a44_begin_scene(app->a44, rows) != 0) {
         record(app, "scene_a44_begin_blocker detail=%s", session_a44_failure(app->a44));
     }
     /* The singleton and render entry are created once at world init. Never
      * run new scene rows against a refused load's old random-movie tables. */
-    if (session_a2d_begin_scene(app->a2d, app->scene) != 0) {
+    if (!preserve_random_movie && session_a2d_begin_scene(app->a2d, rows) != 0) {
         record(app, "scene_a2d_begin_blocker detail=%s", session_a2d_failure(app->a2d));
         return false;
     }
     /* RT-46: the 0x33 part of the scene clear (latch 0x5c39f1, row/kind words, surfaces) and the parse of the scene's raw 0x33 rows. A failure leaves the
      * 0x33 rows unowned (they report the blocker). */
-    if (session_a33_begin_scene(app->a33, app->scene) != 0) {
+    if (session_a33_begin_scene(app->a33, rows) != 0) {
         record(app, "scene_a33_begin_blocker detail=%s", session_a33_failure(app->a33));
     }
     app->a36_blit_signature.fill(0u);
     app->a36_hot_rects_failure_logged = false;
-    for (size_t row = 0; row < scene_resource_action_count(app->scene); ++row) {
+    for (size_t row = 0; row < scene_resource_action_count(rows); ++row) {
         const char *name = session_a36_row_name(app->a36, row);
         const uint8_t *image = session_a36_image(app->a36, row);
         if (name == nullptr || image == nullptr) continue;
@@ -13975,6 +13984,114 @@ static bool perform_no_art_transition(NativeApp *app, SceneResource *incoming,
     return true;
 }
 
+struct NativeNormalRetention {
+    bool active = false;
+    SceneNormalActionSlotPlan plan{};
+    std::unique_ptr<SceneResource, decltype(&scene_resource_close)> metadata{nullptr, scene_resource_close};
+    std::unique_ptr<SceneResource, decltype(&scene_resource_close)> providers{nullptr, scene_resource_close};
+    std::unique_ptr<SceneSessionAppend, decltype(&scene_session_discard_no_art)> table{nullptr, scene_session_discard_no_art};
+};
+
+/* Normal ClearSceneData preserves only runtime2d. An already-active D2
+ * constructor returns0 BEFORE allocating/loading anything (4cd251..4cd28c).
+ * Stage all accepted rows and their global provider indices before clear. */
+static bool prepare_native_normal_retention(NativeApp *app, const SceneResource *incoming,
+    int32_t logical_id, NativeNormalRetention *load)
+{
+    const size_t high = scene_session_action_high_water(app->session);
+    std::array<uint8_t, SCENE_ACTION_SLOT_LIMIT> occupied{}, types{};
+    std::array<SceneExecutorSlotInfo, SCENE_ACTION_SLOT_LIMIT> slots{};
+    if (high > slots.size() || app->retired_provider_action_view) return false;
+    size_t d2_count = 0, owner = SIZE_MAX;
+    for (size_t i = 0; i < high; ++i) {
+        if (scene_session_get_slot(app->session, i, &slots[i]) != SCENE_EXECUTOR_OK) return false;
+        occupied[i] = slots[i].occupied; types[i] = slots[i].runtime_type;
+        if (occupied[i] && types[i] == SESSION_A2D_TYPE) { ++d2_count; owner = i; }
+    }
+    const D2Object *movie = session_a2d_object(app->a2d);
+    const bool active = movie && movie->movie.active != 0;
+    if (!active && !d2_count) return true;
+    if (!active || d2_count != 1u || owner != static_cast<size_t>(movie->action_23e) || !movie->set) {
+        record(app, "scene_transition_error target=%d detail=incoherent-or-unstarted-D2-retention before_clear=1", logical_id);
+        return false;
+    }
+    if (session_a3f_cel_active(app->a3f)) {
+        record(app, "scene_transition_error target=%d detail=active-cel-normal-retention-unimplemented before_clear=1", logical_id);
+        return false;
+    }
+    const size_t incoming_count = scene_resource_action_count(incoming);
+    if (incoming_count > SCENE_ACTION_RESOURCE_LIMIT) return false;
+    std::array<uint8_t, SCENE_ACTION_RESOURCE_LIMIT> accepted{};
+    for (size_t i = 0; i < incoming_count; ++i) {
+        SceneActionInfo action{};
+        if (scene_resource_action_at(incoming, i, &action) != SCENE_RESOURCE_OK) return false;
+        accepted[i] = action.type != SESSION_A2D_TYPE;
+    }
+    const int policy = scene_action_slots_plan_normal(high, occupied.data(), types.data(),
+        incoming_count, accepted.data(), &load->plan);
+    if (policy != SCENE_ACTION_SLOTS_OK) {
+        record(app, "scene_transition_error target=%d detail=normal-ACT-plan status=%d before_clear=1", logical_id, policy);
+        return false;
+    }
+    std::array<SceneResourceActionRef, SCENE_ACTION_SLOT_LIMIT> compact{}, global{};
+    for (size_t i = 0; i < high; ++i)
+        if (slots[i].occupied && !load->plan.slots.retired[i]) global[i] = {slots[i].source, slots[i].source_index};
+    for (size_t i = 0; i < load->plan.slots.incoming_count; ++i) {
+        const size_t local = load->plan.accepted_resource_indices[i];
+        compact[i] = {incoming, local};
+        global[load->plan.slots.assigned[i]] = compact[i];
+    }
+    char error[256]{};
+    load->metadata.reset(scene_resource_open_action_view(incoming, compact.data(), load->plan.slots.incoming_count, error, sizeof(error)));
+    load->providers.reset(scene_resource_open_action_view(incoming, global.data(), load->plan.slots.final_high_water, error, sizeof(error)));
+    if (!load->metadata || !load->providers) {
+        record(app, "scene_transition_error target=%d detail=normal-ACT-view error=%s before_clear=1", logical_id, error);
+        return false;
+    }
+    try { app->retained_scenes.reserve(app->retained_scenes.size() + 1u); }
+    catch (...) { return false; }
+    SceneSessionAppend *table = nullptr;
+    SceneSessionFailure failure{};
+    const int status = scene_session_prepare_normal(app->session, incoming, load->metadata.get(),
+        logical_id, &load->plan.slots, &table, &failure);
+    load->table.reset(table);
+    if (status != SCENE_SESSION_OK) {
+        record(app, "scene_transition_error target=%d detail=normal-ACT-stage status=%d action=%zu before_clear=1",
+               logical_id, status, failure.action_index);
+        return false;
+    }
+    load->active = true;
+    record(app, "scene_normal_retention_staged target=%d retained_D2=%zu accepted=%zu skipped=%zu high_water=%zu",
+           logical_id, owner, load->plan.slots.incoming_count, incoming_count - load->plan.slots.incoming_count,
+           load->plan.slots.final_high_water);
+    return true;
+}
+
+static bool native_scene_is_borrowed(const NativeApp *app, const SceneResource *source)
+{
+    for (size_t i = 0; i < scene_session_action_high_water(app->session); ++i) {
+        SceneExecutorSlotInfo slot{};
+        if (scene_session_get_slot(app->session, i, &slot) == SCENE_EXECUTOR_OK &&
+            slot.occupied && slot.source == source) return true;
+    }
+    return false;
+}
+
+static void release_retired_scene_resources(NativeApp *app)
+{
+    if (app->retired_scene) {
+        if (native_scene_is_borrowed(app, app->retired_scene)) app->retained_scenes.push_back(app->retired_scene);
+        else scene_resource_close(app->retired_scene);
+        app->retired_scene = nullptr;
+    }
+    auto end = std::remove_if(app->retained_scenes.begin(), app->retained_scenes.end(), [app](SceneResource *source) {
+        if (native_scene_is_borrowed(app, source)) return false;
+        scene_resource_close(source);
+        return true;
+    });
+    app->retained_scenes.erase(end, app->retained_scenes.end());
+}
+
 static bool perform_session_transition(NativeApp *app,
                                        const SceneTransitionRequest &requested,
                                        uint32_t now)
@@ -14008,16 +14125,8 @@ static bool perform_session_transition(NativeApp *app,
         record(app, "scene_transition_error target=%d detail=popup-retention-unimplemented before_clear=1", transition.target_scene);
         return false;
     }
-    const D2Object *random_movie = session_a2d_object(app->a2d);
-    if (random_movie != nullptr && random_movie->movie.active != 0) {
-        /* Both normal and NO_ART loads can retain original D2/ACT slots.
-         * Until that ownership exists here, refuse before ANY scene clear,
-         * media close or table replacement. A raw2e stop permits the load. */
-        record(app, "scene_transition_error source=%d target=%d "
-               "detail=active-random-movie-retention-unimplemented before_clear=1",
-               source, transition.target_scene);
-        return false;
-    }
+    NativeNormalRetention retained;
+    if (!prepare_native_normal_retention(app, incoming.get(), requested.target_scene, &retained)) return false;
     record(app, "scene_audio_policy source=%d target=%d continuation=%u load_reset=none "
            "fresh_reset=state-2-MSND-and-0..13 dialogue-object-cleanup=unbound",
            source, transition.target_scene,
@@ -14050,8 +14159,8 @@ static bool perform_session_transition(NativeApp *app,
     SceneSessionFailure failure{};
     /* The session checks the id against its pending request; the test redirect
      * therefore passes the requested id with the redirected resource. */
-    const int status = scene_session_replace_scene(app->session, app->scene,
-                                                    requested.target_scene, &failure);
+    const int status = retained.active ? scene_session_commit_normal(app->session, retained.table.get()) :
+        scene_session_replace_scene(app->session, app->scene, requested.target_scene, &failure);
     if (status != SCENE_SESSION_OK) {
         record(app, "scene_transition_error source=%d target=%d detail=session-replace status=%d provider=%s "
                "action=%zu type=0x%02x detail_status=%d",
@@ -14090,15 +14199,16 @@ static bool perform_session_transition(NativeApp *app,
 #endif
     app->selector_entry_valid = true;
     app->selector_logged = false;
-    if (!begin_native_session_bindings_scene(app)) {
+    app->retired_provider_action_view = app->provider_action_view;
+    app->provider_action_view = retained.providers.release();
+    if (!begin_native_session_bindings_scene(app, app->provider_action_view, retained.active)) {
         record(app, "scene_transition_error source=%d target=%d detail=binding-scene-load",
                source, transition.target_scene);
         return false;
     }
-    if (app->retired_scene) scene_resource_close(app->retired_scene);
-    app->retired_scene = nullptr;
-    for (SceneResource *resource : app->retained_scenes) scene_resource_close(resource);
-    app->retained_scenes.clear();
+    if (app->retired_provider_action_view) scene_resource_close(app->retired_provider_action_view);
+    app->retired_provider_action_view = nullptr;
+    release_retired_scene_resources(app);
     if (!finish_native_scene_load(app, now)) return false;
     app->session_block_reported = false;
     app->session_transition_reported = false;

@@ -96,14 +96,21 @@ class NativeNoArtTests(unittest.TestCase):
     def test_actual_response_voice_reaches_next_no_art_scene(self):
         self.component('response')
 
-    def test_font_tags_extend_dialogue_to_atomic_normal_art_boundary(self):
-        self.component('font-chain-boundary')
+    def test_normal_art_return_preserves_movie_and_skips_incoming_constructor(self):
+        self.component('normal-art-return')
 
     def test_busy_greeting_refuses_no_art_retirement_before_commit(self):
         self.component('busy-refusal')
 
     def test_host_stop_after_no_art_cleans_sources_and_allows_reentry(self):
         self.component('host-stop-cleanup')
+
+    def test_actual_slot3_component_retains_movie_and_maps_new_providers(self):
+        self.component('slot3-return')
+
+
+    def test_unstarted_d2_refuses_normal_load_before_clear(self):
+        self.component('unstarted-refusal')
 
 
 if __name__ == '__main__':
