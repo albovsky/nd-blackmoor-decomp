@@ -1033,7 +1033,8 @@ static NativeRaw555Image *load_native_raw555_image(NativeApp *app,
 {
     if (app == nullptr || requested_name == nullptr || app->resources == nullptr) return nullptr;
     std::string name(requested_name);
-    if (name.size() > 0x18u) name.resize(0x18u); /* 0x4c2790 name bound. */
+    /* 0x4c2790 bounds its diagnostic label (argument14), not the independent
+     * resource name (argumentC) passed to 0x4181c6. CIF accepts 32 characters. */
     auto found = app->captions.image_handles.find(name);
     if (found != app->captions.image_handles.end()) {
         auto image_found = app->captions.raw_images.find(found->second);
@@ -1108,11 +1109,6 @@ static uint32_t native_caption_load_image(void *context, const char *name,
     if (loaded == nullptr) return 0u;
     (void)purpose;
     auto found = app->captions.image_handles.find(name);
-    if (found == app->captions.image_handles.end()) {
-        std::string bounded(name);
-        if (bounded.size() > 0x18u) bounded.resize(0x18u);
-        found = app->captions.image_handles.find(bounded);
-    }
     return found == app->captions.image_handles.end() ? 0u : found->second;
 }
 
