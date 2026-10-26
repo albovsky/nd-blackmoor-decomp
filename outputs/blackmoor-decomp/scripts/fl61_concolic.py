@@ -1375,7 +1375,14 @@ def main():
         for key in keys:
             if key in res:
                 continue
-            rowobj = Row(key)
+            try:
+                rowobj = Row(key)
+            except Exception as e:
+                print(key, 'cannot be set up:', type(e).__name__, e, flush=True)
+                continue
+            if rowobj.inline or rowobj.indirect:
+                print(key, 'skipped: inline helper or indirect calls the lower harness cannot play', flush=True)
+                continue
             seeds = [tuple(x) for x in starting_seeds(key)][:a.cmp_seeds]
             res[key] = compare_scenarios(rowobj, seeds, budget_s=a.budget_s)
             Path(a.cmp_goals).write_text(json.dumps(res))
