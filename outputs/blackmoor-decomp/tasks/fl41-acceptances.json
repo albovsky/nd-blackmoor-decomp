@@ -4330,5 +4330,130 @@
   },
   "parts_accounted": [],
   "note": "Machine-translated (scripts/lift_fl41.py), 3 seeds; oracle: 12/12 instructions, 2/2 jump directions; every mutant killed, identical -O2 code, or explained."
+ },
+ {
+  "va": "0x48e93e",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet rule review (FL-63): movsx fix sound; sweep 0 kills",
+  "date": "2026-10-22",
+  "native_source": {
+   "path": "src/original_methods_fl41.c",
+   "symbol": "m48e93e_lifted"
+  },
+  "tests": [
+   {
+    "path": "tests/test_fl41_differential.py",
+    "test_id": "Fl41Differential.test_48e93e_lifted"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl41_original_oracle.py",
+   "window": [
+    "0x48e93e",
+    "0x48e9bf"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Machine-translated (scripts/lift_fl41.py), 18 seeds; oracle: 37/37 instructions, 12/12 jump directions; every mutant killed, identical -O2 code, or explained."
+ },
+ {
+  "va": "0x4a1f59",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet rule review (FL-63): movsx fix sound; sweep 0 kills",
+  "date": "2026-10-22",
+  "native_source": {
+   "path": "src/original_methods_fl41.c",
+   "symbol": "m4a1f59_lifted"
+  },
+  "tests": [
+   {
+    "path": "tests/test_fl41_differential.py",
+    "test_id": "Fl41Differential.test_4a1f59_lifted"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl41_original_oracle.py",
+   "window": [
+    "0x4a1f59",
+    "0x4a1fd1"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Machine-translated (scripts/lift_fl41.py), 18 seeds; oracle: 40/40 instructions, 14/14 jump directions; every mutant killed, identical -O2 code, or explained."
+ },
+ {
+  "va": "0x4d31ef",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet rule review (FL-63): movsx fix sound; sweep 0 kills",
+  "date": "2026-10-22",
+  "native_source": {
+   "path": "src/original_methods_fl41.c",
+   "symbol": "m4d31ef_lifted"
+  },
+  "tests": [
+   {
+    "path": "tests/test_fl41_differential.py",
+    "test_id": "Fl41Differential.test_4d31ef_lifted"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl41_original_oracle.py",
+   "window": [
+    "0x4d31ef",
+    "0x4d335c"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Machine-translated (scripts/lift_fl41.py), 23 seeds; oracle: 90/90 instructions, 12/12 jump directions; every mutant killed, identical -O2 code, or explained."
+ },
+ {
+  "va": "0x4d3eba",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet rule review (FL-63): movsx fix sound; sweep 0 kills",
+  "date": "2026-10-22",
+  "native_source": {
+   "path": "src/original_methods_fl41.c",
+   "symbol": "m4d3eba_lifted"
+  },
+  "tests": [
+   {
+    "path": "tests/test_fl41_differential.py",
+    "test_id": "Fl41Differential.test_4d3eba_lifted"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl41_original_oracle.py",
+   "window": [
+    "0x4d3eba",
+    "0x4d3fa9"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Machine-translated (scripts/lift_fl41.py), 19 seeds; oracle: 56/56 instructions, 8/8 jump directions; every mutant killed, identical -O2 code, or explained."
+ },
+ {
+  "va": "0x4dd28d",
+  "class": "native_oracle_verified",
+  "reviewer": "Sonnet rule review (FL-63): movsx fix sound; sweep 0 kills",
+  "date": "2026-10-22",
+  "native_source": {
+   "path": "src/original_methods_fl41.c",
+   "symbol": "m4dd28d_lifted"
+  },
+  "tests": [
+   {
+    "path": "tests/test_fl41_differential.py",
+    "test_id": "Fl41Differential.test_4dd28d_lifted"
+   }
+  ],
+  "oracle": {
+   "path": "tests/fl41_original_oracle.py",
+   "window": [
+    "0x4dd28d",
+    "0x4dd380"
+   ]
+  },
+  "parts_accounted": [],
+  "note": "Machine-translated (scripts/lift_fl41.py), 18 seeds; oracle: 54/54 instructions, 6/6 jump directions; every mutant killed, identical -O2 code, or explained."
  }
 ]
