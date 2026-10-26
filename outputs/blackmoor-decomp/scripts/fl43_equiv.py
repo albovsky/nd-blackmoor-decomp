@@ -41,6 +41,11 @@ PURE = {'mov', 'movsx', 'movzx', 'lea', 'add', 'sub', 'and', 'or', 'xor', 'not',
         'sbb', 'adc'}
 PARTIAL_FLAGS = {'inc', 'dec', 'shl', 'shr', 'sar', 'sal', 'rol', 'ror', 'rcl', 'rcr', 'stc', 'clc', 'cmc', 'cld', 'std'}      # capstone reports eflags written, but some flags (or all, for a zero count) survive
 STRING_OPS = ('movs', 'stos', 'cmps', 'scas', 'lods', 'rep')
+STRING_INSTRUCTIONS = frozenset(b + w for b in ('movs', 'stos', 'cmps', 'scas', 'lods', 'ins', 'outs') for w in ('b', 'w', 'd'))      # FL-63: the real string instructions; `movsx` starts with `movs` and is a plain register move
+
+
+def is_string_op(m):
+    return m.startswith('rep') or m in STRING_INSTRUCTIONS
 # FL-55: x87 instructions that touch no general register and no EFLAGS bit except through the operands capstone reports (a memory operand's address registers, ax for fnstsw ax, eflags for fcomi);
 # the FPU stack itself is not tracked here: this analysis proves things about general registers and memory only. Capstone reports the memory operand of a store as a read, so the stores are listed.
 X87_OK = frozenset(('fld', 'fild', 'fld1', 'fldz', 'fldpi', 'fadd', 'faddp', 'fsub', 'fsubp', 'fsubr', 'fsubrp', 'fmul', 'fmulp', 'fdiv', 'fdivp', 'fdivr', 'fdivrp', 'fxch', 'fchs', 'fabs',
@@ -220,7 +225,7 @@ class Function:
         if m == 'call':
             gone |= {'eax', 'ecx', 'edx'}
             kill_other = kill_abs = True
-        if m.startswith(STRING_OPS):
+        if is_string_op(m):
             kill_other = kill_abs = True
         if mem_written and cls:
             if cls[0] == 'esp':

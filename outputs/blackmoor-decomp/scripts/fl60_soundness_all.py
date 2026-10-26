@@ -21,7 +21,7 @@ HANG = re.compile(r'^(0x[0-9a-f]+) mutants killed by a hang or crash (\[.*\])\s*
 def main():
     classes = json.loads(Path(sys.argv[1]).read_text())['mutants']
     runs, hung = {}, {}
-    files = sorted(PROJECT.glob('tasks/*.txt')) + sorted(PROJECT.glob('tasks/fl52/*.txt')) + sorted(PROJECT.glob('tasks/fl62/*.txt'))
+    files = sorted(PROJECT.glob('tasks/*.txt')) + sorted(PROJECT.glob('tasks/fl52/*.txt')) + sorted(PROJECT.glob('tasks/fl62/*.txt')) + sorted(PROJECT.glob('tasks/fl63/*.txt'))
     for f in files:
         for line in f.read_text(errors='replace').splitlines():
             m = LINE.match(line)

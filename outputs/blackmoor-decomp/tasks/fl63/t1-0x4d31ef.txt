@@ -1,0 +1,2 @@
+0x4d31ef divergent seeds (the unmutated translation differs from the original) [6392]
+0x4d31ef mutants 349 killed 341 survivors [('width', 91, 'survives', '3c7c3dd6'), ('width', 10, 'survives', '6a608d30'), ('register', 10, 'survives', '2ddc9371'), ('register', 12, 'survives', '76424a5e'), ('width', 12, 'survives', '340b8902'), ('alu', 85, 'survives', '2495c136'), ('drop', 59, 'survives', '02d37f37'), ('drop', 108, 'survives', 'fae5b32b'), ('width', 35, 'killed by boundary scenario', '03c4e770')]
