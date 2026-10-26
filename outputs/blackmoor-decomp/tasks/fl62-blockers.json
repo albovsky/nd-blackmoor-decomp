@@ -1,0 +1,8 @@
+{
+ "0x4e1305": [
+  {
+   "id": "RT-22:a3a3de771747875e",
+   "rationale": "The item says the lock-table producers 0x4e13e4 and 0x4e1305 are not modelled in the native app, so no button is ever locked: a gap in the app's use of the lock table, not in this function's code. Here the function's own instructions and the jump directions all run in the oracle and match the translation, with callees as recording stubs."
+  }
+ ]
+}

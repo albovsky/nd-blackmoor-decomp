@@ -1,0 +1,1 @@
+0x4e8d72 mutants 35 killed 33 survivors [('register', 9, 'survives', 'ccbaf492'), ('jump', 10, 'killed only by an extra seed', 'cc2308d2'), ('drop', 11, 'survives', 'ca1a0022')]

@@ -1,6 +1,6 @@
 # FL-61 handoff: automated coverage generator for the lower translated rows
 
-Ledger unchanged by this thread: **2,189 verified ported of 4,188** (main after PR 204/205), about 1,779 translated, unverified. FL-61 banked **0 rows**. What it adds is the tooling: a concolic coverage generator, boundary and compare-goal scenario makers, and one new sound survivor rule. FL-62 ported the generator to the upper rows (`scripts/fl62_concolic.py`) and did get rows clean there.
+Ledger unchanged by this thread: **2,197 verified ported of 4,188** (main after FL-62, PR 207; it was 2,189 when this thread's work was measured), about 1,771 translated, unverified. FL-61 banked **0 rows**. What it adds is the tooling: a concolic coverage generator, boundary and compare-goal scenario makers, and one new sound survivor rule. FL-62 ported the generator to the upper rows (`scripts/fl62_concolic.py`) and did get rows clean there.
 
 ## What was built (all in `outputs/blackmoor-decomp`)
 

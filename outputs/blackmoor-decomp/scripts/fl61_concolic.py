@@ -931,7 +931,7 @@ def selfcheck(run):
     for name, (var, cv, kind, where) in run.inputs.items():
         s.add(var == z3.BitVecVal(cv, var.size()))
     for k, (kind, at, cond, info) in enumerate(run.path):
-        s.add(cond)
+        s.add(cond if kind != 'sw' else cond == z3.BitVecVal(info[1], 32))          # a switch entry holds the 32-bit target expression, not a Boolean
         if s.check() != z3.sat:
             return k
     return None
