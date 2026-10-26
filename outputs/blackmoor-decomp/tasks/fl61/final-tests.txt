@@ -1,0 +1,13 @@
+........./home/user/nd-blackmoor-decomp/outputs/blackmoor-decomp/scripts/lift_function.py:79: ResourceWarning: unclosed file <_io.TextIOWrapper name='/home/user/nd-blackmoor-decomp/outputs/blackmoor-decomp/function-ledger.json' mode='r' encoding='utf-8'>
+  entries = json.load(open(PROJECT / "function-ledger.json"))["entries"]
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/user/nd-blackmoor-decomp/outputs/blackmoor-decomp/scripts/lift_function.py:90: ResourceWarning: unclosed file <_io.TextIOWrapper name='/home/user/nd-blackmoor-decomp/outputs/blackmoor-decomp/function-ledger.json' mode='r' encoding='utf-8'>
+  _ENTRIES = {int(e["va"], 16): e for e in json.load(open(PROJECT / "function-ledger.json"))["entries"]}
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.......................batch-003.json: re-hashed 1 source(s)
+re-hashed 1 source(s) in total
+.........
+----------------------------------------------------------------------
+Ran 41 tests in 144.667s
+
+OK
