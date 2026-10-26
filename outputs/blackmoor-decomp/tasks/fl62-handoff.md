@@ -1,6 +1,6 @@
 # FL-62 handoff (rows at or above 0x480000, round fourteen): FL-61's concolic coverage generator on the upper rows
 
-Ledger 2,189 (main after PR 204) -> **2,197 ported of 4,188** (+8 upper rows: 0x4a1e93, 0x4ba262, 0x4be2c6, 0x4bf297, 0x4d57e8, 0x4de322, 0x4e1305, 0x4e8d72). Every mutant of each is killed, has identical -O2 code, or is explained by a sound rule; no written reasons. **Translated, unverified: about 1,771** (every pending row still has a translation). Not port credits.
+Ledger 2,189 (main after PR 204; merged as PR 207) -> **2,197 ported of 4,188** (+8 upper rows: 0x4a1e93, 0x4ba262, 0x4be2c6, 0x4bf297, 0x4d57e8, 0x4de322, 0x4e1305, 0x4e8d72). Every mutant of each is killed, has identical -O2 code, or is explained by a sound rule; no written reasons. **Translated, unverified: about 1,771** (every pending row still has a translation). Not port credits.
 
 Credits by row size: 36 bytes (1), 76 (1), 91 (1), 106 (1), 114 (1), 126 (1), 161 (1), 223 (1). Six of the eight are 100 bytes or more; FL-60's plain automation credited 0 of 197 rows from 100 bytes up. 0x4e1305 needed one reviewed A-51/RT-22 blocker rationale (`tasks/fl62-blockers.json`).
 
