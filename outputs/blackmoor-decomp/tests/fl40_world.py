@@ -240,7 +240,7 @@ class Trace:
 # ---- the original, under Unicorn ----------------------------------------------------------------------------------------------------
 
 
-def run_original(row, seed, overrides=(), observe=False, setup=None, probes=None):
+def run_original(row, seed, overrides=(), observe=False, setup=None, probes=None, watch=None):
     import unicorn
     from unicorn import x86_const as X
     pe = od.load_image()
@@ -392,6 +392,8 @@ def run_original(row, seed, overrides=(), observe=False, setup=None, probes=None
             uc.mem_write(address, (value & ((1 << (8 * size_)) - 1)).to_bytes(size_, 'little'))
     if setup:
         setup(uc)       # FL-44: the range test hooks the emulator here
+    if watch:
+        watch(uc, ensure, trace, sp)       # FL-61: the concolic generator hooks the run here (it sees the emulator, the page filler, the trace being built and the initial esp)
     for address, fn in (probes or {}).items():             # FL-49: a callback at an instruction, called as fn(uc, ensure, write count) just before it runs
         uc.hook_add(unicorn.UC_HOOK_CODE, lambda uc_, a, s, u, fn=fn: fn(uc, ensure, len(trace.writes)), begin=address, end=address)
     try:
