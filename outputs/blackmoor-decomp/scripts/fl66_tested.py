@@ -173,15 +173,25 @@ def source_sha(path):
     return hashlib.sha256((PROJECT / path).read_bytes()).hexdigest()
 
 
+def library_key(pool):
+    """Cache key of a pool's library: the C file AND the shared model headers it includes (a changed header changes what the translation does)."""
+    h = hashlib.sha256()
+    h.update((PROJECT / POOLS[pool]['source']).read_bytes())
+    for header in sorted((PROJECT / 'src').glob('original_methods_fl4*.h')):
+        h.update(header.name.encode())
+        h.update(header.read_bytes())
+    return h.hexdigest()
+
+
 def library(pool):
-    """The shared library of the pool's committed C file (cached under /tmp by the file hash: the 10 MB upper file takes minutes to compile)."""
+    """The shared library of the pool's committed C file (cached under /tmp by the hash of the file and its headers: the 10 MB upper file takes minutes to compile).
+    Concurrent shards compile into their own temporary file and publish it atomically."""
     p = POOLS[pool]
-    W, _ = world(p['world'])
-    sha = source_sha(p['source'])
+    world(p['world'])
     CACHE.mkdir(parents=True, exist_ok=True)
-    so = CACHE / ('%s-%s.so' % (pool, sha[:16]))
+    so = CACHE / ('%s-%s.so' % (pool, library_key(pool)[:16]))
     if not so.exists():
-        tmp = so.with_suffix('.tmp.so')
+        tmp = CACHE / ('%s-%d.tmp.so' % (so.stem, os.getpid()))
         cmd = ['cc', '-std=c11', '-O1', '-shared', '-fPIC', '-w', '-I%s' % (PROJECT / 'src'), str(PROJECT / p['source']), '-o', str(tmp)]
         r = subprocess.run(cmd, capture_output=True, text=True)
         if r.returncode:
@@ -430,7 +440,7 @@ def main():
     ap.add_argument('--write', action='store_true')
     ap.add_argument('--gen', action='store_true')
     ap.add_argument('--sample', type=int, default=0)
-    ap.add_argument('--rows-csv', dest='rows_csv')
+    ap.add_argument('--rows', dest='rows_csv', help='replay: comma-separated rows')
     a = ap.parse_args()
     if a.cmd == '_one':
         return one(a)
@@ -441,7 +451,7 @@ def main():
         return merge(a.write)
     if a.cmd == 'status':
         return status()
-    a.rows = ','.join(a.rows)
+    a.rows = a.rows_csv or ','.join(a.rows)
     return replay(a)
 
 
