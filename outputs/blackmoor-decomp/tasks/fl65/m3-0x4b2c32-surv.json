@@ -1,0 +1,229 @@
+{
+ "rows_with_survivors": {
+  "0x4b2c32": [
+   [
+    "alu",
+    "identical code",
+    "{ uint32_t a_ = eax, b_ = eax, r_; r_ = a_ & b_; FL41_LOGIC(r_, 32); }  /* 0x4b2cc8: test eax, eax */",
+    46
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = edx, b_ = 0x14u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4b2ca0: cmp edx, 0x14 */",
+    35
+   ],
+   [
+    "width",
+    null,
+    "eax = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x4b2c51: mov eax, dword ptr [ebp - 4] */",
+    13
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = ecx, b_ = 0x14u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4b2c58: cmp ecx, 0x14 */",
+    15
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = esp, b_ = 0x8u, r_; FL41_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4b2c35: sub esp, 8 */",
+    6
+   ],
+   [
+    "alu",
+    "frame",
+    "{ uint32_t a_ = esp, b_ = 0x8u, r_; FL41_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4b2c35: sub esp, 8 */",
+    6
+   ],
+   [
+    "register",
+    "identical code",
+    "{ uint32_t a_ = edx, b_ = 0x6u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4b2c80: cmp edx, 6 */",
+    26
+   ],
+   [
+    "width",
+    null,
+    "edx = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(edx + ecx + 0x18u)))) & 0xffffffffu;  /* 0x4b2c7b: movsx edx, word ptr [edx + ecx + 0x18] */",
+    25
+   ],
+   [
+    "drop",
+    "repeat",
+    "eax = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x4b2ca5: mov eax, dword ptr [ebp - 4] */",
+    37
+   ],
+   [
+    "jump",
+    "identical code",
+    "if (!zf) goto L_4b2ce0;  /* 0x4b2cca: jne 0x4b2ce0 */",
+    47
+   ],
+   [
+    "drop",
+    "repeat",
+    "edx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x4b2c5d: mov edx, dword ptr [ebp - 4] */",
+    17
+   ],
+   [
+    "width",
+    null,
+    "ecx = ((uint32_t)(int32_t)(int16_t)(RD16((uint32_t)(eax + 0x29u)))) & 0xffffffffu;  /* 0x4b2c54: movsx ecx, word ptr [eax + 0x29] */",
+    14
+   ],
+   [
+    "width",
+    null,
+    "edx = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x4b2c5d: mov edx, dword ptr [ebp - 4] */",
+    17
+   ],
+   [
+    "drop",
+    "identical code",
+    "{ uint32_t a_ = esp, b_ = 0x8u, r_; FL41_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4b2c35: sub esp, 8 */",
+    6
+   ],
+   [
+    "literal",
+    "identical code",
+    "{ uint32_t a_ = esp, b_ = 0x8u, r_; FL41_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4b2c35: sub esp, 8 */",
+    6
+   ],
+   [
+    "literal",
+    "identical code",
+    "{ uint32_t a_ = esp, b_ = 0x8u, r_; FL41_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x4b2c35: sub esp, 8 */",
+    6
+   ],
+   [
+    "drop",
+    null,
+    "{ uint32_t a_ = edx, b_ = 0x14u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x4b2ca0: cmp edx, 0x14 */",
+    35
+   ],
+   [
+    "literal",
+    null,
+    "{ int64_t w_ = (int64_t)(int32_t)(eax) * (int32_t)(0x1e4u); uint32_t r_ = (uint32_t)w_; cf = of = (w_ != (int64_t)(int32_t)r_); FL41_ZSP(r_, 32); eax = r_; }  /",
+    19
+   ]
+  ]
+ },
+ "unexplained_rows": [
+  "0x4b2c32"
+ ],
+ "mutants": {
+  "0x4b2c32": [
+   [
+    "alu",
+    46,
+    "f2defb77",
+    "identical code"
+   ],
+   [
+    "register",
+    35,
+    "1c492114",
+    "identical code"
+   ],
+   [
+    "width",
+    13,
+    "e24c7648",
+    null
+   ],
+   [
+    "register",
+    15,
+    "9bb55eba",
+    "identical code"
+   ],
+   [
+    "register",
+    6,
+    "227c54a3",
+    "identical code"
+   ],
+   [
+    "alu",
+    6,
+    "160ccd36",
+    "frame"
+   ],
+   [
+    "register",
+    26,
+    "41b64d03",
+    "identical code"
+   ],
+   [
+    "width",
+    25,
+    "dd5fb486",
+    null
+   ],
+   [
+    "drop",
+    37,
+    "ef3a4302",
+    "repeat"
+   ],
+   [
+    "jump",
+    47,
+    "b9db936a",
+    "identical code"
+   ],
+   [
+    "drop",
+    17,
+    "6471dc0e",
+    "repeat"
+   ],
+   [
+    "width",
+    14,
+    "4def3709",
+    null
+   ],
+   [
+    "width",
+    17,
+    "01645a3e",
+    null
+   ],
+   [
+    "drop",
+    6,
+    "803c441c",
+    "identical code"
+   ],
+   [
+    "literal",
+    6,
+    "f8d8ddd1",
+    "identical code"
+   ],
+   [
+    "literal",
+    6,
+    "a294f304",
+    "identical code"
+   ],
+   [
+    "drop",
+    35,
+    "2acc6eb6",
+    null
+   ],
+   [
+    "literal",
+    19,
+    "93031ae6",
+    null
+   ]
+  ]
+ }
+}

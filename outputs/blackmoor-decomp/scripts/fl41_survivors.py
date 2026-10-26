@@ -23,6 +23,7 @@ The earlier "local width" class (a narrower read of a frame local that the corpu
   fl41_survivors.py <mutation log> [--equiv tasks/fl41-o2-identical.json] [--out tasks/fl41-survivors.json]
 """
 import json
+import os
 from pathlib import Path
 import random
 import re
@@ -678,7 +679,7 @@ def flags_ok(kind, orig, mut, ranges, addr):
     return False
 
 
-def classify(kind, lines, n, equivalent, proofs=None, mutline=None, ranges=None, row=None):
+def classify(kind, lines, n, equivalent, proofs=None, mutline=None, ranges=None, row=None, cells=None, fn=None):
     if equivalent:
         return 'identical code'
     if kind in ('drop', 'alu') and mutline is not None and mul_one_ok(lines, n, stmt_full(lines[n]), stmt_full(mutline)):
@@ -720,7 +721,22 @@ def classify(kind, lines, n, equivalent, proofs=None, mutline=None, ranges=None,
         return 'frame'
     if row:
         import fl48_rules       # FL-48: FL-46's liveness rules (dead flags, dead register, equal push) on the statements
-        return fl48_rules.explain(kind, lines, n, row)
+        cls = fl48_rules.explain(kind, lines, n, row)
+        if cls:
+            return cls
+    if cells is not None and mutline is not None:
+        import fl64_rules       # FL-65: the exact-value rules of FL-64 (cell range, folded constant) on this one mutant; `cells` are the facts of scripts/fl64_cells.py for the row
+        if fl64_rules.cell_width_ok(kind, lines, n, [mutline], cells):
+            return 'cell range'
+        if fl64_rules.folded_ok(kind, lines, n, [mutline], cells):
+            return 'folded constant'
+        import fl65_cells
+        if fl65_cells.flags_known_ok(kind, lines, n, [mutline], cells):
+            return 'known flags'
+    if fn is not None and mutline is not None:
+        import fl65_diff        # FL-65: the bits in which the mutant can differ never reach a store, an address, a jump condition, a call or the return
+        if fl65_diff.unobserved_ok(kind, lines, n, [mutline], row, fn):
+            return 'unobserved bits'
     return None
 
 
@@ -760,13 +776,23 @@ def main():
             proofs = E.prove(int(m.group(1), 16), corpus[m.group(1)]['body'], wanted, ranges.feasible if ranges else None, RG.TableFunction if ranges else None, exposed_ok=True)
         except E.NoProof:
             pass
+        cells = None
+        if os.environ.get('FL65_CELLS', '1') != '0' and m.group(1) in corpus:       # FL-65: exact reachable values of registers and cells (scripts/fl64_cells.py), None when the loop is not bounded by constants
+            import fl65_cells
+            cells = fl65_cells.explore(int(m.group(1), 16), corpus[m.group(1)]['body'])
+        fn = None
+        if os.environ.get('FL65_CELLS', '1') != '0' and m.group(1) in corpus:
+            try:
+                fn = (RG.TableFunction if ranges else E.Function)(int(m.group(1), 16), corpus[m.group(1)]['body'])
+            except E.NoProof:
+                fn = None
         items = []
         written = {(r_['kind'], r_['line'], r_.get('ident')) for r_ in WRITTEN.get(m.group(1), []) if text[r_['line']] == r_['statement']}      # FL-48: a written reason for exactly this statement (and mutant, when it names one)
         for kind, n, why, *rest in eval(m.group(2)[:m.group(2).rindex(']') + 1]):
             if why == 'survives':
                 ident = rest[0] if rest else None
                 same = equiv.get(m.group(1), {}).get((kind, n, ident), False) or (ident is None and equiv.get(m.group(1), {}).get((kind, n, None), False))
-                cls = classify(kind, text, n, same, proofs, idents.get((kind, n, ident)), ranges, m.group(1)) or ('written reason' if ((kind, n, ident) in written or (kind, n, None) in written) else None)
+                cls = classify(kind, text, n, same, proofs, idents.get((kind, n, ident)), ranges, m.group(1), cells, fn) or ('written reason' if ((kind, n, ident) in written or (kind, n, None) in written) else None)
                 items.append((kind, cls, text[n].strip()[:160], n))
                 out['mutants'].setdefault(m.group(1), []).append([kind, n, ident, cls])         # FL-48: the mutant by its hash (the writers of the reasons name mutants)
         if items:
