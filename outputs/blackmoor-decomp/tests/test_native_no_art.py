@@ -40,14 +40,19 @@ class NativeNoArtTests(unittest.TestCase):
         if inventory is None:
             raise RuntimeError('Production native module inventory unavailable')
         prefix = Path(os.environ.get('FFMPEG_PREFIX', '/opt/homebrew'))
+        font_override = os.environ.get('BLACKMOOR_NATIVE_NO_ART_FONT_SOURCE')
+        font_source = Path(font_override).resolve() if font_override else native_project / 'src/native_conversation_caption.c'
+        if not font_source.is_file():
+            raise RuntimeError('Conversation font module source unavailable')
         objects = []
         for module in shlex.split(inventory.group(1)):
             output = build / (module + '.o')
+            module_source = font_source if module == 'native_conversation_caption' else native_project / 'src' / (module + '.c')
             cls.compile(['xcrun', '--sdk', 'macosx', 'clang', '-arch', 'arm64',
                          '-mmacosx-version-min=27.0', '-std=c11', '-O2',
                          '-Wall', '-Wextra', '-Wpedantic', '-Werror',
                          '-I' + str(prefix / 'include'), '-c',
-                         str(native_project / 'src' / (module + '.c')), '-o', str(output)])
+                         str(module_source), '-o', str(output)])
             objects.append(str(output))
         cls.executable = build / 'native-no-art-glue'
         command = ['xcrun', '--sdk', 'macosx', 'clang++', '-arch', 'arm64',
@@ -66,7 +71,9 @@ class NativeNoArtTests(unittest.TestCase):
         cls.compile(command)
         source_path = Path(app_source).resolve() if app_source else native_project / 'src/blackmoor_app.mm'
         print('NO_ART_BUILD executable_sha256=' + hashlib.sha256(cls.executable.read_bytes()).hexdigest() +
-              ' app_sha256=' + hashlib.sha256(source_path.read_bytes()).hexdigest())
+              ' app_sha256=' + hashlib.sha256(source_path.read_bytes()).hexdigest() +
+              ' caption_sha256=' + hashlib.sha256(font_source.read_bytes()).hexdigest() +
+              ' font_override=' + str(bool(font_override)))
 
     @staticmethod
     def compile(command):
@@ -89,8 +96,8 @@ class NativeNoArtTests(unittest.TestCase):
     def test_actual_response_voice_reaches_next_no_art_scene(self):
         self.component('response')
 
-    def test_ordinary_dialogue_chain_stops_at_caption_preflight_boundary(self):
-        self.component('caption-boundary')
+    def test_font_tags_extend_dialogue_to_atomic_normal_art_boundary(self):
+        self.component('font-chain-boundary')
 
     def test_busy_greeting_refuses_no_art_retirement_before_commit(self):
         self.component('busy-refusal')

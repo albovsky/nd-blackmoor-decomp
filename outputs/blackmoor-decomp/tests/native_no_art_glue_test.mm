@@ -1,4 +1,4 @@
-/* NATIVE-15: actual S4408 -> NO_ART_SCENE ownership boundary.
+/* NATIVE-15/16: actual S4408 -> NO_ART_SCENE ownership and font tags.
  * Component coverage uses real BOOT/new-game, original resources, pointer input
  * and muted offline audio. No story/item/phase/frame injection or GUI/device. */
 #define main blackmoor_app_entry_for_no_art_test
@@ -431,13 +431,8 @@ static int natural_response(NoArtFixture &f)
     return 0;
 }
 
-static int natural_caption_preflight_boundary(NoArtFixture &f)
+static int actual_font_caption_start(NoArtFixture &f, const char *key, const uint8_t tag[4])
 {
-    CHECK(natural_response(f) == 0, "ordinary dialogue route reaches1101 without injected state");
-    const int16_t targets[] = {1102, 1103, 1104, 1105};
-    for (int16_t target : targets)
-        CHECK(wait_for_pending(f, target) == 0 && load_next_no_art(f, target, nullptr) == 0,
-              "ordinary resource-defined dialogue chain keeps the source room and actual movie alive");
     size_t row = scene_session_action_high_water(f.app.session);
     SceneExecutorSlotInfo slot{};
     for (size_t i = 0; i < scene_session_action_high_water(f.app.session); ++i) {
@@ -449,71 +444,113 @@ static int natural_caption_preflight_boundary(NoArtFixture &f)
         }
     }
     CHECK(row < scene_session_action_high_water(f.app.session) && slot.action.type == 0x3fu,
-          "actual S1105 conversation is found through its canonical source identity");
+          "actual conversation is found through its canonical source identity");
     ActionFamily3fDecoded decoded{};
     Convo3fManager preview{};
     Convo3fLayoutRequest request{};
     CHECK(action_family_3f_decode(slot.action.raw_body, slot.action.raw_body_length, &decoded) == ACTION_FAMILY_3F_OK &&
-          std::strcmp(reinterpret_cast<const char *>(decoded.text_key), "LPL05") == 0 &&
+          std::strcmp(reinterpret_cast<const char *>(decoded.text_key), key) == 0 &&
           session_a3f_preview_layout(f.app.a3f, row, &preview, &request) == CONVO3F_OK && request.response_count == 0 &&
-          request.caption && request.caption_length >= 4u,
-          "real S1105 resolves its LPL05 caption without entering its handler");
-    static const uint8_t font_tag[] = {'<', 'f', '1', '>'};
-    CHECK(std::search(request.caption, request.caption + request.caption_length, font_tag, font_tag + sizeof(font_tag)) !=
-          request.caption + request.caption_length &&
-          native_conversation_choices_validate(&request, 1, &f.app.captions.fonts, &f.app.captions.geometry,
-              &f.app.captions.pixel_format) == CAPTION_ERR_UNSUPPORTED,
-          "actual LPL05 includes the unsupported original font-selection markup and is explicitly refused by preflight");
-    const auto manager = object_bytes(*session_a3f_manager(f.app.a3f));
-    const uint8_t *const image = session_a3f_image(f.app.a3f, row);
-    CHECK(image != nullptr, "unsupported incoming conversation still owns its untouched constructed image");
-    const std::vector<uint8_t> object_image(image, image + CONVO3F_IMAGE_BYTES);
-    LiveAudioChannelInfo sound{};
-    CHECK(live_audio_get_channel_info(f.app.live_audio, 12, &sound) == LIVE_AUDIO_OK,
-          "voice generation before caption preflight is observable");
-    const D2Object *const movie = session_a2d_object(f.app.a2d);
-    const D2Set *const set = movie->set;
-    const uint32_t surface = movie->surface_212;
-    const int16_t selector = f.app.nav.selector, scroll = f.app.nav.scroll;
-    const bool nav_ready = f.app.nav_scene_ready;
-    const auto source_rect = object_bytes(f.app.scene_source);
-    const auto destination_rect = object_bytes(f.app.scene_destination);
-    const auto rng = object_bytes(f.app.condition_rand);
-    const auto visits = f.app.new_game.scene_visits;
+          request.caption && request.caption_length >= 4u &&
+          std::search(request.caption, request.caption + request.caption_length, tag, tag + 4u) != request.caption + request.caption_length,
+          "actual CONVO caption contains the original font tag rather than a substituted or stripped text");
+    LiveAudioChannelInfo before{}, sound{};
+    CHECK(live_audio_get_channel_info(f.app.live_audio, 12, &before) == LIVE_AUDIO_OK,
+          "original voice generation before the font-tag caption starts is observable");
+    CHECK(f.tick(), "ordinary actual font-tag conversation passes preflight and starts successfully");
+    SceneActionRuntimeState state{};
+    int busy = 0;
+    CHECK(scene_session_get_action_state(f.app.session, row, &state) == SCENE_SESSION_OK && state.phase == 1u && !state.completed &&
+          session_a3f_manager(f.app.a3f)->row == static_cast<int16_t>(row) &&
+          f.app.a3f_caption.row == static_cast<int>(row) && f.app.a3f_caption.ready &&
+          f.app.a3f_caption.active[0] && f.app.a3f_caption.active[1] &&
+          f.app.a3f_caption.result.glyphs[0] && f.app.a3f_caption.result.glyphs[1] &&
+          live_audio_get_channel_info(f.app.live_audio, 12, &sound) == LIVE_AUDIO_OK && sound.generation > before.generation &&
+          sound.loaded && sound.started && sound.frame_count &&
+          live_audio_is_playing(f.app.live_audio, 12, &busy) == ACTION_SOUND_BACKEND_OK && busy &&
+          f.app.last_art_scene_id == 4408 && session_a2d_object(f.app.a2d)->movie.active,
+          "actual original FONT sheets draw both caption surfaces while real voice and retained movie remain active");
+    std::printf("NO_ART_FONT scene=%d key=%s tag=f%c normal_glyphs=%u hilite_glyphs=%u voice_channel=12\n",
+                f.app.current_scene_id, key, tag[2], f.app.a3f_caption.result.glyphs[0], f.app.a3f_caption.result.glyphs[1]);
+    return 0;
+}
+
+static bool log_contains(NativeApp &app, const char *wanted)
+{
+    if (!app.log) return false;
+    std::fflush(app.log);
+    const long position = std::ftell(app.log);
+    std::rewind(app.log);
+    char line[1024]{};
+    bool found = false;
+    while (std::fgets(line, sizeof(line), app.log)) if (std::strstr(line, wanted)) { found = true; break; }
+    if (position >= 0) (void)std::fseek(app.log, position, SEEK_SET);
+    return found;
+}
+
+static int natural_font_chain_boundary(NoArtFixture &f)
+{
+    CHECK(natural_response(f) == 0, "ordinary dialogue route reaches1101 without injected state");
+    const int16_t targets[] = {1102, 1103, 1104, 1105};
+    for (int16_t target : targets)
+        CHECK(wait_for_pending(f, target) == 0 && load_next_no_art(f, target, nullptr) == 0,
+              "ordinary resource-defined dialogue chain keeps the source room and actual movie alive");
+    static const uint8_t font_one[] = {'<', 'f', '1', '>'}, font_nine[] = {'<', 'f', '9', '>'};
+    CHECK(actual_font_caption_start(f, "LPL05", font_one) == 0 && wait_for_pending(f, 1134) == 0 &&
+          load_next_no_art(f, 1134, nullptr) == 0 && actual_font_caption_start(f, "LPL34X", font_nine) == 0,
+          "actual f1 and later f9 captions both execute through the retained-room dialogue path");
+    const int16_t later_targets[] = {1135, 1136};
+    for (int16_t target : later_targets)
+        CHECK(wait_for_pending(f, target) == 0 && load_next_no_art(f, target, nullptr) == 0,
+              "font-tag support permits the next original dialogue scenes without a bypass");
+    CHECK(choose_first_response(f, 1106) == 0 && wait_for_pending(f, 1107) == 0 &&
+          load_next_no_art(f, 1107, nullptr) == 0 && wait_for_pending(f, 4408) == 0,
+          "second actual choice and following voices naturally request the normal-art room return");
     const SceneResource *const source = f.app.scene;
     const uint64_t generation = scene_session_scene_generation(f.app.session);
-    CHECK(!f.tick(), "the next ordinary update reaches the exact unsupported caption preflight boundary");
-    SceneSessionTickResult result{};
-    SceneActionRuntimeState state{};
-    SceneExecutorSlotInfo retained{};
-    LiveAudioChannelInfo after_sound{};
+    const D2Object *const movie = session_a2d_object(f.app.a2d);
+    const auto object = object_bytes(*movie);
+    const auto nav = object_bytes(f.app.nav);
+    const auto rng = object_bytes(f.app.condition_rand);
+    const auto input = object_bytes(f.app.input_state);
+    const auto caption = object_bytes(f.app.captions.lifecycle.g);
+    const auto visits = f.app.new_game.scene_visits;
+    const auto source_rect = object_bytes(f.app.scene_source);
+    const auto destination_rect = object_bytes(f.app.scene_destination);
+    const size_t high_water = scene_session_action_high_water(f.app.session);
+    std::array<SceneExecutorSlotInfo, 240> slots{};
+    std::array<SceneActionRuntimeState, 240> states{};
+    for (size_t i = 0; i < high_water; ++i)
+        CHECK(scene_session_get_slot(f.app.session, i, &slots[i]) == SCENE_EXECUTOR_OK &&
+              scene_session_get_action_state(f.app.session, i, &states[i]) == SCENE_SESSION_OK,
+              "all live source rows can be captured before the normal-art ownership boundary");
+    bool failed = false;
+    for (unsigned i = 0; !failed && i < 8u; ++i) failed = !f.tick();
+    SceneTransitionRequest pending{};
     NativeRandomMovieFrame frame{};
-    SceneTransitionRequest absent{};
-    const int result_status = scene_session_get_last_result(f.app.session, &result);
-    const int row_status = scene_session_get_action_state(f.app.session, row, &state);
-    const int audio_status = live_audio_get_channel_info(f.app.live_audio, 12, &after_sound);
-    CHECK(f.app.session_block_reported && !f.app.failure && f.app.current_scene_id == 1105 && f.app.scene == source &&
+    CHECK(failed && f.app.failure && !f.app.session_block_reported && f.app.current_scene_id == 1107 && f.app.scene == source &&
+          scene_session_scene_generation(f.app.session) == generation && scene_session_action_high_water(f.app.session) == high_water &&
           f.app.last_art_scene_id == 4408 && f.app.first_load_5bb210 == 1u &&
-          scene_session_scene_generation(f.app.session) == generation &&
-          result_status == SCENE_SESSION_OK &&
-          result.status == SCENE_SESSION_BLOCKED && result.failure.stage == SCENE_SESSION_STAGE_DISPATCH &&
-          result.failure.action_type == 0x3fu && result.failure.action_index == row &&
-          row_status == SCENE_SESSION_OK && state.phase == 0u && !state.completed &&
-          session_a3f_image(f.app.a3f, row) == image && std::memcmp(image, object_image.data(), object_image.size()) == 0 &&
-          object_bytes(*session_a3f_manager(f.app.a3f)) == manager &&
-          audio_status == LIVE_AUDIO_OK &&
-          after_sound.generation == sound.generation && after_sound.loaded == sound.loaded && after_sound.started == sound.started &&
-          !f.app.a3f_caption.ready && !f.app.a3f_caption.active[0] && !f.app.a3f_caption.active[1] &&
-          session_a2d_object(f.app.a2d) == movie && movie->movie.active && movie->set == set && movie->surface_212 == surface &&
-          native_random_movie_frame(f.app.a2d_media, surface, &frame) == 0 && frame.rgba &&
-          scene_session_get_slot(f.app.session, 0u, &retained) == SCENE_EXECUTOR_OK && retained.occupied &&
-          retained.action.type == 0x2du && retained.source_index == 0u && retained.source != source &&
-          f.app.nav.selector == selector && f.app.nav.scroll == scroll && f.app.nav_scene_ready == nav_ready &&
-          object_bytes(f.app.scene_source) == source_rect && object_bytes(f.app.scene_destination) == destination_rect &&
-          object_bytes(f.app.condition_rand) == rng &&
-          f.app.new_game.scene_visits == visits && !scene_session_get_pending_transition(f.app.session, &absent),
-          "LPL05 preflight freezes before new conversation state, sound, surfaces or transition effects while retained room/movie/source slots remain usable");
-    std::printf("NO_ART_BOUNDARY source=1105 key=LPL05 unsupported_markup=f1 phase=0 handler_effects=0 retained_art=4408 active_movie_retained=1 terminal4408_unreached=1\n");
+          session_a2d_object(f.app.a2d) == movie && movie->movie.active && object_bytes(*movie) == object &&
+          native_random_movie_frame(f.app.a2d_media, movie->surface_212, &frame) == 0 && frame.rgba &&
+          object_bytes(f.app.nav) == nav && object_bytes(f.app.condition_rand) == rng &&
+          object_bytes(f.app.input_state) == input && object_bytes(f.app.captions.lifecycle.g) == caption &&
+          f.app.new_game.scene_visits == visits && object_bytes(f.app.scene_source) == source_rect &&
+          object_bytes(f.app.scene_destination) == destination_rect &&
+          scene_session_get_pending_transition(f.app.session, &pending) && pending.target_scene == 4408 &&
+          log_contains(f.app, "active-random-movie-retention-unimplemented before_clear=1"),
+          "active-D2 normal-art return4408 is explicitly refused before clear/load/source replacement or target visit effects");
+    for (size_t i = 0; i < high_water; ++i) {
+        SceneExecutorSlotInfo slot{};
+        SceneActionRuntimeState state{};
+        CHECK(scene_session_get_slot(f.app.session, i, &slot) == SCENE_EXECUTOR_OK && slot.occupied == slots[i].occupied &&
+              scene_session_get_action_state(f.app.session, i, &state) == SCENE_SESSION_OK &&
+              state.phase == states[i].phase && state.completed == states[i].completed &&
+              (!slot.occupied || (slot.source == slots[i].source && slot.source_index == slots[i].source_index &&
+                slot.action.raw_body == slots[i].action.raw_body && slot.action.dependency_records == slots[i].action.dependency_records)),
+              "normal-art refusal preserves every retained source slot, resource borrow and completion state");
+    }
+    std::printf("NO_ART_FONT_BOUNDARY source=1107 target=4408 f1_success=1 f9_success=1 active_D2_refused_before_clear=1 target_visit_unchanged=1 successful_return=0\n");
     return 0;
 }
 
@@ -694,7 +731,7 @@ int main(int argc, char **argv)
         if (std::strcmp(argv[3], "first") == 0) return actual_no_art_retention(fixture);
         if (std::strcmp(argv[3], "cleanup") == 0) return natural_second_load(fixture);
         if (std::strcmp(argv[3], "response") == 0) return natural_response(fixture);
-        if (std::strcmp(argv[3], "caption-boundary") == 0) return natural_caption_preflight_boundary(fixture);
+        if (std::strcmp(argv[3], "font-chain-boundary") == 0) return natural_font_chain_boundary(fixture);
         return 2;
     }
 }
