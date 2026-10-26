@@ -67,6 +67,14 @@ void session_a2d_attach_a2e(SessionA2dBinding *b, SessionA2EBinding *a2e)
     }
 }
 
+int session_a2d_refresh_stream(SessionA2dBinding *b)
+{
+    if (!b) return D2_ERR_ARGUMENT;
+    if (!b->host.load_stream) return D2_ERR_UNSUPPORTED;
+    b->host.load_stream(b->host.kernel.context, &b->object);
+    return D2_OK;
+}
+
 /* Bring the host-owned state in before a kernel call and the raw 0x2e copy of the shared fields. */
 static void load_state(SessionA2dBinding *b)
 {
