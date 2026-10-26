@@ -18,4 +18,6 @@ Five of six selected previous D1/piano/clock regressions pass. The D1 unknown-ow
 
 Normal ARM64 build passes (`/private/tmp/native21-build-final.log`). GAME.EXE SHA-256 remains `afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45`; app source `d14dde29180289cec30d585ed8ebe36cdce964be7a78c7f4c419b15f39725d0a`; native binary `32af82d8d4525aebd960fe6d211227d0acd782641af3473469c25b73b913777d`.
 
-Unverified: natural puzzle solve/win, visit-count row3 activation, full campaigns and GUI/device timing. The extra-owner test is negative metadata only, with no dispatch. No new function-ledger or x86-match acceptance is claimed. Independent frozen review and merge remain pending.
+Unverified: natural puzzle solve/win, visit-count row3 activation, full campaigns and GUI/device timing. The extra-owner test is negative metadata only, with no dispatch. No new function-ledger or x86-match acceptance is claimed.
+
+Independent Sonnet high `slice-reviewer` accepted frozen90d16c6f against6b247fd0 with no P1 or blocking P2 (`/private/tmp/native21-independent-review.txt`). Root accepts the findings. Residual P2s: genuine route remains private rather than a committed automated route; row3 and combined guards are unexercised; a refused phase2 candidate store still logs and drops the cancel (existing host failure limit, distinct from the newly propagated click failure). These do not block the validated native S3450 interaction; preserve them as follow-up work. No tests were run by the static reviewer.
