@@ -259,6 +259,17 @@ int caption_ctb_click(CaptionLifecycle *life, const CaptionLifecycleBackend *bac
 /* 0x4de584 (draw; emits blits). */
 int caption_ctb_draw(CaptionLifecycle *life, const CaptionLifecycleBackend *backend);
 
+/* Common popup operations, also used by CUIConvo. The caller owns its mode,
+ * shared globals and optional native cursor-warp policy. Slider hover takes
+ * the logical hot point; CURS selection/sprite geometry stays with the host. */
+int caption_popup_initialize(CaptionLifecycle *, const CaptionLifecycleBackend *,
+    const uint8_t *config, size_t length, int modal);
+int caption_popup_poll(CaptionLifecycle *, const CaptionLifecycleBackend *,
+    int restore_cursor, void (*warp)(void *, int32_t, int32_t));
+int caption_popup_slider_hover(CaptionLifecycle *, int16_t x, int16_t y);
+/* Same percent->backing viewport arithmetic as 0x4d3137 / 0x4de440. */
+void caption_popup_scroll(CaptionLifecycle *);
+
 /* Main-loop caption block 0x43d0b4..0x43d125 (also calls 0x42ae0a and
  * 0x4ea361); 0x42ae0a / 0x42ad90 two-frame clear; 0x4ea361 timed dismiss;
  * arming as at 0x4e93ae..0x4e93cf (deadline = clock + delay). */

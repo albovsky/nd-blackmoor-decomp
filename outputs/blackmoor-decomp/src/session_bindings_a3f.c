@@ -425,6 +425,27 @@ int session_a3f_choose_response(SessionA3fBinding *b, int index)
     return 0;
 }
 
+int session_a3f_preview_layout(const SessionA3fBinding *b, size_t index,
+    Convo3fManager *preview, Convo3fLayoutRequest *request)
+{
+    if (!b || !preview || !request || index >= b->count ||
+        b->rows[index].state != ROW_READY || !b->host.load_world) return CONVO3F_ERR_ARGUMENT;
+    Convo3fWorld world = b->world;
+    if (b->host.load_world(b->host.kernel.context, &world) != 0) return CONVO3F_ERR_HOST;
+    const A3fRow *row = &b->rows[index];
+    const Convo3fObject object = {row->arena, row->arena_bytes, ARENA_HANDLE_BASE};
+    const uint8_t *text = row->arena + C3F_CAPTION;
+    const uint8_t *end = memchr(text, 0, 1500);
+    if (!end) return CONVO3F_ERR_BOUNDS;
+    const char *why = "none";
+    int status = convo3f_preview_responses(&b->manager, &object, &world, preview, &why);
+    if (status != CONVO3F_OK) return status;
+    const Convo3fLayoutRequest r = {(int32_t)index, text, (size_t)(end - text),
+        preview->response_count, preview->responses, 0, 1};
+    *request = r;
+    return CONVO3F_OK;
+}
+
 int session_a3f_response_count(const SessionA3fBinding *b)
 {
     return b == NULL ? 0 : b->manager.response_count;

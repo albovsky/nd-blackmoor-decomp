@@ -690,7 +690,8 @@ static int popup_init(CaptionLifecycle *life, const CaptionLifecycleBackend *bac
 
 /* 0x4ee6c7(param): returns 1, or 0 when the popup closed itself. */
 static int popup_poll(CaptionLifecycle *life, const CaptionLifecycleBackend *backend,
-                      int *still_open)
+                      int *still_open, int restore_cursor,
+                      void (*warp)(void *, int32_t, int32_t))
 {
     uint8_t *box = life->box;
     int32_t state = rd32(box, CTB_STATE);
@@ -724,7 +725,13 @@ static int popup_poll(CaptionLifecycle *life, const CaptionLifecycleBackend *bac
                 return CAPTION_LIFECYCLE_ERR_BACKEND;
             }
         }
-        /* param is 0 for every caller (0x4de227, 0x4de4f9): no cursor warp. */
+        /* 0x4ee6c7(1), used by CUIConvo, restores the saved cursor and
+         * releases the popup's input gate before updating its controls.
+         * The native adapter may omit the OS cursor warp explicitly. */
+        if (restore_cursor) {
+            if (warp) warp(backend->context, rd32(box, CTB_RESTORE_CURSOR), rd32(box, CTB_RESTORE_CURSOR + 4));
+            life->g.modal_input = 0;
+        }
         /* fall through */
     case 2:
     case 3:
@@ -840,7 +847,7 @@ int caption_ctb_init(CaptionLifecycle *life, const CaptionLifecycleBackend *back
     if (status != CAPTION_LIFECYCLE_OK) {
         return status;
     }
-    return popup_poll(life, backend, &open);
+    return popup_poll(life, backend, &open, 0, NULL);
 }
 
 int caption_ctb_open(CaptionLifecycle *life, const CaptionLifecycleBackend *backend,
@@ -933,7 +940,7 @@ int caption_ctb_poll(CaptionLifecycle *life, const CaptionLifecycleBackend *back
         !slider_visual_valid(rd32(life->box, S(SLD_VISUAL)))) {
         return CAPTION_LIFECYCLE_ERR_FORMAT;
     }
-    status = popup_poll(life, backend, &open);
+    status = popup_poll(life, backend, &open, 0, NULL);
     if (status != CAPTION_LIFECYCLE_OK) {
         return status;
     }
@@ -1030,6 +1037,34 @@ int caption_ctb_draw(CaptionLifecycle *life, const CaptionLifecycleBackend *back
         return slider_draw(life, backend);
     }
     return CAPTION_LIFECYCLE_OK;
+}
+
+/* Public common CUIPopup/CUISlider operations for CUIConvo. These avoid
+ * CScrollTextBox's different outer hover gate, frame_open and close effects. */
+int caption_popup_initialize(CaptionLifecycle *life, const CaptionLifecycleBackend *backend,
+    const uint8_t *config, size_t length, int modal)
+{
+    if (!valid(life, backend) || !config || length < 0x2f0u) return CAPTION_LIFECYCLE_ERR_ARGUMENT;
+    return popup_init(life, backend, config, modal);
+}
+int caption_popup_poll(CaptionLifecycle *life, const CaptionLifecycleBackend *backend,
+    int restore_cursor, void (*warp)(void *, int32_t, int32_t))
+{
+    if (!valid(life, backend)) return CAPTION_LIFECYCLE_ERR_ARGUMENT;
+    if (rd32(life->box, CTB_HAS_SLIDER) != 0 &&
+        !slider_visual_valid(rd32(life->box, S(SLD_VISUAL)))) return CAPTION_LIFECYCLE_ERR_FORMAT;
+    int open = 1;
+    return popup_poll(life, backend, &open, restore_cursor, warp);
+}
+int caption_popup_slider_hover(CaptionLifecycle *life, int16_t x, int16_t y)
+{
+    if (!life) return 0;
+    if (rd32(life->box, CTB_HAS_SLIDER) == 0) return 0;
+    return slider_hit(life, x, y);
+}
+void caption_popup_scroll(CaptionLifecycle *life)
+{
+    if (life && life->geometry && life->shared) scroll(life);
 }
 
 /* ---- caption clear, timer, presentation ----------------------------------- */

@@ -415,6 +415,12 @@ int convo3f_condition_tree(const uint8_t *conditions, int16_t count, const Convo
 int convo3f_text_equal(const uint8_t *a, const uint8_t *b);
 
 void convo3f_manager_reset(Convo3fManager *manager);
+/* Native UI preflight: build the exact eligible response list on a private
+ * manager copy. No world/object/manager writes or host callbacks. Output is
+ * committed only on success; hook builders remain unsupported. */
+int convo3f_preview_responses(const Convo3fManager *manager, const Convo3fObject *object,
+    const Convo3fWorld *world, Convo3fManager *preview, const char **why);
+
 
 typedef enum {
     CONVO3F_BLIT_RESTORE = 1,     /* 0x4c5377: saved frame -> back buffer */
