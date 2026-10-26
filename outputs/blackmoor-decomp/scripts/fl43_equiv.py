@@ -41,7 +41,7 @@ PURE = {'mov', 'movsx', 'movzx', 'lea', 'add', 'sub', 'and', 'or', 'xor', 'not',
         'sbb', 'adc'}
 PARTIAL_FLAGS = {'inc', 'dec', 'shl', 'shr', 'sar', 'sal', 'rol', 'ror', 'rcl', 'rcr', 'stc', 'clc', 'cmc', 'cld', 'std'}      # capstone reports eflags written, but some flags (or all, for a zero count) survive
 STRING_OPS = ('movs', 'stos', 'cmps', 'scas', 'lods', 'rep')
-STRING_INSTRUCTIONS = frozenset(b + w for b in ('movs', 'stos', 'cmps', 'scas', 'lods') for w in ('b', 'w', 'd'))      # FL-63: the real string instructions; `movsx` starts with `movs` and is a plain register move
+STRING_INSTRUCTIONS = frozenset(b + w for b in ('movs', 'stos', 'cmps', 'scas', 'lods', 'ins', 'outs') for w in ('b', 'w', 'd'))      # FL-63: the real string instructions; `movsx` starts with `movs` and is a plain register move
 
 
 def is_string_op(m):

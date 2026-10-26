@@ -100,6 +100,9 @@ class Fl41Differential(unittest.TestCase):
     def test_48e776_lifted(self):
         self.check_row('0x48e776', 'm48e776_lifted')
 
+    def test_48e93e_lifted(self):
+        self.check_row('0x48e93e', 'm48e93e_lifted')
+
     def test_48e9bf_lifted(self):
         self.check_row('0x48e9bf', 'm48e9bf_lifted')
 
@@ -141,6 +144,9 @@ class Fl41Differential(unittest.TestCase):
 
     def test_4a1e93_lifted(self):
         self.check_row('0x4a1e93', 'm4a1e93_lifted')
+
+    def test_4a1f59_lifted(self):
+        self.check_row('0x4a1f59', 'm4a1f59_lifted')
 
     def test_4a35d7_lifted(self):
         self.check_row('0x4a35d7', 'm4a35d7_lifted')
@@ -313,6 +319,9 @@ class Fl41Differential(unittest.TestCase):
     def test_4d3137_lifted(self):
         self.check_row('0x4d3137', 'm4d3137_lifted')
 
+    def test_4d31ef_lifted(self):
+        self.check_row('0x4d31ef', 'm4d31ef_lifted')
+
     def test_4d335c_lifted(self):
         self.check_row('0x4d335c', 'm4d335c_lifted')
 
@@ -327,6 +336,9 @@ class Fl41Differential(unittest.TestCase):
 
     def test_4d3da7_lifted(self):
         self.check_row('0x4d3da7', 'm4d3da7_lifted')
+
+    def test_4d3eba_lifted(self):
+        self.check_row('0x4d3eba', 'm4d3eba_lifted')
 
     def test_4d3fa9_lifted(self):
         self.check_row('0x4d3fa9', 'm4d3fa9_lifted')
@@ -411,6 +423,9 @@ class Fl41Differential(unittest.TestCase):
 
     def test_4dbcd0_lifted(self):
         self.check_row('0x4dbcd0', 'm4dbcd0_lifted')
+
+    def test_4dd28d_lifted(self):
+        self.check_row('0x4dd28d', 'm4dd28d_lifted')
 
     def test_4dd471_lifted(self):
         self.check_row('0x4dd471', 'm4dd471_lifted')
