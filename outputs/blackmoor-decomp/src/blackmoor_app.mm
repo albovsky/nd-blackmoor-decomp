@@ -13884,7 +13884,10 @@ static bool unload_scene_sound_object(NativeApp *app)
 static bool perform_no_art_transition(NativeApp *app, SceneResource *incoming,
                                        const SceneTransitionRequest &requested, uint32_t now)
 {
-    if (!app->session || !app->scene || !app->has_scene_frame) return false;
+    if (!app->session || !app->scene || !app->has_scene_frame) {
+        record(app, "scene_no_art_refused target=%d detail=missing-retained-room before_clear=1", requested.target_scene);
+        return false;
+    }
     const size_t high_water = scene_session_action_high_water(app->session);
     std::array<uint8_t, SCENE_ACTION_SLOT_LIMIT> occupied{}, types{};
     if (high_water > occupied.size()) return false;
@@ -13895,14 +13898,27 @@ static bool perform_no_art_transition(NativeApp *app, SceneResource *incoming,
         types[i] = slot.runtime_type;
     }
     SceneActionSlotPlan plan{};
-    if (scene_action_slots_plan_no_art(high_water, occupied.data(), types.data(),
-            app->exit_state.g.load_game_flag != 0, scene_resource_action_count(incoming), &plan) != SCENE_ACTION_SLOTS_OK)
+    const int plan_status = scene_action_slots_plan_no_art(high_water, occupied.data(), types.data(),
+            app->exit_state.g.load_game_flag != 0, scene_resource_action_count(incoming), &plan);
+    if (plan_status != SCENE_ACTION_SLOTS_OK) {
+        record(app, "scene_no_art_refused target=%d detail=slot-plan status=%d high_water=%zu incoming=%zu before_clear=1",
+               requested.target_scene, plan_status, high_water, scene_resource_action_count(incoming));
         return false;
+    }
     for (size_t i = 0; i < high_water; ++i) {
         if (!occupied[i]) continue;
         SceneExecutorSlotInfo slot{};
         (void)scene_session_get_slot(app->session, i, &slot);
         const uint8_t type = slot.action.type;
+        if (plan.retired[i] && (type == SESSION_A3F_TYPE || type == SESSION_A3E_TYPE)) {
+            SceneActionRuntimeState state{};
+            if (scene_session_get_action_state(app->session, i, &state) != SCENE_SESSION_OK) return false;
+            if (!state.completed && state.phase != 0u) {
+                record(app, "scene_no_art_refused row=%zu type=0x%02x phase=%u detail=started-conversation-retirement-unimplemented before_clear=1",
+                       i, type, state.phase);
+                return false;
+            }
+        }
         const bool supported = plan.retired[i] ? (type == 0x3f || type == 0x3e || type == 0x0a) :
             (type == 0x2d || type == 0x0b || type == 0x62 || type == 0x2e || type == 0x97 || type == 0x4d || type == 0x95);
         if (!supported) {

@@ -517,6 +517,162 @@ static int natural_caption_preflight_boundary(NoArtFixture &f)
     return 0;
 }
 
+static int active_conversation_load_refusal(NoArtFixture &f)
+{
+    CHECK(actual_no_art_retention(f) == 0, "ordinary first no-art load starts the real S1100 greeting");
+    const int row = session_a3f_manager(f.app.a3f)->row;
+    SceneActionRuntimeState active{};
+    LiveAudioChannelInfo sound{};
+    int busy = 0;
+    CHECK(row >= 0 && scene_session_get_action_state(f.app.session, static_cast<size_t>(row), &active) == SCENE_SESSION_OK &&
+          active.phase == 1u && !active.completed && live_audio_get_channel_info(f.app.live_audio, 12, &sound) == LIVE_AUDIO_OK &&
+          sound.loaded && sound.started && live_audio_is_playing(f.app.live_audio, 12, &busy) == ACTION_SOUND_BACKEND_OK && busy,
+          "real greeting naturally owns an incomplete phase1 row and busy voice, without a forced phase");
+    const SceneResource *const source = f.app.scene;
+    const size_t high = scene_session_action_high_water(f.app.session);
+    std::array<SceneExecutorSlotInfo, 240> slots{};
+    std::array<SceneActionRuntimeState, 240> states{};
+    for (size_t i = 0; i < high; ++i)
+        CHECK(scene_session_get_slot(f.app.session, i, &slots[i]) == SCENE_EXECUTOR_OK &&
+              scene_session_get_action_state(f.app.session, i, &states[i]) == SCENE_SESSION_OK,
+              "busy-conversation refusal snapshots the actual canonical source table");
+    const uint8_t *const image = session_a3f_image(f.app.a3f, static_cast<size_t>(row));
+    CHECK(image != nullptr, "busy greeting retains its live original constructed image");
+    const std::vector<uint8_t> image_bytes(image, image + CONVO3F_IMAGE_BYTES);
+    const auto manager = object_bytes(*session_a3f_manager(f.app.a3f));
+    const auto nav = object_bytes(f.app.nav);
+    const auto input = object_bytes(f.app.input_state);
+    const auto caption = object_bytes(f.app.captions.lifecycle.g);
+    const auto writer = object_bytes(f.app.captions.writer_globals);
+    const auto normal = f.app.a3f_caption.pixels[0], hilite = f.app.a3f_caption.pixels[1];
+    const auto rng = object_bytes(f.app.condition_rand);
+    const auto visits = f.app.new_game.scene_visits;
+    const auto flags = f.app.new_game.event_flags;
+    const auto movie = object_bytes(*session_a2d_object(f.app.a2d));
+    const uint64_t generation = scene_session_scene_generation(f.app.session), ticks = scene_session_tick_count(f.app.session);
+    const size_t retained_count = f.app.retained_scenes.size();
+    NativeRandomMovieFrame frame{}, after{};
+    const uint32_t surface = session_a2d_object(f.app.a2d)->surface_212;
+    CHECK(native_random_movie_frame(f.app.a2d_media, surface, &frame) == 0, "live source movie has owned pixels before the boundary request");
+    ActionFamily3fDecoded decoded{};
+    CHECK(action_family_3f_decode(slots[static_cast<size_t>(row)].action.raw_body,
+              slots[static_cast<size_t>(row)].action.raw_body_length, &decoded) == ACTION_FAMILY_3F_OK && decoded.word_47 == 1137,
+          "direct loader component uses the actual greeting's next no-art target");
+    SceneTransitionRequest request{};
+    request.target_scene = static_cast<int16_t>(decoded.word_47);
+    request.opaque_words[0] = static_cast<int16_t>(decoded.word_49);
+    request.opaque_words[2] = 1; request.opaque_dwords[2] = 1;
+    /* Authorized loader-boundary component: no pending transfer, phase, flag
+     * or input state is fabricated. Stop immediately if old code commits;
+     * never dispatch through a retired live-manager object in the RED case. */
+    const bool accepted = perform_session_transition(&f.app, request, f.now);
+    CHECK(!accepted, "no-art loader refuses retiring a naturally started incomplete conversation before any commit");
+    LiveAudioChannelInfo after_sound{};
+    SceneTransitionRequest absent{};
+    CHECK(!f.app.failure && !f.app.session_block_reported && f.app.current_scene_id == 1100 && f.app.scene == source &&
+          f.app.retained_scenes.size() == retained_count && scene_session_action_high_water(f.app.session) == high &&
+          scene_session_scene_generation(f.app.session) == generation && scene_session_tick_count(f.app.session) == ticks &&
+          session_a3f_image(f.app.a3f, static_cast<size_t>(row)) == image && std::memcmp(image, image_bytes.data(), image_bytes.size()) == 0 &&
+          object_bytes(*session_a3f_manager(f.app.a3f)) == manager && object_bytes(f.app.nav) == nav &&
+          object_bytes(f.app.input_state) == input && object_bytes(f.app.captions.lifecycle.g) == caption &&
+          object_bytes(f.app.captions.writer_globals) == writer && f.app.a3f_caption.pixels[0] == normal && f.app.a3f_caption.pixels[1] == hilite &&
+          object_bytes(f.app.condition_rand) == rng && f.app.new_game.scene_visits == visits && f.app.new_game.event_flags == flags &&
+          object_bytes(*session_a2d_object(f.app.a2d)) == movie && native_random_movie_frame(f.app.a2d_media, surface, &after) == 0 &&
+          after.rgba == frame.rgba && after.generation == frame.generation && after.current_frame == frame.current_frame &&
+          live_audio_get_channel_info(f.app.live_audio, 12, &after_sound) == LIVE_AUDIO_OK &&
+          after_sound.generation == sound.generation && after_sound.loaded == sound.loaded && after_sound.started == sound.started &&
+          live_audio_is_playing(f.app.live_audio, 12, &busy) == ACTION_SOUND_BACKEND_OK && busy &&
+          !scene_session_get_pending_transition(f.app.session, &absent),
+          "busy-conversation refusal leaves current resource, slots, image, manager, voice, caption/input/nav, RNG and movie untouched");
+    for (size_t i = 0; i < high; ++i) {
+        SceneExecutorSlotInfo slot{}; SceneActionRuntimeState state{};
+        CHECK(scene_session_get_slot(f.app.session, i, &slot) == SCENE_EXECUTOR_OK && slot.occupied == slots[i].occupied &&
+              scene_session_get_action_state(f.app.session, i, &state) == SCENE_SESSION_OK && state.phase == states[i].phase && state.completed == states[i].completed &&
+              (!slot.occupied || (slot.source == slots[i].source && slot.source_index == slots[i].source_index &&
+                slot.action.raw_body == slots[i].action.raw_body && slot.action.dependency_records == slots[i].action.dependency_records)),
+              "every source identity and naturally reached state survives the refused loader boundary");
+    }
+    std::printf("NO_ART_BUSY_REFUSAL source=1100 requested=1137 phase=1 completed=0 voice_busy=1 before_commit=1\n");
+    return 0;
+}
+
+static int host_stop_after_no_art_cleanup(NoArtFixture &f)
+{
+    CHECK(natural_second_load(f) == 0 && f.app.current_scene_id == 1137 &&
+          session_a3f_modal_active(f.app.a3f) == 0 && !f.app.retained_scenes.empty(),
+          "actual completed greeting and second no-art load provide inherited movie ownership before the next conversation starts");
+    SceneExecutorSlotInfo control{};
+    ActionFamily2eDecoded body{};
+    CHECK(scene_session_get_slot(f.app.session, 3u, &control) == SCENE_EXECUTOR_OK && control.occupied && control.action.type == 0x2eu &&
+          action_family_2e_decode(control.action.raw_body, control.action.raw_body_length, &body) == ACTION_FAMILY_2E_OK &&
+          body.option_00 == 0u && static_cast<int16_t>(body.word[0]) == 4412,
+          "retained source resource supplies the actual movie-stop row's normal-art target");
+    const uint32_t surface = session_a2d_object(f.app.a2d)->surface_212;
+    const uint64_t generation = scene_session_scene_generation(f.app.session);
+    int32_t erased_row = SESSION_A2E_NO_ROW;
+    /* Authorized direct host-boundary component, not a natural UI exit:
+     * use the real controller/media erase callback, then the public external
+     * transition path. No phase, event, modal gate or candidate is changed. */
+    CHECK(native_a2e_stop_movie(&f.app, &erased_row) == 0 && erased_row == 0,
+          "actual host stop runs the retained D2 controller/media teardown and canonical row erase");
+    SceneExecutorSlotInfo erased{}; SceneActionRuntimeState state{};
+    NativeRandomMovieFrame absent{};
+    CHECK(scene_session_get_slot(f.app.session, 0u, &erased) == SCENE_EXECUTOR_OK && !erased.occupied &&
+          scene_session_get_action_state(f.app.session, 0u, &state) == SCENE_SESSION_OK && state.completed && state.phase == 0u &&
+          !session_a2d_object(f.app.a2d)->movie.active && native_random_movie_frame(f.app.a2d_media, surface, &absent) != 0,
+          "stop makes the source D2 slot vacant independently of completion and releases its actual movie pixels");
+    auto visits = f.app.new_game.scene_visits;
+    visits[4412] = static_cast<uint16_t>(visits[4412] + 1u);
+    SceneTransitionRequest request{};
+    request.target_scene = static_cast<int16_t>(body.word[0]);
+    request.opaque_words[0] = static_cast<int16_t>(body.word[1]);
+    request.opaque_words[1] = static_cast<int16_t>(body.word[2]);
+    request.opaque_words[2] = static_cast<int16_t>(body.word[3]);
+    request.opaque_dwords[2] = 1;
+    CHECK(scene_session_request_external_transition(f.app.session, &request) == SCENE_SESSION_OK,
+          "stopped no-art component requests its actual normal-art target through the public session boundary");
+    for (unsigned i = 0; f.app.current_scene_id != 4412 && i < 8u; ++i)
+        CHECK(f.tick(), "ordinary exit/load state updates replace the stopped retained-room component");
+    CHECK(f.app.current_scene_id == 4412 && f.app.last_art_scene_id == 4412 &&
+          scene_session_scene_generation(f.app.session) > generation && f.app.new_game.scene_visits == visits &&
+          f.app.retained_scenes.empty() && f.app.retired_scene == nullptr &&
+          session_a2d_object(f.app.a2d)->set == nullptr && !session_a2d_object(f.app.a2d)->movie.active &&
+          session_a3f_modal_active(f.app.a3f) == 0 && session_a3f_manager(f.app.a3f)->row == -1 &&
+          !f.app.a3f_caption.ready && !f.app.a3f_caption.active[0] && !f.app.a3f_caption.active[1] &&
+          f.app.a3f_caption.pixels[0].empty() && f.app.a3f_caption.pixels[1].empty() &&
+          scene_session_action_high_water(f.app.session) == scene_resource_action_count(f.app.scene),
+          "normal-art replacement releases all retained source owners and old provider/caption resources before recording its successful visit");
+    SceneTransitionRequest reentry{};
+    bool found_reentry = false;
+    for (size_t i = 0; i < scene_session_action_high_water(f.app.session); ++i) {
+        SceneExecutorSlotInfo slot{};
+        CHECK(scene_session_get_slot(f.app.session, i, &slot) == SCENE_EXECUTOR_OK && slot.occupied &&
+              slot.source == f.app.scene && slot.source_index == i,
+              "normal-art canonical table contains only the new scene's resource owners");
+        Action0bPayload payload{};
+        if (slot.action.type == 0x0bu && session_a0b_payload(f.app.a0b, i, &payload) == 0 && payload.target == 4408) {
+            reentry.target_scene = payload.target;
+            reentry.opaque_words[0] = payload.word_04; reentry.opaque_words[1] = payload.word_06; reentry.opaque_words[2] = payload.word_08;
+            reentry.opaque_dwords[0] = payload.dword_0a; reentry.opaque_dwords[1] = payload.dword_0e; reentry.opaque_dwords[2] = payload.dword_12;
+            found_reentry = true;
+        }
+    }
+    CHECK(found_reentry && scene_session_request_external_transition(f.app.session, &reentry) == SCENE_SESSION_OK,
+          "normal room supplies its actual re-entry tuple to the ordinary public session boundary");
+    for (unsigned i = 0; f.app.current_scene_id != 4408 && i < 8u; ++i)
+        CHECK(f.tick(), "normal loader re-enters the source room after retained-source cleanup");
+    pointer(&f.app, BLACKMOOR_POINTER_MOVE, 0, 0, 0);
+    for (unsigned i = 0; !session_a2d_object(f.app.a2d)->movie.flag_206 && i < 8u; ++i)
+        CHECK(f.tick(), "normal dispatcher starts the fresh re-entry movie");
+    NativeRandomMovieFrame fresh{};
+    CHECK(f.app.current_scene_id == 4408 && f.app.last_art_scene_id == 4408 && f.app.retained_scenes.empty() &&
+          session_a2d_object(f.app.a2d)->movie.active &&
+          native_random_movie_frame(f.app.a2d_media, session_a2d_object(f.app.a2d)->surface_212, &fresh) == 0 && fresh.current_frame == 0,
+          "re-entry owns actual first-frame pixels without retired source slots or dangling prior movie ownership");
+    std::printf("NO_ART_HOST_STOP source=1137 host_boundary=1 natural_UI_exit=0 erased_row=0 target=4412 reentry=4408 frame=0 retained_sources=0\n");
+    return 0;
+}
+
 static void fixture_signal(int number)
 {
     static const char prefix[] = "fixture/native signal failure number=";
@@ -533,6 +689,8 @@ int main(int argc, char **argv)
         if (argc != 4 || std::strcmp(argv[1], "--no-art-component") != 0) return 2;
         NoArtFixture fixture;
         if (!fixture.initialize(argv[2])) { fixture.print_log_tail(); CHECK(false, "actual BOOT/new-game/S4408 component initializes"); }
+        if (std::strcmp(argv[3], "busy-refusal") == 0) return active_conversation_load_refusal(fixture);
+        if (std::strcmp(argv[3], "host-stop-cleanup") == 0) return host_stop_after_no_art_cleanup(fixture);
         if (std::strcmp(argv[3], "first") == 0) return actual_no_art_retention(fixture);
         if (std::strcmp(argv[3], "cleanup") == 0) return natural_second_load(fixture);
         if (std::strcmp(argv[3], "response") == 0) return natural_response(fixture);

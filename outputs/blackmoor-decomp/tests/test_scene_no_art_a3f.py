@@ -100,5 +100,9 @@ class SceneNoArtA3fTests(unittest.TestCase):
         self.check_case('cel')
 
 
+    def test_busy_sound_conversation_retirement_refuses_before_construction(self):
+        self.check_case('busy')
+
+
 if __name__ == '__main__':
     unittest.main()

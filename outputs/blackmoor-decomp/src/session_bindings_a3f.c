@@ -506,6 +506,16 @@ int session_a3f_prepare_no_art(SessionA3fBinding *b, const SceneResource *source
         plan->incoming_count != scene_resource_action_count(source) ||
         plan->incoming_count > SCENE_ACTION_SLOT_LIMIT || b->rows_revision == UINT64_MAX)
         return CONVO3F_ERR_ARGUMENT;
+    /* A started conversation can still own modal/voice/UI state after its
+     * row is removed. That lifetime is not recovered by this bounded loader;
+     * reject before constructing/releasing anything instead of soft-locking
+     * the next row behind the old phase0 guards. */
+    if (session_a3f_phase0_guarded(b) && b->manager.row >= 0 &&
+        (size_t)b->manager.row < b->count && (size_t)b->manager.row < plan->source_high_water &&
+        plan->retired[b->manager.row] && b->rows[b->manager.row].state == ROW_READY) {
+        b->failure = "no-art retirement of a busy conversation is not modelled";
+        return CONVO3F_ERR_UNSUPPORTED;
+    }
     /* The record release 0x41db40 is not a cel-thread teardown. Do not guess
      * that larger lifetime when an in-flight cel record would be removed. */
     if (b->manager.cel_thread != 0 && b->manager.row >= 0 &&

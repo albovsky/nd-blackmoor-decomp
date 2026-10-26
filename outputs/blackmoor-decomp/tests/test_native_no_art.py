@@ -92,6 +92,12 @@ class NativeNoArtTests(unittest.TestCase):
     def test_ordinary_dialogue_chain_stops_at_caption_preflight_boundary(self):
         self.component('caption-boundary')
 
+    def test_busy_greeting_refuses_no_art_retirement_before_commit(self):
+        self.component('busy-refusal')
+
+    def test_host_stop_after_no_art_cleans_sources_and_allows_reentry(self):
+        self.component('host-stop-cleanup')
+
 
 if __name__ == '__main__':
     unittest.main()

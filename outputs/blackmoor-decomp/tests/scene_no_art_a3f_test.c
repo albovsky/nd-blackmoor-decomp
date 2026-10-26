@@ -308,6 +308,25 @@ static int active_cel_refusal(Fixture *f)
     return 0;
 }
 
+static int active_sound_refusal(Fixture *f)
+{
+    const uint8_t occupied[3] = {1, 1, 1}, types[3] = {0x3f, 0x4d, 0x3f};
+    SceneActionSlotPlan plan;
+    SceneActionRuntimeState state = {0};
+    SessionA3fAppend *append = NULL;
+    Snapshot snapshot;
+    unsigned resolves;
+    CHECK(visit(f, f->source, 0u, 0u, &state) == 0 && state.phase == 1u);
+    take_snapshot(f, &snapshot);
+    resolves = f->resolves;
+    CHECK(snapshot.modal && snapshot.manager.row == 0);
+    CHECK(scene_action_slots_plan_no_art(3u, occupied, types, 0, 1u, &plan) == SCENE_ACTION_SLOTS_OK);
+    CHECK(plan.retired[0] && session_a3f_prepare_no_art(f->binding, f->incoming, &plan, &append) == CONVO3F_ERR_UNSUPPORTED);
+    CHECK(append == NULL && f->resolves == resolves && unchanged(f, &snapshot) == 0);
+    CHECK(session_a3f_image(f->binding, 0u) && session_a3f_modal_active(f->binding));
+    return 0;
+}
+
 int main(int argc, char **argv)
 {
     Fixture fixture;
@@ -319,6 +338,7 @@ int main(int argc, char **argv)
     else if (strcmp(argv[1], "retired") == 0) result = canonical_retirement(&fixture);
     else if (strcmp(argv[1], "inert") == 0) result = inert_and_stale(&fixture);
     else if (strcmp(argv[1], "cel") == 0) result = active_cel_refusal(&fixture);
+    else if (strcmp(argv[1], "busy") == 0) result = active_sound_refusal(&fixture);
     cleanup(&fixture);
     if (!result) printf("PASS scene_no_art_a3f %s\n", argv[1]);
     return result;
