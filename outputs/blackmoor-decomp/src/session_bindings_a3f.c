@@ -17,6 +17,7 @@ typedef struct {
 
 struct SessionA3fBinding {
     SessionA3fHost host;
+    Convo3fHookBuilders hooks;
     uint64_t rows_revision;
     Convo3fManager manager;
     Convo3fWorld world;
@@ -59,6 +60,13 @@ static void clear_rows(SessionA3fBinding *b)
     free(b->rows);
     b->rows = NULL;
     b->count = 0u;
+}
+
+int session_a3f_set_response_hooks(SessionA3fBinding *b, const Convo3fHookBuilders *hooks)
+{
+    if (!b || !hooks || !hooks->build || b->manager.row >= 0) return CONVO3F_ERR_ARGUMENT;
+    b->hooks = *hooks;
+    return CONVO3F_OK;
 }
 
 void session_a3f_destroy(SessionA3fBinding *b)
@@ -297,8 +305,8 @@ int session_a3f_handler(void *context, size_t index, const SceneActionInfo *acti
     object.arena_bytes = row->arena_bytes;
     object.handle_base = ARENA_HANDLE_BASE;
     b->failure = "none";
-    status = convo3f_step_type(&b->manager, &object, action->type, (int32_t)index, before->phase,
-                               &b->world, &b->host.kernel, &result, &b->failure);
+    status = convo3f_step_type_with_hooks(&b->manager, &object, action->type, (int32_t)index, before->phase,
+                               &b->world, &b->host.kernel, &b->hooks, &result, &b->failure);
     if (status == CONVO3F_ERR_UNSUPPORTED) {
         return SCENE_ACTION_HANDLER_UNSUPPORTED;
     }
@@ -452,7 +460,7 @@ int session_a3f_preview_layout(const SessionA3fBinding *b, size_t index,
     const uint8_t *end = memchr(text, 0, 1500);
     if (!end) return CONVO3F_ERR_BOUNDS;
     const char *why = "none";
-    int status = convo3f_preview_responses(&b->manager, &object, &world, preview, &why);
+    int status = convo3f_preview_responses_with_hooks(&b->manager, &object, &world, &b->hooks, preview, &why);
     if (status != CONVO3F_OK) return status;
     const Convo3fLayoutRequest r = {(int32_t)index, text, (size_t)(end - text),
         preview->response_count, preview->responses, 0, 1};

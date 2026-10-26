@@ -31,6 +31,7 @@
 #include "native_conversation_caption.h"
 #include "native_random_movie.h"
 #include "native_cel_resources.h"
+#include "native_jane_responses.h"
 #include "action_family_3f.h"
 #include "action_family_3e.h"
 #include "inventory_examine_runtime.h"
@@ -4140,6 +4141,85 @@ static int native_a3f_resolve_text(void *context, const uint8_t *key, size_t len
     size_t raw = 0;
     if (!app || !app->a3f_text || !text || !text_length) return 1;
     return autotext_lookup(app->a3f_text, key, length, text, &raw, text_length) == AUTOTEXT_OK ? 0 : 1;
+}
+
+/* 0x43ff18 / 0x445253: Jane's dynamic response builders. Hook text comes
+ * from the same CONVO table as row captions (0x43f210, manager0x6187b9). */
+static int native_jane_build_responses(void *context, uint8_t hook_a, uint8_t hook_b,
+    const Convo3fWorld *world, Convo3fManager *manager, int preview, const char **why)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (!app || !world || !manager) return CONVO3F_ERR_ARGUMENT;
+    if ((hook_a != 1u && hook_a != CONVO3F_NO_HOOK) ||
+        (hook_b != 1u && hook_b != CONVO3F_NO_HOOK)) {
+        if (why) *why = "unsupported conversation response hook (only Jane index1)";
+        return CONVO3F_ERR_UNSUPPORTED;
+    }
+    if (!app->a3f_text) {
+        if (why) *why = "Jane CONVO provider unavailable";
+        return CONVO3F_ERR_UNSUPPORTED;
+    }
+    NativeJaneResponseWorld predicates{world->events, world->event_count, world->presence, world->presence_count};
+    int32_t presence[NATIVE_JANE_PRESENCE_COUNT]{};
+    if (hook_a == 1u) {
+        if (!predicates.events || !predicates.presence || predicates.event_count < NATIVE_JANE_EVENT_COUNT ||
+            predicates.presence_count < NATIVE_JANE_PRESENCE_COUNT) {
+            if (why) *why = "Jane response world bounds";
+            return CONVO3F_ERR_BOUNDS;
+        }
+        /* 0x4e8d96 puts a held item back before 0x4205c1. Project that
+         * inventory effect for dry layout without changing the live world. */
+        std::copy_n(predicates.presence, NATIVE_JANE_PRESENCE_COUNT, presence);
+        if (preview && world->held_item >= 0 && world->held_item < static_cast<int16_t>(NATIVE_JANE_PRESENCE_COUNT))
+            presence[world->held_item] = 1;
+        predicates.presence = presence;
+    }
+    SessionConditionsCrtRand copied = app->condition_rand;
+    size_t planned_count = 0u;
+    /* Finish all A lookups/additions before B's unconditional rand call. */
+    for (unsigned builder = 0u; builder < 2u; ++builder) {
+        const int32_t random = builder == 1u && hook_b == 1u ? static_cast<int32_t>(session_conditions_crt_rand(
+            preview ? &copied : &app->condition_rand)) : 0;
+        NativeJaneResponsePlan plan{};
+        const int planned = native_jane_responses_plan(&predicates,
+            builder == 0u ? hook_a : CONVO3F_NO_HOOK, builder == 1u ? hook_b : CONVO3F_NO_HOOK, random, &plan);
+        if (planned != NATIVE_JANE_OK) {
+            if (why) *why = "Jane response plan refused";
+            return planned == NATIVE_JANE_ERR_UNSUPPORTED ? CONVO3F_ERR_UNSUPPORTED : CONVO3F_ERR_BOUNDS;
+        }
+        planned_count += plan.count;
+        for (size_t index = 0; index < plan.count; ++index) {
+            const NativeJaneResponseEntry &entry = plan.entries[index];
+            Convo3fResponse response{};
+            const uint8_t *text = nullptr;
+            size_t raw = 0u, length = 0u;
+            const size_t key_length = std::strlen(entry.key);
+            const int lookup = autotext_lookup(app->a3f_text,
+                reinterpret_cast<const uint8_t *>(entry.key), key_length, &text, &raw, &length);
+            if (lookup == AUTOTEXT_OK) {
+                if ((!text && length) || length >= CONVO3F_TEXT_BYTES || (length && std::memchr(text, 0, length))) {
+                    if (why) *why = "Jane response text exceeds native bounds";
+                    return CONVO3F_ERR_BOUNDS;
+                }
+                if (length) std::memcpy(response.text, text, length);
+            } else if (lookup == AUTOTEXT_ERR_NOT_FOUND) {
+                const int written = std::snprintf(reinterpret_cast<char *>(response.text), CONVO3F_TEXT_BYTES,
+                    "Response %s<h><n>", entry.key);
+                if (written < 0 || written >= static_cast<int>(CONVO3F_TEXT_BYTES)) return CONVO3F_ERR_BOUNDS;
+            } else {
+                if (why) *why = "Jane CONVO lookup failed";
+                return CONVO3F_ERR_HOST;
+            }
+            std::memcpy(response.name, entry.key, key_length + 1u);
+            response.scene = entry.scene; response.word_27 = 1; response.dword_31 = 1;
+            response.event_index = -1; response.word_38 = 2;
+            const int applied = convo3f_apply_hook_response(manager, &response, entry.kind == NATIVE_JANE_REPLACE);
+            if (applied != CONVO3F_OK) return applied;
+        }
+    }
+    if (!preview) record(app, "scene_jane_responses hooks=%u,%u planned=%zu listed=%d shared_crt_draws=%u",
+        hook_a, hook_b, planned_count, manager->response_count, hook_b == 1u ? 1u : 0u);
+    return CONVO3F_OK;
 }
 
 static int native_a3f_acquire_surface(void *context, const char *name, int16_t width, int16_t height, int16_t *slot)
@@ -10554,6 +10634,8 @@ static bool create_native_session_bindings(NativeApp *app)
     a3f_host.store_world = native_a3f_store_world;
     a3f_host.transition = native_a3f_transition;
     app->a3f = session_a3f_create(&a3f_host);
+    const Convo3fHookBuilders jane_hooks{app, native_jane_build_responses};
+    if (app->a3f && session_a3f_set_response_hooks(app->a3f, &jane_hooks) != CONVO3F_OK) return false;
     SessionAd9Host ad9_host{};
     ad9_host.kernel.context = app;
     ad9_host.kernel.alloc_slot = native_ad9_alloc_slot;
@@ -11714,6 +11796,33 @@ static bool native_ad0_pointer_scope(const NativeApp *app)
     return count == 1u;
 }
 
+/* NATIVE21: alternative visit-count rows share the one collision controller.
+ * Every other possible cascade receiver must still be absent. */
+static bool native_ad3_pointer_scope(const NativeApp *app)
+{
+    if (!app || !app->scene || !app->ad3) return false;
+#ifdef BLACKMOOR_NATIVE_APP_TEST_HOOKS
+    if (app->test_members_busy) return false;
+#endif
+    size_t count = 0u;
+    for (size_t row = 0; row < native_action_count(app); ++row) {
+        SceneActionInfo action{};
+        const int status = native_action_at(app, row, &action);
+        if (status == SCENE_RESOURCE_ERR_NOT_FOUND) continue;
+        if (status != SCENE_RESOURCE_OK) return false;
+        if (action.type == SESSION_AD3_TYPE) ++count;
+        else if (session_navigation_member_type(action.type)) return false;
+    }
+    const CpzObject *object = session_ad3_object(app->ad3);
+    if (object && object->active) {
+        SceneActionInfo owner{};
+        if (object->row < 0 || !session_ad3_registered(app->ad3) ||
+            native_action_at(app, static_cast<size_t>(object->row), &owner) != SCENE_RESOURCE_OK ||
+            owner.type != SESSION_AD3_TYPE) return false;
+    }
+    return count != 0u;
+}
+
 static InteractiveVideoInputView native_a1c_input_view(NativeApp *app)
 {
     InteractiveVideoInputView view{};
@@ -11778,14 +11887,15 @@ static void native_pointer_context(NativeApp *app, SessionInputContext *out)
     out->producer_disabled = (uint32_t)g.modal_input; /* 0x5839a9 */
     /* No pointer has moved yet: there is no composed sprite to project. */
     out->geometry_ready = (app->pointer_x >= 0 && app->pointer_y >= 0) ? 1u : 0u;
-    /* RT-17: absent row types prove the earlier receivers idle. NATIVE-02
-     * also permits the single D1 scope because scan now executes that receiver
-     * in original order before fallthrough; all other owners must be absent.
-     * The existing UI guard cells remain mandatory in both cases. */
+    /* Absent row types prove earlier receivers idle. A modeled family may
+     * instead own the cascade; each scope excludes every other possible
+     * receiver and executes its method before guarded fallthrough. Existing
+     * UI guard cells remain mandatory for every scope. */
     out->priority_clear = (cursor.guard_5b5158 == 0 && cursor.guard_5b61af == 0 &&
                            cursor.guard_5b615e == 0 &&
                            (app->nav_members_idle || native_d1_pointer_scope(app) || native_a1c_pointer_scope(app) ||
-                            native_aaa_pointer_scope(app) || native_ad0_pointer_scope(app))) ? 1u : 0u;
+                            native_aaa_pointer_scope(app) || native_ad0_pointer_scope(app) ||
+                            native_ad3_pointer_scope(app))) ? 1u : 0u;
     out->excluded_0 = -1; /* 0x5b4e89 / 0x5b5100: set only by types 0x33/0x34 */
     out->excluded_1 = -1;
 }
@@ -12021,6 +12131,7 @@ static int native_pointer_consume(void *context, SceneExecutorFrameInput *frame,
             if (click != CPZ_OK) {
                 record(app, "scene_ad3_click_error row=%d status=%d detail=%s", puzzle->row, click,
                        session_ad3_failure(app->ad3));
+                return SESSION_INPUT_INVALID_ARGUMENT;
             } else if (click_result.new_phase == 2u && puzzle_state.phase != 2u) {
                 if (scene_session_accept_action_candidate(app->session, static_cast<size_t>(puzzle->row)) ==
                     SCENE_SESSION_OK)
@@ -12229,12 +12340,6 @@ static int native_pointer_consume(void *context, SceneExecutorFrameInput *frame,
         session_a77_state(app->a77)->active != 0u)
         (void)session_a77_pointer_move(app->a77, static_cast<int32_t>(frame->pointer_x),
                                        static_cast<int32_t>(frame->pointer_y), &app->a77_pointer);
-    app->ad3_pointer = CpzPointerResult{};
-    app->ad3_pointer.candidate = -1;
-    if (status == SESSION_INPUT_OK && frame->pointer_valid != 0 && app->ad3 != nullptr &&
-        session_ad3_object(app->ad3)->active != 0)
-        (void)session_ad3_pointer_move(app->ad3, static_cast<int32_t>(frame->pointer_x),
-                                       static_cast<int32_t>(frame->pointer_y), &app->ad3_pointer);
     app->af5_pointer = TqzPointerResult{};
     app->af5_pointer.candidate = -1;
     if (status == SESSION_INPUT_OK && frame->pointer_valid != 0 && app->af5 != nullptr &&
@@ -12425,6 +12530,42 @@ static int native_pointer_scan(void *context, const SessionInputHotspot *rows,
         /* Sole modeled receiver missed (or is inactive); every other possible
          * unmodeled owner is absent. The existing guarded pipeline is safe. */
     }
+    /* 4f0b96 runs the collision receiver after D1 and before overlays. A
+     * private projection preserves the real release and its old hover state. */
+    app->ad3_pointer = CpzPointerResult{};
+    app->ad3_pointer.candidate = -1;
+    if (native_ad3_pointer_scope(app) && input.priority_clear != 0u) {
+        SessionInputState projection_state = app->input_state;
+        SceneExecutorFrameInput projected{};
+        const int projection = session_input_tick(&projection_state, &input, &projected);
+        if (projection != SESSION_INPUT_OK) { *candidate = -1; return projection; }
+        if (projected.pointer_valid != 0u) {
+            const int16_t *held = app->new_game.view.inventory.selected_item_candidate;
+            const int16_t item = held ? *held : static_cast<int16_t>(-1);
+            app->nav.state = NAV_STATE_NONE;
+            if (item == -1) app->nav_cursor = {0, 0};
+            else app->nav_cursor.index = static_cast<int32_t>(item) + 0x25;
+            const int hit = session_ad3_pointer_move(app->ad3, projected.pointer_x,
+                projected.pointer_y, &app->ad3_pointer);
+            if (hit != CPZ_OK) {
+                record(app, "scene_ad3_pointer_error status=%d detail=%s", hit, session_ad3_failure(app->ad3));
+                *candidate = -1; return SESSION_INPUT_INVALID_ARGUMENT;
+            }
+            if (app->ad3_pointer.cursor_written) {
+                app->nav_cursor.index = app->ad3_pointer.cursor_kind;
+                app->nav_cursor.variant = app->ad3_pointer.cursor_sub;
+            }
+            if (app->ad3_pointer.hit) {
+                (void)session_input_publish_candidate(&app->input_state, app->ad3_pointer.candidate);
+                *candidate = app->input_state.candidate;
+                if (*candidate != app->logged_candidate)
+                    record(app, "scene_ad3_pointer candidate=%d piece=%d before=overlay-navigation-generic",
+                        *candidate, session_ad3_object(app->ad3)->piece);
+                app->logged_candidate = *candidate;
+                return SESSION_INPUT_OK;
+            }
+        }
+    }
     /* RT-14: the overlay hit test (0x4897cd) runs inside the 0x4f0059 cascade
      * before its generic row loop, in overlay-list order. */
     std::vector<SessionInputHotspot> overlay_rows(OVERLAY36_LIST_LIMIT * 25u);
@@ -12535,12 +12676,6 @@ static int native_pointer_scan(void *context, const SessionInputHotspot *rows,
             record(app, "scene_ada_pointer candidate=%d cursor=%d (cursor sprite not drawn by the app)",
                    app->ada_pointer.candidate, cursor);
         }
-    }
-    if (status == SESSION_INPUT_OK && app->ad3_pointer.hit != 0u) {
-        /* 0x462c39 (cascade 0x4f0059): the Collision Puzzle's hit test returns before the generic row loop and has written the
-         * candidate (0x277f cancel, 0x2780..0x2783 slide). The cursor cells (0x5b44f0, 0x5b44f4) it also writes are not drawn by
-         * the app. */
-        (void)session_input_publish_candidate(&app->input_state, app->ad3_pointer.candidate);
     }
     if (status == SESSION_INPUT_OK && app->af5_pointer.hit != 0u) {
         /* The Typing Quiz's hit test (click rectangle, body +0x55e) returns before the generic row loop and has written the
@@ -12721,7 +12856,8 @@ static bool bind_native_pointer(NativeApp *app)
     const ProvisionalCursorProvider &c = app->cursor_provider;
     const bool clear = c.guard_5b5158 == 0 && c.guard_5b61af == 0 && c.guard_5b615e == 0 &&
                        (app->nav_members_idle || native_d1_pointer_scope(app) || native_a1c_pointer_scope(app) ||
-                        native_aaa_pointer_scope(app) || native_ad0_pointer_scope(app));
+                        native_aaa_pointer_scope(app) || native_ad0_pointer_scope(app) ||
+                        native_ad3_pointer_scope(app));
     record(app, "pointer_provider provisional sprite=%dx%d hot=%d,%d scroll=%d "
            "guards[5b5158,5b61af,5b615e]=%u,%u,%u cascade_members_idle=%d priority_clear=%d "
            "excluded=-1,-1 reason=cursor-sprite-size/hot-point/scroll-unrecovered "
