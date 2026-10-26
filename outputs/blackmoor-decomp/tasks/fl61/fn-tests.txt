@@ -1,0 +1,7 @@
+.....................batch-003.json: re-hashed 1 source(s)
+re-hashed 1 source(s) in total
+.
+----------------------------------------------------------------------
+Ran 22 tests in 8.494s
+
+OK

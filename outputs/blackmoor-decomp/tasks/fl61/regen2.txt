@@ -1,0 +1,5 @@
+functions_with_evidence=2880 windows_verified=2318 mismatch=0 mentions=2416 unresolved=5991
+wrote function-ledger.json: 4188 functions (ported 2189, not_needed 128, pending 1871)
+note: xrefs inputs not re-checked here (private, need scripts/extract_function_xrefs.py --check): ghidra_census, original
+note: private receipts not re-hashed (use --verify-private where work/ exists)
+note: 2 Ghidra body sizes exceed their span and are clamped to it: 0x50d8e0, 0x52178e
