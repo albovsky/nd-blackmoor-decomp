@@ -325,6 +325,42 @@ def masked_ok(change):
     return bool(cast and before.endswith('(%s)(' % cast) and re.match(r'^\)\s*[\);,]', after))
 
 
+def global_forward_ok(lines, n, change):
+    """FL-62: a narrower read of a global that the same straight line stored a small constant to a moment ago. `lines[n]` reads `RDw((uint32_t)(0xADDRu))` (original width w, mutant width v < w) and the
+    nearest earlier statement that touches memory is `WRw((uint32_t)(0xADDRu), 0xCu)` with C below 2^v: the cell holds C on every path to the read (no label in between, so no other way in), so the
+    narrower read returns the same value. In between there may be no call and only stores to other absolute addresses that do not overlap the cell (or pushes through esp);
+    a conditional jump out of the line is fine."""
+    wa, wb, arg, call, before, after = change
+    m = re.match(r'^\(uint32_t\)\((0x[0-9a-f]+)u\)$', arg.strip())
+    if not m or wb >= wa:
+        return False
+    addr = int(m.group(1), 16)
+    if re.search(r'\bWR\d+\(', before) or BARRIER.search(before):
+        return False                                            # something on the read line itself ahead of the read
+    for j in range(n - 1, -1, -1):
+        t = stmt(lines[j])
+        if not t:
+            continue
+        s = re.match(r'^WR%d\(\(uint32_t\)\(%su\), (0x[0-9a-f]+)u\);' % (wa, m.group(1)), t)
+        if s and not re.search(r'\bWR\d+\(', t[s.end():]) and not BARRIER.search(t[s.end():]):
+            return int(s.group(1), 16) < (1 << wb)
+        if re.match(r'^if \(.*\) goto L_[0-9a-f]+;$', t) and not re.search(r'\bWR\d+\(', t):
+            continue
+        if BARRIER.search(t) or re.search(r'\bWR\d+\(\(uint32_t\)\((?!0x)', t):
+            return False
+        for w in re.finditer(r'\bWR(\d+)\(([^,]*),', t):
+            width, target = int(w.group(1)) // 8, w.group(2)
+            if target == 'esp':
+                continue
+            a = re.match(r'^\(uint32_t\)\((0x[0-9a-f]+)u\)$', target)
+            if not a:
+                return False
+            other = int(a.group(1), 16)
+            if other < addr + wa // 8 and addr < other + width:
+                return False
+    return False
+
+
 def width_range_ok(change, ranges, addr):
     """the narrowed read of a frame slot returns the same value: its omitted bytes are zero by the interval analysis"""
     wa, wb, arg, call, before, after = change
@@ -560,6 +596,8 @@ def classify(kind, lines, n, equivalent, proofs=None, mutline=None, ranges=None,
             return 'masked read'
         if change and width_range_ok(change, ranges, instruction_address(lines, n)):
             return 'range'
+        if change and global_forward_ok(lines, n, change):
+            return 'forwarded store'
     if kind == 'jump' and mutline is not None and logic_jump_ok(stmt_full(lines[n]), stmt_full(mutline), ranges, instruction_address(lines, n)):
         return 'range'
     if kind == 'jump' and mutline is not None and (jump_range_ok(stmt_full(lines[n]), stmt_full(mutline), ranges, instruction_address(lines, n))

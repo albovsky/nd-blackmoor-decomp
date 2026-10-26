@@ -249,7 +249,8 @@ def check_row(args):
 
 
 def check_row_inner(args):
-    key, entry, text, helper, per_row, harden, extended = args
+    key, entry, text, helper, per_row, harden, extended = args[:7]
+    scen = args[7] if len(args) > 7 else None          # FL-62: boundary scenarios [[seed, overrides], ...] a survivor is retried on (--scen; as FL-61 for the lower rows)
     va = int(key, 16)
     row = W.row_info(va, entry['body'], {int(k, 16): v for k, v in entry['callees'].items()}, {int(k, 16): v for k, v in entry['imports'].items()}, entry['fs'])
     rng = random.Random(va)
@@ -288,9 +289,9 @@ def check_row_inner(args):
         budgets = []        # FL-47: mutants killed only by the step budget (they do not terminate where the original does)
         divergent = []      # seeds on which the UNMUTATED translation already differs from the original (FL-43): a mutant is not killed by such a seed
 
-        def agrees(sd):
+        def agrees(sd, ov=()):
             """the original's digest on seed `sd`, or None when it faults or the unmutated translation differs from it (then the seed kills nothing)"""
-            o = W.run_original(row, sd)
+            o = W.run_original(row, sd, ov)
             if o.fault:
                 return None
             r_fd, w_fd = os.pipe()               # FL-48: the unmutated translation runs in a child with an alarm too (on a seed where it does not terminate it grew to several GB in this process)
@@ -300,7 +301,7 @@ def check_row_inner(args):
                     os.close(r_fd)
                     W.PAGE_CAP = 40000
                     signal.alarm(int(os.environ.get('FL48_ALARM', '20')))
-                    t = W.run_native(lib, row, sd)
+                    t = W.run_native(lib, row, sd, ov)
                     signal.alarm(0)
                     os.write(w_fd, b'ok' if not t.fault and t.digest() == o.digest() else b'differs')
                 finally:
@@ -314,6 +315,7 @@ def check_row_inner(args):
                 return None
             return o.digest()
         killed, survivors, killers = 0, [], set()
+        scen_items, scen_killers = None, set()
         def first_mismatch(k, items):
             """Index of the first scenario on which mutant k differs from the recorded original, 'timeout' when it hangs, None when it agrees everywhere.
             Runs in a forked child with an alarm: a mutant that loops forever is dead."""
@@ -401,8 +403,27 @@ def check_row_inner(args):
                         killed += 1
                         survivors.append((kind, n, 'killed by hardening seed', ident))
                         continue
+                if scen:        # FL-62: scenarios with one input cell at a boundary value; the one that kills is added to the corpus (only where the unmutated translation equals the original on it)
+                    if scen_items is None:
+                        scen_items = []
+                        for sd, ov in scen:
+                            ov = tuple(tuple(o) for o in ov)
+                            d = agrees(sd, ov)
+                            if d is not None:
+                                scen_items.append((sd, ov, d))
+                    hit = first_mismatch(k, scen_items)
+                    if hit == 'timeout':
+                        hangs.append((kind, n, ident))
+                    if hit == 'budget':
+                        budgets.append((kind, n, ident))
+                    if hit is not None:
+                        if hit not in ('timeout', 'budget'):
+                            scen_killers.add((scen_items[hit][0], scen_items[hit][1]))
+                        killed += 1
+                        survivors.append((kind, n, 'killed by boundary scenario', ident))
+                        continue
                 survivors.append((kind, n, 'survives', ident))
-        return key, {'mutants': len(muts), 'killed': killed, 'survivors': survivors, 'killers': sorted(killers), 'divergent': sorted(set(divergent)), 'hangs': hangs, 'budgets': budgets}
+        return key, {'mutants': len(muts), 'killed': killed, 'survivors': survivors, 'killers': sorted(killers), 'scen_killers': sorted(scen_killers), 'divergent': sorted(set(divergent)), 'hangs': hangs, 'budgets': budgets}
 
 
 class Shim:
@@ -421,13 +442,15 @@ def main():
     ap.add_argument('--per-row', type=int, default=30)
     ap.add_argument('--jobs', type=int, default=4)
     ap.add_argument('--harden', action='store_true', help='add to the corpus a seed that kills each survivor, where one of 300 more seeds does')
+    ap.add_argument('--scen', help='FL-62: a JSON {row: [[seed, overrides], ...]} of boundary scenarios (scripts/fl62_boundary.py); a survivor is retried on them and the killing ones are added to the corpus')
     ap.add_argument('--extended', action='store_true', help='FL-43: every literal and every access of a statement, logic operators, neighbouring jump conditions')
     a = ap.parse_args()
     corpus = json.loads(CORPUS.read_text())
     funcs = split_functions(SOURCE.read_text())
     helper = funcs.get('0x50c920', '')
     keys = a.rows.split(',') if a.rows else sorted(corpus, key=lambda k: int(k, 16))
-    work = [(k, corpus[k], funcs[k], helper if 'FL41_CALL_LIFTED' in funcs[k] else '', a.per_row, a.harden, a.extended) for k in keys]
+    scen = json.loads(Path(a.scen).read_text()) if a.scen else {}
+    work = [(k, corpus[k], funcs[k], helper if 'FL41_CALL_LIFTED' in funcs[k] else '', a.per_row, a.harden, a.extended, scen.get(k)) for k in keys]
     total = killed = 0
     bad = []
     with mp.Pool(a.jobs, maxtasksperchild=1) as pool:
@@ -436,10 +459,12 @@ def main():
                 print('%s COMPILE ERROR %s' % (key, res['error']))
                 bad.append(key)
                 continue
-            if res['killers'] and a.harden:
+            if (res['killers'] and a.harden) or res.get('scen_killers'):
                 fresh = json.loads(CORPUS.read_text())               # FL-45: add the killers to the corpus on disk, not to the copy loaded at the start (other tools may have added seeds since)
                 have = {(sd, json.dumps(ov)) for sd, ov in fresh[key]['seeds']}
-                fresh[key]['seeds'].extend([sd, []] for sd in res['killers'] if (sd, json.dumps([])) not in have)
+                if a.harden:
+                    fresh[key]['seeds'].extend([sd, []] for sd in res['killers'] if (sd, json.dumps([])) not in have)
+                fresh[key]['seeds'].extend([sd, [list(o) for o in ov]] for sd, ov in res.get('scen_killers', []) if (sd, json.dumps([list(o) for o in ov])) not in have)
                 CORPUS.write_text(json.dumps(fresh, indent=1, sort_keys=True) + '\n')
             if res.get('divergent'):
                 print('%s divergent seeds (the unmutated translation differs from the original) %s' % (key, res['divergent']), flush=True)
