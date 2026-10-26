@@ -51,7 +51,9 @@ typedef enum live_audio_status {
     LIVE_AUDIO_ERR_THREAD = 2,
     LIVE_AUDIO_ERR_MODE = 3,
     LIVE_AUDIO_ERR_HOST = 4,
-    LIVE_AUDIO_ERR_MEMORY = 5
+    LIVE_AUDIO_ERR_MEMORY = 5,
+    LIVE_AUDIO_ERR_UNSUPPORTED = 6,
+    LIVE_AUDIO_ERR_STALE = 7
 } LiveAudioStatus;
 
 typedef enum live_audio_name_match {
@@ -161,6 +163,38 @@ typedef struct LiveAudioChannelInfo {
     uint32_t repeat_due_tick;    /* slot+0x1a6 */
     uint32_t restarts;           /* update restarts since this load */
 } LiveAudioChannelInfo;
+
+/* Transport cursor generation is independent of LiveAudioChannelInfo's
+ * generation: every load/unload, stop and native host play attempt invalidates it. */
+typedef struct LiveAudioPlaybackCursor {
+    uint64_t generation;
+    uint64_t source_frames;
+    uint64_t source_frame_count;
+    uint64_t decoded_byte_position;
+    uint64_t decoded_byte_count;
+    uint32_t sample_rate;
+    uint32_t channels;
+    uint16_t bits_per_sample;
+    uint8_t loaded;
+    uint8_t started;
+    uint8_t playing;
+    uint8_t position_valid;
+} LiveAudioPlaybackCursor;
+
+/* expected_generation=0 queries current transport identity. A different nonzero
+ * generation returns ERR_STALE. Refusals leave cursor untouched. Original HIS
+ * rate/channels/bits are retained before native mono-to-stereo expansion;
+ * decoded_byte_position is source_frames * original block alignment, clamped
+ * to the HIS decoded byte count. Natural completion retains the ending cursor;
+ * explicit stop resets to zero while retaining loaded format, unload clears
+ * format, and replay starts a new generation at zero. No elapsed app clock is
+ * used. Only the default native host supplies a cursor: custom HostOps return
+ * ERR_UNSUPPORTED without altering their ABI. A native output timeline not yet
+ * available returns OK metadata with position_valid=0 (not usable progress);
+ * genuine backend failures still return ERR_HOST. */
+int live_audio_get_playback_cursor(LiveAudio *audio, uint16_t channel,
+                                   uint64_t expected_generation,
+                                   LiveAudioPlaybackCursor *cursor);
 
 typedef struct LiveAudioServiceStats {
     uint32_t completions;    /* natural stop notifications consumed */
