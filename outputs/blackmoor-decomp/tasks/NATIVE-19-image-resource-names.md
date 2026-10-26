@@ -1,0 +1,17 @@
+# NATIVE-19: preserve full image resource names
+
+Original root authorization: continue the native ARM64 port one reviewed PR at a time; root publishes. Preserve original game/GAME.EXE/game-source.json and protected parallel ledger/evidence/fl40/flNN work. Keep game-only mute; no crash/fault/sanitizer/mutation/oracle/device tests.
+
+Actual fresh-game input acquired key17, set lock1800, ordered butter/food1738/1739, entered delivery1161 and learned butter1778. S2113 row9 then entered S2131 and blocked at raw37 row4: constructed name BLU_FoodTrayButterOne_OVL, inner native image lookup BLU_FoodTrayButterOne_OV. The shared image host truncates to24 characters. This prevents item25 pickup.
+
+Original assembly FUN_004c2790 (extent4c2790..4c2898, hash7348763ea143298d0d536527aaa4800658c28dc84560003f3f6b534a268e23cf) truncates argument14 at24 for the diagnostic record label, then passes argumentC independently into4181c6. The app mistakenly applied that diagnostic limit to the actual resource lookup. Preserve full resource stems within the existing CIF32-character bound; remove truncated cache-key fallback and use the same complete name for lookup/cache/handle identity. Do not mutate caller strings or game data.
+
+Acceptance: focused actual native load of the25-character butter image must fail on the old loader and pass with the fix; compare actual source dimensions/pixels and repeated full-name handle ownership. Run the existing combined route to collect25 and continue actual grease/key lock input until the next explicit blocker. Normal ARM64 build and narrow existing image/font/inventory regression, independent frozen review, native-only PR merge. No campaign completion claim.
+
+Root owns app edit. Test worker may add only tests/native_image_resource_names_glue_test.mm and tests/test_native_image_resource_names.py, using existing normal subprocess build convention; no broad harness. Character adapters remain separate NATIVE20 work in private worker checkouts.
+
+Implemented: complete resource stems now supply both image loading and handle lookup; the misleading diagnostic truncation and truncated-key fallback are removed. The existing resource API still validates its32-character stem limit.
+
+Validation: old callback RED returns0 for the real25-character stem while independent loading succeeds. Focused GREEN1/1 (17.029s) checks79x59/pitch158, every decoded RGB555 word, stable repeated handle/pixel ownership and no alias to the missing24-character prefix. Root inventory artwork1/1 (17.539s), caption/font initialization1/1 (17.365s) and normal ARM64 build pass. The same fresh-game route now picks25, returns to3448, selects/uses25, enters3445, consumes25 and sets2094=1, then returns to3448 and selects17. It stops on a bounded inactive row10 (no native error), likely needing the ordinary lock-look click after scene-local1000 resets. No lock-open/D3/campaign success claimed. Route receipt/logs are private work/playability-20261024/native19-*.
+
+Pins: originalGAME.EXE afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45; app3cad275ffab123b0b6801be03e25c3dd353c79a868d61fa27cc2b4b4d0374e99; ARM64 executable dcef82288cd9d1ec8b8cfabb04f2b227398a107abb53f6ca891b1e674e38e12d. Logs /private/tmp/native19-image-name-{red,green}.log, native19-{build,inventory-regression,caption-regression,grease-route}.log. Original diagnostic-label interpretation is static instruction evidence, not a new original-x86 oracle claim. Independent frozen review and publication pending.
