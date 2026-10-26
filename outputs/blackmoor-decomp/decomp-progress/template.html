@@ -9,20 +9,20 @@
   color-scheme:light;
   --surface:#fcfcfb;--panel:#f3f2ee;--border:#d6d4cc;
   --text:#0b0b0b;--text-2:#52514e;--text-3:#7a7872;
-  --code:#008300;--data:#2a78d6;--todo:#cfcdc5;--todo-edge:#b9b7ae;
+  --code:#008300;--data:#2a78d6;--te:#b8860b;--todo:#cfcdc5;--todo-edge:#b9b7ae;
   --focus:#c25b00;--tile-text:#2f2e2b;
 }
 @media (prefers-color-scheme:dark){:root:where(:not([data-theme="light"])){
   color-scheme:dark;
   --surface:#1a1a19;--panel:#242422;--border:#3a3a37;
   --text:#ffffff;--text-2:#c3c2b7;--text-3:#8f8e86;
-  --code:#1e9d1e;--data:#3987e5;--todo:#3b3b38;--todo-edge:#4d4d49;
+  --code:#1e9d1e;--data:#3987e5;--te:#e0b43c;--todo:#3b3b38;--todo-edge:#4d4d49;
   --focus:#f0a040;--tile-text:#d9d8d0;}}
 :root[data-theme="dark"]{
   color-scheme:dark;
   --surface:#1a1a19;--panel:#242422;--border:#3a3a37;
   --text:#ffffff;--text-2:#c3c2b7;--text-3:#8f8e86;
-  --code:#1e9d1e;--data:#3987e5;--todo:#3b3b38;--todo-edge:#4d4d49;
+  --code:#1e9d1e;--data:#3987e5;--te:#e0b43c;--todo:#3b3b38;--todo-edge:#4d4d49;
   --focus:#f0a040;--tile-text:#d9d8d0;}
 *{box-sizing:border-box}
 body{margin:0;background:var(--surface);color:var(--text);
@@ -103,7 +103,7 @@ th{color:var(--text-2);font-weight:600;position:sticky;top:0;background:var(--pa
 .ledger .scope{color:var(--text-2);font-size:12px;margin:0}
 .ledger h3{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin:16px 0 3px;color:var(--text-2)}
 .ledger-metric h3{margin-top:0}
-.ledger-metrics{display:grid;grid-template-columns:repeat(3,1fr);margin:14px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.ledger-metrics{display:grid;grid-template-columns:repeat(4,1fr);margin:14px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
 .ledger-metric{padding:12px 18px 12px 0;min-width:0;font-variant-numeric:tabular-nums}
 .ledger-metric+.ledger-metric{border-left:1px solid var(--border);padding-left:18px}
 .ledger-value{font-size:25px;font-weight:650;letter-spacing:-.02em}
@@ -112,6 +112,7 @@ th{color:var(--text-2);font-weight:600;position:sticky;top:0;background:var(--pa
 .ledger .sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
 .sw.s-ported,.lg-seg.s-ported{background:var(--code)}
 .sw.s-not_needed,.lg-seg.s-not_needed{background:var(--data)}
+.sw.s-te,.lg-seg.s-te{background:repeating-linear-gradient(45deg,var(--te) 0 3px,transparent 3px 6px);box-shadow:inset 0 0 0 1px var(--te)}
 .sw.s-pending,.lg-seg.s-pending{background:var(--todo);box-shadow:inset 0 0 0 1px var(--todo-edge)}
 .ledger-baseline{font-size:13px;margin:0 0 14px;padding:8px 12px;background:var(--panel);border-left:3px solid var(--focus)}
 .lg-regions{display:grid;grid-template-columns:max-content 1fr max-content;gap:7px 12px;align-items:center;font-size:12px;margin:0 0 6px}
@@ -140,6 +141,7 @@ table.lg-table{font-size:12px}
 .lg-detail a{color:inherit}
 .lg-pill{display:inline-block;padding:0 7px;border-radius:9px;border:1px solid var(--border);font-size:11px;white-space:nowrap}
 .lg-pill.s-ported{border-color:var(--code);color:var(--code)}
+.lg-pill.s-te{border-color:var(--te);color:var(--te)}
 .lg-pill.s-not_needed{border-color:var(--data);color:var(--data)}
 .lg-table button{padding:1px 8px;font-size:11px}
 .lg-pager{display:flex;gap:8px;align-items:center;margin:8px 0 14px;font-size:12px;color:var(--text-2)}
@@ -176,13 +178,14 @@ table.lg-table{font-size:12px}
   <div class="ledger-heading"><h2 id="ledgerTitle">Function ledger</h2><p class="scope" id="ledgerScope"></p></div>
   <div class="ledger-metrics">
     <div class="ledger-metric"><h3>Ported</h3><div class="ledger-value" id="lgPorted"></div><p id="lgPortedSplit"></p><p>Reviewed claim; not an x86 match</p></div>
+    <div class="ledger-metric"><h3>Tested equivalent</h3><div class="ledger-value" id="lgTe"></div><p id="lgTeSplit"></p><p>Second tier, not ported: every line run, matches the original on every test input; no mutation check</p></div>
     <div class="ledger-metric"><h3>Not needed</h3><div class="ledger-value" id="lgNotNeeded"></div><p id="lgNotNeededSplit"></p><p>Per function, with a recorded reason</p></div>
     <div class="ledger-metric"><h3>Pending</h3><div class="ledger-value" id="lgPending"></div><p id="lgPendingSplit"></p><p>Everything unproven; the default</p></div>
   </div>
   <p class="ledger-baseline" id="lgBaseline"></p>
   <h3>Status by region</h3>
   <div class="lg-regions" id="lgRegions"></div>
-  <div class="lg-legend"><span><i class="sw s-ported"></i>Ported</span><span><i class="sw s-not_needed"></i>Not needed</span><span><i class="sw s-pending"></i>Pending</span></div>
+  <div class="lg-legend"><span><i class="sw s-ported"></i>Ported</span><span><i class="sw s-not_needed"></i>Not needed</span><span><i class="sw s-te"></i>Tested equivalent (pending, not ported)</span><span><i class="sw s-pending"></i>Pending</span></div>
   <h3>x86 match against native port</h3>
   <table class="lg-cross" id="lgCross" aria-label="x86-matched functions against native port status"></table>
   <p class="ledger-note">The x86 match is a separate track: it never makes a function ported, and a ported function need not have an x86 match.</p>
@@ -276,7 +279,10 @@ if(D.function_ledger){
   $("lgNotNeeded").innerHTML=`${fmt(S.not_needed)} <small>of ${fmt(N)}</small>`;
   const reasons=Object.entries(C.reason).filter(e=>e[1]);
   $("lgNotNeededSplit").textContent=reasons.length ? "By reason: "+reasons.map(e=>`${words(e[0])} ${fmt(e[1])}`).join(" · ") : "By reason: none accepted yet";
-  $("lgPending").innerHTML=`${fmt(S.pending)} <small>of ${fmt(N)} · ${pct(S.pending,N)}</small>`;
+  const TE=L.tested_equivalent;
+  $("lgTe").innerHTML=`${fmt(TE.count)} <small>of ${fmt(N)}</small>`;
+  $("lgTeSplit").textContent="Counted inside Pending, never inside Ported · "+RG.filter(r=>TE.by_region[r]).map(r=>`${rgLabel[r]} ${fmt(TE.by_region[r])}`).join(" · ");
+  $("lgPending").innerHTML=`${fmt(S.pending)} <small>of ${fmt(N)} · ${pct(S.pending,N)} · includes ${fmt(TE.count)} tested equivalent</small>`;
   $("lgPendingSplit").textContent="Candidate port "+fmt(C.class.candidate_port)+" · partial native "+fmt(C.class.partial_native)+" · static navigation only "+fmt(C.class.static_navigation_only)+" · none "+fmt(C.class.none);
   $("lgBaseline").textContent = (S.ported===0 && S.not_needed===0)
     ? `With 0 ported and 0 not needed, this ledger is the honest baseline: all ${fmt(N)} functions are pending (more than 80% pending at first publication), and the pending subclasses are leads, not progress.`
@@ -286,10 +292,13 @@ if(D.function_ledger){
     const c=C.region[r], t=ST.reduce((n,s)=>n+c[s],0);
     const name=document.createElement("div"); name.className="lg-name"; name.textContent=`${rgLabel[r]} · ${fmt(t)}`;
     const track=document.createElement("div"); track.className="lg-track"; track.setAttribute("role","img");
-    track.setAttribute("aria-label",`${rgLabel[r]}: ${ST.map(s=>`${fmt(c[s])} ${words(s)}`).join(", ")}`);
-    for(const s of ST) if(c[s]){ const seg=document.createElement("div"); seg.className=`lg-seg s-${s}`; seg.style.flex=`${c[s]} 1 0`; seg.title=`${stLabel[s]}: ${fmt(c[s])} of ${fmt(t)}`; track.appendChild(seg); }
+    const te=TE.by_region[r]||0, part=ST.map(s=>[s,s==="pending"?c[s]-te:c[s]]);
+    const parts=[...part.filter(x=>x[0]==="ported"),["te",te],...part.filter(x=>x[0]!=="ported")];
+    const lab=s=>s==="te"?"Tested equivalent":stLabel[s];
+    track.setAttribute("aria-label",`${rgLabel[r]}: ${parts.map(x=>`${fmt(x[1])} ${words(lab(x[0]).toLowerCase())}`).join(", ")}`);
+    for(const [s,k] of parts) if(k){ const seg=document.createElement("div"); seg.className=`lg-seg s-${s}`; seg.style.flex=`${k} 1 0`; seg.title=`${lab(s)}: ${fmt(k)} of ${fmt(t)}`; track.appendChild(seg); }
     const nums=document.createElement("div"); nums.className="lg-nums";
-    nums.textContent=ST.map(s=>`${fmt(c[s])} ${words(s)}`).join(" · ");
+    nums.textContent=parts.map(x=>`${fmt(x[1])} ${words(lab(x[0]).toLowerCase())}`).join(" · ");
     $("lgRegions").append(name,track,nums);
   }
 
@@ -301,19 +310,19 @@ if(D.function_ledger){
   /* table: filters, address search, paging */
   const rows=L.rows, PAGE=25, lg={status:"",region:"",cls:"",q:"",page:0,open:new Set()};
   const opt=(sel,value,label)=>{ const o=document.createElement("option"); o.value=value; o.textContent=label; sel.appendChild(o); };
-  opt($("lgStatus"),"","All statuses"); ST.forEach(s=>opt($("lgStatus"),s,`${stLabel[s]} (${fmt(S[s])})`));
+  opt($("lgStatus"),"","All statuses"); ST.forEach(s=>opt($("lgStatus"),s,`${stLabel[s]} (${fmt(S[s])})`)); opt($("lgStatus"),"te",`Tested equivalent (${fmt(TE.count)})`);
   opt($("lgRegion"),"","All regions"); RG.forEach(r=>opt($("lgRegion"),r,`${rgLabel[r]} (${fmt(ST.reduce((n,s)=>n+C.region[r][s],0))})`));
   function classOptions(){
     const sel=$("lgClass"); sel.innerHTML=""; opt(sel,"","All classes");
-    CL.forEach((c,i)=>{ if(!lg.status || ST[L.class_status[i]]===lg.status) opt(sel,c,`${clLabel[c]} (${fmt(C.class[c])})`); });
+    CL.forEach((c,i)=>{ if(!lg.status || ST[L.class_status[i]]===(lg.status==="te"?"pending":lg.status)) opt(sel,c,`${clLabel[c]} (${fmt(C.class[c])})`); });
     sel.value=lg.cls;
   }
   classOptions();
   const FILTERED=()=>{
     const q=lg.q.trim().toLowerCase().replace(/^0x/,"");
     const num=/^[0-9a-f]{6,8}$/.test(q) ? parseInt(q,16) : null;
-    const si=lg.status ? ST.indexOf(lg.status) : -1, ri=lg.region ? RG.indexOf(lg.region) : -1, ci=lg.cls ? CL.indexOf(lg.cls) : -1;
-    return rows.filter(r=>(si<0||r[3]===si)&&(ri<0||r[2]===ri)&&(ci<0||r[4]===ci)&&
+    const onlyTe=lg.status==="te", si=lg.status && !onlyTe ? ST.indexOf(lg.status) : -1, ri=lg.region ? RG.indexOf(lg.region) : -1, ci=lg.cls ? CL.indexOf(lg.cls) : -1;
+    return rows.filter(r=>(si<0||r[3]===si)&&(!onlyTe||r[6]===1)&&(ri<0||r[2]===ri)&&(ci<0||r[4]===ci)&&
       (!q || r[0].toString(16).startsWith(q) || (num!==null && num>=r[0] && num<r[0]+r[1])));
   };
   const KIND={s:"source",t:"test",o:"oracle",r:"receipt",m:"mention"};
@@ -368,7 +377,7 @@ if(D.function_ledger){
       tr.insertCell().appendChild(mk("span",hex(r[0]),"mono"));
       tr.insertCell().appendChild(mk("span",fmt(r[1]),"mono")).parentNode.className="num";
       tr.insertCell().textContent=rgLabel[RG[r[2]]];
-      tr.insertCell().appendChild(mk("span",stLabel[ST[r[3]]],`lg-pill s-${ST[r[3]]}`));
+      tr.insertCell().appendChild(r[6] ? mk("span","Pending · tested equivalent","lg-pill s-te") : mk("span",stLabel[ST[r[3]]],`lg-pill s-${ST[r[3]]}`));
       tr.insertCell().textContent=clLabel[CL[r[4]]];
       const ec=tr.insertCell(); ec.appendChild(document.createTextNode(evSummary(d)+" "));
       if(r[5]){ const b=mk("button",open?"Hide":"Details"); b.type="button"; b.setAttribute("aria-expanded",open);
@@ -383,7 +392,7 @@ if(D.function_ledger){
   $("lgPrev").addEventListener("click",()=>{ lg.page--; renderLedger(); });
   $("lgNext").addEventListener("click",()=>{ lg.page++; renderLedger(); });
   const lp=new URLSearchParams(location.search);
-  if(lp.get("lgstatus") && ST.includes(lp.get("lgstatus"))){ lg.status=lp.get("lgstatus"); $("lgStatus").value=lg.status; classOptions(); }
+  if(lp.get("lgstatus") && (ST.includes(lp.get("lgstatus"))||lp.get("lgstatus")==="te")){ lg.status=lp.get("lgstatus"); $("lgStatus").value=lg.status; classOptions(); }
   for(const v of (lp.get("lgopen")||"").split(",")){ const n=parseInt(v.replace(/^0x/,""),16); if(n) lg.open.add(n); }
   if(lp.get("lgq")){ lg.q=lp.get("lgq"); $("lgQ").value=lg.q; }
   renderLedger();

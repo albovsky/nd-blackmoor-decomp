@@ -16,8 +16,10 @@
 {"path": "matches_s08_4_x86.json", "sha256": null, "role": "x86-manifest"},
 {"path": "src/fixture_core.c", "sha256": "33da3cc8119f2e869b8084e48912faabaf3f6992f72753c0733812a029ba8fe4", "role": "evidence-source"},
 {"path": "src/fixture_rand.c", "sha256": "da9290bd59fd8a2ab0d0726729bfa3ba05e6ec8d2dc26e290c93535c3df59850", "role": "evidence-source"},
+{"path": "tasks/fl66-tested-equivalent.json", "sha256": null, "role": "tested-equivalent"},
 {"path": "tests/fixture_core_oracle.py", "sha256": "6d2122c56cb3573ab204c3577314c4f20be8884cca7353a633d94665a153e4ae", "role": "evidence-oracle"},
-{"path": "tests/fixture_core_tests.py", "sha256": "fd36470b590b3ea27a5d0e8fd24b9ba9e3a2a4d96b2eb09b92050920366e0936", "role": "evidence-test"}
+{"path": "tests/fixture_core_tests.py", "sha256": "fd36470b590b3ea27a5d0e8fd24b9ba9e3a2a4d96b2eb09b92050920366e0936", "role": "evidence-test"},
+{"path": "tests/fl66_scenarios.json", "sha256": null, "role": "tested-equivalent"}
 ],
 "counts": {"total": 30, "status": {"ported": 5, "not_needed": 8, "pending": 17}, "class": {"native_oracle_verified": 3, "native_oracle_verified_inlined": 0, "native_tests_only": 1, "host_adapter_tested": 1, "nn_rule": 2, "nn_reviewed": 6, "candidate_port": 2, "partial_native": 1, "static_navigation_only": 1, "none": 13}, "region": {"game": {"ported": 4, "not_needed": 3, "pending": 7}, "vorbis": {"ported": 0, "not_needed": 0, "pending": 3}, "crt_mfc": {"ported": 1, "not_needed": 5, "pending": 7}}, "reason": {"win32_plumbing_no_observable_effect": 1, "crt_startup_termination": 1, "library_internal_unreached_by_game": 1, "host_libc_standard_contract": 1, "debug_diagnostic_only": 1, "unreachable_no_refs": 1, "compiler_eh_funclet": 2}, "origin": {"game": 14, "library": 11, "compiler_eh": 3, "import_thunk": 1, "unknown": 1}, "seam": 3, "x86": {"matched": 3, "complete": 2, "matched_ported": 2, "complete_ported": 2}, "span_bytes": {"ported": 3456, "not_needed": 3840, "pending": 25472}},
 "entries": [

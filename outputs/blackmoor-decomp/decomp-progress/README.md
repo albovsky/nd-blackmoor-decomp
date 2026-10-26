@@ -72,6 +72,12 @@ How generation treats it (`generate.py`):
 - `--ledger-functions N` changes the pinned function count (default 4,188; the fixture tree uses 30). `--function-ledger-root DIR` reads the ledger and its inputs from another tree (the tests use `fixtures/function-ledger/`).
 - The first publication has 0 ported and 0 not needed, so the panel says so plainly: it is the honest baseline, with more than 80% of functions pending. Pending subclasses are leads, not progress.
 
+### Tested-equivalent tier (FL-66)
+
+A second tier sits inside `pending` and is **never added to Ported**. A pending function is *tested equivalent* when (1) its committed translation (`src/original_methods_fl40.c`, `src/original_methods_fl56_unverified.c`, `translated/original_methods_fl41_translated.c`, `translated/original_methods_fl57_translated.c`) runs under Unicorn-vs-native differential scenarios that execute **every instruction** of the original function and take **both directions of every conditional jump** (coverage is measured on the original bytes), and (2) the translation equals the original on **every** such scenario (final registers, written memory, callee calls and their arguments, return). No mutation check is run, so a difference that no scenario can show is not ruled out; that is why it is a separate tier. Rows that agree everywhere but miss coverage are `partial` and are reported separately; a disagreement is a `mismatch` (a translation defect) and is never counted.
+
+The data: `tasks/fl66-tested-equivalent.json` (rows, coverage, scenario counts, the sha256 of the translation text that was tested), `tests/fl66_scenarios.json` (the kept scenarios), written by `scripts/fl66_tested.py merge --write`. `function-ledger.json` carries the list as a top-level `tested_equivalent` object (validated: every address must be a pending function, the rows must show full coverage, and the committed translation must still hash to the recorded value, so editing a translation makes the ledger stale). The panel shows a fourth "Tested equivalent" tile, a hatched segment in each region bar and a "Tested equivalent" status filter. `python3 scripts/fl66_tested.py status` prints `verified X, tested equivalent Y, translated only Z`.
+
 Run the panel tests (they also cover the generator): `python3 -m unittest test_progress.FunctionLedgerTests` from this directory. A test that renders the page needs a headless Chromium (`BLACKMOOR_PREVIEW_BROWSER` or the default Playwright path) and is skipped without one.
 
 ## Evidence and what counts as matched

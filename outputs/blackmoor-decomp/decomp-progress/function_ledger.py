@@ -145,11 +145,22 @@ DEBUG_IMPORTS = frozenset({"KERNEL32.dll!OutputDebugStringA", "KERNEL32.dll!Outp
 MECHANICAL_PARTS = frozenset({"import_thunk", "jump_thunk", "eh_handler_stub"})
 DEFAULT_EH_PARENT_REGIONS = ("crt_mfc", "vorbis")
 ROLES = ("function-index", "layout", "census", "x86-manifest", "x86-audit", "evidence", "xrefs", "overrides",
-         "evidence-source", "evidence-oracle", "evidence-test", "evidence-mention", "xrefs-pin")
+         "tested-equivalent", "evidence-source", "evidence-oracle", "evidence-test", "evidence-mention", "xrefs-pin")
 POINTER_ROLE = {"native_source": "evidence-source", "oracle": "evidence-oracle",
                 "test": "evidence-test", "mention": "evidence-mention"}
 
 REPO_PREFIX = "outputs/blackmoor-decomp/"       # evidence and xrefs name committed files repo-relative
+
+# FL-66: the second tier. A PENDING function whose committed translation matches the original on generated scenarios that run every
+# instruction and take both directions of every jump (scripts/fl66_tested.py). It is never ported, never added to the verified count,
+# and the ledger carries it beside the entries, not in a status or class.
+TE_FILE = "tasks/fl66-tested-equivalent.json"
+TE_SCENARIOS = "tests/fl66_scenarios.json"
+TE_SCHEMA = "blackmoor-tested-equivalent/1"
+TE_RULE_ID = "T-EQ-COVERED"
+TE_ROW_KEYS = "pool body instructions directions scenarios_run scenarios_kept translation_sha256 source".split()
+TE_SOURCES = ("src/original_methods_fl40.c", "src/original_methods_fl56_unverified.c",
+              "translated/original_methods_fl41_translated.c", "translated/original_methods_fl57_translated.c")
 PRIVATE_PREFIX = "analysis/slices/"             # private receipts, work-relative, never hashed here
 
 COUNTED_MANIFESTS = ("matches.json", "matches_s08_2_x86.json", "matches_s08_3_x86.json", "matches_s08_4_x86.json")
@@ -762,7 +773,7 @@ def validate_entry(e, index):
 
 def validate(ledger):
     """Strict schema and invariant check of a ledger; reads no other file."""
-    exact_keys(ledger, "schema original_sha256 inputs counts entries".split(), ["vorbis_parity_rule"], "ledger")
+    exact_keys(ledger, "schema original_sha256 inputs counts entries".split(), ["vorbis_parity_rule", "tested_equivalent"], "ledger")
     if ledger["schema"] != SCHEMA:
         fail(f"ledger schema must be {SCHEMA}")
     if ledger["original_sha256"] != PINNED_SHA:
@@ -802,7 +813,27 @@ def validate(ledger):
         prev = e
     if canon(ledger["counts"]) != canon(count_entries(entries)):
         fail("counts differ from the entries")
+    if "tested_equivalent" in ledger:
+        validate_tested_equivalent(ledger["tested_equivalent"], {e["va"]: e for e in entries})
     return ledger
+
+
+def validate_tested_equivalent(te, by_va):
+    """The tier lists pending functions only: a ported or not-needed function is never in it, and it never changes a status or a count."""
+    exact_keys(te, "rule count vas manifest scenarios".split(), (), "tested_equivalent")
+    if te["rule"] != TE_RULE_ID or te["manifest"] != TE_FILE or te["scenarios"] != TE_SCENARIOS:
+        fail("tested_equivalent: unknown rule or manifest")
+    vas = te["vas"]
+    if not isinstance(vas, list) or any(not isinstance(v, str) for v in vas):
+        fail("tested_equivalent: vas must be a list of addresses")
+    if [fmt(parse_va(v, "tested_equivalent")) for v in vas] != vas or vas != sorted(set(vas), key=lambda v: int(v, 16)):
+        fail("tested_equivalent: addresses are not canonical, sorted and unique")
+    if te["count"] != len(vas):
+        fail("tested_equivalent: count differs from the addresses")
+    for v in vas:
+        e = by_va.get(v)
+        if e is None or e["status"] != "pending":
+            fail(f"tested_equivalent: {v} is not a pending function")
 
 
 def render(ledger):
@@ -814,6 +845,8 @@ def render(ledger):
     lines += ["],", f'"counts": {dump(ledger["counts"])},']
     if "vorbis_parity_rule" in ledger:
         lines.append(f'"vorbis_parity_rule": {dump(ledger["vorbis_parity_rule"])},')
+    if "tested_equivalent" in ledger:
+        lines.append(f'"tested_equivalent": {dump(ledger["tested_equivalent"])},')
     lines.append('"entries": [')
     lines += [dump({k: e[k] for k in ENTRY_KEYS}) + ("," if k + 1 < len(ledger["entries"]) else "")
               for k, e in enumerate(ledger["entries"])]
@@ -1538,11 +1571,68 @@ def _derive(root, expected_functions, work_dir, verify_private, notes):
             e.update(status="pending")
             e["class"] = classify_pending(e)
         out.append({k: e[k] for k in ENTRY_KEYS})
+    te = load_tested_equivalent(root, inputs, uni)       # before the listing: it pins its own files
     ledger = {"schema": SCHEMA, "original_sha256": PINNED_SHA, "inputs": inputs.listing(),
               "counts": count_entries(out), "entries": out}
     if ov["vorbis_rule"] is not None:
         ledger["vorbis_parity_rule"] = ov["vorbis_rule"]
+    if te is not None:
+        ledger["tested_equivalent"] = te
     return validate(ledger)
+
+
+def translation_sha256(text, key):
+    """sha256 of the function text of `key` (the block that starts at its `/* GAME.EXE <key> (` comment) in a committed translation file, or None."""
+    m = re.search(r"^/\* GAME\.EXE %s \(.*?(?=^/\* GAME\.EXE 0x|\Z)" % re.escape(key), text, re.M | re.S)
+    return hashlib.sha256(m.group(0).encode()).hexdigest() if m else None
+
+
+def load_tested_equivalent(root, inputs, uni):
+    """FL-66: the manifest of the tested-equivalent tier, or None when there is none (pinned as absent). Every row must have full coverage and
+    must name a translation whose committed text still hashes to the recorded value, so changing a translation makes the ledger stale."""
+    raw = inputs.add(TE_FILE, "tested-equivalent", required=False)
+    scen_raw = inputs.add(TE_SCENARIOS, "tested-equivalent", required=False)
+    if raw is None:
+        return None
+    if scen_raw is None:
+        fail(f"{TE_FILE} needs {TE_SCENARIOS}")
+    doc = read_json_bytes(raw, TE_FILE)
+    scen = read_json_bytes(scen_raw, TE_SCENARIOS)
+    exact_keys(doc, "schema rule rows".split(), (), TE_FILE)
+    if doc["schema"] != TE_SCHEMA:
+        fail(f"{TE_FILE}: schema must be {TE_SCHEMA}")
+    exact_keys(doc["rule"], "id text".split(), (), TE_FILE)
+    if doc["rule"]["id"] != TE_RULE_ID:
+        fail(f"{TE_FILE}: unknown rule")
+    text_value(doc["rule"]["text"], TE_FILE, limit=2000)
+    rows = doc["rows"]
+    if not isinstance(rows, dict) or set(rows) != set(scen):
+        fail(f"{TE_FILE}: rows and scenarios differ")
+    files = {}
+    for key, row in rows.items():
+        what = f"{TE_FILE} {key}"
+        va = parse_va(key, what)
+        if key != fmt(va) or va not in uni.spans:
+            fail(f"{what}: not a function start")
+        exact_keys(row, TE_ROW_KEYS, (), what)
+        if row["source"] not in TE_SOURCES:
+            fail(f"{what}: unknown translation file")
+        for field in ("instructions", "directions"):
+            v = row[field]
+            if not (isinstance(v, list) and len(v) == 2 and all(is_int(x) for x in v) and v[0] == v[1] and v[1] >= 0):
+                fail(f"{what}: {field} must show full coverage")
+        if not is_int(row["scenarios_run"]) or row["scenarios_run"] < 1 or not is_int(row["scenarios_kept"]) or not 1 <= row["scenarios_kept"] <= row["scenarios_run"]:
+            fail(f"{what}: invalid scenario counts")
+        if not isinstance(scen[key], list) or len(scen[key]) != row["scenarios_kept"]:
+            fail(f"{what}: kept scenarios differ from the count")
+        sha_value(row["translation_sha256"], what)
+        if row["source"] not in files:
+            files[row["source"]] = read_text_input(root, row["source"], what)
+            inputs.add(row["source"], "tested-equivalent")
+        if translation_sha256(files[row["source"]], key) != row["translation_sha256"]:
+            fail(f"{what}: the committed translation changed since it was tested")
+    vas = sorted(rows, key=lambda k: int(k, 16))
+    return {"rule": TE_RULE_ID, "count": len(vas), "vas": vas, "manifest": TE_FILE, "scenarios": TE_SCENARIOS}
 
 
 def verify_receipts(receipts, work_dir):

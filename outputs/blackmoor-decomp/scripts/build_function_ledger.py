@@ -63,8 +63,10 @@ def main(argv=None):
         print(f"error: {exc}", file=sys.stderr)
         return 1
     c = ledger["counts"]
+    te = ledger.get("tested_equivalent", {}).get("count", 0)      # FL-66: a second tier inside pending, never inside ported
     print(f"{action} {path.name}: {c['total']} functions "
-          f"(ported {c['status']['ported']}, not_needed {c['status']['not_needed']}, pending {c['status']['pending']})")
+          f"(ported {c['status']['ported']}, not_needed {c['status']['not_needed']}, pending {c['status']['pending']}; "
+          f"of the pending, tested equivalent {te})")
     for note in notes:                  # facts this run could not re-check; never a pass
         print(f"note: {note}")
     return 0
