@@ -11,6 +11,9 @@ typedef struct {
     const CaptionPixelFormat *format;
     const CaptionSurface *sheet;
     CaptionSurface *target;
+    CaptionGlobals *globals;
+    const CaptionBackend *backend;
+    int font_owned;
     int16_t font, color;
     int x, y, left, right;
     int pending, half, suppress, limit_y, first_y;
@@ -110,7 +113,7 @@ static int write_one(Writer *w, const uint8_t *text, size_t length)
             memcpy(w->choices[index].sound_name, argument + 2, n - 2);
             continue; /* s does not flush */
         }
-        if (tag != 'c' && tag != 'n' && tag != 'w' && tag != 'h') return CAPTION_ERR_UNSUPPORTED;
+        if (tag != 'c' && tag != 'n' && tag != 'w' && tag != 'h' && tag != 'f') return CAPTION_ERR_UNSUPPORTED;
         if ((tag == 'n' || tag == 'w') && w->suppress) { w->suppress = 0; continue; }
         int status = flush(w, buffer);
         if (status != CAPTION_OK) return status;
@@ -135,6 +138,28 @@ static int write_one(Writer *w, const uint8_t *text, size_t length)
                     if (r[3] > w->limit_y) r[3] = (int16_t)w->limit_y;
                 }
                 w->open_choice = -1;
+            }
+        } else if (tag == 'f') {
+            /* 0x41ee13: flush above uses the OLD font, even for an empty
+             * pending newline. atoi's low AX is an absolute font on BOTH
+             * surfaces; neither pen nor color is reset. */
+            const uint16_t bits = (uint16_t)(uint32_t)caption_internal_atoi(argument);
+            int16_t next;
+            memcpy(&next, &bits, sizeof next);
+            if (next < 0 || next >= w->fonts->count || next >= (int)CAPTION_MAX_FONTS)
+                return CAPTION_ERR_FONT;
+            if (w->target) {
+                status = caption_internal_release_font(w->fonts, w->globals, w->backend, w->font, 0);
+                if (status != CAPTION_OK) return status;
+                w->font_owned = 0;
+                w->sheet = NULL;
+            }
+            w->font = next;
+            if (w->target) {
+                status = caption_internal_acquire_font(w->fonts, w->globals, w->backend, next, 0);
+                if (status != CAPTION_OK) return status;
+                w->font_owned = 1;
+                w->sheet = &w->globals->sheets[next];
             }
         } else if (tag == 'c') {
             const int32_t color = caption_internal_atoi(argument);
@@ -193,13 +218,16 @@ static int write_caption(const uint8_t *text, size_t length,
             int status = caption_internal_acquire_font(fonts, globals, backend, (int16_t)font, 0);
             if (status != CAPTION_OK) return status;
             w.sheet = &globals->sheets[font];
+            w.globals = globals; w.backend = backend; w.font_owned = 1;
         }
         int status = write_one(&w, text, length);
         if (status == CAPTION_OK && w.open_choice != -1) status = CAPTION_ERR_FORMAT;
         int final_y = w.y + 3 * pad;
         if (status == CAPTION_OK && (final_y >= limit_y || final_y > INT16_MAX)) status = CAPTION_ERR_TOO_LONG;
-        if (pass >= 2u) {
-            const int released = caption_internal_release_font(fonts, globals, backend, (int16_t)font, 0);
+        if (pass >= 2u && w.font_owned) {
+            /* A switch may have released the initial font, or failed while
+             * acquiring its replacement. Release only this pass's live ref. */
+            const int released = caption_internal_release_font(fonts, globals, backend, w.font, 0);
             if (status == CAPTION_OK) status = released;
         }
         if (!draw || pass >= 2u) { r.glyphs[i] = w.glyphs; r.bottom[i] = (int16_t)final_y;
