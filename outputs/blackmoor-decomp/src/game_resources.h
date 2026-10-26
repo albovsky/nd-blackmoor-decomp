@@ -30,6 +30,9 @@ typedef struct game_resource_bytes {
 GameResources *game_resources_open(const char *directory, int external_cif_checking,
                                    char *error, size_t error_capacity);
 void game_resources_close(GameResources *resources);
+/* Borrowed engine decoder for named CAL layers; resources must outlive every
+ * user. Serialize header and layer loads on the engine thread. */
+cif_decode_context *game_resources_decode_context(GameResources *resources);
 
 /* Raw decoded payload, before renderer-specific image transformation. Outputs
  * must be initialized and empty. Caller owns returned bytes/image pixels. */

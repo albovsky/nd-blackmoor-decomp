@@ -14,6 +14,11 @@ struct GameResources {
     int external_enabled;
 };
 
+cif_decode_context *game_resources_decode_context(GameResources *resources)
+{
+    return resources != NULL ? &resources->decoder : NULL;
+}
+
 static void fail(char *error, size_t cap, const char *message)
 {
     if (error && cap) (void)snprintf(error, cap, "%s", message);

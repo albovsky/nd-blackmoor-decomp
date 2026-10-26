@@ -30,7 +30,9 @@
 #include "native_inventory_render.h"
 #include "native_conversation_caption.h"
 #include "native_random_movie.h"
+#include "native_cel_resources.h"
 #include "action_family_3f.h"
+#include "action_family_3e.h"
 #include "inventory_examine_runtime.h"
 #include "inventory_button_runtime.h"
 #include "session_bindings_a36.h"
@@ -283,6 +285,16 @@ struct NativeApp {
      * keeps a pointer to a3f_sound, so it lives as long as the binding. */
     SessionA3fBinding *a3f = nullptr;
     ActionSoundBackend a3f_sound{};
+    NativeCelResources *cel_resources = nullptr;
+    std::map<uint32_t, NativeRaw555Image> cel_images;
+    std::vector<uint8_t> cel_background;
+    Convo3fRenderPlan cel_plan{};
+    bool cel_plan_valid = false;
+    bool cel_reader_created = false;
+    bool cel_reader_running = false;
+    uint64_t cel_sync_generation = 0u;
+    int32_t cel_sync_divisor = 0;
+    uint64_t cel_draw_count = 0u;
     AutoText *a3f_text = nullptr; /* separately owned CONVO table, never AUTOTEXT */
     struct {
         std::vector<uint8_t> pixels[2];
@@ -1082,7 +1094,7 @@ static NativeRaw555Image *load_native_raw555_image(NativeApp *app,
     }
     cif_pixels_convert_555(raw.pixels.data(), (uint32_t)raw.pixels.size(), &conversion);
     if (app->captions.next_image_handle == 0u ||
-        app->captions.next_image_handle >= UINT32_C(0xf0000000)) {
+        app->captions.next_image_handle >= NATIVE_CEL_SURFACE_FIRST) {
         record(app, "caption_image_error name=%s detail=handle-space-exhausted", name.c_str());
         return nullptr;
     }
@@ -1182,6 +1194,18 @@ static bool native_caption_view_for_handle(NativeApp *app, uint32_t handle,
 {
     if (app == nullptr || view == nullptr) return false;
     NativeCaptionRuntime &captions = app->captions;
+    if (handle >= NATIVE_CEL_SURFACE_FIRST && handle <= NATIVE_CEL_SURFACE_LAST) {
+        const auto found = app->cel_images.find(handle);
+        if (found == app->cel_images.end()) return false;
+        const NativeRaw555Image &image = found->second;
+        view->pixels = const_cast<uint8_t *>(image.pixels.data());
+        view->byte_capacity = image.pixels.size();
+        view->width = static_cast<int32_t>(image.width);
+        view->height = static_cast<int32_t>(image.height);
+        view->pitch_bytes = static_cast<int32_t>(image.pitch);
+        view->format = captions.compositor_format;
+        return true;
+    }
     if (handle == captions.caption_surface_handle) {
         if (captions.caption_surface.pixels == nullptr ||
             captions.caption_surface.width <= 0 || captions.caption_surface.height <= 0 ||
@@ -1242,6 +1266,7 @@ static bool native_a3f_ui_tick(NativeApp *app);
 static bool native_a3f_pointer(NativeApp *app, int kind, unsigned button, int32_t x, int32_t y);
 static bool native_a35_compose(NativeApp *app);
 static bool native_a2d_compose(NativeApp *app);
+static bool native_a3e_compose(NativeApp *app);
 static bool native_ad9_render(NativeApp *app);
 static bool native_ad1_render(NativeApp *app);
 static bool native_a77_render(NativeApp *app);
@@ -1620,6 +1645,10 @@ static bool native_caption_finish_tick(NativeApp *app, uint8_t dispatch_attempte
     /* Slot16 has Z11, after slot15's movie and lower-Z overlays, before
      * dynamic overlay slots at Z11 and every later caption/taskbar pass. */
     for (unsigned range = 0; range < 2u; ++range) {
+        /* Fixed cel slot12/Z11 precedes movie slot15 and overlay slot16. */
+        if (range == 1u && !native_a3e_compose(app)) {
+            record(app, "scene_cel_render_error"); captions.transfer_failed_sticky = true; return false;
+        }
         if (range == 1u && !native_a2d_compose(app)) {
             record(app, "scene_a2d_render_error"); captions.transfer_failed_sticky = true; return false;
         }
@@ -2329,6 +2358,9 @@ static void cleanup(NativeApp *app)
     session_a83_destroy(app->a83);
     native_a3f_caption_reset(app);
     session_a3f_destroy(app->a3f);
+    native_cel_resources_destroy(app->cel_resources);
+    app->cel_resources = nullptr;
+    app->cel_images.clear();
     session_ad9_destroy(app->ad9);
     session_ad1_destroy(app->ad1);
     session_af6_destroy(app->af6);
@@ -2767,6 +2799,21 @@ static SceneSessionCallbackStatus advance_native_session_media_one(
     NativeApp *app = static_cast<NativeApp *>(context);
     if (app == nullptr || frame_input == nullptr || failure == nullptr)
         return SCENE_SESSION_CALLBACK_ERROR;
+    if (app->cel_reader_running && session_a3f_cel_active(app->a3f)) {
+        for (unsigned pass = 0; pass < 4u; ++pass) {
+            int ran = 0;
+            const int status = session_a3f_cel_reader_pass(app->a3f, &ran);
+            if (status != CONVO3F_OK) {
+                record(app, "scene_cel_reader_error status=%d detail=%s", status, session_a3f_failure(app->a3f));
+                failure->stage = SCENE_SESSION_STAGE_MEDIA;
+                failure->provider = SCENE_SESSION_PROVIDER_MEDIA;
+                failure->action_index = SIZE_MAX;
+                failure->detail_status = status;
+                return SCENE_SESSION_CALLBACK_BLOCKED;
+            }
+            if (!ran) break;
+        }
+    }
     if (app->captions.transfer_failed_sticky) {
         failure->stage = SCENE_SESSION_STAGE_MEDIA;
         failure->provider = SCENE_SESSION_PROVIDER_CAPTION;
@@ -2814,6 +2861,7 @@ static SceneSessionCallbackStatus advance_native_session_media_one(
                app->current_scene_id, app->scene_current_frame);
         return SCENE_SESSION_CALLBACK_BLOCKED;
     }
+    if (session_a3f_cel_active(app->a3f)) app->cel_background = app->captions.backbuffer_pixels;
     return SCENE_SESSION_CALLBACK_OK;
 }
 
@@ -4255,17 +4303,198 @@ static int native_a3f_inventory_remove(void *context, int16_t item)
     return action79_remove_item(static_cast<uint16_t>(item), &model, &host, &result, &why) == 0 ? 0 : 1;
 }
 
+/* NATIVE20: real XSHEET/CAL ownership and explicit passes replace only the
+ * platform reader thread. The existing cel kernel still chooses every frame. */
+static int native_cel_header(void *context, const uint8_t *name, const uint8_t **block, size_t *size)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    char error[256]{};
+    return native_cel_resources_load_header(app->cel_resources,
+        reinterpret_cast<const char *>(name), block, size, error, sizeof(error));
+}
+static int native_cel_tree_index(void *context, const uint8_t *name, int16_t *index)
+{
+    return native_cel_resources_tree_index(static_cast<NativeApp *>(context)->cel_resources,
+        reinterpret_cast<const char *>(name), index);
+}
+static int native_cel_tree_info(void *context, int16_t index, uint8_t *kind, uint8_t *transparency)
+{
+    return native_cel_resources_tree_info(static_cast<NativeApp *>(context)->cel_resources,
+        index, kind, transparency);
+}
+static int native_cel_layer(void *context, int16_t tree, const uint8_t *name, Convo3fCelLayer *layer)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    char error[256]{};
+    const int status = native_cel_resources_load_layer(app->cel_resources, tree,
+        reinterpret_cast<const char *>(name), layer, error, sizeof(error));
+    if (status != NATIVE_CEL_OK) {
+        record(app, "scene_cel_layer_error name=%s detail=%s", name, error); return 1;
+    }
+    const cif_image *image = native_cel_resources_image(app->cel_resources, layer->surface);
+    if (!image || image->byte_count > UINT32_MAX || image->pitch > INT16_MAX) {
+        (void)native_cel_resources_free_layer(app->cel_resources, layer->surface);
+        *layer = {}; return 1;
+    }
+    try {
+        NativeRaw555Image raw;
+        raw.width = image->width; raw.height = image->height; raw.pitch = image->pitch;
+        raw.pixels.assign(image->pixels, image->pixels + image->byte_count);
+        cif_pixel_format conversion{}; conversion.enabled = 1u;
+        for (size_t channel = 0; channel < 3u; ++channel) {
+            conversion.shifts[channel] = app->captions.pixel_format.shifts[channel];
+            conversion.channel_bits[channel] = static_cast<int8_t>(app->captions.pixel_format.channel_bits[channel]);
+        }
+        cif_pixels_convert_555(raw.pixels.data(), static_cast<uint32_t>(raw.pixels.size()), &conversion);
+        app->cel_images.emplace(layer->surface, std::move(raw));
+    } catch (...) {
+        (void)native_cel_resources_free_layer(app->cel_resources, layer->surface);
+        *layer = {}; return 1;
+    }
+    return 0;
+}
+static int native_cel_free_layer(void *context, int16_t, int, uint32_t surface)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    app->cel_images.erase(surface);
+    return native_cel_resources_free_layer(app->cel_resources, surface);
+}
+static int native_cel_release_header(void *context)
+{
+    return native_cel_resources_release_header(static_cast<NativeApp *>(context)->cel_resources);
+}
+static int native_cel_reader_create(void *context)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (app->cel_reader_created) return 1;
+    app->cel_reader_created = true; app->cel_reader_running = false;
+    app->cel_plan_valid = false; app->cel_sync_generation = 0u; return 0;
+}
+static int native_cel_reader_resume(void *context)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (!app->cel_reader_created) return 1;
+    app->cel_reader_running = true; return 0;
+}
+static int native_cel_reader_destroy(void *context)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    app->cel_reader_running = false; app->cel_reader_created = false;
+    app->cel_plan_valid = false; app->cel_sync_generation = 0u; return 0;
+}
+static int native_cel_sync_init(void *context, uint16_t channel, uint16_t frames, uint32_t param)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    LiveAudioPlaybackCursor cursor{};
+    if (!frames || live_audio_get_playback_cursor(app->live_audio, channel, 0, &cursor) != LIVE_AUDIO_OK ||
+        !cursor.loaded || !cursor.sample_rate || !cursor.channels || !cursor.bits_per_sample) return 1;
+    /* 4f6cdc: original source format, fixed15fps. Header param is retained
+     * for diagnostics and never substituted for this divisor. */
+    const double bytes_per_frame = static_cast<double>(static_cast<float>(cursor.sample_rate)) *
+        static_cast<float>(cursor.bits_per_sample) * static_cast<float>(cursor.channels) / 8.0 / 15.0;
+    if (!std::isfinite(bytes_per_frame) || bytes_per_frame < 1.0 || bytes_per_frame > INT32_MAX) return 1;
+    app->cel_sync_divisor = static_cast<int32_t>(bytes_per_frame);
+    if (!cursor.playing && live_audio_play_sound(app->live_audio, channel) != ACTION_SOUND_BACKEND_OK) return 1;
+    if (live_audio_get_playback_cursor(app->live_audio, channel, 0, &cursor) != LIVE_AUDIO_OK) return 1;
+    app->cel_sync_generation = cursor.generation;
+    record(app, "scene_cel_sync_init channel=%u frames=%u param=%u divisor=%d generation=%llu",
+        channel, frames, param, app->cel_sync_divisor, static_cast<unsigned long long>(cursor.generation));
+    return 0;
+}
+static int native_cel_sync_frame(void *context, uint16_t channel, int *playing, int32_t *raw_frame)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (!playing || !raw_frame || !app->cel_sync_generation || app->cel_sync_divisor <= 0) return 1;
+    LiveAudioPlaybackCursor cursor{};
+    const int status = live_audio_get_playback_cursor(app->live_audio, channel, app->cel_sync_generation, &cursor);
+    if (status != LIVE_AUDIO_OK) return 1;
+    *playing = cursor.playing;
+    *raw_frame = -1;
+    if (cursor.playing && cursor.position_valid) {
+        const double frame = static_cast<double>(static_cast<float>(cursor.decoded_byte_position)) /
+            static_cast<float>(app->cel_sync_divisor);
+        if (!std::isfinite(frame) || frame > INT32_MAX) return 1;
+        *raw_frame = frame > 0.0 ? static_cast<int32_t>(frame) : 0;
+    }
+    return 0;
+}
+static bool native_a3e_preflight(NativeApp *app, const ActionFamily3eDecoded &decoded)
+{
+    char error[256]{};
+    if (!app->cel_resources) {
+        app->cel_resources = native_cel_resources_create(app->resources,
+            (app->game_directory + "/Ciftree").c_str(), game_resources_decode_context(app->resources), error, sizeof(error));
+        if (!app->cel_resources) return false;
+    }
+    NativeCelRequest request{};
+    std::memcpy(request.header_name, decoded.name, 33u);
+    std::memcpy(request.layer_names[0], decoded.name_21, 33u);
+    std::memcpy(request.layer_names[1], decoded.name_42, 33u);
+    request.first = 0; request.last = static_cast<int16_t>(decoded.word_63);
+    const int status = native_cel_resources_preflight(app->cel_resources, &request, error, sizeof(error));
+    record(app, "scene_cel_preflight name=%s status=%d detail=%s", request.header_name, status, error);
+    return status == NATIVE_CEL_OK;
+}
+static bool native_a3e_compose(NativeApp *app)
+{
+    if (!app->a3f || !session_a3f_cel_active(app->a3f)) { app->cel_plan_valid = false; return true; }
+    Convo3fRenderPlan plan{};
+    const int changed = session_a3f_cel_render(app->a3f, &plan);
+    if (changed < 0) return false;
+    if (changed) { app->cel_plan = plan; app->cel_plan_valid = true; ++app->cel_draw_count; }
+    if (!app->cel_plan_valid) return true;
+    CaptionCompositorView destination{app->captions.backbuffer_pixels.data(),
+        app->captions.backbuffer_pixels.size(), 640, 480, 1280, app->captions.compositor_format};
+    for (size_t i = 0; i < app->cel_plan.count; ++i) {
+        const Convo3fBlit &blit = app->cel_plan.blits[i];
+        CaptionCompositorView source{};
+        CaptionBlitKind kind = CAPTION_BLIT_OPAQUE;
+        if (blit.kind == CONVO3F_BLIT_RESTORE) {
+            /* Clean ticks already reseed the scene; replay only current
+             * layers then. A new kernel plan keeps every restore in order. */
+            if (!changed) continue;
+            const int32_t left = app->scene_destination.left, top = app->scene_destination.top;
+            if (left < 0 || top < 0 || left >= 640 || top >= 480 || app->cel_background.size() != 640u * 480u * 2u) return false;
+            const size_t offset = static_cast<size_t>(top) * 1280u + static_cast<size_t>(left) * 2u;
+            source = {app->cel_background.data() + offset, app->cel_background.size() - offset,
+                app->scene_destination.right - left + 1, app->scene_destination.bottom - top + 1,
+                1280, app->captions.compositor_format};
+        } else {
+            if (!native_caption_view_for_handle(app, blit.surface, &source) || source.pitch_bytes != blit.key) return false;
+            if (blit.kind == CONVO3F_BLIT_TRANSPARENT) kind = CAPTION_BLIT_KEYED;
+            else if (blit.kind != CONVO3F_BLIT_OPAQUE) return false;
+        }
+        const CaptionRect src{blit.src[0], blit.src[1], blit.src[2], blit.src[3]};
+        const CaptionRect dst{blit.dst[0], blit.dst[1], blit.dst[2], blit.dst[3]};
+        if (caption_compositor_blit(&source, &destination, kind, &src, &dst,
+            app->captions.pixel_format.color_key) != CAPTION_COMPOSITOR_OK) return false;
+    }
+    if (changed) {
+        const Convo3fManager *m = session_a3f_manager(app->a3f);
+        record(app, "scene_cel_render frame=%d slot=%d blits=%zu fixed_slot=12 z=11 draws=%llu",
+            m->cel.drawn, m->cel.slot, app->cel_plan.count, static_cast<unsigned long long>(app->cel_draw_count));
+    }
+    return true;
+}
+
 static int native_a3f_handler(void *context, size_t row, const SceneActionInfo *action,
                               const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
     if (app == nullptr || before == nullptr || out == nullptr) return SCENE_ACTION_HANDLER_ERROR;
     const uint32_t phase_before = before->phase;
-    if (phase_before == 0u && action && action->type == SESSION_A3F_TYPE &&
+    if (phase_before == 0u && action && (action->type == SESSION_A3F_TYPE || action->type == SESSION_A3E_TYPE) &&
         !session_a3f_phase0_guarded(app->a3f)) {
-        ActionFamily3fDecoded decoded{};
-        if (action_family_3f_decode(action->raw_body, action->raw_body_length, &decoded) != ACTION_FAMILY_3F_OK)
-            return SCENE_ACTION_HANDLER_ERROR;
+        if (action->type == SESSION_A3E_TYPE) {
+            ActionFamily3eDecoded decoded{};
+            if (action_family_3e_decode(action->raw_body, action->raw_body_length, &decoded) != ACTION_FAMILY_3E_OK)
+                return SCENE_ACTION_HANDLER_ERROR;
+            if (!native_a3e_preflight(app, decoded)) return SCENE_ACTION_HANDLER_UNSUPPORTED;
+        } else {
+            ActionFamily3fDecoded decoded{};
+            if (action_family_3f_decode(action->raw_body, action->raw_body_length, &decoded) != ACTION_FAMILY_3F_OK)
+                return SCENE_ACTION_HANDLER_ERROR;
+        }
         Convo3fManager preview{};
         Convo3fLayoutRequest request{};
         const int preview_status = session_a3f_preview_layout(app->a3f, row, &preview, &request);
@@ -10309,6 +10538,17 @@ static bool create_native_session_bindings(NativeApp *app)
     a3f_host.kernel.release_ui_hook = native_a3f_release_ui_hook;
     a3f_host.kernel.engine_restore = native_a3f_engine_restore;
     a3f_host.kernel.refresh_hotspot_surface = native_a3f_refresh_surface;
+    a3f_host.kernel.cel_load_header = native_cel_header;
+    a3f_host.kernel.cel_tree_index = native_cel_tree_index;
+    a3f_host.kernel.cel_tree_info = native_cel_tree_info;
+    a3f_host.kernel.cel_load_layer = native_cel_layer;
+    a3f_host.kernel.cel_free_layer = native_cel_free_layer;
+    a3f_host.kernel.cel_release_header = native_cel_release_header;
+    a3f_host.kernel.cel_reader_create = native_cel_reader_create;
+    a3f_host.kernel.cel_reader_resume = native_cel_reader_resume;
+    a3f_host.kernel.cel_reader_destroy = native_cel_reader_destroy;
+    a3f_host.kernel.sound_sync_init = native_cel_sync_init;
+    a3f_host.kernel.sound_sync_frame = native_cel_sync_frame;
     a3f_host.resolve_text = native_a3f_resolve_text;
     a3f_host.load_world = native_a3f_load_world;
     a3f_host.store_world = native_a3f_store_world;
@@ -12701,10 +12941,8 @@ static bool create_native_scene_session(NativeApp *app)
     bindings[17].provider = SCENE_SESSION_PROVIDER_ACTION_KERNEL;
     bindings[17].callback = native_ad9_handler;
     bindings[17].context = app;
-    /* RT-25: raw 0x3e cel-video conversation (same dispatcher arm 0x427a50 -> 0x420c17, cel arms).
-     * The kernel and binding are verified; the host providers for the CIFTREE cel header, the
-     * layer images and the audio frame sync (cel_* / sound_sync_* in a3f_host) are NOT
-     * implemented here, so the kernel refuses every 0x3e visit as UNSUPPORTED before any effect. */
+    /* RT-25/NATIVE20: raw3e uses the recovered cel kernel with native CAL
+     * resources, explicit reader passes and source-audio frame synchronization. */
     bindings[18].type = SESSION_A3E_TYPE;
     bindings[18].provider = SCENE_SESSION_PROVIDER_ACTION_SOUND;
     bindings[18].callback = native_a3f_handler;

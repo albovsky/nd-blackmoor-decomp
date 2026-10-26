@@ -27,6 +27,10 @@ struct Slot {
     uint64_t generation = 0;
     bool active = false;
     bool looping = false;
+    bool started = false;
+    uint64_t source_frame_count = 0;
+    uint64_t play_render_mark = 0;
+    uint64_t last_cursor_frames = 0;
 };
 
 struct HostState {
@@ -37,6 +41,7 @@ struct HostState {
     uint32_t render_channels = 0;
     bool started = false;
     bool closed = false;
+    uint64_t rendered_frames = 0;
     std::mutex mutex;
     std::unordered_map<uint32_t, Slot> slots;
 };
@@ -408,6 +413,9 @@ extern "C" int mac_audio_play(MacAudioHost *host,
         std::lock_guard<std::mutex> lock(state->mutex);
         generation = ++slot->generation;
         slot->active = false;
+        slot->started = false;
+        slot->source_frame_count = frame_count;
+        slot->last_cursor_frames = 0;
         slot->looping = (loop != 0);
         slot->buffer = buffer;
     }
@@ -471,6 +479,7 @@ extern "C" int mac_audio_play(MacAudioHost *host,
                             found->second.generation == generation &&
                             !found->second.looping) {
                             found->second.active = false;
+                            found->second.last_cursor_frames = found->second.source_frame_count;
                         }
                     }];
     } @catch (NSException *exception) {
@@ -516,6 +525,11 @@ extern "C" int mac_audio_play(MacAudioHost *host,
         }
         return MAC_AUDIO_ERR_ENGINE;
     }
+    {
+        std::lock_guard<std::mutex> lock(state->mutex);
+        slot->started = true;
+        slot->play_render_mark = state->rendered_frames;
+    }
     return MAC_AUDIO_OK;
 }
 
@@ -538,6 +552,8 @@ extern "C" int mac_audio_stop(MacAudioHost *host,
         }
         ++found->second.generation;
         found->second.active = false;
+        found->second.started = false;
+        found->second.last_cursor_frames = 0;
         player = found->second.player;
     }
     [player stop];
@@ -658,6 +674,12 @@ extern "C" int mac_audio_host_render_offline(MacAudioHost *host,
                     (unsigned)frame_count);
         return MAC_AUDIO_ERR_ENGINE;
     }
+    /* Count actual successful manual renders, even if later copy allocation
+     * fails. Virtual provider advances never enter this host counter. */
+    {
+        std::lock_guard<std::mutex> lock(state->mutex);
+        state->rendered_frames += frame_count;
+    }
     if ((uint64_t)frame_count >
         std::numeric_limits<size_t>::max() / state->render_channels / sizeof(float)) {
         return fail(MAC_AUDIO_ERR_MEMORY, error, error_capacity,
@@ -700,6 +722,92 @@ extern "C" const char *mac_audio_status_string(int status) {
         case MAC_AUDIO_ERR_MEMORY: return "allocation failed";
         case MAC_AUDIO_ERR_MODE: return "operation unavailable in this mode";
         case MAC_AUDIO_ERR_CLOSED: return "audio host is closed";
+        case MAC_AUDIO_ERR_STALE: return "stale playback generation";
         default: return "unknown audio status";
     }
+}
+
+extern "C" int mac_audio_get_playback_cursor(MacAudioHost *host, uint32_t slot_id,
+                                             uint64_t expected_generation,
+                                             MacAudioPlaybackCursor *cursor,
+                                             char *error, size_t capacity) {
+    clear_error(error, capacity);
+    if (cursor == nullptr) return fail(MAC_AUDIO_ERR_ARGUMENT, error, capacity, "cursor output is null");
+    std::shared_ptr<HostState> state;
+    int status = check_host(host, &state, error, capacity);
+    if (status != MAC_AUDIO_OK) return status;
+    MacAudioPlaybackCursor built{};
+    __strong AVAudioPlayerNode *player = nil;
+    uint64_t render_delta = 0;
+    {
+        std::lock_guard<std::mutex> lock(state->mutex);
+        auto found = state->slots.find(slot_id);
+        if (found == state->slots.end()) {
+            if (expected_generation != 0)
+                return fail(MAC_AUDIO_ERR_STALE, error, capacity, "playback generation no longer exists");
+            built.position_valid = 1;
+            *cursor = built;
+            return MAC_AUDIO_OK;
+        }
+        const Slot &slot = found->second;
+        if (expected_generation != 0 && expected_generation != slot.generation)
+            return fail(MAC_AUDIO_ERR_STALE, error, capacity, "playback generation changed");
+        built.generation = slot.generation;
+        built.source_frame_count = slot.source_frame_count;
+        built.sample_rate = slot.source_rate;
+        built.channels = slot.source_channels;
+        built.started = slot.started;
+        built.playing = slot.active;
+        built.source_frames = slot.last_cursor_frames;
+        player = slot.player;
+        render_delta = state->rendered_frames - slot.play_render_mark;
+    }
+    built.position_valid = 1;
+    if (!built.started) {
+        built.source_frames = 0;
+    } else if (!built.playing) {
+        built.source_frames = built.source_frame_count;
+    } else if (state->mode == MAC_AUDIO_MODE_OFFLINE) {
+        /* source_frame_count is bounded by AVAudioFrameCount (u32), so if
+         * multiplication overflows the clamped source end is already passed. */
+        built.source_frames = render_delta > UINT64_MAX / built.sample_rate
+            ? built.source_frame_count : (render_delta * built.sample_rate) / state->render_rate;
+    } else {
+        /* Apple's SDK documents that stop resets the player timeline to zero
+         * and playerTimeForNodeTime converts node time to time since play.
+         * nil before a native render is an explicit unavailable position. */
+        @try {
+            AVAudioTime *node_time = player.lastRenderTime;
+            AVAudioTime *time = node_time != nil ? [player playerTimeForNodeTime:node_time] : nil;
+            if (time == nil || !time.isSampleTimeValid || !std::isfinite(time.sampleRate) || time.sampleRate <= 0) {
+                built.position_valid = 0;
+            } else {
+                const double frames = std::fmax(0.0, (double)time.sampleTime) * built.sample_rate / time.sampleRate;
+                built.source_frames = frames >= (double)built.source_frame_count
+                    ? built.source_frame_count : (uint64_t)std::floor(frames);
+            }
+        } @catch (NSException *exception) {
+            write_error(error, capacity, "querying native player timeline raised: %s", exception.reason.UTF8String);
+            return MAC_AUDIO_ERR_ENGINE;
+        }
+    }
+    if (built.source_frames > built.source_frame_count) built.source_frames = built.source_frame_count;
+    {
+        std::lock_guard<std::mutex> lock(state->mutex);
+        auto found = state->slots.find(slot_id);
+        if (found == state->slots.end() || found->second.generation != built.generation)
+            return fail(MAC_AUDIO_ERR_STALE, error, capacity, "playback generation changed during query");
+        Slot &slot = found->second;
+        if (slot.started && !slot.active) {
+            built.source_frames = built.source_frame_count;
+            built.position_valid = 1;
+        }
+        built.playing = slot.active;
+        if (built.position_valid) {
+            if (built.source_frames < slot.last_cursor_frames) built.source_frames = slot.last_cursor_frames;
+            slot.last_cursor_frames = built.source_frames;
+        }
+    }
+    *cursor = built;
+    return MAC_AUDIO_OK;
 }

@@ -69,6 +69,11 @@ typedef struct Channel {
     uint32_t repeat_due_tick;
     uint32_t restarts;
     uint64_t generation;
+    uint64_t cursor_generation;
+    uint64_t host_cursor_generation;
+    uint32_t source_rate;
+    uint16_t source_channels;
+    uint16_t source_bits;
     /* Counts loads on this channel. Its parity picks the host slot, so a
      * replacement sound never shares a host slot with the sound it replaced:
      * a late completion for the old sound cannot be mistaken for the new
@@ -90,6 +95,7 @@ typedef struct Channel {
 
 struct LiveAudio {
     LiveAudioHostOps ops;
+    uint8_t native_cursor;
     MacAudioHost *host;
     MacAudioMode mode;
     char *game_directory;
@@ -294,7 +300,8 @@ static void refresh_gain(const LiveAudio *audio, Channel *channel)
 /* HIS header offset 24 is the original's data size (slot+0x122 -> +0x15e,
  * 0x4f3aaf). The decoder has already validated the file, so a failure here is
  * a race with the filesystem and fails the load. */
-static int read_decoded_bytes(const char *path, uint32_t *decoded_bytes)
+static int read_source_format(const char *path, uint32_t *decoded_bytes, uint32_t *rate,
+                               uint16_t *channels, uint16_t *bits)
 {
     uint8_t header[HIS_HEADER_BYTES];
     FILE *file = fopen(path, "rb");
@@ -304,6 +311,10 @@ static int read_decoded_bytes(const char *path, uint32_t *decoded_bytes)
     got = fread(header, 1u, sizeof(header), file);
     (void)fclose(file);
     if (got != sizeof(header) || memcmp(header, "HIS\0", 4u) != 0) return 0;
+    *rate = (uint32_t)header[12] | ((uint32_t)header[13] << 8) |
+            ((uint32_t)header[14] << 16) | ((uint32_t)header[15] << 24);
+    *channels = (uint16_t)((uint16_t)header[10] | ((uint16_t)header[11] << 8));
+    *bits = (uint16_t)((uint16_t)header[22] | ((uint16_t)header[23] << 8));
     *decoded_bytes = (uint32_t)header[HIS_DECODED_BYTES_OFFSET] |
                      ((uint32_t)header[HIS_DECODED_BYTES_OFFSET + 1u] << 8) |
                      ((uint32_t)header[HIS_DECODED_BYTES_OFFSET + 2u] << 16) |
@@ -337,6 +348,11 @@ static int release_channel(LiveAudio *audio, uint16_t index)
     channel->repeat_marker = 0u;
     channel->raw_flags = 0u;
     channel->decoded_bytes = 0u;
+    channel->source_rate = 0u;
+    channel->source_channels = 0u;
+    channel->source_bits = 0u;
+    channel->host_cursor_generation = 0u;
+    ++channel->cursor_generation;
     channel->repeat_min = 0u;
     channel->repeat_max = 0u;
     channel->repeat_delay = 0u;
@@ -424,6 +440,7 @@ int live_audio_create(const LiveAudioConfig *config, LiveAudio **audio_out,
         return LIVE_AUDIO_ERR_MEMORY;
     }
     audio->mode = config->mode;
+    audio->native_cursor = config->host_ops == NULL;
     audio->log = config->log;
     audio->log_context = config->log_context;
     audio->random_value = config->random_value;
@@ -491,7 +508,8 @@ ActionSoundBackendStatus live_audio_load_sound(void *context,
     char *path = NULL;
     char error[512] = "";
     HisAudio decoded = HIS_AUDIO_INIT;
-    uint32_t decoded_bytes = 0u;
+    uint32_t decoded_bytes = 0u, source_rate = 0u;
+    uint16_t source_channels = 0u, source_bits = 0u;
     ResolveStatus resolved;
     int status;
 
@@ -537,7 +555,10 @@ ActionSoundBackendStatus live_audio_load_sound(void *context,
         return ACTION_SOUND_BACKEND_ERROR;
     }
     status = his_audio_decode_file(path, &decoded, error, sizeof(error));
-    if (status == HIS_AUDIO_OK && !read_decoded_bytes(path, &decoded_bytes)) {
+    if (status == HIS_AUDIO_OK &&
+        (!read_source_format(path, &decoded_bytes, &source_rate, &source_channels, &source_bits) ||
+         source_rate != decoded.sample_rate || source_channels != decoded.channels ||
+         (source_bits != 8u && source_bits != 16u))) {
         logf_line(audio, "live_audio decode_failed stem=%s channel=%u reason=header-reread",
                   command->asset_stem, command->channel);
         his_audio_destroy(&decoded);
@@ -583,6 +604,9 @@ ActionSoundBackendStatus live_audio_load_sound(void *context,
         decoded.channels = 2u;
     }
 
+    channel->source_rate = source_rate;
+    channel->source_channels = source_channels;
+    channel->source_bits = source_bits;
     channel->audio = decoded;
     channel->loaded = 1u;
     channel->volume_category = command->volume_category;
@@ -633,6 +657,8 @@ static ActionSoundBackendStatus start_host(LiveAudio *audio, uint16_t index, int
 
     channel->finished = 0u;
     channel->stop_event_pending = 0u;
+    ++channel->cursor_generation;
+    channel->host_cursor_generation = 0;
     status = audio->ops.play(audio->host, channel->host_slot, channel->audio.interleaved_pcm,
                              channel->audio.frame_count, channel->audio.channels,
                              channel->audio.sample_rate, channel->final_gain, loop != 0, error,
@@ -647,6 +673,11 @@ static ActionSoundBackendStatus start_host(LiveAudio *audio, uint16_t index, int
          * channel then reads as not playing, so the action advances. A missing
          * output device must not end the game. */
         return ACTION_SOUND_BACKEND_NO_RESOURCE;
+    }
+    if (audio->native_cursor) {
+        MacAudioPlaybackCursor cursor;
+        if (mac_audio_get_playback_cursor(audio->host, channel->host_slot, 0, &cursor, error, sizeof(error)) == MAC_AUDIO_OK)
+            channel->host_cursor_generation = cursor.generation;
     }
     channel->started = 1u;
     channel->looping = loop != 0 ? 1u : 0u;
@@ -919,6 +950,8 @@ int live_audio_stop_channel(LiveAudio *audio, uint16_t index)
     if (channel->loaded) channel->update_gate_287 = 1u;
     channel->stop_event_pending = 0u;
     ++channel->generation;
+    ++channel->cursor_generation;
+    channel->host_cursor_generation = 0;
     if (status != MAC_AUDIO_OK) {
         logf_line(audio, "live_audio stop_failed channel=%u status=%d detail=%s", index, status, error);
         return LIVE_AUDIO_ERR_HOST;
@@ -1293,6 +1326,55 @@ const char *live_audio_status_string(int status)
     case LIVE_AUDIO_ERR_MODE: return "operation unavailable in this mode";
     case LIVE_AUDIO_ERR_HOST: return "audio host failure";
     case LIVE_AUDIO_ERR_MEMORY: return "allocation failed";
+    case LIVE_AUDIO_ERR_UNSUPPORTED: return "cursor unavailable for custom host";
+    case LIVE_AUDIO_ERR_STALE: return "stale playback generation";
     default: return "unknown live audio status";
     }
+}
+
+int live_audio_get_playback_cursor(LiveAudio *audio, uint16_t index,
+                                   uint64_t expected_generation,
+                                   LiveAudioPlaybackCursor *cursor)
+{
+    Channel *channel;
+    LiveAudioPlaybackCursor built;
+    if (audio == NULL || cursor == NULL || index >= LIVE_AUDIO_CHANNEL_COUNT) return LIVE_AUDIO_ERR_ARGUMENT;
+    if (!on_main_thread()) return LIVE_AUDIO_ERR_THREAD;
+    if (!audio->native_cursor) return LIVE_AUDIO_ERR_UNSUPPORTED;
+    channel = &audio->channels[index];
+    if (expected_generation != 0 && expected_generation != channel->cursor_generation) return LIVE_AUDIO_ERR_STALE;
+    memset(&built, 0, sizeof built);
+    built.generation = channel->cursor_generation;
+    built.position_valid = 1u;
+    built.loaded = channel->loaded;
+    built.started = channel->started;
+    if (channel->loaded) {
+        built.sample_rate = channel->source_rate;
+        built.channels = channel->source_channels;
+        built.bits_per_sample = channel->source_bits;
+        built.source_frame_count = channel->audio.frame_count;
+        built.decoded_byte_count = channel->decoded_bytes;
+        if (channel->started) {
+            MacAudioPlaybackCursor native;
+            char error[256] = "";
+            int status;
+            if (channel->host_cursor_generation == 0) return LIVE_AUDIO_ERR_HOST;
+            status = mac_audio_get_playback_cursor(audio->host, channel->host_slot,
+                                                   channel->host_cursor_generation, &native, error, sizeof error);
+            if (status == MAC_AUDIO_ERR_STALE) return LIVE_AUDIO_ERR_STALE;
+            if (status != MAC_AUDIO_OK) return LIVE_AUDIO_ERR_HOST;
+            built.position_valid = native.position_valid;
+            built.source_frames = native.source_frames;
+            built.playing = native.playing;
+            if (built.source_frames > built.source_frame_count) built.source_frames = built.source_frame_count;
+            built.decoded_byte_position = built.source_frames * channel->source_channels * (channel->source_bits / 8u);
+            if (built.decoded_byte_position > built.decoded_byte_count) built.decoded_byte_position = built.decoded_byte_count;
+            if (!native.playing && !channel->finished) {
+                channel->finished = 1u;
+                channel->stop_event_pending = 1u;
+            }
+        }
+    }
+    *cursor = built;
+    return LIVE_AUDIO_OK;
 }

@@ -16,7 +16,8 @@ typedef enum mac_audio_status {
     MAC_AUDIO_ERR_FORMAT = 4,
     MAC_AUDIO_ERR_MEMORY = 5,
     MAC_AUDIO_ERR_MODE = 6,
-    MAC_AUDIO_ERR_CLOSED = 7
+    MAC_AUDIO_ERR_CLOSED = 7,
+    MAC_AUDIO_ERR_STALE = 8
 } MacAudioStatus;
 
 typedef enum mac_audio_mode {
@@ -25,6 +26,31 @@ typedef enum mac_audio_mode {
 } MacAudioMode;
 
 typedef struct MacAudioHost MacAudioHost;
+
+/* Independent cursor API; existing public layouts are unchanged. */
+typedef struct MacAudioPlaybackCursor {
+    uint64_t generation;
+    uint64_t source_frames;
+    uint64_t source_frame_count;
+    uint32_t sample_rate;
+    uint32_t channels;
+    uint8_t started;
+    uint8_t playing;
+    uint8_t position_valid;
+} MacAudioPlaybackCursor;
+
+/* expected_generation=0 queries the current slot; a nonzero stale generation
+ * refuses without changing cursor. All refusals leave cursor unchanged.
+ * Frames count accepted offline renders since play at the source rate, or
+ * AVAudioPlayerNode's native player timeline in output mode. No wall clock.
+ * Position clamps to source_frame_count, including loops; playing retains the
+ * existing DataRendered / DataPlayedBack lifetime. Stop/replay changes the
+ * generation and resets position to zero. An output timeline not yet available
+ * has position_valid=0; this must not be treated as successful progress. */
+int mac_audio_get_playback_cursor(MacAudioHost *host, uint32_t slot_id,
+                                  uint64_t expected_generation,
+                                  MacAudioPlaybackCursor *cursor,
+                                  char *error, size_t error_capacity);
 
 typedef struct MacAudioRender {
     uint32_t sample_rate;
