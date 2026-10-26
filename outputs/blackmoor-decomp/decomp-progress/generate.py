@@ -1028,13 +1028,42 @@ LEDGER_CAVEATS = (
 )
 
 
+MAC_PORT_REGIONS = ("game", "vorbis")    # the code the native Mac port runs itself
+MAC_PORT_LABELS = {"game": "Game", "vorbis": "Vorbis and Ogg"}
+MAC_PORT_EXCLUDED = ("crt_mfc",)         # Microsoft runtime code the Mac supplies: out of the Mac-port view whatever its rows say
+
+
+def mac_port_summary(counts: dict, te_by_region: dict) -> dict:
+    """Headline numbers for the native Mac port: Game and Vorbis/Ogg only, with CRT and MFC set aside whole.
+
+    Tested equivalent is a slice of pending, so `pending` here is the rest of pending."""
+    def tally(region):
+        r = counts["region"][region]
+        te = te_by_region[region]
+        return {"total": sum(r.values()), "ported": r["ported"], "tested_equivalent": te,
+                "pending": r["pending"] - te, "not_needed": r["not_needed"]}
+    by_region = {r: tally(r) for r in MAC_PORT_REGIONS}
+    out = {k: sum(v[k] for v in by_region.values()) for k in ("total", "ported", "tested_equivalent", "pending", "not_needed")}
+    excluded = {r: tally(r) for r in MAC_PORT_EXCLUDED}
+    return {"regions": list(MAC_PORT_REGIONS), "excluded_regions": list(MAC_PORT_EXCLUDED), **out, "by_region": by_region,
+            "excluded": {"total": sum(v["total"] for v in excluded.values()), "by_region": excluded}}
+
+
 def function_ledger_report(panel):
     if panel is None:
         return []
     c, n = panel["counts"], panel["total"]
     st, cl, rs = c["status"], c["class"], c["reason"]
-    lines = ["## Function ledger", "",
-             f"**{n:,} functions:** {st['ported']:,} ported, {st['not_needed']:,} not needed, "
+    lines = ["## Function ledger", ""]
+    mp = panel["mac_port"]
+    ex = mp["excluded"]
+    lines += [f"**Needed for the Mac port: {mp['total']:,} functions** (Game and Vorbis/Ogg): {mp['ported']:,} ported, "
+              f"{mp['tested_equivalent']:,} tested equivalent (a second tier, not counted as ported), "
+              f"{mp['pending']:,} pending, {mp['not_needed']:,} not needed. "
+              + "; ".join(f"{MAC_PORT_LABELS[r]} {v['ported']:,} of {v['total']:,} ported" for r, v in mp["by_region"].items()) + ".",
+              f"CRT and MFC ({ex['total']:,} functions) is Microsoft runtime code that macOS supplies, so it is left out of the Mac-port view "
+              "and still counts in the x86 match view below.", ""]
+    lines += [f"**x86 match view, all {n:,} functions:** {st['ported']:,} ported, {st['not_needed']:,} not needed, "
              f"{st['pending']:,} pending ({pct(st['pending'], n)}).", ""]
     te = panel["tested_equivalent"]
     if te["count"]:
@@ -1176,7 +1205,8 @@ def compact_function_ledger(ledger: dict, ledger_sha256: str) -> dict:
             or sum(cross["complete"].values()) != x86["complete"]):
         raise ProgressError("function ledger x86 cross-tab disagrees with the ledger counts")
     return {"schema": ledger["schema"], "ledger_sha256": ledger_sha256, "total": counts["total"],
-            "counts": counts, "tested_equivalent": {"count": len(te_set), "by_region": te_by_region}, "statuses": statuses, "regions": regions, "classes": classes,
+            "counts": counts, "tested_equivalent": {"count": len(te_set), "by_region": te_by_region},
+            "mac_port": mac_port_summary(counts, te_by_region), "statuses": statuses, "regions": regions, "classes": classes,
             "class_status": [statuses.index(FNL.CLASS_STATUS[c]) for c in classes],
             "uses": uses, "crosstab": cross, "caveats": list(LEDGER_CAVEATS), "input_count": len(ledger["inputs"]),
             "paths": paths, "receipts": receipts, "items": items, "details": details, "rows": rows}

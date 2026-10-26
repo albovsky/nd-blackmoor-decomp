@@ -174,8 +174,21 @@ table.lg-table{font-size:12px}
   <details><summary>Action coverage and evidence</summary><p id="handledTypes" class="mono"></p><p id="unsupportedTypes" class="mono"></p><p id="opaqueTypes" class="mono"></p><p>Types and record counts use current parser layouts and corpus counts. The handled record count is an upper bound: raw <code>0x15</code> is a hotspot only when <code>typed_body[0] == 0x0d</code>. Native handlers may still block on unsupported branches or providers. Full gameplay remains unverified.</p><p id="playableEvidence"></p></details>
 </section>
 
+<section class="ledger macport" aria-labelledby="macTitle" id="macPort" hidden>
+  <div class="ledger-heading"><h2 id="macTitle">Needed for the Mac port</h2><p class="scope" id="macScope"></p></div>
+  <div class="ledger-metrics">
+    <div class="ledger-metric"><h3>Ported</h3><div class="ledger-value" id="mpPorted"></div><p id="mpPortedSplit"></p><p>Reviewed claim that the native code does what the original did</p></div>
+    <div class="ledger-metric"><h3>Tested equivalent</h3><div class="ledger-value" id="mpTe"></div><p id="mpTeSplit"></p><p>Second tier, not counted as ported: matches the original on every test input, no mutation check</p></div>
+    <div class="ledger-metric"><h3>Pending</h3><div class="ledger-value" id="mpPending"></div><p id="mpPendingSplit"></p><p>Not yet proven either way</p></div>
+    <div class="ledger-metric"><h3>Not needed</h3><div class="ledger-value" id="mpNotNeeded"></div><p>Game or Vorbis functions with a recorded reason the port does not need them</p></div>
+  </div>
+  <div class="lg-regions" id="mpRegions"></div>
+  <div class="lg-legend"><span><i class="sw s-ported"></i>Ported</span><span><i class="sw s-te"></i>Tested equivalent (not ported)</span><span><i class="sw s-pending"></i>Pending</span><span><i class="sw s-not_needed"></i>Not needed</span></div>
+  <p class="ledger-baseline" id="mpExcluded"></p>
+</section>
+
 <section class="ledger" aria-labelledby="ledgerTitle" id="ledger" hidden>
-  <div class="ledger-heading"><h2 id="ledgerTitle">Function ledger</h2><p class="scope" id="ledgerScope"></p></div>
+  <div class="ledger-heading"><h2 id="ledgerTitle">Function ledger: x86 match view (all functions)</h2><p class="scope" id="ledgerScope"></p></div>
   <div class="ledger-metrics">
     <div class="ledger-metric"><h3>Ported</h3><div class="ledger-value" id="lgPorted"></div><p id="lgPortedSplit"></p><p>Reviewed claim; not an x86 match</p></div>
     <div class="ledger-metric"><h3>Tested equivalent</h3><div class="ledger-value" id="lgTe"></div><p id="lgTeSplit"></p><p>Second tier, not ported: every line run, matches the original on every test input; no mutation check</p></div>
@@ -287,6 +300,33 @@ if(D.function_ledger){
   $("lgBaseline").textContent = (S.ported===0 && S.not_needed===0)
     ? `With 0 ported and 0 not needed, this ledger is the honest baseline: all ${fmt(N)} functions are pending (more than 80% pending at first publication), and the pending subclasses are leads, not progress.`
     : S.pending*5>N*4 ? `More than 80% of functions (${pct(S.pending,N)}) are still pending.` : `${pct(S.pending,N)} of functions are still pending.`;
+
+  /* ---------- Mac-port headline: Game + Vorbis/Ogg only; CRT and MFC set aside ---------- */
+  const M=L.mac_port;
+  $("macPort").hidden=false;
+  const mpLabel={game:"Game",vorbis:"Vorbis and Ogg"}, MX=M.excluded;
+  $("macScope").textContent=`${fmt(M.total)} functions: ${M.regions.map(r=>mpLabel[r]).join(" + ")} · of ${fmt(N)} in GAME.EXE`;
+  $("mpPorted").innerHTML=`${fmt(M.ported)} <small>of ${fmt(M.total)} · ${pct(M.ported,M.total)}</small>`;
+  const mpSplit=k=>M.regions.map(r=>`${mpLabel[r]} ${fmt(M.by_region[r][k])}`).join(" · ");
+  $("mpPortedSplit").textContent=mpSplit("ported");
+  $("mpTe").innerHTML=`${fmt(M.tested_equivalent)} <small>of ${fmt(M.total)} · ${pct(M.tested_equivalent,M.total)}</small>`;
+  $("mpTeSplit").textContent=mpSplit("tested_equivalent");
+  $("mpPending").innerHTML=`${fmt(M.pending)} <small>of ${fmt(M.total)} · ${pct(M.pending,M.total)}</small>`;
+  $("mpPendingSplit").textContent=mpSplit("pending");
+  $("mpNotNeeded").innerHTML=`${fmt(M.not_needed)} <small>of ${fmt(M.total)}</small>`;
+  for(const r of M.regions){
+    const c=M.by_region[r];
+    const name=document.createElement("div"); name.className="lg-name"; name.textContent=`${mpLabel[r]} · ${fmt(c.total)}`;
+    const track=document.createElement("div"); track.className="lg-track"; track.setAttribute("role","img");
+    const parts=[["ported",c.ported],["te",c.tested_equivalent],["pending",c.pending],["not_needed",c.not_needed]];
+    const lab={ported:"ported",te:"tested equivalent",pending:"pending",not_needed:"not needed"};
+    track.setAttribute("aria-label",`${mpLabel[r]}: ${parts.map(x=>`${fmt(x[1])} ${lab[x[0]]}`).join(", ")}`);
+    for(const [s,k] of parts) if(k){ const seg=document.createElement("div"); seg.className=`lg-seg s-${s}`; seg.style.flex=`${k} 1 0`; seg.title=`${lab[s]}: ${fmt(k)} of ${fmt(c.total)}`; track.appendChild(seg); }
+    const nums=document.createElement("div"); nums.className="lg-nums";
+    nums.textContent=parts.map(x=>`${fmt(x[1])} ${lab[x[0]]}`).join(" · ");
+    $("mpRegions").append(name,track,nums);
+  }
+  $("mpExcluded").textContent=`Left out of this view: CRT and MFC, ${fmt(MX.total)} functions. This is Microsoft runtime code that macOS supplies itself, so it is supplied by macOS and not needed for the Mac port. It still counts in the x86 match view below, because a byte-exact GAME.EXE needs it.`;
 
   for(const r of RG){
     const c=C.region[r], t=ST.reduce((n,s)=>n+c[s],0);
