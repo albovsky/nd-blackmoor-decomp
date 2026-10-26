@@ -75,6 +75,12 @@ int session_a3f_choose_response(SessionA3fBinding *, int index);
 /* Listed responses (manager +0xf21) and their text (NUL terminated, valid until
  * the next visit), NULL when out of range. */
 int session_a3f_response_count(const SessionA3fBinding *);
+/* Native dry UI layout; calls only load_world on a private world copy and
+ * reuses the kernel's condition/list builder. Borrowed caption stays valid
+ * until the next scene/visit. Caller supplies the preview manager storage. */
+int session_a3f_preview_layout(const SessionA3fBinding *, size_t row,
+    Convo3fManager *preview, Convo3fLayoutRequest *request);
+
 const uint8_t *session_a3f_response_text(const SessionA3fBinding *, int index);
 
 /* RT-25 cel arm. The reader thread of the original (0x422e4a) is replaced by explicit
