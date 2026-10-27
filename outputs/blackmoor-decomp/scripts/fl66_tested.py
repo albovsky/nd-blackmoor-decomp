@@ -130,6 +130,11 @@ def known_scenarios(key, world, extra=()):
             if n not in seen:
                 seen.add(n)
                 out.append(n)
+    for f in list(extra):                    # FL-70: the files named on the command line run first (a row with thousands of known scenarios is capped at max_scen, and the cap used to cut them off)
+        d = _cached(Path(f))
+        v = d.get(key) if isinstance(d, dict) else None
+        if looks_like_scenarios(v):
+            add(v)
     for f in ('tests/fl40_corpus.json', 'tests/fl41_corpus.json', WORLD_FILES[world], 'tests/fl41_translated.json', 'tests/fl57_translated.json', 'tasks/fl56-translated-unverified.json', 'tests/fl66_scenarios.json'):
         p = PROJECT / f
         if not p.exists():

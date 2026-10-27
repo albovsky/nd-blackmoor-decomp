@@ -33,8 +33,10 @@ import capstone
 from capstone import x86_const as X
 import fl66_tested as T
 import fl67_infeasible as P
+import original_differential as od
 
 M32 = 0xffffffff
+STACK_LO, STACK_HI = od.STACK_BASE, od.STACK_BASE + od.STACK_SIZE
 FLAG_BIT = {'cf': 0, 'pf': 2, 'af': 4, 'zf': 6, 'sf': 7, 'of': 11}
 SYMBOLIC = ('eax', 'ecx', 'edx', 'ebx', 'esi', 'edi')
 MAX_STEPS = 6000
@@ -43,6 +45,7 @@ CONST_WINDOW = 160
 EDGE_FLIPS_PER_RUN = 24
 OTHER_FLIPS_PER_RUN = 12
 OCCURRENCES = 3
+VERBOSE = False
 
 
 class Resync(Exception):
@@ -121,17 +124,31 @@ class Replay(P.Machine):
             v += self.creg(rec, self.ins.reg_name(m.index)) * m.scale
         return v & M32
 
-    # memory with exact aliasing; pins keep pointers where they were
+    # memory: the stack (the function's frame, its arguments) is one array, everything else another, so a pointer read does not drag the frame's stores into the query; a symbolic address is put
+    # in the array its concrete value belongs to, and kept there by a hard constraint. Pins keep pointers where they were.
     def ea(self, st, op):
         a = super().ea(st, op)
-        if not self.nopin and op.type == X.X86_OP_MEM and op.mem.segment != X.X86_REG_FS and not z3.is_bv_value(a):
-            try:
-                self.softs.append((len(self.cons), a == P.bv(self.eac(op), 32)))
-            except Exception:
-                pass
+        if op.type == X.X86_OP_MEM and op.mem.segment != X.X86_REG_FS:
+            self.last_ac = self.eac(op)
+            if not self.nopin and not z3.is_bv_value(a):
+                self.softs.append((len(self.cons), a == P.bv(self.last_ac, 32)))
         return a
 
     nopin = False
+
+    def space(self, st, a, op=None):
+        if op is not None and op.mem.segment == X.X86_REG_FS:
+            return 'fs'
+        return self.space_of(a, getattr(self, 'last_ac', None))
+
+    def space_of(self, a, conc):
+        a = z3.simplify(a)
+        if z3.is_bv_value(a):
+            return 'frm' if STACK_LO <= a.as_long() < STACK_HI else 'mem'
+        inside = STACK_LO <= conc < STACK_HI
+        inr = z3.And(z3.UGE(a, P.bv(STACK_LO, 32)), z3.ULT(a, P.bv(STACK_HI, 32)))
+        self.cons.append(inr if inside else z3.Not(inr))
+        return 'frm' if inside else 'mem'
 
     def mem_read(self, st, op, n):
         if op.mem.segment == X.X86_REG_FS:
@@ -141,20 +158,31 @@ class Replay(P.Machine):
             raise Resync('fs read')
         a = self.ea(st, op)
         self.assume_ok(st, a, n)
+        sp = self.space(st, a, op)
+        arr = getattr(st, sp)
         if z3.is_bv_value(a):
             c = a.as_long()
             if P.IMAGE_BASE <= c and c + n <= P.DATA_START:
                 self.const_facts(c, n)
-            return self.load(st.mem, a, n)
-        ac = self.eac(op)
+            return self.load(arr, a, n)
+        ac = self.last_ac
         if P.IMAGE_BASE <= ac and ac + n <= P.DATA_START:                # a table read at a symbolic index: an if-chain over the neighbours
             lo, hi = max(P.IMAGE_BASE, ac - CONST_WINDOW), min(P.DATA_START - n, ac + CONST_WINDOW)
-            e = self.load(st.mem, a, n)
+            e = self.load(arr, a, n)
             for c in range(lo, hi + 1):
                 e = z3.If(a == c, P.bv(int.from_bytes(self.image[c - P.IMAGE_BASE:c - P.IMAGE_BASE + n], 'little'), 8 * n), e)
             self.cons.append(z3.And(z3.ULE(P.bv(lo, 32), a), z3.ULE(a, P.bv(hi, 32))))
             return e
-        return self.load(st.mem, a, n)
+        return self.load(arr, a, n)
+
+    @staticmethod
+    def load(arr, a, n):
+        e = P.Machine.load(arr, a, n)
+        return z3.simplify(e) if z3.is_bv_value(a) else e
+
+    def put_byte(self, st, addr, b):
+        sp = 'frm' if STACK_LO <= addr < STACK_HI else 'mem'
+        setattr(st, sp, z3.Store(getattr(st, sp), P.bv(addr, 32), P.bv(b, 8)))
 
     # calls: the stub's results are symbols, its stores are what it really stored
     def call(self, st, ins):
@@ -168,7 +196,7 @@ class Replay(P.Machine):
             self.stub_syms[name] = (k, ri, None)
         for at, data in self.tr.calls[k][7]:
             for j, b in enumerate(data):
-                st.mem = z3.Store(st.mem, P.bv(at + j, 32), P.bv(b, 8))
+                self.put_byte(st, at + j, b)
         nxt = self.recs[self.next_i]
         st.R['esp'] = P.bv(self.creg(nxt, 'esp'), 32)
         for f, bit in FLAG_BIT.items():
@@ -191,25 +219,34 @@ class Replay(P.Machine):
         ecx0 = st.R['ecx']
         self.cons.append(ecx0 == P.bv(total, 32))
         esi, edi = st.R['esi'], st.R['edi']
-        mem = st.mem
+        esi_c, edi_c = self.creg(pre, 'esi'), self.creg(pre, 'edi')
+        arrs = {'mem': st.mem, 'frm': st.frm}
         flags = None
         conts = []
         U = min(total, REP_UNROLL) if kind in ('cmps', 'scas') else n
-        edi_n, esi_n = edi, esi
+        keep = None
+
+        def ld(a, c):
+            sp = self.space_of(a, c)
+            return self.load(arrs[sp], a, size)
+
+        def stz(a, c, v):
+            sp = self.space_of(a, c)
+            arrs[sp] = self.store(arrs[sp], a, v, size)
         for j in range(U):
             if kind == 'stos':
                 self.assume_ok(st, edi, size)
-                mem = self.store(mem, edi, z3.Extract(8 * size - 1, 0, st.R['eax']), size)
+                stz(edi, edi_c + j * size, z3.Extract(8 * size - 1, 0, st.R['eax']))
                 edi = edi + size
             elif kind == 'movs':
                 self.assume_ok(st, esi, size)
                 self.assume_ok(st, edi, size)
-                v = self.load(mem, esi, size)
-                mem = self.store(mem, edi, v, size)
+                v = ld(esi, esi_c + j * size)
+                stz(edi, edi_c + j * size, v)
                 esi, edi = esi + size, edi + size
             else:
-                b = self.load(mem, edi, size)
-                a = z3.Extract(8 * size - 1, 0, st.R['eax']) if kind == 'scas' else self.load(mem, esi, size)
+                b = ld(edi, edi_c + j * size)
+                a = z3.Extract(8 * size - 1, 0, st.R['eax']) if kind == 'scas' else ld(esi, esi_c + j * size)
                 self.assume_ok(st, edi, size)
                 if kind == 'cmps':
                     self.assume_ok(st, esi, size)
@@ -222,9 +259,10 @@ class Replay(P.Machine):
                 if kind == 'cmps':
                     esi = esi + size
             if j == n - 1:
-                edi_n, esi_n, mem_n, flags_n = edi, esi, mem, flags
+                keep = (edi, esi, dict(arrs), flags)
         if n == 0:
             return None
+        edi_n, esi_n, arrs_n, flags_n = keep
         for j in range(n - 1):
             self.cons.append(conts[j] if conts else z3.BoolVal(True))
         if conts:
@@ -234,7 +272,7 @@ class Replay(P.Machine):
                 self.cons.append(z3.Not(conts[n - 1]))
             if U > n:
                 self.rep_goals.append((goal_pos, z3.And(*conts[n - 1:U]), ins.address))
-        st.mem = mem_n
+        st.mem, st.frm = arrs_n['mem'], arrs_n['frm']
         st.R['edi'] = edi_n
         if kind in ('movs', 'cmps'):
             st.R['esi'] = esi_n
@@ -318,7 +356,7 @@ class Replay(P.Machine):
         w0, w1 = rec.nwrites, nxt.nwrites
         for (a, n, v) in self.tr.writes[w0:w1]:
             for b in range(n):
-                st.mem = z3.Store(st.mem, P.bv(a + b, 32), P.bv((v >> (8 * b)) & 0xff, 8))
+                self.put_byte(st, a + b, (v >> (8 * b)) & 0xff)
         st.pc = z3.BoolVal(True)
         return st
 
@@ -345,8 +383,7 @@ class Replay(P.Machine):
 
     def input_softs(self):
         out = [z3.BitVec('s_' + n, 32) == P.bv(v, 32) for n, v in self.start_regs.items()]
-        mem = z3.Array('s_mem', z3.BitVecSort(32), z3.BitVecSort(8))
-        out += [z3.Select(mem, P.bv(a, 32)) == P.bv(b, 8) for a, b in sorted(self.init_cells.items())]
+        out += [z3.Select(array_of(a), P.bv(a, 32)) == P.bv(b, 8) for a, b in sorted(self.init_cells.items())]
         for name, (k, ri, _) in self.stub_syms.items():
             call = self.tr.calls[k]
             cv = (call[4], call[5], call[6])[ri]
@@ -354,20 +391,29 @@ class Replay(P.Machine):
         return out
 
     def selfcheck(self):
-        """index of the first hard constraint or decision that the concrete inputs do not satisfy, or None"""
+        """index of the first hard constraint that the concrete inputs do not satisfy, or None"""
         sub = [(z3.BitVec('s_' + n, 32), P.bv(v, 32)) for n, v in self.start_regs.items()]
-        mem = z3.K(z3.BitVecSort(32), P.bv(0, 8))
+        mems = {'mem': z3.K(z3.BitVecSort(32), P.bv(0, 8)), 'frm': z3.K(z3.BitVecSort(32), P.bv(0, 8))}
         for a, b in sorted(self.init_cells.items()):
-            mem = z3.Store(mem, P.bv(a, 32), P.bv(b, 8))
+            nm = 'frm' if STACK_LO <= a < STACK_HI else 'mem'
+            mems[nm] = z3.Store(mems[nm], P.bv(a, 32), P.bv(b, 8))
         for name, (k, ri, _) in self.stub_syms.items():
             call = self.tr.calls[k]
             sub.append((z3.BitVec(name, 32), P.bv((call[4], call[5], call[6])[ri], 32)))
-        sub.append((z3.Array('s_mem', z3.BitVecSort(32), z3.BitVecSort(8)), mem))
+        sub.append((ARR['mem'], mems['mem']))
+        sub.append((ARR['frm'], mems['frm']))
         for idx, c in enumerate(self.cons):
             v = z3.simplify(z3.substitute(c, *sub))
             if not z3.is_true(v):
                 return idx, v
         return None
+
+
+ARR = {'mem': z3.Array('s_mem', z3.BitVecSort(32), z3.BitVecSort(8)), 'frm': z3.Array('s_frm', z3.BitVecSort(32), z3.BitVecSort(8))}
+
+
+def array_of(addr):
+    return ARR['frm'] if STACK_LO <= addr < STACK_HI else ARR['mem']
 
 
 def store_chain(e):
@@ -381,21 +427,32 @@ def store_chain(e):
 
 
 def solve(rp, pos, goal, ms, soft=True):
-    o = z3.Optimize()
-    o.set('timeout', ms)
-    o.add(*rp.facts)
+    """a model of `prefix and goal`; the soft constraints (inputs and pointers stay as they were) are assumptions, dropped by their unsat core until the query is satisfiable"""
+    s = z3.Solver()
+    s.set('timeout', ms)
+    s.add(*rp.facts)
     for c in rp.cons[:pos]:
-        o.add(c)
-    o.add(goal)
+        s.add(c)
+    s.add(goal)
+    lits = []
     if soft:
-        for p, e in rp.softs:
-            if p <= pos:
-                o.add_soft(e)
-        for e in rp.input_softs():
-            o.add_soft(e)
-    if o.check() != z3.sat:
-        return None
-    return o.model()
+        softs = [e for p, e in rp.softs if p <= pos] + rp.input_softs()
+        for k, e in enumerate(softs):
+            b = z3.Bool('soft%d' % k)
+            s.add(z3.Implies(b, e))
+            lits.append(b)
+    t0 = time.time()
+    for _ in range(12):
+        r = s.check(*lits)
+        if r == z3.sat:
+            return s.model()
+        if r != z3.unsat or not lits or time.time() - t0 > ms / 1000 * 3:
+            return None
+        core = {str(c) for c in s.unsat_core()}
+        if not core:
+            return None
+        lits = [b for b in lits if str(b) not in core]
+    return None
 
 
 def select_indices(exprs, cap=4000):
@@ -432,7 +489,6 @@ def child_overrides(W, rp, model, parent, formulas):
         call = rp.tr.calls[k]
         if z3.is_bv_value(val) and val.as_long() != (call[4], call[5], call[6])[ri]:
             special[W.STUB_OVR + 16 * k + 4 * ri] = val.as_long()
-    mem = z3.Array('s_mem', z3.BitVecSort(32), z3.BitVecSort(8))
     addrs = set(rp.init_cells)
     for idx in select_indices(formulas):
         v = model.eval(idx, model_completion=True)
@@ -441,7 +497,7 @@ def child_overrides(W, rp, model, parent, formulas):
     for a in addrs:
         if P.IMAGE_BASE <= a < P.DATA_START or a >= 0xffd00000:
             continue
-        b = model.eval(z3.Select(mem, P.bv(a, 32)), model_completion=True).as_long()
+        b = model.eval(z3.Select(array_of(a), P.bv(a, 32)), model_completion=True).as_long()
         if rp.init_cells.get(a) == b and a not in cells:
             continue
         cells[a] = b
@@ -481,16 +537,24 @@ def explore(key, base_scen, budget_s=300, fresh_seeds=6, solver_ms=6000, selfche
     counter = 0
     seen_children, seen_paths = set(), set()
     t0 = time.time()
+    execs = []
     for seed, ov in base_scen:
         tr = W.run_original(row, seed, [tuple(o) for o in ov])
-        if not tr.fault and not (tr.executed <= ex and tr.edges <= ed):
+        if tr.fault:
+            continue
+        execs.append((seed, [list(o) for o in ov], tr.executed))
+        if not (tr.executed <= ex and tr.edges <= ed):
             ex |= tr.executed
             ed |= tr.edges
             kept.append([seed, [list(o) for o in ov]])
     n_base = len(kept)
-    starts = [(s, ov) for s, ov in [(s[0], s[1]) for s in kept]] + [(1 + k, []) for k in range(fresh_seeds)]
-    for s in starts:
-        heapq.heappush(queue, (0, counter, s[0], [list(o) for o in s[1]]))
+    got0, total0, taken0, dirs0, missing0, untaken0 = G.covers(row, ex, ed)
+    near = {a for a, _ in untaken0}                    # a run that executes the jump of an untaken direction is where the flip happens: those start first
+    for seed, ov, executed in execs:
+        heapq.heappush(queue, (0 if near & executed else 2, counter, seed, ov))
+        counter += 1
+    for k in range(fresh_seeds):
+        heapq.heappush(queue, (3, counter, 1 + k, []))
         counter += 1
     runs = solved = 0
     while queue and time.time() - t0 < budget_s and runs < max_runs:
@@ -535,14 +599,17 @@ def explore(key, base_scen, budget_s=300, fresh_seeds=6, solver_ms=6000, selfche
                 cands.append((0, d['pos'], z3.Not(d['cond']), d))
         for pos, goal, addr in rp.rep_goals:
             cands.append((0, pos, goal, dict(kind='repgoal', addr=addr)))
-        cands.sort(key=lambda c: (c[0], -c[1]))
+        cands.sort(key=lambda c: (c[0], c[1]))
         n0 = n1 = 0
         for prio, pos, goal, d in cands:
             if prio == 0 and n0 >= EDGE_FLIPS_PER_RUN or prio == 1 and n1 >= OTHER_FLIPS_PER_RUN:
                 continue
             n0 += prio == 0
             n1 += prio == 1
+            t1 = time.time()
             m = solve(rp, pos, goal, solver_ms)
+            if VERBOSE:
+                log('   flip %s %s pos %d/%d prio %d -> %s %.1fs' % (d['kind'], hex(d['addr']), pos, len(rp.cons), prio, 'sat' if m is not None else 'none', time.time() - t1))
             if m is None:
                 continue
             solved += 1
@@ -566,8 +633,11 @@ def main():
     ap.add_argument('--fresh-seeds', type=int, default=6)
     ap.add_argument('--solver-ms', type=int, default=6000)
     ap.add_argument('--selfcheck', action='store_true')
+    ap.add_argument('--verbose', action='store_true')
     ap.add_argument('--scen', action='append', default=[], help='extra scenario files {row: scenarios} to start from')
     a = ap.parse_args()
+    global VERBOSE
+    VERBOSE = a.verbose
     out = json.loads(Path(a.out).read_text()) if Path(a.out).exists() else {}
     psc = json.loads((PROJECT / 'tasks/fl66-partial-scenarios.json').read_text())
     for key in a.rows:
