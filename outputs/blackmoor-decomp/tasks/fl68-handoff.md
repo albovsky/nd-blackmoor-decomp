@@ -44,3 +44,15 @@ Glib asked to push the Mac-port rows (Game + Vorbis) first. FL-67 kept the proof
 - 6 rows reach tested equivalent with `fl68_search.py`: 0x4eaca8 0x49173f 0x453ce2 0x42f510 0x4a1fd1 0x4516c7. Mac-port view after this PR: ported 2,209, tested equivalent 301, pending 175 (of 2,685). Whole ledger: tested equivalent 1,576 (68 by proof).
 - Harness changes that mattered: the fl40 world now supports callee stubs that return chosen eax/ecx/edx and store a chosen dword (STUB_OVR / STUB_WR, same as fl41); a stub reads its return address before applying its own stores (0x453ce2 stores on its own return slot); `FL66_EARLY=1` stops `fl66_tested.py check` at full coverage (0x4a1fd1 had 4,801 scenarios).
 - Still partial (23): 0x41f5b1 (a `while(1)` on a constant) and 0x47ac33 (a compare repeated on an unchanged register) are infeasible directions the prover should dispose of with a slice; 0x47c0f0 and 0x4a0ec3 are one direction short; 0x49d945 (3), 0x47bb56 (5), 0x4933ff (9), 0x48ae05 (7), 0x46cda0 (7), 0x4a8d28, 0x431b5a (4), 0x482a08 are a handful short; 0x427a50 0x43a7ca 0x435015 0x45f0e6 0x471722 0x49e455 0x49f86a 0x4a0365 are huge dispatchers; 0x4272b2 holds an instruction Unicorn rejects; 0x49251f reads unmapped memory on every scenario; 0x4477d1 runs on plain seeds but its table has no scenarios.
+
+### Final state of the 23 Mac-port rows left partial (after a second look by hand and a 15-minute search per row)
+
+Why each is stuck, in plain words:
+- 0x4a0ec3, 0x49d945 (3 directions): the missing path is the "no candidate found" branch. It prints an error and then divides a random number by the candidate count, which is 0, so the original crashes (divide error) right after the missing instructions. A run that crashes is not a scenario, so no test can cover them. The FL-67 prover cannot prove them away either: on 0x4a0ec3 it runs out of memory unrolling the 10-step loop over the frame array.
+- 0x47c0f0: the missing direction needs one byte (`[this+0xc]+0x35b`) to be nonzero at the first check (0x47c556) and zero at the second (0x47c746) with no call in between that could change it. Almost certainly infeasible, but the function is 3 KB and the prover gives up.
+- 0x41f5b1, 0x47ac33: directions that cannot happen (a `while(1)` on a constant; the same compare twice on an unchanged register). The prover times out on both, also with 560 s.
+- 0x47bb56 (5 short), 0x48ae05 (7), 0x4933ff (4 directions, 9 instructions), 0x46cda0, 0x4a8d28, 0x431b5a, 0x482a08: 15 more minutes of the search per row found nothing new except on 0x4933ff (9 instructions and 5 directions closer).
+- 0x427a50 0x43a7ca 0x435015 0x45f0e6 0x471722 0x49e455 0x49f86a 0x4a0365: large dispatchers; their gaps are many directions behind chained table lookups; a real concolic engine with memory aliasing is the next tool.
+- 0x4272b2 (an instruction Unicorn rejects), 0x49251f (reads unmapped memory on every scenario), 0x4477d1 (its table has no scenarios).
+
+`tests/fl40_world.py` now also records `read_pcs` (the address of the instruction that made each read) like the fl41 world, which made the hand analysis above quick.
