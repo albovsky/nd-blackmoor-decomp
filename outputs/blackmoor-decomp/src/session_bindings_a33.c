@@ -210,6 +210,35 @@ const A33State *session_a33_state(const SessionA33Binding *b)
     return b == NULL ? NULL : &b->state;
 }
 
+int session_a33_refresh_stream(SessionA33Binding *b, const A33State *stream)
+{
+    if (!b || !stream) return A33_ERR_ARGUMENT;
+    b->state.ready_5b4e0a = stream->ready_5b4e0a;
+    b->state.delay_5b4c5a = stream->delay_5b4c5a;
+    b->state.buf_5b4db8 = stream->buf_5b4db8;
+    b->state.buf_5b4dbc = stream->buf_5b4dbc;
+    b->state.flags_5b4dc0 = stream->flags_5b4dc0;
+    b->state.flags_5b4dc2 = stream->flags_5b4dc2;
+    b->state.vrect_5b4de8 = stream->vrect_5b4de8;
+    b->state.vrect_5b4dec = stream->vrect_5b4dec;
+    b->state.vrect_5b4df0 = stream->vrect_5b4df0;
+    b->state.vrect_5b4df4 = stream->vrect_5b4df4;
+    b->state.w_5b4e02 = stream->w_5b4e02;
+    return A33_OK;
+}
+
+int session_a33_hover(SessionA33Binding *b, size_t row)
+{
+    if (!b || row >= b->count || row > INT16_MAX || !b->present[row] ||
+        !b->state.active_5c39f1 || b->state.row_5b4e89 != (int16_t)row || !b->cells[row].request)
+        return A33_ERR_ARGUMENT;
+    if (b->sets[row].anim_48 == 1 && b->state.anim_5b4e14 == 0) {
+        b->state.anim_5b4e14 = 1;
+        b->state.frame_5b4e00 = b->sets[row].w50;
+    }
+    return A33_OK;
+}
+
 const A33Row *session_a33_row(const SessionA33Binding *b, size_t index)
 {
     return (b == NULL || index >= b->count || b->present[index] == 0u) ? NULL : &b->cells[index];

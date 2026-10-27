@@ -53,6 +53,12 @@ void session_a33_pre_gate(void *context, size_t row, const SceneActionInfo *acti
 int session_a33_pointer_row(const SessionA33Binding *binding, size_t row, SessionInputHotspot *out);
 
 const A33State *session_a33_state(const SessionA33Binding *binding);
+/* Same-call STREAM_RESET publication; copies only backend-owned metadata.
+ * Never use a writable cast of the state getter or overwrite controller fields. */
+int session_a33_refresh_stream(SessionA33Binding *, const A33State *stream);
+/* 0x4f2395..0x4f24f9, after this row wins its original ascending hit scan.
+ * Changes only the hover animation/frame, never candidate, phase or scene. */
+int session_a33_hover(SessionA33Binding *, size_t row);
 const A33Row *session_a33_row(const SessionA33Binding *binding, size_t row);
 size_t session_a33_row_count(const SessionA33Binding *binding);
 const char *session_a33_failure(const SessionA33Binding *binding);
