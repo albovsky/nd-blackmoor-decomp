@@ -38,6 +38,33 @@
    "source": "src/original_methods_fl56_unverified.c",
    "translation_sha256": "3f5aab549af61e508ba375f159ad822e3bf9097f2cc0b63ad2019fcf90389574"
   },
+  "0x423021": {
+   "body": 118,
+   "directions": [
+    6,
+    8
+   ],
+   "instructions": [
+    40,
+    41
+   ],
+   "pool": "lower",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x423062:taken": "524b6be6777461d33dbd8023ca475b3810f8183d92376b3a1eb0e1047abf5105",
+     "0x423076:taken": "fccd755e727bac16005abe72b3b2e62cce79a853f42c65d1342dba7d556c26b1"
+    },
+    "instructions": {
+     "0x42308c": "524b6be6777461d33dbd8023ca475b3810f8183d92376b3a1eb0e1047abf5105"
+    },
+    "plan": {}
+   },
+   "scenarios_kept": 3,
+   "scenarios_run": 3,
+   "source": "src/original_methods_fl56_unverified.c",
+   "translation_sha256": "e6cdb83c87ca1e78d624b8c6888d3195253e2bbde33a7586a4d0f5ad84529bb5"
+  },
   "0x4230d1": {
    "body": 113,
    "directions": [

@@ -16,6 +16,7 @@ instruction or takes a jump direction that the kept set has not. The kept set be
 import argparse
 import gc
 import json
+import os
 from pathlib import Path
 import random
 import sys
@@ -85,6 +86,18 @@ def moves_of(W, row, tr, magic, goal=None):
             for new in {other & mask, (other + 1) & mask, (other - 1) & mask, 0, mask, (~other) & mask, 1, (mine + 1) & mask, (mine - 1) & mask}:
                 if new != mine:
                     flips.append([[cell[0], cell[1], new]])
+        if (ca is None or cb is None) and getattr(tr, 'read_pcs', None):
+            # FL-69: a register operand loaded from memory just before the compare (`movsx edx, word ptr [g]; test edx, edx`): the cell read by the closest load in front of it is the compare's cell
+            near = [k for k, pc in enumerate(tr.read_pcs) if address - 12 <= pc < address]
+            if near:
+                a_, n_, v_, wc_ = tr.reads[near[-1]]
+                if a_ < 0xffd00000 and n_ in (1, 2, 4):
+                    mine = av if ca is None else bv
+                    other = bv if ca is None else av
+                    m_ = (1 << (8 * n_)) - 1
+                    for new in {other & m_, (other + 1) & m_, (other - 1) & m_, 0, 1, m_, (v_ + 1) & m_, (~v_) & m_}:
+                        if new != v_:
+                            flips.append([[a_, n_, new]])
         if ca is None or cb is None:
             # an operand that is a register: the value comes from a start register, a callee return or a cell, so move each of those to the other operand's value (+-1)
             for src in sources:
@@ -104,7 +117,25 @@ def moves_of(W, row, tr, magic, goal=None):
                 continue
             for val in (0, 1, 0xffffffff, (v + 1) & 0xffffffff) + tuple(m & 0xffffffff for m in magic[:3]):
                 stubs.append([[W.STUB_WR + 16 * k, 4, a], [W.STUB_WR + 16 * k + 4, 4, val]])
-    return flips, stubs, edge, regs
+    # FL-69: a callee that stores into ANY global the run reads (also one it wrote itself before the call, and a word or byte cell: the store is a dword at the cell, 0x42c221 needed the 11th call of 13 to set a word the function had cleared)
+    gstores = []
+    if has_stub:
+        gcells = sorted({a for a, n, v, wc in tr.reads if W.DATA_START <= a < 0x700000 and n in (1, 2, 4)}) if getattr(tr, 'reads', None) else []
+        for k in range(min(len(tr.calls), 24)):
+            for a in gcells[:48]:
+                for val in (0, 1, 2, 0xffffffff) + tuple(m & 0xffffffff for m in magic[:2]):
+                    gstores.append([[W.STUB_WR + 16 * k, 4, a], [W.STUB_WR + 16 * k + 4, 4, val]])
+    gflips = []                                            # FL-69: the compare flips done by a callee's store instead of by the input cell (a cell the function cleared or copied before a call that the callee then sets)
+    if has_stub:
+        per_cell = {}
+        for mv in flips:
+            if len(per_cell.setdefault(mv[0][0], [])) < 2 and mv[0][2] not in per_cell[mv[0][0]]:
+                per_cell[mv[0][0]].append(mv[0][2])
+        for a, vals in list(per_cell.items())[:120]:
+            for k in range(min(len(tr.calls), 20)):
+                for val in vals:
+                    gflips.append([[W.STUB_WR + 16 * k, 4, a], [W.STUB_WR + 16 * k + 4, 4, val]])
+    return flips, stubs, edge, regs, gflips, gstores
 
 
 def merge_ov(ov, move):
@@ -166,7 +197,9 @@ def search(key, budget_s, rng, extra=(), verbose=True):
         runs += 1
         try:
             tr = W.run_original(row, seed, [tuple(o) for o in ov], observe=observe)
-        except IndexError:                                  # a move on a cell in the reserved override pages above 0xffd00000
+        except Exception as ex:                             # FL-69: also a Unicorn mapping error (UC_ERR_NOMEM) on a wild scenario
+            if type(ex).__name__ not in ('IndexError', 'UcError'):
+                raise                                       # (IndexError: a move on a cell in the reserved override pages above 0xffd00000)
             runs -= 1
             return _faulted(W)
         if tr.fault:
@@ -230,7 +263,7 @@ def search(key, budget_s, rng, extra=(), verbose=True):
             break
         rounds += 1
         before = len(kept)
-        frontier = list(kept)[-24:] if len(kept) > 24 else list(kept)
+        frontier = list(kept)[-120:]               # FL-69: every kept scenario is a parent for the goal-directed classes (flips and flips as callee stores); the broad classes use the last 24
         progress = False
         got, total, taken, dirs, missing, untaken = G.covers(row, ex, ed)
         goal = G.jcc_cmp_addresses(row, untaken)
@@ -245,10 +278,13 @@ def search(key, budget_s, rng, extra=(), verbose=True):
             for cls in classes:
                 rng.shuffle(cls)
             per_parent.append((seed, ov, classes))
-            atoms.extend(m for cls in classes for m in cls)
+            atoms.extend(m for cls in classes[:4] for m in cls)
+            atoms.extend(classes[4][:200] + classes[5][:200])
             flip_atoms.extend(classes[0])
-        for ci in range(4):                      # compare flips of every parent first, then callee returns, cell edges and registers
-            for seed, ov, classes in per_parent:
+        for ci in (0, 4, 1, 2, 3, 5):                    # compare flips of every parent first, then callee returns, cell edges, registers, flips as callee stores and callee stores to globals (FL-69)
+            if os.environ.get('FL69_DEBUG'):
+                print('round', rounds, 'class', ci, 'parents', len(per_parent), 'moves', sum(len(c[ci]) for _, _, c in per_parent), 'runs', runs, '%.0fs' % (time.time() - t0), flush=True)
+            for seed, ov, classes in (per_parent if ci in (0, 4) else per_parent[-24:]):
                 for mv in classes[ci]:
                     if time.time() - t0 > budget_s or ok_now(done):
                         break

@@ -22,13 +22,17 @@ import fl57_bulk as B
 
 SOURCE = PROJECT / 'translated/original_methods_fl57_translated.c'
 TABLE = PROJECT / 'tests/fl57_translated.json'
+POOL_FILES = {'fl57': (SOURCE, TABLE), 'fl41': (PROJECT / 'translated/original_methods_fl41_translated.c', PROJECT / 'tests/fl41_translated.json')}        # FL-69: the FL-55b file too
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('rows', nargs='+')
     ap.add_argument('--write', action='store_true')
+    ap.add_argument('--pool', choices=sorted(POOL_FILES), default='fl57')
     a = ap.parse_args()
+    global SOURCE, TABLE
+    SOURCE, TABLE = POOL_FILES[a.pool]
     L.BULK = True
     src = SOURCE.read_text()
     table = json.loads(TABLE.read_text())

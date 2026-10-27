@@ -378,7 +378,15 @@ def run_original(row, seed, overrides=(), observe=False, setup=None, probes=None
             uc.hook_add(unicorn.UC_HOOK_CODE, seen_cmp, decode, begin=address, end=address)
     stub_rng = random.Random(seed * 104729 + 13)
 
+    entered = []
+
     def stub(uc_, address, size_, user):
+        if address == va and not entered:        # FL-69 (as FL-68 in the fl41 world): a recursive row lists itself as a callee; its first instruction is the row, only a call to the entry is a stub call
+            entered.append(1)
+            return
+        play(address, *stubs[address])
+
+    def play(address, ident, cleanup):
         esp = uc.reg_read(X.UC_X86_REG_ESP)
         ecx = uc.reg_read(X.UC_X86_REG_ECX)
         held = tuple(uc.reg_read(getattr(X, 'UC_X86_REG_' + n)) for n in ('EAX', 'EDX', 'EBX', 'ESI', 'EDI', 'EBP'))
@@ -391,7 +399,6 @@ def run_original(row, seed, overrides=(), observe=False, setup=None, probes=None
             ensure(at)
             ensure(at + len(data) - 1)
             uc.mem_write(at, data)
-        ident, cleanup = stubs[address]
         net = fpret.get(address, 0)
         if net > 0:
             bits = fret_bits(stub_rng)
@@ -409,6 +416,54 @@ def run_original(row, seed, overrides=(), observe=False, setup=None, probes=None
 
     for entry in stubs:
         uc.hook_add(unicorn.UC_HOOK_CODE, stub, begin=entry, end=entry)
+
+    def site_hook(uc_, address, size_, user):
+        """FL-69 (as FL-58 in the fl41 world): a call through a register or a pointer is a stub call on both sides (the translation cannot run the real code at the target, and a wild pointer in the original runs garbage)"""
+        target_of, after, cleanup = user
+        target = target_of()
+        if target is not None:
+            target &= 0xffffffff
+        if target is None or target >= 0xfff00000:          # the access, or the fetch at the target, faults in the original (0xffffffff is also the translation's divide-error marker)
+            trace.fault = 'access in a call target'
+            uc.emu_stop()
+            return
+        esp = (uc.reg_read(X.UC_X86_REG_ESP) - 4) & 0xffffffff
+        uc.mem_write(esp, struct.pack('<I', after))
+        trace.writes.append((esp, 4, after))        # the push of the return address, which a real call would log
+        uc.reg_write(X.UC_X86_REG_ESP, esp)
+        play(target, target, cleanup)
+
+    if row.get('sites'):
+        import capstone
+        from capstone import x86_const as CX
+        md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
+        md.detail = True
+        regmap = {CX.X86_REG_EAX: X.UC_X86_REG_EAX, CX.X86_REG_ECX: X.UC_X86_REG_ECX, CX.X86_REG_EDX: X.UC_X86_REG_EDX, CX.X86_REG_EBX: X.UC_X86_REG_EBX,
+                  CX.X86_REG_ESP: X.UC_X86_REG_ESP, CX.X86_REG_EBP: X.UC_X86_REG_EBP, CX.X86_REG_ESI: X.UC_X86_REG_ESI, CX.X86_REG_EDI: X.UC_X86_REG_EDI}
+
+        def target_reader(op):
+            if op.type == CX.X86_OP_REG:
+                return lambda: uc.reg_read(regmap[op.reg])
+
+            def read():
+                m = op.mem
+                a = m.disp
+                if m.base:
+                    a += uc.reg_read(regmap[m.base])
+                if m.index:
+                    a += uc.reg_read(regmap[m.index]) * m.scale
+                if m.segment == CX.X86_REG_FS:
+                    a += TIB
+                a &= 0xffffffff
+                if a + 3 >= 0xfff00000:
+                    return None                                  # the access faults
+                ensure(a)
+                ensure(a + 3)
+                return struct.unpack('<I', bytes(uc.mem_read(a, 4)))[0]
+            return read
+        for site, cleanup in row['sites'].items():
+            ins = next(md.disasm(pe.image[site - pe.image_base:site - pe.image_base + 16], site))
+            uc.hook_add(unicorn.UC_HOOK_CODE, site_hook, (target_reader(ins.operands[0]), site + ins.size, cleanup), begin=site, end=site)
     for name in ('eax', 'ebx', 'ecx', 'edx', 'esi', 'edi', 'ebp'):
         uc.reg_write(getattr(X, 'UC_X86_REG_' + name.upper()), regs[name])
     sp = STACK_BASE + STACK_SIZE - 0x100 - 4 * (ARGS + 1)
@@ -611,7 +666,7 @@ def build_library(directory, sources=None, extra=()):
 # ---- rows: what a row needs to know to run -------------------------------------------------------------------------------------------
 
 
-def row_info(va, body, callees, imports=None, fs=False):
+def row_info(va, body, callees, imports=None, fs=False, sites=None):
     """The static facts of a row: its body size, its callees ({address: bytes the callee pops}), the immediates of its code (the magic values), and the writable globals it names."""
     import capstone
     from capstone import x86_const as X
@@ -644,6 +699,8 @@ def row_info(va, body, callees, imports=None, fs=False):
                 elif 2 < d < 0x2000:
                     magic.add(d)
     info = {'va': va, 'body': body, 'callees': {int(k): v for k, v in callees.items()}, 'imports': {int(k): v for k, v in (imports or {}).items()}, 'fs': bool(fs), 'ret': sorted(rets), 'magic': sorted(magic)[:24], 'globals': sorted(globs)[:16]}
+    if sites:       # FL-69 (as FL-58 in the fl41 world): calls through a register or a pointer ({address: bytes the target pops}); both sides play them as stub calls
+        info['sites'] = {int(a): int(n) for a, n in sites.items()}
     if fpu:         # FL-51: the row uses the x87 unit; the callees that leave a value in st(0) or take one off it (scripts/lift_function.py fpu_net)
         import lift_function as L
         info['fpu'] = True

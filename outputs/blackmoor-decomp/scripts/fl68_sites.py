@@ -51,13 +51,13 @@ def find_sites(key):
         if line is None:
             raise ValueError('%s: no translation line for %x' % (key, i.address))
         if i.mnemonic == 'call':
-            m = re.search(r'FL41_CALL\(t_\);((?: esp \+= \d+u;)+)', line)
+            m = re.search(r'FL4[01]_CALL\(t_\);((?: esp \+= \d+u;)+)', line)
             pops = [int(x) for x in re.findall(r'esp \+= (\d+)u;', m.group(1))] if m else None
             if pops is None or pops[-1] != 4:
                 raise ValueError('%s: cannot read the pops of the call at %x: %s' % (key, i.address, line.strip()[:120]))
             out[i.address] = sum(pops[:-1])
         else:
-            m = re.search(r'FL41_CALL\(t_\); esp \+= (\d+)u; goto done;', line)
+            m = re.search(r'FL4[01]_CALL\(t_\); esp \+= (\d+)u; goto done;', line)
             if not m or int(m.group(1)) < 4:
                 raise ValueError('%s: cannot read the pops of the tail jump at %x: %s' % (key, i.address, line.strip()[:120]))
             out[i.address] = int(m.group(1)) - 4

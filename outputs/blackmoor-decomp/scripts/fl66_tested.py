@@ -226,10 +226,10 @@ def row_info(pool, key):
     va = int(key, 16)
     cal = {int(a, 16): n for a, n in t['callees'].items()}
     imp = {int(a, 16): n for a, n in t.get('imports', {}).items()}
-    if p['world'] == 40:
-        return W.row_info(va, t['body'], cal, imp, t.get('fs', False))
     sites = {int(a, 16): n for a, n in t.get('sites', {}).items()}
     sites.update({int(a, 16): n for a, n in extra_sites().get(key, {}).items()})            # FL-68: indirect calls and tail jumps registered by scripts/fl68_sites.py
+    if p['world'] == 40:
+        return W.row_info(va, t['body'], cal, imp, t.get('fs', False), sites)            # FL-69: the fl40 world plays them too
     return W.row_info(va, t['body'], cal, imp, t.get('fs', False), sites, t.get('frame', False))
 
 
