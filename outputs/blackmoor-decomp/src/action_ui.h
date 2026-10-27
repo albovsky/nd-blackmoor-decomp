@@ -45,7 +45,8 @@ typedef enum action_ui_status {
     ACTION_UI_ERR_BODY = 2,
     ACTION_UI_ERR_GROUP_BOUNDS = 3,
     ACTION_UI_ERR_PHONE_CAPACITY = 4,
-    ACTION_UI_ERR_UNSUPPORTED = 5
+    ACTION_UI_ERR_UNSUPPORTED = 5,
+    ACTION_UI_ERR_HOST = 6
 } ActionUIStatus;
 
 typedef struct action_ui_action_result {

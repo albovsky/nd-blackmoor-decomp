@@ -379,6 +379,7 @@ const char *action_ui_status_string(int status)
     case ACTION_UI_ERR_GROUP_BOUNDS: return "control group outside caller state";
     case ACTION_UI_ERR_PHONE_CAPACITY: return "phone table caller capacity exceeded";
     case ACTION_UI_ERR_UNSUPPORTED: return "action UI branch is unsupported";
+    case ACTION_UI_ERR_HOST: return "action UI host failed";
     default: return "unknown action UI status";
     }
 }

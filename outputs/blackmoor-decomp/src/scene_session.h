@@ -278,6 +278,15 @@ int scene_session_get_hotspot_state(const SceneSession *session,
                                     size_t action_index,
                                     SceneExecutorHotspotState *state);
 const ActionUIWorld *scene_session_get_action_ui(const SceneSession *session);
+
+/* Additive native host for raw1d's code1 popup request. Generic lock-table
+ * controls still use ActionUIWorld. Without a bound host code1 retains its
+ * explicit UNSUPPORTED result. The host returns an ActionUIStatus and owns
+ * authoritative popup globals, not executor phase/completion. */
+typedef int (*SceneSessionImmediateControlFn)(void *context,
+    const uint8_t *body, size_t length);
+int scene_session_bind_immediate_control(SceneSession *session,
+    SceneSessionImmediateControlFn callback, void *context);
 /* 0x4e0559's active branch: set availability then the selected dirty flag.
  * Used by 0x83 after its list writes. No rendering is performed here. */
 int scene_session_mark_ui_dirty(SceneSession *session, int16_t group, int16_t child);
