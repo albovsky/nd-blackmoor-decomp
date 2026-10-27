@@ -62,6 +62,30 @@
    "source": "src/original_methods_fl40.c",
    "translation_sha256": "3fea05dd3f20422c46fea59d91bf93a4a55362fd54bf974650bd9c126e8cc425"
   },
+  "0x422e4a": {
+   "body": 343,
+   "directions": [
+    17,
+    18
+   ],
+   "instructions": [
+    84,
+    84
+   ],
+   "pool": "lower",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x422e5d:taken": "7da47ba6415dc459b92caf12c98eca9757838ad30f9e9fe5509786c39c4b70ac"
+    },
+    "instructions": {},
+    "plan": {}
+   },
+   "scenarios_kept": 9,
+   "scenarios_run": 9,
+   "source": "src/original_methods_fl56_unverified.c",
+   "translation_sha256": "90d01b176991c384b9d62ccb58178ea76398b227bb9e4be2c263543d88ebdae0"
+  },
   "0x423021": {
    "body": 118,
    "directions": [
@@ -293,6 +317,54 @@
    "scenarios_run": 15,
    "source": "src/original_methods_fl56_unverified.c",
    "translation_sha256": "0bd90374d1fef543e57885bb74e5ceed12f647b9b1ae5383fe2cb04578a37bf5"
+  },
+  "0x44cde2": {
+   "body": 287,
+   "directions": [
+    13,
+    14
+   ],
+   "instructions": [
+    75,
+    75
+   ],
+   "pool": "lower",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x44cdf5:taken": "7da47ba6415dc459b92caf12c98eca9757838ad30f9e9fe5509786c39c4b70ac"
+    },
+    "instructions": {},
+    "plan": {}
+   },
+   "scenarios_kept": 7,
+   "scenarios_run": 7,
+   "source": "src/original_methods_fl56_unverified.c",
+   "translation_sha256": "a1f840ebb567c0485fec01b9059eab44853cb354954957be1275db0acaf2a8a0"
+  },
+  "0x44cf01": {
+   "body": 287,
+   "directions": [
+    13,
+    14
+   ],
+   "instructions": [
+    75,
+    75
+   ],
+   "pool": "lower",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x44cf14:taken": "7da47ba6415dc459b92caf12c98eca9757838ad30f9e9fe5509786c39c4b70ac"
+    },
+    "instructions": {},
+    "plan": {}
+   },
+   "scenarios_kept": 7,
+   "scenarios_run": 7,
+   "source": "src/original_methods_fl56_unverified.c",
+   "translation_sha256": "5bb86969df4611b67cc2a05f0809a8b4e64ddd04945d13c6c18b1f9f18b3ed90"
   },
   "0x44e9ae": {
    "body": 259,
@@ -888,6 +960,54 @@
    "scenarios_run": 11,
    "source": "translated/original_methods_fl41_translated.c",
    "translation_sha256": "53e8bd2f2f5d0afad32a201d0f596ba24dd443ec486a24a64ecf464ab9014c92"
+  },
+  "0x4cbf72": {
+   "body": 1099,
+   "directions": [
+    23,
+    24
+   ],
+   "instructions": [
+    279,
+    279
+   ],
+   "pool": "upper",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x4cc288:taken": "470fffe566ee13d40d4050c7f02b1507441ebc0308f1754023d4fb060cf73908"
+    },
+    "instructions": {},
+    "plan": {}
+   },
+   "scenarios_kept": 4,
+   "scenarios_run": 6,
+   "source": "translated/original_methods_fl41_translated.c",
+   "translation_sha256": "bf68a51ebe40f09a32325dbacba70e4611af2b5093096d9e402934a80ef03863"
+  },
+  "0x4cf687": {
+   "body": 194,
+   "directions": [
+    11,
+    12
+   ],
+   "instructions": [
+    55,
+    55
+   ],
+   "pool": "upper",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x4cf6a1:taken": "7da47ba6415dc459b92caf12c98eca9757838ad30f9e9fe5509786c39c4b70ac"
+    },
+    "instructions": {},
+    "plan": {}
+   },
+   "scenarios_kept": 6,
+   "scenarios_run": 6,
+   "source": "translated/original_methods_fl41_translated.c",
+   "translation_sha256": "98f1f2f068137b24572b03b6eff13b3bdd3b47dc5d851c97f0fdc4bd36500aed"
   },
   "0x4d88de": {
    "body": 1260,
@@ -2412,7 +2532,7 @@
  },
  "rule": {
   "id": "T-EQ-INFEASIBLE",
-  "text": "A pending function is tested equivalent by proof when its committed translation equals the original on every scenario kept for it, and every instruction and conditional-jump direction those scenarios do not reach is PROVED unreachable: scripts/fl67_infeasible.py symbolically executes the original bytes (all paths at once, z3) and shows that no start state of the function reaches it in a run that does not fault. Modelling assumptions: ebx/esi/edi/ebp survive a call and esp returns by the bytes the callee pops; the direction flag is clear; an access at or above 0xfff00000, a division by zero and a quotient overflow fault; the image below .data is constant; a function that never forms the address of its own frame keeps its frame slots out of reach of stores through other pointers and of callees (except the argument slots pushed for the call). Not a verified port: never added to the verified count."
+  "text": "A pending function is tested equivalent by proof when its committed translation equals the original on every scenario kept for it, and every instruction and conditional-jump direction those scenarios do not reach is PROVED unreachable: scripts/fl67_infeasible.py symbolically executes the original bytes (all paths at once, z3) and shows that no start state of the function reaches it in a run that does not fault. Modelling assumptions: ebx/esi/edi/ebp survive a call and esp returns by the bytes the callee pops; the direction flag is clear; an access at or above 0xfff00000, a division by zero and a quotient overflow fault; a call to a callee that never returns (tests/fl72_noreturn.json, AfxEndThread) ends the run; the image below .data is constant; a function that never forms the address of its own frame keeps its frame slots out of reach of stores through other pointers and of callees (except the argument slots pushed for the call). Not a verified port: never added to the verified count."
  },
  "schema": "blackmoor-tested-equivalent-infeasible/1"
 }
