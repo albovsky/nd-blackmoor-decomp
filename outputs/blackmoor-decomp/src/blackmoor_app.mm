@@ -33,6 +33,7 @@
 #include "native_cel_resources.h"
 #include "native_jane_responses.h"
 #include "native_drake_responses.h"
+#include "native_petrov_responses.h"
 #include "action_ui_immediate.h"
 #include "native_phone_popup.h"
 #include "native_secondary_video.h"
@@ -4222,16 +4223,17 @@ static int native_hook_apply_response(NativeApp *app, Convo3fManager *manager,
     return convo3f_apply_hook_response(manager, &response, replace);
 }
 
-/* Original hooks0/1: Drake43f31a/44512a and Jane43ff18/445253.
+/* Original hooks0/1/6: Drake43f31a/44512a, Jane43ff18/445253,
+ * Petrov443ad8/4458d4.
  * Both resolve through the same CONVO table and response-list helpers. */
 static int native_conversation_build_responses(void *context, uint8_t hook_a, uint8_t hook_b,
     const Convo3fWorld *world, Convo3fManager *manager, int preview, const char **why)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
     if (!app || !world || !manager) return CONVO3F_ERR_ARGUMENT;
-    const auto supported = [](uint8_t hook) { return hook == 0 || hook == 1 || hook == CONVO3F_NO_HOOK; };
+    const auto supported = [](uint8_t hook) { return hook == 0 || hook == 1 || hook == 6 || hook == CONVO3F_NO_HOOK; };
     if (!supported(hook_a) || !supported(hook_b)) {
-        if (why) *why = "unsupported conversation response hook (only Drake0/Jane1)";
+        if (why) *why = "unsupported conversation response hook (only Drake0/Jane1/Petrov6)";
         return CONVO3F_ERR_UNSUPPORTED;
     }
     if (!app->a3f_text) {
@@ -4240,6 +4242,7 @@ static int native_conversation_build_responses(void *context, uint8_t hook_a, ui
     }
     NativeJaneResponseWorld jane{world->events, world->event_count, world->presence, world->presence_count};
     NativeDrakeResponseWorld drake{world->events, world->event_count};
+    NativePetrovResponseWorld petrov{world->events, world->event_count};
     int32_t presence[NATIVE_JANE_PRESENCE_COUNT]{};
     if (hook_a == NATIVE_JANE_HOOK) {
         if (!jane.events || !jane.presence || jane.event_count < NATIVE_JANE_EVENT_COUNT ||
@@ -4254,6 +4257,9 @@ static int native_conversation_build_responses(void *context, uint8_t hook_a, ui
         jane.presence = presence;
     } else if (hook_a == NATIVE_DRAKE_HOOK && (!drake.events || drake.event_count < NATIVE_DRAKE_EVENT_COUNT)) {
         if (why) *why = "Drake response world bounds";
+        return CONVO3F_ERR_BOUNDS;
+    } else if (hook_a == NATIVE_PETROV_HOOK && (!petrov.events || petrov.event_count < NATIVE_PETROV_EVENT_COUNT)) {
+        if (why) *why = "Petrov response world bounds";
         return CONVO3F_ERR_BOUNDS;
     }
     SessionConditionsCrtRand copied = app->condition_rand;
@@ -4278,6 +4284,20 @@ static int native_conversation_build_responses(void *context, uint8_t hook_a, ui
                 const NativeDrakeResponseEntry &entry = plan.entries[index];
                 const int applied = native_hook_apply_response(app, manager, entry.key, entry.scene,
                     entry.kind == NATIVE_DRAKE_REPLACE, why);
+                if (applied != CONVO3F_OK) return applied;
+            }
+        } else if (hook == NATIVE_PETROV_HOOK) {
+            NativePetrovResponsePlan plan{};
+            const int planned = native_petrov_responses_plan(&petrov, a, b, random, &plan);
+            if (planned != NATIVE_PETROV_OK) {
+                if (why) *why = "Petrov response plan refused";
+                return planned == NATIVE_PETROV_ERR_UNSUPPORTED ? CONVO3F_ERR_UNSUPPORTED : CONVO3F_ERR_BOUNDS;
+            }
+            planned_count += plan.count;
+            for (size_t index = 0; index < plan.count; ++index) {
+                const NativePetrovResponseEntry &entry = plan.entries[index];
+                const int applied = native_hook_apply_response(app, manager, entry.key, entry.scene,
+                    entry.kind == NATIVE_PETROV_REPLACE, why);
                 if (applied != CONVO3F_OK) return applied;
             }
         } else {
@@ -14967,7 +14987,7 @@ static bool perform_no_art_transition(NativeApp *app, SceneResource *incoming,
         }
         const bool supported = plan.retired[i] ? (type == 0x3f || type == 0x3e || type == 0x0a) :
             (type == 0x2d || type == 0x0b || type == 0x62 || type == 0x2e || type == 0x97 ||
-             type == 0x4d || type == 0x95 || type == 0x1d || type == 0x80 || type == ACTION_SOUND_TYPE);
+             type == 0x4d || type == 0x61 || type == 0x95 || type == 0x1d || type == 0x80 || type == ACTION_SOUND_TYPE);
         if (!supported) {
             record(app, "scene_no_art_refused row=%zu type=0x%02x retired=%u detail=provider-delta-unimplemented before_clear=1",
                    i, type, plan.retired[i]);
@@ -14977,7 +14997,7 @@ static bool perform_no_art_transition(NativeApp *app, SceneResource *incoming,
     for (size_t i = 0; i < plan.incoming_count; ++i) {
         SceneActionInfo action{};
         if (scene_resource_action_at(incoming, i, &action) != SCENE_RESOURCE_OK) return false;
-        if (action.type != 0x4d && action.type != 0x95 && action.type != 0x3f &&
+        if (action.type != 0x4d && action.type != 0x61 && action.type != 0x95 && action.type != 0x3f &&
             action.type != 0x3e && action.type != 0x0a && action.type != 0x2e &&
             action.type != ACTION_SOUND_TYPE && action.type != 0x80) {
             record(app, "scene_no_art_refused incoming=%zu type=0x%02x detail=constructor-delta-unimplemented before_clear=1", i, action.type);
