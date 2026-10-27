@@ -32,6 +32,7 @@
 #include "native_random_movie.h"
 #include "native_cel_resources.h"
 #include "native_jane_responses.h"
+#include "native_drake_responses.h"
 #include "native_secondary_video.h"
 #include "action_family_3f.h"
 #include "action_family_3e.h"
@@ -480,9 +481,12 @@ struct NativeApp {
     std::array<bool, 0x40> a1c_slot_used{};
     bool a1c_fills_logged = false;
     /* RT-59: raw 0xda Bul puzzle (arm 0x42a424 -> 0x45c18f, object 0x624734). The binding persists and is reset at every scene start; the
-     * backdrop (Z entry 1, 0x5d15e3) is a snapshot of the seeded back buffer as for 0xe0 / 0xe4; sounds are not played, the caption
+     * backdrop (Z entry 1, 0x5d15e3) is a snapshot of the seeded back buffer as for 0xe0 / 0xe4; the caption
      * text goes through the AUTOTEXT lookup and the boxed caption writer of the Onebuild puzzle. */
     SessionAdaBinding *ada = nullptr;
+    PuzzleSound ada_audio{};
+    bool ada_audio_initialized = false;
+    bool ada_audio_failed = false; /* sticky: provider errors block the session; busy must not report idle */
     std::array<bool, 0x40> ada_slot_used{};
     BulPointerResult ada_pointer{};
     uint64_t ada_plan_signature = 0u;
@@ -490,7 +494,6 @@ struct NativeApp {
     bool ada_render_failure_logged = false;
     std::vector<uint8_t> ada_background;
     uint64_t ada_background_seed = UINT64_MAX;
-    uint8_t ada_cursor_logged = 0u;   /* bit 0: cursor 9 (finish rectangle); bit 1: cursor 0x16 (a button) */
     std::string ada_text;
     int32_t a20_view_cell_63aa10 = 0;
     int16_t a20_word_5c3a4f = 0;
@@ -4172,82 +4175,113 @@ static int native_a3f_resolve_text(void *context, const uint8_t *key, size_t len
     return autotext_lookup(app->a3f_text, key, length, text, &raw, text_length) == AUTOTEXT_OK ? 0 : 1;
 }
 
-/* 0x43ff18 / 0x445253: Jane's dynamic response builders. Hook text comes
- * from the same CONVO table as row captions (0x43f210, manager0x6187b9). */
-static int native_jane_build_responses(void *context, uint8_t hook_a, uint8_t hook_b,
+/* Shared 0x43f210 text construction and 0x41fa11/0x41fd08 list operations. */
+static int native_hook_apply_response(NativeApp *app, Convo3fManager *manager,
+    const char *key, int16_t scene, bool replace, const char **why)
+{
+    Convo3fResponse response{};
+    const uint8_t *text = nullptr;
+    size_t raw = 0, length = 0;
+    const size_t key_length = std::strlen(key);
+    if (key_length >= sizeof(response.name)) return CONVO3F_ERR_BOUNDS;
+    const int lookup = autotext_lookup(app->a3f_text,
+        reinterpret_cast<const uint8_t *>(key), key_length, &text, &raw, &length);
+    if (lookup == AUTOTEXT_OK) {
+        if ((!text && length) || length >= CONVO3F_TEXT_BYTES || (length && std::memchr(text, 0, length))) {
+            if (why) *why = "conversation hook text exceeds native bounds";
+            return CONVO3F_ERR_BOUNDS;
+        }
+        if (length) std::memcpy(response.text, text, length);
+    } else if (lookup == AUTOTEXT_ERR_NOT_FOUND) {
+        const int written = std::snprintf(reinterpret_cast<char *>(response.text), CONVO3F_TEXT_BYTES,
+            "Response %s<h><n>", key);
+        if (written < 0 || written >= static_cast<int>(CONVO3F_TEXT_BYTES)) return CONVO3F_ERR_BOUNDS;
+    } else {
+        if (why) *why = "conversation hook CONVO lookup failed";
+        return CONVO3F_ERR_HOST;
+    }
+    std::memcpy(response.name, key, key_length + 1);
+    response.scene = scene; response.word_27 = 1; response.dword_31 = 1;
+    response.event_index = -1; response.word_38 = 2;
+    return convo3f_apply_hook_response(manager, &response, replace);
+}
+
+/* Original hooks0/1: Drake43f31a/44512a and Jane43ff18/445253.
+ * Both resolve through the same CONVO table and response-list helpers. */
+static int native_conversation_build_responses(void *context, uint8_t hook_a, uint8_t hook_b,
     const Convo3fWorld *world, Convo3fManager *manager, int preview, const char **why)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
     if (!app || !world || !manager) return CONVO3F_ERR_ARGUMENT;
-    if ((hook_a != 1u && hook_a != CONVO3F_NO_HOOK) ||
-        (hook_b != 1u && hook_b != CONVO3F_NO_HOOK)) {
-        if (why) *why = "unsupported conversation response hook (only Jane index1)";
+    const auto supported = [](uint8_t hook) { return hook == 0 || hook == 1 || hook == CONVO3F_NO_HOOK; };
+    if (!supported(hook_a) || !supported(hook_b)) {
+        if (why) *why = "unsupported conversation response hook (only Drake0/Jane1)";
         return CONVO3F_ERR_UNSUPPORTED;
     }
     if (!app->a3f_text) {
-        if (why) *why = "Jane CONVO provider unavailable";
+        if (why) *why = "conversation hook CONVO provider unavailable";
         return CONVO3F_ERR_UNSUPPORTED;
     }
-    NativeJaneResponseWorld predicates{world->events, world->event_count, world->presence, world->presence_count};
+    NativeJaneResponseWorld jane{world->events, world->event_count, world->presence, world->presence_count};
+    NativeDrakeResponseWorld drake{world->events, world->event_count};
     int32_t presence[NATIVE_JANE_PRESENCE_COUNT]{};
-    if (hook_a == 1u) {
-        if (!predicates.events || !predicates.presence || predicates.event_count < NATIVE_JANE_EVENT_COUNT ||
-            predicates.presence_count < NATIVE_JANE_PRESENCE_COUNT) {
+    if (hook_a == NATIVE_JANE_HOOK) {
+        if (!jane.events || !jane.presence || jane.event_count < NATIVE_JANE_EVENT_COUNT ||
+            jane.presence_count < NATIVE_JANE_PRESENCE_COUNT) {
             if (why) *why = "Jane response world bounds";
             return CONVO3F_ERR_BOUNDS;
         }
-        /* 0x4e8d96 puts a held item back before 0x4205c1. Project that
-         * inventory effect for dry layout without changing the live world. */
-        std::copy_n(predicates.presence, NATIVE_JANE_PRESENCE_COUNT, presence);
+        /* 0x4e8d96 puts the held item back before actual list construction. */
+        std::copy_n(jane.presence, NATIVE_JANE_PRESENCE_COUNT, presence);
         if (preview && world->held_item >= 0 && world->held_item < static_cast<int16_t>(NATIVE_JANE_PRESENCE_COUNT))
             presence[world->held_item] = 1;
-        predicates.presence = presence;
+        jane.presence = presence;
+    } else if (hook_a == NATIVE_DRAKE_HOOK && (!drake.events || drake.event_count < NATIVE_DRAKE_EVENT_COUNT)) {
+        if (why) *why = "Drake response world bounds";
+        return CONVO3F_ERR_BOUNDS;
     }
     SessionConditionsCrtRand copied = app->condition_rand;
-    size_t planned_count = 0u;
-    /* Finish all A lookups/additions before B's unconditional rand call. */
-    for (unsigned builder = 0u; builder < 2u; ++builder) {
-        const int32_t random = builder == 1u && hook_b == 1u ? static_cast<int32_t>(session_conditions_crt_rand(
+    size_t planned_count = 0;
+    /* All A lookups/additions precede B's one unconditional shared draw. */
+    for (unsigned builder = 0; builder < 2; ++builder) {
+        const uint8_t hook = builder == 0 ? hook_a : hook_b;
+        if (hook == CONVO3F_NO_HOOK) continue;
+        const int32_t random = builder == 1 ? static_cast<int32_t>(session_conditions_crt_rand(
             preview ? &copied : &app->condition_rand)) : 0;
-        NativeJaneResponsePlan plan{};
-        const int planned = native_jane_responses_plan(&predicates,
-            builder == 0u ? hook_a : CONVO3F_NO_HOOK, builder == 1u ? hook_b : CONVO3F_NO_HOOK, random, &plan);
-        if (planned != NATIVE_JANE_OK) {
-            if (why) *why = "Jane response plan refused";
-            return planned == NATIVE_JANE_ERR_UNSUPPORTED ? CONVO3F_ERR_UNSUPPORTED : CONVO3F_ERR_BOUNDS;
-        }
-        planned_count += plan.count;
-        for (size_t index = 0; index < plan.count; ++index) {
-            const NativeJaneResponseEntry &entry = plan.entries[index];
-            Convo3fResponse response{};
-            const uint8_t *text = nullptr;
-            size_t raw = 0u, length = 0u;
-            const size_t key_length = std::strlen(entry.key);
-            const int lookup = autotext_lookup(app->a3f_text,
-                reinterpret_cast<const uint8_t *>(entry.key), key_length, &text, &raw, &length);
-            if (lookup == AUTOTEXT_OK) {
-                if ((!text && length) || length >= CONVO3F_TEXT_BYTES || (length && std::memchr(text, 0, length))) {
-                    if (why) *why = "Jane response text exceeds native bounds";
-                    return CONVO3F_ERR_BOUNDS;
-                }
-                if (length) std::memcpy(response.text, text, length);
-            } else if (lookup == AUTOTEXT_ERR_NOT_FOUND) {
-                const int written = std::snprintf(reinterpret_cast<char *>(response.text), CONVO3F_TEXT_BYTES,
-                    "Response %s<h><n>", entry.key);
-                if (written < 0 || written >= static_cast<int>(CONVO3F_TEXT_BYTES)) return CONVO3F_ERR_BOUNDS;
-            } else {
-                if (why) *why = "Jane CONVO lookup failed";
-                return CONVO3F_ERR_HOST;
+        const uint8_t a = builder == 0 ? hook : static_cast<uint8_t>(CONVO3F_NO_HOOK);
+        const uint8_t b = builder == 1 ? hook : static_cast<uint8_t>(CONVO3F_NO_HOOK);
+        if (hook == NATIVE_DRAKE_HOOK) {
+            NativeDrakeResponsePlan plan{};
+            const int planned = native_drake_responses_plan(&drake, a, b, random, &plan);
+            if (planned != NATIVE_DRAKE_OK) {
+                if (why) *why = "Drake response plan refused";
+                return planned == NATIVE_DRAKE_ERR_UNSUPPORTED ? CONVO3F_ERR_UNSUPPORTED : CONVO3F_ERR_BOUNDS;
             }
-            std::memcpy(response.name, entry.key, key_length + 1u);
-            response.scene = entry.scene; response.word_27 = 1; response.dword_31 = 1;
-            response.event_index = -1; response.word_38 = 2;
-            const int applied = convo3f_apply_hook_response(manager, &response, entry.kind == NATIVE_JANE_REPLACE);
-            if (applied != CONVO3F_OK) return applied;
+            planned_count += plan.count;
+            for (size_t index = 0; index < plan.count; ++index) {
+                const NativeDrakeResponseEntry &entry = plan.entries[index];
+                const int applied = native_hook_apply_response(app, manager, entry.key, entry.scene,
+                    entry.kind == NATIVE_DRAKE_REPLACE, why);
+                if (applied != CONVO3F_OK) return applied;
+            }
+        } else {
+            NativeJaneResponsePlan plan{};
+            const int planned = native_jane_responses_plan(&jane, a, b, random, &plan);
+            if (planned != NATIVE_JANE_OK) {
+                if (why) *why = "Jane response plan refused";
+                return planned == NATIVE_JANE_ERR_UNSUPPORTED ? CONVO3F_ERR_UNSUPPORTED : CONVO3F_ERR_BOUNDS;
+            }
+            planned_count += plan.count;
+            for (size_t index = 0; index < plan.count; ++index) {
+                const NativeJaneResponseEntry &entry = plan.entries[index];
+                const int applied = native_hook_apply_response(app, manager, entry.key, entry.scene,
+                    entry.kind == NATIVE_JANE_REPLACE, why);
+                if (applied != CONVO3F_OK) return applied;
+            }
         }
     }
-    if (!preview) record(app, "scene_jane_responses hooks=%u,%u planned=%zu listed=%d shared_crt_draws=%u",
-        hook_a, hook_b, planned_count, manager->response_count, hook_b == 1u ? 1u : 0u);
+    if (!preview) record(app, "scene_conversation_responses hooks=%u,%u planned=%zu listed=%d shared_crt_draws=%u",
+        hook_a, hook_b, planned_count, manager->response_count, hook_b != CONVO3F_NO_HOOK ? 1u : 0u);
     return CONVO3F_OK;
 }
 
@@ -9501,34 +9535,102 @@ static int native_ada_mark_dirty(void *context, int16_t slot)
     return 0;
 }
 
+static bool native_ada_audio_ready(NativeApp *app)
+{
+    if (!app || !app->live_audio || app->ada_audio_failed) return false;
+    if (!app->ada_audio_initialized) {
+        ActionSoundBackend backend{};
+        if (live_audio_bind_backend(app->live_audio, &backend) != LIVE_AUDIO_OK ||
+            puzzle_sound_init(&app->ada_audio, &backend) != PUZZLE_SOUND_OK) return false;
+        app->ada_audio_initialized = true;
+    }
+    return true;
+}
+
+static bool native_ada_audio_refresh(NativeApp *app, int16_t channel)
+{
+    if (!native_ada_audio_ready(app) || channel < 0 ||
+        static_cast<unsigned>(channel) >= LIVE_AUDIO_CHANNEL_COUNT) return false;
+    LiveAudioChannelInfo info{};
+    if (live_audio_get_channel_info(app->live_audio, static_cast<uint16_t>(channel), &info) != LIVE_AUDIO_OK) return false;
+    app->ada_audio.prepared[static_cast<uint16_t>(channel)] = info.loaded;
+    return true;
+}
+
+/* Guest offsets in BulObject's comments are not native ABI offsets. The
+ * caption picker passes its own name buffer; pack its named fields instead
+ * of reading through the padding after the 33-byte native array. Body
+ * descriptors already have the original packed 0x31-byte layout. */
+static const uint8_t *native_ada_sound_record(NativeApp *app, const uint8_t *name,
+                                             uint8_t (&packed)[PUZZLE_SOUND_RECORD_BYTES])
+{
+    const BulObject *object = app && app->ada ? session_ada_object(app->ada) : nullptr;
+    if (!object || name != object->sound_name) return name;
+    std::memcpy(packed, object->sound_name, sizeof(object->sound_name));
+    const auto word = [&packed](size_t offset, int16_t value) {
+        const uint16_t bits = static_cast<uint16_t>(value);
+        packed[offset] = static_cast<uint8_t>(bits);
+        packed[offset + 1] = static_cast<uint8_t>(bits >> 8);
+    };
+    word(0x21, object->cap_channel);
+    word(0x23, object->cap_1a7);
+    word(0x25, object->cap_1a9);
+    word(0x27, object->cap_1ab);
+    const uint32_t control = static_cast<uint32_t>(object->cap_1ad);
+    for (size_t i = 0; i < 4; ++i) packed[0x29 + i] = static_cast<uint8_t>(control >> (8 * i));
+    word(0x2d, object->cap_1b1);
+    word(0x2f, object->cap_1b3);
+    return packed;
+}
+
 static int native_ada_sound_prepare(void *context, const uint8_t *name)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
-    (void)name; /* the sound name is not printed */
-    record(app, "scene_ada_sound call=0x4fb77a NOT PLAYED (no effect backend)");
-    return 0;
+    if (!native_ada_audio_ready(app)) return 1;
+    uint8_t packed[PUZZLE_SOUND_RECORD_BYTES]{};
+    const int status = puzzle_sound_prepare(&app->ada_audio, native_ada_sound_record(app, name, packed), sizeof(packed));
+    record(app, "scene_ada_sound call=0x4fb77a native_status=%d", status);
+    return status == PUZZLE_SOUND_OK || status == PUZZLE_SOUND_NO_RESOURCE ? 0 : 1;
 }
 
 static int native_ada_sound_stop(void *context, const uint8_t *name)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
-    (void)name;
-    record(app, "scene_ada_sound call=0x4fba69 NOT PLAYED (no effect backend)");
-    return 0;
+    if (!native_ada_audio_ready(app)) return 1;
+    uint8_t packed[PUZZLE_SOUND_RECORD_BYTES]{};
+    const int status = puzzle_sound_stop(&app->ada_audio, native_ada_sound_record(app, name, packed), sizeof(packed));
+    record(app, "scene_ada_sound call=0x4fba69 native_status=%d", status);
+    return status == PUZZLE_SOUND_OK || status == PUZZLE_SOUND_NO_RESOURCE ? 0 : 1;
 }
 
 static int native_ada_sound_play(void *context, int16_t channel)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
-    record(app, "scene_ada_sound channel=%d call=0x4fb2e3 NOT PLAYED (no effect backend)", channel);
-    return 0;
+    if (!native_ada_audio_refresh(app, channel)) return 1;
+    const int status = puzzle_sound_play(&app->ada_audio, static_cast<uint16_t>(channel));
+    record(app, "scene_ada_sound channel=%d call=0x4fb2e3 native_status=%d", channel, status);
+    return status == PUZZLE_SOUND_OK || status == PUZZLE_SOUND_NO_RESOURCE ? 0 : 1;
 }
 
 static int native_ada_sound_busy(void *context, int16_t channel)
 {
-    (void)context;
-    (void)channel;
-    return 0; /* 0x4f6334: nothing is ever playing here */
+    NativeApp *app = static_cast<NativeApp *>(context);
+    int playing = 0;
+    if (!native_ada_audio_refresh(app, channel) ||
+        puzzle_sound_busy(&app->ada_audio, static_cast<uint16_t>(channel), &playing) != PUZZLE_SOUND_OK) {
+        if (app) {
+            if (!app->ada_audio_failed) record(app, "scene_ada_sound_error channel=%d detail=busy-provider", channel);
+            app->ada_audio_failed = true;
+        }
+        return 1;
+    }
+    return playing;
+}
+
+static int32_t native_ada_random(void *context)
+{
+    int32_t value = 0;
+    return native_aea_rand(context, &value) == 0 ? value : -1;
 }
 
 /* 0x423259: the AUTOTEXT string of the sound name, or NULL. The kernel needs the copy to stay valid until the next call. */
@@ -9574,12 +9676,13 @@ static int native_ada_transition(void *context, const BulTransition *t)
     return 0;
 }
 
-/* The finish block's last store: engine mode 0x583999 := 4. The transition request above already carries the scene change; the
- * exit-state machine hand-over is not wired here (logged, unverified). */
+/* The finish block supports only mode4. native_ada_transition has already
+ * queued the request; the session/executor performs the actual exit handoff. */
 static int native_ada_engine_mode(void *context, int32_t mode)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
-    record(app, "scene_ada_engine_mode mode=%d (0x583999 := %d; exit-state hand-over not wired)", mode, mode);
+    if (!app || !app->session || mode != 4) return 1;
+    record(app, "scene_ada_engine_mode mode=%d transition=session-exit", mode);
     return 0;
 }
 
@@ -9620,7 +9723,7 @@ static void native_ada_fill_host(NativeApp *app, SessionAdaHost *host)
     host->kernel.caption_text = native_ada_caption_text;
     host->kernel.caption_show = native_ada_caption_show;
     host->kernel.tick = native_ad1_tick;
-    host->kernel.random = native_af6_random;
+    host->kernel.random = native_ada_random;
     host->kernel.event_flag_invalid = native_ad1_event_flag_invalid;
     host->kernel.transition = native_ada_transition;
     host->kernel.store_event_flag = native_ad1_store_event_flag;
@@ -9634,7 +9737,9 @@ static int native_ada_handler(void *context, size_t row, const SceneActionInfo *
 {
     NativeApp *app = static_cast<NativeApp *>(context);
     if (app == nullptr || app->ada == nullptr || before == nullptr || out == nullptr) return SCENE_ACTION_HANDLER_ERROR;
-    const int status = session_ada_handler(app->ada, row, action, before, out);
+    if (app->ada_audio_failed) return SCENE_ACTION_HANDLER_ERROR;
+    int status = session_ada_handler(app->ada, row, action, before, out);
+    if (app->ada_audio_failed) status = SCENE_ACTION_HANDLER_ERROR;
     if (status != SCENE_ACTION_HANDLER_OK) {
         record(app, "scene_ada_blocker row=%zu status=%d detail=%s", row, status, session_ada_failure(app->ada));
     }
@@ -10764,8 +10869,8 @@ static bool create_native_session_bindings(NativeApp *app)
     a3f_host.store_world = native_a3f_store_world;
     a3f_host.transition = native_a3f_transition;
     app->a3f = session_a3f_create(&a3f_host);
-    const Convo3fHookBuilders jane_hooks{app, native_jane_build_responses};
-    if (app->a3f && session_a3f_set_response_hooks(app->a3f, &jane_hooks) != CONVO3F_OK) return false;
+    const Convo3fHookBuilders response_hooks{app, native_conversation_build_responses};
+    if (app->a3f && session_a3f_set_response_hooks(app->a3f, &response_hooks) != CONVO3F_OK) return false;
     SessionAd9Host ad9_host{};
     ad9_host.kernel.context = app;
     ad9_host.kernel.alloc_slot = native_ad9_alloc_slot;
@@ -11990,6 +12095,32 @@ static bool native_aee_pointer_scope(const NativeApp *app)
     return count != 0;
 }
 
+/* The two difficulty alternatives share the original Bul singleton. */
+static bool native_ada_pointer_scope(const NativeApp *app)
+{
+    if (!app || !app->scene || !app->ada) return false;
+#ifdef BLACKMOOR_NATIVE_APP_TEST_HOOKS
+    if (app->test_members_busy) return false;
+#endif
+    size_t count = 0;
+    for (size_t row = 0; row < native_action_count(app); ++row) {
+        SceneActionInfo action{};
+        const int status = native_action_at(app, row, &action);
+        if (status == SCENE_RESOURCE_ERR_NOT_FOUND) continue;
+        if (status != SCENE_RESOURCE_OK) return false;
+        if (action.type == SESSION_ADA_TYPE) ++count;
+        else if (session_navigation_member_type(action.type)) return false;
+    }
+    const BulObject *object = session_ada_object(app->ada);
+    if (object && object->active) {
+        SceneActionInfo owner{};
+        if (object->row < 0 || !session_ada_registered(app->ada) ||
+            native_action_at(app, static_cast<size_t>(object->row), &owner) != SCENE_RESOURCE_OK ||
+            owner.type != SESSION_ADA_TYPE) return false;
+    }
+    return count != 0;
+}
+
 static InteractiveVideoInputView native_a1c_input_view(NativeApp *app)
 {
     InteractiveVideoInputView view{};
@@ -12062,7 +12193,8 @@ static void native_pointer_context(NativeApp *app, SessionInputContext *out)
                            cursor.guard_5b615e == 0 &&
                            (app->nav_members_idle || native_d1_pointer_scope(app) || native_a1c_pointer_scope(app) ||
                             native_aaa_pointer_scope(app) || native_ad0_pointer_scope(app) ||
-                            native_ad3_pointer_scope(app) || native_aee_pointer_scope(app))) ? 1u : 0u;
+                            native_ad3_pointer_scope(app) || native_aee_pointer_scope(app) ||
+                            native_ada_pointer_scope(app))) ? 1u : 0u;
     out->excluded_0 = -1; /* Secondary33 shares first-hit selection, then its specialized hover;34 remains unmodeled. */
     out->excluded_1 = -1;
 }
@@ -12358,15 +12490,21 @@ static int native_pointer_consume(void *context, SceneExecutorFrameInput *frame,
             const int click = session_ada_click(app->ada, bul_state.phase, app->input_state.candidate, &click_result);
             if (click != BUL_OK) {
                 record(app, "scene_ada_click_error row=%d status=%d detail=%s", bul_row, click, session_ada_failure(app->ada));
+                return SESSION_INPUT_INVALID_ARGUMENT;
             } else if (click_result.new_phase == 2u && bul_state.phase != 2u) {
                 if (scene_session_accept_action_candidate(app->session, static_cast<size_t>(bul_row)) == SCENE_SESSION_OK)
                     record(app, "scene_ada_click row=%d candidate=%d -> phase 2 (0x45b872)", bul_row,
                            app->input_state.candidate);
-                else
+                else {
                     record(app, "scene_ada_click_error row=%d detail=phase-2-store-refused", bul_row);
+                    return SESSION_INPUT_INVALID_ARGUMENT;
+                }
             } else if (click_result.handled != 0u) {
                 record(app, "scene_ada_click row=%d candidate=%d accepted (0x45b872)", bul_row, app->input_state.candidate);
             }
+            if (app->ada_audio_failed) return SESSION_INPUT_INVALID_ARGUMENT;
+        } else {
+            return SESSION_INPUT_INVALID_ARGUMENT;
         }
     }
     /* RT-45: the Onebuild puzzle's accepted-release chain (0x43b327 -> 0x48569e), same gate and candidate source. */
@@ -12487,13 +12625,6 @@ static int native_pointer_consume(void *context, SceneExecutorFrameInput *frame,
         session_ae4_registered(app->ae4) != 0u)
         (void)session_ae4_pointer_move(app->ae4, static_cast<int32_t>(frame->pointer_x),
                                        static_cast<int32_t>(frame->pointer_y), &app->ae4_pointer);
-    app->ada_pointer = BulPointerResult{};
-    app->ada_pointer.candidate = -1;
-    app->ada_pointer.button = -1;
-    if (status == SESSION_INPUT_OK && frame->pointer_valid != 0 && app->ada != nullptr &&
-        session_ada_registered(app->ada) != 0u)
-        (void)session_ada_pointer_move(app->ada, static_cast<int32_t>(frame->pointer_x),
-                                       static_cast<int32_t>(frame->pointer_y), &app->ada_pointer);
     app->a77_pointer = A77PointerResult{};
     app->a77_pointer.candidate = -1;
     app->a77_pointer.hover = -1;
@@ -12727,6 +12858,45 @@ static int native_pointer_scan(void *context, const SessionInputHotspot *rows,
             }
         }
     }
+    /* Bul's receiver at 0x4f0c63 follows ACT and precedes Memory, overlays,
+     * navigation and generic rows. Retain the previous pending button until
+     * release; only this later scan projects the current pointer. */
+    app->ada_pointer = BulPointerResult{};
+    app->ada_pointer.candidate = -1;
+    app->ada_pointer.button = -1;
+    if (native_ada_pointer_scope(app) && input.priority_clear) {
+        SessionInputState projection_state = app->input_state;
+        SceneExecutorFrameInput projected{};
+        const int projection = session_input_tick(&projection_state, &input, &projected);
+        if (projection != SESSION_INPUT_OK) { *candidate = -1; return projection; }
+        if (projected.pointer_valid) {
+            const int16_t *held = app->new_game.view.inventory.selected_item_candidate;
+            const int16_t item = held ? *held : static_cast<int16_t>(-1);
+            app->nav.state = NAV_STATE_NONE;
+            if (item == -1) app->nav_cursor = {0, 0};
+            else app->nav_cursor.index = static_cast<int32_t>(item) + 0x25;
+            const int hit = session_ada_pointer_move(app->ada, projected.pointer_x,
+                projected.pointer_y, &app->ada_pointer);
+            if (hit != BUL_OK) {
+                record(app, "scene_ada_pointer_error status=%d detail=%s", hit, session_ada_failure(app->ada));
+                *candidate = -1; return SESSION_INPUT_INVALID_ARGUMENT;
+            }
+            if (app->ada_pointer.cursor_link) {
+                app->nav_cursor.index = app->ada_pointer.cursor_kind;
+                app->nav_cursor.variant = app->ada_pointer.cursor_sub;
+                app->captions.lifecycle.g.cursor_layer_enabled = 1;
+            }
+            if (app->ada_pointer.hit) {
+                (void)session_input_publish_candidate(&app->input_state, app->ada_pointer.candidate);
+                *candidate = app->input_state.candidate;
+                if (*candidate != app->logged_candidate)
+                    record(app, "scene_ada_pointer candidate=%d button=%d before=overlay-navigation-generic",
+                        *candidate, app->ada_pointer.button);
+                app->logged_candidate = *candidate;
+                return SESSION_INPUT_OK;
+            }
+        }
+    }
     /* 0x4f0fb4 runs Memory after ACT and before overlays/navigation/generic.
      * Project on a private input copy, retaining the old hover for release.
      * These are the original viewport-relative event+5e/+5a words; the
@@ -12877,19 +13047,6 @@ static int native_pointer_scan(void *context, const SessionInputHotspot *rows,
             app->ae4_cursor_logged = static_cast<uint8_t>(app->ae4_cursor_logged | cursor_bit);
             record(app, "scene_ae4_pointer candidate=%d cursor=%d (cursor sprite not drawn by the app)",
                    app->ae4_pointer.candidate, cursor);
-        }
-    }
-    if (status == SESSION_INPUT_OK && app->ada_pointer.hit != 0u) {
-        /* 0x45b5bb (cascade 0x4f0059 at 0x4f0c63) returns before the generic row loop and 0x45b7a8 has written the candidate
-         * (0x27ba a button, 0x27bb the finish rectangle) and the cursor cells (0x5b44f0 = 0x16 button, 9 finish rectangle;
-         * 0x5b44f4 = 1). The cursor cells are not drawn by the app; logged once per cursor kind. */
-        (void)session_input_publish_candidate(&app->input_state, app->ada_pointer.candidate);
-        const int32_t cursor = app->ada_pointer.cursor_kind;
-        const uint8_t cursor_bit = cursor == 9 ? 1u : (cursor == 0x16 ? 2u : 0u);
-        if (cursor_bit != 0u && (app->ada_cursor_logged & cursor_bit) == 0u) {
-            app->ada_cursor_logged = static_cast<uint8_t>(app->ada_cursor_logged | cursor_bit);
-            record(app, "scene_ada_pointer candidate=%d cursor=%d (cursor sprite not drawn by the app)",
-                   app->ada_pointer.candidate, cursor);
         }
     }
     if (status == SESSION_INPUT_OK && app->af5_pointer.hit != 0u) {
@@ -13067,7 +13224,8 @@ static bool bind_native_pointer(NativeApp *app)
     const bool clear = c.guard_5b5158 == 0 && c.guard_5b61af == 0 && c.guard_5b615e == 0 &&
                        (app->nav_members_idle || native_d1_pointer_scope(app) || native_a1c_pointer_scope(app) ||
                         native_aaa_pointer_scope(app) || native_ad0_pointer_scope(app) ||
-                        native_ad3_pointer_scope(app) || native_aee_pointer_scope(app));
+                        native_ad3_pointer_scope(app) || native_aee_pointer_scope(app) ||
+                        native_ada_pointer_scope(app));
     record(app, "pointer_provider provisional sprite=%dx%d hot=%d,%d scroll=%d "
            "guards[5b5158,5b61af,5b615e]=%u,%u,%u cascade_members_idle=%d priority_clear=%d "
            "excluded=-1,-1 reason=cursor-sprite-size/hot-point/scroll-unrecovered "
