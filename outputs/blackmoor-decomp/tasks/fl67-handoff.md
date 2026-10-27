@@ -25,6 +25,15 @@ PRs: 226 (prover and tier), 229, 231 (evidence regeneration), 236 (batch 3, +44)
 - About 100 rows have a prover answer of "sat" for a missing direction (the direction is reachable) but no scenario reaches it. They need a smarter generator (for example solver models that respect pointer ranges and loop bounds), not more random search.
 - A few big rows are bounded by the prover's memory cap (`FL67_MEM_MB`, default 3500): one row (0x51f067) used the whole cap.
 
+## Best idea for the next tool: prover model to runnable scenario, with range constraints and a repair loop
+
+The prover (`scripts/fl67_infeasible.py`) already builds an exact path condition for every missing instruction and untaken direction, and answers "sat" for about 100 rows, which means a start state exists. `scripts/fl68_model.py` turned such a model into a scenario but failed because raw z3 models wrap pointers and set loop counters to huge values. Next steps:
+1. Add domain constraints to the query before asking for a model: every cell used as a pointer lies inside one mapped scenario region and is aligned; every loop counter or length is at most 16; start registers are in the ranges the real callers use (esp inside the stack region, ecx a heap pointer for methods).
+2. Turn the model into overrides of (seed, cell, value) pairs, run the original in Unicorn, and check which target it reached.
+3. If the run diverges from the predicted path, take the first diverging branch, add that observed branch outcome as a constraint (or block that model), and solve again (a counterexample-guided repair loop, usually 2 to 5 rounds).
+4. Feed every scenario that reaches a new item into `tasks/fl66/scen/` and run `fl66_tested.py check ROWS --redo --prove`. Callee returns need the same treatment through STUB_OVR (world 41 and now world 40).
+Start with the rows that miss one or two directions (about 25 rows) to prove the loop works before the large dispatchers.
+
 ## Gotchas
 
 - z3's memory cap is per process; a query that reaches it leaves the rest of that process without memory. The soundness oracle test therefore runs each row in its own process.
