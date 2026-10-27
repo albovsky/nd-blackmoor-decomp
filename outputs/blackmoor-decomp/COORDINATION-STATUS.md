@@ -28,6 +28,10 @@ Live headless run (`--inspect-live-session --live-click-row 34 --live-ticks 3000
 
 GUI and hardware audio remain unverified: no window or speaker check has been done. This session had no computer-use tools and the shell cannot screen-capture, so the window click-through and listening pass still needs Glib (or a session with computer use). The windowed app does create the same scene session and tick loop (`blackmoor_app.mm` enables the scene runtime unless inspect-only) and reaches the menu; nothing past that was observed.
 
+## Handoff: FL-71 window proofs and callee-store solver (2026-10-27 PDT, cloud thread)
+
+FL-71 (PR 245) cleared 0x4272b2 (tested equivalent) and 0x41f5b1, 0x48ae05 (by proof); main is at 1,630 tested equivalent with FL-70's PR 246, verified unchanged at 2,210 of 4,188. Mac-port view: ported 2,209, tested equivalent 355, pending 121 of 2,685. New tools `scripts/fl71_solve.py` (callee stores as solver inputs) and `scripts/fl71_window.py` (dominator-window proofs, run by `fl67_infeasible.prove_row`). 0x4f2710 improved to 635/798 but is not done; dispatchers and 0x4933ff, 0x47ac33, 0x4477d1, 0x47bb56 are still open. Details and scenarios: `tasks/fl71-handoff.md`, `tasks/fl71-scenarios.json`.
+
 ## Handoff: FL-70 solver-guided scenarios for Mac-port rows (2026-10-27 PDT, cloud thread)
 
 FL-70 added 21 tested-equivalent rows over PRs 243, 244 and the batch 3 PR; with FL-71's PR 245 the whole ledger is 1,630 tested equivalent (76 by z3 proof), verified unchanged at 2,210 of 4,188. Mac-port view (Game + Vorbis): ported 2,209, tested equivalent 355, pending 121 of 2,685 (was 145). New tool `scripts/fl70_solve.py` (replay of an original-bytes run through the prover's semantics, z3 flips one untaken direction, child runs on the original, repeats). One new translation mismatch: 0x40105e. Details and the list of what is left: `tasks/fl70-handoff.md`.
