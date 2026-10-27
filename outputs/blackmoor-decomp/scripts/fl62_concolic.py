@@ -56,6 +56,11 @@ class Row41(C.Row):
         self.inline = inline
         self.text = text
         self.sites = {int(a, 16): n for a, n in table['sites'].items()} if table.get('sites') else None
+        import fl66_tested as T66
+        extra = T66.extra_sites().get(key)             # FL-69: the sites that scripts/fl68_sites.py registered
+        if extra:
+            self.sites = dict(self.sites or {})
+            self.sites.update({int(a, 16): n for a, n in extra.items()})
         self.frame = table.get('frame')
         self.info = W41.row_info(self.va, spans[self.va], callees, imports, fs, self.sites, self.frame)
         self.md = C.capstone.Cs(C.capstone.CS_ARCH_X86, C.capstone.CS_MODE_32)
