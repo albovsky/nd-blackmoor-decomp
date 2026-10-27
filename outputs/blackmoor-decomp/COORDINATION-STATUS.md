@@ -32,6 +32,10 @@ GUI and hardware audio remain unverified: no window or speaker check has been do
 
 Tested equivalent 1,315 -> 1,527 (CRT/MFC pending 280 -> 99: 1,275 tested equivalent, 128 not needed, 1 ported); verified unchanged at 2,210. New goal-directed search `scripts/fl68_search.py`, harness fixes (tail jumps with pushed words, recursion, import-thunk pops, fs flag, x87 C1) and the 99 leftovers with reasons are in `tasks/fl68-handoff.md`. The thread then moved to the Mac-port rows that the FL-67 pipeline could not finish: 6 more rows tested equivalent (Mac-port view: ported 2,209, tested equivalent 301, pending 175 of 2,685; whole ledger tested equivalent 1,576). Details: `tasks/fl68-handoff.md`, last section.
 
+## Handoff: FL-67 Mac-port rows to tested equivalent (2026-10-27 PDT, cloud thread)
+
+Tested equivalent 1,346 -> 1,600 over PRs 226 to 240 and the batch 6 PR (70 of them by z3 proof, never counted as verified); verified unchanged at 2,210 of 4,188. Mac-port view (Game + Vorbis): ported 2,209, tested equivalent 325, pending 151 of 2,685. The scenario search (`scripts/fl68_search.py`) plus `fl66_tested.py check --redo --prove` is the pass that still pays; the proof-on-a-slice idea cleared nothing. What is left is mostly rows whose missing direction is provably reachable but no scenario reaches it, five translation mismatches and 23 stuck rows (FL-69). Details: `tasks/fl67-handoff.md`.
+
 ## Handoff: RT-33 raw 0x2e random-movie control runtime (2026-10-16 PDT, cloud thread)
 
 Scope: the brief asked for raw 0x2e and 0xd1 in one slice; 0xd1 is the Turning Puzzle (a phase machine with its own process-list callback, surface load, sound and timing; the size of RT-24's Mouselight puzzle), so this slice lands 0x2e alone and 0xd1 is the next family. Type-level scenes with every row handled: 1,946 to 1,954 of 2,078 (upper bound; the row-level live count needs the Mac; RT-32's 0x43/0x94 will add to it when it merges).
