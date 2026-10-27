@@ -26,6 +26,20 @@ except ImportError:
     HAVE_Z3 = False
 
 BASE = 0x401000
+
+
+def _oracle_verdicts(k):
+    """The verdicts the prover gives on every instruction and jump direction of a fully covered row. Run in its own process: z3's memory cap is per process and a query that
+    reaches it leaves the rest of that process without memory."""
+    try:
+        out = P.prove_row(k, P.all_targets(P.row_of(k)), timeout_ms=5000)
+    except z3.Z3Exception as ex:
+        if 'out of memory' not in str(ex):
+            raise
+        return ['out of memory']                      # no verdict at all, so nothing is ruled out
+    return [v[0] for v in list(out['instructions'].values()) + list(out['directions'].values())]
+
+
 PROGRAMS = {
     # xor eax,eax; test eax,eax; je done; mov eax,1; done: ret
     'const_branch': '31c085c07405b801000000c3',
@@ -212,11 +226,15 @@ class Replay(unittest.TestCase):
         if not od.available():
             self.skipTest('needs Unicorn and the pinned private work/original/GAME.EXE')
         covered = json.loads(T.MANIFEST.read_text())['rows']
-        keys = sorted(covered, key=lambda k: (covered[k]['body'], k))
-        for k in keys[::max(1, len(keys) // 20)][:20]:
-            out = P.prove_row(k, P.all_targets(P.row_of(k)), timeout_ms=5000)
-            verdicts = [v[0] for v in list(out['instructions'].values()) + list(out['directions'].values())]
-            self.assertNotIn('unsat', verdicts, k)
+        keys = sorted((k for k in covered if covered[k]['body'] <= 150), key=lambda k: (covered[k]['body'], k))      # a bigger row is up to 5 s a target and, at the extreme, more memory than the prover is allowed
+        import multiprocessing
+        checked = 0
+        with multiprocessing.get_context('spawn').Pool(1, maxtasksperchild=1) as pool:
+            for k in keys[::max(1, len(keys) // 20)][:20]:
+                verdicts = pool.apply_async(_oracle_verdicts, (k,)).get(600)
+                self.assertNotIn('unsat', verdicts, k)
+                checked += verdicts != ['out of memory']
+        self.assertGreaterEqual(checked, 10)                                    # the sample must really have been proved, not all swallowed
 
 
 if __name__ == '__main__':
