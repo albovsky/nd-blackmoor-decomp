@@ -30,7 +30,7 @@ GUI and hardware audio remain unverified: no window or speaker check has been do
 
 ## Handoff: FL-70 solver-guided scenarios for Mac-port rows (2026-10-27 PDT, cloud thread)
 
-Tested equivalent 1,606 -> 1,627 over PRs 243, 244 and the batch 3 PR (74 by z3 proof); verified unchanged at 2,210 of 4,188. Mac-port view (Game + Vorbis): ported 2,209, tested equivalent 352, pending 124 of 2,685 (was 145). New tool `scripts/fl70_solve.py` (replay of an original-bytes run through the prover's semantics, z3 flips one untaken direction, child runs on the original, repeats). One new translation mismatch: 0x40105e. Details and the list of what is left: `tasks/fl70-handoff.md`.
+FL-70 added 21 tested-equivalent rows over PRs 243, 244 and the batch 3 PR; with FL-71's PR 245 the whole ledger is 1,630 tested equivalent (76 by z3 proof), verified unchanged at 2,210 of 4,188. Mac-port view (Game + Vorbis): ported 2,209, tested equivalent 355, pending 121 of 2,685 (was 145). New tool `scripts/fl70_solve.py` (replay of an original-bytes run through the prover's semantics, z3 flips one untaken direction, child runs on the original, repeats). One new translation mismatch: 0x40105e. Details and the list of what is left: `tasks/fl70-handoff.md`.
 
 ## Handoff: FL-68 CRT/MFC rows of the tested-equivalent tier (2026-10-27 PDT, cloud thread)
 

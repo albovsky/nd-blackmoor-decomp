@@ -47,9 +47,13 @@ def find_sites(key):
             continue
         if i.mnemonic == 'jmp' and op.type == CX.X86_OP_MEM and op.mem.index:
             continue                                       # a jump table
-        line = next((ln for ln in text.splitlines() if '/* 0x%x: %s' % (i.address, i.mnemonic) in ln), None)
-        if line is None:
+        lines = text.splitlines()
+        at = next((k for k, ln in enumerate(lines) if '/* 0x%x: %s' % (i.address, i.mnemonic) in ln), None)
+        if at is None:
             raise ValueError('%s: no translation line for %x' % (key, i.address))
+        line = lines[at]
+        if 'CALL(t_)' not in line:                         # FL-71: the multi-line form (`/* call */` on its own line, the call and its pops on the next lines)
+            line = ' '.join(ln.strip() for ln in lines[at:at + 7])
         if i.mnemonic == 'call':
             m = re.search(r'FL4[01]_CALL\(t_\);((?: esp \+= \d+u;)+)', line)
             pops = [int(x) for x in re.findall(r'esp \+= (\d+)u;', m.group(1))] if m else None

@@ -4,7 +4,7 @@ Goal: use a z3 model to build runnable scenarios for the Mac-port (Game + Vorbis
 
 ## Result
 
-Three PRs: 243 (+8 rows), 244 (+10), and the batch 3 PR that adds this file (+3). Whole ledger tested equivalent 1,606 -> 1,627 (74 by proof), translated only 223. Mac-port view: ported 2,209, tested equivalent 352, pending 124 of 2,685 (was 145).
+Three PRs: 243 (+8 rows), 244 (+10), and the batch 3 PR that adds this file (+3). Tested equivalent counts after merging FL-71's PR 245: whole ledger 1,630 (76 by proof), translated only 220; 21 of the credits are FL-70's, the rest FL-71's. Mac-port view: ported 2,209, tested equivalent 355, pending 121 of 2,685 (was 145 before FL-70 and FL-71).
 
 New credits: 0x4fc341 0x45eadc 0x437774 0x45a07b 0x49c889 0x4c5976 0x4348b0 0x4bb775 (PR 243); 0x4b777d 0x42fc70 0x476a25 0x47a416 0x4889f0 0x455cc3 0x488319 0x4d1898 0x4e6658 and 0x4e075a by proof (PR 244); 0x4e412d, and 0x4b2ce6 and 0x426d0f by proof (batch 3).
 
@@ -20,7 +20,7 @@ Lessons: split the memory into frame and heap arrays (100x faster); put the goal
 
 Pipeline for credit: pack the scenario files (all `--out` JSONs of rows with lists of `[seed, overrides]`) into one `scen-all.json`, then `FL66_EARLY=1 python3 scripts/fl66_tested.py check ROWS --redo --prove --scen scen-all.json`, then `merge --write`, regenerate evidence, ledger, names, fixture, run `test_function_names`, `test_fl66_tested_equivalent`, `test_fl67_infeasible`, `test_function_ledger`.
 
-## What is left (124 Mac-port rows)
+## What is left (121 Mac-port rows)
 
 - FL-71 holds the dispatchers and stuck near-miss rows (see `tasks/fl69-handoff.md`).
 - One direction short, solver and prover both stuck: 0x4d7162 (`0x4d7496` taken; needs `[this+0x956a] == -1` right after an earlier check that must pass; prover answers unknown), 0x4c62f0 (`0x4c6500` taken is "sat", `0x4c6509` fall-through), 0x4af225 (5 directions, 4 instructions), 0x4bbb3e (5 directions). Each looks like a two-iteration loop interaction or a chained pointer check that the one-flip repair cannot line up. Idea not tried: let the solver flip two jumps at once (two occurrences of the same loop jump in one model) and ask for the first loop pass to leave a specific cell value.
