@@ -60,7 +60,8 @@ typedef enum session_exit_status {
 
 typedef enum session_exit_unsupported {
     SESSION_EXIT_UNSUPPORTED_NONE = 0,
-    /* DAT_005bb22a != 0: the load-game variant of the exit handler. */
+    /* DAT_005bb22a != 0: overlay-scene exit needs the target summary.
+     * This historical enum name is not the save restore flag5e32b5. */
     SESSION_EXIT_UNSUPPORTED_LOAD_GAME = 1,
     /* DAT_0055cd94 == 0: the handler first opens the next scene's summary
      * chunk (0x43d2f4..0x43d5d2) and may return to state 3 without a load. */
@@ -87,7 +88,7 @@ typedef enum session_exit_capture {
  * addresses. Widths follow the instruction that touches them. */
 typedef struct session_exit_globals {
     uint32_t game_state;            /* 0x583999 */
-    int32_t load_game_flag;         /* 0x5bb22a */
+    int32_t load_game_flag;         /* 0x5bb22a popup-scene flag (historical native name) */
     int32_t popup_flag;             /* 0x55cd94 (image value 1) */
     int32_t modal_input;            /* 0x5839a9 */
     int16_t first_render_level;     /* 0x5bb1c4 (word) */
@@ -169,6 +170,14 @@ int session_exit_controller(SessionExit *exit_state,
 int session_exit_state4(SessionExit *exit_state,
                         const SessionExitHost *host,
                         SessionExitStepInfo *info);
+
+/* Original43d227 summary classification at43d4e3..43d569:1 is
+ * NO_ART_SCENE,2 POPUP_PREP_SCENE. The caller must have actually opened and
+ * classified the requested target. Both kinds reach the ordinary effect
+ * gate even with5bb22a!=0 or55cd94==0. Other summary kinds still refuse;
+ * their state3/hold branches are outside this additive boundary. */
+int session_exit_state4_retained(SessionExit *exit_state,
+    const SessionExitHost *host, int summary_kind, SessionExitStepInfo *info);
 
 /* Render-pass call of the gate in state 3 (0x4d00ae). */
 int session_exit_render_pass(SessionExit *exit_state,

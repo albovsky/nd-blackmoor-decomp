@@ -43,6 +43,8 @@ struct SceneSession {
     uint8_t (*phone_rows)[ACTION_UI_PHONE_RECORD_SIZE];
     size_t phone_capacity;
     ActionUIWorld action_ui;
+    SceneSessionImmediateControlFn immediate_control;
+    void *immediate_control_context;
     SceneSessionPrepareFn prepare_tick;
     SceneSessionMediaStepFn advance_media_one;
     void *provider_context;
@@ -119,6 +121,12 @@ static int ui_action_handler(void *context,
         &session->action_ui, action->type, action->subtype,
         action->typed_body, action->typed_body_length, before->phase,
         &ui_result);
+    if (session->last_ui_status == ACTION_UI_ERR_UNSUPPORTED &&
+        action->type == ACTION_TYPE_CONTROL && action->typed_body_length == 8u &&
+        action->typed_body != NULL && action->typed_body[2] == 1u && session->immediate_control != NULL) {
+        session->last_ui_status = session->immediate_control(session->immediate_control_context,
+            action->typed_body, action->typed_body_length);
+    }
     if (session->last_ui_status != ACTION_UI_OK) {
         return session->last_ui_status == ACTION_UI_ERR_UNSUPPORTED
                    ? SCENE_ACTION_HANDLER_UNSUPPORTED
@@ -127,6 +135,15 @@ static int ui_action_handler(void *context,
     result->disposition = SCENE_ACTION_HANDLER_DIRECT_COMPLETED;
     result->phase = ui_result.phase;
     return SCENE_ACTION_HANDLER_OK;
+}
+
+int scene_session_bind_immediate_control(SceneSession *session,
+    SceneSessionImmediateControlFn callback, void *context)
+{
+    if (session == NULL || session->frozen) return SCENE_SESSION_ERR_STATE;
+    session->immediate_control = callback;
+    session->immediate_control_context = callback != NULL ? context : NULL;
+    return SCENE_SESSION_OK;
 }
 
 static int build_executor(SceneSession *session,

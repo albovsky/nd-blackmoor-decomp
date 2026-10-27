@@ -250,28 +250,10 @@ int session_exit_effect_gate(SessionExit *exit_state,
     return status;
 }
 
-int session_exit_state4(SessionExit *exit_state,
-                        const SessionExitHost *host,
-                        SessionExitStepInfo *info)
+static int state4_effect(SessionExit *exit_state, const SessionExitHost *host,
+                         SessionExitStepInfo *info)
 {
     int status;
-
-    reset_info(info);
-    if (exit_state == NULL || host == NULL) {
-        return SESSION_EXIT_ERR_ARGUMENT;
-    }
-    if (exit_state->g.load_game_flag != 0) {
-        if (info != NULL) {
-            info->unsupported = SESSION_EXIT_UNSUPPORTED_LOAD_GAME;
-        }
-        return SESSION_EXIT_ERR_UNSUPPORTED;
-    }
-    if (exit_state->g.popup_flag == 0) {               /* 0x43d26d, call 0x4ee5cd */
-        if (info != NULL) {
-            info->unsupported = SESSION_EXIT_UNSUPPORTED_SCENE_SUMMARY_CHECK;
-        }
-        return SESSION_EXIT_ERR_UNSUPPORTED;
-    }
     {
         /* Use a local record when the caller omits diagnostics, so the gate's
          * controller result still decides the next state. */
@@ -287,6 +269,34 @@ int session_exit_state4(SessionExit *exit_state,
         }
         return SESSION_EXIT_OK;
     }
+}
+
+int session_exit_state4(SessionExit *exit_state, const SessionExitHost *host,
+                        SessionExitStepInfo *info)
+{
+    reset_info(info);
+    if (exit_state == NULL || host == NULL) return SESSION_EXIT_ERR_ARGUMENT;
+    if (exit_state->g.load_game_flag != 0) {
+        if (info != NULL) info->unsupported = SESSION_EXIT_UNSUPPORTED_LOAD_GAME;
+        return SESSION_EXIT_ERR_UNSUPPORTED;
+    }
+    if (exit_state->g.popup_flag == 0) {
+        if (info != NULL) info->unsupported = SESSION_EXIT_UNSUPPORTED_SCENE_SUMMARY_CHECK;
+        return SESSION_EXIT_ERR_UNSUPPORTED;
+    }
+    return state4_effect(exit_state, host, info);
+}
+
+int session_exit_state4_retained(SessionExit *exit_state, const SessionExitHost *host,
+                                 int summary_kind, SessionExitStepInfo *info)
+{
+    reset_info(info);
+    if (exit_state == NULL || host == NULL) return SESSION_EXIT_ERR_ARGUMENT;
+    if (summary_kind != 1 && summary_kind != 2) {
+        if (info != NULL) info->unsupported = SESSION_EXIT_UNSUPPORTED_SCENE_SUMMARY_CHECK;
+        return SESSION_EXIT_ERR_UNSUPPORTED;
+    }
+    return state4_effect(exit_state, host, info);
 }
 
 int session_exit_render_pass(SessionExit *exit_state,

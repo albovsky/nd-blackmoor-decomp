@@ -33,6 +33,8 @@
 #include "native_cel_resources.h"
 #include "native_jane_responses.h"
 #include "native_drake_responses.h"
+#include "action_ui_immediate.h"
+#include "native_phone_popup.h"
 #include "native_secondary_video.h"
 #include "action_family_3f.h"
 #include "action_family_3e.h"
@@ -498,8 +500,17 @@ struct NativeApp {
     int32_t a20_view_cell_63aa10 = 0;
     int16_t a20_word_5c3a4f = 0;
     Action70World a70_world{};
-    Action80Object a80_object{};
+    Action80Object a80_object = [] {
+        Action80Object object{};
+        object.word_6b2 = ACTION_FAMILY_80_SCENE_NONE;
+        return object;
+    }();
     bool a80_object_valid = false;
+    NativePhonePopup phone{};
+    PuzzleSound phone_audio{};
+    bool phone_audio_initialized = false;
+    uint32_t phone_base_surface = 0, phone_extras_surface = 0;
+    int32_t phone_battery_5a1e54 = 0, phone_unavailable_5a1e58 = 0; /* NewGame4e2e05 */
     std::array<bool, 0x40> aea_slot_used{};
     EaPointerResult aea_pointer{};
     uint64_t aea_plan_signature = 0u;
@@ -1288,6 +1299,7 @@ static bool native_ad3_render(NativeApp *app);
 static bool native_af5_render(NativeApp *app);
 static bool native_a1c_render(NativeApp *app);
 static bool native_ada_render(NativeApp *app);
+static bool native_phone_render(NativeApp *app);
 static bool native_aea_render(NativeApp *app);
 static bool native_af6_render(NativeApp *app);
 static bool native_ae0_render(NativeApp *app);
@@ -1745,6 +1757,9 @@ static bool native_caption_finish_tick(NativeApp *app, uint8_t dispatch_attempte
     if (app->aee != nullptr && session_aee_registered(app->aee) != 0u) {
         /* RT-60: the Memory puzzle's generic z entry (type 0xb, callback 0x47d24e), same slot range. */
         (void)native_aee_render(app);
+    }
+    if (!native_phone_render(app)) {
+        record(app, "phone_popup_render_error"); captions.transfer_failed_sticky = true; return false;
     }
     if (!native_a3f_caption_render(app)) {
         record(app, "scene_a3f_caption_render_error");
@@ -6432,8 +6447,245 @@ static int native_ad1_sound_busy(void *context, int16_t channel, int32_t *result
     return 0;
 }
 
-/* Other puzzle families still have no playback backend in this slice. Their
- * existing idle answer stays local until their prepare/play hooks are bound. */
+static bool native_phone_uicl(NativeApp *app, const uint8_t **bytes, size_t *length)
+{
+    return app && find_boot_payload(app, "UICL", bytes, length) && *length >= NATIVE_PHONE_UICL_MIN_BYTES;
+}
+
+static NativePhoneWorld native_phone_world(NativeApp *app)
+{
+    NativePhoneWorld world{};
+    SceneStackCurrent current{};
+    (void)native_a6e_load_current(app, &current);
+    world.cells.scene_5bb57b = current.scene_5bb57b;
+    world.cells.scene_5bb57f = current.scene_5bb57f;
+    world.cells.cell_583204 = app->captions.lifecycle.g.overlay_ui;
+    world.cells.cell_5bb22a = app->exit_state.g.load_game_flag;
+    world.cells.engine_mode_583999 = static_cast<int32_t>(app->exit_state.g.game_state);
+    world.frame_5bb50b = current.word_5bb50b;
+    world.vertical_5bb593 = current.word_5bb593;
+    world.dword_5bb5a7 = current.dword_5bb5a7;
+    world.dword_5bb5ab = current.dword_5bb5ab;
+    world.dword_5bb5af = current.dword_5bb5af;
+    world.unavailable_5a1e58 = app->phone_unavailable_5a1e58;
+    world.battery_5a1e54 = app->phone_battery_5a1e54;
+    return world;
+}
+
+static void native_phone_store_world(NativeApp *app, const NativePhoneWorld &world)
+{
+    app->captions.lifecycle.g.overlay_ui = world.cells.cell_583204;
+    app->exit_state.g.load_game_flag = world.cells.cell_5bb22a;
+}
+
+static int native_phone_open_assets(void *context)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    const uint8_t *uicl = nullptr;
+    size_t size = 0;
+    char base[33]{}, extras[33]{};
+    uint8_t pickup[NATIVE_PHONE_SOUND_BYTES]{};
+    if (!native_phone_uicl(app, &uicl, &size) ||
+        native_phone_popup_assets(uicl, size, base, extras, pickup) != NATIVE_PHONE_OK) return 1;
+    const uint32_t first = native_caption_load_image(app, base, "phone-popup");
+    const uint32_t second = native_caption_load_image(app, extras, "phone-extras");
+    if (!first || !second) return 1;
+    app->phone_base_surface = first;
+    app->phone_extras_surface = second;
+    return 0;
+}
+
+static int native_phone_surface_ready(void *context, int *ready)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (!app || !ready) return 1;
+    *ready = app->phone_base_surface && app->phone_extras_surface ? 1 : 0;
+    return 0; /* Native image decoding is synchronous. */
+}
+
+static bool native_phone_audio_ready(NativeApp *app)
+{
+    if (!app || !app->live_audio) return false;
+    if (!app->phone_audio_initialized) {
+        ActionSoundBackend backend{};
+        if (live_audio_bind_backend(app->live_audio, &backend) != LIVE_AUDIO_OK ||
+            puzzle_sound_init(&app->phone_audio, &backend) != PUZZLE_SOUND_OK) return false;
+        app->phone_audio_initialized = true;
+    }
+    return true;
+}
+
+static bool native_phone_audio_refresh(NativeApp *app, uint16_t channel)
+{
+    if (!native_phone_audio_ready(app) || channel >= LIVE_AUDIO_CHANNEL_COUNT) return false;
+    LiveAudioChannelInfo info{};
+    if (live_audio_get_channel_info(app->live_audio, channel, &info) != LIVE_AUDIO_OK) return false;
+    app->phone_audio.prepared[channel] = info.loaded;
+    return true;
+}
+
+static int native_phone_sound_prepare(void *context, const uint8_t *bytes, size_t size)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (!native_phone_audio_ready(app)) return 1;
+    const int status = puzzle_sound_prepare(&app->phone_audio, bytes, size);
+    record(app, "phone_pickup_prepare status=%d", status);
+    return status == PUZZLE_SOUND_OK ? 0 : 1;
+}
+
+static int native_phone_sound_play(void *context, uint16_t channel)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (!native_phone_audio_refresh(app, channel)) return 1;
+    return puzzle_sound_play(&app->phone_audio, channel) == PUZZLE_SOUND_OK ? 0 : 1;
+}
+
+static int native_phone_sound_busy(void *context, uint16_t channel, int *playing)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (!playing || !native_phone_audio_refresh(app, channel)) return 1;
+    return puzzle_sound_busy(&app->phone_audio, channel, playing) == PUZZLE_SOUND_OK ? 0 : 1;
+}
+
+static int native_phone_sound_unload(void *context, const uint8_t *bytes, size_t size)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (!native_phone_audio_ready(app)) return 1;
+    return puzzle_sound_stop(&app->phone_audio, bytes, size) == PUZZLE_SOUND_OK ? 0 : 1;
+}
+
+static int native_phone_transition(void *context, const SceneTransitionRequest *request)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (!app || !request || !app->session ||
+        scene_session_request_external_transition(app->session, request) != SCENE_SESSION_OK ||
+        session_exit_request_transition(&app->exit_state, request) != SESSION_EXIT_OK) return 1;
+    record(app, "phone_call_transition source=%d target=%d kind=retained-popup", app->current_scene_id, request->target_scene);
+    return 0;
+}
+
+static int native_phone_close_assets(void *context)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (!app) return 1;
+    app->phone_base_surface = app->phone_extras_surface = 0;
+    record(app, "phone_popup_closed cached_immutable_images=retained");
+    return 0;
+}
+
+static NativePhoneHost native_phone_host(NativeApp *app)
+{
+    NativePhoneHost host{};
+    host.context = app; host.open = native_phone_open_assets;
+    host.transition_ready = native_phone_surface_ready;
+    host.sound_prepare = native_phone_sound_prepare; host.sound_play = native_phone_sound_play;
+    host.sound_busy = native_phone_sound_busy; host.sound_unload = native_phone_sound_unload;
+    host.request_transition = native_phone_transition; host.close = native_phone_close_assets;
+    return host;
+}
+
+static bool native_phone_process(NativeApp *app)
+{
+    if (!app->phone.active || app->captions.lifecycle.g.overlay_ui != 5) return true;
+    NativePhoneWorld world = native_phone_world(app);
+    NativePhoneResult result{};
+    const NativePhoneHost host = native_phone_host(app);
+    const int status = native_phone_popup_process(&app->phone, &app->a80_object, &world, &host, &result);
+    if (status != NATIVE_PHONE_OK) {
+        record(app, "phone_process_error status=%d mode=%d substate=%d", status,
+            app->a80_object.state_4528, app->a80_object.dword_4530);
+        return false;
+    }
+    native_phone_store_world(app, world);
+    if (result.redraw && !seed_native_caption_backbuffer(app)) return false;
+    if (result.event == NATIVE_PHONE_EVENT_CALL_REQUESTED) app->a80_object_valid = true;
+    if (result.event != NATIVE_PHONE_EVENT_NONE)
+        record(app, "phone_process event=%d mode=%d substate=%d popup=%d", result.event,
+            app->a80_object.state_4528, app->a80_object.dword_4530, world.cells.cell_5bb22a);
+    return true;
+}
+
+static int native_immediate_control(void *context, const uint8_t *body, size_t bytes)
+{
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (!app || !body || bytes != 8) return ACTION_UI_ERR_ARGUMENT;
+    ActionUIImmediateWorld world{};
+    world.screen_583204 = app->inv_view.screen_state == INVVIEW_STATE_NONE
+        ? app->captions.lifecycle.g.overlay_ui : app->inv_view.screen_state;
+    const int32_t prior_screen = world.screen_583204;
+    for (size_t i = 0; i < 3; ++i) world.request[i] = app->bar.flag[i + 1];
+    world.phone_scene_579e0e = app->a80_object.word_6b2;
+    world.phone_mode_579e10 = app->a80_object.dword_6b4;
+    int32_t close = 0;
+    const ActionUIImmediateHost preview{&close, [](void *p, int32_t mode) {
+        *static_cast<int32_t *>(p) = mode; return 0;
+    }};
+    const int status = action_ui_apply_immediate(&world, body, bytes, &preview);
+    if (status != ACTION_UI_OK) return status;
+    const int group = static_cast<int>(static_cast<uint16_t>(body[0] | (static_cast<uint16_t>(body[1]) << 8)));
+    const bool raised = world.screen_583204 == 1 && prior_screen != 1;
+    if (raised) {
+        if (group == 2 || (group == 3 && (world.phone_scene_579e0e == 9999 || app->phone_unavailable_5a1e58)))
+            return ACTION_UI_ERR_UNSUPPORTED;
+        if (close != 0 && close != 3) return ACTION_UI_ERR_UNSUPPORTED;
+        if (group == 1) { inventory_view_ensure(app); if (!app->inv_data_ready) return ACTION_UI_ERR_UNSUPPORTED; }
+    }
+    if (close == 3) inventory_view_close(&app->inv_view);
+    if (raised) app->captions.lifecycle.g.overlay_ui = world.screen_583204;
+    for (size_t i = 0; i < 3; ++i) app->bar.flag[i + 1] = world.request[i];
+    app->a80_object.word_6b2 = world.phone_scene_579e0e;
+    app->a80_object.dword_6b4 = world.phone_mode_579e10;
+    record(app, "scene_immediate_control group=%d screen=%d phone=%d auto_close=%d deferred=1",
+        group, world.screen_583204, world.phone_scene_579e0e, world.phone_mode_579e10);
+    return ACTION_UI_OK;
+}
+
+/* Returns1 only for the original open branch, which skips ACT this tick. */
+static int native_phone_pre_tick(NativeApp *app)
+{
+    int32_t &screen = app->captions.lifecycle.g.overlay_ui;
+    if (screen == 1) screen = 0;
+    if (screen != 0 || app->inv_view.screen_state != INVVIEW_STATE_NONE ||
+        !app->bar.flag[3] || app->bar.flag[0] || app->bar.flag[1] || app->bar.flag[2]) return 0;
+    const uint8_t *uicl = nullptr;
+    size_t size = 0;
+    if (!native_phone_uicl(app, &uicl, &size)) return -1;
+    app->bar.flag[3] = 0;
+    screen = 5;
+    NativePhoneWorld world = native_phone_world(app);
+    const NativePhoneHost host = native_phone_host(app);
+    if (native_phone_popup_open(&app->phone, &app->a80_object, &world, uicl, size, &host) != NATIVE_PHONE_OK) return -1;
+    native_phone_store_world(app, world);
+    return native_phone_process(app) ? 1 : -1;
+}
+
+static bool native_phone_render(NativeApp *app)
+{
+    if (!app->phone.active) return true;
+    const uint8_t *uicl = nullptr;
+    size_t size = 0;
+    CaptionCompositorView base{}, extras{}, back{};
+    if (!native_phone_uicl(app, &uicl, &size) ||
+        !native_caption_view_for_handle(app, app->phone_base_surface, &base) ||
+        !native_caption_view_for_handle(app, app->phone_extras_surface, &extras)) return false;
+    NativePhonePlan plan{};
+    const NativePhoneWorld world = native_phone_world(app);
+    if (native_phone_popup_plan(&app->phone, &app->a80_object, &world, uicl, size,
+        app->scene_destination.left, app->scene_destination.top,
+        base.width, base.height, extras.width, extras.height, &plan) != NATIVE_PHONE_OK) return false;
+    back.pixels = app->captions.backbuffer_pixels.data(); back.byte_capacity = app->captions.backbuffer_pixels.size();
+    back.width = 640; back.height = 480; back.pitch_bytes = 1280; back.format = app->captions.compositor_format;
+    for (size_t i = 0; i < plan.count; ++i) {
+        const NativePhoneBlit &b = plan.blits[i];
+        const CaptionRect src{b.source.left, b.source.top, b.source.right, b.source.bottom};
+        const CaptionRect dst{b.destination.left, b.destination.top, b.destination.right, b.destination.bottom};
+        if (caption_compositor_blit(b.sheet == NATIVE_PHONE_SHEET_BASE ? &base : &extras, &back,
+            CAPTION_BLIT_OPAQUE, &src, &dst, app->captions.pixel_format.color_key) != CAPTION_COMPOSITOR_OK) return false;
+    }
+    return true;
+}
+
+/* Unintegrated puzzle families keep their prior explicit host boundary. */
 static int native_unbound_puzzle_sound_busy(void *context, int16_t channel, int32_t *result)
 {
     (void)context;
@@ -10202,8 +10454,9 @@ static bool taskbar_active(NativeApp *app)
 {
     /* 0x4d3073 / 0x43cf34 mode2 dispatch to conversation UI instead of
      * ordinary taskbar hover/process, including pending timers and flags. */
+    const uint32_t screen = static_cast<uint32_t>(app->captions.lifecycle.g.overlay_ui);
     return app->session != nullptr && !app->session_block_reported &&
-        app->captions.lifecycle.g.overlay_ui != 2 && taskbar_ready_now(app);
+        (screen == 0 || screen > 5) && taskbar_ready_now(app);
 }
 
 /* 0x4d3073 -> 0x4e075a with the cursor rectangle of the last pointer position. */
@@ -10253,6 +10506,8 @@ static void taskbar_pre_tick(NativeApp *app)
 static void taskbar_post_tick(NativeApp *app, uint32_t now)
 {
     if (app->inv_view.screen_state != INVVIEW_STATE_NONE || !taskbar_active(app)) return;
+    const int32_t screen = app->captions.lifecycle.g.overlay_ui;
+    if (screen >= 1 && screen <= 5) return; /* post-ACT switch: preserve deferred code1 flags */
     TaskbarHost host = bar_host(app);
     TaskbarProcessResult result{};
     const int status = taskbar_process(&app->bar, &app->bar_layout,
@@ -13689,7 +13944,8 @@ static bool create_native_scene_session(NativeApp *app)
                failure.action_index, failure.action_type, failure.detail_status);
         return false;
     }
-    if (scene_session_set_pre_gate(app->session, SESSION_A62_TYPE, session_a62_pre_gate,
+    if (scene_session_bind_immediate_control(app->session, native_immediate_control, app) != SCENE_SESSION_OK ||
+        scene_session_set_pre_gate(app->session, SESSION_A62_TYPE, session_a62_pre_gate,
                                    app->a62) != SCENE_SESSION_OK ||
         scene_session_set_pre_gate(app->session, SESSION_A17_TYPE, session_a17_pre_gate,
                                    app->a17) != SCENE_SESSION_OK ||
@@ -14700,7 +14956,8 @@ static bool perform_no_art_transition(NativeApp *app, SceneResource *incoming,
             }
         }
         const bool supported = plan.retired[i] ? (type == 0x3f || type == 0x3e || type == 0x0a) :
-            (type == 0x2d || type == 0x0b || type == 0x62 || type == 0x2e || type == 0x97 || type == 0x4d || type == 0x95);
+            (type == 0x2d || type == 0x0b || type == 0x62 || type == 0x2e || type == 0x97 ||
+             type == 0x4d || type == 0x95 || type == 0x1d || type == 0x80 || type == ACTION_SOUND_TYPE);
         if (!supported) {
             record(app, "scene_no_art_refused row=%zu type=0x%02x retired=%u detail=provider-delta-unimplemented before_clear=1",
                    i, type, plan.retired[i]);
@@ -14711,7 +14968,8 @@ static bool perform_no_art_transition(NativeApp *app, SceneResource *incoming,
         SceneActionInfo action{};
         if (scene_resource_action_at(incoming, i, &action) != SCENE_RESOURCE_OK) return false;
         if (action.type != 0x4d && action.type != 0x95 && action.type != 0x3f &&
-            action.type != 0x3e && action.type != 0x0a && action.type != 0x2e) {
+            action.type != 0x3e && action.type != 0x0a && action.type != 0x2e &&
+            action.type != ACTION_SOUND_TYPE && action.type != 0x80) {
             record(app, "scene_no_art_refused incoming=%zu type=0x%02x detail=constructor-delta-unimplemented before_clear=1", i, action.type);
             return false;
         }
@@ -15042,7 +15300,18 @@ static ExitTick exit_state_tick(NativeApp *app, uint32_t now)
     case SESSION_EXIT_STATE_EXIT: {
         const SessionExitHost host = make_exit_host(app);
         SessionExitStepInfo info{};
-        const int status = session_exit_state4(&x, &host, &info);
+        int status = SESSION_EXIT_OK;
+        if (x.g.load_game_flag != 0 || x.g.popup_flag == 0) {
+            std::unique_ptr<SceneResource, decltype(&scene_resource_close)> target(
+                open_scene_resource(app, x.g.scene_request), scene_resource_close);
+            SceneResourceSummary summary{};
+            if (!target || scene_resource_get_summary(target.get(), &summary) != SCENE_RESOURCE_OK) return ExitTick::Failed;
+            const int kind = std::strcmp(summary.background, "NO_ART_SCENE") == 0 ? 1 :
+                (std::strcmp(summary.background, "POPUP_PREP_SCENE") == 0 ? 2 : 0);
+            status = session_exit_state4_retained(&x, &host, kind, &info);
+        } else {
+            status = session_exit_state4(&x, &host, &info);
+        }
         record(app, "scene_exit_state4 status=%d controller_ran=%u stage_before=%u effect_busy=%u "
                "effect_type=%u state_after=%u unsupported=%s boundary=%d",
                status, info.controller_ran, info.stage_before, x.effect.busy,
@@ -15146,19 +15415,35 @@ static void update(NativeApp *app, uint32_t now)
                 blackmoor_macos_stop(app->platform);
             return;
         }
-        taskbar_pre_tick(app);   /* RT-22 follow-up: inventory byte -> view, bar hover */
+        const int phone_open = native_phone_pre_tick(app);
+        if (phone_open < 0) {
+            record(app, "phone_open_error"); app->failure = true;
+            if (app->platform) blackmoor_macos_stop(app->platform);
+            return;
+        }
+        if (phone_open == 0) taskbar_pre_tick(app);
         if (!native_inventory_close_tick(app, now)) {
             record(app, "inventory_close_error"); app->failure = true;
             if (app->platform) blackmoor_macos_stop(app->platform);
             return;
         }
-        const int session_status = scene_session_tick(app->session, &session_result);
-        if (session_status != SCENE_SESSION_BLOCKED && !native_a3f_ui_tick(app)) {
+        const int session_status = phone_open ? SCENE_SESSION_OK : scene_session_tick(app->session, &session_result);
+        if (phone_open && (!seed_native_caption_backbuffer(app) || !native_caption_finish_tick(app, 0))) {
+            record(app, "phone_open_render_error"); app->failure = true;
+            if (app->platform) blackmoor_macos_stop(app->platform);
+            return;
+        }
+        if (!phone_open && session_status != SCENE_SESSION_BLOCKED && !native_a3f_ui_tick(app)) {
             record(app, "scene_a3f_ui_error"); app->failure = true;
             if (app->platform) blackmoor_macos_stop(app->platform);
             return;
         }
-        if (session_status != SCENE_SESSION_BLOCKED) taskbar_post_tick(app, now);   /* 0x43cf9c */
+        if (!phone_open && session_status != SCENE_SESSION_BLOCKED && !native_phone_process(app)) {
+            record(app, "phone_post_tick_error"); app->failure = true;
+            if (app->platform) blackmoor_macos_stop(app->platform);
+            return;
+        }
+        if (!phone_open && session_status != SCENE_SESSION_BLOCKED) taskbar_post_tick(app, now);
         if (session_status == SCENE_SESSION_BLOCKED && !app->session_block_reported) {
             record(app, "scene_session_blocked stage=%d provider=%s action=%zu type=0x%02x detail=%d "
                    "effects_before_block=%zu dispatch_attempted=%u",
