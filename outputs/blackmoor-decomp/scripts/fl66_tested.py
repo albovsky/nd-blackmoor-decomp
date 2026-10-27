@@ -322,6 +322,11 @@ def generate_then_check(key, args, before):
     return res
 
 
+def CHECKER_VERSION_now():
+    import fl67_infeasible as P
+    return P.CHECKER_VERSION
+
+
 def prove_leftovers(key, res):
     """FL-67: a partial row whose every missing instruction and untaken direction is PROVED unreachable (scripts/fl67_infeasible.py) becomes `proved`."""
     import fl67_infeasible as P
@@ -390,6 +395,8 @@ def merge(write):
             scen.pop(key, None)
             continue
         st = r['status']
+        if st == 'proved' and r['proofs']['checker'] < CHECKER_VERSION_now():
+            st = 'partial'                                              # proved by an older checker: not credited
         if st == 'tested_equivalent':
             rows[key] = {k: r[k] for k in ('pool', 'body', 'instructions', 'directions', 'scenarios_run', 'translation_sha256', 'source')}
             rows[key]['scenarios_kept'] = len(r['kept'])
@@ -471,9 +478,34 @@ def replay(args):
     return 1 if bad else 0
 
 
+def prove_pass(args):
+    """FL-67: run the infeasibility prover on the partial rows that already have a result (no scenario generation). Rows whose items are all proved become `proved`."""
+    keys = list(args.rows) or sorted(p.stem for p in ROWS_DIR.glob('*.json'))
+    i, n = map(int, args.shard.split('/'))
+    proved = 0
+    for key in keys[i::n]:
+        path = ROWS_DIR / (key + '.json')
+        res = jload(path)
+        if res['status'] == 'proved' and res.get('proofs', {}).get('checker', 0) < CHECKER_VERSION_now():
+            res['status'] = 'partial'                                  # proved by an older, less sound checker: prove again
+            res.pop('proofs', None)
+        if res['status'] != 'partial':
+            continue
+        t0 = time.time()
+        try:
+            res = prove_leftovers(key, res)
+        except Exception as ex:
+            res['proof_status'] = 'error: %s' % str(ex)[:100]
+        write_row(key, res)
+        proved += res['status'] == 'proved'
+        print(key, res['status'], res.get('proof_status'), res.get('proof_open', ''), '%.1fs' % (time.time() - t0), flush=True)
+    print('proved %d' % proved)
+    return 0
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('cmd', choices=['check', 'gen', 'merge', 'status', 'replay', '_one'])
+    ap.add_argument('cmd', choices=['check', 'gen', 'merge', 'status', 'replay', '_one', 'prove'])
     ap.add_argument('rows', nargs='*')
     ap.add_argument('--pool')
     ap.add_argument('--shard', default='0/1')
@@ -493,6 +525,8 @@ def main():
     if a.cmd in ('check', 'gen'):
         a.gen = a.cmd == 'gen'
         return supervise(a)
+    if a.cmd == 'prove':
+        return prove_pass(a)
     if a.cmd == 'merge':
         return merge(a.write)
     if a.cmd == 'status':

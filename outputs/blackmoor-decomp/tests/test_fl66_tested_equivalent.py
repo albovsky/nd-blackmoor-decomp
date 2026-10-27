@@ -29,8 +29,10 @@ class Tier(unittest.TestCase):
         rows = MANIFEST['rows']
         self.assertEqual(set(rows), set(SCEN))
         te = LEDGER['tested_equivalent']
-        self.assertEqual(te['vas'], sorted(rows, key=lambda k: int(k, 16)))
-        self.assertEqual(te['count'], len(rows))
+        proved = te.get('proved', {}).get('vas', [])             # FL-67: rows cleared by impossibility proofs (tests/test_fl67_infeasible.py) join the same tier
+        self.assertEqual(te['vas'], sorted(set(rows) | set(proved), key=lambda k: int(k, 16)))
+        self.assertEqual(te['count'], len(rows) + len(proved))
+        self.assertFalse(set(rows) & set(proved))
 
     def test_tier_is_pending_and_never_counted_as_ported(self):
         for k in MANIFEST['rows']:
@@ -60,7 +62,7 @@ class Tier(unittest.TestCase):
     def test_status_line(self):
         v, t, o, p, tr = T.counts()
         self.assertEqual(v, LEDGER['counts']['status']['ported'])
-        self.assertEqual(t, len(MANIFEST['rows']))
+        self.assertEqual(t, LEDGER['tested_equivalent']['count'])
         self.assertEqual(o + t, tr)
 
 

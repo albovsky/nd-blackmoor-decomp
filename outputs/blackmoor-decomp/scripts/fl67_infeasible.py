@@ -41,7 +41,7 @@ import z3
 import capstone
 from capstone import x86_const as X
 
-CHECKER_VERSION = 1
+CHECKER_VERSION = 2
 SPLIT = True                  # the frame assumption (module text), applied to functions that never hand out a frame address
 UNROLL = (3, 5, 9, 17)         # trip-count bounds tried per loop; a loop that can still iterate after the last one gets a generalised header
 MAX_NODES = 6000
@@ -127,7 +127,7 @@ def has_frame_term(e):
     key = e.get_id()
     hit = _frame_cache.get(key)
     if hit is not None:
-        return hit
+        return hit[1]                    # the cache keeps the expression alive: z3 recycles the ids of freed expressions
     todo, seen, found = [e], set(), False
     while todo and not found:
         x = todo.pop()
@@ -137,11 +137,11 @@ def has_frame_term(e):
         if z3.is_const(x) and x.decl().kind() == z3.Z3_OP_UNINTERPRETED:
             n = x.decl().name()
             found = n == 's_esp' or (n.startswith('sp') and n[2:].isdigit())
-        else:
+        elif x.decl().kind() not in (z3.Z3_OP_SELECT, z3.Z3_OP_STORE):          # a value read from memory is not a frame address (nothing ever formed one)
             todo.extend(x.children())
     if len(_frame_cache) > 200000:
         _frame_cache.clear()
-    _frame_cache[key] = found
+    _frame_cache[key] = (e, found)
     return found
 
 
@@ -375,8 +375,13 @@ class Machine:
         m = ins.mnemonic
         ops = ins.operands
         if m.startswith('rep'):
-            return self.string(st, ins, m.split()[1], m.split()[0])
+            parts = m.split()
+            if len(parts) != 2 or parts[1] not in ('movsb', 'movsw', 'movsd', 'stosb', 'stosw', 'stosd', 'scasb', 'cmpsb', 'cmpsd', 'cmpsw', 'scasd', 'scasw'):
+                raise Unsupported(m)
+            return self.string(st, ins, parts[1], parts[0])
         if m in ('movsb', 'movsw', 'movsd', 'stosb', 'stosw', 'stosd', 'scasb', 'cmpsb'):
+            if any(o.type == X.X86_OP_REG and ins.reg_name(o.reg).startswith('xmm') for o in ops):
+                raise Unsupported(m)                 # SSE2 movsd xmm
             return self.string(st, ins, m, None)
         if m == 'mov':
             self.write(st, ops[0], self.read(st, ops[1], ops[0].size))
@@ -605,7 +610,9 @@ class Machine:
         for op in ops:
             if op.type == X.X86_OP_MEM:
                 a = self.ea(st, op)
-                if m.startswith(('fst', 'fist', 'fnst')) and m != 'fnstsw':
+                if m in ('fnsave', 'fsave', 'fnstenv', 'fstenv', 'fxsave', 'fbstp', 'frstor', 'fldenv', 'fxrstor'):
+                    raise Unsupported(m)
+                if m.startswith(('fst', 'fist', 'fnst')):
                     self.mem_havoc(st, a, op.size)
                 else:
                     self.assume_ok(st, a, op.size)
@@ -640,7 +647,7 @@ class Analysis:
         self.md, self.insns = disassemble(image, self.va, self.body)
         self.by_addr = {i.address: i for i in self.insns}
         self.M = Machine(row, image)
-        self.M.split = SPLIT and not frame_escapes(self.insns)
+        self.M.split = SPLIT and not row.get('frame') and not frame_escapes(self.insns)      # a `frame` row starts with ebp = the entry frame address
         for k, i in enumerate(self.insns[:-1]):
             nxt = self.insns[k + 1]
             if i.mnemonic == 'call' and nxt.mnemonic == 'add' and [nxt.reg_name(nxt.operands[0].reg)] == ['esp'] and nxt.operands[1].type == X.X86_OP_IMM:
@@ -715,7 +722,11 @@ class Analysis:
                 succ = [('taken', last.operands[0].imm), ('fall', end)]
             else:
                 succ = [('fall', end)]
-            b['succ'] = [(k, t) for k, t in succ if t in self.blocks]
+            keep = [(k, t) for k, t in succ if t in self.blocks]
+            if len(keep) != len(succ) and (m.startswith('j') and m != 'jmp' or m.startswith('loop') or m == 'jmp' and last.operands[0].type != X.X86_OP_IMM
+                                           or any(self.va <= t < self.va + self.body for k, t in succ if t not in self.blocks)):
+                raise Unsupported('a jump edge leaves the instruction set at 0x%x' % last.address)
+            b['succ'] = keep           # only a jmp or a fall-through out of the body ends the path here
         return
 
     def graph(self):
@@ -769,6 +780,8 @@ class Analysis:
             work = [u]
             while work:
                 n = work.pop()
+                if n == h:                       # the predecessors of the header are not in the loop
+                    continue
                 for p in pred[n]:
                     if p not in body and p in seen:
                         body.add(p)
@@ -875,7 +888,7 @@ class Analysis:
             if a in self.loops and plan[a] == 'gen' and a == node[0]:
                 regs, mem, fs = self.loop_effects(a)
                 for r in regs:
-                    st.R[r] = fresh(32, 'lp')
+                    st.R[r] = fresh(32, 'sp' if r in ('esp', 'ebp') else 'lp')      # a stack register stays a frame term
                 for f in FLAGS:
                     st.F[f] = fresh_bool()
                 if mem:
