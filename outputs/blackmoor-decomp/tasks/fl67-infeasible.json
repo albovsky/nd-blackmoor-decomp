@@ -901,6 +901,37 @@
    "source": "translated/original_methods_fl41_translated.c",
    "translation_sha256": "0e52a3351603d2fcc3b09bdeb49e2f1b3cb1bb9d5742e4c21a8bf857dcf0f23c"
   },
+  "0x4e075a": {
+   "body": 542,
+   "directions": [
+    19,
+    20
+   ],
+   "instructions": [
+    125,
+    129
+   ],
+   "pool": "upper",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x4e0938:taken": "01c11b2e9a0c712828e71d552ba215f3ec56c1271f3e079bc37b34a5dbbc8aa1"
+    },
+    "instructions": {
+     "0x4e0943": "01c11b2e9a0c712828e71d552ba215f3ec56c1271f3e079bc37b34a5dbbc8aa1",
+     "0x4e0948": "01c11b2e9a0c712828e71d552ba215f3ec56c1271f3e079bc37b34a5dbbc8aa1",
+     "0x4e094d": "01c11b2e9a0c712828e71d552ba215f3ec56c1271f3e079bc37b34a5dbbc8aa1",
+     "0x4e0950": "01c11b2e9a0c712828e71d552ba215f3ec56c1271f3e079bc37b34a5dbbc8aa1"
+    },
+    "plan": {
+     "0x4e0868": 9
+    }
+   },
+   "scenarios_kept": 11,
+   "scenarios_run": 11,
+   "source": "translated/original_methods_fl41_translated.c",
+   "translation_sha256": "fb591c869b40a13c092f748a48310bd6bdfab160885306679f0fad76f60018e6"
+  },
   "0x4e11ed": {
    "body": 280,
    "directions": [
