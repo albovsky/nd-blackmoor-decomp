@@ -1021,6 +1021,25 @@ def prove_row(key, targets, timeout_ms=30000, image=None, fail_fast=False):
     image = image or load_image()
     row = row_of(key)
     out = {'checker': CHECKER_VERSION, 'instructions': {}, 'directions': {}}
+    hexa = lambda a: int(a, 16) if isinstance(a, str) else a
+    todo = {'missing': [hexa(a) for a in targets.get('missing', [])], 'untaken': [[hexa(a), n] for a, n in targets.get('untaken', [])]}
+    try:                                    # FL-71: targets that a dominator window in front of them refutes (scripts/fl71_window.py); the whole-function analysis is for the rest
+        import fl71_window as Wn
+        an0, dom = Wn.prepare(key, image)
+        win = Wn.prove_row_windows(an0, dom, todo)
+        out['instructions'].update(win['instructions'])
+        out['directions'].update(win['directions'])
+        todo = {'missing': [a for a in todo['missing'] if hex(a) not in win['instructions']],
+                'untaken': [[a, n] for a, n in todo['untaken'] if '%s:%s' % (hex(a), n) not in win['directions']]}
+        if not todo['missing'] and not todo['untaken']:
+            out['status'] = 'proved'
+            out['plan'] = {}                # no whole-function analysis was needed, so no loop plan
+            return out
+    except (Unsupported, KeyError, IndexError):
+        pass
+    except Exception as ex:                 # the window module imports this file under its own name, so its Unsupported is another class when this file runs as __main__
+        if type(ex).__name__ != 'Unsupported':
+            raise
     try:
         an = Analysis(row, image, timeout_ms)
         an.run()
@@ -1029,15 +1048,15 @@ def prove_row(key, targets, timeout_ms=30000, image=None, fail_fast=False):
         out.update(status='unsupported', reason=str(ex))
         return out
     open_ = 0
-    for a in targets.get('missing', []):
-        v = an.instruction(int(a, 16) if isinstance(a, str) else a)
-        out['instructions'][hex(int(a, 16) if isinstance(a, str) else a)] = list(v)
+    for a in todo['missing']:
+        v = an.instruction(a)
+        out['instructions'][hex(a)] = list(v)
         open_ += v[0] != 'unsat'
         if fail_fast and open_:
             break
-    for a, name in targets.get('untaken', []):
-        v = an.direction(int(a, 16) if isinstance(a, str) else a, name)
-        out['directions']['%s:%s' % (hex(int(a, 16) if isinstance(a, str) else a), name)] = list(v)
+    for a, name in todo['untaken']:
+        v = an.direction(a, name)
+        out['directions']['%s:%s' % (hex(a), name)] = list(v)
         open_ += v[0] != 'unsat'
         if fail_fast and open_:
             break
