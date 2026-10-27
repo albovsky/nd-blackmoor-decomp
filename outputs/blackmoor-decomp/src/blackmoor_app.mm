@@ -485,7 +485,7 @@ struct NativeApp {
     SessionAdaBinding *ada = nullptr;
     PuzzleSound ada_audio{};
     bool ada_audio_initialized = false;
-    bool ada_audio_failed = false; /* bool-only busy callback must never turn an error into idle */
+    bool ada_audio_failed = false; /* sticky: provider errors block the session; busy must not report idle */
     std::array<bool, 0x40> ada_slot_used{};
     BulPointerResult ada_pointer{};
     uint64_t ada_plan_signature = 0u;
@@ -9644,8 +9644,8 @@ static int native_ada_transition(void *context, const BulTransition *t)
     return 0;
 }
 
-/* The finish block's mode4 hands the already accepted transition to the
- * session's normal scene exit. Other engine modes are outside this seam. */
+/* The finish block supports only mode4. native_ada_transition has already
+ * queued the request; the session/executor performs the actual exit handoff. */
 static int native_ada_engine_mode(void *context, int32_t mode)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
