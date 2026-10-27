@@ -40,6 +40,8 @@ STACK_LO, STACK_HI = od.STACK_BASE, od.STACK_BASE + od.STACK_SIZE
 FLAG_BIT = {'cf': 0, 'pf': 2, 'af': 4, 'zf': 6, 'sf': 7, 'of': 11}
 SYMBOLIC = ('eax', 'ecx', 'edx', 'ebx', 'esi', 'edi')
 MAX_STEPS = 6000
+HANG_STEPS = 1500
+SOLVE_LIMIT = 40000
 REP_UNROLL = 64
 CONST_WINDOW = 160
 EDGE_FLIPS_PER_RUN = 24
@@ -535,6 +537,74 @@ def child_overrides(W, rp, model, parent, formulas):
     return out
 
 
+def length_children(rp, ov, per_run=6):
+    """FL-72: a `repne scasb` (strlen) whose length feeds a compare with an immediate: children whose string is one of the lengths around that immediate. The z3 replay unrolls at most REP_UNROLL
+    iterations, so a branch that needs a string of 40,000 bytes (0x4e3cd7: `cmp ecx, 0x9c40; ja`) is out of its reach; the string is plain scenario memory, so the child sets those bytes directly."""
+    recs, insns = rp.recs, rp.insns
+    out, seen = [], set()
+    k = 0
+    while k < len(recs) and len(out) < per_run:
+        ins = insns.get(recs[k].addr)
+        j = k + 1
+        if ins is None or not (ins.mnemonic.startswith('repne') and 'scasb' in ins.mnemonic):
+            k = j
+            continue
+        while j < len(recs) and recs[j].addr == recs[k].addr:
+            j += 1
+        base = rp.creg(recs[k], 'edi')
+        n = (rp.creg(recs[k], 'ecx') - rp.creg(recs[j], 'ecx')) & M32 if j < len(recs) else 0
+        cur = max(n - 1, 0)
+        imms = set()
+        a = ins.address + ins.size
+        for _ in range(12):
+            nx = insns.get(a)
+            if nx is None:
+                break
+            if nx.mnemonic == 'cmp' and len(nx.operands) == 2 and nx.operands[1].type == X.X86_OP_IMM:
+                imms.add(nx.operands[1].imm & M32)
+            a += nx.size
+        for imm in sorted(imms, reverse=True):
+            for t in (imm + 1, imm, imm - 1, imm + 2):
+                if t < 0 or t == cur or t > LENGTH_CAP or (ins.address, t) in seen:
+                    continue
+                if base + t + 1 >= 0xffc00000 or base < 0x1000 or STACK_LO - t - 4 <= base < STACK_HI or base <= P.DATA_START and base + t >= P.IMAGE_BASE:
+                    continue
+                seen.add((ins.address, t))
+                cells = {base + b: 1 for b in range(t)}
+                cells[base + t] = 0
+                out.append(parent_plus(ov, cells))
+        k = j
+    return out[:per_run]
+
+
+def parent_plus(parent, cells):
+    """parent overrides with bytes of `cells` replaced (grouped like child_overrides does); the special overrides stay as they were"""
+    keep, mem = [], {}
+    for a, n, v in parent:
+        if a >= 0xffd00000:
+            keep.append([a, n, v])
+        else:
+            for b in range(n):
+                mem[a + b] = (v >> (8 * b)) & 0xff
+    mem.update(cells)
+    out = []
+    keys = sorted(mem)
+    k = 0
+    while k < len(keys):
+        a = keys[k]
+        n = 1
+        while n < 4 and k + n < len(keys) and keys[k + n] == a + n:
+            n += 1
+        if n == 3:
+            n = 2
+        out.append([a, n, sum(mem[a + j] << (8 * j) for j in range(n))])
+        k += n
+    return out + keep
+
+
+LENGTH_CAP = 0x30000
+
+
 # ---- the search --------------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -543,6 +613,7 @@ def explore(key, base_scen, budget_s=300, fresh_seeds=6, solver_ms=6000, selfche
     p = T.POOLS[pool]
     W, G = T.world(p['world'])
     row = T.row_info(pool, key)
+    W.INSTRUCTION_LIMIT = min(W.INSTRUCTION_LIMIT, SOLVE_LIMIT)       # FL-72: a spin loop costs seconds per run at the world's limit; a scenario that needs more than this is not searched for
     image = P.load_image()
     md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
     md.detail = True
@@ -578,9 +649,13 @@ def explore(key, base_scen, budget_s=300, fresh_seeds=6, solver_ms=6000, selfche
         pr, _, seed, ov = heapq.heappop(queue)
         runs += 1
         tr, recs, reads = trace_run(W, row, seed, ov)
-        if tr.fault or not recs:
+        hung = bool(tr.fault) and 'instruction limit' in str(tr.fault)
+        if (tr.fault and not hung) or not recs:
             continue
-        if not (tr.executed <= ex and tr.edges <= ed):
+        if hung:                                                  # FL-72: a run that never ends is not a scenario, but its first iterations still show which input holds the loop (0x44cf01: a spin on a global)
+            recs = recs[:HANG_STEPS]
+            reads = [r for r in reads if r[0] < HANG_STEPS]
+        elif not (tr.executed <= ex and tr.edges <= ed):
             if [seed, ov] not in kept:
                 kept.append([seed, ov])
             ex |= tr.executed
@@ -601,6 +676,12 @@ def explore(key, base_scen, budget_s=300, fresh_seeds=6, solver_ms=6000, selfche
         if selfcheck:
             bad = rp.selfcheck()
             log('  selfcheck: %s  steps %d path %d cons %d resync %s' % ('ok' if bad is None else 'FAIL at %s %s' % (bad[0], str(bad[1])[:80]), len(recs), len(rp.path), len(rp.cons), dict(rp.resyncs)))
+        for child in length_children(rp, ov):
+            key2 = (seed, tuple(map(tuple, child)))
+            if key2 not in seen_children:
+                seen_children.add(key2)
+                counter += 1
+                heapq.heappush(queue, (0, counter, seed, child))
         cands = []
         firsts = collections.Counter()
         for d in rp.path:
