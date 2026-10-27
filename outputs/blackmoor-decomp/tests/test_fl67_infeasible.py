@@ -33,8 +33,10 @@ def _oracle_verdicts(k):
     reaches it leaves the rest of that process without memory."""
     try:
         out = P.prove_row(k, P.all_targets(P.row_of(k)), timeout_ms=5000)
-    except Exception as ex:                           # z3 out of memory is no verdict at all
-        return ['error: %s' % str(ex)[:60]]
+    except z3.Z3Exception as ex:
+        if 'out of memory' not in str(ex):
+            raise
+        return ['out of memory']                      # no verdict at all, so nothing is ruled out
     return [v[0] for v in list(out['instructions'].values()) + list(out['directions'].values())]
 
 
@@ -226,10 +228,13 @@ class Replay(unittest.TestCase):
         covered = json.loads(T.MANIFEST.read_text())['rows']
         keys = sorted((k for k in covered if covered[k]['body'] <= 150), key=lambda k: (covered[k]['body'], k))      # a bigger row is up to 5 s a target and, at the extreme, more memory than the prover is allowed
         import multiprocessing
+        checked = 0
         with multiprocessing.get_context('spawn').Pool(1, maxtasksperchild=1) as pool:
             for k in keys[::max(1, len(keys) // 20)][:20]:
                 verdicts = pool.apply_async(_oracle_verdicts, (k,)).get(600)
                 self.assertNotIn('unsat', verdicts, k)
+                checked += verdicts != ['out of memory']
+        self.assertGreaterEqual(checked, 10)                                    # the sample must really have been proved, not all swallowed
 
 
 if __name__ == '__main__':
