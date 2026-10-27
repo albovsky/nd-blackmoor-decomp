@@ -45,9 +45,9 @@ int puzzle_sound_init(PuzzleSound *sound, const ActionSoundBackend *backend);
  * s16 loader flags +0x23, s16 loop mode +0x25, unused word +0x27,
  * u32 control +0x29 and independent s16 gain percentages +0x2d/+0x2f.
  *
- * Accepts only loader flags 2 and loop mode 1 (all 22 local D1 descriptors).
- * ActionSoundAudioCommand cannot represent raw loader flags or the descriptor
- * loop flag at channel+0x16a, so other values are explicit unsupported errors.
+ * Accepts loader flags1/2 and loop mode1. Original4fc62d overwrites loader
+ * arg3 with1 at4fc722, so these actual Memory/D1 flags converge. Other loader
+ * values and the descriptor loop flag at channel+0x16a remain unsupported.
  * The unused +0x27 word is ignored, as at 0x4fb77a. Names must terminate in
  * the 33-byte field and must be asset stems without slash or backslash.
  * Empty stems are passed to load_sound, which decides resource availability.

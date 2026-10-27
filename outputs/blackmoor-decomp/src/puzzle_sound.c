@@ -73,7 +73,10 @@ static int command_of(const uint8_t *record, size_t length, ActionSoundAudioComm
         return PUZZLE_SOUND_ERR_DESCRIPTOR;
     channel = rd_u16(record + D_CHANNEL);
     if (channel >= ACTION_SOUND_CHANNEL_COUNT) return PUZZLE_SOUND_ERR_DESCRIPTOR;
-    if (rd_s16(record + D_LOADER_FLAGS) != PUZZLE_SOUND_LOADER_FLAGS ||
+    /* 0x4fc722 overwrites loader arg3 with1 before its directory switch.
+     * Actual Memory flags1 and existing puzzle flags2 share that path. */
+    const int16_t loader_flags = rd_s16(record + D_LOADER_FLAGS);
+    if ((loader_flags != 1 && loader_flags != PUZZLE_SOUND_LOADER_FLAGS) ||
         rd_s16(record + D_LOOP_MODE) != PUZZLE_SOUND_LOOP_MODE)
         return PUZZLE_SOUND_ERR_UNSUPPORTED;
 

@@ -27,6 +27,7 @@ solver cannot decide, or a function with an instruction the model does not know,
 import argparse
 import hashlib
 import json
+import os
 from pathlib import Path
 import random
 import sys
@@ -40,6 +41,8 @@ sys.path.insert(0, str(PROJECT / 'scripts'))
 import z3
 import capstone
 from capstone import x86_const as X
+
+z3.set_param('memory_max_size', int(os.environ.get('FL67_MEM_MB', '3500')))        # a query that needs more is `unknown`, never a verdict (and never an out-of-memory kill)
 
 CHECKER_VERSION = 2
 SPLIT = True                  # the frame assumption (module text), applied to functions that never hand out a frame address
