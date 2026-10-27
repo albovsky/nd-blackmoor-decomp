@@ -611,7 +611,7 @@ def indirect_tail_jump(c, i, op):
     """FL-57 bulk: `jmp reg` / `jmp [mem]` out of a jump-table-free function is a tail call; the target pops what this function's own `ret N` pops (the arguments it was given)"""
     own = next((x.operands[0].imm if x.operands else 0 for x in c.ins if x.mnemonic == "ret"), 0)
     if TAIL_ESP0:
-        c.emit("{ uint32_t t_ = %s; esp = esp0_; FL41_CALL(t_); esp = esp0_ + %du; goto done; }" % (get(i, op, 32), 4 + own))
+        c.emit("{ uint32_t t_ = %s; FL41_CALL(t_); esp = esp0_ + %du; goto done; }" % (get(i, op, 32), 4 + own))
         return
     c.emit("{ uint32_t t_ = %s; FL41_CALL(t_); esp += %du; goto done; }" % (get(i, op, 32), 4 + own))
 
@@ -803,8 +803,6 @@ def lift_one(c, i):
         else:
             cleanup = callee_shape(t)
             c.callees[t] = cleanup
-            if TAIL_ESP0:
-                e("esp = esp0_;")
             e("FL41_CALL(0x%xu);" % t)
             e("esp %s %du;" % ("= esp0_ +" if TAIL_ESP0 else "+=", 4 + cleanup))
             e("goto done;")
@@ -817,7 +815,7 @@ def lift_one(c, i):
             cleanup = callee_shape(t)                              # FL-57 bulk: a tail jump into another function, taken under a condition
             c.callees[t] = cleanup
             if TAIL_ESP0:
-                e("if (%s) { esp = esp0_; FL41_CALL(0x%xu); esp = esp0_ + %du; goto done; }" % (COND[mn[1:]], t, 4 + cleanup))
+                e("if (%s) { FL41_CALL(0x%xu); esp = esp0_ + %du; goto done; }" % (COND[mn[1:]], t, 4 + cleanup))
                 return
             e("if (%s) { FL41_CALL(0x%xu); esp += %du; goto done; }" % (COND[mn[1:]], t, 4 + cleanup))
             return

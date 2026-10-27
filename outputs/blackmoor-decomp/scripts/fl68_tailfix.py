@@ -3,8 +3,8 @@
 
 A `jmp`/`jcc` to another function (or `jmp reg`) is translated as `FL41_CALL(target); esp += N; goto done;`. When the function has pushed words of its own before the jump (`push edx; fnstcw [esp]; ... jmp
 0x513ccb`, the x87 math wrappers), the target is entered with those words on top and pops them itself before it returns: its return address is the one at the function's entry esp. The world plays such
-a jump that way (tests/fl41_world.py `jump_out`: the stub returns to the word at the entry esp), so the translation must leave with `esp = esp0_ + N` (N = 4 + the bytes the target pops) and hand the host
-the call at the entry esp. This patches the listed rows in place (no re-translation: the rest of each row keeps its text):
+a jump that way (tests/fl41_world.py `jump_out`: the target sees the real stack, with the words the function pushed, and returns to the word at the entry esp), so the translation hands the host the call
+at the real esp and leaves with `esp = esp0_ + N` (N = 4 + the bytes the target pops). This patches the listed rows in place (no re-translation: the rest of each row keeps its text):
 
   fl68_tailfix.py ROW [ROW ...] [--write]
 """
@@ -21,7 +21,7 @@ TAIL = re.compile(r'FL41_CALL\(([^)]*)\); esp \+= (\d+)u; goto done;')
 def patch_row(text):
     if 'esp0_' in text:
         return text
-    new = TAIL.sub(lambda m: 'esp = esp0_; FL41_CALL(%s); esp = esp0_ + %su; goto done;' % (m.group(1), m.group(2)), text)
+    new = TAIL.sub(lambda m: 'FL41_CALL(%s); esp = esp0_ + %su; goto done;' % (m.group(1), m.group(2)), text)
     if new == text:
         return text
     return new.replace('    FL41_PROLOGUE\n', '    FL41_PROLOGUE\n    uint32_t esp0_ = esp;\n', 1)

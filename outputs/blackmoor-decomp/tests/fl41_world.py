@@ -395,12 +395,12 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None, watch=Non
             entered.append(1)
             return
         if jump_out.get(prev[0]) == address:        # FL-68: reached by a jump, not a call: the target returns to the function's own caller (it pops the words the function pushed itself)
-            play(address, *stubs[address], base=sp)
+            play(address, *stubs[address], entry=sp)
             return
         play(address, *stubs[address])
 
-    def play(address, ident, cleanup, base=None):
-        esp = uc.reg_read(X.UC_X86_REG_ESP) if base is None else base
+    def play(address, ident, cleanup, entry=None):          # entry: the esp at the start of the function, for a jump out of it: the target sees the real stack and returns to the word at the entry esp
+        esp = uc.reg_read(X.UC_X86_REG_ESP)
         ecx = uc.reg_read(X.UC_X86_REG_ECX)
         words = struct.unpack('<%dI' % LOGGED, uc.mem_read(esp + 4, 4 * LOGGED))
         eax, ecx_out, edx, writes = stub_effect(stub_rng, magic, ecx, words)
@@ -422,6 +422,8 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None, watch=Non
             trace.calls.append((ident, ecx, held, words, eax, ecx_out, edx, writes, ('st0', uc.reg_read(getattr(X, 'UC_X86_REG_FP%d' % top)))))
         else:
             trace.calls.append((ident, ecx, held, words, eax, ecx_out, edx, writes))
+        if entry is not None and entry > esp:       # the function pushed words of its own before the jump: the target pops them and returns to the entry word (a function that popped more than it pushed hands its own stack over)
+            esp = entry
         ret = struct.unpack('<I', uc.mem_read(esp, 4))[0]
         uc.reg_write(X.UC_X86_REG_EAX, eax)
         uc.reg_write(X.UC_X86_REG_ECX, ecx_out)
@@ -449,7 +451,7 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None, watch=Non
             uc.mem_write(esp, struct.pack('<I', after))
             trace.writes.append((esp, 4, after))        # the push of the return address, which a real call would log
             uc.reg_write(X.UC_X86_REG_ESP, esp)
-        play(target, target, cleanup, base=None if not tail else sp)
+        play(target, target, cleanup, entry=sp if tail else None)
 
     if row.get('sites'):
         import capstone

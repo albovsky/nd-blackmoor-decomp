@@ -52,14 +52,23 @@ def cells_of(W, tr):
 def moves_of(W, row, tr, magic, goal=None):
     """The single-move candidates for a parent: lists of [address, size, value] to add to its overrides."""
     out, flips, edge, stubs, regs = [], [], [], [], []
+    sp0 = W.STACK_BASE + W.STACK_SIZE - 0x100 - 4 * (W.ARGS + 1)
+    near_stack = tuple(sp0 + 4 * d for d in (-12, -8, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 6))       # a pointer into the function's own stack: a push or a local store changes what it points at
     cells = cells_of(W, tr)
     for (a, n), v in cells.items():
         mask = (1 << (8 * n)) - 1
         values = set(EDGES[n]) | {(m + d) & mask for m in magic for d in (-1, 0, 1)} | {(v + 1) & mask, (v - 1) & mask, (~v) & mask, v ^ 0x80, v ^ 0x8000}
         values |= {(m | d) & mask for m in magic for d in DECO} | {(v | d) & mask for d in DECO}
+        if n == 4:
+            values |= set(near_stack)
         values.discard(v)
         for new in sorted(values):
             edge.append([[a, n, new]])
+    keys = [k for k in cells if k[1] == 4][:14]
+    for c in keys:                                          # a cell made equal to another input cell (a key compared against a table entry, a pointer against itself)
+        for d in keys:
+            if c != d and cells[c] != cells[d]:
+                edge.append([[c[0], 4, cells[d]]])
     sources = [(W.REG_OVERRIDE + 4 * k, 4) for k in range(len(W.REG_NAMES))] + [(W.STUB_OVR + 16 * k + 4 * reg, 4) for k in range(min(len(tr.calls), 8)) for reg in range(3)] + list(cells)
     for ev in getattr(tr, 'events', ()):
         address, bits, av, bv, ca, cb, wc = ev
@@ -67,7 +76,7 @@ def moves_of(W, row, tr, magic, goal=None):
             continue
         mask = (1 << bits) - 1
         for cell, mine, other in ((ca, av, bv), (cb, bv, av)):
-            if cell is None:
+            if cell is None or cell[0] >= 0xffd00000:
                 continue
             for new in {other & mask, (other + 1) & mask, (other - 1) & mask, 0, mask, (~other) & mask, 1, (mine + 1) & mask, (mine - 1) & mask}:
                 if new != mine:
@@ -79,7 +88,7 @@ def moves_of(W, row, tr, magic, goal=None):
                 for new in {av & smask, bv & smask, (av + 1) & smask, (av - 1) & smask, (bv + 1) & smask, (bv - 1) & smask}:
                     flips.append([[src[0], src[1], new]])
     for k, name in enumerate(W.REG_NAMES):
-        for val in REG_VALUES + tuple(m & 0xffffffff for m in magic[:8]):
+        for val in REG_VALUES + near_stack + tuple(m & 0xffffffff for m in magic[:8]):
             regs.append([[W.REG_OVERRIDE + 4 * k, 4, val & 0xffffffff]])
     for k in range(min(len(tr.calls), 8)):
         for reg in range(3):
@@ -92,6 +101,12 @@ def merge_ov(ov, move):
     """The overrides of a parent with a move applied (a move replaces an earlier override of the same cell)."""
     cells = {(m[0], m[1]) for m in move}
     return [list(o) for o in ov if (o[0], o[1]) not in cells] + [list(m) for m in move]
+
+
+def _faulted(W):
+    tr = W.Trace()
+    tr.fault = 'reserved override page'
+    return tr
 
 
 def ok_now(done):
@@ -122,7 +137,11 @@ def search(key, budget_s, rng, extra=(), verbose=True):
     def run(seed, ov, observe=False):
         nonlocal runs, faults
         runs += 1
-        tr = W.run_original(row, seed, [tuple(o) for o in ov], observe=observe)
+        try:
+            tr = W.run_original(row, seed, [tuple(o) for o in ov], observe=observe)
+        except IndexError:                                  # a move on a cell in the reserved override pages above 0xffd00000
+            runs -= 1
+            return _faulted(W)
         if tr.fault:
             faults += 1
         return tr
@@ -221,10 +240,10 @@ def search(key, budget_s, rng, extra=(), verbose=True):
             deep_seen = set()
             cand = []
             for seed, ov, classes in per_parent:
-                cand.extend((seed, ov, mv) for mv in classes[1] + classes[3])
+                cand.extend((seed, ov, mv) for mv in classes[1] + classes[3] + classes[2])
             rng.shuffle(cand)
             base_cells = {}
-            for seed, ov, mv in cand[:400]:
+            for seed, ov, mv in cand[:1500]:
                 if time.time() - t0 > budget_s or ok_now(done):
                     break
                 nov = merge_ov(ov, mv)
@@ -244,10 +263,10 @@ def search(key, budget_s, rng, extra=(), verbose=True):
                 if cells in base_cells[seed]:
                     continue
                 base_cells[seed][cells] = 1
-                kids = moves_of(W, row, tr, magic, goal)
-                for cls in (kids[0], kids[2]):
+                kids = moves_of(W, row, tr, magic, None)
+                for cls, cap in ((kids[0], 400), (kids[2], 60)):
                     rng.shuffle(cls)
-                    for kv in cls[:120]:
+                    for kv in cls[:cap]:
                         if time.time() - t0 > budget_s or ok_now(done):
                             break
                         kov = merge_ov(nov, kv)

@@ -110984,7 +110984,7 @@ void m51cab3_lifted(Fl41Regs *r, const Fl41Host *h)
     ecx = esi;  /* 0x51cb00: mov ecx, esi */
     { uint32_t t_ = RD32((uint32_t)(eax + 0x84u)); esp -= 4u; WR32(esp, 0x51cb08u); FL41_CALL(t_); esp += 4u; esp += 4u; }  /* 0x51cb02: call dword ptr [eax + 0x84] */
     WR32((uint32_t)(ebp + 0x8u), 0x1u);  /* 0x51cb08: mov dword ptr [ebp + 8], 1 */
-    esp = esp0_; FL41_CALL(0x51cb38u); esp = esp0_ + 8u; goto done;  /* 0x51cb0f: jmp 0x51cb38 */
+    FL41_CALL(0x51cb38u); esp = esp0_ + 8u; goto done;  /* 0x51cb0f: jmp 0x51cb38 */
 done:
     FL41_EPILOGUE
 }
