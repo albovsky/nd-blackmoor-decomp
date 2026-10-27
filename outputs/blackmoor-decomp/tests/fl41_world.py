@@ -379,10 +379,27 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None, watch=Non
         uc.hook_add(unicorn.UC_HOOK_CODE, lambda uc_, a, s, u, fn=fn: fn(uc, ensure, len(trace.writes)), begin=address, end=address)
     stub_rng = random.Random(seed * 104729 + 13)
 
+    entered = []
+
+    jump_out = {}                 # FL-68: address of a direct jump out of the function -> its target
+    if stubs:
+        import capstone as _cs
+        _md = _cs.Cs(_cs.CS_ARCH_X86, _cs.CS_MODE_32)
+        _md.detail = True
+        for _i in _md.disasm(pe.image[va - pe.image_base:va - pe.image_base + size], va):
+            if (_i.mnemonic == 'jmp' or (_i.mnemonic[0] == 'j' and _i.mnemonic != 'jecxz')) and _i.operands and _i.operands[0].type == _cs.x86_const.X86_OP_IMM and _i.operands[0].imm in stubs:
+                jump_out[_i.address] = _i.operands[0].imm
+
     def stub(uc_, address, size_, user):
+        if address == va and not entered:        # FL-68: a recursive row lists itself as a callee; its first instruction is the row, only a call to the entry is a stub call
+            entered.append(1)
+            return
+        if jump_out.get(prev[0]) == address:        # FL-68: reached by a jump, not a call: the target returns to the function's own caller (it pops the words the function pushed itself)
+            play(address, *stubs[address], entry=sp)
+            return
         play(address, *stubs[address])
 
-    def play(address, ident, cleanup):
+    def play(address, ident, cleanup, entry=None):          # entry: the esp at the start of the function, for a jump out of it: the target sees the real stack and returns to the word at the entry esp
         esp = uc.reg_read(X.UC_X86_REG_ESP)
         ecx = uc.reg_read(X.UC_X86_REG_ECX)
         words = struct.unpack('<%dI' % LOGGED, uc.mem_read(esp + 4, 4 * LOGGED))
@@ -405,6 +422,8 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None, watch=Non
             trace.calls.append((ident, ecx, held, words, eax, ecx_out, edx, writes, ('st0', uc.reg_read(getattr(X, 'UC_X86_REG_FP%d' % top)))))
         else:
             trace.calls.append((ident, ecx, held, words, eax, ecx_out, edx, writes))
+        if entry is not None and entry > esp:       # the function pushed words of its own before the jump: the target pops them and returns to the entry word (a function that popped more than it pushed hands its own stack over)
+            esp = entry
         ret = struct.unpack('<I', uc.mem_read(esp, 4))[0]
         uc.reg_write(X.UC_X86_REG_EAX, eax)
         uc.reg_write(X.UC_X86_REG_ECX, ecx_out)
@@ -419,7 +438,7 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None, watch=Non
 
     def site_hook(uc_, address, size_, user):
         """FL-58: a call through a register or a pointer is a stub call on both sides (the translation cannot run the real code at the target)"""
-        target_of, after, cleanup = user
+        target_of, after, cleanup, tail = user
         target = target_of()
         if target is not None:
             target &= 0xffffffff
@@ -427,11 +446,12 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None, watch=Non
             trace.fault = 'access in a call target'
             uc.emu_stop()
             return
-        esp = (uc.reg_read(X.UC_X86_REG_ESP) - 4) & 0xffffffff
-        uc.mem_write(esp, struct.pack('<I', after))
-        trace.writes.append((esp, 4, after))            # the push of the return address, which a real call would log
-        uc.reg_write(X.UC_X86_REG_ESP, esp)
-        play(target, target, cleanup)
+        if not tail:                                    # FL-68: a `jmp` through a register or a pointer is a tail call: no return address is pushed, the target returns to the caller of the function
+            esp = (uc.reg_read(X.UC_X86_REG_ESP) - 4) & 0xffffffff
+            uc.mem_write(esp, struct.pack('<I', after))
+            trace.writes.append((esp, 4, after))        # the push of the return address, which a real call would log
+            uc.reg_write(X.UC_X86_REG_ESP, esp)
+        play(target, target, cleanup, entry=sp if tail else None)
 
     if row.get('sites'):
         import capstone
@@ -463,7 +483,7 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None, watch=Non
             return read
         for site, cleanup in row['sites'].items():
             ins = next(md.disasm(pe.image[site - pe.image_base:site - pe.image_base + 16], site))
-            uc.hook_add(unicorn.UC_HOOK_CODE, site_hook, (target_reader(ins.operands[0]), site + ins.size, cleanup), begin=site, end=site)
+            uc.hook_add(unicorn.UC_HOOK_CODE, site_hook, (target_reader(ins.operands[0]), site + ins.size, cleanup, ins.mnemonic == 'jmp'), begin=site, end=site)
     for name in ('eax', 'ebx', 'ecx', 'edx', 'esi', 'edi', 'ebp'):
         uc.reg_write(getattr(X, 'UC_X86_REG_' + name.upper()), regs[name])
     sp = STACK_BASE + STACK_SIZE - 0x100 - 4 * (ARGS + 1)
@@ -503,7 +523,7 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None, watch=Non
         for k in range((8 - top) & 7):
             mant, se = uc.reg_read(getattr(X, 'UC_X86_REG_FP%d' % ((top + k) & 7)))
             regs80.append((mant, se))
-        trace.regs['fpu'] = (sw, uc.reg_read(X.UC_X86_REG_FPCW), tuple(regs80))
+        trace.regs['fpu'] = (sw & ~0x200 if row.get('c1_free') else sw, uc.reg_read(X.UC_X86_REG_FPCW), tuple(regs80))
     return trace
 
 
@@ -670,7 +690,7 @@ def run_native(lib, row, seed, overrides=()):
         for k in range((8 - top) & 7):
             at = 16 * ((top + k) & 7)
             regs80.append((int.from_bytes(raw[at:at + 8], 'little'), int.from_bytes(raw[at + 8:at + 10], 'little')))
-        trace.regs['fpu'] = (fpu.sw, fpu.cw, tuple(regs80))
+        trace.regs['fpu'] = (fpu.sw & ~0x200 if row.get('c1_free') else fpu.sw, fpu.cw, tuple(regs80))
     return trace
 
 
@@ -718,9 +738,12 @@ def row_info(va, body, callees, imports=None, fs=False, sites=None, frame=False)
     off = va - pe.image_base
     magic, globs, rets = set(), set(), set()
     fpu = False
+    reads_sw = False
     for i in md.disasm(pe.image[off:off + body], va):
         if i.mnemonic.startswith('f') and i.mnemonic != 'fs':
             fpu = True
+        if i.mnemonic in ('fnstsw', 'fstsw'):
+            reads_sw = True
         if i.mnemonic == 'ret':
             rets.add(i.operands[0].imm if i.operands else 0)
         for op in i.operands:
@@ -748,6 +771,7 @@ def row_info(va, body, callees, imports=None, fs=False, sites=None, frame=False)
     if fpu:         # FL-52: the row uses the x87 unit; the callees that leave a value in st(0) or take one off it (scripts/lift_fl41.py fpu_net)
         import lift_fl41 as L
         info['fpu'] = True
+        info['c1_free'] = not reads_sw      # FL-68: C1 (the round-up flag) is set by the hardware x87 the translation runs on and never by Unicorn's x87 model; a row that does not read the status word cannot see it
         info['fpret'] = {t: n for t in info['callees'] for n in [L.fpu_net(t)] if n}
     return info
 

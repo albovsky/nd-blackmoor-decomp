@@ -110955,6 +110955,7 @@ done:
 void m51cab3_lifted(Fl41Regs *r, const Fl41Host *h)
 {
     FL41_PROLOGUE
+    uint32_t esp0_ = esp;
     eax = 0x528bd8u;  /* 0x51cab3: mov eax, 0x528bd8 */
     esp -= 4u; WR32(esp, 0x51cabdu); FL41_CALL_LIFTED(m50f978_lifted);  /* 0x51cab8: call 0x50f978 */
     { uint32_t a_ = esp, b_ = 0x24u, r_; FL41_SUB(a_, b_, 0u, r_, 32); esp = r_; }  /* 0x51cabd: sub esp, 0x24 */
@@ -110983,7 +110984,7 @@ void m51cab3_lifted(Fl41Regs *r, const Fl41Host *h)
     ecx = esi;  /* 0x51cb00: mov ecx, esi */
     { uint32_t t_ = RD32((uint32_t)(eax + 0x84u)); esp -= 4u; WR32(esp, 0x51cb08u); FL41_CALL(t_); esp += 4u; esp += 4u; }  /* 0x51cb02: call dword ptr [eax + 0x84] */
     WR32((uint32_t)(ebp + 0x8u), 0x1u);  /* 0x51cb08: mov dword ptr [ebp + 8], 1 */
-    FL41_CALL(0x51cb38u); esp += 8u; goto done;  /* 0x51cb0f: jmp 0x51cb38 */
+    FL41_CALL(0x51cb38u); esp = esp0_ + 8u; goto done;  /* 0x51cb0f: jmp 0x51cb38 */
 done:
     FL41_EPILOGUE
 }

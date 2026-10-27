@@ -1,0 +1,11 @@
+{
+ "0x50c920": {
+  "body": 47,
+  "callees": {},
+  "fs": false,
+  "imports": {},
+  "note": "__chkstk: the translation m50c920_lifted sits in translated/original_methods_fl41_translated.c as an inline helper (INLINE_CALLEES) and has no table entry there",
+  "seeds": [],
+  "status": "no seed"
+ }
+}

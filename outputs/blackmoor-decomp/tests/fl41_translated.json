@@ -23462,7 +23462,7 @@
    0
   ],
   "frame": false,
-  "fs": false,
+  "fs": true,
   "imports": {},
   "instructions": [
    0,

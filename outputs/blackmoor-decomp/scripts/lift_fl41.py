@@ -74,6 +74,7 @@ def disasm(va, size):
 
 _LEDGER = None
 ASSUMED_MATH = {}         # FL-57 bulk: library math wrappers whose x87 effect is guessed from the wrapper shape
+TAIL_ESP0 = False         # FL-68: a tail jump out of the function leaves with esp at the function's own return address (the target pops the words the function pushed itself), see scripts/fl68_relift.py
 GUESSED_CALLEES = set()   # FL-57 bulk: call targets that start no ledger function, their pop taken from the first `ret` (recorded per row by scripts/fl57_bulk.py)
 # callees that are not played by the host: `__chkstk` takes its size in eax and lowers esp, and `__EH_prolog` (0x50f978, FL-58) sets ebp and moves esp, so they are translated too (the original bytes run in the oracle)
 INLINE_CALLEES = {0x50c920, 0x50f978}
@@ -107,6 +108,16 @@ def callee_shape(target, depth=0):
             raise Unsupported("callee 0x%x is not a ledger function" % target)
         GUESSED_CALLEES.add(target)       # FL-57 bulk: a call target that starts no ledger function (inside a function or in a gap): the first `ret` of its linear code decides the pop
         img = od.load_image()
+        first = next(md().disasm(img.image[target - img.image_base:][:16], target), None)
+        if first is not None and first.mnemonic == "jmp":      # FL-68: a thunk jumps on, so the `ret` below it belongs to another function: an import thunk pops what the import pops, a thunk to code is followed
+            op = first.operands[0]
+            if op.type == X.X86_OP_MEM and not op.mem.base and not op.mem.index and op.mem.segment in (0, X.X86_REG_DS):
+                name = import_slots().get(op.mem.disp & 0xffffffff)
+                count = None if name is None else (IMPORT_ARGS[name[1]] if name[1] in IMPORT_ARGS else import_args(name[1]))
+                if count is not None:
+                    return 4 * count
+            elif op.type == X.X86_OP_IMM and depth < 3 and op.imm != target:
+                return callee_shape(op.imm, depth + 1)
         for i in md().disasm(img.image[target - img.image_base:][:400], target):
             if i.mnemonic == "ret":
                 return i.operands[0].imm if i.operands else 0
@@ -599,6 +610,9 @@ INDIRECT_SITES = {}   # FL-58: {row va: {address of a call through a register or
 def indirect_tail_jump(c, i, op):
     """FL-57 bulk: `jmp reg` / `jmp [mem]` out of a jump-table-free function is a tail call; the target pops what this function's own `ret N` pops (the arguments it was given)"""
     own = next((x.operands[0].imm if x.operands else 0 for x in c.ins if x.mnemonic == "ret"), 0)
+    if TAIL_ESP0:
+        c.emit("{ uint32_t t_ = %s; FL41_CALL(t_); esp = esp0_ + %du; goto done; }" % (get(i, op, 32), 4 + own))
+        return
     c.emit("{ uint32_t t_ = %s; FL41_CALL(t_); esp += %du; goto done; }" % (get(i, op, 32), 4 + own))
 
 
@@ -790,7 +804,7 @@ def lift_one(c, i):
             cleanup = callee_shape(t)
             c.callees[t] = cleanup
             e("FL41_CALL(0x%xu);" % t)
-            e("esp += %du;" % (4 + cleanup))
+            e("esp %s %du;" % ("= esp0_ +" if TAIL_ESP0 else "+=", 4 + cleanup))
             e("goto done;")
         return
     if mn[0] == "j" and mn[1:] in COND:
@@ -800,6 +814,9 @@ def lift_one(c, i):
                 raise Unsupported("conditional jump out of the function at 0x%x" % a)
             cleanup = callee_shape(t)                              # FL-57 bulk: a tail jump into another function, taken under a condition
             c.callees[t] = cleanup
+            if TAIL_ESP0:
+                e("if (%s) { FL41_CALL(0x%xu); esp = esp0_ + %du; goto done; }" % (COND[mn[1:]], t, 4 + cleanup))
+                return
             e("if (%s) { FL41_CALL(0x%xu); esp += %du; goto done; }" % (COND[mn[1:]], t, 4 + cleanup))
             return
         e("if (%s) goto %s;" % (COND[mn[1:]], label(t)))
@@ -1148,7 +1165,7 @@ def lift(va, body_size):
     head = ["/* GAME.EXE 0x%x (%d bytes): machine translation of the original instructions, see the note at the top of this file. */" % (va, body_size),
             "void m%x_lifted(Fl41Regs *r, const Fl41Host *h)" % va, "{",
             "    FL41_PROLOGUE",
-            ] + (["    FL41_FPU_PROLOGUE"] if c.fpu else [])
+            ] + (["    uint32_t esp0_ = esp;"] if TAIL_ESP0 else []) + (["    FL41_FPU_PROLOGUE"] if c.fpu else [])
     tail = ["done:", "    FL41_EPILOGUE"] + (["    FL41_FPU_EPILOGUE"] if c.fpu else []) + ["}"]
     fs = any(any(op.type == X.X86_OP_MEM and op.mem.segment == X.X86_REG_FS for op in i.operands) for i in ins)
     return "\n".join(head + c.lines + tail) + "\n", dict(c.callees), dict(c.imports), fs, set(c.inline)

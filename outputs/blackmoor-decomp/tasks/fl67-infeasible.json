@@ -883,6 +883,597 @@
    "scenarios_run": 4,
    "source": "translated/original_methods_fl41_translated.c",
    "translation_sha256": "f0aec33b6d23fc1ea366a96bc5ccb50034e1ded8ac3fe63d787e01bd61df9c42"
+  },
+  "0x50c950": {
+   "body": 66,
+   "directions": [
+    0,
+    2
+   ],
+   "instructions": [
+    18,
+    27
+   ],
+   "pool": "upper57",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x50c980:fall-through": "unreachable block",
+     "0x50c980:taken": "unreachable block"
+    },
+    "instructions": {
+     "0x50c970": "unreachable block",
+     "0x50c974": "unreachable block",
+     "0x50c97b": "unreachable block",
+     "0x50c980": "unreachable block",
+     "0x50c982": "unreachable block",
+     "0x50c986": "unreachable block",
+     "0x50c98a": "unreachable block",
+     "0x50c98c": "unreachable block",
+     "0x50c991": "unreachable block"
+    },
+    "plan": {}
+   },
+   "scenarios_kept": 1,
+   "scenarios_run": 1,
+   "source": "translated/original_methods_fl57_translated.c",
+   "translation_sha256": "37471ce678d38fa2420859bf8fe77623436379b1fae237ad0f6baecb3b04ccf0"
+  },
+  "0x50cc28": {
+   "body": 116,
+   "directions": [
+    2,
+    4
+   ],
+   "instructions": [
+    30,
+    42
+   ],
+   "pool": "upper57",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x50cc92:fall-through": "unreachable block",
+     "0x50cc92:taken": "unreachable block"
+    },
+    "instructions": {
+     "0x50cc64": "unreachable block",
+     "0x50cc67": "unreachable block",
+     "0x50cc6c": "unreachable block",
+     "0x50cc6d": "unreachable block",
+     "0x50cc6e": "unreachable block",
+     "0x50cc86": "unreachable block",
+     "0x50cc8a": "unreachable block",
+     "0x50cc8c": "unreachable block",
+     "0x50cc92": "unreachable block",
+     "0x50cc94": "unreachable block",
+     "0x50cc96": "unreachable block",
+     "0x50cc97": "unreachable block"
+    },
+    "plan": {
+     "0x50cc51": "gen"
+    }
+   },
+   "scenarios_kept": 2,
+   "scenarios_run": 2,
+   "source": "translated/original_methods_fl57_translated.c",
+   "translation_sha256": "e87e76ba3279c4fea815916b0c861699718c2a490bfb2ebd2a1dc78fa1966e27"
+  },
+  "0x50f440": {
+   "body": 34,
+   "directions": [
+    0,
+    0
+   ],
+   "instructions": [
+    8,
+    10
+   ],
+   "pool": "upper57",
+   "proofs": {
+    "checker": 2,
+    "directions": {},
+    "instructions": {
+     "0x50f459": "unreachable block",
+     "0x50f45d": "unreachable block"
+    },
+    "plan": {}
+   },
+   "scenarios_kept": 1,
+   "scenarios_run": 1,
+   "source": "translated/original_methods_fl57_translated.c",
+   "translation_sha256": "be96037a4db41861e8262c7f71b4aec14c41f7a66608a01a2db8f5c0ae0e28fd"
+  },
+  "0x51086b": {
+   "body": 158,
+   "directions": [
+    8,
+    8
+   ],
+   "instructions": [
+    47,
+    56
+   ],
+   "pool": "upper57",
+   "proofs": {
+    "checker": 2,
+    "directions": {},
+    "instructions": {
+     "0x5108d2": "unreachable block",
+     "0x5108d5": "unreachable block",
+     "0x5108da": "unreachable block",
+     "0x5108db": "unreachable block",
+     "0x5108dc": "unreachable block",
+     "0x5108df": "unreachable block",
+     "0x5108e3": "unreachable block",
+     "0x5108e6": "unreachable block",
+     "0x5108e9": "unreachable block"
+    },
+    "plan": {
+     "0x51089d": "gen"
+    }
+   },
+   "scenarios_kept": 2,
+   "scenarios_run": 2,
+   "source": "translated/original_methods_fl57_translated.c",
+   "translation_sha256": "a97b0c0b1f8405602aab6f98b52086585046a71196d50ef7adb6fe24fad715f9"
+  },
+  "0x5118b3": {
+   "body": 314,
+   "directions": [
+    6,
+    16
+   ],
+   "instructions": [
+    46,
+    125
+   ],
+   "pool": "upper57",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x511948:fall-through": "unreachable block",
+     "0x511948:taken": "unreachable block",
+     "0x511966:fall-through": "unreachable block",
+     "0x511966:taken": "unreachable block",
+     "0x511970:fall-through": "unreachable block",
+     "0x511970:taken": "unreachable block",
+     "0x511982:fall-through": "unreachable block",
+     "0x511982:taken": "unreachable block",
+     "0x511984:fall-through": "unreachable block",
+     "0x511984:taken": "unreachable block"
+    },
+    "instructions": {
+     "0x511928": "unreachable block",
+     "0x511929": "unreachable block",
+     "0x51192a": "unreachable block",
+     "0x51192c": "unreachable block",
+     "0x51192d": "unreachable block",
+     "0x51192e": "unreachable block",
+     "0x511930": "unreachable block",
+     "0x511931": "unreachable block",
+     "0x511933": "unreachable block",
+     "0x511936": "unreachable block",
+     "0x511937": "unreachable block",
+     "0x511938": "unreachable block",
+     "0x511939": "unreachable block",
+     "0x51193a": "unreachable block",
+     "0x51193b": "unreachable block",
+     "0x51193e": "unreachable block",
+     "0x511941": "unreachable block",
+     "0x511948": "unreachable block",
+     "0x51194e": "unreachable block",
+     "0x511951": "unreachable block",
+     "0x511954": "unreachable block",
+     "0x511957": "unreachable block",
+     "0x51195a": "unreachable block",
+     "0x51195d": "unreachable block",
+     "0x511960": "unreachable block",
+     "0x511963": "unreachable block",
+     "0x511966": "unreachable block",
+     "0x511968": "unreachable block",
+     "0x51196b": "unreachable block",
+     "0x511970": "unreachable block",
+     "0x511972": "unreachable block",
+     "0x511973": "unreachable block",
+     "0x511974": "unreachable block",
+     "0x511977": "unreachable block",
+     "0x51197b": "unreachable block",
+     "0x51197c": "unreachable block",
+     "0x51197d": "unreachable block",
+     "0x511980": "unreachable block",
+     "0x511982": "unreachable block",
+     "0x511984": "unreachable block",
+     "0x511986": "unreachable block",
+     "0x511989": "unreachable block",
+     "0x51198a": "unreachable block",
+     "0x51198f": "unreachable block",
+     "0x511992": "unreachable block",
+     "0x511995": "unreachable block",
+     "0x511996": "unreachable block",
+     "0x511997": "unreachable block",
+     "0x51199c": "unreachable block",
+     "0x51199f": "unreachable block",
+     "0x5119a2": "unreachable block",
+     "0x5119a4": "unreachable block",
+     "0x5119a8": "unreachable block",
+     "0x5119ad": "unreachable block",
+     "0x5119b0": "unreachable block",
+     "0x5119b3": "unreachable block",
+     "0x5119b7": "unreachable block",
+     "0x5119ba": "unreachable block",
+     "0x5119bd": "unreachable block",
+     "0x5119c0": "unreachable block",
+     "0x5119c2": "unreachable block",
+     "0x5119c7": "unreachable block",
+     "0x5119c9": "unreachable block",
+     "0x5119ce": "unreachable block",
+     "0x5119d0": "unreachable block",
+     "0x5119d1": "unreachable block",
+     "0x5119d4": "unreachable block",
+     "0x5119d6": "unreachable block",
+     "0x5119d7": "unreachable block",
+     "0x5119dc": "unreachable block",
+     "0x5119df": "unreachable block",
+     "0x5119e0": "unreachable block",
+     "0x5119e5": "unreachable block",
+     "0x5119e6": "unreachable block",
+     "0x5119e7": "unreachable block",
+     "0x5119e8": "unreachable block",
+     "0x5119e9": "unreachable block",
+     "0x5119eb": "unreachable block",
+     "0x5119ec": "unreachable block"
+    },
+    "plan": {}
+   },
+   "scenarios_kept": 4,
+   "scenarios_run": 4,
+   "source": "translated/original_methods_fl57_translated.c",
+   "translation_sha256": "a852bdd160de79d3552ec8adcbce8abe2618af93ee601b6fa1c2322b0b3acd49"
+  },
+  "0x513f9d": {
+   "body": 691,
+   "directions": [
+    56,
+    58
+   ],
+   "instructions": [
+    258,
+    258
+   ],
+   "pool": "upper",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x5140e8:taken": "aeaea85ad52e191fb63d0e99f1963bcd51014775cc637fdd53c34dc9e52f4996",
+     "0x5141fd:taken": "e7c28d570b25201a69e4ab2f4c08b42e5682fa8f306df4576ec26161f6b7f335"
+    },
+    "instructions": {},
+    "plan": {}
+   },
+   "scenarios_kept": 8,
+   "scenarios_run": 8,
+   "source": "translated/original_methods_fl41_translated.c",
+   "translation_sha256": "602ea4e8b2dc9dbbb9da1e517ecd453a52deb6363008558aef78400222a756a0"
+  },
+  "0x5145a4": {
+   "body": 90,
+   "directions": [
+    15,
+    16
+   ],
+   "instructions": [
+    35,
+    35
+   ],
+   "pool": "upper",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x5145f3:taken": "1cb10076670262af712b5084dba718a3e8c4ce92734817ef8114ff1cf852ec39"
+    },
+    "instructions": {},
+    "plan": {}
+   },
+   "scenarios_kept": 7,
+   "scenarios_run": 7,
+   "source": "translated/original_methods_fl41_translated.c",
+   "translation_sha256": "44b54b5703fd5a793d36de08648c954ab7dd6e85779344f36a7663018022c929"
+  },
+  "0x5168d0": {
+   "body": 146,
+   "directions": [
+    25,
+    26
+   ],
+   "instructions": [
+    58,
+    58
+   ],
+   "pool": "upper",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x516932:taken": "76e32e9627dfaeb693badee7b51657900b99b1f6e98b41567725843797c3038a"
+    },
+    "instructions": {},
+    "plan": {}
+   },
+   "scenarios_kept": 6,
+   "scenarios_run": 6,
+   "source": "translated/original_methods_fl41_translated.c",
+   "translation_sha256": "83f0c0c6896db7c71071c7a6bad723b8e8b0dbaafdbf22abc0e31d2c74033569"
+  },
+  "0x516962": {
+   "body": 137,
+   "directions": [
+    25,
+    26
+   ],
+   "instructions": [
+    53,
+    53
+   ],
+   "pool": "upper",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x5169b6:taken": "c100ff2246eea101c719a8e64ea2b5221b40858b7d0210d55cb7156c6bfa127a"
+    },
+    "instructions": {},
+    "plan": {}
+   },
+   "scenarios_kept": 7,
+   "scenarios_run": 7,
+   "source": "translated/original_methods_fl41_translated.c",
+   "translation_sha256": "317ce3602fba9d46b9ede2b9e3b61395ede5310e36a3bc1f0fc26cc4881a320e"
+  },
+  "0x518bd5": {
+   "body": 33,
+   "directions": [
+    3,
+    4
+   ],
+   "instructions": [
+    15,
+    15
+   ],
+   "pool": "upper",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x518be9:fall-through": "21c2642282ccd86f3db7875a260a346461220bf2c8aaa2162c295fdf8417b90c"
+    },
+    "instructions": {},
+    "plan": {}
+   },
+   "scenarios_kept": 2,
+   "scenarios_run": 2,
+   "source": "translated/original_methods_fl41_translated.c",
+   "translation_sha256": "5d314bec623162f6493e9c773a9d55918328360ad838bddcc0b6af07d511c44d"
+  },
+  "0x51a14e": {
+   "body": 281,
+   "directions": [
+    19,
+    20
+   ],
+   "instructions": [
+    111,
+    111
+   ],
+   "pool": "upper",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x51a1fe:fall-through": "11c342786d1b46ca8c27817680958ea0a517c1be5ff6772f6f619a8f18876e8e"
+    },
+    "instructions": {},
+    "plan": {}
+   },
+   "scenarios_kept": 10,
+   "scenarios_run": 10,
+   "source": "translated/original_methods_fl41_translated.c",
+   "translation_sha256": "7cf37d4a74f518a75edff668814b99d16997037e2db32c14ce4cb215e2b848d0"
+  },
+  "0x51cd70": {
+   "body": 210,
+   "directions": [
+    21,
+    22
+   ],
+   "instructions": [
+    76,
+    76
+   ],
+   "pool": "upper",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x51cdd0:fall-through": "04dc5a5293727d170f187e4df7b763456d4bc1a34d96e6e33b8608d1cc05845e"
+    },
+    "instructions": {},
+    "plan": {
+     "0x51cd93": "gen"
+    }
+   },
+   "scenarios_kept": 7,
+   "scenarios_run": 7,
+   "source": "translated/original_methods_fl41_translated.c",
+   "translation_sha256": "9e5ffa227bd7ecb5f273f374430c06c3de2a1b27452e913cb4665b81cce9d6cb"
+  },
+  "0x5238d5": {
+   "body": 182,
+   "directions": [
+    2,
+    2
+   ],
+   "instructions": [
+    53,
+    60
+   ],
+   "pool": "upper57",
+   "proofs": {
+    "checker": 2,
+    "directions": {},
+    "instructions": {
+     "0x523970": "unreachable block",
+     "0x523974": "unreachable block",
+     "0x523977": "unreachable block",
+     "0x52397c": "unreachable block",
+     "0x523980": "unreachable block",
+     "0x523986": "unreachable block",
+     "0x523988": "unreachable block"
+    },
+    "plan": {}
+   },
+   "scenarios_kept": 2,
+   "scenarios_run": 2,
+   "source": "translated/original_methods_fl57_translated.c",
+   "translation_sha256": "8b04030fefd3158629fa4b4c893767efd448291ed201ea7d9bfb8d1a1aa5e525"
+  },
+  "0x524901": {
+   "body": 53,
+   "directions": [
+    2,
+    2
+   ],
+   "instructions": [
+    12,
+    16
+   ],
+   "pool": "upper57",
+   "proofs": {
+    "checker": 2,
+    "directions": {},
+    "instructions": {
+     "0x524926": "unreachable block",
+     "0x52492b": "unreachable block",
+     "0x52492c": "unreachable block",
+     "0x524931": "unreachable block"
+    },
+    "plan": {}
+   },
+   "scenarios_kept": 2,
+   "scenarios_run": 2,
+   "source": "translated/original_methods_fl57_translated.c",
+   "translation_sha256": "7402a0fd312d15710a72b759153170d0283633b3bdf302b9274d0a1ea9edd990"
+  },
+  "0x52540b": {
+   "body": 48,
+   "directions": [
+    2,
+    2
+   ],
+   "instructions": [
+    11,
+    15
+   ],
+   "pool": "upper57",
+   "proofs": {
+    "checker": 2,
+    "directions": {},
+    "instructions": {
+     "0x52542b": "unreachable block",
+     "0x525430": "unreachable block",
+     "0x525431": "unreachable block",
+     "0x525436": "unreachable block"
+    },
+    "plan": {}
+   },
+   "scenarios_kept": 2,
+   "scenarios_run": 2,
+   "source": "translated/original_methods_fl57_translated.c",
+   "translation_sha256": "daddee53ed006421369602fba31cbf7531def4a2928f484448e77a4c4f61b498"
+  },
+  "0x5254fe": {
+   "body": 71,
+   "directions": [
+    2,
+    4
+   ],
+   "instructions": [
+    12,
+    23
+   ],
+   "pool": "upper57",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x525535:fall-through": "unreachable block",
+     "0x525535:taken": "unreachable block"
+    },
+    "instructions": {
+     "0x525523": "unreachable block",
+     "0x525528": "unreachable block",
+     "0x525529": "unreachable block",
+     "0x52552e": "unreachable block",
+     "0x525533": "unreachable block",
+     "0x525535": "unreachable block",
+     "0x525537": "unreachable block",
+     "0x52553b": "unreachable block",
+     "0x525541": "unreachable block",
+     "0x525542": "unreachable block",
+     "0x525544": "unreachable block"
+    },
+    "plan": {}
+   },
+   "scenarios_kept": 2,
+   "scenarios_run": 2,
+   "source": "translated/original_methods_fl57_translated.c",
+   "translation_sha256": "8593a3c127fdad45ee8f71275a549d6b1145f3b62f183e2217e2fd4b1d5d5a5f"
+  },
+  "0x525697": {
+   "body": 70,
+   "directions": [
+    11,
+    12
+   ],
+   "instructions": [
+    33,
+    33
+   ],
+   "pool": "upper",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x5256b8:taken": "48bfc6e76d833a87a7dfc4333f3d3f50e6ebbc9d0713e0eedd98d59e9101afe5"
+    },
+    "instructions": {},
+    "plan": {
+     "0x5256be": "gen"
+    }
+   },
+   "scenarios_kept": 4,
+   "scenarios_run": 4,
+   "source": "translated/original_methods_fl41_translated.c",
+   "translation_sha256": "b12b65947ead9b40050ee8567b4082ee20a3dbdec9925ab65a0efe6b8748c713"
+  },
+  "0x525b0f": {
+   "body": 119,
+   "directions": [
+    11,
+    12
+   ],
+   "instructions": [
+    42,
+    43
+   ],
+   "pool": "upper",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x525b2b:taken": "a7ed5f2517f12f2fbbe7fdcc4c116b414bb336dfcd303e514dd9008e587ca457"
+    },
+    "instructions": {
+     "0x525b36": "a7ed5f2517f12f2fbbe7fdcc4c116b414bb336dfcd303e514dd9008e587ca457"
+    },
+    "plan": {}
+   },
+   "scenarios_kept": 6,
+   "scenarios_run": 6,
+   "source": "translated/original_methods_fl41_translated.c",
+   "translation_sha256": "a84cbb5214019bd101a85f7d5794ed27ab47821cd646b7212d7ca90e46a309f8"
   }
  },
  "rule": {
