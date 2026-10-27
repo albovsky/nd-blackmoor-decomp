@@ -447,7 +447,8 @@ def jump_table(ins, k, va, end):
         return None
 
     # the index comes from a byte table: mov al, byte ptr [reg + IDX]; the entries are the largest byte + 1
-    for n, prev in enumerate(window):
+    for n in range(len(window) - 1, -1, -1):                       # FL-69: the NEAREST byte-table read (the first one in the window belonged to the previous dispatch block of 0x4c88c7 and cut its table to 13 of 27 entries)
+        prev = window[n]
         if prev.mnemonic == "mov" and prev.operands[0].type == X.X86_OP_REG and BYTE_REGS.get(prev.operands[0].reg) == index_reg and \
                 prev.operands[1].type == X.X86_OP_MEM and prev.operands[1].size == 1 and prev.operands[1].mem.index == 0:
             bound = bound_before(n)
