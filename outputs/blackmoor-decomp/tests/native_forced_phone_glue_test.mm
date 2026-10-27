@@ -1,7 +1,8 @@
 /* N27: original BOOT/fresh world and labeled FIRST direct entry S3337.
  * Ordinary updates/rendering/silent audio drive the genuine group3 forced call.
  * No story, visit, phase, candidate, popup-state or midgame RNG injection.
- * Fresh S1600's unavailable/farewell branch is separate from hook6 topics. */
+ * Fresh S1600's unavailable/farewell branch is separate from hook6 topics.
+ * The separately labeled manual-request guard case supplies unit input/state. */
 #define main blackmoor_app_entry_for_forced_phone_test
 #ifndef NATIVE_FORCED_PHONE_APP_SOURCE
 #define NATIVE_FORCED_PHONE_APP_SOURCE "../src/blackmoor_app.mm"
@@ -145,6 +146,51 @@ static int initial_request(PhoneFixture &f)
 }
 
 #ifndef NATIVE_FORCED_PHONE_BASELINE
+static int taskbar_request_guard(PhoneFixture &f)
+{
+    SceneActionRuntimeState first{};
+    CHECK(f.app.current_scene_id == 3337 && f.app.captions.lifecycle.g.overlay_ui == 0 &&
+          f.app.a80_object.word_6b2 == 9999 && f.app.phone_unavailable_5a1e58 == 0 &&
+          scene_session_tick_count(f.app.session) == 0u &&
+          scene_session_get_action_state(f.app.session, 0u, &first) == SCENE_SESSION_OK &&
+          first.phase == 0u && !first.completed,
+          "manual-request unit guard starts in actual BOOT/direct fixture before any story dispatch");
+    const auto owner_cells = [](const Action80Object &o) {
+        return std::array<int64_t, 11>{o.scene_6ba, o.word_6bc, o.word_6be,
+            o.dword_6c2, o.dword_6c6, o.dword_6ca, o.state_4528, o.word_6b2,
+            o.dword_6b4, o.dword_4530, o.dword_65d2};
+    };
+    for (unsigned variant = 0u; variant < 2u; ++variant) {
+        /* Labeled unit input: a pending taskbar phone request. Variant1 is
+         * explicit unit state isolating unavailable with a non-sentinel target;
+         * neither variant is a positive gameplay or story-route fixture. */
+        f.app.bar.flag[3] = 1u;
+        if (variant == 1u) {
+            f.app.a80_object.word_6b2 = 1600;
+            f.app.phone_unavailable_5a1e58 = 1;
+        }
+        const auto owner = owner_cells(f.app.a80_object);
+        const auto backbuffer = f.app.captions.backbuffer_pixels;
+        const auto frame = f.app.framebuffer;
+        const size_t images = f.app.captions.raw_images.size();
+        const uint64_t generation = scene_session_scene_generation(f.app.session);
+        CHECK(!f.app.phone.active && !f.app.phone.pickup_loaded && !f.app.phone_base_surface &&
+              !f.app.phone_extras_surface && !f.app.a80_object_valid && !f.app.failure,
+              "guard starts without a popup, host assets, saved return tuple or app failure");
+        CHECK(native_phone_pre_tick(&f.app) == 0 && f.app.captions.lifecycle.g.overlay_ui == 0 &&
+              f.app.bar.flag[3] == 1u && !f.app.bar.flag[0] && !f.app.bar.flag[1] && !f.app.bar.flag[2] &&
+              owner_cells(f.app.a80_object) == owner && !f.app.phone.active && !f.app.phone.pickup_loaded &&
+              !f.app.phone_base_surface && !f.app.phone_extras_surface && !f.app.a80_object_valid &&
+              f.app.captions.raw_images.size() == images && f.app.captions.backbuffer_pixels == backbuffer &&
+              f.app.framebuffer == frame && !f.app.failure && !f.app.session_block_reported &&
+              scene_session_tick_count(f.app.session) == 0u &&
+              scene_session_scene_generation(f.app.session) == generation,
+              "unsupported manual/unavailable taskbar request remains an unconsumed no-op before screen, owner or host asset effects");
+    }
+    std::printf("FORCED_PHONE_REQUEST_GUARD unit_cases=manual-sentinel,unavailable variants=2 request_retained=1 screen=0 host_open=0 story_dispatch=0\n");
+    return 0;
+}
+
 static int retained_room(PhoneFixture &f)
 {
     SceneExecutorSlotInfo voice{}, request{};
@@ -344,6 +390,7 @@ int main(int argc, char **argv)
         int result = 1;
         if (std::strcmp(argv[2], "frame") == 0) result = frames(fixture);
         else if (std::strcmp(argv[2], "flow") == 0) result = flow(fixture);
+        else if (std::strcmp(argv[2], "request-guard") == 0) result = taskbar_request_guard(fixture);
         else std::fprintf(stderr, "CHECK failed: unknown bounded forced-phone case\n");
 #endif
         if (result) fixture.print_log_tail();

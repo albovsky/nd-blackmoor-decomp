@@ -3,6 +3,7 @@
 Direct entry with fresh original BOOT/new-game state and the supported seed1
 replay option; no campaign claim, injected story/item/row/response state,
 original-x86 oracle, GUI, output device, fault, sanitizer or mutation runner.
+A separate labeled taskbar guard case supplies only unit input/state.
 """
 import hashlib
 import json
@@ -95,6 +96,9 @@ class NativeForcedPhoneTests(unittest.TestCase):
 
     def test_first_entry_forced_phone_real_pickup_farewell_and_return_cleanup(self):
         self.component('flow')
+
+    def test_taskbar_manual_or_unavailable_phone_request_preserves_unhandled_state(self):
+        self.component('request-guard')
 
 
 if __name__ == '__main__':

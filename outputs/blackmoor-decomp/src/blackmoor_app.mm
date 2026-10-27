@@ -509,6 +509,7 @@ struct NativeApp {
     NativePhonePopup phone{};
     PuzzleSound phone_audio{};
     bool phone_audio_initialized = false;
+    bool phone_request_limit_logged = false;
     uint32_t phone_base_surface = 0, phone_extras_surface = 0;
     int32_t phone_battery_5a1e54 = 0, phone_unavailable_5a1e58 = 0; /* NewGame4e2e05 */
     std::array<bool, 0x40> aea_slot_used{};
@@ -6644,9 +6645,18 @@ static int native_immediate_control(void *context, const uint8_t *body, size_t b
 static int native_phone_pre_tick(NativeApp *app)
 {
     int32_t &screen = app->captions.lifecycle.g.overlay_ui;
+    if (!app->bar.flag[3]) app->phone_request_limit_logged = false;
     if (screen == 1) screen = 0;
     if (screen != 0 || app->inv_view.screen_state != INVVIEW_STATE_NONE ||
         !app->bar.flag[3] || app->bar.flag[0] || app->bar.flag[1] || app->bar.flag[2]) return 0;
+    if (app->a80_object.word_6b2 == 9999 || app->phone_unavailable_5a1e58 != 0) {
+        if (!app->phone_request_limit_logged)
+            record(app, "phone_request_unavailable forced=%d unavailable=%d normal_dial=unintegrated screen_unchanged=1",
+                app->a80_object.word_6b2, app->phone_unavailable_5a1e58);
+        app->phone_request_limit_logged = true;
+        return 0; /* Preserve the prior logged manual-button no-op until dialing is ported. */
+    }
+    app->phone_request_limit_logged = false;
     const uint8_t *uicl = nullptr;
     size_t size = 0;
     if (!native_phone_uicl(app, &uicl, &size)) return -1;
