@@ -59,6 +59,7 @@ def moves_of(W, row, tr, magic, goal=None):
         mask = (1 << (8 * n)) - 1
         values = set(EDGES[n]) | {(m + d) & mask for m in magic for d in (-1, 0, 1)} | {(v + 1) & mask, (v - 1) & mask, (~v) & mask, v ^ 0x80, v ^ 0x8000}
         values |= {(m | d) & mask for m in magic for d in DECO} | {(v | d) & mask for d in DECO}
+        values |= {(-m + d) & mask for m in magic for d in (-1, 0, 1)}          # a cell that an `lea r, [cell + imm]` / `add` turns into zero
         if n == 4:
             values |= set(near_stack)
         values.discard(v)
@@ -94,6 +95,12 @@ def moves_of(W, row, tr, magic, goal=None):
         for reg in range(3):
             for val in REG_VALUES + tuple(m & 0xffffffff for m in magic[:6]):
                 stubs.append([[W.STUB_OVR + 16 * k + 4 * reg, 4, val & 0xffffffff]])
+    for k in range(min(len(tr.calls), 6)):                  # a callee that stores into a cell the function reads again after the call (a global the callee sets)
+        for (a, n), v in list(cells.items())[:24]:
+            if n != 4:
+                continue
+            for val in (0, 1, 0xffffffff, (v + 1) & 0xffffffff) + tuple(m & 0xffffffff for m in magic[:3]):
+                stubs.append([[W.STUB_WR + 16 * k, 4, a], [W.STUB_WR + 16 * k + 4, 4, val]])
     return flips, stubs, edge, regs
 
 
@@ -113,6 +120,23 @@ def ok_now(done):
     return done()[0]
 
 
+def disp_magic(row):
+    """the displacements of the row's `lea` and arithmetic memory operands (`lea esi, [eax + 0x20000]`: a cell of -0x20000 makes the result zero), which the world's own magic list leaves out"""
+    import capstone
+    from capstone import x86_const as X
+    import original_differential as od
+    pe = od.load_image()
+    md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
+    md.detail = True
+    off = row['va'] - pe.image_base
+    out = []
+    for i in md.disasm(pe.image[off:off + row['body']], row['va']):
+        for op in i.operands:
+            if op.type == X.X86_OP_MEM and (op.mem.base or op.mem.index) and abs(op.mem.disp) >= 0x10 and op.mem.disp & 0xffffffff not in out:
+                out.append(op.mem.disp & 0xffffffff)
+    return out[:12]
+
+
 def search(key, budget_s, rng, extra=(), verbose=True):
     pool = F.pool_of(key)
     p = F.POOLS[pool]
@@ -129,7 +153,7 @@ def search(key, budget_s, rng, extra=(), verbose=True):
         W.page_fill = page_fill
         W._fl68_cached = True
     W.INSTRUCTION_LIMIT = 200000          # a candidate that runs longer is a hang for this search (FL-45: kill under max(100x port steps, 200,000)) and is dropped as a fault
-    magic = [m & 0xffffffff for m in row['magic']]
+    magic = [m & 0xffffffff for m in row['magic']] + disp_magic(row)
     t0 = time.time()
     ex, ed, kept, seen = set(), set(), [], set()
     runs = faults = 0

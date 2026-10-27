@@ -30,7 +30,7 @@ GUI and hardware audio remain unverified: no window or speaker check has been do
 
 ## Handoff: FL-68 CRT/MFC rows of the tested-equivalent tier (2026-10-27 PDT, cloud thread)
 
-Tested equivalent 1,315 -> 1,446 (131 CRT/MFC rows); verified unchanged at 2,210. New goal-directed search `scripts/fl68_search.py`, harness fixes (tail jumps through pointers, recursion, import-thunk pops) and what is left are in `tasks/fl68-handoff.md`.
+Tested equivalent 1,315 -> 1,527 (CRT/MFC pending 280 -> 99: 1,275 tested equivalent, 128 not needed, 1 ported); verified unchanged at 2,210. New goal-directed search `scripts/fl68_search.py`, harness fixes (tail jumps with pushed words, recursion, import-thunk pops, fs flag, x87 C1) and the 99 leftovers with reasons are in `tasks/fl68-handoff.md`. The thread then moved to the Mac-port rows that the FL-67 pipeline could not finish.
 
 ## Handoff: RT-33 raw 0x2e random-movie control runtime (2026-10-16 PDT, cloud thread)
 
