@@ -397,6 +397,9 @@ def merge(write):
         st = r['status']
         if st == 'proved' and r['proofs']['checker'] < CHECKER_VERSION_now():
             st = 'partial'                                              # proved by an older checker: not credited
+        if st != 'proved':
+            proved.pop(key, None)                                       # a newer result that is not a proof withdraws the earlier credit (mismatch, error, partial)
+            pscen.pop(key, None)
         if st == 'tested_equivalent':
             rows[key] = {k: r[k] for k in ('pool', 'body', 'instructions', 'directions', 'scenarios_run', 'translation_sha256', 'source')}
             rows[key]['scenarios_kept'] = len(r['kept'])

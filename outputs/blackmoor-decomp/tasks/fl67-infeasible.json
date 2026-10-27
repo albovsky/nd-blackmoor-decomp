@@ -96,6 +96,32 @@
    "scenarios_run": 1,
    "source": "src/original_methods_fl56_unverified.c",
    "translation_sha256": "d41c9bb84a92af490b1a6cf96cd876c0a56fe702247909db4750dc006e0b313f"
+  },
+  "0x433eaa": {
+   "body": 379,
+   "directions": [
+    7,
+    8
+   ],
+   "instructions": [
+    102,
+    102
+   ],
+   "pool": "held",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x433ee1:taken": "fd4f000b62f03f1e9d2ff3e78eda6b10b247c79ff801e52a0e6aacdb2d471294"
+    },
+    "instructions": {},
+    "plan": {
+     "0x433eda": "gen"
+    }
+   },
+   "scenarios_kept": 3,
+   "scenarios_run": 5,
+   "source": "src/original_methods_fl40.c",
+   "translation_sha256": "9d9a2a9031565f9c4571291c2742ed1e62db7115f6463761e5d7aa9e230cb093"
   }
  },
  "rule": {
