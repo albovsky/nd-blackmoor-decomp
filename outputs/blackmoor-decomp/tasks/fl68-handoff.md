@@ -36,3 +36,11 @@ Scope: the 280 CRT/MFC rows that were still pending after FL-66 (277 translated 
 - Tail jumps to another function while the row has extra words pushed (`push edx; ... jmp 0x513ccb` in the x87 math wrappers): the callee stub returns to the pushed word, so the original runs on into garbage; the translation ends. Needs the stub to know the extra stack height.
 - Fragments entered mid-function and rows whose original faults on every scenario.
 - 0x50ed50 (memmove) and 0x50fa90 (memcpy): the census left the span unsplit (a floor: cannot be ported or not needed) and the lifter refuses them (jump tables into code).
+
+## Mac-port rows (second PR of this thread)
+
+Glib asked to push the Mac-port rows (Game + Vorbis) first. FL-67 kept the proof pass and the 145 "reachable" partial rows; this thread took the 30 rows where the prover errored, timed out or ran out of memory. Results are in `tasks/fl68/mac` (scratch, not committed; the credit is in `tasks/fl66-tested-equivalent.json` and `tests/fl66_scenarios.json`).
+
+- 6 rows reach tested equivalent with `fl68_search.py`: 0x4eaca8 0x49173f 0x453ce2 0x42f510 0x4a1fd1 0x4516c7. Mac-port view after this PR: ported 2,209, tested equivalent 301, pending 175 (of 2,685). Whole ledger: tested equivalent 1,576 (68 by proof).
+- Harness changes that mattered: the fl40 world now supports callee stubs that return chosen eax/ecx/edx and store a chosen dword (STUB_OVR / STUB_WR, same as fl41); a stub reads its return address before applying its own stores (0x453ce2 stores on its own return slot); `FL66_EARLY=1` stops `fl66_tested.py check` at full coverage (0x4a1fd1 had 4,801 scenarios).
+- Still partial (23): 0x41f5b1 (a `while(1)` on a constant) and 0x47ac33 (a compare repeated on an unchanged register) are infeasible directions the prover should dispose of with a slice; 0x47c0f0 and 0x4a0ec3 are one direction short; 0x49d945 (3), 0x47bb56 (5), 0x4933ff (9), 0x48ae05 (7), 0x46cda0 (7), 0x4a8d28, 0x431b5a (4), 0x482a08 are a handful short; 0x427a50 0x43a7ca 0x435015 0x45f0e6 0x471722 0x49e455 0x49f86a 0x4a0365 are huge dispatchers; 0x4272b2 holds an instruction Unicorn rejects; 0x49251f reads unmapped memory on every scenario; 0x4477d1 runs on plain seeds but its table has no scenarios.

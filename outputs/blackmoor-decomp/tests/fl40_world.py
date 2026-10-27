@@ -179,6 +179,34 @@ def apply_register_overrides(regs, overrides):
         if address >= REG_OVERRIDE:
             regs[REG_NAMES[(address - REG_OVERRIDE) // 4]] = value & 0xffffffff
 
+STUB_WR = 0xffd00000       # FL-68 (as FL-48 in fl41_world): overrides at STUB_WR + 16*k (target address) and + 4 (value) make the k-th callee stub also store that dword; both sides honour it
+STUB_OVR = 0xfff00000      # FL-68 (as FL-45 in fl41_world): an override at STUB_OVR + 16*k + {0, 4, 8} sets eax, ecx, edx that the k-th callee stub returns; both sides honour it
+
+
+def split_stub_overrides(overrides):
+    """(memory overrides, {(k, register index): value}) from a scenario's override list"""
+    mem, stub = [], {}
+    for a, n, v in overrides:
+        if STUB_OVR <= a < STUB_OVR + 0x10000:
+            stub[((a - STUB_OVR) // 16, ((a - STUB_OVR) % 16) // 4)] = v & 0xffffffff
+        elif STUB_WR <= a < STUB_WR + 0x10000:
+            stub[((a - STUB_WR) // 16, 8 + ((a - STUB_WR) % 16) // 4)] = v & 0xffffffff
+        else:
+            mem.append((a, n, v))
+    return mem, stub
+
+
+def apply_stub_overrides(stub, k, eax, ecx_out, edx):
+    return stub.get((k, 0), eax), stub.get((k, 1), ecx_out), stub.get((k, 2), edx)
+
+
+def extra_stub_writes(stub, k):
+    """the dword the scenario makes the k-th callee store, as a stub write"""
+    if (k, 8) in stub and (k, 9) in stub:
+        return [(stub[(k, 8)], struct.pack('<I', stub[(k, 9)]))]
+    return []
+
+
 
 def initial_state(row, seed):
     """(registers dict, stack arguments, image patches [(address, bytes)]) of the scenario."""
@@ -246,6 +274,7 @@ def run_original(row, seed, overrides=(), observe=False, setup=None, probes=None
     pe = od.load_image()
     va, size = row['va'], row['body']
     regs, args, patches = initial_state(row, seed)
+    overrides, stub_ovr = split_stub_overrides(overrides)
     apply_register_overrides(regs, overrides)
     magic = row['magic']
     uc = unicorn.Uc(unicorn.UC_ARCH_X86, unicorn.UC_MODE_32)
@@ -354,6 +383,9 @@ def run_original(row, seed, overrides=(), observe=False, setup=None, probes=None
         held = tuple(uc.reg_read(getattr(X, 'UC_X86_REG_' + n)) for n in ('EAX', 'EDX', 'EBX', 'ESI', 'EDI', 'EBP'))
         words = struct.unpack('<%dI' % LOGGED, uc.mem_read(esp + 4, 4 * LOGGED))
         eax, ecx_out, edx, writes = stub_effect(stub_rng, magic, ecx, words, seed)
+        eax, ecx_out, edx = apply_stub_overrides(stub_ovr, len(trace.calls), eax, ecx_out, edx)
+        writes = writes + extra_stub_writes(stub_ovr, len(trace.calls))
+        ret = struct.unpack('<I', uc.mem_read(esp, 4))[0]            # FL-68: the callee returns to the address it was called from, even when a store of its own lands on that stack slot
         for at, data in writes:
             ensure(at)
             ensure(at + len(data) - 1)
@@ -366,7 +398,6 @@ def run_original(row, seed, overrides=(), observe=False, setup=None, probes=None
             trace.calls.append((ident, ecx, held, words, eax, ecx_out, edx, writes, bits))
         else:
             trace.calls.append((ident, ecx, held, words, eax, ecx_out, edx, writes))
-        ret = struct.unpack('<I', uc.mem_read(esp, 4))[0]
         uc.reg_write(X.UC_X86_REG_EAX, eax)
         uc.reg_write(X.UC_X86_REG_ECX, ecx_out)
         uc.reg_write(X.UC_X86_REG_EDX, edx)
@@ -493,6 +524,7 @@ class Mem:
 def run_native(lib, row, seed, overrides=()):
     va = row['va']
     regs, args, patches = initial_state(row, seed)
+    overrides, stub_ovr = split_stub_overrides(overrides)
     apply_register_overrides(regs, overrides)
     magic = row['magic']
     mem = Mem(seed, magic, patches)
@@ -522,6 +554,8 @@ def run_native(lib, row, seed, overrides=()):
             trace.fault = 'divide error'
             return
         eax, ecx_out, edx, writes = stub_effect(stub_rng, magic, ecx, words, seed)
+        eax, ecx_out, edx = apply_stub_overrides(stub_ovr, len(trace.calls), eax, ecx_out, edx)
+        writes = writes + extra_stub_writes(stub_ovr, len(trace.calls))
         for at, data in writes:
             mem.write_bytes(at, data)
         held = tuple(getattr(rr.contents, n) for n in ('eax', 'edx', 'ebx', 'esi', 'edi', 'ebp'))
