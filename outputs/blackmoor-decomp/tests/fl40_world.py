@@ -762,10 +762,10 @@ def cmp_decoders(row):
                 esi, edi, ecx = (uc.reg_read(full[n]) for n in ('esi', 'edi', 'ecx'))
                 n = min(ecx, 64)
                 if n == 0:
-                    return (address, 'str', esi, b'')
+                    return (address, 'str', esi, b'', b'', wc)
                 for a in (esi, esi + n - 1, edi, edi + n - 1):
                     ensure(a)
-                return (address, 'str', esi, bytes(uc.mem_read(edi, n)))
+                return (address, 'str', esi, bytes(uc.mem_read(edi, n)), bytes(uc.mem_read(esi, n)), wc)          # FL-73: also the bytes at esi and the write count (the search patches the source of a copy)
             out[i.address] = decode_str
             continue
         if i.mnemonic in ('cmp', 'test') and len(i.operands) == 2:
