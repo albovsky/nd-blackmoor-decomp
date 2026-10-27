@@ -1,6 +1,6 @@
 # FL-69 handoff: the 5 mismatched Game rows and the stuck Mac-port rows
 
-Ledger after this PR: **verified 2,210, tested equivalent 1,603 (71 by proof), translated only 247** of 4,188 (main before: 1,597 tested equivalent).
+Ledger after this PR: **verified 2,210, tested equivalent 1,606 (71 by proof), translated only 244** of 4,188 (main before: 1,600 tested equivalent).
 
 ## The 5 "mismatched" rows: three different causes, only one was a translation defect
 
