@@ -12,6 +12,12 @@ Scope: the 280 CRT/MFC rows that were still pending after FL-66 (277 translated 
   - `__chkstk` (0x50c920) is a row now: pool `fl68`, `tests/fl68_rows.json`.
 - `fl66_tested.py merge` keeps the committed partial/mismatch/error lists of earlier batches (their per-row result files are not committed) and only replaces the rows of the results directory. `FL66_ROWS` and `FL66_SCEN` pick the results and scenario directories (this thread used `tasks/fl68/rows`, `tasks/fl68/scen`, not committed).
 
+## Batch 2: tested equivalent 1,446 -> 1,471 (incl. 21 by proof)
+
+- Tail jumps out of a function that has extra words pushed (x87 math wrappers, `push edx ... jmp 0x513ccb`): `scripts/fl68_tailfix.py` rewrites the translation to restore `esp` from the entry value before the tail call (`esp0_`), and `tests/fl41_world.py` plays such a stub as a return to the row's own return address (`jump_out`, `play(..., base=)`). 19 rows patched; the rows that now reach full coverage are tested equivalent.
+- Harness fixes: `0x51cab3` calls the lifted `__EH_prolog3` (uses the TIB), its table row now says `fs: true`; x87 C1 (round-up flag) is set by the hardware x87 under the translation and never by Unicorn, so `tests/fl41_world.py` masks C1 in the compared status word of rows that never read it (`c1_free`).
+- `fl68_search.py` has a depth-two phase: a register or callee-return move that adds no coverage but makes the run read other cells (a null pointer reads cell 4) is explored with cell and compare moves on top of it.
+
 ## What is left (CRT/MFC pending after batch 1: see `status`)
 
 - Directions that cannot be taken (`jb` then `jae` after an unsigned add, a compare against an immediate that is never zero, ...): wait for the FL-67 T-EQ-INFEASIBLE rule, then apply it to the partial rows; do not build a second one.

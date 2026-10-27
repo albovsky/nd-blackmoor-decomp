@@ -177,6 +177,7 @@ def search(key, budget_s, rng, extra=(), verbose=True):
 
     atoms, flip_atoms = [], []
     rounds = 0
+    deep_done = False
     while time.time() - t0 < budget_s:
         ok, cov = done()
         if ok:
@@ -214,6 +215,50 @@ def search(key, budget_s, rng, extra=(), verbose=True):
                         progress = True
             if time.time() - t0 > budget_s or ok_now(done):
                 break
+        if len(kept) == before and not progress and not deep_done:
+            # depth two: a register or callee-return move that adds no coverage by itself but makes the run read other cells (a null pointer reads cell 4): try the cell and compare moves on top of it
+            deep_done = True
+            deep_seen = set()
+            cand = []
+            for seed, ov, classes in per_parent:
+                cand.extend((seed, ov, mv) for mv in classes[1] + classes[3])
+            rng.shuffle(cand)
+            base_cells = {}
+            for seed, ov, mv in cand[:400]:
+                if time.time() - t0 > budget_s or ok_now(done):
+                    break
+                nov = merge_ov(ov, mv)
+                k = key_of(seed, nov)
+                if k in deep_seen:
+                    continue
+                deep_seen.add(k)
+                tr = run(seed, nov, observe=True)
+                if tr.fault:
+                    continue
+                if offer(seed, nov, tr):
+                    progress = True
+                    continue
+                if seed not in base_cells:
+                    base_cells[seed] = {}
+                cells = frozenset(cells_of(W, tr))
+                if cells in base_cells[seed]:
+                    continue
+                base_cells[seed][cells] = 1
+                kids = moves_of(W, row, tr, magic, goal)
+                for cls in (kids[0], kids[2]):
+                    rng.shuffle(cls)
+                    for kv in cls[:120]:
+                        if time.time() - t0 > budget_s or ok_now(done):
+                            break
+                        kov = merge_ov(nov, kv)
+                        kk = key_of(seed, kov)
+                        if kk in seen:
+                            continue
+                        seen.add(kk)
+                        if offer(seed, kov, run(seed, kov)):
+                            progress = True
+            if progress or len(kept) != before:
+                continue
         if len(kept) == before and not progress:
             # combinations of two or three moves
             if not atoms:

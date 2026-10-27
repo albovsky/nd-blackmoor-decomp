@@ -4224,6 +4224,22 @@
    "source": "translated/original_methods_fl41_translated.c",
    "translation_sha256": "f0af25964a4c3ac2adc18660f4aacb5331cab8a6b045c2a827c967b9cfe817b9"
   },
+  "0x50ca1d": {
+   "body": 9,
+   "directions": [
+    0,
+    0
+   ],
+   "instructions": [
+    4,
+    4
+   ],
+   "pool": "upper57",
+   "scenarios_kept": 1,
+   "scenarios_run": 1,
+   "source": "translated/original_methods_fl57_translated.c",
+   "translation_sha256": "c0a1f7d34d291d34400c93a090fef00f376f49cad13ec7fbd3ee1ab4885deec7"
+  },
   "0x50ca26": {
    "body": 24,
    "directions": [
@@ -6528,6 +6544,22 @@
    "source": "translated/original_methods_fl57_translated.c",
    "translation_sha256": "8a9fa89ea4f8f104056144a384e938c935e27d66ce0624dc3184a38117e93412"
   },
+  "0x513bc0": {
+   "body": 23,
+   "directions": [
+    0,
+    0
+   ],
+   "instructions": [
+    9,
+    9
+   ],
+   "pool": "upper57",
+   "scenarios_kept": 1,
+   "scenarios_run": 1,
+   "source": "translated/original_methods_fl57_translated.c",
+   "translation_sha256": "8fc7b3ec04e0c2ceecebb11f4702a3f86759c38901b488e5fefe2736c82457c6"
+  },
   "0x513c35": {
    "body": 23,
    "directions": [
@@ -6943,6 +6975,22 @@
    "scenarios_run": 1,
    "source": "translated/original_methods_fl41_translated.c",
    "translation_sha256": "e706f21d108bded1b8086b52c762ba1bfe9a1dcbb57479806c1523d60a739058"
+  },
+  "0x515cc7": {
+   "body": 70,
+   "directions": [
+    10,
+    10
+   ],
+   "instructions": [
+    24,
+    24
+   ],
+   "pool": "upper57",
+   "scenarios_kept": 6,
+   "scenarios_run": 6,
+   "source": "translated/original_methods_fl57_translated.c",
+   "translation_sha256": "d25e368e664e7bf8fbe58a7aea200fd83465062374099c68320924f3e558d234"
   },
   "0x51621c": {
    "body": 33,
@@ -9599,6 +9647,22 @@
    "scenarios_run": 9,
    "source": "translated/original_methods_fl41_translated.c",
    "translation_sha256": "02e6b47b49384dc18db9f2f026b954c9d94601739b23c8c63d91fb1413d06ce9"
+  },
+  "0x51cab3": {
+   "body": 94,
+   "directions": [
+    0,
+    0
+   ],
+   "instructions": [
+    29,
+    29
+   ],
+   "pool": "upper",
+   "scenarios_kept": 1,
+   "scenarios_run": 1,
+   "source": "translated/original_methods_fl41_translated.c",
+   "translation_sha256": "6d11be7f6c53c6b9026367de533c029c11606645d2a8b7daa2b879fb10234b24"
   },
   "0x51cb11": {
    "body": 6,

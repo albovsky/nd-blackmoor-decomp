@@ -381,14 +381,26 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None, watch=Non
 
     entered = []
 
+    jump_out = {}                 # FL-68: address of a direct jump out of the function -> its target
+    if stubs:
+        import capstone as _cs
+        _md = _cs.Cs(_cs.CS_ARCH_X86, _cs.CS_MODE_32)
+        _md.detail = True
+        for _i in _md.disasm(pe.image[va - pe.image_base:va - pe.image_base + size], va):
+            if (_i.mnemonic == 'jmp' or (_i.mnemonic[0] == 'j' and _i.mnemonic != 'jecxz')) and _i.operands and _i.operands[0].type == _cs.x86_const.X86_OP_IMM and _i.operands[0].imm in stubs:
+                jump_out[_i.address] = _i.operands[0].imm
+
     def stub(uc_, address, size_, user):
         if address == va and not entered:        # FL-68: a recursive row lists itself as a callee; its first instruction is the row, only a call to the entry is a stub call
             entered.append(1)
             return
+        if jump_out.get(prev[0]) == address:        # FL-68: reached by a jump, not a call: the target returns to the function's own caller (it pops the words the function pushed itself)
+            play(address, *stubs[address], base=sp)
+            return
         play(address, *stubs[address])
 
-    def play(address, ident, cleanup):
-        esp = uc.reg_read(X.UC_X86_REG_ESP)
+    def play(address, ident, cleanup, base=None):
+        esp = uc.reg_read(X.UC_X86_REG_ESP) if base is None else base
         ecx = uc.reg_read(X.UC_X86_REG_ECX)
         words = struct.unpack('<%dI' % LOGGED, uc.mem_read(esp + 4, 4 * LOGGED))
         eax, ecx_out, edx, writes = stub_effect(stub_rng, magic, ecx, words)
@@ -437,7 +449,7 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None, watch=Non
             uc.mem_write(esp, struct.pack('<I', after))
             trace.writes.append((esp, 4, after))        # the push of the return address, which a real call would log
             uc.reg_write(X.UC_X86_REG_ESP, esp)
-        play(target, target, cleanup)
+        play(target, target, cleanup, base=None if not tail else sp)
 
     if row.get('sites'):
         import capstone
@@ -509,7 +521,7 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None, watch=Non
         for k in range((8 - top) & 7):
             mant, se = uc.reg_read(getattr(X, 'UC_X86_REG_FP%d' % ((top + k) & 7)))
             regs80.append((mant, se))
-        trace.regs['fpu'] = (sw, uc.reg_read(X.UC_X86_REG_FPCW), tuple(regs80))
+        trace.regs['fpu'] = (sw & ~0x200 if row.get('c1_free') else sw, uc.reg_read(X.UC_X86_REG_FPCW), tuple(regs80))
     return trace
 
 
@@ -676,7 +688,7 @@ def run_native(lib, row, seed, overrides=()):
         for k in range((8 - top) & 7):
             at = 16 * ((top + k) & 7)
             regs80.append((int.from_bytes(raw[at:at + 8], 'little'), int.from_bytes(raw[at + 8:at + 10], 'little')))
-        trace.regs['fpu'] = (fpu.sw, fpu.cw, tuple(regs80))
+        trace.regs['fpu'] = (fpu.sw & ~0x200 if row.get('c1_free') else fpu.sw, fpu.cw, tuple(regs80))
     return trace
 
 
@@ -724,9 +736,12 @@ def row_info(va, body, callees, imports=None, fs=False, sites=None, frame=False)
     off = va - pe.image_base
     magic, globs, rets = set(), set(), set()
     fpu = False
+    reads_sw = False
     for i in md.disasm(pe.image[off:off + body], va):
         if i.mnemonic.startswith('f') and i.mnemonic != 'fs':
             fpu = True
+        if i.mnemonic in ('fnstsw', 'fstsw'):
+            reads_sw = True
         if i.mnemonic == 'ret':
             rets.add(i.operands[0].imm if i.operands else 0)
         for op in i.operands:
@@ -754,6 +769,7 @@ def row_info(va, body, callees, imports=None, fs=False, sites=None, frame=False)
     if fpu:         # FL-52: the row uses the x87 unit; the callees that leave a value in st(0) or take one off it (scripts/lift_fl41.py fpu_net)
         import lift_fl41 as L
         info['fpu'] = True
+        info['c1_free'] = not reads_sw      # FL-68: C1 (the round-up flag) is set by the hardware x87 the translation runs on and never by Unicorn's x87 model; a row that does not read the status word cannot see it
         info['fpret'] = {t: n for t in info['callees'] for n in [L.fpu_net(t)] if n}
     return info
 
