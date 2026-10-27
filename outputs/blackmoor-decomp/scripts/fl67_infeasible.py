@@ -1033,6 +1033,7 @@ def prove_row(key, targets, timeout_ms=30000, image=None, fail_fast=False):
                 'untaken': [[a, n] for a, n in todo['untaken'] if '%s:%s' % (hex(a), n) not in win['directions']]}
         if not todo['missing'] and not todo['untaken']:
             out['status'] = 'proved'
+            out['plan'] = {}                # no whole-function analysis was needed, so no loop plan
             return out
     except (Unsupported, KeyError, IndexError):
         pass

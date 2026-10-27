@@ -30,7 +30,6 @@ import fl67_infeasible as P
 import fl70_solve as S
 
 MAX_CALLS = 40
-SYMBOLIC, FLAG_BIT, X = S.SYMBOLIC, S.FLAG_BIT, S.X               # names the copy of S.Replay.run uses
 z3.set_param('memory_max_size', int(os.environ.get('FL67_MEM_MB', '3500')))
 M32 = 0xffffffff
 STATE = {'ov': [], 'world': None, 'row': None}
@@ -43,71 +42,12 @@ class Replay71(S.Replay):
         self.W = W
         _, self.parent_stub = W.split_stub_overrides(STATE['ov'])
         self.store_syms = {}           # k -> (E, A, V, parent E, parent A, parent V)
-
-    # copy of S.Replay.run with one change (see the comment at `row_sites`)
-    def run(self):
-        self.row_sites = {int(a) for a in (STATE['row'].get('sites') or {})}
-        recs = self.recs
-        # collapse the per-iteration records of a rep instruction
-        steps = []
-        k = 0
-        while k < len(recs):
-            ins = self.insns.get(recs[k].addr)
-            j = k + 1
-            if ins is not None and ins.mnemonic.startswith('rep'):
-                while j < len(recs) and recs[j].addr == recs[k].addr:
-                    j += 1
-            steps.append((k, j))
-            k = j
-        R = {}
-        r0 = recs[0]
-        for n in P.FULL:
-            R[n] = z3.BitVec('s_' + n, 32) if n in SYMBOLIC else P.bv(self.creg(r0, n), 32)
-        F = {f: z3.BoolVal(bool(r0.eflags >> bit & 1)) for f, bit in FLAG_BIT.items()}
-        arr = lambda nm: z3.Array(nm, z3.BitVecSort(32), z3.BitVecSort(8))
-        st = P.State(R, F, arr('s_mem'), arr('s_frm'), arr('s_fs'), z3.BoolVal(True))
-        self.split = False
-        self.start_regs = {n: self.creg(r0, n) for n in SYMBOLIC}
-        self.compute_init_cells()
-        ncalls_done = 0
-        for si, (i, j) in enumerate(steps):
-            if si + 1 >= len(steps):
-                break                                    # the last record is the ret (or the cut): nothing follows it
-            self.i = i
-            self.next_i = steps[si + 1][0]
-            rec, nxt = recs[i], recs[self.next_i]
-            ins = self.insns.get(rec.addr)
-            self.cur_calls = []
-            if ins is not None and ins.mnemonic == 'call':
-                self.cur_calls = list(range(ncalls_done, nxt.ncalls))
-                ncalls_done = nxt.ncalls
-            elif nxt.ncalls > ncalls_done and not (nxt.addr in self.row_sites and self.insns.get(nxt.addr) is not None and self.insns[nxt.addr].mnemonic == 'call'):
-                ncalls_done = nxt.ncalls             # FL-71: a call through a pointer is played by the site hook BEFORE its record is written, so its stub is already counted one record early
-            self.ins = ins
-            if ins is None:
-                break
-            backup = st.copy()
-            self.nopin = ins.mnemonic == 'lea'
-            cons_n, path_n, soft_n, goal_n = len(self.cons), len(self.path), len(self.softs), len(self.rep_goals)
-            try:
-                res = self.step(st, ins)
-                if not z3.is_true(st.pc):
-                    self.cons.append(st.pc)
-                    st.pc = z3.BoolVal(True)
-                if res:
-                    br = res[1]
-                    target = ins.operands[0].imm & M32 if ins.operands and ins.operands[0].type == X.X86_OP_IMM else None
-                    fall = ins.address + ins.size
-                    taken = nxt.addr == target
-                    held = br if taken else z3.Not(br)
-                    self.path.append(dict(kind='br', pos=len(self.cons), addr=ins.address, cond=held, alt=(ins.address, fall if taken else target), i=i, taken=taken))
-                    self.cons.append(held)
-            except Exception as ex:
-                del self.cons[cons_n:], self.path[path_n:], self.softs[soft_n:], self.rep_goals[goal_n:]
-                self.resyncs[ins.mnemonic + ':' + type(ex).__name__] += 1
-                st = self.resync(backup, i, nxt)
-        self.final = st
-        return self
+        # a call through a pointer is played by the site hook BEFORE its record is written, so the record of the call already counts its stub and the run loop would count it one step early (a `call without a stub`
+        # resync): the call's record gets the count in front of it
+        sites = {int(a) for a in (STATE['row'].get('sites') or {})}
+        for k in range(1, len(self.recs)):
+            if self.recs[k].addr in sites and self.recs[k].ncalls > self.recs[k - 1].ncalls and self.insns.get(self.recs[k].addr) is not None and self.insns[self.recs[k].addr].mnemonic == 'call':
+                self.recs[k].ncalls = self.recs[k - 1].ncalls
 
     def call(self, st, ins):
         W = self.W
@@ -126,7 +66,7 @@ class Replay71(S.Replay):
             writes.pop()                                  # the parent's own extra store is modelled symbolically below
         for at, data in writes:
             for j, b in enumerate(data):
-                st.mem = z3.Store(st.mem, P.bv(at + j, 32), P.bv(b, 8))
+                self.put_byte(st, at + j, b)
         if k < MAX_CALLS:
             E, A, V = z3.Bool('stE%d' % k), z3.BitVec('stA%d' % k, 32), z3.BitVec('stV%d' % k, 32)
             row = STATE['row']
@@ -168,10 +108,9 @@ class Replay71(S.Replay):
         return out
 
     def pins(self, groups, released):
-        """[(symbol, value)] for z3.substitute: every group not in `released` is replaced by its parent value; the memory becomes a store chain over a fresh array"""
+        """[(symbol, value)] for z3.substitute: every group not in `released` is replaced by its parent value; each memory array (the stack's and everything else's) becomes a store chain over a fresh array"""
         sub = []
-        mem = z3.Array('s_mem', z3.BitVecSort(32), z3.BitVecSort(8))
-        newmem = z3.Array('s_memfree', z3.BitVecSort(32), z3.BitVecSort(8))
+        new = {name: z3.Array(name + 'free', z3.BitVecSort(32), z3.BitVecSort(8)) for name in ('mem', 'frm')}
         for gi, g in enumerate(groups):
             if gi in released:
                 continue
@@ -181,12 +120,13 @@ class Replay71(S.Replay):
                 sub.append((z3.BitVec(g[1], 32), P.bv(g[2], 32)))
             elif g[0] == 'cells':
                 for a_, b_ in g[1]:
-                    newmem = z3.Store(newmem, P.bv(a_, 32), P.bv(b_, 8))
+                    nm = 'frm' if S.STACK_LO <= a_ < S.STACK_HI else 'mem'
+                    new[nm] = z3.Store(new[nm], P.bv(a_, 32), P.bv(b_, 8))
             else:
                 _, k, pe, pa, pv = g
                 E, A, V = self.store_syms[k][:3]
                 sub += [(E, z3.BoolVal(pe)), (A, P.bv(pa, 32)), (V, P.bv(pv, 32))]
-        sub.append((mem, newmem))
+        sub += [(S.ARR[name], new[name]) for name in ('mem', 'frm')]
         return sub
 
     def group_value(self, g):
@@ -196,8 +136,7 @@ class Replay71(S.Replay):
         if g[0] == 'stub':
             return z3.BitVec(g[1], 32)
         if g[0] == 'cells':
-            mem = z3.Array('s_mem', z3.BitVecSort(32), z3.BitVecSort(8))
-            sel = [z3.Select(mem, P.bv(x, 32)) for x, y in g[1]]
+            sel = [z3.Select(S.array_of(x), P.bv(x, 32)) for x, y in g[1]]
             return z3.Concat(*reversed(sel)) if len(sel) > 1 else sel[0]
         return None
 
@@ -207,8 +146,7 @@ class Replay71(S.Replay):
         if g[0] == 'stub':
             return z3.BitVec(g[1], 32) == P.bv(g[2], 32)
         if g[0] == 'cells':
-            mem = z3.Array('s_mem', z3.BitVecSort(32), z3.BitVecSort(8))
-            return z3.And(*[z3.Select(mem, P.bv(x, 32)) == P.bv(y, 8) for x, y in g[1]])
+            return z3.And(*[z3.Select(S.array_of(x), P.bv(x, 32)) == P.bv(y, 8) for x, y in g[1]])
         _, k, pe, pa, pv = g
         E, A, V = self.store_syms[k][:3]
         return z3.And(E, A == P.bv(pa, 32), V == P.bv(pv, 32)) if pe else z3.Not(E)

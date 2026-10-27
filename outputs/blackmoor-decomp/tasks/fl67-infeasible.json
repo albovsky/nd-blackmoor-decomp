@@ -38,6 +38,30 @@
    "source": "src/original_methods_fl56_unverified.c",
    "translation_sha256": "3f5aab549af61e508ba375f159ad822e3bf9097f2cc0b63ad2019fcf90389574"
   },
+  "0x41f5b1": {
+   "body": 981,
+   "directions": [
+    27,
+    28
+   ],
+   "instructions": [
+    249,
+    249
+   ],
+   "pool": "held",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x41f5f2:taken": "7da47ba6415dc459b92caf12c98eca9757838ad30f9e9fe5509786c39c4b70ac"
+    },
+    "instructions": {},
+    "plan": {}
+   },
+   "scenarios_kept": 6,
+   "scenarios_run": 6,
+   "source": "src/original_methods_fl40.c",
+   "translation_sha256": "3fea05dd3f20422c46fea59d91bf93a4a55362fd54bf974650bd9c126e8cc425"
+  },
   "0x423021": {
    "body": 118,
    "directions": [
@@ -340,6 +364,57 @@
    "scenarios_run": 26,
    "source": "src/original_methods_fl56_unverified.c",
    "translation_sha256": "14f1b7cc394c2d9d2116528389491306c5d355f0cc7b27e3c23aadc20b76a082"
+  },
+  "0x48ae05": {
+   "body": 2331,
+   "directions": [
+    65,
+    68
+   ],
+   "instructions": [
+    559,
+    583
+   ],
+   "pool": "upper",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x48b1ce:taken": "e886b6f86113210d654c3c264ddbcbceebf548adac1bfedbacf2c0c83c22f4e5",
+     "0x48b23c:taken": "d3cd12be5d939c75c098afa0a8916cc58241c79f687a717cf303935b504679ac",
+     "0x48b2f4:taken": "9177d45f01af18edf8d706f0e73b681c954cf8a9a5b69dd1e15f30191d79296c"
+    },
+    "instructions": {
+     "0x48b1d9": "e124163ead538db2e903604329b1980f4668dc43aa2f8be0a594896d6f33a934",
+     "0x48b1dd": "e124163ead538db2e903604329b1980f4668dc43aa2f8be0a594896d6f33a934",
+     "0x48b1de": "e124163ead538db2e903604329b1980f4668dc43aa2f8be0a594896d6f33a934",
+     "0x48b1e1": "e124163ead538db2e903604329b1980f4668dc43aa2f8be0a594896d6f33a934",
+     "0x48b1e2": "e124163ead538db2e903604329b1980f4668dc43aa2f8be0a594896d6f33a934",
+     "0x48b1e7": "e124163ead538db2e903604329b1980f4668dc43aa2f8be0a594896d6f33a934",
+     "0x48b1ec": "e124163ead538db2e903604329b1980f4668dc43aa2f8be0a594896d6f33a934",
+     "0x48b1ef": "e124163ead538db2e903604329b1980f4668dc43aa2f8be0a594896d6f33a934",
+     "0x48b247": "eff2f11716cd6e11583f61ad99d0714e884e28463fd43ff65f540d1798cd89de",
+     "0x48b24a": "eff2f11716cd6e11583f61ad99d0714e884e28463fd43ff65f540d1798cd89de",
+     "0x48b24b": "eff2f11716cd6e11583f61ad99d0714e884e28463fd43ff65f540d1798cd89de",
+     "0x48b24e": "eff2f11716cd6e11583f61ad99d0714e884e28463fd43ff65f540d1798cd89de",
+     "0x48b24f": "eff2f11716cd6e11583f61ad99d0714e884e28463fd43ff65f540d1798cd89de",
+     "0x48b254": "eff2f11716cd6e11583f61ad99d0714e884e28463fd43ff65f540d1798cd89de",
+     "0x48b259": "eff2f11716cd6e11583f61ad99d0714e884e28463fd43ff65f540d1798cd89de",
+     "0x48b25c": "eff2f11716cd6e11583f61ad99d0714e884e28463fd43ff65f540d1798cd89de",
+     "0x48b2ff": "c44c35ba43ce5119703a0face50ec84967eaa583f820251596b750e38ff5709c",
+     "0x48b303": "c44c35ba43ce5119703a0face50ec84967eaa583f820251596b750e38ff5709c",
+     "0x48b304": "c44c35ba43ce5119703a0face50ec84967eaa583f820251596b750e38ff5709c",
+     "0x48b307": "c44c35ba43ce5119703a0face50ec84967eaa583f820251596b750e38ff5709c",
+     "0x48b308": "c44c35ba43ce5119703a0face50ec84967eaa583f820251596b750e38ff5709c",
+     "0x48b30d": "c44c35ba43ce5119703a0face50ec84967eaa583f820251596b750e38ff5709c",
+     "0x48b312": "c44c35ba43ce5119703a0face50ec84967eaa583f820251596b750e38ff5709c",
+     "0x48b315": "c44c35ba43ce5119703a0face50ec84967eaa583f820251596b750e38ff5709c"
+    },
+    "plan": {}
+   },
+   "scenarios_kept": 32,
+   "scenarios_run": 32,
+   "source": "translated/original_methods_fl41_translated.c",
+   "translation_sha256": "b799d0e65a1b496c9fe6f19d162040b7ca73ab4bfd93210faf46f49af209e848"
   },
   "0x493ca3": {
    "body": 4121,
