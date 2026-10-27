@@ -28,6 +28,10 @@ Live headless run (`--inspect-live-session --live-click-row 34 --live-ticks 3000
 
 GUI and hardware audio remain unverified: no window or speaker check has been done. This session had no computer-use tools and the shell cannot screen-capture, so the window click-through and listening pass still needs Glib (or a session with computer use). The windowed app does create the same scene session and tick loop (`blackmoor_app.mm` enables the scene runtime unless inspect-only) and reaches the menu; nothing past that was observed.
 
+## Handoff: FL-70 solver-guided scenarios for Mac-port rows (2026-10-27 PDT, cloud thread)
+
+Tested equivalent 1,606 -> 1,627 over PRs 243, 244 and the batch 3 PR (74 by z3 proof); verified unchanged at 2,210 of 4,188. Mac-port view (Game + Vorbis): ported 2,209, tested equivalent 352, pending 124 of 2,685 (was 145). New tool `scripts/fl70_solve.py` (replay of an original-bytes run through the prover's semantics, z3 flips one untaken direction, child runs on the original, repeats). One new translation mismatch: 0x40105e. Details and the list of what is left: `tasks/fl70-handoff.md`.
+
 ## Handoff: FL-68 CRT/MFC rows of the tested-equivalent tier (2026-10-27 PDT, cloud thread)
 
 Tested equivalent 1,315 -> 1,527 (CRT/MFC pending 280 -> 99: 1,275 tested equivalent, 128 not needed, 1 ported); verified unchanged at 2,210. New goal-directed search `scripts/fl68_search.py`, harness fixes (tail jumps with pushed words, recursion, import-thunk pops, fs flag, x87 C1) and the 99 leftovers with reasons are in `tasks/fl68-handoff.md`. The thread then moved to the Mac-port rows that the FL-67 pipeline could not finish: 6 more rows tested equivalent (Mac-port view: ported 2,209, tested equivalent 301, pending 175 of 2,685; whole ledger tested equivalent 1,576). Details: `tasks/fl68-handoff.md`, last section.
