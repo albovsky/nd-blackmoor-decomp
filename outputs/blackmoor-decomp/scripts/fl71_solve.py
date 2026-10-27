@@ -30,6 +30,7 @@ import fl67_infeasible as P
 import fl70_solve as S
 
 MAX_CALLS = 40
+SYMBOLIC, FLAG_BIT, X = S.SYMBOLIC, S.FLAG_BIT, S.X               # names the copy of S.Replay.run uses
 z3.set_param('memory_max_size', int(os.environ.get('FL67_MEM_MB', '3500')))
 M32 = 0xffffffff
 STATE = {'ov': [], 'world': None, 'row': None}
@@ -42,6 +43,71 @@ class Replay71(S.Replay):
         self.W = W
         _, self.parent_stub = W.split_stub_overrides(STATE['ov'])
         self.store_syms = {}           # k -> (E, A, V, parent E, parent A, parent V)
+
+    # copy of S.Replay.run with one change (see the comment at `row_sites`)
+    def run(self):
+        self.row_sites = {int(a) for a in (STATE['row'].get('sites') or {})}
+        recs = self.recs
+        # collapse the per-iteration records of a rep instruction
+        steps = []
+        k = 0
+        while k < len(recs):
+            ins = self.insns.get(recs[k].addr)
+            j = k + 1
+            if ins is not None and ins.mnemonic.startswith('rep'):
+                while j < len(recs) and recs[j].addr == recs[k].addr:
+                    j += 1
+            steps.append((k, j))
+            k = j
+        R = {}
+        r0 = recs[0]
+        for n in P.FULL:
+            R[n] = z3.BitVec('s_' + n, 32) if n in SYMBOLIC else P.bv(self.creg(r0, n), 32)
+        F = {f: z3.BoolVal(bool(r0.eflags >> bit & 1)) for f, bit in FLAG_BIT.items()}
+        arr = lambda nm: z3.Array(nm, z3.BitVecSort(32), z3.BitVecSort(8))
+        st = P.State(R, F, arr('s_mem'), arr('s_frm'), arr('s_fs'), z3.BoolVal(True))
+        self.split = False
+        self.start_regs = {n: self.creg(r0, n) for n in SYMBOLIC}
+        self.compute_init_cells()
+        ncalls_done = 0
+        for si, (i, j) in enumerate(steps):
+            if si + 1 >= len(steps):
+                break                                    # the last record is the ret (or the cut): nothing follows it
+            self.i = i
+            self.next_i = steps[si + 1][0]
+            rec, nxt = recs[i], recs[self.next_i]
+            ins = self.insns.get(rec.addr)
+            self.cur_calls = []
+            if ins is not None and ins.mnemonic == 'call':
+                self.cur_calls = list(range(ncalls_done, nxt.ncalls))
+                ncalls_done = nxt.ncalls
+            elif nxt.ncalls > ncalls_done and not (nxt.addr in self.row_sites and self.insns.get(nxt.addr) is not None and self.insns[nxt.addr].mnemonic == 'call'):
+                ncalls_done = nxt.ncalls             # FL-71: a call through a pointer is played by the site hook BEFORE its record is written, so its stub is already counted one record early
+            self.ins = ins
+            if ins is None:
+                break
+            backup = st.copy()
+            self.nopin = ins.mnemonic == 'lea'
+            cons_n, path_n, soft_n, goal_n = len(self.cons), len(self.path), len(self.softs), len(self.rep_goals)
+            try:
+                res = self.step(st, ins)
+                if not z3.is_true(st.pc):
+                    self.cons.append(st.pc)
+                    st.pc = z3.BoolVal(True)
+                if res:
+                    br = res[1]
+                    target = ins.operands[0].imm & M32 if ins.operands and ins.operands[0].type == X.X86_OP_IMM else None
+                    fall = ins.address + ins.size
+                    taken = nxt.addr == target
+                    held = br if taken else z3.Not(br)
+                    self.path.append(dict(kind='br', pos=len(self.cons), addr=ins.address, cond=held, alt=(ins.address, fall if taken else target), i=i, taken=taken))
+                    self.cons.append(held)
+            except Exception as ex:
+                del self.cons[cons_n:], self.path[path_n:], self.softs[soft_n:], self.rep_goals[goal_n:]
+                self.resyncs[ins.mnemonic + ':' + type(ex).__name__] += 1
+                st = self.resync(backup, i, nxt)
+        self.final = st
+        return self
 
     def call(self, st, ins):
         W = self.W
@@ -158,7 +224,8 @@ def child_overrides71(W, rp, model, parent, formulas):
     out = S_child_overrides(W, rp, model, parent, formulas)
     ks = {k for k in rp.store_syms}
     drop = lambda a: W.STUB_WR <= a < W.STUB_WR + 0x10000 and (a - W.STUB_WR) // 16 in ks and ((a - W.STUB_WR) % 16) < 8
-    out = [o for o in out if not drop(o[0])]
+    special = lambda a: W.STUB_WR <= a < W.STUB_WR + 0x10000 or W.STUB_OVR <= a < W.STUB_OVR + 0x10000 or a >= W.REG_OVERRIDE
+    out = [o for o in out if not drop(o[0]) and (o[0] < 0xffd00000 or special(o[0]))]         # an address the world reserves for its own pages is not a cell the scenario can set
     for k, (E, A, V, pe, pa, pv) in sorted(rp.store_syms.items()):
         if not z3.is_true(model.eval(E, model_completion=True)):
             continue
@@ -200,20 +267,19 @@ def solve71(rp, pos, goal, ms, soft=True):
     groups = rp.groups()
     t0 = time.time()
 
-    def pinned(released):
+    def decide(released, ms_):
+        """(verdict, solver, substitution) of the formula with every group not in `released` replaced by its parent value; the solver does the simplification under its own timeout (z3.simplify has none)"""
         sub = rp.pins(groups, released)
-        return z3.simplify(z3.substitute(F, *sub)), sub
+        s = z3.Solver()
+        s.set('timeout', ms_)
+        s.add(z3.substitute(F, *sub))
+        return s.check(), s, sub
 
     def solve_released(released):
-        G, sub = pinned(released)
-        if z3.is_false(G):
-            return 'unsat', None
-        s = z3.Solver()
-        s.set('timeout', STEP_MS)
-        s.add(G)
-        r = s.check()
+        r, s, sub = decide(released, STEP_MS)
         if r != z3.sat:
             return str(r), None
+        best = s.model()
         s.set('timeout', REVERT_MS)
         for gi in sorted(released):                          # the smallest value of a released group that still works
             val = rp.group_value(groups[gi])
@@ -224,18 +290,21 @@ def solve71(rp, pos, goal, ms, soft=True):
                 s.push()
                 s.add(val == z3.BitVecVal(small, val.size()))
                 if s.check() == z3.sat:
+                    best = s.model()
                     break
                 s.pop()
-        s.check()
-        return 'sat', SubModel(s.model(), sub)
+        return 'sat', SubModel(best, sub)
 
-    G0, _ = pinned(set())
-    if not z3.is_false(G0):
-        r, m = solve_released(set())
-        if r == 'sat':
-            STATS['sat'] += 1
-            return m
-    relevant = [gi for gi in range(len(groups)) if not z3.is_false(pinned({gi})[0])]
+    r, m = solve_released(set())
+    if r == 'sat':
+        STATS['sat'] += 1
+        return m
+    relevant = []
+    for gi in range(len(groups)):
+        if time.time() - t0 > ms / 1000.0:
+            break
+        if decide({gi}, RELEVANT_MS)[0] != z3.unsat:
+            relevant.append(gi)
     for size in (1, 2, 3):
         sets = itertools.combinations(relevant, size)
         for k, rel in enumerate(sets):
@@ -272,7 +341,9 @@ def solve71(rp, pos, goal, ms, soft=True):
 
 
 PAIR_CAP = 300
-STEP_MS = 1500
+STEP_MS = 700
+RELEVANT_MS = 250
+MINE_STEPS = 1500                                          # a run that ends in the step limit is mined for its first steps only
 REVERT_MS = 800
 SMALL = (1, 2, 3, 4, 8)
 S.solve = solve71
@@ -282,7 +353,7 @@ S.child_overrides = child_overrides71
 S.trace_run = trace_run71
 
 
-def explore71(key, base_scen, out_path, budget_s=300, fresh_seeds=6, solver_ms=3000, log=print):
+def explore71(key, base_scen, out_path, budget_s=300, fresh_seeds=6, solver_ms=2500, log=print):
     """FL-70's search loop (scripts/fl70_solve.py explore) with a checkpoint of the kept scenarios after every run that adds coverage, so that a killed run keeps what it found"""
     import collections
     import heapq
@@ -321,8 +392,8 @@ def explore71(key, base_scen, out_path, budget_s=300, fresh_seeds=6, solver_ms=3
         pr, _, seed, ov = heapq.heappop(queue)
         runs += 1
         tr, recs, reads = S.trace_run(W, row, seed, ov)
-        if not recs or tr.fault and tr.fault != 'instruction limit':
-            continue                                              # a run that ends in the step limit is not a scenario, but its trace is mined (the loop it is stuck in has an exit to flip)
+        if not recs:
+            continue                                              # a run that faults (or ends in the step limit) is not a scenario, but its trace is mined: a flip before the fault or in the loop it is stuck in may avoid it
         if not tr.fault and not (tr.executed <= ex and tr.edges <= ed):
             if [seed, ov] not in kept:
                 kept.append([seed, ov])
@@ -332,6 +403,8 @@ def explore71(key, base_scen, out_path, budget_s=300, fresh_seeds=6, solver_ms=3
         got, total, taken, dirs, missing, untaken = G.covers(row, ex, ed)
         if not missing and not untaken:
             break
+        if tr.fault:
+            recs = recs[:MINE_STEPS]
         rp = Replay71(row, image, insns, tr, recs, reads)
         try:
             rp.run()
@@ -359,6 +432,8 @@ def explore71(key, base_scen, out_path, budget_s=300, fresh_seeds=6, solver_ms=3
         cands.sort(key=lambda c: (c[0], -c[1]))
         n0 = n1 = 0
         for prio, pos, goal, d in cands:
+            if time.time() - t0 > budget_s:
+                break
             if prio == 0 and n0 >= S.EDGE_FLIPS_PER_RUN or prio == 1 and n1 >= S.OTHER_FLIPS_PER_RUN:
                 continue
             n0 += prio == 0
@@ -387,7 +462,7 @@ def main():
     ap.add_argument('--out', required=True)
     ap.add_argument('--budget-s', type=int, default=300)
     ap.add_argument('--fresh-seeds', type=int, default=6)
-    ap.add_argument('--solver-ms', type=int, default=3000)
+    ap.add_argument('--solver-ms', type=int, default=2500)
     ap.add_argument('--max-calls', type=int, default=MAX_CALLS)
     ap.add_argument('--scen', action='append', default=[], help='extra scenario files {row: scenarios} to start from')
     a = ap.parse_args()

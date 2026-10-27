@@ -211,12 +211,14 @@ def block_of(an, addr, last_only=False):
 def prove_row_windows(an, dom, targets):
     """targets as for fl67_infeasible.prove_row; {'instructions': {addr: [verdict, hash]}, 'directions': {...}} for the ones a window refutes"""
     out = {'instructions': {}, 'directions': {}}
+    memo = {}
     for a, name in targets.get('untaken', []):
         a = int(a, 16) if isinstance(a, str) else a
         T = block_of(an, a, True)
         if T is None or T not in an.reach:
             continue
-        v = prove_target(an, dom, T, ('dir', 'taken' if name == 'taken' else 'fall'))
+        q = ('dir', 'taken' if name == 'taken' else 'fall')
+        v = memo.get((T, q)) or memo.setdefault((T, q), prove_target(an, dom, T, q))
         if v[0] == 'unsat':
             out['directions']['%s:%s' % (hex(a), name)] = [v[0], v[1]]
     for a in targets.get('missing', []):
@@ -224,7 +226,7 @@ def prove_row_windows(an, dom, targets):
         T = block_of(an, a)
         if T is None or T not in an.reach:
             continue
-        v = prove_target(an, dom, T, ('ins', None))
+        v = memo.get((T, 'ins')) or memo.setdefault((T, 'ins'), prove_target(an, dom, T, ('ins', None)))
         if v[0] == 'unsat':
             out['instructions'][hex(a)] = [v[0], v[1]]
     return out
