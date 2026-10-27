@@ -83,31 +83,72 @@ class Replay71(S.Replay):
         for f, bit in S.FLAG_BIT.items():
             st.F[f] = z3.BoolVal(bool(nxt.eflags >> bit & 1))
 
-    def input_groups(self):
-        """[(soft, value)]: one soft per input GROUP (a start register, a stub result, the bytes one load read together, a callee store) and the group's value as a bit-vector (None for a store); releasing a group is one move of the scenario"""
-        out = [(z3.BitVec('s_' + n, 32) == P.bv(v, 32), z3.BitVec('s_' + n, 32)) for n, v in self.start_regs.items()]
-        mem = z3.Array('s_mem', z3.BitVecSort(32), z3.BitVecSort(8))
-
-        def cells(run):
-            sel = [z3.Select(mem, P.bv(x, 32)) for x, y in run]
-            return z3.And(*[e == P.bv(y, 8) for e, (x, y) in zip(sel, run)]), (z3.Concat(*reversed(sel)) if len(sel) > 1 else sel[0])
+    def groups(self):
+        """the input groups of the parent scenario: ('reg', name, value) | ('cells', [(address, byte)]) | ('stub', symbol name, value) | ('store', k, E, A, V of the parent): releasing a group is one move of the scenario"""
+        out = [('reg', n, v) for n, v in self.start_regs.items()]
         run = []
         for a_, b_ in sorted(self.init_cells.items()):
             if run and (a_ != run[-1][0] + 1 or len(run) == 4):
-                out.append(cells(run))
+                out.append(('cells', run))
                 run = []
             run.append((a_, b_))
         if run:
-            out.append(cells(run))
+            out.append(('cells', run))
         for name, (k, ri, _) in self.stub_syms.items():
             call = self.tr.calls[k]
-            out.append((z3.BitVec(name, 32) == P.bv((call[4], call[5], call[6])[ri], 32), z3.BitVec(name, 32)))
+            out.append(('stub', name, (call[4], call[5], call[6])[ri]))
         for k, (E, A, V, pe, pa, pv) in self.store_syms.items():
-            out.append((z3.And(E, A == P.bv(pa, 32), V == P.bv(pv, 32)) if pe else z3.Not(E), None))
+            out.append(('store', k, pe, pa, pv))
         return out
 
+    def pins(self, groups, released):
+        """[(symbol, value)] for z3.substitute: every group not in `released` is replaced by its parent value; the memory becomes a store chain over a fresh array"""
+        sub = []
+        mem = z3.Array('s_mem', z3.BitVecSort(32), z3.BitVecSort(8))
+        newmem = z3.Array('s_memfree', z3.BitVecSort(32), z3.BitVecSort(8))
+        for gi, g in enumerate(groups):
+            if gi in released:
+                continue
+            if g[0] == 'reg':
+                sub.append((z3.BitVec('s_' + g[1], 32), P.bv(g[2], 32)))
+            elif g[0] == 'stub':
+                sub.append((z3.BitVec(g[1], 32), P.bv(g[2], 32)))
+            elif g[0] == 'cells':
+                for a_, b_ in g[1]:
+                    newmem = z3.Store(newmem, P.bv(a_, 32), P.bv(b_, 8))
+            else:
+                _, k, pe, pa, pv = g
+                E, A, V = self.store_syms[k][:3]
+                sub += [(E, z3.BoolVal(pe)), (A, P.bv(pa, 32)), (V, P.bv(pv, 32))]
+        sub.append((mem, newmem))
+        return sub
+
+    def group_value(self, g):
+        """the group's value as a bit-vector over the symbols (None for a callee store)"""
+        if g[0] == 'reg':
+            return z3.BitVec('s_' + g[1], 32)
+        if g[0] == 'stub':
+            return z3.BitVec(g[1], 32)
+        if g[0] == 'cells':
+            mem = z3.Array('s_mem', z3.BitVecSort(32), z3.BitVecSort(8))
+            sel = [z3.Select(mem, P.bv(x, 32)) for x, y in g[1]]
+            return z3.Concat(*reversed(sel)) if len(sel) > 1 else sel[0]
+        return None
+
+    def group_soft(self, g):
+        if g[0] == 'reg':
+            return z3.BitVec('s_' + g[1], 32) == P.bv(g[2], 32)
+        if g[0] == 'stub':
+            return z3.BitVec(g[1], 32) == P.bv(g[2], 32)
+        if g[0] == 'cells':
+            mem = z3.Array('s_mem', z3.BitVecSort(32), z3.BitVecSort(8))
+            return z3.And(*[z3.Select(mem, P.bv(x, 32)) == P.bv(y, 8) for x, y in g[1]])
+        _, k, pe, pa, pv = g
+        E, A, V = self.store_syms[k][:3]
+        return z3.And(E, A == P.bv(pa, 32), V == P.bv(pv, 32)) if pe else z3.Not(E)
+
     def input_softs(self):
-        return [e for e, v in self.input_groups()]
+        return [self.group_soft(g) for g in self.groups()]
 
     def selfcheck(self):
         return None
@@ -140,84 +181,203 @@ def trace_run71(W, row, seed, ov):
 STATS = {'sat': 0, 'unsat': 0, 'unknown': 0}
 
 
+class SubModel:
+    """a model of the substituted formula that answers questions about the original symbols (s_mem, the start registers, the stub symbols, E_k)"""
+
+    def __init__(self, model, sub):
+        self.model, self.sub = model, sub
+
+    def eval(self, e, model_completion=False):
+        return self.model.eval(z3.substitute(e, *self.sub), model_completion=model_completion)
+
+
 def solve71(rp, pos, goal, ms, soft=True):
-    """1. the goal alone (plain solver); a model is then pulled back to the parent scenario input group by input group (revert a group when the query stays sat), so that a child changes only what the goal needs.
-    2. when that does not finish (a product of two free 32-bit loads: z3 does not finish it), every input group is pinned (a product of two pinned inputs is a constant), the pinned query is unsat in a moment, and
-    the groups are released one, two, three at a time until the query is sat. A verdict `unknown` is a loss of that goal, not an answer."""
-    base = list(rp.facts) + list(rp.cons[:pos]) + [goal]
-    pins = [e for p, e in rp.softs if p <= pos]
-    ggroups = rp.input_groups()
-    groups = [e for e, v in ggroups]
+    """1. every input group is replaced by the value of the parent scenario (z3.substitute: the formula collapses to a constant and a product of two inputs is a product of constants); the goal is `false` there. 
+    2. the groups that matter (the formula is not `false` when only that group is free) are released one, two, three at a time until the query is sat, so a child changes only what the goal needs, and a released
+    value is made small if it can be (a loop count of 31,582 is a run of 6,000 steps).  3. when no small release works, the goal alone (plain solver) and the model pulled back to the parent group by group.
+    A verdict `unknown` is a loss of that goal, not an answer."""
+    F = z3.And(*(list(rp.facts) + list(rp.cons[:pos]) + [goal]))
+    groups = rp.groups()
     t0 = time.time()
 
-    def attempt(fixed, ms_):
-        s = z3.Solver()
-        s.set('timeout', ms_)
-        s.add(*base)
-        s.add(*fixed)
-        r = s.check()
-        return r, (s.model() if r == z3.sat else None), s
+    def pinned(released):
+        sub = rp.pins(groups, released)
+        return z3.simplify(z3.substitute(F, *sub)), sub
 
-    r, m, s = attempt(pins, STEP_MS)                         # (pointers stay where they were)
-    if r != z3.sat:
-        r, m, s = attempt([], STEP_MS)
+    def solve_released(released):
+        G, sub = pinned(released)
+        if z3.is_false(G):
+            return 'unsat', None
+        s = z3.Solver()
+        s.set('timeout', STEP_MS)
+        s.add(G)
+        r = s.check()
+        if r != z3.sat:
+            return str(r), None
+        s.set('timeout', REVERT_MS)
+        for gi in sorted(released):                          # the smallest value of a released group that still works
+            val = rp.group_value(groups[gi])
+            if val is None:
+                continue
+            val = z3.substitute(val, *sub)
+            for small in SMALL:
+                s.push()
+                s.add(val == z3.BitVecVal(small, val.size()))
+                if s.check() == z3.sat:
+                    break
+                s.pop()
+        s.check()
+        return 'sat', SubModel(s.model(), sub)
+
+    G0, _ = pinned(set())
+    if not z3.is_false(G0):
+        r, m = solve_released(set())
+        if r == 'sat':
+            STATS['sat'] += 1
+            return m
+    relevant = [gi for gi in range(len(groups)) if not z3.is_false(pinned({gi})[0])]
+    for size in (1, 2, 3):
+        sets = itertools.combinations(relevant, size)
+        for k, rel in enumerate(sets):
+            if k >= PAIR_CAP or time.time() - t0 > ms / 1000.0:
+                break
+            r, m = solve_released(set(rel))
+            if r == 'sat':
+                STATS['sat'] += 1
+                return m
+    base = list(rp.facts) + list(rp.cons[:pos]) + [goal]
+    s = z3.Solver()
+    s.set('timeout', STEP_MS)
+    s.add(*base)
+    r = s.check()
     if r == z3.unsat:
         STATS['unsat'] += 1
         return None
-    if r == z3.sat:
-        STATS['sat'] += 1
-        s.set('timeout', REVERT_MS)
-        for g, val in ggroups:                               # pull the model back to the parent, group by group; a group that has to differ gets the smallest value that still works (a loop count of 31,582 is a run of 6,000 steps)
-            if time.time() - t0 > ms / 1000.0:
-                break
-            s.push()
-            s.add(g)
-            if s.check() == z3.sat:
-                m = s.model()
-                continue
-            s.pop()
-            if val is None:
-                continue
-            for small in SMALL:
-                s.push()
-                s.add(val == small)
-                if s.check() == z3.sat:
-                    m = s.model()
-                    break
-                s.pop()
-        return m
-    allp = pins + groups
-    r, m, s = attempt(allp, STEP_MS)
-    if r == z3.sat:
-        STATS['sat'] += 1
-        return m
-    if r != z3.unsat:
+    if r != z3.sat:
         STATS['unknown'] += 1
         return None
-    keep = list(range(len(allp)))
-    for size in (1, 2, 3):
-        sets = itertools.combinations(keep, size) if size == 1 else itertools.islice(itertools.combinations(keep, size), PAIR_CAP)
-        for rel in sets:
-            if time.time() - t0 > ms / 1000.0:
-                STATS['unknown'] += 1
-                return None
-            r, m, s = attempt([allp[k] for k in keep if k not in rel], STEP_MS)
-            if r == z3.sat:
-                STATS['sat'] += 1
-                return m
-    STATS['unknown'] += 1
-    return None
+    STATS['sat'] += 1
+    m = s.model()
+    s.set('timeout', REVERT_MS)
+    for g in groups:                                         # pull the model back to the parent, group by group
+        if time.time() - t0 > ms / 1000.0:
+            break
+        s.push()
+        s.add(rp.group_soft(g))
+        if s.check() == z3.sat:
+            m = s.model()
+            continue
+        s.pop()
+    return m
 
 
-REVERT_MS = 800
-SMALL = (1, 2, 3, 4, 8)
 PAIR_CAP = 300
 STEP_MS = 1500
+REVERT_MS = 800
+SMALL = (1, 2, 3, 4, 8)
 S.solve = solve71
 
 S.Replay = Replay71
 S.child_overrides = child_overrides71
 S.trace_run = trace_run71
+
+
+def explore71(key, base_scen, out_path, budget_s=300, fresh_seeds=6, solver_ms=3000, log=print):
+    """FL-70's search loop (scripts/fl70_solve.py explore) with a checkpoint of the kept scenarios after every run that adds coverage, so that a killed run keeps what it found"""
+    import collections
+    import heapq
+    import capstone
+    pool = T.pool_of(key)
+    p = T.POOLS[pool]
+    W, G = T.world(p['world'])
+    row = T.row_info(pool, key)
+    image = P.load_image()
+    md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
+    md.detail = True
+    off = row['va'] - P.IMAGE_BASE
+    insns = {i.address: i for i in md.disasm(bytes(image[off:off + row['body']]), row['va'])}
+    ex, ed = set(), set()
+    kept, queue = [], []
+    counter = 0
+    seen_children, seen_paths = set(), set()
+    t0 = time.time()
+
+    def save():
+        out = json.loads(Path(out_path).read_text()) if Path(out_path).exists() else {}
+        out[key] = kept
+        Path(out_path).write_text(json.dumps(out))
+    for seed, ov in base_scen:
+        tr = W.run_original(row, seed, [tuple(o) for o in ov])
+        if not tr.fault and not (tr.executed <= ex and tr.edges <= ed):
+            ex |= tr.executed
+            ed |= tr.edges
+            kept.append([seed, [list(o) for o in ov]])
+    n_base = len(kept)
+    for s_, ov_ in [(k[0], k[1]) for k in kept] + [(1 + k, []) for k in range(fresh_seeds)]:
+        heapq.heappush(queue, (0, counter, s_, [list(o) for o in ov_]))
+        counter += 1
+    runs = solved = 0
+    while queue and time.time() - t0 < budget_s:
+        pr, _, seed, ov = heapq.heappop(queue)
+        runs += 1
+        tr, recs, reads = S.trace_run(W, row, seed, ov)
+        if not recs or tr.fault and tr.fault != 'instruction limit':
+            continue                                              # a run that ends in the step limit is not a scenario, but its trace is mined (the loop it is stuck in has an exit to flip)
+        if not tr.fault and not (tr.executed <= ex and tr.edges <= ed):
+            if [seed, ov] not in kept:
+                kept.append([seed, ov])
+            ex |= tr.executed
+            ed |= tr.edges
+            save()
+        got, total, taken, dirs, missing, untaken = G.covers(row, ex, ed)
+        if not missing and not untaken:
+            break
+        rp = Replay71(row, image, insns, tr, recs, reads)
+        try:
+            rp.run()
+        except Exception as e:
+            log('  replay failed: %s: %s' % (type(e).__name__, str(e)[:100]))
+            continue
+        sig = tuple((d['addr'], d.get('taken'), d['kind']) for d in rp.path)
+        if sig in seen_paths:
+            continue
+        seen_paths.add(sig)
+        cands = []
+        firsts = collections.Counter()
+        for d in rp.path:
+            if d['kind'] == 'br':
+                if d['alt'] not in ed:
+                    cands.append((0, d['pos'], z3.Not(d['cond']), d))
+                else:
+                    firsts[d['alt']] += 1
+                    if firsts[d['alt']] <= S.OCCURRENCES:
+                        cands.append((1, d['pos'], z3.Not(d['cond']), d))
+            elif d['kind'] == 'rep':
+                cands.append((0, d['pos'], z3.Not(d['cond']), d))
+        for pos, goal, addr in rp.rep_goals:
+            cands.append((0, pos, goal, dict(kind='repgoal', addr=addr)))
+        cands.sort(key=lambda c: (c[0], -c[1]))
+        n0 = n1 = 0
+        for prio, pos, goal, d in cands:
+            if prio == 0 and n0 >= S.EDGE_FLIPS_PER_RUN or prio == 1 and n1 >= S.OTHER_FLIPS_PER_RUN:
+                continue
+            n0 += prio == 0
+            n1 += prio == 1
+            m = solve71(rp, pos, goal, solver_ms)
+            if m is None:
+                continue
+            solved += 1
+            child = child_overrides71(W, rp, m, ov, rp.cons[:pos] + [goal])
+            key2 = (seed, tuple(map(tuple, child)))
+            if key2 in seen_children:
+                continue
+            seen_children.add(key2)
+            counter += 1
+            heapq.heappush(queue, (prio, counter, seed, child))
+    got, total, taken, dirs, missing, untaken = G.covers(row, ex, ed)
+    log('%s runs %d solved %d  instructions %d/%d directions %d/%d  kept %d (base %d)  %.0fs  %s' % (key, runs, solved, got, total, taken, dirs, len(kept), n_base, time.time() - t0, STATS))
+    save()
+    return dict(kept=kept, instructions=(got, total), directions=(taken, dirs), runs=runs)
 
 
 def main():
@@ -227,21 +387,18 @@ def main():
     ap.add_argument('--out', required=True)
     ap.add_argument('--budget-s', type=int, default=300)
     ap.add_argument('--fresh-seeds', type=int, default=6)
-    ap.add_argument('--solver-ms', type=int, default=6000)
+    ap.add_argument('--solver-ms', type=int, default=3000)
     ap.add_argument('--max-calls', type=int, default=MAX_CALLS)
     ap.add_argument('--scen', action='append', default=[], help='extra scenario files {row: scenarios} to start from')
     a = ap.parse_args()
     MAX_CALLS = a.max_calls
-    out = json.loads(Path(a.out).read_text()) if Path(a.out).exists() else {}
     psc = json.loads((PROJECT / 'tasks/fl66-partial-scenarios.json').read_text())
     for key in a.rows:
         base = [tuple(s) for s in psc.get(key, [])]
         for f in a.scen:
             d = json.loads(Path(f).read_text())
             base += [tuple(s) for s in d.get(key, [])]
-        res = S.explore(key, base, a.budget_s, a.fresh_seeds, a.solver_ms)
-        out[key] = res['kept']
-        Path(a.out).write_text(json.dumps(out))
+        explore71(key, base, a.out, a.budget_s, a.fresh_seeds, a.solver_ms)
 
 
 if __name__ == '__main__':
