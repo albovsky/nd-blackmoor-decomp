@@ -49,6 +49,7 @@ SPLIT = True                  # the frame assumption (module text), applied to f
 UNROLL = (3, 5, 9, 17)         # trip-count bounds tried per loop; a loop that can still iterate after the last one gets a generalised header
 MAX_NODES = 6000
 SINK_MS = 3000                 # the check that a loop cannot run past its unrolled copies; unknown counts as can
+REP_EXACT = 64
 FAULT_LIMIT = 0xfff00000      # an access at or above it faults in the world (tests/fl41_world.py)
 DATA_START = 0x537000         # first writable page of .data; the image below it is constant
 IMAGE_BASE = 0x400000
@@ -580,6 +581,23 @@ class Machine:
         kind = base[:-1]
         edi, esi = st.R['edi'], st.R['esi']
         if rep:
+            ecx = z3.simplify(st.R['ecx'])
+            if kind in ('movs', 'stos') and z3.is_bv_value(ecx) and ecx.as_long() <= REP_EXACT:         # FL-70: a repeated store with a constant count is exact (the count is a known constant, the direction flag is clear)
+                for _ in range(ecx.as_long()):
+                    if kind == 'stos':
+                        self.assume_ok(st, edi, size)
+                        st.mem = self.store(st.mem, edi, z3.Extract(8 * size - 1, 0, st.R['eax']), size)
+                        edi = edi + size
+                    else:
+                        self.assume_ok(st, esi, size)
+                        self.assume_ok(st, edi, size)
+                        st.mem = self.store(st.mem, edi, self.load(st.mem, esi, size), size)
+                        esi, edi = esi + size, edi + size
+                st.R['edi'] = edi
+                if kind == 'movs':
+                    st.R['esi'] = esi
+                st.R['ecx'] = bv(0, 32)
+                return
             if kind in ('movs', 'stos'):
                 st.mem = fresh_array()
                 st.R['edi'] = fresh(32, 'rd')
