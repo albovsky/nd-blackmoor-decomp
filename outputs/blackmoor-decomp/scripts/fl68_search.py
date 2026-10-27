@@ -52,6 +52,7 @@ def cells_of(W, tr):
 def moves_of(W, row, tr, magic, goal=None):
     """The single-move candidates for a parent: lists of [address, size, value] to add to its overrides."""
     out, flips, edge, stubs, regs = [], [], [], [], []
+    has_stub = hasattr(W, 'STUB_OVR')                       # the fl40 world has no callee-return or callee-store overrides
     sp0 = W.STACK_BASE + W.STACK_SIZE - 0x100 - 4 * (W.ARGS + 1)
     near_stack = tuple(sp0 + 4 * d for d in (-12, -8, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 6))       # a pointer into the function's own stack: a push or a local store changes what it points at
     cells = cells_of(W, tr)
@@ -70,8 +71,10 @@ def moves_of(W, row, tr, magic, goal=None):
         for d in keys:
             if c != d and cells[c] != cells[d]:
                 edge.append([[c[0], 4, cells[d]]])
-    sources = [(W.REG_OVERRIDE + 4 * k, 4) for k in range(len(W.REG_NAMES))] + [(W.STUB_OVR + 16 * k + 4 * reg, 4) for k in range(min(len(tr.calls), 8)) for reg in range(3)] + list(cells)
+    sources = [(W.REG_OVERRIDE + 4 * k, 4) for k in range(len(W.REG_NAMES))] + [(W.STUB_OVR + 16 * k + 4 * reg, 4) for k in range(min(len(tr.calls), 8) if has_stub else 0) for reg in range(3)] + list(cells)
     for ev in getattr(tr, 'events', ()):
+        if len(ev) != 7:                                    # a string compare (address, 'str', esi, bytes)
+            continue
         address, bits, av, bv, ca, cb, wc = ev
         if goal and address not in goal:
             continue
@@ -91,11 +94,11 @@ def moves_of(W, row, tr, magic, goal=None):
     for k, name in enumerate(W.REG_NAMES):
         for val in REG_VALUES + near_stack + tuple(m & 0xffffffff for m in magic[:8]):
             regs.append([[W.REG_OVERRIDE + 4 * k, 4, val & 0xffffffff]])
-    for k in range(min(len(tr.calls), 8)):
+    for k in range(min(len(tr.calls), 8) if has_stub else 0):
         for reg in range(3):
             for val in REG_VALUES + tuple(m & 0xffffffff for m in magic[:6]):
                 stubs.append([[W.STUB_OVR + 16 * k + 4 * reg, 4, val & 0xffffffff]])
-    for k in range(min(len(tr.calls), 6)):                  # a callee that stores into a cell the function reads again after the call (a global the callee sets)
+    for k in range(min(len(tr.calls), 6) if has_stub else 0):   # a callee that stores into a cell the function reads again after the call (a global the callee sets)
         for (a, n), v in list(cells.items())[:24]:
             if n != 4:
                 continue

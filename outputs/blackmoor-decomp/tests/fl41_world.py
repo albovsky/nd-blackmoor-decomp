@@ -407,6 +407,9 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None, watch=Non
         eax, ecx_out, edx = apply_stub_overrides(stub_ovr, len(trace.calls), eax, ecx_out, edx)
         writes = writes + extra_stub_writes(stub_ovr, len(trace.calls))
         writes = stub_filter(row, writes)
+        if entry is not None and entry > esp:       # the function pushed words of its own before the jump: the target pops them and returns to the entry word (a function that popped more than it pushed hands its own stack over)
+            esp = entry
+        ret = struct.unpack('<I', uc.mem_read(esp, 4))[0]            # FL-68: the callee returns to the address it was called from, even when a store of its own lands on that stack slot
         for at, data in writes:
             ensure(at)
             ensure(at + len(data) - 1)
@@ -422,9 +425,6 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None, watch=Non
             trace.calls.append((ident, ecx, held, words, eax, ecx_out, edx, writes, ('st0', uc.reg_read(getattr(X, 'UC_X86_REG_FP%d' % top)))))
         else:
             trace.calls.append((ident, ecx, held, words, eax, ecx_out, edx, writes))
-        if entry is not None and entry > esp:       # the function pushed words of its own before the jump: the target pops them and returns to the entry word (a function that popped more than it pushed hands its own stack over)
-            esp = entry
-        ret = struct.unpack('<I', uc.mem_read(esp, 4))[0]
         uc.reg_write(X.UC_X86_REG_EAX, eax)
         uc.reg_write(X.UC_X86_REG_ECX, ecx_out)
         uc.reg_write(X.UC_X86_REG_EDX, edx)

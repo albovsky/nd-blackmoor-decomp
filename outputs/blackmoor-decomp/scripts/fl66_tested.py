@@ -252,6 +252,9 @@ def translation_sha(pool, key):
 
 # ---- the check of one row ------------------------------------------------------------------------------------------------------------------------
 
+EARLY = bool(os.environ.get('FL66_EARLY'))
+
+
 def check_row(key, extra=(), scenarios=None, max_scen=4000, lib=None):
     pool = pool_of(key)
     p = POOLS[pool]
@@ -275,6 +278,8 @@ def check_row(key, extra=(), scenarios=None, max_scen=4000, lib=None):
         kept.append(as_json((seed, ov)))
         ex |= o.executed
         ed |= o.edges
+        if EARLY and not any(G.covers(row, ex, ed)[4:]):       # FL-68: a row with thousands of known scenarios (0.4 s each, both sides) stops at full coverage; the kept list is the scenario set the tests replay
+            break
     got, total, taken, dirs, missing, untaken = G.covers(row, ex, ed)
     res = {'pool': pool, 'body': row['body'], 'instructions': [got, total], 'directions': [taken, dirs], 'scenarios_run': ran, 'scenarios_skipped_original_faults': skipped,
            'kept': kept, 'translation_sha256': translation_sha(pool, key), 'source': p['source']}
