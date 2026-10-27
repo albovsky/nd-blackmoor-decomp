@@ -406,6 +406,8 @@ struct NativeApp {
      * from a snapshot of the seeded back buffer, the stand-in of the saved scene frame (Z entry 1, 0x5d15e3). Not compiled in the
      * cloud container (no macOS toolchain). */
     SessionAeeBinding *aee = nullptr;
+    PuzzleSound aee_audio{};
+    bool aee_audio_initialized = false;
     std::array<bool, 0x40> aee_slot_used{};
     MpPointerResult aee_pointer{};
     uint64_t aee_plan_signature = 0u;
@@ -9723,8 +9725,8 @@ static bool native_ada_render(NativeApp *app)
  * Dispatcher arm 0x42a5f9 (gate mode 0) -> handler 0x47c0f0 (kernel action_family_ee_runtime.c, binding session_bindings_aee.c).
  * The render callback 0x47d24e belongs to a generic z entry of type 0xb that the handler registers in phase 0 (first free entry
  * in 0x18..0x3f, shared with the other puzzles); the app tick draws it while the object owns the entry. The overlay surface is the
- * CIFTREE image named in the body (0x4c2790). Sounds are logged NOT PLAYED (no effect backend) and report not busy, so the win
- * and lose wait states finish at once. The mouse recenter (0x4db870, SetCursorPos) is not performed (logged once). The background
+ * CIFTREE image named in the body (0x4c2790). PuzzleSound/live_audio supplies the original descriptor, play and busy
+ * boundaries; actual match/wrong/win groups contain NO SOUND and retain their original no-pick paths. The mouse recenter (0x4db870, SetCursorPos) is not performed (logged once). The background
  * restore and the face-down tiles copy from a snapshot of the seeded back buffer, the stand-in of the saved scene frame (Z entry 1,
  * 0x5d15e3). Captions and AUTOTEXT use the engine calls of the Onebuild puzzle. Not compiled in the cloud container (no macOS
  * toolchain). */
@@ -9843,27 +9845,52 @@ static int32_t native_aee_random(void *context)
     return value;
 }
 
+static bool native_aee_audio_ready(NativeApp *app)
+{
+    if (!app || !app->live_audio) return false;
+    if (!app->aee_audio_initialized) {
+        ActionSoundBackend backend{};
+        if (live_audio_bind_backend(app->live_audio, &backend) != LIVE_AUDIO_OK ||
+            puzzle_sound_init(&app->aee_audio, &backend) != PUZZLE_SOUND_OK) return false;
+        app->aee_audio_initialized = true;
+    }
+    return true;
+}
+
+static bool native_aee_audio_refresh(NativeApp *app, int16_t channel)
+{
+    if (!native_aee_audio_ready(app) || channel < 0 || static_cast<unsigned>(channel) >= LIVE_AUDIO_CHANNEL_COUNT) return false;
+    LiveAudioChannelInfo info{};
+    if (live_audio_get_channel_info(app->live_audio, static_cast<uint16_t>(channel), &info) != LIVE_AUDIO_OK) return false;
+    app->aee_audio.prepared[static_cast<uint16_t>(channel)] = info.loaded;
+    return true;
+}
+
 static int native_aee_sound_prepare(void *context, uint32_t id, const uint8_t *record_bytes)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
-    (void)record_bytes;
-    record(app, "scene_aee_sound id=0x%x call=0x4fb77a NOT PLAYED (no effect backend)", id);
-    return 0;
+    if (!native_aee_audio_ready(app)) return 1;
+    const int status = puzzle_sound_prepare(&app->aee_audio, record_bytes, MP_SOUND_HOST_BYTES);
+    record(app, "scene_aee_sound id=0x%x call=0x4fb77a native_status=%d", id, status);
+    return status == PUZZLE_SOUND_OK || status == PUZZLE_SOUND_NO_RESOURCE ? 0 : 1;
 }
 
 static int native_aee_sound_play(void *context, int16_t channel)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
-    record(app, "scene_aee_sound channel=%d call=0x4fb2e3 NOT PLAYED (no effect backend)", channel);
-    return 0;
+    if (!native_aee_audio_refresh(app, channel)) return 1;
+    const int status = puzzle_sound_play(&app->aee_audio, static_cast<uint16_t>(channel));
+    record(app, "scene_aee_sound channel=%d call=0x4fb2e3 native_status=%d", channel, status);
+    return status == PUZZLE_SOUND_OK || status == PUZZLE_SOUND_NO_RESOURCE ? 0 : 1;
 }
 
 static int native_aee_sound_busy(void *context, int16_t channel, int32_t *result)
 {
-    (void)context;
-    (void)channel;
-    if (result == nullptr) return 1;
-    *result = 0; /* 0x4f6334: nothing is ever playing here */
+    NativeApp *app = static_cast<NativeApp *>(context);
+    if (!result || !native_aee_audio_refresh(app, channel)) return 1;
+    int playing = 0;
+    if (puzzle_sound_busy(&app->aee_audio, static_cast<uint16_t>(channel), &playing) != PUZZLE_SOUND_OK) return 1;
+    *result = playing;
     return 0;
 }
 
@@ -11935,6 +11962,34 @@ static bool native_ad3_pointer_scope(const NativeApp *app)
     return count != 0u;
 }
 
+/* Both original difficulty rows share this singleton. Every other earlier
+ * cascade owner must be absent before this modeled family can run. */
+static bool native_aee_pointer_scope(const NativeApp *app)
+{
+    if (!app || !app->scene || !app->aee) return false;
+#ifdef BLACKMOOR_NATIVE_APP_TEST_HOOKS
+    if (app->test_members_busy) return false;
+#endif
+    size_t count = 0;
+    for (size_t row = 0; row < native_action_count(app); ++row) {
+        SceneActionInfo action{};
+        const int status = native_action_at(app, row, &action);
+        if (status == SCENE_RESOURCE_ERR_NOT_FOUND) continue;
+        if (status != SCENE_RESOURCE_OK) return false;
+        if (action.type == SESSION_AEE_TYPE) ++count;
+        else if (session_navigation_member_type(action.type)) return false;
+    }
+    const MpObject *object = session_aee_object(app->aee);
+    if (object && mp_object_active(object)) {
+        SceneActionInfo owner{};
+        const int16_t row = mp_object_row(object);
+        if (row < 0 || !session_aee_registered(app->aee) ||
+            native_action_at(app, static_cast<size_t>(row), &owner) != SCENE_RESOURCE_OK ||
+            owner.type != SESSION_AEE_TYPE) return false;
+    }
+    return count != 0;
+}
+
 static InteractiveVideoInputView native_a1c_input_view(NativeApp *app)
 {
     InteractiveVideoInputView view{};
@@ -12007,7 +12062,7 @@ static void native_pointer_context(NativeApp *app, SessionInputContext *out)
                            cursor.guard_5b615e == 0 &&
                            (app->nav_members_idle || native_d1_pointer_scope(app) || native_a1c_pointer_scope(app) ||
                             native_aaa_pointer_scope(app) || native_ad0_pointer_scope(app) ||
-                            native_ad3_pointer_scope(app))) ? 1u : 0u;
+                            native_ad3_pointer_scope(app) || native_aee_pointer_scope(app))) ? 1u : 0u;
     out->excluded_0 = -1; /* Secondary33 shares first-hit selection, then its specialized hover;34 remains unmodeled. */
     out->excluded_1 = -1;
 }
@@ -12364,7 +12419,7 @@ static int native_pointer_consume(void *context, SceneExecutorFrameInput *frame,
             }
         }
     }
-    /* RT-60: the Memory puzzle's accepted-release chain call (0x43b3a9 -> 0x47b767, after the Multibuild click 0x47ff0e). The
+    /* RT-60: the Memory puzzle's accepted-release chain call (0x43b3a9 -> 0x47b767). The
      * original calls it on every accepted release and the method guards itself (active, row phase 1, state PLAY, candidate
      * 0x2768 / 0x2769); the click never changes the row phase, the win / lose exit goes through the handler. */
     if (status == SESSION_INPUT_OK && edge_before != 0u && (input.cursor_mode < 2 || input.cursor_mode > 5) &&
@@ -12377,6 +12432,7 @@ static int native_pointer_consume(void *context, SceneExecutorFrameInput *frame,
             const int click = session_aee_click(app->aee, memory_state.phase, app->input_state.candidate);
             if (click != MP_OK) {
                 record(app, "scene_aee_click_error row=%d status=%d detail=%s", memory_row, click, session_aee_failure(app->aee));
+                return SESSION_INPUT_INVALID_ARGUMENT;
             } else if (memory_state.phase == 1u && (app->input_state.candidate == MP_CANDIDATE_TAB ||
                                                     app->input_state.candidate == MP_CANDIDATE_TILE)) {
                 record(app, "scene_aee_click row=%d candidate=%d (0x47b767)", memory_row, app->input_state.candidate);
@@ -12413,13 +12469,6 @@ static int native_pointer_consume(void *context, SceneExecutorFrameInput *frame,
         (void)session_aeb_pointer_move(app->aeb, static_cast<int16_t>(frame->pointer_x),
                                        static_cast<int16_t>(frame->pointer_y), hot, &app->aeb_pointer);
     }
-    /* RT-60: 0x47b4aa runs in the cascade 0x4f0059 at 0x4f0fb4, right after 0x4ba377 returned 0 (x = [event+0x5e], y = [event+0x5a],
-     * not view relative). Its place among the other receivers is unverified. */
-    app->aee_pointer = MpPointerResult{};
-    app->aee_pointer.candidate = -1;
-    if (status == SESSION_INPUT_OK && frame->pointer_valid != 0 && app->aee != nullptr && session_aee_registered(app->aee) != 0u)
-        (void)session_aee_pointer_move(app->aee, static_cast<int16_t>(frame->pointer_x),
-                                       static_cast<int16_t>(frame->pointer_y), &app->aee_pointer);
     app->af6_pointer = F6PointerResult{};
     app->af6_pointer.candidate = -1;
     if (status == SESSION_INPUT_OK && frame->pointer_valid != 0 && app->af6 != nullptr &&
@@ -12678,6 +12727,43 @@ static int native_pointer_scan(void *context, const SessionInputHotspot *rows,
             }
         }
     }
+    /* 0x4f0fb4 runs Memory after ACT and before overlays/navigation/generic.
+     * Project on a private input copy, retaining the old hover for release.
+     * These are the original viewport-relative event+5e/+5a words; the
+     * recovered Memory hit rectangles intentionally omit the draw origin. */
+    app->aee_pointer = MpPointerResult{};
+    app->aee_pointer.candidate = -1;
+    if (native_aee_pointer_scope(app) && input.priority_clear) {
+        SessionInputState projection_state = app->input_state;
+        SceneExecutorFrameInput projected{};
+        const int projection = session_input_tick(&projection_state, &input, &projected);
+        if (projection != SESSION_INPUT_OK) { *candidate = -1; return projection; }
+        if (projected.pointer_valid) {
+            const int16_t *held = app->new_game.view.inventory.selected_item_candidate;
+            const int16_t item = held ? *held : static_cast<int16_t>(-1);
+            app->nav.state = NAV_STATE_NONE;
+            if (item == -1) app->nav_cursor = {0, 0};
+            else app->nav_cursor.index = static_cast<int32_t>(item) + 0x25;
+            const int hit = session_aee_pointer_move(app->aee, static_cast<int16_t>(projected.pointer_x),
+                static_cast<int16_t>(projected.pointer_y), &app->aee_pointer);
+            if (hit != MP_OK) {
+                record(app, "scene_aee_pointer_error status=%d detail=%s", hit, session_aee_failure(app->aee));
+                *candidate = -1; return SESSION_INPUT_INVALID_ARGUMENT;
+            }
+            if (app->aee_pointer.wrote_cursor) {
+                app->nav_cursor.index = app->aee_pointer.cursor;
+                app->nav_cursor.variant = app->aee_pointer.cursor_flag;
+            }
+            if (app->aee_pointer.hit) {
+                (void)session_input_publish_candidate(&app->input_state, app->aee_pointer.candidate);
+                *candidate = app->input_state.candidate;
+                if (*candidate != app->logged_candidate)
+                    record(app, "scene_aee_pointer candidate=%d before=overlay-navigation-generic", *candidate);
+                app->logged_candidate = *candidate;
+                return SESSION_INPUT_OK;
+            }
+        }
+    }
     /* RT-14: the overlay hit test (0x4897cd) runs inside the 0x4f0059 cascade
      * before its generic row loop, in overlay-list order. */
     std::vector<SessionInputHotspot> overlay_rows(OVERLAY36_LIST_LIMIT * 25u);
@@ -12826,11 +12912,6 @@ static int native_pointer_scan(void *context, const SessionInputHotspot *rows,
         /* 0x4f0d90: the Multibuild puzzle's receiver 0x47f421 returns before the generic row loop and has written the candidate
          * (0x278d..0x2791). The cursor cells it also writes are not drawn by the app. */
         (void)session_input_publish_candidate(&app->input_state, app->aeb_pointer.candidate);
-    }
-    if (status == SESSION_INPUT_OK && app->aee_pointer.hit != 0u) {
-        /* 0x4f0fb4: the Memory puzzle's receiver 0x47b4aa returns before the generic row loop and has written the candidate
-         * (0x2768 page tab, 0x2769 tile). The cursor cells it also writes (0x5b44f0 := 0, 0x5b44f4 := 1) are not drawn by the app. */
-        (void)session_input_publish_candidate(&app->input_state, app->aee_pointer.candidate);
     }
     if (status == SESSION_INPUT_OK && app->af6_pointer.hit != 0u) {
         /* 0x45e1ca returns before the generic row loop and 0x45e4d4 writes the candidate (0x27ec / 0x27ed / 0x27ef)
@@ -12986,7 +13067,7 @@ static bool bind_native_pointer(NativeApp *app)
     const bool clear = c.guard_5b5158 == 0 && c.guard_5b61af == 0 && c.guard_5b615e == 0 &&
                        (app->nav_members_idle || native_d1_pointer_scope(app) || native_a1c_pointer_scope(app) ||
                         native_aaa_pointer_scope(app) || native_ad0_pointer_scope(app) ||
-                        native_ad3_pointer_scope(app));
+                        native_ad3_pointer_scope(app) || native_aee_pointer_scope(app));
     record(app, "pointer_provider provisional sprite=%dx%d hot=%d,%d scroll=%d "
            "guards[5b5158,5b61af,5b615e]=%u,%u,%u cascade_members_idle=%d priority_clear=%d "
            "excluded=-1,-1 reason=cursor-sprite-size/hot-point/scroll-unrecovered "

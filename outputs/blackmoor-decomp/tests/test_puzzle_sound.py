@@ -128,6 +128,13 @@ class PuzzleSoundTests(unittest.TestCase):
         self.assertEqual(self.rec.calls, [('load', b'Independent', 8, 2, 0xfedcba98,
                                           25, 70, C.c_float(.25).value, C.c_float(.70).value, 1, 9999)])
 
+    def test_memory_loader_flags_share_original_normalized_load_path(self):
+        self.assertEqual(self.prepare(name=b'CardFlip01', flags=1, control=1, gains=(75, 75)), OK)
+        memory_call = self.rec.calls[-1]
+        self.assertEqual(self.prepare(name=b'CardFlip01', flags=2, control=1, gains=(75, 75)), OK)
+        self.assertEqual(self.rec.calls[-1], memory_call)
+        self.assertEqual(self.play(), OK)
+
     def test_gains_are_independent_signed_and_clamped(self):
         for gains, want in [((-32768, 32767), (0., 1.)), ((100, 0), (1., 0.)),
                             ((-1, 99), (0., C.c_float(.99).value))]:
@@ -208,7 +215,7 @@ class PuzzleSoundTests(unittest.TestCase):
                   (descriptor(name=b'a\\b'), 0x31, ERR_DESCRIPTOR),
                   (descriptor(channel=32), 0x31, ERR_DESCRIPTOR),
                   (descriptor(channel=65535), 0x31, ERR_DESCRIPTOR)]
-        for flags in (-32768, -1, 0, 1, 3, 32767):
+        for flags in (-32768, -1, 0, 3, 32767):
             cases.append((descriptor(flags=flags), 0x31, ERR_UNSUPPORTED))
         for mode in (-1, 0, 2, 256, 32767):
             cases.append((descriptor(mode=mode), 0x31, ERR_UNSUPPORTED))
