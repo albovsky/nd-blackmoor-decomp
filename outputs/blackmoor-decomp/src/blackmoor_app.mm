@@ -32,6 +32,7 @@
 #include "native_random_movie.h"
 #include "native_cel_resources.h"
 #include "native_jane_responses.h"
+#include "native_drake_responses.h"
 #include "native_secondary_video.h"
 #include "action_family_3f.h"
 #include "action_family_3e.h"
@@ -4174,82 +4175,113 @@ static int native_a3f_resolve_text(void *context, const uint8_t *key, size_t len
     return autotext_lookup(app->a3f_text, key, length, text, &raw, text_length) == AUTOTEXT_OK ? 0 : 1;
 }
 
-/* 0x43ff18 / 0x445253: Jane's dynamic response builders. Hook text comes
- * from the same CONVO table as row captions (0x43f210, manager0x6187b9). */
-static int native_jane_build_responses(void *context, uint8_t hook_a, uint8_t hook_b,
+/* Shared 0x43f210 text construction and 0x41fa11/0x41fd08 list operations. */
+static int native_hook_apply_response(NativeApp *app, Convo3fManager *manager,
+    const char *key, int16_t scene, bool replace, const char **why)
+{
+    Convo3fResponse response{};
+    const uint8_t *text = nullptr;
+    size_t raw = 0, length = 0;
+    const size_t key_length = std::strlen(key);
+    if (key_length >= sizeof(response.name)) return CONVO3F_ERR_BOUNDS;
+    const int lookup = autotext_lookup(app->a3f_text,
+        reinterpret_cast<const uint8_t *>(key), key_length, &text, &raw, &length);
+    if (lookup == AUTOTEXT_OK) {
+        if ((!text && length) || length >= CONVO3F_TEXT_BYTES || (length && std::memchr(text, 0, length))) {
+            if (why) *why = "conversation hook text exceeds native bounds";
+            return CONVO3F_ERR_BOUNDS;
+        }
+        if (length) std::memcpy(response.text, text, length);
+    } else if (lookup == AUTOTEXT_ERR_NOT_FOUND) {
+        const int written = std::snprintf(reinterpret_cast<char *>(response.text), CONVO3F_TEXT_BYTES,
+            "Response %s<h><n>", key);
+        if (written < 0 || written >= static_cast<int>(CONVO3F_TEXT_BYTES)) return CONVO3F_ERR_BOUNDS;
+    } else {
+        if (why) *why = "conversation hook CONVO lookup failed";
+        return CONVO3F_ERR_HOST;
+    }
+    std::memcpy(response.name, key, key_length + 1);
+    response.scene = scene; response.word_27 = 1; response.dword_31 = 1;
+    response.event_index = -1; response.word_38 = 2;
+    return convo3f_apply_hook_response(manager, &response, replace);
+}
+
+/* Original hooks0/1: Drake43f31a/44512a and Jane43ff18/445253.
+ * Both resolve through the same CONVO table and response-list helpers. */
+static int native_conversation_build_responses(void *context, uint8_t hook_a, uint8_t hook_b,
     const Convo3fWorld *world, Convo3fManager *manager, int preview, const char **why)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
     if (!app || !world || !manager) return CONVO3F_ERR_ARGUMENT;
-    if ((hook_a != 1u && hook_a != CONVO3F_NO_HOOK) ||
-        (hook_b != 1u && hook_b != CONVO3F_NO_HOOK)) {
-        if (why) *why = "unsupported conversation response hook (only Jane index1)";
+    const auto supported = [](uint8_t hook) { return hook == 0 || hook == 1 || hook == CONVO3F_NO_HOOK; };
+    if (!supported(hook_a) || !supported(hook_b)) {
+        if (why) *why = "unsupported conversation response hook (only Drake0/Jane1)";
         return CONVO3F_ERR_UNSUPPORTED;
     }
     if (!app->a3f_text) {
-        if (why) *why = "Jane CONVO provider unavailable";
+        if (why) *why = "conversation hook CONVO provider unavailable";
         return CONVO3F_ERR_UNSUPPORTED;
     }
-    NativeJaneResponseWorld predicates{world->events, world->event_count, world->presence, world->presence_count};
+    NativeJaneResponseWorld jane{world->events, world->event_count, world->presence, world->presence_count};
+    NativeDrakeResponseWorld drake{world->events, world->event_count};
     int32_t presence[NATIVE_JANE_PRESENCE_COUNT]{};
-    if (hook_a == 1u) {
-        if (!predicates.events || !predicates.presence || predicates.event_count < NATIVE_JANE_EVENT_COUNT ||
-            predicates.presence_count < NATIVE_JANE_PRESENCE_COUNT) {
+    if (hook_a == NATIVE_JANE_HOOK) {
+        if (!jane.events || !jane.presence || jane.event_count < NATIVE_JANE_EVENT_COUNT ||
+            jane.presence_count < NATIVE_JANE_PRESENCE_COUNT) {
             if (why) *why = "Jane response world bounds";
             return CONVO3F_ERR_BOUNDS;
         }
-        /* 0x4e8d96 puts a held item back before 0x4205c1. Project that
-         * inventory effect for dry layout without changing the live world. */
-        std::copy_n(predicates.presence, NATIVE_JANE_PRESENCE_COUNT, presence);
+        /* 0x4e8d96 puts the held item back before actual list construction. */
+        std::copy_n(jane.presence, NATIVE_JANE_PRESENCE_COUNT, presence);
         if (preview && world->held_item >= 0 && world->held_item < static_cast<int16_t>(NATIVE_JANE_PRESENCE_COUNT))
             presence[world->held_item] = 1;
-        predicates.presence = presence;
+        jane.presence = presence;
+    } else if (hook_a == NATIVE_DRAKE_HOOK && (!drake.events || drake.event_count < NATIVE_DRAKE_EVENT_COUNT)) {
+        if (why) *why = "Drake response world bounds";
+        return CONVO3F_ERR_BOUNDS;
     }
     SessionConditionsCrtRand copied = app->condition_rand;
-    size_t planned_count = 0u;
-    /* Finish all A lookups/additions before B's unconditional rand call. */
-    for (unsigned builder = 0u; builder < 2u; ++builder) {
-        const int32_t random = builder == 1u && hook_b == 1u ? static_cast<int32_t>(session_conditions_crt_rand(
+    size_t planned_count = 0;
+    /* All A lookups/additions precede B's one unconditional shared draw. */
+    for (unsigned builder = 0; builder < 2; ++builder) {
+        const uint8_t hook = builder == 0 ? hook_a : hook_b;
+        if (hook == CONVO3F_NO_HOOK) continue;
+        const int32_t random = builder == 1 ? static_cast<int32_t>(session_conditions_crt_rand(
             preview ? &copied : &app->condition_rand)) : 0;
-        NativeJaneResponsePlan plan{};
-        const int planned = native_jane_responses_plan(&predicates,
-            builder == 0u ? hook_a : CONVO3F_NO_HOOK, builder == 1u ? hook_b : CONVO3F_NO_HOOK, random, &plan);
-        if (planned != NATIVE_JANE_OK) {
-            if (why) *why = "Jane response plan refused";
-            return planned == NATIVE_JANE_ERR_UNSUPPORTED ? CONVO3F_ERR_UNSUPPORTED : CONVO3F_ERR_BOUNDS;
-        }
-        planned_count += plan.count;
-        for (size_t index = 0; index < plan.count; ++index) {
-            const NativeJaneResponseEntry &entry = plan.entries[index];
-            Convo3fResponse response{};
-            const uint8_t *text = nullptr;
-            size_t raw = 0u, length = 0u;
-            const size_t key_length = std::strlen(entry.key);
-            const int lookup = autotext_lookup(app->a3f_text,
-                reinterpret_cast<const uint8_t *>(entry.key), key_length, &text, &raw, &length);
-            if (lookup == AUTOTEXT_OK) {
-                if ((!text && length) || length >= CONVO3F_TEXT_BYTES || (length && std::memchr(text, 0, length))) {
-                    if (why) *why = "Jane response text exceeds native bounds";
-                    return CONVO3F_ERR_BOUNDS;
-                }
-                if (length) std::memcpy(response.text, text, length);
-            } else if (lookup == AUTOTEXT_ERR_NOT_FOUND) {
-                const int written = std::snprintf(reinterpret_cast<char *>(response.text), CONVO3F_TEXT_BYTES,
-                    "Response %s<h><n>", entry.key);
-                if (written < 0 || written >= static_cast<int>(CONVO3F_TEXT_BYTES)) return CONVO3F_ERR_BOUNDS;
-            } else {
-                if (why) *why = "Jane CONVO lookup failed";
-                return CONVO3F_ERR_HOST;
+        const uint8_t a = builder == 0 ? hook : static_cast<uint8_t>(CONVO3F_NO_HOOK);
+        const uint8_t b = builder == 1 ? hook : static_cast<uint8_t>(CONVO3F_NO_HOOK);
+        if (hook == NATIVE_DRAKE_HOOK) {
+            NativeDrakeResponsePlan plan{};
+            const int planned = native_drake_responses_plan(&drake, a, b, random, &plan);
+            if (planned != NATIVE_DRAKE_OK) {
+                if (why) *why = "Drake response plan refused";
+                return planned == NATIVE_DRAKE_ERR_UNSUPPORTED ? CONVO3F_ERR_UNSUPPORTED : CONVO3F_ERR_BOUNDS;
             }
-            std::memcpy(response.name, entry.key, key_length + 1u);
-            response.scene = entry.scene; response.word_27 = 1; response.dword_31 = 1;
-            response.event_index = -1; response.word_38 = 2;
-            const int applied = convo3f_apply_hook_response(manager, &response, entry.kind == NATIVE_JANE_REPLACE);
-            if (applied != CONVO3F_OK) return applied;
+            planned_count += plan.count;
+            for (size_t index = 0; index < plan.count; ++index) {
+                const NativeDrakeResponseEntry &entry = plan.entries[index];
+                const int applied = native_hook_apply_response(app, manager, entry.key, entry.scene,
+                    entry.kind == NATIVE_DRAKE_REPLACE, why);
+                if (applied != CONVO3F_OK) return applied;
+            }
+        } else {
+            NativeJaneResponsePlan plan{};
+            const int planned = native_jane_responses_plan(&jane, a, b, random, &plan);
+            if (planned != NATIVE_JANE_OK) {
+                if (why) *why = "Jane response plan refused";
+                return planned == NATIVE_JANE_ERR_UNSUPPORTED ? CONVO3F_ERR_UNSUPPORTED : CONVO3F_ERR_BOUNDS;
+            }
+            planned_count += plan.count;
+            for (size_t index = 0; index < plan.count; ++index) {
+                const NativeJaneResponseEntry &entry = plan.entries[index];
+                const int applied = native_hook_apply_response(app, manager, entry.key, entry.scene,
+                    entry.kind == NATIVE_JANE_REPLACE, why);
+                if (applied != CONVO3F_OK) return applied;
+            }
         }
     }
-    if (!preview) record(app, "scene_jane_responses hooks=%u,%u planned=%zu listed=%d shared_crt_draws=%u",
-        hook_a, hook_b, planned_count, manager->response_count, hook_b == 1u ? 1u : 0u);
+    if (!preview) record(app, "scene_conversation_responses hooks=%u,%u planned=%zu listed=%d shared_crt_draws=%u",
+        hook_a, hook_b, planned_count, manager->response_count, hook_b != CONVO3F_NO_HOOK ? 1u : 0u);
     return CONVO3F_OK;
 }
 
@@ -10837,8 +10869,8 @@ static bool create_native_session_bindings(NativeApp *app)
     a3f_host.store_world = native_a3f_store_world;
     a3f_host.transition = native_a3f_transition;
     app->a3f = session_a3f_create(&a3f_host);
-    const Convo3fHookBuilders jane_hooks{app, native_jane_build_responses};
-    if (app->a3f && session_a3f_set_response_hooks(app->a3f, &jane_hooks) != CONVO3F_OK) return false;
+    const Convo3fHookBuilders response_hooks{app, native_conversation_build_responses};
+    if (app->a3f && session_a3f_set_response_hooks(app->a3f, &response_hooks) != CONVO3F_OK) return false;
     SessionAd9Host ad9_host{};
     ad9_host.kernel.context = app;
     ad9_host.kernel.alloc_slot = native_ad9_alloc_slot;
