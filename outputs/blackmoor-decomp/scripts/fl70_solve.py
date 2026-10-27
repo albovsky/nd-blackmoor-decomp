@@ -148,6 +148,8 @@ class Replay(P.Machine):
         inside = STACK_LO <= conc < STACK_HI
         inr = z3.And(z3.UGE(a, P.bv(STACK_LO, 32)), z3.ULT(a, P.bv(STACK_HI, 32)))
         self.cons.append(inr if inside else z3.Not(inr))
+        if not inside and conc < 0xffcfff00:
+            self.cons.append(z3.ULT(a, P.bv(0xffcfff00, 32)))             # FL-72: the overrides at 0xffd00000 and above are not memory (STUB_WR, STUB_OVR, registers), so a model cannot put a pointer there
         return 'frm' if inside else 'mem'
 
     def mem_read(self, st, op, n):
@@ -427,10 +429,25 @@ def store_chain(e):
 
 
 def solve(rp, pos, goal, ms, soft=True):
+    """FL-72: first with every start register that began outside the frame kept below it (a model that points a register into the frame cannot be played: the frame cells are not scenario inputs), then without"""
+    keep = []
+    for n, v in rp.start_regs.items():
+        if v < 0xffd00000 and not STACK_LO <= v < STACK_HI:
+            r = z3.BitVec('s_' + n, 32)
+            keep.append(z3.And(z3.ULT(r, P.bv(0xffd00000, 32)), z3.Or(z3.ULT(r, P.bv(STACK_LO, 32)), z3.UGE(r, P.bv(STACK_HI, 32)))))
+    if keep:
+        m = solve0(rp, pos, goal, ms, soft, keep)
+        if m is not None:
+            return m
+    return solve0(rp, pos, goal, ms, soft, [])
+
+
+def solve0(rp, pos, goal, ms, soft, extra):
     """a model of `prefix and goal`; the soft constraints (inputs and pointers stay as they were) are assumptions, dropped by their unsat core until the query is satisfiable"""
     s = z3.Solver()
     s.set('timeout', ms)
     s.add(*rp.facts)
+    s.add(*extra)
     for c in rp.cons[:pos]:
         s.add(c)
     s.add(goal)
