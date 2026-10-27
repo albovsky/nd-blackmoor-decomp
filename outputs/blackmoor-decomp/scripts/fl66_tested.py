@@ -365,13 +365,19 @@ def merge(write):
     led = ledger_entries()
     prev = jload(MANIFEST) if MANIFEST.exists() else {'rows': {}}
     prev_sc = jload(SCENARIOS) if SCENARIOS.exists() else {}
-    rows, scen, partial, mismatch, error = dict(prev['rows']), dict(prev_sc), {}, {}, {}
-    psc = {}
+    old_partial = jload(PROJECT / 'tasks/fl66-partial.json') if (PROJECT / 'tasks/fl66-partial.json').exists() else {}
+    old_psc = jload(PROJECT / 'tasks/fl66-partial-scenarios.json') if (PROJECT / 'tasks/fl66-partial-scenarios.json').exists() else {}
+    rows, scen = dict(prev['rows']), dict(prev_sc)
+    # FL-68: the per-row results of earlier batches are not committed, so the partial / mismatch / error lists start from the committed ones and only the rows of this results directory replace theirs
+    partial, mismatch, error = dict(old_partial.get('partial', {})), dict(old_partial.get('mismatch', {})), dict(old_partial.get('error', {}))
+    psc = dict(old_psc)
     for key, r in res.items():
         if led.get(key, {}).get('status') != 'pending':
             rows.pop(key, None)
             scen.pop(key, None)
             continue
+        for d in (partial, mismatch, error, psc):
+            d.pop(key, None)
         st = r['status']
         if st == 'tested_equivalent':
             rows[key] = {k: r[k] for k in ('pool', 'body', 'instructions', 'directions', 'scenarios_run', 'translation_sha256', 'source')}

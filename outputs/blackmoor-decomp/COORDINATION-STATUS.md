@@ -28,6 +28,10 @@ Live headless run (`--inspect-live-session --live-click-row 34 --live-ticks 3000
 
 GUI and hardware audio remain unverified: no window or speaker check has been done. This session had no computer-use tools and the shell cannot screen-capture, so the window click-through and listening pass still needs Glib (or a session with computer use). The windowed app does create the same scene session and tick loop (`blackmoor_app.mm` enables the scene runtime unless inspect-only) and reaches the menu; nothing past that was observed.
 
+## Handoff: FL-68 CRT/MFC rows of the tested-equivalent tier (2026-10-27 PDT, cloud thread)
+
+Tested equivalent 1,315 -> 1,446 (131 CRT/MFC rows); verified unchanged at 2,210. New goal-directed search `scripts/fl68_search.py`, harness fixes (tail jumps through pointers, recursion, import-thunk pops) and what is left are in `tasks/fl68-handoff.md`.
+
 ## Handoff: RT-33 raw 0x2e random-movie control runtime (2026-10-16 PDT, cloud thread)
 
 Scope: the brief asked for raw 0x2e and 0xd1 in one slice; 0xd1 is the Turning Puzzle (a phase machine with its own process-list callback, surface load, sound and timing; the size of RT-24's Mouselight puzzle), so this slice lands 0x2e alone and 0xd1 is the next family. Type-level scenes with every row handled: 1,946 to 1,954 of 2,078 (upper bound; the row-level live count needs the Mac; RT-32's 0x43/0x94 will add to it when it merges).
