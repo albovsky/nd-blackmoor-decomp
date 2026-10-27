@@ -1,0 +1,132 @@
+{
+ "rows": {
+  "0x41166e": {
+   "body": 750,
+   "directions": [
+    15,
+    16
+   ],
+   "instructions": [
+    210,
+    223
+   ],
+   "pool": "lower",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x4116e1:fall-through": "dabea75389178ab26eee84e1412c0c98e115d3d061df5e3b319066761d0c8fe1"
+    },
+    "instructions": {
+     "0x4116e3": "dabea75389178ab26eee84e1412c0c98e115d3d061df5e3b319066761d0c8fe1",
+     "0x4116e6": "dabea75389178ab26eee84e1412c0c98e115d3d061df5e3b319066761d0c8fe1",
+     "0x4116ed": "dabea75389178ab26eee84e1412c0c98e115d3d061df5e3b319066761d0c8fe1",
+     "0x4116ee": "dabea75389178ab26eee84e1412c0c98e115d3d061df5e3b319066761d0c8fe1",
+     "0x4116f3": "dabea75389178ab26eee84e1412c0c98e115d3d061df5e3b319066761d0c8fe1",
+     "0x4116f8": "dabea75389178ab26eee84e1412c0c98e115d3d061df5e3b319066761d0c8fe1",
+     "0x4116fd": "dabea75389178ab26eee84e1412c0c98e115d3d061df5e3b319066761d0c8fe1",
+     "0x411700": "dabea75389178ab26eee84e1412c0c98e115d3d061df5e3b319066761d0c8fe1",
+     "0x411702": "dabea75389178ab26eee84e1412c0c98e115d3d061df5e3b319066761d0c8fe1",
+     "0x411704": "dabea75389178ab26eee84e1412c0c98e115d3d061df5e3b319066761d0c8fe1",
+     "0x411709": "dabea75389178ab26eee84e1412c0c98e115d3d061df5e3b319066761d0c8fe1",
+     "0x41170e": "dabea75389178ab26eee84e1412c0c98e115d3d061df5e3b319066761d0c8fe1",
+     "0x411713": "dabea75389178ab26eee84e1412c0c98e115d3d061df5e3b319066761d0c8fe1"
+    },
+    "plan": {}
+   },
+   "scenarios_kept": 9,
+   "scenarios_run": 9,
+   "source": "src/original_methods_fl56_unverified.c",
+   "translation_sha256": "3f5aab549af61e508ba375f159ad822e3bf9097f2cc0b63ad2019fcf90389574"
+  },
+  "0x4230d1": {
+   "body": 113,
+   "directions": [
+    5,
+    6
+   ],
+   "instructions": [
+    37,
+    37
+   ],
+   "pool": "held",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x42311f:taken": "4ccee6acbcdc6b5cc21bde911e18699f4fa3560bd9662974d2c277f4d98848d4"
+    },
+    "instructions": {},
+    "plan": {
+     "0x4230ec": "gen"
+    }
+   },
+   "scenarios_kept": 1,
+   "scenarios_run": 1,
+   "source": "src/original_methods_fl40.c",
+   "translation_sha256": "05ca140e0a70df2101c5fa9ae5d390267b2e8a18ac0a24b3b01cf2081d936a7a"
+  },
+  "0x42e693": {
+   "body": 153,
+   "directions": [
+    1,
+    2
+   ],
+   "instructions": [
+    27,
+    35
+   ],
+   "pool": "lower",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x42e69e:taken": "647fd9c98653f89d52e9e5cec3968b5d7851817d159cbf6c011a7d6d4616184e"
+    },
+    "instructions": {
+     "0x42e6a9": "647fd9c98653f89d52e9e5cec3968b5d7851817d159cbf6c011a7d6d4616184e",
+     "0x42e6af": "647fd9c98653f89d52e9e5cec3968b5d7851817d159cbf6c011a7d6d4616184e",
+     "0x42e6b0": "647fd9c98653f89d52e9e5cec3968b5d7851817d159cbf6c011a7d6d4616184e",
+     "0x42e6b6": "647fd9c98653f89d52e9e5cec3968b5d7851817d159cbf6c011a7d6d4616184e",
+     "0x42e6b7": "647fd9c98653f89d52e9e5cec3968b5d7851817d159cbf6c011a7d6d4616184e",
+     "0x42e6bc": "647fd9c98653f89d52e9e5cec3968b5d7851817d159cbf6c011a7d6d4616184e",
+     "0x42e6c1": "647fd9c98653f89d52e9e5cec3968b5d7851817d159cbf6c011a7d6d4616184e",
+     "0x42e6c4": "647fd9c98653f89d52e9e5cec3968b5d7851817d159cbf6c011a7d6d4616184e"
+    },
+    "plan": {}
+   },
+   "scenarios_kept": 1,
+   "scenarios_run": 1,
+   "source": "src/original_methods_fl56_unverified.c",
+   "translation_sha256": "d41c9bb84a92af490b1a6cf96cd876c0a56fe702247909db4750dc006e0b313f"
+  },
+  "0x433eaa": {
+   "body": 379,
+   "directions": [
+    7,
+    8
+   ],
+   "instructions": [
+    102,
+    102
+   ],
+   "pool": "held",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x433ee1:taken": "fd4f000b62f03f1e9d2ff3e78eda6b10b247c79ff801e52a0e6aacdb2d471294"
+    },
+    "instructions": {},
+    "plan": {
+     "0x433eda": "gen"
+    }
+   },
+   "scenarios_kept": 3,
+   "scenarios_run": 5,
+   "source": "src/original_methods_fl40.c",
+   "translation_sha256": "9d9a2a9031565f9c4571291c2742ed1e62db7115f6463761e5d7aa9e230cb093"
+  }
+ },
+ "rule": {
+  "id": "T-EQ-INFEASIBLE",
+  "text": "A pending function is tested equivalent by proof when its committed translation equals the original on every scenario kept for it, and every instruction and conditional-jump direction those scenarios do not reach is PROVED unreachable: scripts/fl67_infeasible.py symbolically executes the original bytes (all paths at once, z3) and shows that no start state of the function reaches it in a run that does not fault. Modelling assumptions: ebx/esi/edi/ebp survive a call and esp returns by the bytes the callee pops; the direction flag is clear; an access at or above 0xfff00000, a division by zero and a quotient overflow fault; the image below .data is constant; a function that never forms the address of its own frame keeps its frame slots out of reach of stores through other pointers and of callees (except the argument slots pushed for the call). Not a verified port: never added to the verified count."
+ },
+ "schema": "blackmoor-tested-equivalent-infeasible/1"
+}
