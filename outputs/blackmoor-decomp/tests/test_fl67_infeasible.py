@@ -1,0 +1,223 @@
+"""FL-67: the infeasibility prover (scripts/fl67_infeasible.py) and the proved rows of the tested-equivalent tier (tasks/fl67-infeasible.json).
+
+Part 1 runs the prover on small hand-assembled functions: what it must prove impossible, and (as important) what it must NOT prove, including the cases where a modelling
+assumption is switched off (a function that forms the address of its own frame gets no frame assumption) and where a null read does not fault.
+Part 2 checks the manifest of proved rows against the ledger and the committed translations.
+Part 3 (needs z3, Unicorn and the pinned private GAME.EXE) replays the kept scenarios of a sample of proved rows and re-proves every missing item, and runs the soundness oracle:
+the prover must never call an instruction or a jump direction of a fully covered (tested-equivalent) row impossible.
+"""
+import json
+import os
+from pathlib import Path
+import sys
+import unittest
+
+sys.dont_write_bytecode = True
+HERE = Path(__file__).resolve().parent
+PROJECT = HERE.parent
+sys.path.insert(0, str(HERE))
+sys.path.insert(0, str(PROJECT / 'scripts'))
+
+try:
+    import z3  # noqa: F401
+    import fl67_infeasible as P
+    HAVE_Z3 = True
+except ImportError:
+    HAVE_Z3 = False
+
+BASE = 0x401000
+PROGRAMS = {
+    # xor eax,eax; test eax,eax; je done; mov eax,1; done: ret
+    'const_branch': '31c085c07405b801000000c3',
+    # test ecx,ecx; je done; mov eax,1; done: ret
+    'free_branch': '85c97405b801000000c3',
+    # for (i = 0; i < 2; i++) { if (i == 0) ...; else if (i != 1) <never> }, i in a frame slot
+    'frame_loop': '5589e551c745fc00000000837dfc027d28837dfc007507b805000000eb10837dfc017505b806000000b8070000008b4dfc83c101894dfcebd289ec5dc3',
+    # the same loop with a store through the argument pointer: the frame assumption keeps the counter out of its reach
+    'alias_loop': '5589e551c745fc00000000837dfc027d33837dfc007507b805000000eb12837dfc017507b806000000eb05b8070000008b5508c702630000008b4dfc83c101894dfcebc789ec5dc3',
+    # the same with `lea eax, [ebp-4]` in front: the function forms a frame address, so the argument pointer may alias the counter
+    'alias_loop_escape': '5589e551c745fc000000008d45fc837dfc027d33837dfc007507b805000000eb12837dfc017507b806000000eb05b8070000008b5508c702630000008b4dfc83c101894dfcebc789ec5dc3',
+    # do { ecx-- } while (ecx != 0): a loop that cannot be unrolled
+    'wrap_loop': '5589e58b4d084975fd89ec5dc3',
+    # mov eax,[esp+4]; cmp eax,5; jb low; cmp eax,5; jb never; ret; low: ret; never: mov eax,9; ret
+    'unsigned_pair': '8b44240483f805720683f8057202c3c3b809000000c3',
+    # mov ecx,[esp+4]; mov eax,[ecx]; test ecx,ecx; je null; ret; null: mov eax,0; ret   (a read at address 0 does not fault in the world)
+    'null_deref': '8b4c24048b0185c97401c3b800000000c3',
+    # push ebp; mov ebp,esp; sub esp,8; L: mov [ebp-8],0; push eax; pop edx; mov [esp],1; dec ebx; jnz L; cmp [ebp-8],0; jne T; ret; T: ret
+    # the loop changes esp, and [esp] is [ebp-8] in the loop: the jne is taken
+    'gen_loop_moves_esp': '5589e583ec08c745f80000000050 5ac7042401000000 4b75ed 837df800 7501 c3c3'.replace(' ', ''),
+    # push eax; mov [ebp],5; pop ecx; cmp ecx,eax; jne T; ret; T: ret   (a frame row starts with ebp = the entry frame address)
+    'frame_row': '50c745000500000059 39c1 7501 c3c3'.replace(' ', ''),
+    # cmp [esp+4],0; jne <outside the body>; ret
+    'jcc_leaves_body': '837c24040075 39c3'.replace(' ', ''),
+}
+
+
+def analysis(name, **extra):
+    code = bytes.fromhex(PROGRAMS[name])
+    image = bytes(BASE - P.IMAGE_BASE) + code + bytes(64)
+    an = P.Analysis(dict({'va': BASE, 'body': len(code), 'callees': {}, 'imports': {}, 'sites': None}, **extra), image, 20000)
+    an.run()
+    return an, code
+
+
+def verdicts(name, **extra):
+    an, code = analysis(name, **extra)
+    out = {}
+    for ins in an.insns:
+        out[('i', ins.address)] = an.instruction(ins.address)[0]
+        if ins.mnemonic.startswith('j') and ins.mnemonic != 'jmp':
+            out[('t', ins.address)] = an.direction(ins.address, 'taken')[0]
+            out[('f', ins.address)] = an.direction(ins.address, 'fall-through')[0]
+    return an, out
+
+
+@unittest.skipUnless(HAVE_Z3, 'needs z3-solver, capstone')
+class Synthetic(unittest.TestCase):
+    def test_a_constant_test_makes_one_direction_impossible(self):
+        an, v = verdicts('const_branch')
+        je = BASE + 4
+        self.assertEqual(v[('f', je)], 'unsat')
+        self.assertEqual(v[('t', je)], 'sat')
+        self.assertEqual(v[('i', BASE + 6)], 'unsat')           # the instruction behind the impossible direction
+        self.assertEqual(v[('i', BASE + 11)], 'sat')
+
+    def test_a_free_register_leaves_both_directions_possible(self):
+        an, v = verdicts('free_branch')
+        self.assertEqual({v[('t', BASE + 2)], v[('f', BASE + 2)]}, {'sat'})
+
+    def test_the_same_compare_twice(self):
+        an, v = verdicts('unsigned_pair')
+        second = [a for k, a in v.items() if k[0] == 't'][1:]
+        jbs = sorted(k[1] for k in v if k[0] == 't')
+        self.assertEqual(v[('t', jbs[1])], 'unsat')              # jb after the identical cmp and the not-taken first jb
+        self.assertEqual(v[('f', jbs[1])], 'sat')
+
+    def test_a_loop_unrolled_exactly(self):
+        an, v = verdicts('frame_loop')
+        self.assertNotIn('gen', an.plan.values())
+        never = [k for k, x in v.items() if k[0] == 't' and x == 'unsat']
+        self.assertTrue(never)                                   # jne never is impossible: the counter is 0 or 1 on a pass that gets there
+
+    def test_the_frame_assumption_is_what_keeps_the_counter_out_of_reach(self):
+        an, v = verdicts('alias_loop')
+        self.assertTrue(an.M.split)
+        self.assertTrue([k for k, x in v.items() if k[0] == 't' and x == 'unsat'])
+        an, v = verdicts('alias_loop_escape')
+        self.assertFalse(an.M.split)                             # lea of a frame slot: no frame assumption
+        self.assertFalse([k for k, x in v.items() if k[0] == 't' and x == 'unsat' and k[1] > BASE + 20])
+
+    def test_a_loop_with_an_unknown_trip_count_is_generalised_not_unrolled(self):
+        an, v = verdicts('wrap_loop')
+        self.assertIn('gen', an.plan.values())
+        self.assertEqual({x for k, x in v.items() if k[0] in 'tf'}, {'sat'})
+
+    def test_a_null_read_does_not_fault_so_the_null_test_stays_possible(self):
+        an, v = verdicts('null_deref')
+        self.assertEqual(v[('t', BASE + 8)], 'sat')
+
+    def test_a_loop_that_moves_esp_keeps_its_frame_cells_together(self):
+        an, v = verdicts('gen_loop_moves_esp')
+        jne = BASE + len(bytes.fromhex(PROGRAMS['gen_loop_moves_esp'])) - 4
+        self.assertEqual(v[('t', jne)], 'sat')
+
+    def test_a_frame_row_gets_no_frame_assumption(self):
+        an, v = verdicts('frame_row', frame=True)
+        self.assertFalse(an.M.split)
+        jne = BASE + len(bytes.fromhex(PROGRAMS['frame_row'])) - 4
+        self.assertEqual(v[('t', jne)], 'sat')
+
+    def test_a_jump_that_leaves_the_body_gives_no_verdict(self):
+        code = bytes.fromhex(PROGRAMS['jcc_leaves_body'])
+        image = bytes(BASE - P.IMAGE_BASE) + code + bytes(64)
+        an = P.Analysis({'va': BASE, 'body': len(code), 'callees': {}, 'imports': {}, 'sites': None}, image, 5000)
+        with self.assertRaises(P.Unsupported):
+            an.run()
+
+    def test_unsupported_instruction_gives_no_verdict(self):
+        code = bytes.fromhex('d7c3')                             # xlat; ret
+        image = bytes(BASE - P.IMAGE_BASE) + code + bytes(64)
+        an = P.Analysis({'va': BASE, 'body': len(code), 'callees': {}, 'imports': {}, 'sites': None}, image, 5000)
+        with self.assertRaises(P.Unsupported):
+            an.run()
+
+
+def manifest():
+    path = PROJECT / 'tasks/fl67-infeasible.json'
+    return json.loads(path.read_text()) if path.exists() else None
+
+
+MAN = manifest()
+
+
+@unittest.skipUnless(MAN and MAN['rows'], 'no proved rows committed yet')
+class Tier(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.ledger = json.loads((PROJECT / 'function-ledger.json').read_text())
+        cls.entries = {e['va']: e for e in cls.ledger['entries']}
+        cls.scen = json.loads((PROJECT / 'tests/fl67_scenarios.json').read_text())
+
+    def test_manifest_scenarios_and_ledger_agree(self):
+        rows = MAN['rows']
+        self.assertEqual(MAN['rule']['id'], 'T-EQ-INFEASIBLE')
+        self.assertEqual(set(rows), set(self.scen))
+        te = self.ledger['tested_equivalent']
+        self.assertEqual(te['proved']['vas'], sorted(rows, key=lambda k: int(k, 16)))
+        self.assertTrue(set(te['proved']['vas']) <= set(te['vas']))
+        self.assertEqual(te['count'], len(te['vas']))
+
+    def test_proved_rows_are_pending_never_ported(self):
+        for k in MAN['rows']:
+            self.assertEqual(self.entries[k]['status'], 'pending', k)
+
+    def test_one_proof_per_missing_item(self):
+        for k, r in MAN['rows'].items():
+            self.assertEqual(len(r['proofs']['instructions']), r['instructions'][1] - r['instructions'][0], k)
+            self.assertEqual(len(r['proofs']['directions']), r['directions'][1] - r['directions'][0], k)
+            self.assertGreaterEqual(len(r['proofs']['instructions']) + len(r['proofs']['directions']), 1, k)
+
+    def test_every_row_names_the_committed_translation(self):
+        import fl66_tested as T
+        texts = {}
+        for k, r in MAN['rows'].items():
+            text = texts.setdefault(r['source'], (PROJECT / r['source']).read_text())
+            self.assertEqual(T.translation_sha_of(text, k), r['translation_sha256'], k)
+
+
+@unittest.skipUnless(HAVE_Z3 and MAN and MAN['rows'], 'needs z3 and proved rows')
+class Replay(unittest.TestCase):
+    def test_sample_replays_and_reproves(self):
+        import fl66_tested as T
+        import original_differential as od
+        if not od.available():
+            self.skipTest('needs Unicorn and the pinned private work/original/GAME.EXE')
+        scen = json.loads((PROJECT / 'tests/fl67_scenarios.json').read_text())
+        keys = sorted(MAN['rows'], key=lambda k: int(k, 16))
+        step = 1 if os.environ.get('FL67_FULL') else max(1, len(keys) // 8)
+        for k in keys[::step]:
+            r = T.check_row(k, scenarios=[T.norm(s) for s in scen[k]])
+            row = MAN['rows'][k]
+            self.assertEqual(r['status'], 'partial', k)                       # the kept scenarios alone leave exactly the proved items
+            self.assertEqual(r['instructions'], row['instructions'], k)
+            self.assertEqual(r['directions'], row['directions'], k)
+            out = P.prove_row(k, {'missing': r['missing'], 'untaken': r['untaken']}, timeout_ms=60000)
+            self.assertEqual(out['status'], 'proved', (k, out))
+            self.assertEqual(sorted(out['instructions']), sorted(row['proofs']['instructions']), k)
+            self.assertEqual(sorted(out['directions']), sorted(row['proofs']['directions']), k)
+
+    def test_oracle_the_prover_never_rules_out_a_covered_item(self):
+        import fl66_tested as T
+        import original_differential as od
+        if not od.available():
+            self.skipTest('needs Unicorn and the pinned private work/original/GAME.EXE')
+        covered = json.loads(T.MANIFEST.read_text())['rows']
+        keys = sorted(covered, key=lambda k: (covered[k]['body'], k))
+        for k in keys[::max(1, len(keys) // 20)][:20]:
+            out = P.prove_row(k, P.all_targets(P.row_of(k)), timeout_ms=5000)
+            verdicts = [v[0] for v in list(out['instructions'].values()) + list(out['directions'].values())]
+            self.assertNotIn('unsat', verdicts, k)
+
+
+if __name__ == '__main__':
+    unittest.main()

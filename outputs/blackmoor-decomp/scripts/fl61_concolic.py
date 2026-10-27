@@ -22,6 +22,7 @@ import argparse
 import collections
 import heapq
 import json
+import os
 from pathlib import Path
 import sys
 import tempfile
@@ -119,6 +120,10 @@ def op_ashr_int(s):
     return f
 
 
+STUB_SYMBOLIC = tuple(x for x in os.environ.get('FL67_STUB_REGS', 'eax').split(',') if x)      # FL-67: registers of a callee's return that are symbolic inputs ('' turns it off)
+MAX_STUB_VARS = int(os.environ.get('FL67_STUB_CALLS', '40'))
+
+
 class Stats:
     unsupported = collections.Counter()
     mismatches = collections.Counter()
@@ -204,11 +209,21 @@ class Run:
             else:
                 self.path.append(('sw', at, cond, (None, address, getattr(self, 'switch_entries', {}))))
         calls = self.trace.calls
-        while self.ncalls < len(calls):
+        upto = len(calls)
+        if address in (self.row.get('sites') or {}) and upto > self.ncalls:        # FL-67: a call through a pointer is played as a stub AT its instruction; its result is for the next instruction
+            upto -= 1
+        while self.ncalls < upto:
             call = calls[self.ncalls]
+            k = self.ncalls
             self.ncalls += 1
             for n in ('eax', 'ecx', 'edx'):
                 self.R.pop(n, None)
+            for r_i, n in enumerate(('eax', 'ecx', 'edx')):          # FL-67: what a callee stub returns is an input of its own (the k-th stub's override cell)
+                if n in STUB_SYMBOLIC and k < MAX_STUB_VARS and hasattr(W, 'STUB_OVR'):
+                    name = 'st%d_%s' % (k, n)
+                    var = z3.BitVec(name, 32)
+                    self.R[n] = var
+                    self.inputs[name] = (var, self.creg(n), 'stub', (k, r_i))
             for at, data in call[7]:
                 for k in range(len(data)):
                     self.mem.pop(at + k, None)
@@ -942,7 +957,7 @@ def model_overrides(run, model, parent):
     cells = {}
     regs = {}
     for a, n, v in parent:
-        if a >= W.REG_OVERRIDE:
+        if a >= W.REG_OVERRIDE or (hasattr(W, 'STUB_OVR') and W.STUB_OVR <= a < W.STUB_OVR + 0x10000):
             regs[a] = v
         else:
             for k in range(n):
@@ -956,6 +971,8 @@ def model_overrides(run, model, parent):
             continue
         if kind == 'mem':
             cells[where] = val
+        elif kind == 'stub':
+            regs[W.STUB_OVR + 16 * where[0] + 4 * where[1]] = val
         else:
             regs[W.REG_OVERRIDE + 4 * W.REG_NAMES.index(where)] = val
     out = []

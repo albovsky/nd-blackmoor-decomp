@@ -159,6 +159,13 @@ TE_SCENARIOS = "tests/fl66_scenarios.json"
 TE_SCHEMA = "blackmoor-tested-equivalent/1"
 TE_RULE_ID = "T-EQ-COVERED"
 TE_ROW_KEYS = "pool body instructions directions scenarios_run scenarios_kept translation_sha256 source".split()
+# FL-67: a row that misses some instruction or jump direction on every kept scenario, where each missing item is PROVED unreachable by scripts/fl67_infeasible.py
+# (z3 over the original bytes). Same tier (pending, never ported, never in the verified count), listed beside the covered rows under its own rule id.
+TE2_FILE = "tasks/fl67-infeasible.json"
+TE2_SCENARIOS = "tests/fl67_scenarios.json"
+TE2_SCHEMA = "blackmoor-tested-equivalent-infeasible/1"
+TE2_RULE_ID = "T-EQ-INFEASIBLE"
+TE2_ROW_KEYS = TE_ROW_KEYS + ["proofs"]
 TE_SOURCES = ("src/original_methods_fl40.c", "src/original_methods_fl56_unverified.c",
               "translated/original_methods_fl41_translated.c", "translated/original_methods_fl57_translated.c")
 PRIVATE_PREFIX = "analysis/slices/"             # private receipts, work-relative, never hashed here
@@ -820,9 +827,18 @@ def validate(ledger):
 
 def validate_tested_equivalent(te, by_va):
     """The tier lists pending functions only: a ported or not-needed function is never in it, and it never changes a status or a count."""
-    exact_keys(te, "rule count vas manifest scenarios".split(), (), "tested_equivalent")
+    exact_keys(te, "rule count vas manifest scenarios".split(), ["proved"], "tested_equivalent")
     if te["rule"] != TE_RULE_ID or te["manifest"] != TE_FILE or te["scenarios"] != TE_SCENARIOS:
         fail("tested_equivalent: unknown rule or manifest")
+    if "proved" in te:
+        pr = te["proved"]
+        exact_keys(pr, "rule count vas manifest scenarios".split(), (), "tested_equivalent.proved")
+        if pr["rule"] != TE2_RULE_ID or pr["manifest"] != TE2_FILE or pr["scenarios"] != TE2_SCENARIOS:
+            fail("tested_equivalent.proved: unknown rule or manifest")
+        if not isinstance(pr["vas"], list) or pr["vas"] != sorted(set(pr["vas"]), key=lambda v: int(v, 16)) or pr["count"] != len(pr["vas"]):
+            fail("tested_equivalent.proved: addresses are not canonical, sorted and unique, or the count differs")
+        if not set(pr["vas"]) <= set(te["vas"]):
+            fail("tested_equivalent.proved: every proved row is also in vas")
     vas = te["vas"]
     if not isinstance(vas, list) or any(not isinstance(v, str) for v in vas):
         fail("tested_equivalent: vas must be a list of addresses")
@@ -1588,39 +1604,61 @@ def translation_sha256(text, key):
 
 
 def load_tested_equivalent(root, inputs, uni):
-    """FL-66: the manifest of the tested-equivalent tier, or None when there is none (pinned as absent). Every row must have full coverage and
-    must name a translation whose committed text still hashes to the recorded value, so changing a translation makes the ledger stale."""
-    raw = inputs.add(TE_FILE, "tested-equivalent", required=False)
-    scen_raw = inputs.add(TE_SCENARIOS, "tested-equivalent", required=False)
+    """FL-66/67: the manifests of the tested-equivalent tier, or None when there is none (pinned as absent). Every row must have full coverage (covered rows) or full
+    coverage plus a proof for each missing item (proved rows), and must name a translation whose committed text still hashes to the recorded value, so changing a
+    translation makes the ledger stale. `vas` lists both kinds; `proved` lists the second."""
+    covered = load_tested_rows(root, inputs, uni, TE_FILE, TE_SCENARIOS, TE_SCHEMA, TE_RULE_ID, TE_ROW_KEYS, proved=False)
+    proved = load_tested_rows(root, inputs, uni, TE2_FILE, TE2_SCENARIOS, TE2_SCHEMA, TE2_RULE_ID, TE2_ROW_KEYS, proved=True)
+    if covered is None and proved is None:
+        return None
+    covered, proved = covered or [], proved or []
+    if set(covered) & set(proved):
+        fail("tested_equivalent: a row is in both manifests")
+    vas = sorted(set(covered) | set(proved), key=lambda k: int(k, 16))
+    out = {"rule": TE_RULE_ID, "count": len(vas), "vas": vas, "manifest": TE_FILE, "scenarios": TE_SCENARIOS}
+    if proved:
+        out["proved"] = {"rule": TE2_RULE_ID, "count": len(proved), "vas": sorted(proved, key=lambda k: int(k, 16)), "manifest": TE2_FILE, "scenarios": TE2_SCENARIOS}
+    return out
+
+
+def load_tested_rows(root, inputs, uni, manifest, scenarios, schema, rule_id, row_keys, proved):
+    raw = inputs.add(manifest, "tested-equivalent", required=False)
+    scen_raw = inputs.add(scenarios, "tested-equivalent", required=False)
     if raw is None:
         return None
     if scen_raw is None:
-        fail(f"{TE_FILE} needs {TE_SCENARIOS}")
-    doc = read_json_bytes(raw, TE_FILE)
-    scen = read_json_bytes(scen_raw, TE_SCENARIOS)
-    exact_keys(doc, "schema rule rows".split(), (), TE_FILE)
-    if doc["schema"] != TE_SCHEMA:
-        fail(f"{TE_FILE}: schema must be {TE_SCHEMA}")
-    exact_keys(doc["rule"], "id text".split(), (), TE_FILE)
-    if doc["rule"]["id"] != TE_RULE_ID:
-        fail(f"{TE_FILE}: unknown rule")
-    text_value(doc["rule"]["text"], TE_FILE, limit=2000)
+        fail(f"{manifest} needs {scenarios}")
+    doc = read_json_bytes(raw, manifest)
+    scen = read_json_bytes(scen_raw, scenarios)
+    exact_keys(doc, "schema rule rows".split(), (), manifest)
+    if doc["schema"] != schema:
+        fail(f"{manifest}: schema must be {schema}")
+    exact_keys(doc["rule"], "id text".split(), (), manifest)
+    if doc["rule"]["id"] != rule_id:
+        fail(f"{manifest}: unknown rule")
+    text_value(doc["rule"]["text"], manifest, limit=2000)
     rows = doc["rows"]
     if not isinstance(rows, dict) or set(rows) != set(scen):
-        fail(f"{TE_FILE}: rows and scenarios differ")
+        fail(f"{manifest}: rows and scenarios differ")
     files = {}
     for key, row in rows.items():
-        what = f"{TE_FILE} {key}"
+        what = f"{manifest} {key}"
         va = parse_va(key, what)
         if key != fmt(va) or va not in uni.spans:
             fail(f"{what}: not a function start")
-        exact_keys(row, TE_ROW_KEYS, (), what)
+        exact_keys(row, row_keys, (), what)
         if row["source"] not in TE_SOURCES:
             fail(f"{what}: unknown translation file")
+        missing = {}
         for field in ("instructions", "directions"):
             v = row[field]
-            if not (isinstance(v, list) and len(v) == 2 and all(is_int(x) for x in v) and v[0] == v[1] and v[1] >= 0):
+            if not (isinstance(v, list) and len(v) == 2 and all(is_int(x) for x in v) and 0 <= v[0] <= v[1]):
+                fail(f"{what}: invalid {field} counts")
+            missing[field] = v[1] - v[0]
+            if not proved and missing[field]:
                 fail(f"{what}: {field} must show full coverage")
+        if proved:
+            check_proofs(row["proofs"], missing, va, uni.spans[va], what)
         if not is_int(row["scenarios_run"]) or row["scenarios_run"] < 1 or not is_int(row["scenarios_kept"]) or not 1 <= row["scenarios_kept"] <= row["scenarios_run"]:
             fail(f"{what}: invalid scenario counts")
         if not isinstance(scen[key], list) or len(scen[key]) != row["scenarios_kept"]:
@@ -1631,8 +1669,28 @@ def load_tested_equivalent(root, inputs, uni):
             inputs.add(row["source"], "tested-equivalent")
         if translation_sha256(files[row["source"]], key) != row["translation_sha256"]:
             fail(f"{what}: the committed translation changed since it was tested")
-    vas = sorted(rows, key=lambda k: int(k, 16))
-    return {"rule": TE_RULE_ID, "count": len(vas), "vas": vas, "manifest": TE_FILE, "scenarios": TE_SCENARIOS}
+    return sorted(rows, key=lambda k: int(k, 16))
+
+
+def check_proofs(proofs, missing, va, span, what):
+    """One proof record per missing instruction and per missing jump direction; each names the solver verdict by the hash of its query (the proof itself is replayed by tests/test_fl67_infeasible.py)."""
+    exact_keys(proofs, "checker plan instructions directions".split(), (), what)
+    if not is_int(proofs["checker"]) or proofs["checker"] < 2:
+        fail(f"{what}: invalid checker version")
+    if not isinstance(proofs["plan"], dict):
+        fail(f"{what}: invalid loop plan")
+    for field, count in (("instructions", missing["instructions"]), ("directions", missing["directions"])):
+        d = proofs[field]
+        if not isinstance(d, dict) or len(d) != count:
+            fail(f"{what}: {field} needs exactly one proof per missing item ({count})")
+        for k, h in d.items():
+            addr = parse_va(k.split(":")[0], what)
+            if not va <= addr < va + span:
+                fail(f"{what}: proof {k} is outside the function")
+            if field == "directions" and k.split(":")[1:] not in (["taken"], ["fall-through"]):
+                fail(f"{what}: invalid direction proof {k}")
+            if not isinstance(h, str) or not (HEX64.fullmatch(h) or h in ("unreachable block", "no edge", "not in any block")):
+                fail(f"{what}: invalid proof record for {k}")
 
 
 def verify_receipts(receipts, work_dir):
