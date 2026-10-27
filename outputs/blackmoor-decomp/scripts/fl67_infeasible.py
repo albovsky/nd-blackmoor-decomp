@@ -1037,6 +1037,9 @@ def prove_row(key, targets, timeout_ms=30000, image=None, fail_fast=False):
             return out
     except (Unsupported, KeyError, IndexError):
         pass
+    except Exception as ex:                 # the window module imports this file under its own name, so its Unsupported is another class when this file runs as __main__
+        if type(ex).__name__ != 'Unsupported':
+            raise
     try:
         an = Analysis(row, image, timeout_ms)
         an.run()

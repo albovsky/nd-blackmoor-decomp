@@ -61,7 +61,8 @@ class Replay71(S.Replay):
             self.stub_syms[name] = (k, ri, None)
         writes = list(self.tr.calls[k][7])
         extra = W.extra_stub_writes(self.parent_stub, k)
-        kept_extra = bool(extra and W.stub_filter(STATE['row'], extra))
+        filt = getattr(W, 'stub_filter', None)                # fl40_world has no filter: its extra store is always applied
+        kept_extra = bool(extra and (filt(STATE['row'], extra) if filt else extra))
         if kept_extra and writes:
             writes.pop()                                  # the parent's own extra store is modelled symbolically below
         for at, data in writes:
