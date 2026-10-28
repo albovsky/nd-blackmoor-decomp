@@ -264,41 +264,14 @@ FRAME_EARLIER = bytes.fromhex('5589e583ec08c745fc000000008d4dfc8b4508c7000700000
 FRAME_LATER = bytes.fromhex('5589e583ec08c745fc000000008b4508c70007000000837dfc0075098d4dfc89c889ec5dc3b80900000089ec5dc3')
 # call C; cmp eax,0x8000; jae never; ret; never: mov eax,9; ret; body_end: C: mov eax,[esp+4]; and eax,MASK; ret
 RETBOUND = {m: bytes.fromhex('e80e0000003d008000007301c3b809000000c38b440424' + m + 'c3') for m in ('25ff7f0000', '25ffff0000', '2500000080')}
-# push ebp; mov ebp,esp; sub esp,16; mov [ebp-12],0; mov [ebp-8],0; lea eax,[ebp-8]; push eax; call C; cmp [ebp-12],0; jne never; cmp [ebp-8],0; jne maybe; ... (body 0x44 bytes), then C
-FP_CALLER = '5589e583ec10c745f400000000c745f8000000008d45f850e827000000837df400750f837df8007512b80100000089ec5dc3b80900000089ec5dc3b80200000089ec5dc3'
-FP_CALLEES = {
-    'good': '5589e58b5508c70205000000c74204060000005dc20400',          # mov edx,[ebp+8]; mov [edx],5; mov [edx+4],6; pop ebp; ret 4
-    'leak': '5589e58b55088915000060005dc20400',                         # mov edx,[ebp+8]; mov [0x600000],edx
-    'pass': '5589e5ff7508e8b10f000083c4045dc20400',                     # push dword [ebp+8]; call ...
-    'arith': '5589e58b550883c264c702050000005dc20400',                  # add edx,100 before the store
-}
-
-
 # push ebp; mov ebp,esp; sub esp,4; mov [ebp-4],0; mov eax,[ebp+8]; cmp eax,5; jne bad; mov eax,1; jmp done; bad: mov eax,100; cdq; idiv dword [ebp-4]; done: mov esp,ebp; pop ebp; ret
 FAULT_LATER = bytes.fromhex('5589e583ec04c745fc000000008b450883f8057507b801000000eb09b86400000099f77dfc89ec5dc3')
 
 
 # FAULT_LATER with a second exit on the path `bad`: cmp eax,6; jne tail; ... tail: mov esp,ebp; pop ebp; jmp 0x500000 (a tail call outside the body, which does not fault)
 FAULT_OR_TAIL = bytes.fromhex('5589e583ec04c745fc000000008b450883f8057507b801000000eb0983f806750899f77dfc89ec5dc389ec5de9cfef0f00')
-# push ebp; mov ebp,esp; sub esp,16; [ebp-12]=0; [ebp-8]=0; lea eax,[ebp-8]; push eax; call C; mov [eax],7; cmp [ebp-8],0; jne other; ...; C: push ebp; mov ebp,esp; mov eax,[ebp+8]; pop ebp; ret 4
-RET_PTR = bytes.fromhex('5589e583ec10c745f400000000c745f8000000008d45f850e81e000000c70007000000837df8007509b80100000089ec5dc3b80200000089ec5dc35589e58b45085dc20400')
-
-
 # push ebp; mov ebp,esp; mov eax,[ebp+8]; test eax,eax; jne tail; leave; jmp L; tail: mov eax,3; leave; jmp L; L: cmp esp,ebp; je yes; mov eax,1; ret; yes: mov eax,2; ret
 LEAVE_JOIN = bytes.fromhex('5589e58b450885c07503c9eb08b803000000c9eb0039ec7406b801000000c3b802000000c3')
-# callee that stores through the register that still holds the caller's pointer: push ebp; mov ebp,esp; mov dword [eax],7; pop ebp; ret 4
-ENTRY_ALIAS = bytes.fromhex('5589e5c700070000005dc20400')
-
-# the same caller, but it overwrites eax (xor eax,eax; nops) instead of storing through it
-RET_PTR_DEAD = RET_PTR.replace(bytes.fromhex('c70007000000'), bytes.fromhex('31c090909090'))
-# callees that must get no footprint: a write above the callee's frame, and a partial overwrite of the pointer register
-CALLEE_BAD = {
-    'high_write': '5589e5c7451007000000 5dc20400'.replace(' ', ''),                  # mov dword [ebp+16], 7
-    'partial': '5589e58b5508b200c70207000000 5dc20400'.replace(' ', ''),            # mov edx,[ebp+8]; mov dl,0; mov dword [edx],7
-    'after_teardown': '5589e5c9c745f407000000c20400',                                 # leave; mov dword [ebp-12], 7 (ebp is the caller's by then)
-    'alias_load': '5589e58b55088b52f4c742fc07000000 5dc20400'.replace(' ', ''),    # mov edx,[ebp+8]; mov edx,[edx-12] (the pushed copy of the pointer); mov dword [edx-4],7
-    'saved_ebp': '5589e58b4500c740f407000000 5dc20400'.replace(' ', ''),            # mov eax,[ebp] (the caller's ebp); mov dword [eax-12], 7
-}
 
 
 def image_of(code, tail=b''):
@@ -307,7 +280,7 @@ def image_of(code, tail=b''):
 
 @unittest.skipUnless(HAVE_Z3, 'needs z3-solver, capstone')
 class Fl75(unittest.TestCase):
-    """FL-75: jump tables cut at their range check, the frame assumption per window, callee return bounds and callee write footprints."""
+    """FL-75: jump tables cut at their range check, the frame assumption per window, callee return bounds."""
 
     def two_tables(self, code=TWO_TABLES, tight=True):
         body = 0x23
@@ -333,6 +306,13 @@ class Fl75(unittest.TestCase):
         with self.assertRaises(P.Unsupported) as ctx:
             an.run()
         self.assertIn('table escape', str(ctx.exception))
+
+    def test_a_window_does_not_use_a_cut_nobody_has_proved(self):
+        import fl71_window as Wn
+        an, dom = Wn.from_analysis(self.two_tables(BAD_GUARD))
+        c2 = BASE + 0x1d                                                # reachable with eax == 2, ebx <= 1: the range check is on ebx, so the cut to two cells is wrong
+        self.assertIn(Wn.block_of(an, c2), an.reach)
+        self.assertNotEqual(Wn.prove_faults(an, dom, ('ins', c2))[0], 'unsat')
 
     def jne_window(self, code):
         import fl71_window as Wn
@@ -363,6 +343,14 @@ class Fl75(unittest.TestCase):
         self.assertEqual(delta[BASE + 0x1c], -4)
         self.assertNotIn(BASE, delta)                                   # the entry block starts before the prologue
 
+    def test_the_stack_pointer_tie_is_dropped_behind_a_16_bit_push(self):
+        import fl71_window as Wn
+        code = bytes.fromhex('5589e5665085c0740290 90c3'.replace(' ', ''))   # push ebp; mov ebp,esp; push ax; test eax,eax; je L; nop; nop; L: ret
+        self.assertEqual(len(code), 12)
+        an = P.Analysis({'va': BASE, 'body': len(code), 'callees': {}, 'imports': {}, 'sites': None}, image_of(code), 20000)
+        an, dom = Wn.from_analysis(an)
+        self.assertNotIn(BASE + 9, Wn.stack_delta(an))                  # esp moved by 2, not 4
+
     def test_a_path_whose_every_run_faults_later_is_proved_unreachable_by_the_forward_window(self):
         an, Wn, dom, jne = self.fault_window(None)
         self.assertEqual(Wn.prove_faults(an, dom, ('dir', jne, 'taken'))[0], 'unsat')   # [ebp-4] = 0 reaches the idiv on every run through `bad`
@@ -386,35 +374,6 @@ class Fl75(unittest.TestCase):
         jne = [i for i in an.insns if i.mnemonic == 'jne'][0].address
         self.assertNotEqual(Wn.prove_faults(an, dom, ('dir', jne, 'taken'))[0], 'unsat')        # eax == 5 is excluded, eax == 6 divides by zero, any other value jumps out of the function
 
-    def ret_ptr(self, code):
-        image = image_of(code)
-        an = P.Analysis({'va': BASE, 'body': 0x3b, 'callees': {BASE + 0x3b: 4}, 'imports': {}, 'sites': None}, image, 20000)
-        return an, image
-
-    def test_a_callee_that_returns_its_pointer_is_not_usable_when_the_caller_reads_the_register_again(self):
-        import fl75_footprint as FP
-        an, image = self.ret_ptr(RET_PTR)
-        self.assertEqual(FP.callee_summary(image, BASE + 0x3b, frozenset({'eax'})), (0, 0, frozenset({'eax'})))
-        self.assertFalse(an.M.split)                                    # `mov [eax], 7` after the call would store through the frame address: no frame assumption
-        self.assertEqual(an.M.footprints, {})
-        an.run()
-        jne = [i.address for i in an.insns if i.mnemonic == 'jne'][0]
-        self.assertEqual(an.direction(jne, 'taken')[0], 'sat')
-
-    def test_a_callee_that_returns_its_pointer_is_usable_when_the_caller_overwrites_the_register(self):
-        an, image = self.ret_ptr(RET_PTR_DEAD)
-        self.assertTrue(an.M.split)
-        an.run()
-        jne = [i.address for i in an.insns if i.mnemonic == 'jne'][0]
-        self.assertEqual(an.direction(jne, 'taken')[0], 'unsat')        # nothing writes [ebp-8]
-
-    def test_a_callee_that_can_reach_the_caller_frame_by_another_way_gets_no_footprint(self):
-        import fl75_footprint as FP
-        caller = bytes.fromhex(FP_CALLER)
-        for kind, hexa in CALLEE_BAD.items():
-            image = image_of(caller, bytes.fromhex(hexa))
-            self.assertIsNone(FP.callee_footprint(image, BASE + 0x44), kind)
-
     def retbound(self, key):
         code = RETBOUND[key]
         an = P.Analysis({'va': BASE, 'body': 0x13, 'callees': {BASE + 0x13: 0}, 'imports': {}, 'sites': None}, image_of(code), 20000)
@@ -437,32 +396,6 @@ class Fl75(unittest.TestCase):
         code = bytes.fromhex('e80e0000003d008000007301c3b809000000c3') + bytes.fromhex('8b4424048b0085c07401c3 25ff7f0000c3'.replace(' ', ''))
         an = P.Analysis({'va': BASE, 'body': 0x13, 'callees': {BASE + 0x13: 0}, 'imports': {}, 'sites': None}, image_of(code), 20000)
         self.assertIsNone(an.M.ret_bound(BASE + 0x13))
-
-    def fp(self, kind):
-        caller = bytes.fromhex(FP_CALLER)
-        callee = bytes.fromhex(FP_CALLEES[kind])
-        self.assertEqual(len(caller), 0x44)
-        image = image_of(caller, callee)
-        an = P.Analysis({'va': BASE, 'body': len(caller), 'callees': {BASE + 0x44: 4}, 'imports': {}, 'sites': None}, image, 20000)
-        return an, image
-
-    def test_a_callee_that_writes_only_through_its_pointer_leaves_the_frame_assumption_on(self):
-        import fl75_footprint as FP
-        an, image = self.fp('good')
-        self.assertEqual(FP.callee_footprint(image, BASE + 0x44), (0, 8))
-        self.assertTrue(an.M.split)
-        an.run()
-        jne_never, jne_maybe = [i.address for i in an.insns if i.mnemonic == 'jne']
-        self.assertEqual(an.direction(jne_never, 'taken')[0], 'unsat')       # [ebp-12] is outside the 8 bytes the callee may write
-        self.assertEqual(an.direction(jne_maybe, 'taken')[0], 'sat')         # [ebp-8] is inside
-
-    def test_a_callee_that_keeps_or_passes_its_pointer_or_computes_with_it_gets_no_footprint(self):
-        import fl75_footprint as FP
-        for kind in ('leak', 'pass', 'arith'):
-            an, image = self.fp(kind)
-            self.assertIsNone(FP.callee_footprint(image, BASE + 0x44), kind)
-            self.assertFalse(an.M.split, kind)
-
 
 def manifest():
     path = PROJECT / 'tasks/fl67-infeasible.json'

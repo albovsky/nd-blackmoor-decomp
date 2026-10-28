@@ -46,8 +46,8 @@ RULE_TEXT2 = ('A pending function is tested equivalent by proof when its committ
               'those scenarios do not reach is PROVED unreachable: scripts/fl67_infeasible.py symbolically executes the original bytes (all paths at once, z3) and shows that no start state of the '
               'function reaches it in a run that does not fault. Modelling assumptions: ebx/esi/edi/ebp survive a call and esp returns by the bytes the callee pops; the direction flag is clear; '
               'an access at or above 0xfff00000, a division by zero and a quotient overflow fault; a call to a callee that never returns (tests/fl72_noreturn.json, AfxEndThread) ends the run; the image below .data is constant; a function that never forms the address of its own frame '
-              'keeps its frame slots out of reach of stores through other pointers and of callees (except the argument slots pushed for the call), and so does a function whose only frame address is passed as `lea R, [ebp-K]; push R; call C` to a callee whose own bytes '
-              'show it writes only the bytes it is given and keeps no copy of the pointer (scripts/fl75_footprint.py; those bytes are then unknown after the call); a direct callee whose own straight-line bytes end `and eax, K; ret` returns at most K; '
+              'keeps its frame slots out of reach of stores through other pointers and of callees (except the argument slots pushed for the call). '
+              'a direct callee whose own straight-line bytes end `and eax, K; ret` returns at most K; '
               'a jump table is cut at the range check in front of the jump and the prover shows no run indexes past the cut. A path may also be ruled out because every run that takes it faults later: a window in front of it and a forward window from it to the returns '
               'are solved together (with esp tied to ebp by the pushes, pops and calls of the bytes), and no run reaches a ret without one of the fault assumptions failing. Not a verified port: never added to the verified count.')
 RULE_ID = 'T-EQ-COVERED'
@@ -361,7 +361,12 @@ def CHECKER_VERSION_now():
 def prove_leftovers(key, res):
     """FL-67: a partial row whose every missing instruction and untaken direction is PROVED unreachable (scripts/fl67_infeasible.py) becomes `proved`."""
     import fl67_infeasible as P
-    out = P.prove_row(key, {'missing': res['missing'], 'untaken': res['untaken']}, timeout_ms=40000, fail_fast=True)
+    try:
+        out = P.prove_row(key, {'missing': res['missing'], 'untaken': res['untaken']}, timeout_ms=40000, fail_fast=True)
+    except Exception as ex:                                      # z3 runs out of memory on the largest whole-function analyses: no proof, the row stays partial
+        if type(ex).__name__ != 'Z3Exception':
+            raise
+        out = {'status': 'open', 'reason': 'z3: %s' % str(ex)[:80], 'instructions': {}, 'directions': {}}
     res['proof_status'] = out['status']
     if out['status'] == 'proved':
         res['status'] = 'proved'

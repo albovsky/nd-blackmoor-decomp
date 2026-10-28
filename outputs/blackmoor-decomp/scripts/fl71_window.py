@@ -81,6 +81,12 @@ def stack_delta(an):
                 m = i.mnemonic
                 ops = i.operands
                 regs = [i.reg_name(o.reg) for o in ops if o.type == P.X.X86_OP_REG]
+                if m in ('push', 'pop') and (len(ops) != 1 or ops[0].size != 4):        # a 16-bit push or pop moves esp by 2
+                    good = False
+                    break
+                if m in ('enter', 'pusha', 'popa', 'pushal', 'popal', 'pushf', 'popf', 'pushfd', 'popfd'):
+                    good = False
+                    break
                 if m == 'push':
                     d -= 4
                 elif m == 'pop':
@@ -114,7 +120,7 @@ def stack_delta(an):
                     d += pops
                 else:
                     _, wr, _ = FPR(i)
-                    if 'esp' in wr or 'ebp' in wr:
+                    if wr & {'esp', 'ebp', 'sp', 'bp'}:
                         good = False
                         break
             if not good:
@@ -230,7 +236,7 @@ def run_window(an, order, S, T, query, frame=False, want_state=False):
                     st.fs = P.fresh_array('fa')
                 if node in an.inv:
                     gen_state[node], hdr_in[node] = st.copy(), list(items)
-                    M.facts.append(P.inv_formula(M, st, an.inv[node]))
+                    M.facts.append(z3.Implies(ic[node], P.inv_formula(M, st, an.inv[node])))        # only runs that arrive at the header satisfy it
             if node == T and query[0] == 'ins':
                 if want_state:                                      # FL-75: the merged state and condition on arrival at T, for a forward window that continues from there (returned only after the invariant and table checks below)
                     arrival = (ic[node], st)
@@ -460,6 +466,7 @@ def prove_target(an, dom, T, query, timeout_ms=STEP_MS):
 
 
 def from_analysis(an):
+    an.tight_tables, an.cut = False, {}        # FL-75: the windows and dominators use the whole tables: a cut is only proved on the paths a window walks, and a run that leaves by a discarded cell may reach a block the cut graph calls unreachable
     an.build_blocks()
     an.graph()
     return an, dominators(an)

@@ -19,8 +19,7 @@ in a run that does not fault. The proof is an exhaustive symbolic execution of t
   * a call to a callee that the row lists as never returning (tests/fl72_noreturn.json: AfxEndThread, which ends the thread) ends the run: nothing after it is reachable (FL-72);
   * bytes of the image below .data are constants (`DATA_START`); the direction flag is clear at entry and after calls (Win32 ABI);
   * FL-75: a direct callee whose own straight-line bytes end `and eax, K; ret` returns eax <= K (`Machine.ret_bound`, e.g. the CRT rand); a jump table is cut at the range check in front of the jump (`Analysis.tighten`) and
-    the prover requires, per jump, that no run can index past the cut (`table_escape` unsat), else the whole table is used as before; a function whose frame addresses are all `lea R, [ebp-K]; push R; call C` with a callee C that
-    `scripts/fl75_footprint.py` shows writes only [p+lo, p+hi) and keeps no copy of p keeps the frame assumption (that call also leaves those frame bytes unknown); a window in front of the first frame address gets it too (`Analysis.frame_safe`).
+    the prover requires, per jump, that no run can index past the cut (`table_escape` unsat), else the whole table is used as before; a window in front of the first frame address gets the frame assumption too (`Analysis.frame_safe`).
 
 A target (instruction or jump direction) is UNREACHABLE when the solver proves `ic(block) and branch condition` unsatisfiable. A target the
 solver cannot decide, or a function with an instruction the model does not know, gets NO proof. Everything over-approximates, so unsat is sound.
@@ -270,7 +269,6 @@ class Machine:
         self.sites = {int(k): v for k, v in (row.get('sites') or {}).items()}
         self.noreturn = {int(a) for a in row.get('noreturn', ())}          # FL-72: callees that never return (tests/fl72_noreturn.json): a path that calls one ends there
         self.bounds = {}        # FL-75: callee address -> the bound on eax that its bytes prove (ret_bound)
-        self.footprints = {}    # FL-75: call address -> (disp, lo, hi, regs): the callee writes only [ebp+disp+lo, ebp+disp+hi) of the frame through its pointer argument; `regs` (informational) may still hold the pointer after the call, and the caller never reads them again (scripts/fl75_footprint._dead_after)
         self.split = False      # the frame assumption holds for this function (set by Analysis)
         self.after_call = {}    # call address -> bytes the next instruction `add esp, k` removes
         self.facts = []         # facts about the START memory (constant bytes of the image), valid in every query
@@ -664,10 +662,6 @@ class Machine:
             arr = st.frm
             for k in range(max(span, 0)):
                 arr = z3.Store(arr, sp + k, fresh(8, 'x'))
-            fp = self.footprints.get(ins.address)
-            if fp:                                                       # FL-75: what the callee may write through the frame address it was given
-                for k in range(fp[1], fp[2]):
-                    arr = z3.Store(arr, st.R['ebp'] + (fp[0] + k), fresh(8, 'x'))
             st.frm = arr
         st.R['esp'] = sp + pops if pops is not None else fresh(32, 'sp')
         self.unknown_flags(st)
@@ -769,11 +763,6 @@ class Analysis:
         self.M = Machine(row, image)
         self.split_ok = SPLIT and not row.get('frame')                                       # a `frame` row starts with ebp = the entry frame address
         self.esc_addrs = [i.address for i in self.insns if frame_escapes([i])] if self.split_ok else []      # FL-75: where the function forms an address of its frame
-        if self.esc_addrs:                                                               # FL-75: `lea R, [ebp-K]; push R; call C` where C's own bytes show it writes only [p+lo, p+hi) and keeps no copy of p (scripts/fl75_footprint.py)
-            import fl75_footprint as FP
-            leas, calls = FP.call_footprints(self.insns, image, self.jump_targets(), self.va, self.body)
-            self.esc_addrs = [a for a in self.esc_addrs if a not in leas]
-            self.M.footprints = calls
         self.M.split = self.split_ok and not self.esc_addrs
         for k, i in enumerate(self.insns[:-1]):
             nxt = self.insns[k + 1]
@@ -1080,7 +1069,7 @@ class Analysis:
                     st.fs = fresh_array('fa')
                 if a in self.inv:                                                          # FL-73: assumed here, proved in verify_invariants
                     self.gen_state[node], self.hdr_in[node] = st.copy(), list(items)
-                    self.M.facts.append(inv_formula(self.M, st, self.inv[a]))
+                    self.M.facts.append(z3.Implies(self.ic[node], inv_formula(self.M, st, self.inv[a])))        # only runs that arrive at the header satisfy it
             st.pc = z3.BoolVal(True)
             ins = self.blocks[a]['insns']
             br = None
