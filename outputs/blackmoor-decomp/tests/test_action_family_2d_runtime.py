@@ -171,8 +171,8 @@ class ExecutorTests(unittest.TestCase):
                                            'executor->states[action_index].completed = 0u;\n    executor->states[action_index].phase = 0u;'),
             'retire keeps the phase': ('scene_executor.c', 'executor->states[action_index].completed = 1u;\n    executor->states[action_index].phase = 0u;',
                                        'executor->states[action_index].completed = 1u;\n    executor->states[action_index].phase = 5u;'),
-            'retire bound dropped': ('scene_executor.c', 'if (executor == NULL || action_index >= executor->action_count) {\n        return SCENE_EXECUTOR_ERR_ARGUMENT;\n    }\n    executor->states[action_index].completed',
-                                     'if (executor == NULL) {\n        return SCENE_EXECUTOR_ERR_ARGUMENT;\n    }\n    executor->states[action_index].completed'),
+            'retire bound dropped': ('scene_executor.c', 'if (executor == NULL || action_index >= executor->action_count) {\n        return SCENE_EXECUTOR_ERR_ARGUMENT;\n    }\n    if (executor->slot_revision == UINT64_MAX) return SCENE_EXECUTOR_ERR_LIMIT;\n    ++executor->slot_revision;\n    executor->states[action_index].completed',
+                                     'if (executor == NULL) {\n        return SCENE_EXECUTOR_ERR_ARGUMENT;\n    }\n    if (executor->slot_revision == UINT64_MAX) return SCENE_EXECUTOR_ERR_LIMIT;\n    ++executor->slot_revision;\n    executor->states[action_index].completed'),
         }
         for name, (filename, old, new) in mutations.items():
             with self.subTest(name):
