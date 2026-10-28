@@ -58,6 +58,7 @@ FAULT_LIMIT = 0xfff00000      # an access at or above it faults in the world (te
 DATA_START = 0x537000         # first writable page of .data; the image below it is constant
 IMAGE_BASE = 0x400000
 FLAGS = ('cf', 'zf', 'sf', 'of', 'pf', 'af')
+PLANS = PROJECT / 'tests' / 'fl75_plans.json'                     # FL-75: starting loop plan per function (a choice of abstraction, never trusted: a numeric bound is still checked by sink_unsat and bumped when it is too small)
 INVARIANTS = PROJECT / 'tests' / 'fl73_invariants.json'          # FL-73: loop invariants for generalised headers (CHECKED by the prover itself, never trusted)
 _INV_OPS = {'eq': lambda v, c: v == c, 'ne': lambda v, c: v != c, 'sge': lambda v, c: v >= c, 'sgt': lambda v, c: v > c, 'sle': lambda v, c: v <= c,
             'slt': lambda v, c: v < c, 'uge': z3.UGE, 'ugt': z3.UGT, 'ule': z3.ULE, 'ult': z3.ULT}
@@ -94,6 +95,15 @@ def fresh_bool(tag='fb'):
 def fresh_array(tag='ma'):
     _fresh[0] += 1
     return z3.Array('%s%d' % (tag, _fresh[0]), z3.BitVecSort(32), z3.BitVecSort(8))
+
+
+def load_plan_hints(va):
+    """{loop header: 3|5|9|17|'gen'} from tests/fl75_plans.json. The loop plan is otherwise found by trying the bounds in turn, and the 3 s sink check (SINK_MS) that bumps a bound can go either way on a busy machine, which made a few rows flip between proved and open."""
+    try:
+        data = json.loads(PLANS.read_text())
+    except (OSError, ValueError):
+        return {}
+    return {int(h, 16): v for h, v in data.get(hex(va), {}).items() if v == 'gen' or v in UNROLL}
 
 
 def load_invariants(va):
@@ -1141,7 +1151,8 @@ class Analysis:
     def run(self):
         self.build_blocks()
         self.graph()
-        plan = {h: UNROLL[0] for h in self.loops}
+        hints = load_plan_hints(self.va)
+        plan = {h: hints.get(h, UNROLL[0]) for h in self.loops}
         self.plan = plan
         for _ in range(len(UNROLL) + 1):
             self.escapes = []

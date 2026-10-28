@@ -345,6 +345,16 @@ class Fl75(unittest.TestCase):
         self.assertEqual(Wn.prove_faults(an, dom, ('dir', jne, 'taken'))[0], 'unsat')   # [ebp-4] = 0 reaches the idiv on every run through `bad`
         self.assertNotEqual(Wn.prove_faults(an, dom, ('dir', jne, 'fall'))[0], 'unsat')  # the other direction returns without a fault
 
+    def test_the_committed_plan_hints_name_known_bounds(self):
+        hints = P.load_plan_hints(0x44b641)
+        self.assertEqual(hints[0x44b9c0], 9)
+        self.assertEqual(hints[0x44b75e], 'gen')
+        data = json.loads(P.PLANS.read_text())
+        for va, plan in data.items():
+            for h, v in plan.items():
+                self.assertTrue(v == 'gen' or v in P.UNROLL, (va, h, v))
+        self.assertEqual(P.load_plan_hints(0x401000), {})
+
     def retbound(self, key):
         code = RETBOUND[key]
         an = P.Analysis({'va': BASE, 'body': 0x13, 'callees': {BASE + 0x13: 0}, 'imports': {}, 'sites': None}, image_of(code), 20000)

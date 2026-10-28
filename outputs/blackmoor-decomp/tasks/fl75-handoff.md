@@ -1,0 +1,29 @@
+# FL-75 handoff: prover extensions for the last Mac-port rows (2026-10-28 PDT, cloud thread)
+
+Goal: clear the Mac-port pending rows that FL-72 was not working on, by making the infeasibility prover (T-EQ-INFEASIBLE) handle irreducible-looking loops, big graphs and crash paths. Strict "verified" is unchanged (2,210 of 4,188). Credit is "tested equivalent" (Unicorn scenarios, every instruction and both jump directions) or T-EQ-INFEASIBLE (z3 proof of the ORIGINAL bytes, one proof per missing item).
+
+## Result
+
+RESULT_PLACEHOLDER
+
+## Prover changes (read before touching the provers)
+
+All in `scripts/fl67_infeasible.py`, `scripts/fl71_window.py`, new `scripts/fl75_footprint.py`; assumptions are spelled out in `RULE_TEXT2` of `scripts/fl66_tested.py` (the committed manifest carries that text).
+
+- **Jump tables are cut at their range check** (`Analysis.tighten`): a table read past `cmp X, K; ja/jae` is cut to K+1 cells. Reading the whole table ran into the next switch's table and made fake "irreducible loops" (0x44b641). The cut is not trusted: `verify_escapes` has z3 prove the index is within the kept cells at the jump (`Unsupported` otherwise). If the tight run raises, `prove_row` retries with the loose tables.
+- **OR atoms in loop invariants** (`tests/fl73_invariants.json`, `{"or": [atoms]}`), used for a word counter that could wrap in 0x44b641.
+- **Frame assumption per window.** The SPLIT assumption (frame slots out of reach of other pointers and callees) was whole-function and switched off by any `lea reg, [ebp-K]`. Now `Analysis.frame_safe(S, region)` allows it in a window when no frame-address instruction is in the window or can reach its start. The whole-function pass is unchanged.
+- **Callee write footprints** (`scripts/fl75_footprint.py`): for `lea R,[ebp-K]; push R; ... call C` where C's own bytes read the pointer only as `mov reg,[ebp+8]` and store only through it at constant displacements (no copy, push, arithmetic, call while the pointer is live), the call is treated as writing only `[K-lo, K-hi)`; those frame bytes become unknown after the call and the rest keeps the frame assumption. Needed for 0x4a14c6 and 0x4bbb3e. Tests: `Fl75` in `tests/test_fl67_infeasible.py`.
+- **Callee return bounds** (`Machine.ret_bound`): a direct callee whose straight-line bytes end `and eax, K; ret` (0 <= K < 2^31) returns at most K (real rand, 0x50cd50, returns <= 0x7fff).
+- **Forward "every run that takes it faults later" windows** (`fl71_window.prove_faults`, `forward_region`, `run_forward`, plus `stack_delta` and `relate` which tie esp to ebp from the pushes, pops and calls so a push cannot alias a local). A backward window from a dominator to the target and a forward window from the target to the rets are solved together; unsat means no run takes the item and reaches a ret without a fault (access >= 0xfff00000, div by zero, quotient overflow). Whole-function symbolic runs of the crash-path rows ran z3 out of memory; the windows do not. Cleared the crash-path row 0x4a0ec3.
+- Gotchas: `stack_delta` gives no value for a block that ends in `ret` (conservative, only loses a fact). Keep window prover changes tested with `tests.test_fl71_window` and `tests.test_fl67_infeasible`; re-prove all rows with `tasks/fl73/tools/reprove_all.py OUT`.
+
+## Scenario work
+
+0x4bbb3e: callee stores between two reads (`tasks/fl75/eq1.py`, scenarios in `tasks/fl74/scenarios.json`). 0x45c18f, 0x4a6c61, 0x4867bd: equal strings for `repe cmpsb` at the gate PCs (`cmpeq.py`), 12 pages of string for the long loop in 0x4867bd; then proved or covered. The scenarios are in `tasks/fl75/scenarios.json`. `tasks/fl75/addscen.py` merges new ones, `dbgrun.py` runs one with a PC trace, `allreads.py`/`hits.py` list reads.
+
+## Still open
+
+- **0x49d945** (crash path): three error-path directions (0x49da7c, 0x49db1c, 0x49dbc5 fall-through) and the instructions behind them (0x49da7e..0x49daa7, 0x49db1e..0x49db47, 0x49dbc7..0x49dbf0). In the original they crash later at `idiv dword [ebp-0x70]` (0x49e06b) after the diagnostics helper 0x4c97b4 returns (it is not noreturn), but the forward window crosses three counting loops whose generalised headers lose the frame cell, so z3 says sat. A loop invariant (`tests/fl73_invariants.json`: the counter cells keep a zero) for those loops, or a longer window, is the next idea. These error paths would be a user-facing crash in the Mac port, so a decision is also needed on whether the port should mimic the crash.
+- Parked on the no-alias question for Glib: 0x456516, 0x471722, 0x47c0f0.
+- FL-72 holds the remaining pending rows (they are in its goal-directed search).

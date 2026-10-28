@@ -361,7 +361,7 @@ def CHECKER_VERSION_now():
 def prove_leftovers(key, res):
     """FL-67: a partial row whose every missing instruction and untaken direction is PROVED unreachable (scripts/fl67_infeasible.py) becomes `proved`."""
     import fl67_infeasible as P
-    out = P.prove_row(key, {'missing': res['missing'], 'untaken': res['untaken']}, timeout_ms=20000, fail_fast=True)
+    out = P.prove_row(key, {'missing': res['missing'], 'untaken': res['untaken']}, timeout_ms=40000, fail_fast=True)
     res['proof_status'] = out['status']
     if out['status'] == 'proved':
         res['status'] = 'proved'
