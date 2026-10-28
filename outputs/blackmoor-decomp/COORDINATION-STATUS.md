@@ -34,7 +34,7 @@ FL-72 (PRs 248, 251, 254, 257) cleared 27 Mac-port rows as tested equivalent, wi
 
 ## Handoff: FL-75 prover extensions for the last Mac-port rows (2026-10-28 PDT, cloud thread)
 
-FL-75 (PR PRNUM) cleared 10 Mac-port rows: 0x44b641, 0x44ffa3, 0x4a14c6, 0x4bbb3e, 0x417b04, 0x4b4a68, 0x45c18f, 0x4a0ec3 by proof and 0x4a6c61, 0x4867bd tested equivalent. The infeasibility prover now cuts jump tables at their range check (z3-checked), takes OR loop invariants and a plan-hint file, keeps the frame assumption per window, models callee write footprints and `and eax, K` return bounds, and proves "every run that takes this path faults later" with a forward window. Whole ledger: verified 2,210 of 4,188 (unchanged), tested equivalent 1,696. Mac-port view: ported 2,209, tested equivalent 421, pending 55 of 2,685. Open: 0x49d945 (crash path through three counting loops), parked 0x456516 0x471722 0x47c0f0. Details: `tasks/fl75-handoff.md`.
+FL-75 (PR 259) cleared 10 Mac-port rows: 0x44b641, 0x44ffa3, 0x4a14c6, 0x4bbb3e, 0x417b04, 0x4b4a68, 0x45c18f, 0x4a0ec3 by proof and 0x4a6c61, 0x4867bd tested equivalent. The infeasibility prover now cuts jump tables at their range check (z3-checked), takes OR loop invariants and a plan-hint file, keeps the frame assumption per window, models callee write footprints and `and eax, K` return bounds, and proves "every run that takes this path faults later" with a forward window. Whole ledger: verified 2,210 of 4,188 (unchanged), tested equivalent 1,696. Mac-port view: ported 2,209, tested equivalent 421, pending 55 of 2,685. Open: 0x49d945 (crash path through three counting loops), parked 0x456516 0x471722 0x47c0f0. Details: `tasks/fl75-handoff.md`.
 
 ## Handoff: FL-74 stuck near-miss Mac-port rows (2026-10-28 PDT, cloud thread)
 
