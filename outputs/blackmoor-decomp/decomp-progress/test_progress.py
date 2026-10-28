@@ -1245,8 +1245,11 @@ class FunctionLedgerTests(unittest.TestCase):
                               (self.fx["function_ledger"], self.fx_ledger)):
             self.assertEqual(len(panel["rows"]), len(ledger["entries"]))
             for row, e in zip(panel["rows"], ledger["entries"]):
-                self.assertEqual(len(row), 7)
-                va, span, region_i, status_i, class_i, ev_i, te = row
+                self.assertEqual(len(row), 8)
+                va, span, region_i, status_i, class_i, ev_i, te, de = row
+                self.assertEqual(de, 1 if e["va"] in (ledger.get("documented_exceptions") or {"vas": []})["vas"] else 0)
+                if de:
+                    self.assertEqual(panel["details"][ev_i]["e"][0], ledger["documented_exceptions"]["rows"][e["va"]]["reason"])
                 self.assertEqual((va, span), (int(e["va"], 16), e["span"]))
                 self.assertEqual(panel["regions"][region_i], e["region"])
                 self.assertEqual(panel["statuses"][status_i], e["status"])
@@ -1254,7 +1257,7 @@ class FunctionLedgerTests(unittest.TestCase):
                 self.assertEqual(panel["class_status"][class_i], status_i)
                 self.assertTrue(0 <= ev_i < len(panel["details"]))
                 self.assertEqual(ev_i != 0, bool(e["evidence"] or e["blockers"] or e["divergences"] or e["reason"]
-                                                 or e["review"] or e["x86_match"] or e["seam"]))
+                                                 or e["review"] or e["x86_match"] or e["seam"] or de))
         self.assertEqual([r[0] for r in self.real["function_ledger"]["rows"]],
                          sorted(r[0] for r in self.real["function_ledger"]["rows"]))
 
@@ -1531,12 +1534,14 @@ class FunctionLedgerTests(unittest.TestCase):
             self.assertEqual(m["not_needed"], c["region"]["game"]["not_needed"] + c["region"]["vorbis"]["not_needed"])
             te = panel["tested_equivalent"]["by_region"]
             self.assertEqual(m["tested_equivalent"], te["game"] + te["vorbis"])
-            self.assertEqual(m["pending"] + m["tested_equivalent"],
+            de = panel["documented_exceptions"]["by_region"]
+            self.assertEqual(m["documented_exception"], de["game"] + de["vorbis"])
+            self.assertEqual(m["pending"] + m["tested_equivalent"] + m["documented_exception"],
                              c["region"]["game"]["pending"] + c["region"]["vorbis"]["pending"])
-            self.assertEqual(m["ported"] + m["tested_equivalent"] + m["pending"] + m["not_needed"], m["total"])
+            self.assertEqual(m["ported"] + m["tested_equivalent"] + m["documented_exception"] + m["pending"] + m["not_needed"], m["total"])
             for r in m["regions"]:
                 v = m["by_region"][r]
-                self.assertEqual(v["ported"] + v["tested_equivalent"] + v["pending"] + v["not_needed"], v["total"])
+                self.assertEqual(v["ported"] + v["tested_equivalent"] + v["documented_exception"] + v["pending"] + v["not_needed"], v["total"])
 
     def test_real_mac_port_view_is_game_plus_vorbis(self):
         m = self.real["function_ledger"]["mac_port"]
@@ -1551,6 +1556,15 @@ class FunctionLedgerTests(unittest.TestCase):
         self.assertEqual((m["total"], m["ported"], m["tested_equivalent"], m["pending"], m["not_needed"]), (13, 7, 4, 1, 1))
         self.assertEqual(m["excluded"]["total"], 100)
         self.assertNotIn("crt_mfc", m["by_region"])
+
+    def test_mac_port_summary_takes_documented_exceptions_out_of_pending(self):
+        counts = {"region": {"game": {"ported": 5, "not_needed": 1, "pending": 4},
+                             "vorbis": {"ported": 2, "not_needed": 0, "pending": 1},
+                             "crt_mfc": {"ported": 90, "not_needed": 7, "pending": 3}}}
+        m = GEN.mac_port_summary(counts, {"game": 2, "vorbis": 0, "crt_mfc": 0}, {"game": 1, "vorbis": 1, "crt_mfc": 3})
+        self.assertEqual((m["total"], m["ported"], m["tested_equivalent"], m["documented_exception"], m["pending"], m["not_needed"]), (13, 7, 2, 2, 1, 1))
+        self.assertEqual(m["excluded"]["by_region"]["crt_mfc"]["documented_exception"], 3)
+        self.assertEqual(m["excluded"]["by_region"]["crt_mfc"]["pending"], 0)
 
     def test_mac_port_headline_sits_before_the_x86_view_in_page_and_report(self):
         for out in (self.real_out, self.fx_out):
