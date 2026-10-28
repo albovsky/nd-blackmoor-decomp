@@ -28,7 +28,11 @@ for s,ov in scen:
     if not (tr.executed<=ex and tr.edges<=ed): ex|=tr.executed;ed|=tr.edges;kept.append([s,[list(o) for o in ov]])
 print('base',cov(G,row,ex,ed)[:4],len(kept),flush=True)
 for s,ov in scen:
-    for combo in itertools.product(*[c[2] for c in cells]):
+    combos=list(itertools.product(*[c[2] for c in cells]))
+    SM=int(os.environ.get('SAMPLE','0'))
+    if SM and len(combos)>SM:
+        import random; combos=random.Random(1).sample(combos,SM)
+    for combo in combos:
         nov=[list(o) for o in ov if not any(o[0]==c[0] for c in cells)]+[[c[0],c[1],v] for c,v in zip(cells,combo)]
         tr=run(W,row,s,nov)
         if tr.fault: continue

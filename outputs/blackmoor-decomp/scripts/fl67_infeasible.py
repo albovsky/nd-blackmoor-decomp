@@ -55,6 +55,9 @@ FAULT_LIMIT = 0xfff00000      # an access at or above it faults in the world (te
 DATA_START = 0x537000         # first writable page of .data; the image below it is constant
 IMAGE_BASE = 0x400000
 FLAGS = ('cf', 'zf', 'sf', 'of', 'pf', 'af')
+INVARIANTS = PROJECT / 'tests' / 'fl73_invariants.json'          # FL-73: loop invariants for generalised headers (CHECKED by the prover itself, never trusted)
+_INV_OPS = {'eq': lambda v, c: v == c, 'ne': lambda v, c: v != c, 'sge': lambda v, c: v >= c, 'sgt': lambda v, c: v > c, 'sle': lambda v, c: v <= c,
+            'slt': lambda v, c: v < c, 'uge': z3.UGE, 'ugt': z3.UGT, 'ule': z3.ULE, 'ult': z3.ULT}
 FULL = ('eax', 'ecx', 'edx', 'ebx', 'esp', 'ebp', 'esi', 'edi')
 REGS = {}
 for _i, _f in enumerate(FULL):
@@ -88,6 +91,49 @@ def fresh_bool(tag='fb'):
 def fresh_array(tag='ma'):
     _fresh[0] += 1
     return z3.Array('%s%d' % (tag, _fresh[0]), z3.BitVecSort(32), z3.BitVecSort(8))
+
+
+def load_invariants(va):
+    """{header block address: [atom, ...]} declared for the function at `va` in tests/fl73_invariants.json. An atom is {"mem": [register, displacement, size in bytes], "op": eq|ne|sge|sgt|sle|slt|uge|ugt|ule|ult, "val": n}
+    and says that the `size` bytes at register+displacement, read in the state at the head of a generalised loop, compare so with n (or, with "mem2" in place of "val", with the same-size slot [register, displacement, size]). A header with atoms keeps them only if
+    `Analysis.verify_invariants` proves them: they hold on every entry edge, and every back edge preserves them (assuming them at the header)."""
+    try:
+        data = json.loads(INVARIANTS.read_text())
+    except (OSError, ValueError):
+        return {}
+    return {int(h, 16): atoms for h, atoms in data.get(hex(va), {}).items()}
+
+
+def inv_parts(M, st, atoms):
+    out = []
+    for at in atoms:
+        reg, disp, size = at['mem']
+        a = st.R[reg] + bv(disp, 32)
+        v = M.load(getattr(st, M.space(st, a)), a, size)
+        if 'mem2' in at:                                                           # compared with another slot of the same size
+            reg2, disp2, size2 = at['mem2']
+            assert size2 == size
+            a2 = st.R[reg2] + bv(disp2, 32)
+            other = M.load(getattr(st, M.space(st, a2)), a2, size)
+        else:
+            other = bv(at['val'], 8 * size)
+        out.append(_INV_OPS[at['op']](v, other))
+    return out
+
+
+def inv_formula(M, st, atoms):
+    out = inv_parts(M, st, atoms)
+    return z3.And(*out) if len(out) > 1 else out[0]
+
+
+def inv_failures(check, M, assumed, c_entry, st_in, atoms, prefix=None):
+    """the atoms (by index) that a state fails to satisfy under the edge condition: `check(formula)` returns a verdict string"""
+    bad = []
+    for k, part in enumerate(inv_parts(M, st_in, atoms)):
+        f = z3.And(c_entry, z3.Not(part)) if assumed is None else z3.And(assumed, c_entry, z3.Not(part))
+        if check(f) != 'unsat':
+            bad.append(k)
+    return bad
 
 
 def msb(e, w):
@@ -141,7 +187,7 @@ def has_frame_term(e):
         seen.add(x.get_id())
         if z3.is_const(x) and x.decl().kind() == z3.Z3_OP_UNINTERPRETED:
             n = x.decl().name()
-            found = n == 's_esp' or (n.startswith('sp') and n[2:].isdigit())
+            found = n in ('s_esp', 's_ebp') or (n.startswith('sp') and n[2:].isdigit())          # FL-73: s_ebp too: a window that starts after the prologue has ebp and esp as separate symbols, both frame pointers
         elif x.decl().kind() not in (z3.Z3_OP_SELECT, z3.Z3_OP_STORE):          # a value read from memory is not a frame address (nothing ever formed one)
             todo.extend(x.children())
     if len(_frame_cache) > 200000:
@@ -679,6 +725,8 @@ class Analysis:
                 self.M.after_call[i.address] = nxt.operands[1].imm
         self.timeout_ms = timeout_ms
         self.verdict = {}
+        self.inv = load_invariants(self.va)
+        self.gen_state, self.hdr_in, self.hdr_back = {}, {}, {}      # FL-73: per generalised header with invariants: its state, its entry edges, its back edges
 
     def table_targets(self, ins):
         """Targets of `jmp [index*4 + table]` read from the constant table; None if the jump is not of that form."""
@@ -900,6 +948,7 @@ class Analysis:
         rpo = list(reversed(post))
         self.nodes, self.nsucc, self.nreach = rpo, succ, seen
         self.ic, self.edge, self.sink_cond = {}, {}, {}
+        self.gen_state, self.hdr_in, self.hdr_back = {}, {}, {}
         incoming = {n: [] for n in succ}
         incoming[entry].append((z3.BoolVal(True), State.start()))
         for node in rpo:
@@ -921,6 +970,9 @@ class Analysis:
                     st.frm = fresh_array('fr')
                 if fs:
                     st.fs = fresh_array('fa')
+                if a in self.inv:                                                          # FL-73: assumed here, proved in verify_invariants
+                    self.gen_state[node], self.hdr_in[node] = st.copy(), list(items)
+                    self.M.facts.append(inv_formula(self.M, st, self.inv[a]))
             st.pc = z3.BoolVal(True)
             ins = self.blocks[a]['insns']
             br = None
@@ -951,8 +1003,28 @@ class Analysis:
                     self.sink_cond.setdefault(t[1], []).append(c)
                     continue
                 if (node, t) in back:
+                    self.hdr_back.setdefault(t, []).append((c, st))
                     continue
                 incoming[t].append((c, st))
+
+    def verify_invariants(self):
+        """FL-73: every invariant that execute() assumed at a generalised header is inductive: it holds on each entry edge (initiation) and, assumed at the header, on each back edge (consecution).
+        The assumed facts must also be satisfiable (a contradictory invariant would make every query unsat). Raises Unsupported otherwise."""
+        for node, gs in self.gen_state.items():
+            atoms = self.inv[node[0]]
+            assumed = inv_formula(self.M, gs, atoms)
+            r, _ = self.check(assumed)
+            if r != 'sat':
+                raise Unsupported('invariant at 0x%x is not satisfiable (%s)' % (node[0], r))
+            chk = lambda f: self.check(f)[0]
+            for c, st_in in self.hdr_in[node]:
+                bad = inv_failures(chk, self.M, None, c, st_in, atoms)
+                if bad:
+                    raise Unsupported('invariant at 0x%x does not hold on an entry edge (atoms %s)' % (node[0], bad))
+            for c, st_b in self.hdr_back.get(node, []):
+                bad = inv_failures(chk, self.M, assumed, c, st_b, atoms)
+                if bad:
+                    raise Unsupported('invariant at 0x%x is not preserved by a back edge (atoms %s)' % (node[0], bad))
 
     def run(self):
         self.build_blocks()
@@ -963,6 +1035,7 @@ class Analysis:
             self.execute(plan)
             bad = [h for h in self.loops if plan[h] != 'gen' and not self.sink_unsat(h)]
             if not bad:
+                self.verify_invariants()
                 return
             for h in bad:
                 nxt = [u for u in UNROLL if u > plan[h]]

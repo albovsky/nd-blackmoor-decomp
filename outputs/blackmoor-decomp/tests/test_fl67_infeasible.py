@@ -64,6 +64,9 @@ PROGRAMS = {
     'frame_row': '50c745000500000059 39c1 7501 c3c3'.replace(' ', ''),
     # cmp [esp+4],0; jne <outside the body>; ret
     'jcc_leaves_body': '837c24040075 39c3'.replace(' ', ''),
+    # FL-73: i = 0 (a word in the frame); found = -1; while (i < (short)arg1) { if (arg2) { found = i; break; } i++; }
+    # if (found == -1) return 2; if (i == -1) return 9 (never: i is not negative); return 1.   The loop header is at BASE + 0x20, `je never` at BASE + 0x4a.
+    'word_counter': '5589e583ec0866c745fc000066c745faffffeb0c668b45fc6683c001668945fc0fbf45fc0fbf4d0839c87d0e807d0c0074e2668b45fc668945fa0fbf45fa83f8ff74100fbf4dfc83f9ff740eb801000000c9c3b802000000c9c3b809000000c9c3',
 }
 
 
@@ -154,6 +157,84 @@ class Synthetic(unittest.TestCase):
         an = P.Analysis({'va': BASE, 'body': len(code), 'callees': {}, 'imports': {}, 'sites': None}, image, 5000)
         with self.assertRaises(P.Unsupported):
             an.run()
+
+
+COUNTER_HEADER, COUNTER_NEVER = BASE + 0x20, BASE + 0x4a
+COUNTER_SLOT = ['ebp', -4, 2]
+
+
+def counter_analysis(atoms=None):
+    """the word_counter program with the invariants `atoms` (a list) declared at its loop header, not yet run"""
+    code = bytes.fromhex(PROGRAMS['word_counter'])
+    image = bytes(BASE - P.IMAGE_BASE) + code + bytes(64)
+    an = P.Analysis({'va': BASE, 'body': len(code), 'callees': {}, 'imports': {}, 'sites': None}, image, 20000)
+    an.inv = {COUNTER_HEADER: atoms} if atoms else {}
+    return an
+
+
+@unittest.skipUnless(HAVE_Z3, 'needs z3-solver, capstone')
+class Invariants(unittest.TestCase):
+    """FL-73: a loop invariant declared for a generalised header is assumed there only after the prover has shown it is inductive."""
+
+    def test_without_an_invariant_the_counter_may_be_minus_one(self):
+        an = counter_analysis()
+        an.run()
+        self.assertIn('gen', an.plan.values())
+        self.assertEqual(an.direction(COUNTER_NEVER, 'taken')[0], 'sat')
+
+    def test_an_inductive_invariant_rules_the_impossible_jump_out(self):
+        an = counter_analysis([{'mem': COUNTER_SLOT, 'op': 'sge', 'val': 0}])
+        an.run()
+        self.assertEqual(an.direction(COUNTER_NEVER, 'taken')[0], 'unsat')
+        self.assertEqual(an.direction(COUNTER_NEVER, 'fall-through')[0], 'sat')          # what can happen still can
+        self.assertEqual(an.instruction(BASE + 0x4c)[0], 'sat')                           # mov eax, 1
+
+    def test_an_invariant_that_a_back_edge_breaks_is_refused(self):
+        an = counter_analysis([{'mem': COUNTER_SLOT, 'op': 'eq', 'val': 0}])            # i is 0 on entry but the loop increments it
+        with self.assertRaises(P.Unsupported) as ctx:
+            an.run()
+        self.assertIn('back edge', str(ctx.exception))
+
+    def test_an_invariant_that_is_false_on_entry_is_refused(self):
+        an = counter_analysis([{'mem': COUNTER_SLOT, 'op': 'sgt', 'val': 0}])           # i starts at 0
+        with self.assertRaises(P.Unsupported) as ctx:
+            an.run()
+        self.assertIn('entry edge', str(ctx.exception))
+
+    def test_a_contradictory_invariant_is_refused(self):
+        an = counter_analysis([{'mem': COUNTER_SLOT, 'op': 'eq', 'val': 0}, {'mem': COUNTER_SLOT, 'op': 'eq', 'val': 1}])
+        with self.assertRaises(P.Unsupported) as ctx:
+            an.run()
+        self.assertIn('satisfiable', str(ctx.exception))
+
+    def test_a_slot_compared_with_a_slot(self):
+        an = counter_analysis([{'mem': COUNTER_SLOT, 'op': 'sge', 'val': 0}, {'mem': COUNTER_SLOT, 'op': 'sle', 'mem2': COUNTER_SLOT}])
+        an.run()
+        self.assertEqual(an.direction(COUNTER_NEVER, 'taken')[0], 'unsat')
+
+    def test_the_window_proof_uses_the_invariant_the_same_way(self):
+        import fl71_window as Wn
+        for atoms, verdict in (([], 'sat'), ([{'mem': COUNTER_SLOT, 'op': 'sge', 'val': 0}], 'unsat')):
+            an, dom = Wn.from_analysis(counter_analysis(atoms))
+            T = Wn.block_of(an, COUNTER_NEVER, True)
+            got = Wn.prove_target(an, dom, T, ('dir', 'taken'))[0]
+            self.assertEqual(got == 'unsat', verdict == 'unsat', (atoms, got))
+
+    def test_the_window_proof_refuses_a_broken_invariant(self):
+        import fl71_window as Wn
+        an, dom = Wn.from_analysis(counter_analysis([{'mem': COUNTER_SLOT, 'op': 'eq', 'val': 0}]))
+        T = Wn.block_of(an, COUNTER_NEVER, True)
+        self.assertNotEqual(Wn.prove_target(an, dom, T, ('dir', 'taken'))[0], 'unsat')
+
+    def test_the_committed_invariants_belong_to_a_known_function(self):
+        data = json.loads(P.INVARIANTS.read_text())
+        for va, headers in data.items():
+            self.assertTrue(va.startswith('0x'))
+            for header, atoms in headers.items():
+                self.assertTrue(header.startswith('0x'))
+                for at in atoms:
+                    self.assertIn(at['op'], P._INV_OPS)
+                    self.assertTrue(('val' in at) != ('mem2' in at))
 
 
 def manifest():

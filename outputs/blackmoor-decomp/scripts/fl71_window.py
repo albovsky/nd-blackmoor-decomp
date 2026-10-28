@@ -107,6 +107,7 @@ def run_window(an, order, S, T, query, frame=False):
         incoming[S].append((z3.BoolVal(True), P.State.start()))
         edge = {}
         ic = {}
+        gen_state, hdr_in, hdr_back, done = {}, {}, {}, set()           # FL-73: loop invariants (tests/fl73_invariants.json) assumed at a generalised header, proved below
         for node in order:
             items = incoming[node]
             if not items:
@@ -126,8 +127,12 @@ def run_window(an, order, S, T, query, frame=False):
                     st.frm = P.fresh_array('fr')
                 if fs:
                     st.fs = P.fresh_array('fa')
+                if node in an.inv:
+                    gen_state[node], hdr_in[node] = st.copy(), list(items)
+                    M.facts.append(P.inv_formula(M, st, an.inv[node]))
             if node == T and query[0] == 'ins':
                 break
+            done.add(node)
             st.pc = z3.BoolVal(True)
             ins = an.blocks[node]['insns']
             br = None
@@ -152,10 +157,28 @@ def run_window(an, order, S, T, query, frame=False):
                 conds[(kind, t)] = z3.Or(conds[(kind, t)], c) if (kind, t) in conds else c
             for (kind, t), c in conds.items():
                 edge[(node, kind, t)] = c
+                if (node, t) in an.back and t in gen_state:
+                    hdr_back.setdefault(t, []).append((c, st))
                 if node == T:
                     continue
                 if t in incoming and t != S and (node, t) not in an.back:
                     incoming[t].append((c, st))
+        for h, gs in gen_state.items():                                  # FL-73: the assumed invariants are inductive, over every back edge of the loop (all their sources were executed)
+            atoms = an.inv[h]
+            if any(u not in done for u, hh in an.back if hh == h and u in incoming):
+                raise P.Unsupported('invariant at 0x%x: a back edge was not executed' % h)
+            assumed = P.inv_formula(M, gs, atoms)
+            if an.check(assumed)[0] != 'sat':
+                raise P.Unsupported('invariant at 0x%x is not satisfiable' % h)
+            chk = lambda f: an.check(f)[0]
+            for c, st_in in hdr_in[h]:
+                bad = P.inv_failures(chk, M, None, c, st_in, atoms)
+                if bad:
+                    raise P.Unsupported('invariant at 0x%x does not hold on an entry edge (atoms %s)' % (h, bad))
+            for c, st_b in hdr_back.get(h, []):
+                bad = P.inv_failures(chk, M, assumed, c, st_b, atoms)
+                if bad:
+                    raise P.Unsupported('invariant at 0x%x is not preserved by a back edge (atoms %s)' % (h, bad))
         if query[0] == 'ins':
             return ic[T]
         conds = [c for (n, kind, t), c in edge.items() if n == T and kind == query[1]]
