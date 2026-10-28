@@ -256,6 +256,8 @@ class Machine:
         self.imports = {int(k): v for k, v in row.get('imports', {}).items()}
         self.sites = {int(k): v for k, v in (row.get('sites') or {}).items()}
         self.noreturn = {int(a) for a in row.get('noreturn', ())}          # FL-72: callees that never return (tests/fl72_noreturn.json): a path that calls one ends there
+        self.bounds = {}        # FL-75: callee address -> the bound on eax that its bytes prove (ret_bound)
+        self.footprints = {}    # FL-75: call address -> (disp, lo, hi): the callee writes only [ebp+disp+lo, ebp+disp+hi) of the frame through its pointer argument
         self.split = False      # the frame assumption holds for this function (set by Analysis)
         self.after_call = {}    # call address -> bytes the next instruction `add esp, k` removes
         self.facts = []         # facts about the START memory (constant bytes of the image), valid in every query
@@ -602,6 +604,28 @@ class Machine:
         st.R['eax'], st.R['edx'] = z3.Extract(31, 0, q), z3.Extract(31, 0, rem)
         self.unknown_flags(st)
 
+    def ret_bound(self, addr):
+        """FL-75: K when the code at `addr` is straight-line (no jump, no second ret, a call at most) and ends `and eax, K; ret` with 0 <= K < 2**31: every return from it has 0 <= eax <= K (an unsigned compare, so also
+        non-negative). The CRT rand() is of this form. None otherwise. This reads the callee's own bytes, nothing is trusted."""
+        if addr in self.bounds:
+            return self.bounds[addr]
+        out = None
+        if IMAGE_BASE <= addr < DATA_START:
+            md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
+            md.detail = True
+            prev = None
+            for n, i in enumerate(md.disasm(self.image[addr - IMAGE_BASE:addr - IMAGE_BASE + 256], addr)):
+                if i.mnemonic in ('ret', 'retn'):
+                    if (i.operands == [] or i.mnemonic == 'ret') and prev is not None and prev.mnemonic == 'and' and prev.operands[1].type == X.X86_OP_IMM \
+                            and prev.operands[0].type == X.X86_OP_REG and prev.reg_name(prev.operands[0].reg) == 'eax' and 0 <= prev.operands[1].imm < 2 ** 31:
+                        out = prev.operands[1].imm
+                    break
+                if i.mnemonic.startswith('j') or i.mnemonic.startswith('loop') or i.mnemonic in ('int', 'int3', 'ud2', 'hlt', 'iret'):
+                    break
+                prev = i
+        self.bounds[addr] = out
+        return out
+
     def call(self, st, ins):
         op = ins.operands[0]
         pops = None
@@ -616,6 +640,10 @@ class Machine:
         sp = st.R['esp']
         for r in ('eax', 'ecx', 'edx'):
             st.R[r] = fresh(32, 'c')
+        if op.type == X.X86_OP_IMM:
+            k = self.ret_bound(op.imm & 0xffffffff)
+            if k is not None:
+                st.pc = z3.And(st.pc, z3.ULE(st.R['eax'], bv(k, 32)))      # FL-75: the callee's own code bounds what it returns (a prefix of the run: this only removes states)
         st.mem = fresh_array()
         st.fs = fresh_array('fa')
         if self.split:               # the callee may overwrite the argument slots that were pushed for it, nothing else of the frame
@@ -623,6 +651,10 @@ class Machine:
             arr = st.frm
             for k in range(max(span, 0)):
                 arr = z3.Store(arr, sp + k, fresh(8, 'x'))
+            fp = self.footprints.get(ins.address)
+            if fp:                                                       # FL-75: what the callee may write through the frame address it was given
+                for k in range(fp[1], fp[2]):
+                    arr = z3.Store(arr, st.R['ebp'] + (fp[0] + k), fresh(8, 'x'))
             st.frm = arr
         st.R['esp'] = sp + pops if pops is not None else fresh(32, 'sp')
         self.unknown_flags(st)
@@ -724,6 +756,11 @@ class Analysis:
         self.M = Machine(row, image)
         self.split_ok = SPLIT and not row.get('frame')                                       # a `frame` row starts with ebp = the entry frame address
         self.esc_addrs = [i.address for i in self.insns if frame_escapes([i])] if self.split_ok else []      # FL-75: where the function forms an address of its frame
+        if self.esc_addrs:                                                               # FL-75: `lea R, [ebp-K]; push R; call C` where C's own bytes show it writes only [p+lo, p+hi) and keeps no copy of p (scripts/fl75_footprint.py)
+            import fl75_footprint as FP
+            leas, calls = FP.call_footprints(self.insns, image, self.jump_targets(), self.va, self.body)
+            self.esc_addrs = [a for a in self.esc_addrs if a not in leas]
+            self.M.footprints = calls
         self.M.split = self.split_ok and not self.esc_addrs
         for k, i in enumerate(self.insns[:-1]):
             nxt = self.insns[k + 1]
@@ -734,6 +771,18 @@ class Analysis:
         self.inv = load_invariants(self.va)
         self.gen_state, self.hdr_in, self.hdr_back = {}, {}, {}      # FL-73: per generalised header with invariants: its state, its entry edges, its back edges
         self.tight_tables, self.cut, self.escapes = True, {}, []      # FL-75: tables cut at the range check (self.cut: jump -> the longer table that was cut); escapes: index-outside-the-cut conditions
+
+    def jump_targets(self):
+        """every address that a jump of the function can land on (direct targets and, when the table is readable, the targets of computed jumps)"""
+        out = set()
+        for i in self.insns:
+            if i.mnemonic.startswith('j') or i.mnemonic.startswith('loop'):
+                if i.operands[0].type == X.X86_OP_IMM:
+                    out.add(i.operands[0].imm)
+                else:
+                    tt = self.table_targets(i)
+                    out.update(t for _, t in tt) if tt else out.update(x.address for x in self.insns)      # an unreadable computed jump may land anywhere
+        return out
 
     def table_targets(self, ins):
         """Targets of `jmp [index*4 + table]` read from the constant table; None if the jump is not of that form."""
@@ -758,7 +807,7 @@ class Analysis:
         if not self.tight_tables:
             return tt
         k = self.insns.index(ins)
-        for j in range(k - 1, max(k - 14, 1), -1):
+        for j in range(k - 1, max(k - 14, 0), -1):
             g = self.insns[j]
             c = self.insns[j - 1]
             if g.mnemonic in ('ja', 'jae', 'jnb', 'jnbe') and c.mnemonic == 'cmp' and c.operands[1].type == X.X86_OP_IMM:
