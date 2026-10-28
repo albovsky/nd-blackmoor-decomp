@@ -28,8 +28,8 @@ sys.path.insert(0, str(PROJECT / 'tests'))
 sys.path.insert(0, str(PROJECT / 'scripts'))
 import fl66_tested as F
 
-EDGES = {1: (0, 1, 0x7f, 0x80, 0xff), 2: (0, 1, 0x7f, 0x80, 0xff, 0x100, 0x101, 0x7fff, 0x8000, 0xffff, 0xff00),
-         4: (0, 1, 2, 3, 4, 0xff, 0x100, 0x101, 0x7fff, 0x8000, 0xffff, 0x10000, 0x10001, 0x7fffffff, 0x80000000, 0xffffffff, 0xffff0000, 0xffff8000, 0xfffffffe, 0x1000, 0x400000, 0x401000)}
+EDGES = {1: (0, 1, 2, 3, 4, 5, 6, 7, 8, 0x7f, 0x80, 0xff), 2: (0, 1, 2, 3, 4, 5, 6, 7, 8, 0x7f, 0x80, 0xff, 0x100, 0x101, 0x7fff, 0x8000, 0xffff, 0xff00),
+         4: (0, 1, 2, 3, 4, 5, 6, 7, 8, 0xff, 0x100, 0x101, 0x7fff, 0x8000, 0xffff, 0x10000, 0x10001, 0x7fffffff, 0x80000000, 0xffffffff, 0xffff0000, 0xffff8000, 0xfffffffe, 0x1000, 0x400000, 0x401000)}
 DECO = (0x100, 0x8000, 0x10000, 0x1000000, 0xff00, 0x80000000, 0x10001)
 REG_VALUES = (0, 1, 2, 0xffffffff, 0x80000000, 0x7fffffff, 0x100, 0x10000, 0xffff, 0xff, 0x400000, 0x10)
 
@@ -74,7 +74,15 @@ def moves_of(W, row, tr, magic, goal=None):
                 edge.append([[c[0], 4, cells[d]]])
     sources = [(W.REG_OVERRIDE + 4 * k, 4) for k in range(len(W.REG_NAMES))] + [(W.STUB_OVR + 16 * k + 4 * reg, 4) for k in range(min(len(tr.calls), 8) if has_stub else 0) for reg in range(3)] + list(cells)
     for ev in getattr(tr, 'events', ()):
-        if len(ev) != 7:                                    # a string compare (address, 'str', esi, bytes)
+        if len(ev) != 7:                                    # a string compare (address, 'str', esi, bytes at edi, bytes at esi, write count)
+            if len(ev) == 6 and ev[3] and (not goal or ev[0] in goal):
+                address, _, esi, want, have, wc = ev
+                if have != want and esi < 0xffd00000:       # FL-73: make the string at esi the other one, and the source it was copied from (the closest earlier reads of its first bytes)
+                    flips.append([[esi + i, 1, b] for i, b in enumerate(want)])
+                    firsts = {int.from_bytes(have[:4], 'little') if len(have) >= 4 else None, have[0]}
+                    srcs = [(a, n) for a, n, v, wc2 in tr.reads if wc2 <= wc and ((n == 4 and v == int.from_bytes(have[:4], 'little')) or (n == 1 and v == have[0])) and a != esi and a < 0xffd00000]
+                    for a, n in srcs[-4:]:
+                        flips.append([[a + i, 1, b] for i, b in enumerate(want)])
             continue
         address, bits, av, bv, ca, cb, wc = ev
         if goal and address not in goal:

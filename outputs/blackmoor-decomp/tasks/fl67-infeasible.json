@@ -483,6 +483,30 @@
    "source": "src/original_methods_fl56_unverified.c",
    "translation_sha256": "14f1b7cc394c2d9d2116528389491306c5d355f0cc7b27e3c23aadc20b76a082"
   },
+  "0x47ac33": {
+   "body": 1408,
+   "directions": [
+    23,
+    24
+   ],
+   "instructions": [
+    351,
+    351
+   ],
+   "pool": "lower",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x47b109:taken": "dc87e4d098351509ea00c99c6e93eb0038f006b9a2b9ef6ca14204e24cddd9c3"
+    },
+    "instructions": {},
+    "plan": {}
+   },
+   "scenarios_kept": 12,
+   "scenarios_run": 22,
+   "source": "src/original_methods_fl56_unverified.c",
+   "translation_sha256": "0baf16346eb6d0c31988693caec8f1f7037908d253e3e4137880952aee1e1b8e"
+  },
   "0x48ae05": {
    "body": 2331,
    "directions": [
@@ -533,6 +557,32 @@
    "scenarios_run": 32,
    "source": "translated/original_methods_fl41_translated.c",
    "translation_sha256": "b799d0e65a1b496c9fe6f19d162040b7ca73ab4bfd93210faf46f49af209e848"
+  },
+  "0x4933ff": {
+   "body": 1495,
+   "directions": [
+    35,
+    38
+   ],
+   "instructions": [
+    453,
+    453
+   ],
+   "pool": "upper",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x493806:fall-through": "38595ab5bb775283d0d8e36bd36e09e7a5787fd4c1889ff633cee27becbfde80",
+     "0x493828:fall-through": "baac2eb8fad045bec548ef8000f374a22a41803772d22828255d2232ed03c872",
+     "0x49384b:fall-through": "a07bc941a2cce1b0f9353918fa699909c99e14417a3dd97cafe6ff85431ad4b9"
+    },
+    "instructions": {},
+    "plan": {}
+   },
+   "scenarios_kept": 13,
+   "scenarios_run": 13,
+   "source": "translated/original_methods_fl41_translated.c",
+   "translation_sha256": "91824c5870ddfe57a1736e3c7073264dd557b681a9e747d4b168ea8dac785a66"
   },
   "0x493ca3": {
    "body": 4121,
