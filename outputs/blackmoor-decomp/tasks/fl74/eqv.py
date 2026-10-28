@@ -30,7 +30,7 @@ for s,ov in scen:
         for (pa,na),(pb,nb),op in pairs:
             if pa not in b or pb not in b or len(b[pa])<=na or len(b[pb])<=nb: continue
             va=b[pa][na][2]; ab,nz,vb=b[pb][nb]
-            want=(va+(1 if op=='ne' else 0))&((1<<(8*nz))-1)
+            want=(va+{'eq':0,'ne':1,'gt':1,'lt':-1}[op])&((1<<(8*nz))-1)
             if vb!=want:
                 cur=[o for o in cur if o[0]!=ab]+[[ab,nz,want]]; changed=True; break
         if not tr.fault and not (tr.executed<=ex and tr.edges<=ed):

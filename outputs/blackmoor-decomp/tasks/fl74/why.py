@@ -12,3 +12,10 @@ s=z3.Solver(); s.set('timeout',60000); s.add(*an.M.facts); s.add(conds[0] if len
 r=s.check(); print(r)
 if r==z3.sat:
     m=s.model(); print(str(m)[:3000])
+c=conds[0]
+print('cond size',len(str(c)))
+print(str(z3.simplify(c))[:2500])
+print('facts',len(an.M.facts), 'split', an.split if hasattr(an,'split') else None)
+t=str(z3.simplify(c))
+import re
+print('TAIL', re.sub(r'\s+',' ',t)[-1800:])

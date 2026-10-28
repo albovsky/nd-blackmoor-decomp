@@ -1,5 +1,43 @@
 {
  "rows": {
+  "0x41137f": {
+   "body": 751,
+   "directions": [
+    15,
+    16
+   ],
+   "instructions": [
+    211,
+    224
+   ],
+   "pool": "lower",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x4113f2:fall-through": "5eced310f933fcdd78ca1256f5bf39695ac09c6973733db18ea70c532b59b85b"
+    },
+    "instructions": {
+     "0x4113f4": "0f624cccffacdb4bc6d721460775a129eb077d6f26f8fe5b7c91bc50483443d4",
+     "0x4113f7": "0f624cccffacdb4bc6d721460775a129eb077d6f26f8fe5b7c91bc50483443d4",
+     "0x4113fe": "0f624cccffacdb4bc6d721460775a129eb077d6f26f8fe5b7c91bc50483443d4",
+     "0x4113ff": "0f624cccffacdb4bc6d721460775a129eb077d6f26f8fe5b7c91bc50483443d4",
+     "0x411404": "0f624cccffacdb4bc6d721460775a129eb077d6f26f8fe5b7c91bc50483443d4",
+     "0x411409": "0f624cccffacdb4bc6d721460775a129eb077d6f26f8fe5b7c91bc50483443d4",
+     "0x41140e": "0f624cccffacdb4bc6d721460775a129eb077d6f26f8fe5b7c91bc50483443d4",
+     "0x411411": "0f624cccffacdb4bc6d721460775a129eb077d6f26f8fe5b7c91bc50483443d4",
+     "0x411413": "0f624cccffacdb4bc6d721460775a129eb077d6f26f8fe5b7c91bc50483443d4",
+     "0x411415": "0f624cccffacdb4bc6d721460775a129eb077d6f26f8fe5b7c91bc50483443d4",
+     "0x41141a": "0f624cccffacdb4bc6d721460775a129eb077d6f26f8fe5b7c91bc50483443d4",
+     "0x41141f": "0f624cccffacdb4bc6d721460775a129eb077d6f26f8fe5b7c91bc50483443d4",
+     "0x411424": "0f624cccffacdb4bc6d721460775a129eb077d6f26f8fe5b7c91bc50483443d4"
+    },
+    "plan": {}
+   },
+   "scenarios_kept": 9,
+   "scenarios_run": 12,
+   "source": "src/original_methods_fl56_unverified.c",
+   "translation_sha256": "ded9dbca8b6671058d0e118e780ed86020094ced0e9d3a6c55d9d3ff0ca5e828"
+  },
   "0x41166e": {
    "body": 750,
    "directions": [
@@ -1132,6 +1170,30 @@
    "source": "translated/original_methods_fl41_translated.c",
    "translation_sha256": "b3133b74fa846f738fcb0c8cad10466bdcc27d72b5e7253ee7d2a2bdbb40250c"
   },
+  "0x4dc182": {
+   "body": 3137,
+   "directions": [
+    119,
+    120
+   ],
+   "instructions": [
+    748,
+    748
+   ],
+   "pool": "upper",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x4dc8be:taken": "cfb46d512e85bd5c59975cf4b25cd69684c1e61fb70674d3f0fecd34fdf35a0a"
+    },
+    "instructions": {},
+    "plan": {}
+   },
+   "scenarios_kept": 52,
+   "scenarios_run": 52,
+   "source": "translated/original_methods_fl41_translated.c",
+   "translation_sha256": "a87d1222e4f576478ddf95f639a11b061f97ec6a03a9e0260f838853b2750639"
+  },
   "0x4dd05a": {
    "body": 563,
    "directions": [
@@ -1212,6 +1274,35 @@
    "scenarios_run": 11,
    "source": "translated/original_methods_fl41_translated.c",
    "translation_sha256": "fb591c869b40a13c092f748a48310bd6bdfab160885306679f0fad76f60018e6"
+  },
+  "0x4e0978": {
+   "body": 1187,
+   "directions": [
+    35,
+    36
+   ],
+   "instructions": [
+    307,
+    311
+   ],
+   "pool": "upper",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x4e0dec:taken": "94fe49ded8fe71529ba3d18c737a6f385f58e770aadb6bf8a07d3444e34aecae"
+    },
+    "instructions": {
+     "0x4e0df7": "89e4b17f4aa9f4593a97cc6bc38d866978810a0401df9fd6933cd4e9deb5100c",
+     "0x4e0dfc": "89e4b17f4aa9f4593a97cc6bc38d866978810a0401df9fd6933cd4e9deb5100c",
+     "0x4e0e01": "89e4b17f4aa9f4593a97cc6bc38d866978810a0401df9fd6933cd4e9deb5100c",
+     "0x4e0e04": "89e4b17f4aa9f4593a97cc6bc38d866978810a0401df9fd6933cd4e9deb5100c"
+    },
+    "plan": {}
+   },
+   "scenarios_kept": 23,
+   "scenarios_run": 24,
+   "source": "translated/original_methods_fl41_translated.c",
+   "translation_sha256": "2af31a06a461530d4f8aad0a15e3fbdb564b0722b92590337109dcc16f9bc124"
   },
   "0x4e11ed": {
    "body": 280,
@@ -1321,6 +1412,30 @@
    "scenarios_run": 7,
    "source": "translated/original_methods_fl41_translated.c",
    "translation_sha256": "912d263c32f403c75d68900963bdf7108c73ebadd7dbcf9f5140c0575097f864"
+  },
+  "0x4e467f": {
+   "body": 782,
+   "directions": [
+    29,
+    30
+   ],
+   "instructions": [
+    201,
+    201
+   ],
+   "pool": "upper",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x4e490e:taken": "7da47ba6415dc459b92caf12c98eca9757838ad30f9e9fe5509786c39c4b70ac"
+    },
+    "instructions": {},
+    "plan": {}
+   },
+   "scenarios_kept": 14,
+   "scenarios_run": 14,
+   "source": "translated/original_methods_fl41_translated.c",
+   "translation_sha256": "04660578b871223508c2bcf88a1b61164aa84261649433cc295bfc08e13bb76c"
   },
   "0x4e4bc4": {
    "body": 242,
