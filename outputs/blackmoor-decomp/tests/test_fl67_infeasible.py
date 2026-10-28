@@ -330,6 +330,11 @@ class Fl75(unittest.TestCase):
         self.assertIn(Wn.block_of(an, c2), an.reach)
         self.assertNotEqual(Wn.prove_faults(an, dom, ('ins', c2))[0], 'unsat')
 
+    def test_a_cut_table_that_no_run_reaches_does_not_stop_the_window_build(self):
+        import fl71_window as Wn
+        an, dom = Wn.from_analysis(self.two_tables(b'\xc3\x90\x90\x90' + TWO_TABLES[4:]))     # ret first: the switch is unreachable
+        self.assertEqual([len(t) for t in an.table.values()], [2])           # nothing can run it, the cut stays
+
     def seh_row(self, code):
         an = P.Analysis({'va': BASE, 'body': len(code), 'callees': {}, 'imports': {}, 'sites': None}, image_of(code), 20000)
         an.run()

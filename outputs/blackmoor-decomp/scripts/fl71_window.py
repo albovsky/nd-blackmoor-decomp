@@ -476,6 +476,8 @@ def validate_cuts(an, dom):
     take the first run step that does; the run followed cut edges until then, so it passed the dominator S in some state, which the proof covers."""
     for jump in an.cut:
         J = block_of(an, jump)
+        if J not in dom:
+            continue                                                       # no run from the entry reaches the jump: the cut is never taken
         ok = False
         for S in sorted(dom[J], key=lambda n: -len(dom[n]))[:MAX_STARTS]:
             order = window(an, dom, S, J)
