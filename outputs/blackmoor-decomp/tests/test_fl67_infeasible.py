@@ -260,6 +260,8 @@ class Invariants(unittest.TestCase):
 TWO_TABLES = bytes.fromhex('8b44240483f8017713ff248523104000b901000000c3b902000000c3c3b909000000c310104000161040001d1040001d104000')
 BAD_GUARD = bytes.fromhex('83fb0177178b442404ff248523104000b901000000c3b902000000c3c3b909000000c310104000161040001d1040001d104000')
 # push ebp; mov ebp,esp; sub esp,8; mov [ebp-4],0; [lea ecx,[ebp-4];] mov eax,[ebp+8]; mov [eax],7; cmp [ebp-4],0; jne never; [lea ecx,[ebp-4];] mov eax,ecx; ...; never: mov eax,9; ...
+# mov eax,[esp+4]; mov edx,[0x401000]; cmp eax,1; ja d; jmp [eax*4+tbl]; c1: mov ecx,1; ret; c2: mov ecx,2; ret; d: mov ecx,9; ret; tbl: dd c1, c2, c2, c1
+CONST_LOAD = bytes.fromhex('8b4424048b150010400083f8017713ff248528104000b901000000c3b902000000c3b909000000c3161040001c1040001c10400016104000')
 FRAME_EARLIER = bytes.fromhex('5589e583ec08c745fc000000008d4dfc8b4508c70007000000837dfc00750689c889ec5dc3b80900000089ec5dc3')
 FRAME_LATER = bytes.fromhex('5589e583ec08c745fc000000008b4508c70007000000837dfc0075098d4dfc89c889ec5dc3b80900000089ec5dc3')
 # call C; cmp eax,0x8000; jae never; ret; never: mov eax,9; ret; body_end: C: mov eax,[esp+4]; and eax,MASK; ret
@@ -273,6 +275,15 @@ FAULT_OR_TAIL = bytes.fromhex('5589e583ec04c745fc000000008b450883f8057507b801000
 # push ebp; mov ebp,esp; mov eax,[ebp+8]; test eax,eax; jne tail; leave; jmp L; tail: mov eax,3; leave; jmp L; L: cmp esp,ebp; je yes; mov eax,1; ret; yes: mov eax,2; ret
 LEAVE_JOIN = bytes.fromhex('5589e58b450885c07503c9eb08b803000000c9eb0039ec7406b801000000c3b802000000c3')
 
+# push ebp; mov ebp,esp; sub esp,8; mov eax,fs:[0]; push eax; mov fs:[0],esp; [mov edx,fs:[0];] mov [ebp-4],0; mov eax,[ebp+8]; mov [eax],7; cmp [ebp-4],0; jne never; pop ecx; mov fs:[0],ecx; ...; never: ...
+SEH = bytes.fromhex('5589e583ec0864a1000000005064892500000000c745fc000000008b4508c70007000000837dfc00750c5964890d0000000089ec5dc3b80900000089ec5dc3')
+# push ebp; mov ebp,esp; jmp store; rd: mov eax,fs:[0]; mov [eax],ecx; ret; store: mov fs:[0],esp; jmp rd  (the read runs after the registration)
+SEH_LOOP = bytes.fromhex('5589e5eb0964a1000000008908c364892500000000ebee')
+SEH_REREAD = bytes.fromhex('5589e583ec0864a1000000005064892500000000648b1500000000c745fc000000008b4508c70007000000837dfc00750c5964890d0000000089ec5dc3b80900000089ec5dc3')
+
+# push ebp; mov ebp,esp; sub esp,8; mov eax,[ebp+8]; mov [ebp-4],0; jmp hdr; inc: i++; hdr (0x1b): cmp [ebp-4],5; jge done; push 1; mov edx,[ebp-4]; cmp edx,4; ja never (0x29); mov [eax],7; pop ecx; jmp inc; never: pop ecx; ...
+LOOP_INV = bytes.fromhex('5589e583ec088b4508c745fc00000000eb098b4dfc83c101894dfc837dfc057d196a018b55fc83fa047709c7000700000059ebde59b80900000089ec5dc3')
+
 
 def image_of(code, tail=b''):
     return bytes(BASE - P.IMAGE_BASE) + code + tail + bytes(64)
@@ -282,8 +293,7 @@ def image_of(code, tail=b''):
 class Fl75(unittest.TestCase):
     """FL-75: jump tables cut at their range check, the frame assumption per window, callee return bounds."""
 
-    def two_tables(self, code=TWO_TABLES, tight=True):
-        body = 0x23
+    def two_tables(self, code=TWO_TABLES, tight=True, body=0x23):
         an = P.Analysis({'va': BASE, 'body': body, 'callees': {}, 'imports': {}, 'sites': None}, image_of(code), 20000)
         an.tight_tables = tight
         return an
@@ -307,12 +317,69 @@ class Fl75(unittest.TestCase):
             an.run()
         self.assertIn('table escape', str(ctx.exception))
 
+    def test_a_window_keeps_a_cut_that_is_proved_and_drops_one_that_is_not(self):
+        import fl71_window as Wn
+        an, dom = Wn.from_analysis(self.two_tables())
+        self.assertEqual([len(t) for t in an.table.values()], [2])           # the guard is on the index: the table stays cut
+        an, dom = Wn.from_analysis(self.two_tables(BAD_GUARD))
+        self.assertEqual([len(t) for t in an.table.values()], [4])           # the guard is on ebx: the whole table
+
     def test_a_window_does_not_use_a_cut_nobody_has_proved(self):
         import fl71_window as Wn
         an, dom = Wn.from_analysis(self.two_tables(BAD_GUARD))
         c2 = BASE + 0x1d                                                # reachable with eax == 2, ebx <= 1: the range check is on ebx, so the cut to two cells is wrong
         self.assertIn(Wn.block_of(an, c2), an.reach)
         self.assertNotEqual(Wn.prove_faults(an, dom, ('ins', c2))[0], 'unsat')
+
+    def test_a_cut_table_that_no_run_reaches_does_not_stop_the_window_build(self):
+        import fl71_window as Wn
+        an, dom = Wn.from_analysis(self.two_tables(b'\xc3\x90\x90\x90' + TWO_TABLES[4:]))     # ret first: the switch is unreachable
+        self.assertEqual([len(t) for t in an.table.values()], [2])           # nothing can run it, the cut stays
+
+    def test_the_constant_memory_cache_matches_the_facts_after_cut_validation(self):
+        import fl71_window as Wn
+        an, dom = Wn.from_analysis(self.two_tables(CONST_LOAD, body=0x28))     # the switch block reads image bytes before the jump
+        self.assertTrue(an.cut)
+        self.assertTrue(an.M.fact_keys)
+        self.assertEqual(len(an.M.fact_keys), len(an.M.facts))           # a key without its fact would never be added again
+
+    def seh_row(self, code):
+        an = P.Analysis({'va': BASE, 'body': len(code), 'callees': {}, 'imports': {}, 'sites': None}, image_of(code), 20000)
+        an.run()
+        jne = [i.address for i in an.insns if i.mnemonic == 'jne'][0]
+        return an, an.direction(jne, 'taken')[0]
+
+    def test_the_exception_chain_registration_of_a_prologue_keeps_the_frame_assumption(self):
+        an, verdict = self.seh_row(SEH)
+        self.assertEqual(an.esc_addrs, [])
+        self.assertTrue(an.M.split)
+        self.assertEqual(verdict, 'unsat')                              # [ebp-4] = 0; a store through the argument pointer; [ebp-4] != 0 ?
+
+    def test_a_read_of_the_exception_chain_that_a_jump_can_run_after_the_registration_keeps_no_frame_assumption(self):
+        an = P.Analysis({'va': BASE, 'body': len(SEH_LOOP), 'callees': {}, 'imports': {}, 'sites': None}, image_of(SEH_LOOP), 20000)
+        self.assertEqual(len(an.esc_addrs), 1)                           # the read sits in front of the registration by address only
+
+    def test_a_function_that_reads_the_exception_chain_after_registering_it_keeps_no_frame_assumption(self):
+        an, verdict = self.seh_row(SEH_REREAD)
+        self.assertEqual(len(an.esc_addrs), 1)
+        self.assertFalse(an.M.split)
+        self.assertEqual(verdict, 'sat')
+
+    def loop_window(self, atoms):
+        import fl71_window as Wn
+        an = P.Analysis({'va': BASE, 'body': len(LOOP_INV), 'callees': {}, 'imports': {}, 'sites': None}, image_of(LOOP_INV), 20000)
+        an.inv = {BASE + 0x1b: atoms} if atoms else {}
+        an, dom = Wn.from_analysis(an)
+        return Wn.prove_target(an, dom, Wn.block_of(an, BASE + 0x29, True), ('dir', 'taken'))[0]
+
+    def test_a_window_before_a_loop_proves_an_invariant_for_a_target_inside_the_loop_and_keeps_the_stack_tie(self):
+        self.assertEqual(self.loop_window([{'mem': ['ebp', -4, 4], 'op': 'sge', 'val': 0}]), 'unsat')      # 0 <= i < 5, so the unsigned compare with 4 never jumps; the push in the body balances the pop
+
+    def test_without_the_invariant_the_loop_counter_may_be_negative(self):
+        self.assertNotEqual(self.loop_window(None), 'unsat')
+
+    def test_an_invariant_the_body_breaks_is_refused_in_a_window(self):
+        self.assertNotEqual(self.loop_window([{'mem': ['ebp', -4, 4], 'op': 'eq', 'val': 0}]), 'unsat')
 
     def jne_window(self, code):
         import fl71_window as Wn

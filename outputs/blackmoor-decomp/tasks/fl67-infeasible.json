@@ -196,6 +196,34 @@
    "source": "src/original_methods_fl40.c",
    "translation_sha256": "3fea05dd3f20422c46fea59d91bf93a4a55362fd54bf974650bd9c126e8cc425"
   },
+  "0x420c17": {
+   "body": 7433,
+   "directions": [
+    226,
+    228
+   ],
+   "instructions": [
+    1762,
+    1764
+   ],
+   "pool": "lower",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x421b75:taken": "507b22c5d23bcaadd648f605a1f58445ccbe55c74d7e2c74510a6c7ce0e3fc2a",
+     "0x421dd6:fall-through": "06b61766a3679e0028ca2aa52878df728829a318aaa46f443d92b12869386409"
+    },
+    "instructions": {
+     "0x421dd8": "55ee536bc9c1e0ffa4392e9906bd6df74759bc888ff85f8f2a292d1c40385c66",
+     "0x421ddb": "55ee536bc9c1e0ffa4392e9906bd6df74759bc888ff85f8f2a292d1c40385c66"
+    },
+    "plan": {}
+   },
+   "scenarios_kept": 83,
+   "scenarios_run": 83,
+   "source": "src/original_methods_fl56_unverified.c",
+   "translation_sha256": "5f2b08d241f7cb6df9419c150f77e6cd7a90e3f03c53c2850f5aa86b64096aaf"
+  },
   "0x422e4a": {
    "body": 343,
    "directions": [
@@ -753,6 +781,54 @@
    "source": "src/original_methods_fl56_unverified.c",
    "translation_sha256": "0baf16346eb6d0c31988693caec8f1f7037908d253e3e4137880952aee1e1b8e"
   },
+  "0x47b767": {
+   "body": 786,
+   "directions": [
+    34,
+    38
+   ],
+   "instructions": [
+    177,
+    197
+   ],
+   "pool": "lower",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x47b812:taken": "a5a5a2638d2e6ed4c8a7c149b6bfb3c0945d3f8fa455e7fe8594696076bac7e4",
+     "0x47b8f8:taken": "8a37ffbb0ed6a2c5b16030595685f6b2f50448c81e2779056db77b2ea5deb3b6",
+     "0x47b9bb:taken": "573a9f73c51720b77fda32c90c424a28be345baeb64007bf74c36bc9e61c253f",
+     "0x47ba46:taken": "070b3a17da11a8207dd2257f3f8345ca2ed5031f038424337a3ae798d9580b7c"
+    },
+    "instructions": {
+     "0x47b9c6": "6df7ab7e34af67594dc1970fd9bbf17d17b6004eb8b3fa45afca53b9def3c989",
+     "0x47b9c9": "6df7ab7e34af67594dc1970fd9bbf17d17b6004eb8b3fa45afca53b9def3c989",
+     "0x47b9cf": "6df7ab7e34af67594dc1970fd9bbf17d17b6004eb8b3fa45afca53b9def3c989",
+     "0x47b9d0": "6df7ab7e34af67594dc1970fd9bbf17d17b6004eb8b3fa45afca53b9def3c989",
+     "0x47b9d3": "6df7ab7e34af67594dc1970fd9bbf17d17b6004eb8b3fa45afca53b9def3c989",
+     "0x47b9d9": "6df7ab7e34af67594dc1970fd9bbf17d17b6004eb8b3fa45afca53b9def3c989",
+     "0x47b9da": "6df7ab7e34af67594dc1970fd9bbf17d17b6004eb8b3fa45afca53b9def3c989",
+     "0x47b9df": "6df7ab7e34af67594dc1970fd9bbf17d17b6004eb8b3fa45afca53b9def3c989",
+     "0x47b9e4": "6df7ab7e34af67594dc1970fd9bbf17d17b6004eb8b3fa45afca53b9def3c989",
+     "0x47b9e7": "6df7ab7e34af67594dc1970fd9bbf17d17b6004eb8b3fa45afca53b9def3c989",
+     "0x47ba51": "3c2a2f4c3c8205e15a1344cc2969dd13631b2e598ce00db263864f493cf47cf8",
+     "0x47ba54": "3c2a2f4c3c8205e15a1344cc2969dd13631b2e598ce00db263864f493cf47cf8",
+     "0x47ba5a": "3c2a2f4c3c8205e15a1344cc2969dd13631b2e598ce00db263864f493cf47cf8",
+     "0x47ba5b": "3c2a2f4c3c8205e15a1344cc2969dd13631b2e598ce00db263864f493cf47cf8",
+     "0x47ba5e": "3c2a2f4c3c8205e15a1344cc2969dd13631b2e598ce00db263864f493cf47cf8",
+     "0x47ba64": "3c2a2f4c3c8205e15a1344cc2969dd13631b2e598ce00db263864f493cf47cf8",
+     "0x47ba65": "3c2a2f4c3c8205e15a1344cc2969dd13631b2e598ce00db263864f493cf47cf8",
+     "0x47ba6a": "3c2a2f4c3c8205e15a1344cc2969dd13631b2e598ce00db263864f493cf47cf8",
+     "0x47ba6f": "3c2a2f4c3c8205e15a1344cc2969dd13631b2e598ce00db263864f493cf47cf8",
+     "0x47ba72": "3c2a2f4c3c8205e15a1344cc2969dd13631b2e598ce00db263864f493cf47cf8"
+    },
+    "plan": {}
+   },
+   "scenarios_kept": 14,
+   "scenarios_run": 21,
+   "source": "src/original_methods_fl56_unverified.c",
+   "translation_sha256": "5baafb1d426ea7bb4115fccfd8d1eb8a8954b7bf52a08042d93fe643960ed588"
+  },
   "0x48ae05": {
    "body": 2331,
    "directions": [
@@ -890,6 +966,80 @@
    "scenarios_run": 3,
    "source": "translated/original_methods_fl41_translated.c",
    "translation_sha256": "7f11af0193e912c6e0d14f536ff73bad0661e51dd33c91db3e9bbdc0ac4e5ce6"
+  },
+  "0x4a2180": {
+   "body": 5139,
+   "directions": [
+    127,
+    128
+   ],
+   "instructions": [
+    1313,
+    1325
+   ],
+   "pool": "upper",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x4a2528:fall-through": "bb41fed46ffee8d75a746a18fd8b3441ef6001463a0708d38d30042b4d7eae5f"
+    },
+    "instructions": {
+     "0x4a252a": "9cb7a6a19fe0f3d15653b34c0b35d827363c39590cd1cd1e021ddfe0b01e0d2a",
+     "0x4a252d": "9cb7a6a19fe0f3d15653b34c0b35d827363c39590cd1cd1e021ddfe0b01e0d2a",
+     "0x4a252e": "9cb7a6a19fe0f3d15653b34c0b35d827363c39590cd1cd1e021ddfe0b01e0d2a",
+     "0x4a2533": "9cb7a6a19fe0f3d15653b34c0b35d827363c39590cd1cd1e021ddfe0b01e0d2a",
+     "0x4a2538": "9cb7a6a19fe0f3d15653b34c0b35d827363c39590cd1cd1e021ddfe0b01e0d2a",
+     "0x4a253d": "9cb7a6a19fe0f3d15653b34c0b35d827363c39590cd1cd1e021ddfe0b01e0d2a",
+     "0x4a2540": "9cb7a6a19fe0f3d15653b34c0b35d827363c39590cd1cd1e021ddfe0b01e0d2a",
+     "0x4a2542": "9cb7a6a19fe0f3d15653b34c0b35d827363c39590cd1cd1e021ddfe0b01e0d2a",
+     "0x4a2544": "9cb7a6a19fe0f3d15653b34c0b35d827363c39590cd1cd1e021ddfe0b01e0d2a",
+     "0x4a2549": "9cb7a6a19fe0f3d15653b34c0b35d827363c39590cd1cd1e021ddfe0b01e0d2a",
+     "0x4a254e": "9cb7a6a19fe0f3d15653b34c0b35d827363c39590cd1cd1e021ddfe0b01e0d2a",
+     "0x4a2553": "9cb7a6a19fe0f3d15653b34c0b35d827363c39590cd1cd1e021ddfe0b01e0d2a"
+    },
+    "plan": {}
+   },
+   "scenarios_kept": 76,
+   "scenarios_run": 76,
+   "source": "translated/original_methods_fl41_translated.c",
+   "translation_sha256": "ae19ad8eb3b38e571324afb230d1b6a531dd97b591f23c7a0f8ab9aea90f361c"
+  },
+  "0x4a4f58": {
+   "body": 3970,
+   "directions": [
+    97,
+    98
+   ],
+   "instructions": [
+    998,
+    998
+   ],
+   "pool": "upper",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x4a56cd:taken": "e936078640fbd9203bfc23f57b045909b0f6e8ca002e38b52262caee2ded18e3"
+    },
+    "instructions": {},
+    "plan": {
+     "0x4a4ff2": "gen",
+     "0x4a50bb": "gen",
+     "0x4a50f0": "gen",
+     "0x4a51e2": "gen",
+     "0x4a5204": "gen",
+     "0x4a56aa": 5,
+     "0x4a575d": "gen",
+     "0x4a577b": "gen",
+     "0x4a5857": "gen",
+     "0x4a5875": "gen",
+     "0x4a5942": "gen",
+     "0x4a5960": "gen"
+    }
+   },
+   "scenarios_kept": 34,
+   "scenarios_run": 34,
+   "source": "translated/original_methods_fl41_translated.c",
+   "translation_sha256": "df71344c67d0b59c0d07f8cfc9d9e87019064508b8115e68cd3bfbc486cef402"
   },
   "0x4b2ce6": {
    "body": 2590,
@@ -1566,6 +1716,47 @@
    "scenarios_run": 24,
    "source": "translated/original_methods_fl41_translated.c",
    "translation_sha256": "2af31a06a461530d4f8aad0a15e3fbdb564b0722b92590337109dcc16f9bc124"
+  },
+  "0x4e0e2b": {
+   "body": 724,
+   "directions": [
+    30,
+    34
+   ],
+   "instructions": [
+    165,
+    178
+   ],
+   "pool": "upper",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x4e0f51:taken": "b14ae4940d9c8c86370a9eed891f054cd6ce3aff8cf870c5b1274cf294fc4b01",
+     "0x4e104f:fall-through": "fc9b1ab776cb639cd9f8ba33447fecb13bf083c877c85ec65d825ac558369a7c",
+     "0x4e104f:taken": "8298b4dd241eaa1e01b01b55753709df9e501b7f8b4f97110c460ead95132032",
+     "0x4e10b5:taken": "c4cb97cb78590d97d3d0e35f555e15146450d8325819c0cc40d59c2df08308e8"
+    },
+    "instructions": {
+     "0x4e1046": "f374fa4ae5778436e633a9993c3fab1259cea4db716dec5a9b01629343fa3c1a",
+     "0x4e104d": "f374fa4ae5778436e633a9993c3fab1259cea4db716dec5a9b01629343fa3c1a",
+     "0x4e104f": "f374fa4ae5778436e633a9993c3fab1259cea4db716dec5a9b01629343fa3c1a",
+     "0x4e1051": "6955b6f3cd5251644d9c950667cbd0779eb1be55a606c1d60af2e5f34ff54814",
+     "0x4e1057": "6955b6f3cd5251644d9c950667cbd0779eb1be55a606c1d60af2e5f34ff54814",
+     "0x4e1058": "6955b6f3cd5251644d9c950667cbd0779eb1be55a606c1d60af2e5f34ff54814",
+     "0x4e105d": "6955b6f3cd5251644d9c950667cbd0779eb1be55a606c1d60af2e5f34ff54814",
+     "0x4e1062": "6955b6f3cd5251644d9c950667cbd0779eb1be55a606c1d60af2e5f34ff54814",
+     "0x4e1067": "6955b6f3cd5251644d9c950667cbd0779eb1be55a606c1d60af2e5f34ff54814",
+     "0x4e10c0": "ea4176d96f9f2786de746296232319ea879bfe92700c1964a670cc6ef6ba60f2",
+     "0x4e10c5": "ea4176d96f9f2786de746296232319ea879bfe92700c1964a670cc6ef6ba60f2",
+     "0x4e10ca": "ea4176d96f9f2786de746296232319ea879bfe92700c1964a670cc6ef6ba60f2",
+     "0x4e10cd": "ea4176d96f9f2786de746296232319ea879bfe92700c1964a670cc6ef6ba60f2"
+    },
+    "plan": {}
+   },
+   "scenarios_kept": 9,
+   "scenarios_run": 9,
+   "source": "translated/original_methods_fl41_translated.c",
+   "translation_sha256": "c3d2dc7b8317435d3182c5d86e3b429d9bfa9f2c4b26f4efb7c85d48ff0a12b4"
   },
   "0x4e11ed": {
    "body": 280,
@@ -2992,7 +3183,7 @@
  },
  "rule": {
   "id": "T-EQ-INFEASIBLE",
-  "text": "A pending function is tested equivalent by proof when its committed translation equals the original on every scenario kept for it, and every instruction and conditional-jump direction those scenarios do not reach is PROVED unreachable: scripts/fl67_infeasible.py symbolically executes the original bytes (all paths at once, z3) and shows that no start state of the function reaches it in a run that does not fault. Modelling assumptions: ebx/esi/edi/ebp survive a call and esp returns by the bytes the callee pops; the direction flag is clear; an access at or above 0xfff00000, a division by zero and a quotient overflow fault; a call to a callee that never returns (tests/fl72_noreturn.json, AfxEndThread) ends the run; the image below .data is constant; a function that never forms the address of its own frame keeps its frame slots out of reach of stores through other pointers and of callees (except the argument slots pushed for the call). a direct callee whose own straight-line bytes end `and eax, K; ret` returns at most K; a jump table is cut at the range check in front of the jump and the prover shows no run indexes past the cut. A path may also be ruled out because every run that takes it faults later: a window in front of it and a forward window from it to the returns are solved together (with esp tied to ebp by the pushes, pops and calls of the bytes), and no run reaches a ret without one of the fault assumptions failing. Not a verified port: never added to the verified count."
+  "text": "A pending function is tested equivalent by proof when its committed translation equals the original on every scenario kept for it, and every instruction and conditional-jump direction those scenarios do not reach is PROVED unreachable: scripts/fl67_infeasible.py symbolically executes the original bytes (all paths at once, z3) and shows that no start state of the function reaches it in a run that does not fault. Modelling assumptions: ebx/esi/edi/ebp survive a call and esp returns by the bytes the callee pops; the direction flag is clear; an access at or above 0xfff00000, a division by zero and a quotient overflow fault; a call to a callee that never returns (tests/fl72_noreturn.json, AfxEndThread) ends the run; the image below .data is constant; a function that never forms the address of its own frame keeps its frame slots out of reach of stores through other pointers and of callees (except the argument slots pushed for the call), and the exception-chain registration `mov fs:[0], esp` of a prologue does not count as forming such an address when the function reads fs:[0] only before it (the chain is read by exception dispatch, which is treated like a fault). a direct callee whose own straight-line bytes end `and eax, K; ret` returns at most K; a jump table is cut at the range check in front of the jump and the prover shows no run indexes past the cut. A path may also be ruled out because every run that takes it faults later: a window in front of it and a forward window from it to the returns are solved together (with esp tied to ebp by the pushes, pops and calls of the bytes), and no run reaches a ret without one of the fault assumptions failing. Not a verified port: never added to the verified count."
  },
  "schema": "blackmoor-tested-equivalent-infeasible/1"
 }
