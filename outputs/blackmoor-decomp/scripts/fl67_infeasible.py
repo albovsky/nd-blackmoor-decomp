@@ -95,7 +95,7 @@ def fresh_array(tag='ma'):
 
 def load_invariants(va):
     """{header block address: [atom, ...]} declared for the function at `va` in tests/fl73_invariants.json. An atom is {"mem": [register, displacement, size in bytes], "op": eq|ne|sge|sgt|sle|slt|uge|ugt|ule|ult, "val": n}
-    and says that the `size` bytes at register+displacement, read in the state at the head of a generalised loop, compare so with n (or, with "mem2" in place of "val", with the same-size slot [register, displacement, size]). A header with atoms keeps them only if
+    (or {"or": [atom, ...]}, FL-75) and says that the `size` bytes at register+displacement, read in the state at the head of a generalised loop, compare so with n (or, with "mem2" in place of "val", with the same-size slot [register, displacement, size]). A header with atoms keeps them only if
     `Analysis.verify_invariants` proves them: they hold on every entry edge, and every back edge preserves them (assuming them at the header)."""
     try:
         data = json.loads(INVARIANTS.read_text())
@@ -104,21 +104,25 @@ def load_invariants(va):
     return {int(h, 16): atoms for h, atoms in data.get(hex(va), {}).items()}
 
 
+def inv_atom(M, st, at):
+    if 'or' in at:                                                                 # FL-75: {"or": [atom, ...]} holds when any alternative does
+        alts = [inv_atom(M, st, a) for a in at['or']]
+        return z3.Or(*alts) if len(alts) > 1 else alts[0]
+    reg, disp, size = at['mem']
+    a = st.R[reg] + bv(disp, 32)
+    v = M.load(getattr(st, M.space(st, a)), a, size)
+    if 'mem2' in at:                                                               # compared with another slot of the same size
+        reg2, disp2, size2 = at['mem2']
+        assert size2 == size
+        a2 = st.R[reg2] + bv(disp2, 32)
+        other = M.load(getattr(st, M.space(st, a2)), a2, size)
+    else:
+        other = bv(at['val'], 8 * size)
+    return _INV_OPS[at['op']](v, other)
+
+
 def inv_parts(M, st, atoms):
-    out = []
-    for at in atoms:
-        reg, disp, size = at['mem']
-        a = st.R[reg] + bv(disp, 32)
-        v = M.load(getattr(st, M.space(st, a)), a, size)
-        if 'mem2' in at:                                                           # compared with another slot of the same size
-            reg2, disp2, size2 = at['mem2']
-            assert size2 == size
-            a2 = st.R[reg2] + bv(disp2, 32)
-            other = M.load(getattr(st, M.space(st, a2)), a2, size)
-        else:
-            other = bv(at['val'], 8 * size)
-        out.append(_INV_OPS[at['op']](v, other))
-    return out
+    return [inv_atom(M, st, at) for at in atoms]
 
 
 def inv_formula(M, st, atoms):
@@ -727,6 +731,7 @@ class Analysis:
         self.verdict = {}
         self.inv = load_invariants(self.va)
         self.gen_state, self.hdr_in, self.hdr_back = {}, {}, {}      # FL-73: per generalised header with invariants: its state, its entry edges, its back edges
+        self.tight_tables, self.cut, self.escapes = True, {}, []      # FL-75: tables cut at the range check (self.cut: jump -> the longer table that was cut); escapes: index-outside-the-cut conditions
 
     def table_targets(self, ins):
         """Targets of `jmp [index*4 + table]` read from the constant table; None if the jump is not of that form."""
@@ -745,6 +750,23 @@ class Analysis:
             out.append((a, t))
         return out or None
 
+    def tighten(self, ins, tt):
+        """FL-75: the table runs on into the next switch's table (every cell is a valid target), which makes spurious edges and irreducible loops. Cut it at the bound of the range check just in front of the jump
+        (`cmp X, K; ja/jae default`): K+1 (K for jae) cells. This is only a PROPOSAL: execute() collects, per jump, the condition that the index falls outside the kept cells and run() requires it unsat."""
+        if not self.tight_tables:
+            return tt
+        k = self.insns.index(ins)
+        for j in range(k - 1, max(k - 14, 1), -1):
+            g = self.insns[j]
+            c = self.insns[j - 1]
+            if g.mnemonic in ('ja', 'jae', 'jnb', 'jnbe') and c.mnemonic == 'cmp' and c.operands[1].type == X.X86_OP_IMM:
+                n = (c.operands[1].imm & 0xffffffff) + (1 if g.mnemonic in ('ja', 'jnbe') else 0)
+                if 0 < n < len(tt):
+                    self.cut[ins.address] = tt
+                    return tt[:n]
+                return tt
+        return tt
+
     def build_blocks(self):
         leaders = {self.va}
         self.table = {}
@@ -758,6 +780,7 @@ class Analysis:
                 tt = self.table_targets(ins)
                 if tt is None:
                     raise Unsupported('indirect jump at 0x%x' % ins.address)
+                tt = self.tighten(ins, tt)
                 self.table[ins.address] = tt
                 for cell, _ in tt:
                     self.M.const_facts(cell, 4)
@@ -984,6 +1007,8 @@ class Analysis:
             here = z3.And(self.ic[node], st.pc)
             conds = {}
             tgt_addr = {k: t for k, t in self.blocks[a]['succ']}
+            if last.address in self.cut:                     # FL-75: the run may not index past the cells that the cut table keeps
+                self.escapes.append(self.table_escape(st, here, last))
             for kind, t in succ[node]:
                 if kind == 'taken':
                     c = z3.And(here, br)
@@ -1006,6 +1031,18 @@ class Analysis:
                     self.hdr_back.setdefault(t, []).append((c, st))
                     continue
                 incoming[t].append((c, st))
+
+    def table_escape(self, st, here, last):
+        """the condition under which the (cut) table jump `last` reads a cell outside the kept ones"""
+        s2 = st.copy()
+        addr = self.M.ea(s2, last.operands[0])
+        return z3.And(here, *[addr != c for c, _ in self.table[last.address]])
+
+    def verify_escapes(self):
+        for k, esc in enumerate(self.escapes):
+            r, _ = self.check(esc)
+            if r != 'unsat':
+                raise Unsupported('table escape (%s)' % r)
 
     def verify_invariants(self):
         """FL-73: every invariant that execute() assumed at a generalised header is inductive: it holds on each entry edge (initiation) and, assumed at the header, on each back edge (consecution).
@@ -1032,10 +1069,12 @@ class Analysis:
         plan = {h: UNROLL[0] for h in self.loops}
         self.plan = plan
         for _ in range(len(UNROLL) + 1):
+            self.escapes = []
             self.execute(plan)
             bad = [h for h in self.loops if plan[h] != 'gen' and not self.sink_unsat(h)]
             if not bad:
                 self.verify_invariants()
+                self.verify_escapes()
                 return
             for h in bad:
                 nxt = [u for u in UNROLL if u > plan[h]]
@@ -1119,7 +1158,14 @@ def prove_row(key, targets, timeout_ms=30000, image=None, fail_fast=False):
             raise
     try:
         an = Analysis(row, image, timeout_ms)
-        an.run()
+        try:
+            an.run()
+        except Unsupported:
+            if not an.cut:
+                raise
+            an = Analysis(row, image, timeout_ms)       # FL-75: the cut of a jump table could not be justified (or did not help): the whole table, as before
+            an.tight_tables = False
+            an.run()
         out['plan'] = {hex(h): v for h, v in sorted(an.plan.items())}
     except Unsupported as ex:
         out.update(status='unsupported', reason=str(ex))

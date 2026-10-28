@@ -107,6 +107,7 @@ def run_window(an, order, S, T, query, frame=False):
         incoming[S].append((z3.BoolVal(True), P.State.start()))
         edge = {}
         ic = {}
+        escapes, esc_seen = [], set()
         gen_state, hdr_in, hdr_back, done = {}, {}, {}, set()           # FL-73: loop invariants (tests/fl73_invariants.json) assumed at a generalised header, proved below
         for node in order:
             items = incoming[node]
@@ -152,6 +153,9 @@ def run_window(an, order, S, T, query, frame=False):
                     s2 = st.copy()
                     v = M.mem_read(s2, last.operands[0], 4)
                     c = z3.And(here, v == t)
+                    if last.address in an.cut and last.address not in esc_seen:       # FL-75: a table cut at its range check: the index may not leave the kept cells (checked below)
+                        esc_seen.add(last.address)
+                        escapes.append(an.table_escape(st, here, last))
                 else:
                     c = here
                 conds[(kind, t)] = z3.Or(conds[(kind, t)], c) if (kind, t) in conds else c
@@ -179,6 +183,9 @@ def run_window(an, order, S, T, query, frame=False):
                 bad = P.inv_failures(chk, M, assumed, c, st_b, atoms)
                 if bad:
                     raise P.Unsupported('invariant at 0x%x is not preserved by a back edge (atoms %s)' % (h, bad))
+        for esc in escapes:
+            if an.check(esc, STEP_MS)[0] != 'unsat':
+                raise P.Unsupported('table escape in a window')
         if query[0] == 'ins':
             return ic[T]
         conds = [c for (n, kind, t), c in edge.items() if n == T and kind == query[1]]
