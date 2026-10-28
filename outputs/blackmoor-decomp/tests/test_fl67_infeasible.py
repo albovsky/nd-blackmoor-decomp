@@ -274,6 +274,10 @@ FP_CALLEES = {
 }
 
 
+# push ebp; mov ebp,esp; sub esp,4; mov [ebp-4],0; mov eax,[ebp+8]; cmp eax,5; jne bad; mov eax,1; jmp done; bad: mov eax,100; cdq; idiv dword [ebp-4]; done: mov esp,ebp; pop ebp; ret
+FAULT_LATER = bytes.fromhex('5589e583ec04c745fc000000008b450883f8057507b801000000eb09b86400000099f77dfc89ec5dc3')
+
+
 def image_of(code, tail=b''):
     return bytes(BASE - P.IMAGE_BASE) + code + tail + bytes(64)
 
@@ -320,6 +324,26 @@ class Fl75(unittest.TestCase):
 
     def test_a_target_behind_a_frame_address_gets_no_frame_assumption(self):
         self.assertNotEqual(self.jne_window(FRAME_EARLIER), 'unsat')   # the same code with the lea in front: the pointer may alias the slot
+
+    def fault_window(self, mark):
+        import fl71_window as Wn
+        code = FAULT_LATER
+        an = P.Analysis({'va': BASE, 'body': len(code), 'callees': {}, 'imports': {}, 'sites': None}, image_of(code), 20000)
+        an, dom = Wn.from_analysis(an)
+        jne = [i for i in an.insns if i.mnemonic == 'jne'][0].address
+        return an, Wn, dom, jne
+
+    def test_the_stack_pointer_is_related_to_the_frame_pointer_in_every_block(self):
+        an, Wn, dom, jne = self.fault_window(None)
+        delta = Wn.stack_delta(an)
+        self.assertEqual(delta[BASE + 0x15], -4)                        # after `sub esp, 4`, esp is four below ebp on both branches
+        self.assertEqual(delta[BASE + 0x1c], -4)
+        self.assertNotIn(BASE, delta)                                   # the entry block starts before the prologue
+
+    def test_a_path_whose_every_run_faults_later_is_proved_unreachable_by_the_forward_window(self):
+        an, Wn, dom, jne = self.fault_window(None)
+        self.assertEqual(Wn.prove_faults(an, dom, ('dir', jne, 'taken'))[0], 'unsat')   # [ebp-4] = 0 reaches the idiv on every run through `bad`
+        self.assertNotEqual(Wn.prove_faults(an, dom, ('dir', jne, 'fall'))[0], 'unsat')  # the other direction returns without a fault
 
     def retbound(self, key):
         code = RETBOUND[key]

@@ -17,7 +17,10 @@ in a run that does not fault. The proof is an exhaustive symbolic execution of t
   * an access whose address is at or above 0xfff00000, a division by zero and a quotient overflow FAULT in the world; a run that faults is not
     a scenario (scripts/fl66_tested.py skips it), so those conditions are assumed true on the way (a prefix of the run: this only removes states);
   * a call to a callee that the row lists as never returning (tests/fl72_noreturn.json: AfxEndThread, which ends the thread) ends the run: nothing after it is reachable (FL-72);
-  * bytes of the image below .data are constants (`DATA_START`); the direction flag is clear at entry and after calls (Win32 ABI).
+  * bytes of the image below .data are constants (`DATA_START`); the direction flag is clear at entry and after calls (Win32 ABI);
+  * FL-75: a direct callee whose own straight-line bytes end `and eax, K; ret` returns eax <= K (`Machine.ret_bound`, e.g. the CRT rand); a jump table is cut at the range check in front of the jump (`Analysis.tighten`) and
+    the prover requires, per jump, that no run can index past the cut (`table_escape` unsat), else the whole table is used as before; a function whose frame addresses are all `lea R, [ebp-K]; push R; call C` with a callee C that
+    `scripts/fl75_footprint.py` shows writes only [p+lo, p+hi) and keeps no copy of p keeps the frame assumption (that call also leaves those frame bytes unknown); a window in front of the first frame address gets it too (`Analysis.frame_safe`).
 
 A target (instruction or jump direction) is UNREACHABLE when the solver proves `ic(block) and branch condition` unsatisfiable. A target the
 solver cannot decide, or a function with an instruction the model does not know, gets NO proof. Everything over-approximates, so unsat is sound.
@@ -1219,6 +1222,20 @@ def prove_row(key, targets, timeout_ms=30000, image=None, fail_fast=False):
         out['directions'].update(win['directions'])
         todo = {'missing': [a for a in todo['missing'] if hex(a) not in win['instructions']],
                 'untaken': [[a, n] for a, n in todo['untaken'] if '%s:%s' % (hex(a), n) not in win['directions']]}
+        if (todo['missing'] or todo['untaken']) and any(i.mnemonic in ('div', 'idiv') for i in an0.insns):      # FL-75: what every run reaching it faults after (a division by a divisor just shown to be zero)
+            memo = {}
+            for a in list(todo['missing']):
+                S = Wn.block_of(an0, a)
+                v = memo.get(('i', S)) or memo.setdefault(('i', S), Wn.prove_faults(an0, dom, ('ins', a)))
+                if v[0] == 'unsat':
+                    out['instructions'][hex(a)] = [v[0], v[1]]
+                    todo['missing'].remove(a)
+            for a, n in list(todo['untaken']):
+                kind = 'taken' if n == 'taken' else 'fall'
+                v = memo.get(('d', a, kind)) or memo.setdefault(('d', a, kind), Wn.prove_faults(an0, dom, ('dir', a, kind)))
+                if v[0] == 'unsat':
+                    out['directions']['%s:%s' % (hex(a), n)] = [v[0], v[1]]
+                    todo['untaken'].remove([a, n])
         if not todo['missing'] and not todo['untaken']:
             out['status'] = 'proved'
             out['plan'] = {}                # no whole-function analysis was needed, so no loop plan
