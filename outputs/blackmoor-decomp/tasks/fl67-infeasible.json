@@ -76,6 +76,30 @@
    "source": "src/original_methods_fl56_unverified.c",
    "translation_sha256": "3f5aab549af61e508ba375f159ad822e3bf9097f2cc0b63ad2019fcf90389574"
   },
+  "0x416fb6": {
+   "body": 2894,
+   "directions": [
+    65,
+    66
+   ],
+   "instructions": [
+    755,
+    755
+   ],
+   "pool": "lower",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x41754c:taken": "7da47ba6415dc459b92caf12c98eca9757838ad30f9e9fe5509786c39c4b70ac"
+    },
+    "instructions": {},
+    "plan": {}
+   },
+   "scenarios_kept": 30,
+   "scenarios_run": 30,
+   "source": "src/original_methods_fl56_unverified.c",
+   "translation_sha256": "e6b4dc6bbad5ae590e20d561fb0a3aede536c3b51e2cad81b3c84f295ef9d7e3"
+  },
   "0x41f5b1": {
    "body": 981,
    "directions": [

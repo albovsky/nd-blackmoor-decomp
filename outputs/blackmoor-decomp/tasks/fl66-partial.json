@@ -75,18 +75,6 @@
    ],
    "pool": "lower"
   },
-  "0x416fb6": {
-   "body": 2894,
-   "directions": [
-    48,
-    66
-   ],
-   "instructions": [
-    556,
-    755
-   ],
-   "pool": "lower"
-  },
   "0x4181c6": {
    "body": 3212,
    "directions": [
@@ -372,30 +360,6 @@
    "instructions": [
     867,
     900
-   ],
-   "pool": "upper"
-  },
-  "0x4aba6d": {
-   "body": 2294,
-   "directions": [
-    55,
-    74
-   ],
-   "instructions": [
-    496,
-    574
-   ],
-   "pool": "upper"
-  },
-  "0x4b8e92": {
-   "body": 3062,
-   "directions": [
-    66,
-    86
-   ],
-   "instructions": [
-    687,
-    736
    ],
    "pool": "upper"
   },

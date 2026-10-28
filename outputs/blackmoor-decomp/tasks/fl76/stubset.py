@@ -47,7 +47,7 @@ for s, ov in scen:
             nov = nov + [[W.STUB_OVR + 16 * k + 4 * rest[0], 4, rest[1]]]
     tr = run(W, row, s, nov); gc.collect()
     if tr.fault: continue
-    if not (tr.executed <= ex and tr.edges <= ed):
+    if os.environ.get('ALL') or not (tr.executed <= ex and tr.edges <= ed):
         ex |= tr.executed; ed |= tr.edges; kept.append([s, nov]); print('new', s, cov(G, row, ex, ed)[:4], flush=True)
 got, total, taken, dirs, missing, untaken = cov(G, row, ex, ed)
 print('final', got, total, taken, dirs, [hex(x) for x in missing][:20])
