@@ -4,6 +4,7 @@
   "0x417b04": "timeout after 900s",
   "0x425b8b": "timeout after 900s",
   "0x42f510": "timeout after 1500s",
+  "0x44ad41": "exit -9: ",
   "0x4516c7": "timeout after 1500s",
   "0x453ce2": "timeout after 1500s",
   "0x456516": "timeout after 300s",
@@ -245,18 +246,6 @@
    ],
    "pool": "lower"
   },
-  "0x44ad41": {
-   "body": 470,
-   "directions": [
-    10,
-    12
-   ],
-   "instructions": [
-    88,
-    144
-   ],
-   "pool": "lower"
-  },
   "0x44b641": {
    "body": 1943,
    "directions": [
@@ -338,18 +327,6 @@
    "instructions": [
     67,
     73
-   ],
-   "pool": "lower"
-  },
-  "0x4695f7": {
-   "body": 4991,
-   "directions": [
-    61,
-    86
-   ],
-   "instructions": [
-    891,
-    1117
    ],
    "pool": "lower"
   },
@@ -581,18 +558,6 @@
    ],
    "pool": "upper"
   },
-  "0x4b05ae": {
-   "body": 2481,
-   "directions": [
-    55,
-    56
-   ],
-   "instructions": [
-    649,
-    649
-   ],
-   "pool": "upper"
-  },
   "0x4b8e92": {
    "body": 3062,
    "directions": [
@@ -688,18 +653,6 @@
     475
    ],
    "pool": "upper57"
-  },
-  "0x4cd6ff": {
-   "body": 2260,
-   "directions": [
-    67,
-    68
-   ],
-   "instructions": [
-    527,
-    530
-   ],
-   "pool": "upper"
   },
   "0x4cf9f4": {
    "body": 1742,
