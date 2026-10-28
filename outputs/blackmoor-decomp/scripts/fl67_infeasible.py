@@ -16,6 +16,7 @@ in a run that does not fault. The proof is an exhaustive symbolic execution of t
   * x87 instructions are over-approximated (a store of x87 data writes unconstrained bytes, fnstsw ax gives an unconstrained ax);
   * an access whose address is at or above 0xfff00000, a division by zero and a quotient overflow FAULT in the world; a run that faults is not
     a scenario (scripts/fl66_tested.py skips it), so those conditions are assumed true on the way (a prefix of the run: this only removes states);
+  * a call to a callee that the row lists as never returning (tests/fl72_noreturn.json: AfxEndThread, which ends the thread) ends the run: nothing after it is reachable (FL-72);
   * bytes of the image below .data are constants (`DATA_START`); the direction flag is clear at entry and after calls (Win32 ABI).
 
 A target (instruction or jump direction) is UNREACHABLE when the solver proves `ic(block) and branch condition` unsatisfiable. A target the
@@ -204,6 +205,7 @@ class Machine:
         self.callees = {int(k): v for k, v in row.get('callees', {}).items()}
         self.imports = {int(k): v for k, v in row.get('imports', {}).items()}
         self.sites = {int(k): v for k, v in (row.get('sites') or {}).items()}
+        self.noreturn = {int(a) for a in row.get('noreturn', ())}          # FL-72: callees that never return (tests/fl72_noreturn.json): a path that calls one ends there
         self.split = False      # the frame assumption holds for this function (set by Analysis)
         self.after_call = {}    # call address -> bytes the next instruction `add esp, k` removes
         self.facts = []         # facts about the START memory (constant bytes of the image), valid in every query
@@ -574,6 +576,8 @@ class Machine:
             st.frm = arr
         st.R['esp'] = sp + pops if pops is not None else fresh(32, 'sp')
         self.unknown_flags(st)
+        if op.type == X.X86_OP_IMM and (op.imm & 0xffffffff) in self.noreturn:
+            st.pc = z3.BoolVal(False)                  # the callee never returns: no run continues past this call
 
     def string(self, st, ins, base, rep):
         """movs/stos/cmps/scas, single or repeated. Over-approximated: a repeated one stores unknown bytes through unknown pointers (ecx ends at 0 for movs/stos)."""
