@@ -4,7 +4,7 @@ Goal: clear the Mac-port pending rows that FL-72 was not working on, by making t
 
 ## Result
 
-Ten Mac-port rows cleared (PR 259). Whole ledger: verified/ported 2,210 of 4,188 (unchanged), tested equivalent 1,704 (was 1,686 before FL-75; FL-76 batch 1 added 8), of which proved infeasible 96 (was 88). Mac-port view (Game + Vorbis, 2,685): ported 2,209, tested equivalent 429, pending 47.
+Ten Mac-port rows cleared (PR 259). Whole ledger: verified/ported 2,210 of 4,188 (unchanged), tested equivalent 1,712 (was 1,686 before FL-75; FL-76 batches 1 and 2 added 16), of which proved infeasible 96 (was 88). Mac-port view (Game + Vorbis, 2,685): ported 2,209, tested equivalent 437, pending 39.
 
 - Proved (T-EQ-INFEASIBLE, every missing item refuted by z3): 0x44b641, 0x44ffa3, 0x4a14c6, 0x4bbb3e, 0x417b04, 0x4b4a68, 0x45c18f, 0x4a0ec3 (crash-path row).
 - Tested equivalent by scenarios only: 0x4a6c61 (112/112 directions), 0x4867bd (94/94).
