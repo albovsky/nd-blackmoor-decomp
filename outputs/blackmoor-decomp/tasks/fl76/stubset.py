@@ -1,6 +1,6 @@
 """stubset.py ROW OUT 'SPEC' [scenfile..]: SPEC is a python list of steps applied in order to every known scenario (hit index recomputed after each step, so a step never sits on a shifted callee):
   ('g', addr, size, val)               global cell override (first, replaces an earlier one at addr)
-  ('wr', callpc, target, val)          the first hit of callpc also stores val (dword) at target
+  ('wr', callpc, target, val)          the first hit of callpc also stores val (dword) at target (an int, or ('ebp', -0x150) = register + offset at the call)
   ('ret', callpc, slot, val)           the first hit of callpc returns val in slot 0=eax 1=ecx 2=edx
   ('wrn', callpc, nth, target, val)    like wr, nth hit
   ('retn', callpc, nth, slot, val)     like ret, nth hit
@@ -22,10 +22,12 @@ for s, ov in scen:
     if not (tr.executed <= ex and tr.edges <= ed):
         ex |= tr.executed; ed |= tr.edges; kept.append([s, [list(o) for o in ov]])
 print('base', cov(G, row, ex, ed)[:4], len(kept), flush=True)
+REGS = []
 def hit_index(s, nov, pc, nth):
-    hits = []
+    hits = []; REGS.clear()
     def watch(uc, ensure, trace, sp):
-        def h(uc_, a, sz, u): hits.append(len(trace.calls))
+        def h(uc_, a, sz, u):
+            hits.append(len(trace.calls)); REGS.append({r: uc_.reg_read(getattr(unicorn.x86_const, 'UC_X86_REG_' + r.upper())) for r in ('ebp', 'esp', 'ecx', 'edx', 'eax', 'esi', 'edi', 'ebx')})
         uc.hook_add(unicorn.UC_HOOK_CODE, h, begin=pc, end=pc)
     W.run_original(row, s, [tuple(o) for o in nov], watch=watch)
     gc.collect()
@@ -40,9 +42,12 @@ for s, ov in scen:
         if st[0] in ('wr', 'ret'): pc, nth, rest = st[1], 0, st[2:]
         else: pc, nth, rest = st[1], st[2], st[3:]
         k = hit_index(s, nov, pc, nth)
+        if os.environ.get("DEBUG"): print("dbg", s, k, REGS[:1] and REGS[0]["ebp"], flush=True)
         if k is None: break
         if st[0] in ('wr', 'wrn'):
-            nov = nov + [[W.STUB_WR + 16 * k, 4, rest[0]], [W.STUB_WR + 16 * k + 4, 4, rest[1]]]
+            tgt = rest[0]
+            if isinstance(tgt, tuple): tgt = (REGS[nth][tgt[0]] + tgt[1]) & 0xffffffff     # (reg, offset): relative to the register at the call
+            nov = nov + [[W.STUB_WR + 16 * k, 4, tgt], [W.STUB_WR + 16 * k + 4, 4, rest[1]]]
         else:
             nov = nov + [[W.STUB_OVR + 16 * k + 4 * rest[0], 4, rest[1]]]
     tr = run(W, row, s, nov); gc.collect()
