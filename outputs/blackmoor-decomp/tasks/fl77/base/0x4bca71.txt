@@ -1,0 +1,2 @@
+0x4bca71 1079 1428 46 100 12
+untaken 4bd501T 4bd52dT 4bd559T 4bd585T 4bd5b1T 4bd8aaT 4bd8c9T 4bd8c9F 4bd907T 4bd907F 4bd93bT 4bd93bF 4bd9b2F 4bd9edF 4bda3fF 4bda94T 4bda94F 4bdae8T 4bdb21T 4bdb21F 4bdb5fT 4bdb5fF 4bdbf8T 4bdbf8F 4bdc3fT 4bdc3fF 4bdc7dT 4bdc7dF 4bdcbbT 4bdcbbF 4bdd43T 4bdd43F 4bddc1T 4bddc1F 4bdde1T 4bdde1F 4bde40T 4bde6dT 4bde99T 4bdec5T 4bdef1T 4bdf1dT 4bdf39T 4bdf52T 4bdfedF 4be01fT 4be04eT 4be04eF 4be066T 4be066F 4be0faT 4be0faF 4be12cT 4be12cF
