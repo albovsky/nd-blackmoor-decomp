@@ -145,7 +145,7 @@ DEBUG_IMPORTS = frozenset({"KERNEL32.dll!OutputDebugStringA", "KERNEL32.dll!Outp
 MECHANICAL_PARTS = frozenset({"import_thunk", "jump_thunk", "eh_handler_stub"})
 DEFAULT_EH_PARENT_REGIONS = ("crt_mfc", "vorbis")
 ROLES = ("function-index", "layout", "census", "x86-manifest", "x86-audit", "evidence", "xrefs", "overrides",
-         "tested-equivalent", "evidence-source", "evidence-oracle", "evidence-test", "evidence-mention", "xrefs-pin")
+         "tested-equivalent", "documented-exception", "evidence-source", "evidence-oracle", "evidence-test", "evidence-mention", "xrefs-pin")
 POINTER_ROLE = {"native_source": "evidence-source", "oracle": "evidence-oracle",
                 "test": "evidence-test", "mention": "evidence-mention"}
 
@@ -166,6 +166,11 @@ TE2_SCENARIOS = "tests/fl67_scenarios.json"
 TE2_SCHEMA = "blackmoor-tested-equivalent-infeasible/1"
 TE2_RULE_ID = "T-EQ-INFEASIBLE"
 TE2_ROW_KEYS = TE_ROW_KEYS + ["proofs"]
+# FL-77: the third slice of pending. A PENDING function that the project has stopped working on and documents as an exception, with a reason code and a note
+# per row (tasks/fl77-exceptions.json). Like the tested-equivalent tier it never changes a status, a class or a count: it is never ported and never a pass.
+DE_FILE = "tasks/fl77-exceptions.json"
+DE_SCHEMA = "blackmoor-documented-exceptions/1"
+DE_RULE_ID = "X-DOC-EXCEPTION"
 TE_SOURCES = ("src/original_methods_fl40.c", "src/original_methods_fl56_unverified.c",
               "translated/original_methods_fl41_translated.c", "translated/original_methods_fl57_translated.c",
               "translated/original_methods_fl59_handports.c")
@@ -781,7 +786,7 @@ def validate_entry(e, index):
 
 def validate(ledger):
     """Strict schema and invariant check of a ledger; reads no other file."""
-    exact_keys(ledger, "schema original_sha256 inputs counts entries".split(), ["vorbis_parity_rule", "tested_equivalent"], "ledger")
+    exact_keys(ledger, "schema original_sha256 inputs counts entries".split(), ["vorbis_parity_rule", "tested_equivalent", "documented_exceptions"], "ledger")
     if ledger["schema"] != SCHEMA:
         fail(f"ledger schema must be {SCHEMA}")
     if ledger["original_sha256"] != PINNED_SHA:
@@ -823,7 +828,39 @@ def validate(ledger):
         fail("counts differ from the entries")
     if "tested_equivalent" in ledger:
         validate_tested_equivalent(ledger["tested_equivalent"], {e["va"]: e for e in entries})
+    if "documented_exceptions" in ledger:
+        validate_documented_exceptions(ledger["documented_exceptions"], {e["va"]: e for e in entries},
+                                       set(ledger.get("tested_equivalent", {}).get("vas", ())))
     return ledger
+
+
+def validate_documented_exceptions(de, by_va, te_vas):
+    """The exception slice lists pending functions that are not tested equivalent; it never changes a status or a count."""
+    exact_keys(de, "rule count vas manifest by_reason reasons rows".split(), (), "documented_exceptions")
+    if de["rule"] != DE_RULE_ID or de["manifest"] != DE_FILE:
+        fail("documented_exceptions: unknown rule or manifest")
+    vas = de["vas"]
+    if not isinstance(vas, list) or any(not isinstance(v, str) for v in vas):
+        fail("documented_exceptions: vas must be a list of addresses")
+    if [fmt(parse_va(v, "documented_exceptions")) for v in vas] != vas or vas != sorted(set(vas), key=lambda v: int(v, 16)):
+        fail("documented_exceptions: addresses are not canonical, sorted and unique")
+    if de["count"] != len(vas):
+        fail("documented_exceptions: count differs from the addresses")
+    br = de["by_reason"]
+    if not isinstance(br, dict) or any(not isinstance(k, str) or not is_int(v) or v < 1 for k, v in br.items()) or sum(br.values()) != len(vas):
+        fail("documented_exceptions: by_reason must count every exception once")
+    reasons, rows = de["reasons"], de["rows"]
+    if not isinstance(reasons, dict) or not isinstance(rows, dict) or set(rows) != set(vas) or set(br) - set(reasons):
+        fail("documented_exceptions: reasons and rows must match the addresses and the reason counts")
+    for v in vas:
+        exact_keys(rows[v], "reason note".split(), (), f"documented_exceptions {v}")
+        if rows[v]["reason"] not in reasons:
+            fail(f"documented_exceptions: {v} has an unknown reason")
+        e = by_va.get(v)
+        if e is None or e["status"] != "pending":
+            fail(f"documented_exceptions: {v} is not a pending function")
+        if v in te_vas:
+            fail(f"documented_exceptions: {v} is tested equivalent")
 
 
 def validate_tested_equivalent(te, by_va):
@@ -864,6 +901,8 @@ def render(ledger):
         lines.append(f'"vorbis_parity_rule": {dump(ledger["vorbis_parity_rule"])},')
     if "tested_equivalent" in ledger:
         lines.append(f'"tested_equivalent": {dump(ledger["tested_equivalent"])},')
+    if "documented_exceptions" in ledger:
+        lines.append(f'"documented_exceptions": {dump(ledger["documented_exceptions"])},')
     lines.append('"entries": [')
     lines += [dump({k: e[k] for k in ENTRY_KEYS}) + ("," if k + 1 < len(ledger["entries"]) else "")
               for k, e in enumerate(ledger["entries"])]
@@ -1595,7 +1634,47 @@ def _derive(root, expected_functions, work_dir, verify_private, notes):
         ledger["vorbis_parity_rule"] = ov["vorbis_rule"]
     if te is not None:
         ledger["tested_equivalent"] = te
+    de = load_documented_exceptions(root, inputs, uni)
+    if de is not None:
+        ledger["documented_exceptions"] = de
     return validate(ledger)
+
+
+def load_documented_exceptions(root, inputs, uni):
+    """FL-77: tasks/fl77-exceptions.json, or None when there is none (pinned as absent). Every row names a function start and one of the file's reason codes."""
+    raw = inputs.add(DE_FILE, "documented-exception", required=False)
+    if raw is None:
+        return None
+    doc = read_json_bytes(raw, DE_FILE)
+    exact_keys(doc, "schema rule reasons rows".split(), (), DE_FILE)
+    if doc["schema"] != DE_SCHEMA:
+        fail(f"{DE_FILE}: schema must be {DE_SCHEMA}")
+    exact_keys(doc["rule"], "id text".split(), (), DE_FILE)
+    if doc["rule"]["id"] != DE_RULE_ID:
+        fail(f"{DE_FILE}: unknown rule")
+    text_value(doc["rule"]["text"], DE_FILE, limit=2000)
+    reasons, rows = doc["reasons"], doc["rows"]
+    if not isinstance(reasons, dict) or not reasons or not isinstance(rows, dict) or not rows:
+        fail(f"{DE_FILE}: reasons and rows must be non-empty objects")
+    for code, text in reasons.items():
+        if not re.fullmatch(r"[a-z][a-z0-9_]{2,47}", code):
+            fail(f"{DE_FILE}: invalid reason code {code!r}")
+        text_value(text, f"{DE_FILE} reason {code}", limit=600)
+    by_reason = {}
+    for key, row in rows.items():
+        what = f"{DE_FILE} {key}"
+        va = parse_va(key, what)
+        if key != fmt(va) or va not in uni.spans:
+            fail(f"{what}: not a function start")
+        exact_keys(row, "reason note".split(), (), what)
+        if row["reason"] not in reasons:
+            fail(f"{what}: unknown reason")
+        text_value(row["note"], what, limit=600)
+        by_reason[row["reason"]] = by_reason.get(row["reason"], 0) + 1
+    vas = sorted(rows, key=lambda k: int(k, 16))
+    return {"rule": DE_RULE_ID, "count": len(vas), "vas": vas, "manifest": DE_FILE,
+            "by_reason": {k: by_reason[k] for k in sorted(by_reason)}, "reasons": {k: reasons[k] for k in sorted(by_reason)},
+            "rows": {k: {"reason": rows[k]["reason"], "note": rows[k]["note"]} for k in vas}}
 
 
 def translation_sha256(text, key):
