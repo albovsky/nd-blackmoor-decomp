@@ -167,7 +167,8 @@ TE2_SCHEMA = "blackmoor-tested-equivalent-infeasible/1"
 TE2_RULE_ID = "T-EQ-INFEASIBLE"
 TE2_ROW_KEYS = TE_ROW_KEYS + ["proofs"]
 TE_SOURCES = ("src/original_methods_fl40.c", "src/original_methods_fl56_unverified.c",
-              "translated/original_methods_fl41_translated.c", "translated/original_methods_fl57_translated.c")
+              "translated/original_methods_fl41_translated.c", "translated/original_methods_fl57_translated.c",
+              "translated/original_methods_fl59_handports.c")
 PRIVATE_PREFIX = "analysis/slices/"             # private receipts, work-relative, never hashed here
 
 COUNTED_MANIFESTS = ("matches.json", "matches_s08_2_x86.json", "matches_s08_3_x86.json", "matches_s08_4_x86.json")
