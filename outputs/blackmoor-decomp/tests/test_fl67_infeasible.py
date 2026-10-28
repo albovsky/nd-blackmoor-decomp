@@ -289,6 +289,14 @@ LEAVE_JOIN = bytes.fromhex('5589e58b450885c07503c9eb08b803000000c9eb0039ec7406b8
 # callee that stores through the register that still holds the caller's pointer: push ebp; mov ebp,esp; mov dword [eax],7; pop ebp; ret 4
 ENTRY_ALIAS = bytes.fromhex('5589e5c700070000005dc20400')
 
+# the same caller, but it overwrites eax (xor eax,eax; nops) instead of storing through it
+RET_PTR_DEAD = RET_PTR.replace(bytes.fromhex('c70007000000'), bytes.fromhex('31c090909090'))
+# callees that must get no footprint: a write above the callee's frame, and a partial overwrite of the pointer register
+CALLEE_BAD = {
+    'high_write': '5589e5c7451007000000 5dc20400'.replace(' ', ''),                  # mov dword [ebp+16], 7
+    'partial': '5589e58b5508b200c70207000000 5dc20400'.replace(' ', ''),            # mov edx,[ebp+8]; mov dl,0; mov dword [edx],7
+}
+
 
 def image_of(code, tail=b''):
     return bytes(BASE - P.IMAGE_BASE) + code + tail + bytes(64)
@@ -375,38 +383,34 @@ class Fl75(unittest.TestCase):
         jne = [i for i in an.insns if i.mnemonic == 'jne'][0].address
         self.assertNotEqual(Wn.prove_faults(an, dom, ('dir', jne, 'taken'))[0], 'unsat')        # eax == 5 is excluded, eax == 6 divides by zero, any other value jumps out of the function
 
-    def test_a_callee_that_returns_its_pointer_leaves_the_frame_address_in_eax(self):
-        import fl75_footprint as FP
-        code = RET_PTR
+    def ret_ptr(self, code):
         image = image_of(code)
-        self.assertEqual(FP.callee_summary(image, BASE + 0x3b), (0, 0, frozenset({'eax'})))
         an = P.Analysis({'va': BASE, 'body': 0x3b, 'callees': {BASE + 0x3b: 4}, 'imports': {}, 'sites': None}, image, 20000)
-        self.assertTrue(an.M.split)                                     # the frame assumption stays on
+        return an, image
+
+    def test_a_callee_that_returns_its_pointer_is_not_usable_when_the_caller_reads_the_register_again(self):
+        import fl75_footprint as FP
+        an, image = self.ret_ptr(RET_PTR)
+        self.assertEqual(FP.callee_summary(image, BASE + 0x3b, frozenset({'eax'})), (0, 0, frozenset({'eax'})))
+        self.assertFalse(an.M.split)                                    # `mov [eax], 7` after the call would store through the frame address: no frame assumption
+        self.assertEqual(an.M.footprints, {})
         an.run()
         jne = [i.address for i in an.insns if i.mnemonic == 'jne'][0]
-        self.assertEqual(an.direction(jne, 'taken')[0], 'sat')          # `mov [eax], 7` stores through the returned frame address
+        self.assertEqual(an.direction(jne, 'taken')[0], 'sat')
 
-    def test_nothing_is_tied_to_the_frame_pointer_after_leave(self):
-        import fl71_window as Wn
-        code = LEAVE_JOIN
-        an = P.Analysis({'va': BASE, 'body': len(code), 'callees': {}, 'imports': {}, 'sites': None}, image_of(code), 20000)
-        an, dom = Wn.from_analysis(an)
-        je = [i for i in an.insns if i.mnemonic == 'je'][0].address
-        self.assertNotEqual(Wn.prove_target(an, dom, Wn.block_of(an, je, True), ('dir', 'taken'))[0], 'unsat')    # after `leave` ebp is the caller's, esp == ebp is possible
-        self.assertNotIn(BASE + 0x1d, Wn.stack_delta(an))
-
-    def test_a_callee_that_stores_through_the_register_still_holding_the_pointer_has_that_in_its_footprint(self):
-        import fl75_footprint as FP
-        caller = bytes.fromhex(FP_CALLER)
-        image = image_of(caller, ENTRY_ALIAS)
-        self.assertEqual(FP.callee_footprint(image, BASE + 0x44), (0, 0))                   # without the entry register the store through eax is invisible; call_footprints always passes the register of the `lea`
-        self.assertEqual(FP.callee_footprint(image, BASE + 0x44, frozenset({'eax'})), (0, 4))
-        an = P.Analysis({'va': BASE, 'body': len(caller), 'callees': {BASE + 0x44: 4}, 'imports': {}, 'sites': None}, image, 20000)
+    def test_a_callee_that_returns_its_pointer_is_usable_when_the_caller_overwrites_the_register(self):
+        an, image = self.ret_ptr(RET_PTR_DEAD)
         self.assertTrue(an.M.split)
         an.run()
-        jne_never, jne_maybe = [i.address for i in an.insns if i.mnemonic == 'jne']
-        self.assertEqual(an.direction(jne_never, 'taken')[0], 'unsat')
-        self.assertEqual(an.direction(jne_maybe, 'taken')[0], 'sat')                       # [ebp-8] is what the callee wrote
+        jne = [i.address for i in an.insns if i.mnemonic == 'jne'][0]
+        self.assertEqual(an.direction(jne, 'taken')[0], 'unsat')        # nothing writes [ebp-8]
+
+    def test_a_callee_with_a_write_above_its_frame_or_a_partly_overwritten_pointer_gets_no_footprint(self):
+        import fl75_footprint as FP
+        caller = bytes.fromhex(FP_CALLER)
+        for kind, hexa in CALLEE_BAD.items():
+            image = image_of(caller, bytes.fromhex(hexa))
+            self.assertIsNone(FP.callee_footprint(image, BASE + 0x44), kind)
 
     def retbound(self, key):
         code = RETBOUND[key]

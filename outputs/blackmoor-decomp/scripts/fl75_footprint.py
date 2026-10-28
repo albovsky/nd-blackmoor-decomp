@@ -132,6 +132,8 @@ def callee_summary(image, addr, entry=frozenset()):
                 return why(5, locals())
             if base == 'ebp' and m != 'lea' and o.mem.disp + o.size > 8 and o.mem.disp < 12 and not src_form:
                 return why(6, locals())                                          # overlaps the argument slot [ebp+8, ebp+12)
+            if base == 'ebp' and m != 'lea' and (o.access == 0 or o.access & capstone.CS_AC_WRITE) and o.mem.disp + o.size > 0:
+                return why(17, locals())                                         # a write at or above [ebp+0] is the saved ebp, the return address or the caller's frame, not the callee's own frame
         if m == 'lea':
             mem = ops[1].mem
             if mem.base and ins.reg_name(mem.base) in ('ebp', 'esp') and (ins.reg_name(mem.base) == 'esp' or mem.disp >= 0):
@@ -153,6 +155,8 @@ def callee_summary(image, addr, entry=frozenset()):
             work.append((ops[0].imm, T))
             continue
         tainted_read = rd & T
+        if (wr & T) - full:
+            return why(16, locals())                                         # a partial write (mov dl, 0) leaves a register that is no longer exactly the pointer
         newT = set(T)
         if src_form:
             if tainted_read:
@@ -190,6 +194,48 @@ def callee_summary(image, addr, entry=frozenset()):
     if lo is None:
         return (0, 0, rets)                                          # the callee never writes through the pointer
     return (lo, hi, rets)
+
+
+def _dead_after(insns, k, regs):
+    """True when, after the call at insns[k], no instruction of the caller reads any of `regs` before every one of them is overwritten on every path (a ret ends a path; a call is taken to read ecx and edx and to clobber
+    eax, ecx and edx; a jump out of the body ends a path; a computed jump fails). A callee that returns its pointer argument leaves it in such a register: when the caller never looks at the register again, the call model
+    (fresh values for eax / ecx / edx) loses nothing about the frame."""
+    index = {i.address: n for n, i in enumerate(insns)}
+    seen, work = set(), [(k + 1, frozenset(regs))]
+    while work:
+        n, live = work.pop()
+        if not live:
+            continue
+        if n >= len(insns):
+            return False
+        if (n, live) in seen:
+            continue
+        seen.add((n, live))
+        ins = insns[n]
+        m = ins.mnemonic
+        rd, wr, full = _regs(ins)
+        if m in ('xor', 'sub') and len(ins.operands) == 2 and all(o.type == X.X86_OP_REG for o in ins.operands) and ins.operands[0].reg == ins.operands[1].reg:
+            rd = set()                                                    # xor r, r / sub r, r: a pure write
+        if m in ('ret', 'retn'):
+            continue
+        reads = rd & live
+        if m == 'call':
+            reads |= live & {'ecx', 'edx'}
+            full = full | {'eax', 'ecx', 'edx'}
+        if reads:
+            return False
+        live2 = frozenset(live - full)
+        if m == 'jmp' or m.startswith('j') or m.startswith('loop'):
+            op = ins.operands[0]
+            if op.type != X.X86_OP_IMM:
+                return False
+            if op.imm in index:
+                work.append((index[op.imm], live2))
+            if m != 'jmp':
+                work.append((n + 1, live2))
+            continue
+        work.append((n + 1, live2))
+    return True
 
 
 def call_footprints(insns, image, targets_of_jumps, row_va, body):
@@ -230,7 +276,7 @@ def call_footprints(insns, image, targets_of_jumps, row_va, body):
         if (callee, R) not in cache:
             cache[(callee, R)] = callee_summary(image, callee, frozenset({R}))
         fp = cache[(callee, R)]
-        if fp is None:
+        if fp is None or (fp[2] and not _dead_after(insns, j, fp[2])):          # a callee that hands the pointer back is only usable when the caller never looks at the register again
             continue
         leas[ins.address] = insns[j].address
         calls[insns[j].address] = (mem.disp, fp[0], fp[1], fp[2])
