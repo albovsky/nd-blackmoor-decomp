@@ -49,4 +49,30 @@ Five more rows proved (T-EQ-INFEASIBLE): 0x4a2180, 0x420c17, 0x4a4f58 (FL-77 sce
 - **Plan hint for 0x4a4f58** (`tests/fl75_plans.json`): `gen` for every loop header except the 4-iteration zeroing loop at 0x4a56aa (5 unrollings), so the whole-function run no longer runs out of memory.
 - A z3 out-of-memory error during `check --prove` leaves the row partial instead of an error (kept from PR 259).
 
-Still pending in this family: **0x4f7207** and **0x418e52** pass a frame buffer or local objects to library or member calls (`lea edx,[ebp-0x40]; push edx; call sprintf`), so the frame assumption is off; both gaps prove at once if the assumption is forced (`prove_target` with `frame_safe` stubbed), so they only need a decision: do we accept "a formatted-output or member call that is given a frame address writes only inside the buffer and keeps no copy"? I did not assume it (it is the no-alias question, now covering library calls). **0x4e812f**: irreducible loop at 0x4e851f in the cut graph is gone, but every window times out (STEP_MS) and nothing proves; it needs the loops summarised. **0x4ba56a**: check times out at 1500 s. **0x49d945** unchanged.
+Audit hardening (Sonnet slice review, all fixed with tests): `seh_registration` also requires that no branch of the function targets an address from the entry up to the registration (the prologue runs once, in address order, so a read can never run after the registration) and rejects any fs-prefixed instruction other than the allowed ones; `from_analysis` clears the `stack_delta` cache and the facts of the validation windows when it falls back to the whole tables. Known and accepted: exception dispatch that resumes in the function (a filter returning CONTINUE_EXECUTION) and catch continuations have no CFG edges, as before.
+
+Numbers after the follow-up (main d73cb15 plus this PR): verified 2,210 of 4,188 (unchanged), tested equivalent 1,729 (proved 102), Mac-port view (Game + Vorbis, 2,685): ported 2,209, tested equivalent 454, pending 22: 0x4090ab 0x40b34a 0x413187 0x41e647 0x425b8b 0x448d11 0x4899ca 0x496410 0x4c1716 0x4e4cb6 0x4e5fdb 0x4f0059 (FL-77, scenario work) and 0x418e52 0x456516 0x471722 0x47c0f0 0x48f181 0x49d945 0x4a14c6 0x4ba56a 0x4e812f 0x4f7207 (prover).
+
+Glib answered "yes, keep the no-alias assumption" at 1:11 PM PDT on Oct 28. The prover's frame assumption (frame slots are out of reach of stores through other pointers and of callees) is the part of it that applies, and it stays switched off for a function that forms a frame address with `lea` (see below), so the rows that need more are still open:
+
+**0x4f7207** and **0x418e52** pass a frame buffer or local objects to library or member calls (`lea edx,[ebp-0x40]; push edx; call sprintf`), so the frame assumption is off; both gaps prove at once if the assumption is forced (`prove_target` with `frame_safe` stubbed), so they only need a decision: do we accept "a formatted-output or member call that is given a frame address writes only inside the buffer and keeps no copy"? I did not assume it (it is the no-alias question, now covering library calls). **0x4e812f**: irreducible loop at 0x4e851f in the cut graph is gone, but every window times out (STEP_MS) and nothing proves; it needs the loops summarised. **0x4ba56a**: check times out at 1500 s. **0x49d945** unchanged.
+- **0x456516, 0x471722, 0x47c0f0**: their last directions need a pointer into the stack (0x456516: `push eax` must change the cell read through a loaded pointer). A window with the frame assumption would rule it out, but the function forms frame addresses, so the assumption is off for it. Using the approved no-alias assumption here means a model in which a frame address formed by `lea` reaches only the cells at or above it, calls havoc those cells, and no copy of it is read back from memory: the same design space as the removed footprint model, so it needs its own PR with the audit that PR 259 needed.
+- **0x48f181** (FL-77): one direction impossible by construction (0x48f3a2 taken); not run yet.
+
+## Documented exceptions: Mac-port rows still pending after this thread (stopped at Glib's request, 1:41 PM PDT Oct 28)
+
+Every row below has complete scenario coverage except the items named; each gap is impossible in the original, but the prover cannot show it without the stated model. No new rows were started after the stop.
+
+| Row | What is left | Why it is not cleared | What would clear it |
+| --- | --- | --- | --- |
+| 0x4f7207 | `jne` 0x4f74da fall-through (0x4f74e0) | frame buffer handed to `sprintf` (`lea edx,[ebp-0x40]; push edx`), so the frame assumption is off; with it forced on, the gap proves at once | assumption that a library call given a frame object writes only inside it (not the no-alias question) |
+| 0x418e52 | `je` 0x419886 taken | 8 `lea` of frame objects passed to member calls; same | same |
+| 0x456516 | `jns` 0x456a0b fall-through | needs a pointer into the stack; frame addresses are formed (19 `lea`), so the assumption is off | alias model: a `lea` address reaches only cells at or above it, calls havoc those, no copy read back from memory |
+| 0x471722, 0x47c0f0 | one direction each | need pointer overlap (same as 0x456516); large dispatcher / 3 KB function | same alias model |
+| 0x48f181 | `je`/`jcc` 0x48f3a2 taken | FL-77 scenario file `tasks/fl77/out/0x48f181.json`; check not run | run `check --prove` with that file |
+| 0x4e812f | 10 directions, 39 instructions (loops at 0x4e851f) | the cut graph is reducible now but every window times out | loop summaries for the 0x4e8212 / 0x4e851f loops, or a longer window budget |
+| 0x4ba56a | 71 of 98 directions from feasible gates | `check --prove` times out at 1500 s; scenarios in `tasks/fl76/out/0x4ba56a.json` | smaller windows; copy of `this+0x1bc..0x1c8` to `this+0x1cc..0x1d8` is the equality to exploit |
+| 0x49d945 | crash path (`idiv [ebp-0x70]` at 0x49e06b) | forward window loses the frame cell at three counting-loop headers | loop invariant entries in `tests/fl73_invariants.json` for those loops |
+| 0x4a14c6 | one direction | needed the removed callee-footprint model | sound footprint model (see above) |
+
+FL-77's own rows (0x4090ab 0x40b34a 0x413187 0x41e647 0x425b8b 0x448d11 0x4899ca 0x496410 0x4c1716 0x4e4cb6 0x4e5fdb 0x4f0059) are in its handoff.

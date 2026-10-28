@@ -8,7 +8,7 @@ def one(key):
     tg={'missing':list(pr['instructions']),'untaken':[k.split(':') for k in pr['directions']]}
     t0=time.time()
     try:
-        out=P.prove_row(key,tg,timeout_ms=20000,fail_fast=True)
+        out=P.prove_row(key,tg,timeout_ms=40000,fail_fast=True)
         return key,out['status'],len(tg['missing']),len(tg['untaken']),round(time.time()-t0)
     except Exception as e:
         return key,'error:%s'%type(e).__name__,len(tg['missing']),len(tg['untaken']),round(time.time()-t0)

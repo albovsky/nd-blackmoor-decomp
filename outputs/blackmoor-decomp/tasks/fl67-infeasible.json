@@ -124,6 +124,30 @@
    "source": "src/original_methods_fl56_unverified.c",
    "translation_sha256": "39c749d09a1af98568f8a4235fd4f31addb58f31d29b35200afd54170ef66f4f"
   },
+  "0x4181c6": {
+   "body": 3212,
+   "directions": [
+    67,
+    68
+   ],
+   "instructions": [
+    823,
+    823
+   ],
+   "pool": "lower",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x4187a2:taken": "5155f87af5e7c1149617b4060d53f03d54f3b1f9e62f249ea2719b445fa3081f"
+    },
+    "instructions": {},
+    "plan": {}
+   },
+   "scenarios_kept": 30,
+   "scenarios_run": 30,
+   "source": "src/original_methods_fl56_unverified.c",
+   "translation_sha256": "bbeb0d1d94bbd6cf98ee636630e99e3884a8b0b99c644f65bfea449d43f23ba1"
+  },
   "0x41f5b1": {
    "body": 981,
    "directions": [
@@ -3135,7 +3159,7 @@
  },
  "rule": {
   "id": "T-EQ-INFEASIBLE",
-  "text": "A pending function is tested equivalent by proof when its committed translation equals the original on every scenario kept for it, and every instruction and conditional-jump direction those scenarios do not reach is PROVED unreachable: scripts/fl67_infeasible.py symbolically executes the original bytes (all paths at once, z3) and shows that no start state of the function reaches it in a run that does not fault. Modelling assumptions: ebx/esi/edi/ebp survive a call and esp returns by the bytes the callee pops; the direction flag is clear; an access at or above 0xfff00000, a division by zero and a quotient overflow fault; a call to a callee that never returns (tests/fl72_noreturn.json, AfxEndThread) ends the run; the image below .data is constant; a function that never forms the address of its own frame keeps its frame slots out of reach of stores through other pointers and of callees (except the argument slots pushed for the call). a direct callee whose own straight-line bytes end `and eax, K; ret` returns at most K; a jump table is cut at the range check in front of the jump and the prover shows no run indexes past the cut. A path may also be ruled out because every run that takes it faults later: a window in front of it and a forward window from it to the returns are solved together (with esp tied to ebp by the pushes, pops and calls of the bytes), and no run reaches a ret without one of the fault assumptions failing. Not a verified port: never added to the verified count."
+  "text": "A pending function is tested equivalent by proof when its committed translation equals the original on every scenario kept for it, and every instruction and conditional-jump direction those scenarios do not reach is PROVED unreachable: scripts/fl67_infeasible.py symbolically executes the original bytes (all paths at once, z3) and shows that no start state of the function reaches it in a run that does not fault. Modelling assumptions: ebx/esi/edi/ebp survive a call and esp returns by the bytes the callee pops; the direction flag is clear; an access at or above 0xfff00000, a division by zero and a quotient overflow fault; a call to a callee that never returns (tests/fl72_noreturn.json, AfxEndThread) ends the run; the image below .data is constant; a function that never forms the address of its own frame keeps its frame slots out of reach of stores through other pointers and of callees (except the argument slots pushed for the call), and the exception-chain registration `mov fs:[0], esp` of a prologue does not count as forming such an address when the function reads fs:[0] only before it (the chain is read by exception dispatch, which is treated like a fault). a direct callee whose own straight-line bytes end `and eax, K; ret` returns at most K; a jump table is cut at the range check in front of the jump and the prover shows no run indexes past the cut. A path may also be ruled out because every run that takes it faults later: a window in front of it and a forward window from it to the returns are solved together (with esp tied to ebp by the pushes, pops and calls of the bytes), and no run reaches a ret without one of the fault assumptions failing. Not a verified port: never added to the verified count."
  },
  "schema": "blackmoor-tested-equivalent-infeasible/1"
 }

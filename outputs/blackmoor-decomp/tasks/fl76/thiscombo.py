@@ -47,7 +47,9 @@ for s,ov in scen:
     for c in combos:
         cells=[[chains[tuple(p)],sz,v] for p,sz,v in c if tuple(p) in chains]
         nov=[list(o) for o in ov if not any(o[0]<c[0]+c[1] and c[0]<o[0]+o[1] for c in cells)]+cells
-        tr=run(W,row,s,nov); gc.collect()
+        try: tr=run(W,row,s,nov)
+        except Exception: continue
+        gc.collect()
         if tr.fault: continue
         if not (tr.executed<=ex and tr.edges<=ed):
             ex|=tr.executed;ed|=tr.edges;kept.append([s,nov]);print('new',s,cov(G,row,ex,ed)[:4],flush=True)
