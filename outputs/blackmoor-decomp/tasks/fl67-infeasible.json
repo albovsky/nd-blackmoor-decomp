@@ -148,6 +148,30 @@
    "source": "src/original_methods_fl56_unverified.c",
    "translation_sha256": "bbeb0d1d94bbd6cf98ee636630e99e3884a8b0b99c644f65bfea449d43f23ba1"
   },
+  "0x41e647": {
+   "body": 3877,
+   "directions": [
+    83,
+    84
+   ],
+   "instructions": [
+    971,
+    971
+   ],
+   "pool": "lower",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x41f451:taken": "e03d13bd67cc1710d2f5240ef1aeaa9d9907f09cd7508c06af3a85e6bf4fbbc7"
+    },
+    "instructions": {},
+    "plan": {}
+   },
+   "scenarios_kept": 33,
+   "scenarios_run": 33,
+   "source": "src/original_methods_fl56_unverified.c",
+   "translation_sha256": "21b13f644b020a7b625b93c0645b51e260602317cbdf365e78d384595a8484a9"
+  },
   "0x41f5b1": {
    "body": 981,
    "directions": [
