@@ -1,0 +1,39 @@
+# FL-75 handoff: prover extensions for the last Mac-port rows (2026-10-28 PDT, cloud thread)
+
+Goal: clear the Mac-port pending rows that FL-72 was not working on, by making the infeasibility prover (T-EQ-INFEASIBLE) handle irreducible-looking loops, big graphs and crash paths. Strict "verified" is unchanged (2,210 of 4,188). Credit is "tested equivalent" (Unicorn scenarios, every instruction and both jump directions) or T-EQ-INFEASIBLE (z3 proof of the ORIGINAL bytes, one proof per missing item).
+
+## Result
+
+Nine Mac-port rows cleared (PR 259). Whole ledger: verified/ported 2,210 of 4,188 (unchanged), tested equivalent 1,714 (was 1,686 before FL-75; FL-76 batches 1 to 3 added 19), of which proved infeasible 96 (was 88: seven from this PR, 0x416fb6 from FL-76). Mac-port view (Game + Vorbis, 2,685): ported 2,209, tested equivalent 439, pending 37.
+
+- Proved (T-EQ-INFEASIBLE, every missing item refuted by z3): 0x44b641, 0x44ffa3, 0x4bbb3e, 0x417b04, 0x4b4a68, 0x45c18f, 0x4a0ec3 (crash-path row). 0x4a14c6 was proved too, but only with a callee-footprint model that I removed (see below), so it is pending again.
+- Tested equivalent by scenarios only: 0x4a6c61 (112/112 directions), 0x4867bd (94/94).
+- All 96 proved rows re-proved with the final prover (`tasks/fl73/tools/reprove_all.py`): still hold. Run `reprove_all.py` with at most one other heavy job (z3 can run out of memory). A z3 out-of-memory error during `check --prove` now leaves the row partial (`prove_leftovers`).
+- Soundness: `tests.test_fl71_window` compares the windows with the full analysis. The new esp/ebp relation makes a window stronger than the full analysis on `gen_loop_moves_esp` (both targets are really unreachable); the test now lists those two explicitly (`STRONGER`).
+- Loop plans: the plan used to be found by a 3 s sink check, which flipped between runs on a busy machine (0x44b641 was proved or open depending on load). `tests/fl75_plans.json` now gives the starting plan per function; numeric bounds are still checked (`sink_unsat`) and bumped when too small. Added for 0x44b641.
+
+## Prover changes (read before touching the provers)
+
+All in `scripts/fl67_infeasible.py`, `scripts/fl71_window.py`, assumptions are spelled out in `RULE_TEXT2` of `scripts/fl66_tested.py` (the committed manifest carries that text).
+
+- **Jump tables are cut at their range check** (`Analysis.tighten`): a table read past `cmp X, K; ja/jae` is cut to K+1 cells. Reading the whole table ran into the next switch's table and made fake "irreducible loops" (0x44b641). The cut is not trusted: `verify_escapes` has z3 prove the index is within the kept cells at the jump (`Unsupported` otherwise). If the tight run raises, `prove_row` retries with the loose tables.
+- **OR atoms in loop invariants** (`tests/fl73_invariants.json`, `{"or": [atoms]}`), used for a word counter that could wrap in 0x44b641.
+- **Frame assumption per window.** The SPLIT assumption (frame slots out of reach of other pointers and callees) was whole-function and switched off by any `lea reg, [ebp-K]`. Now `Analysis.frame_safe(S, region)` allows it in a window when no frame-address instruction is in the window or can reach its start. The whole-function pass is unchanged.
+- **Callee return bounds** (`Machine.ret_bound`): a direct callee whose straight-line bytes end `and eax, K; ret` (0 <= K < 2^31) returns at most K (real rand, 0x50cd50, returns <= 0x7fff).
+- **Forward "every run that takes it faults later" windows** (`fl71_window.prove_faults`, `forward_region`, `run_forward`, plus `stack_delta` and `relate` which tie esp to ebp from the pushes, pops and calls so a push cannot alias a local). A backward window from a dominator to the target and a forward window from the target to the rets are solved together; unsat means no run takes the item and reaches a ret without a fault (access >= 0xfff00000, div by zero, quotient overflow). Whole-function symbolic runs of the crash-path rows ran z3 out of memory; the windows do not. Cleared the crash-path row 0x4a0ec3.
+- **Removed: callee write footprints.** I first modelled `lea R,[ebp-K]; push R; call C` with a callee C that provably writes only through its pointer argument, so a function that forms a frame address keeps the frame assumption (it proved 0x4a14c6). Codex found 13 soundness gaps in that analysis over five rounds (returned pointer, entry-register alias, pointer forwarded to a second callee, partial register writes, reads of the saved ebp, loads through the pointer, teardown order, aliases made between the push and the call, `lea`-derived pointers, implicit stack writes after an `add esp`). Each fix exposed the next, for one row, so I dropped it; the module is kept as a record in `tasks/fl75/rejected/fl75_footprint.py` and is imported nowhere. A sound version needs full esp tracking with callee pop counts and tracking of every value derived from the pointer. 0x4a14c6 stays pending (its whole-function proof also runs z3 out of memory).
+- Other Codex findings, all fixed with tests that fail without the fix: `run_window(want_state=True)` returned the arrival state before the invariant and table checks; a forward window counted only `ret` as completion, so a tail jump out of the body looked like "always faults"; `stack_delta` kept the esp/ebp tie past `leave` / `pop ebp`; windows and dominators used the cut jump tables, so a block reachable only through a discarded cell looked unreachable (windows now use the whole tables, `from_analysis`).
+- Hardening from an independent audit: invariant facts are guarded by the header's arrival condition (`Implies(ic[node], inv)`), so they no longer constrain runs that skip the header; `stack_delta` gives no relation behind a 16-bit push/pop, `enter`, `pusha`/`popa`, `pushf`/`popf` or a write to sp/bp. Known and accepted: a path that never terminates counts as "faults later" (scenarios are terminating runs); `frame_escapes` does not flag `push ebp; pop eax`, `pushad` or `enter` (unchanged from before this PR).
+- Gotchas: `stack_delta` gives no value for a block that ends in `ret` (conservative, only loses a fact). Keep window prover changes tested with `tests.test_fl71_window` and `tests.test_fl67_infeasible`; re-prove all rows with `tasks/fl73/tools/reprove_all.py OUT`.
+
+## Scenario work
+
+0x4bbb3e: callee stores between two reads (`tasks/fl75/eq1.py`, scenarios in `tasks/fl74/scenarios.json`). 0x45c18f, 0x4a6c61, 0x4867bd: equal strings for `repe cmpsb` at the gate PCs (`cmpeq.py`), 12 pages of string for the long loop in 0x4867bd; then proved or covered. The scenarios are in `tasks/fl75/scenarios.json`. `tasks/fl75/addscen.py` merges new ones, `dbgrun.py` runs one with a PC trace, `allreads.py`/`hits.py` list reads.
+
+## Still open
+
+- **0x4a14c6**: needs the callee-footprint idea done soundly (see above) or a loop/size argument; pending.
+- **0x49d945** (crash path): three error-path directions (0x49da7c, 0x49db1c, 0x49dbc5 fall-through) and the instructions behind them (0x49da7e..0x49daa7, 0x49db1e..0x49db47, 0x49dbc7..0x49dbf0). In the original they crash later at `idiv dword [ebp-0x70]` (0x49e06b) after the diagnostics helper 0x4c97b4 returns (it is not noreturn), but the forward window crosses three counting loops whose generalised headers lose the frame cell, so z3 says sat. A loop invariant (`tests/fl73_invariants.json`: the counter cells keep a zero) for those loops is the next idea. These error paths would be a user-facing crash in the Mac port, so a decision is also needed on whether the port should mimic the crash.
+- Prover rows handed over by FL-76 (scenarios complete, only impossible directions left): 0x47b767, 0x4e0e2b, 0x4e812f, 0x4ba56a (see `tasks/fl76-handoff.md`).
+- Parked on the no-alias question for Glib: 0x456516, 0x471722, 0x47c0f0.
+- FL-77 works on the other scenario rows; it sends any row that needs the prover.
