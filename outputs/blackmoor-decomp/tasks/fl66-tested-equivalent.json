@@ -96,6 +96,22 @@
    "source": "src/original_methods_fl56_unverified.c",
    "translation_sha256": "0a958318e241e128be184e995934e7e0e37cdbad825a286ff277921e9f16b385"
   },
+  "0x412234": {
+   "body": 1363,
+   "directions": [
+    28,
+    28
+   ],
+   "instructions": [
+    325,
+    325
+   ],
+   "pool": "lower",
+   "scenarios_kept": 8,
+   "scenarios_run": 8,
+   "source": "src/original_methods_fl56_unverified.c",
+   "translation_sha256": "fc0e215323f06a70c84baf5783d88aa1a2af600c7f7d4dfe8f3b6540aa7e45de"
+  },
   "0x4129da": {
    "body": 735,
    "directions": [
@@ -2864,6 +2880,22 @@
    "source": "translated/original_methods_fl41_translated.c",
    "translation_sha256": "d3119741c7364e8e18ffb55c4677f9076ada18d9540a561f00439dcb6ac483c7"
   },
+  "0x495af3": {
+   "body": 2333,
+   "directions": [
+    48,
+    48
+   ],
+   "instructions": [
+    574,
+    574
+   ],
+   "pool": "upper",
+   "scenarios_kept": 31,
+   "scenarios_run": 31,
+   "source": "translated/original_methods_fl41_translated.c",
+   "translation_sha256": "ee28730a2c66e4ddd04cf4e0f3ec87c5bde3268cb77f53ed87039be9677c335a"
+  },
   "0x49c889": {
    "body": 1783,
    "directions": [
@@ -3343,6 +3375,22 @@
    "scenarios_run": 17,
    "source": "translated/original_methods_fl41_translated.c",
    "translation_sha256": "0d859d634c90ebf48fff5924eea4bff8c7d3e96c87d6da03eb6f4b27568469c4"
+  },
+  "0x4af225": {
+   "body": 1865,
+   "directions": [
+    44,
+    44
+   ],
+   "instructions": [
+    414,
+    414
+   ],
+   "pool": "upper",
+   "scenarios_kept": 28,
+   "scenarios_run": 28,
+   "source": "translated/original_methods_fl41_translated.c",
+   "translation_sha256": "4de00d28f90569c152e7713c57c2372fc8c17656e20e7dd2841b6849996cdefe"
   },
   "0x4afec1": {
    "body": 791,
@@ -4080,6 +4128,22 @@
    "source": "translated/original_methods_fl41_translated.c",
    "translation_sha256": "f9a973156959d2911a70a63c1661164f949c0cc9c0a5a1d47991902f8eedd7bd"
   },
+  "0x4c9d91": {
+   "body": 2085,
+   "directions": [
+    50,
+    50
+   ],
+   "instructions": [
+    475,
+    475
+   ],
+   "pool": "upper57",
+   "scenarios_kept": 18,
+   "scenarios_run": 18,
+   "source": "translated/original_methods_fl57_translated.c",
+   "translation_sha256": "3ab8e3f386799eb32c762577806a20a743bf53ba38cbd3bc7ff4fab796c4bc8c"
+  },
   "0x4ca5b6": {
    "body": 616,
    "directions": [
@@ -4383,6 +4447,38 @@
    "scenarios_run": 45,
    "source": "translated/original_methods_fl41_translated.c",
    "translation_sha256": "2e7499ca181d0daded16cc3bc0c004bae3161bced4d18395dff6e01184b372b6"
+  },
+  "0x4d7a15": {
+   "body": 1167,
+   "directions": [
+    32,
+    32
+   ],
+   "instructions": [
+    329,
+    329
+   ],
+   "pool": "upper",
+   "scenarios_kept": 18,
+   "scenarios_run": 18,
+   "source": "translated/original_methods_fl41_translated.c",
+   "translation_sha256": "1d469de7e65a24d5f7b210a80b29a9352355b003cc8c76a456f4bf2287d1d570"
+  },
+  "0x4d7ea4": {
+   "body": 650,
+   "directions": [
+    36,
+    36
+   ],
+   "instructions": [
+    205,
+    205
+   ],
+   "pool": "upper",
+   "scenarios_kept": 19,
+   "scenarios_run": 19,
+   "source": "translated/original_methods_fl41_translated.c",
+   "translation_sha256": "af76abf8c8d24450b7a343720072f322de25456a0cd68b7f2cf82d6e870e7aee"
   },
   "0x4d812e": {
    "body": 1258,
@@ -5104,6 +5200,22 @@
    "source": "translated/original_methods_fl41_translated.c",
    "translation_sha256": "40a1d71256c2ce6e3b23d04783b1826c1ea8bac9748fcc0694b62a8668fba1a0"
   },
+  "0x4f3c26": {
+   "body": 1897,
+   "directions": [
+    34,
+    34
+   ],
+   "instructions": [
+    482,
+    482
+   ],
+   "pool": "upper",
+   "scenarios_kept": 16,
+   "scenarios_run": 16,
+   "source": "translated/original_methods_fl41_translated.c",
+   "translation_sha256": "03a0dfd97271e066376b7a26b972f0ec8747dea8eb68681a75ed479fb5bfabf2"
+  },
   "0x4f438f": {
    "body": 2064,
    "directions": [
@@ -5119,6 +5231,22 @@
    "scenarios_run": 14,
    "source": "translated/original_methods_fl41_translated.c",
    "translation_sha256": "46f9d54721fb1b863c42c7395b332e8092f3fef2a1662bbf1036855a3647a92f"
+  },
+  "0x4f4b9f": {
+   "body": 1802,
+   "directions": [
+    32,
+    32
+   ],
+   "instructions": [
+    459,
+    459
+   ],
+   "pool": "upper",
+   "scenarios_kept": 13,
+   "scenarios_run": 13,
+   "source": "translated/original_methods_fl41_translated.c",
+   "translation_sha256": "599226f8e1e02299ef84b72f74473c67b365d9696207881959d00e101fb8d904"
   },
   "0x4f5e35": {
    "body": 96,

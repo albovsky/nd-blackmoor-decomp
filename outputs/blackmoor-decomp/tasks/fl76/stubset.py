@@ -31,7 +31,7 @@ def hit_index(s, nov, pc, nth):
     gc.collect()
     return hits[nth] if len(hits) > nth else None
 for s, ov in scen:
-    nov = [list(o) for o in ov if not (W.STUB_OVR <= o[0] < W.STUB_OVR + 0x10000 or W.STUB_WR <= o[0] < W.STUB_WR + 0x10000)]
+    nov = [list(o) for o in ov if os.environ.get('KEEP') or not (W.STUB_OVR <= o[0] < W.STUB_OVR + 0x10000 or W.STUB_WR <= o[0] < W.STUB_WR + 0x10000)]
     for st in spec:
         if st[0] == 'g':
             nov = [o for o in nov if o[0] != st[1]] + [[st[1], st[2], st[3]]]
