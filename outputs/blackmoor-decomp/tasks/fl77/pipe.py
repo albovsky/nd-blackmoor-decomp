@@ -25,7 +25,7 @@ from unicorn import x86_const as X
 REGN = ('eax', 'ebx', 'ecx', 'edx', 'esi', 'edi', 'ebp', 'esp')
 
 
-def probe(W, row, s, nov, pc, nth, want_bytes=None):
+def probe(W, row, s, nov, pc, nth, want_bytes=None, resolve=None):
     hits = []
 
     def watch(uc, ensure, trace, sp):
@@ -38,7 +38,8 @@ def probe(W, row, s, nov, pc, nth, want_bytes=None):
             extra = None
             if want_bytes:
                 extra = (bytes(uc_.mem_read(regs['edi'], want_bytes)), regs['esi'])
-            hits.append((ncalls, regs, rd, extra))
+            res = resolve(regs, rd) if resolve else None       # pointer chains are walked here, at the hook, not after the run
+            hits.append((ncalls, regs, rd, extra, res))
         uc.hook_add(unicorn.UC_HOOK_CODE, h, begin=pc, end=pc)
     try:
         W.run_original(row, s, [tuple(o) for o in nov], watch=watch)
@@ -46,6 +47,13 @@ def probe(W, row, s, nov, pc, nth, want_bytes=None):
         return None
     gc.collect()
     return hits[nth] if len(hits) > nth else None
+
+
+def chain(regs, rd, reg, path):
+    a = regs[reg]
+    for o in path[:-1]:
+        a = rd((a + o) & 0xffffffff)
+    return (a + path[-1]) & 0xffffffff
 
 
 def apply_recipe(W, row, s, ov, recipe, dbg=False):
@@ -57,7 +65,8 @@ def apply_recipe(W, row, s, ov, recipe, dbg=False):
         elif kind in ('ret', 'wr'):
             pc = st[1]
             nth = st[4] if len(st) > 4 else 0
-            h = probe(W, row, s, nov, pc, nth)
+            tg = st[2] if kind == 'wr' else None
+            h = probe(W, row, s, nov, pc, nth, resolve=(lambda regs, rd: chain(regs, rd, tg[1], tg[2])) if isinstance(tg, tuple) and tg[0] == 'd' else None)
             if h is None:
                 return None
             k = h[0]
@@ -66,27 +75,17 @@ def apply_recipe(W, row, s, ov, recipe, dbg=False):
             else:
                 tgt = st[2]
                 if isinstance(tgt, tuple) and tgt[0] == 'd':        # ('d', reg, [o0, o1, .., oN]): [..[reg+o0]+o1..]+oN
-                    a = h[1][tgt[1]]
-                    for o in tgt[2][:-1]:
-                        a = h[2]((a + o) & 0xffffffff)
-                    tgt = (a + tgt[2][-1]) & 0xffffffff
+                    tgt = h[4]
                 elif isinstance(tgt, tuple):
                     tgt = (h[1][tgt[0]] + tgt[1]) & 0xffffffff
                 nov = [o for o in nov if o[0] not in (W.STUB_WR + 16 * k, W.STUB_WR + 16 * k + 4)] + [[W.STUB_WR + 16 * k, 4, tgt], [W.STUB_WR + 16 * k + 4, 4, st[3]]]
         elif kind == 'cells':       # ('cells', pc, reg, [(path, size, val), ...][, nth]): several register-relative cells with one probe; a path starting with 'A' is an absolute address ('A', addr)
             pc, reg, lst = st[1], st[2], st[3]
             nth = st[4] if len(st) > 4 else 0
-            h = probe(W, row, s, nov, pc, nth)
+            h = probe(W, row, s, nov, pc, nth, resolve=lambda regs, rd: [p[1] if p[0] == 'A' else chain(regs, rd, reg, p) for p, _, _ in lst])
             if h is None:
                 return None
-            for path, size, val in lst:
-                if path[0] == 'A':
-                    addr = path[1]
-                else:
-                    a = h[1][reg]
-                    for o in path[:-1]:
-                        a = h[2]((a + o) & 0xffffffff)
-                    addr = (a + path[-1]) & 0xffffffff
+            for (path, size, val), addr in zip(lst, h[4]):
                 nov = [o for o in nov if not (o[0] < addr + size and addr < o[0] + o[1])] + [[addr, size, val]]
         elif kind == 'shift':       # ('shift', pc, n[, nth]): the stub overrides of every callee at or after the call index reached at pc move n calls later (n new calls were inserted before them)
             pc, n = st[1], st[2]
@@ -114,16 +113,10 @@ def apply_recipe(W, row, s, ov, recipe, dbg=False):
         elif kind in ('cell', 'cellv'):
             pc, reg, path, size, val = st[1:6]
             nth = st[6] if len(st) > 6 else 0
-            h = probe(W, row, s, nov, pc, nth)
+            h = probe(W, row, s, nov, pc, nth, resolve=lambda regs, rd: (regs[reg] + path) & 0xffffffff if isinstance(path, int) else chain(regs, rd, reg, path))
             if h is None:
                 return None
-            if isinstance(path, int):
-                addr = (h[1][reg] + path) & 0xffffffff
-            else:
-                a = h[1][reg]
-                for o in path[:-1]:
-                    a = h[2]((a + o) & 0xffffffff)
-                addr = (a + path[-1]) & 0xffffffff
+            addr = h[4]
             nov = [o for o in nov if not (o[0] < addr + size and addr < o[0] + o[1])] + [[addr, size, val]]
         else:
             raise SystemExit('bad step %r' % (st,))
