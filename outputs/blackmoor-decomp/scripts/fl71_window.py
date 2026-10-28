@@ -227,6 +227,8 @@ def run_window(an, order, S, T, query, frame=False, want_state=False):
                 for r in P.FULL:
                     if r in regs:
                         st.R[r] = P.fresh(32, 'sp' if r in ('esp', 'ebp') else 'lp')
+                if 'esp' in regs and 'ebp' not in regs and stack_delta(an).get(node) is not None:
+                    M.facts.append(z3.Implies(ic[node], st.R['esp'] == st.R['ebp'] + P.bv(stack_delta(an)[node], 32)))       # FL-75: the pushes and pops of the body balance, the tie of esp to ebp at the header holds in every iteration
                 for f in P.FLAGS:
                     st.F[f] = P.fresh_bool()
                 if mem:
@@ -239,8 +241,10 @@ def run_window(an, order, S, T, query, frame=False, want_state=False):
                     M.facts.append(z3.Implies(ic[node], P.inv_formula(M, st, an.inv[node])))        # only runs that arrive at the header satisfy it
             if node == T and query[0] == 'ins':
                 if want_state:                                      # FL-75: the merged state and condition on arrival at T, for a forward window that continues from there (returned only after the invariant and table checks below)
-                    arrival = (ic[node], st)
-                break
+                    arrival = (ic[node], st.copy())
+                if not gen_state:
+                    break
+                # an invariant was assumed at a loop header on the way: the blocks after T that close the loop are executed too, so that the invariant is proved inductive below
             done.add(node)
             st.pc = z3.BoolVal(True)
             ins = an.blocks[node]['insns']
@@ -271,7 +275,7 @@ def run_window(an, order, S, T, query, frame=False, want_state=False):
                 edge[(node, kind, t)] = c
                 if (node, t) in an.back and t in gen_state:
                     hdr_back.setdefault(t, []).append((c, st))
-                if node == T:
+                if node == T and not gen_state:
                     continue
                 if t in incoming and t != S and (node, t) not in an.back:
                     incoming[t].append((c, st))
@@ -355,6 +359,8 @@ def run_forward(an, order, S, mark, frame=False, start=None):
                 for r in P.FULL:
                     if r in regs:
                         st.R[r] = P.fresh(32, 'sp' if r in ('esp', 'ebp') else 'lp')
+                if 'esp' in regs and 'ebp' not in regs and stack_delta(an).get(node) is not None:
+                    M.facts.append(z3.Implies(ic, st.R['esp'] == st.R['ebp'] + P.bv(stack_delta(an)[node], 32)))         # as in run_window: the body balances the stack
                 for f in P.FLAGS:
                     st.F[f] = P.fresh_bool()
                 if mem:
@@ -465,11 +471,43 @@ def prove_target(an, dom, T, query, timeout_ms=STEP_MS):
     return last
 
 
+def validate_cuts(an, dom):
+    """FL-75: True when every jump table that the graph keeps cut at its range check is proved, for a start state at a dominator of the jump, to be indexed inside the cut. Then no run leaves the cut graph by a discarded cell:
+    take the first run step that does; the run followed cut edges until then, so it passed the dominator S in some state, which the proof covers."""
+    for jump in an.cut:
+        J = block_of(an, jump)
+        ok = False
+        for S in sorted(dom[J], key=lambda n: -len(dom[n]))[:MAX_STARTS]:
+            order = window(an, dom, S, J)
+            if order is None:
+                continue
+            try:
+                run_window(an, order, S, J, ('dir', 'taken'), False)       # executes the jump block and checks the escape condition of every cut jump on the way
+            except P.Unsupported:
+                continue
+            ok = True
+            break
+        if not ok:
+            return False
+    return True
+
+
 def from_analysis(an):
-    an.tight_tables, an.cut = False, {}        # FL-75: the windows and dominators use the whole tables: a cut is only proved on the paths a window walks, and a run that leaves by a discarded cell may reach a block the cut graph calls unreachable
+    """the analysis with its graph and dominators; jump tables are cut at their range check only when every cut is proved (`validate_cuts`), else whole, as a window that walked a discarded cell would be unsound"""
     an.build_blocks()
     an.graph()
-    return an, dominators(an)
+    dom = dominators(an)
+    if an.cut:
+        n = len(an.M.facts)
+        ok = validate_cuts(an, dom)
+        del an.M.facts[n:]                                               # facts the validation windows assumed concern their own fresh symbols only
+        if not ok:
+            an.tight_tables, an.cut = False, {}
+            an._stack_delta = None                                       # computed on the cut graph
+            an.build_blocks()
+            an.graph()
+            dom = dominators(an)
+    return an, dom
 
 
 def prepare(key, image=None):

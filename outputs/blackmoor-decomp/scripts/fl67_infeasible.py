@@ -241,6 +241,33 @@ def frame_escapes(insns):
     return False
 
 
+def seh_registration(insns, ins, targets=()):
+    """FL-75: `mov dword ptr fs:[0], esp`, the exception-chain registration of an MSVC prologue, is not a use of the frame address that the frame assumption must guard against when every other use of the fs segment is
+    a `mov r32, fs:[0]` in front of it (the saved previous chain head) and control cannot come back to those reads: no branch of the function targets an address from the entry up to the registration, so the straight-line
+    prologue runs once, in address order. The chain is read by exception dispatch, which the prover treats like a fault (a run that unwinds, or a filter that resumes, is not a run it models)."""
+    ops = ins.operands
+    if ins.mnemonic != 'mov' or len(ops) != 2 or ops[0].type != X.X86_OP_MEM or ops[1].type != X.X86_OP_REG or ins.reg_name(ops[1].reg) != 'esp':
+        return False
+    m = ops[0].mem
+    if m.segment != X.X86_REG_FS or m.base or m.index or m.disp != 0 or ops[0].size != 4:
+        return False
+    if any(insns[0].address <= t <= ins.address for t in targets):
+        return False
+    for j in insns:
+        if j is ins:
+            continue
+        if not (j.prefix[1] == 0x64 or any(o.type == X.X86_OP_MEM and o.mem.segment == X.X86_REG_FS for o in j.operands)):
+            continue
+        o = j.operands
+        if j.mnemonic == 'mov' and len(o) == 2 and o[0].type == X.X86_OP_REG and o[1].type == X.X86_OP_MEM and o[1].mem.segment == X.X86_REG_FS and not o[1].mem.base \
+                and not o[1].mem.index and o[1].mem.disp == 0 and j.address < ins.address:
+            continue
+        if j.mnemonic == 'mov' and len(o) == 2 and o[0].type == X.X86_OP_MEM and o[1].type == X.X86_OP_REG and ins.reg_name(o[1].reg) not in ('esp', 'ebp'):
+            continue                                                       # the epilogue restores the saved chain head from a register
+        return False
+    return True
+
+
 def merge(items):
     """items: [(edge condition, State)] with mutually exclusive conditions. The merged state selects the value of the edge taken."""
     if len(items) == 1:
@@ -762,7 +789,7 @@ class Analysis:
         self.by_addr = {i.address: i for i in self.insns}
         self.M = Machine(row, image)
         self.split_ok = SPLIT and not row.get('frame')                                       # a `frame` row starts with ebp = the entry frame address
-        self.esc_addrs = [i.address for i in self.insns if frame_escapes([i])] if self.split_ok else []      # FL-75: where the function forms an address of its frame
+        self.esc_addrs = [i.address for i in self.insns if frame_escapes([i]) and not seh_registration(self.insns, i, self.branch_targets())] if self.split_ok else []      # FL-75: where the function forms an address of its frame
         self.M.split = self.split_ok and not self.esc_addrs
         for k, i in enumerate(self.insns[:-1]):
             nxt = self.insns[k + 1]
@@ -773,6 +800,19 @@ class Analysis:
         self.inv = load_invariants(self.va)
         self.gen_state, self.hdr_in, self.hdr_back = {}, {}, {}      # FL-73: per generalised header with invariants: its state, its entry edges, its back edges
         self.tight_tables, self.cut, self.escapes = True, {}, []      # FL-75: tables cut at the range check (self.cut: jump -> the longer table that was cut); escapes: index-outside-the-cut conditions
+
+    def branch_targets(self):
+        """addresses that some branch of the body can jump to: direct jumps and jump tables (calls leave the body)"""
+        out = set()
+        for i in self.insns:
+            m = i.mnemonic
+            if (m == 'jmp' or m.startswith('j') or m.startswith('loop')) and i.operands:
+                if i.operands[0].type == X.X86_OP_IMM:
+                    out.add(i.operands[0].imm & 0xffffffff)
+                elif m == 'jmp':
+                    tt = self.table_targets(i)
+                    out.update(t for _, t in (tt or ()))
+        return out
 
     def jump_targets(self):
         """every address that a jump of the function can land on (direct targets and, when the table is readable, the targets of computed jumps)"""
