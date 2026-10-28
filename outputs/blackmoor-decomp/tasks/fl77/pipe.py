@@ -7,7 +7,7 @@ scenario that ran the whole recipe without a fault; env MAXHIT=n limits each rec
 Steps:
   ('g', addr, size, val)                      global cell
   ('ret', pc, slot, val[, nth])               the callee called at pc (nth hit) returns val in slot 0=eax 1=ecx 2=edx
-  ('wr', pc, target, val[, nth])              that callee also stores the dword val at target; target is an int, or (reg, off) = reg + off at the call
+  ('wr', pc, target, val[, nth])              that callee also stores the dword val at target; target is an int, (reg, off) = reg + off at the call, or ('d', reg, [o0,o1,..,oN]) = [..[reg+o0]+o1..]+oN
   ('cp', pc, n[, nth])                        at the repe cmpsb at pc make the n bytes at esi equal the n bytes at edi
   ('cell', pc, reg, path, size, val[, nth])   a cell [..[reg+path0]+path1..]+pathN at the nth hit of pc (every offset but the last is dereferenced); reg is a register name
   ('cellv', pc, reg, path, size, val[, nth])  as 'cell' but the cell address is reg + path (no dereference of reg) when path is an int
@@ -65,7 +65,12 @@ def apply_recipe(W, row, s, ov, recipe, dbg=False):
                 nov = [o for o in nov if o[0] != W.STUB_OVR + 16 * k + 4 * st[2]] + [[W.STUB_OVR + 16 * k + 4 * st[2], 4, st[3]]]
             else:
                 tgt = st[2]
-                if isinstance(tgt, tuple):
+                if isinstance(tgt, tuple) and tgt[0] == 'd':        # ('d', reg, [o0, o1, .., oN]): [..[reg+o0]+o1..]+oN
+                    a = h[1][tgt[1]]
+                    for o in tgt[2][:-1]:
+                        a = h[2]((a + o) & 0xffffffff)
+                    tgt = (a + tgt[2][-1]) & 0xffffffff
+                elif isinstance(tgt, tuple):
                     tgt = (h[1][tgt[0]] + tgt[1]) & 0xffffffff
                 nov = [o for o in nov if o[0] not in (W.STUB_WR + 16 * k, W.STUB_WR + 16 * k + 4)] + [[W.STUB_WR + 16 * k, 4, tgt], [W.STUB_WR + 16 * k + 4, 4, st[3]]]
         elif kind == 'cells':       # ('cells', pc, reg, [(path, size, val), ...][, nth]): several register-relative cells with one probe; a path starting with 'A' is an absolute address ('A', addr)
