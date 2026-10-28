@@ -51,7 +51,7 @@ Five more rows proved (T-EQ-INFEASIBLE): 0x4a2180, 0x420c17, 0x4a4f58 (FL-77 sce
 
 Audit hardening (Sonnet slice review, all fixed with tests): `seh_registration` also requires that no branch of the function targets an address from the entry up to the registration (the prologue runs once, in address order, so a read can never run after the registration) and rejects any fs-prefixed instruction other than the allowed ones; `from_analysis` clears the `stack_delta` cache and the facts of the validation windows when it falls back to the whole tables. Known and accepted: exception dispatch that resumes in the function (a filter returning CONTINUE_EXECUTION) and catch continuations have no CFG edges, as before.
 
-Numbers after the follow-up (main d73cb15 plus this PR): verified 2,210 of 4,188 (unchanged), tested equivalent 1,729 (proved 102), Mac-port view (Game + Vorbis, 2,685): ported 2,209, tested equivalent 454, pending 22: 0x4090ab 0x40b34a 0x413187 0x41e647 0x425b8b 0x448d11 0x4899ca 0x496410 0x4c1716 0x4e4cb6 0x4e5fdb 0x4f0059 (FL-77, scenario work) and 0x418e52 0x456516 0x471722 0x47c0f0 0x48f181 0x49d945 0x4a14c6 0x4ba56a 0x4e812f 0x4f7207 (prover).
+Numbers after the follow-up (main b5ce68c plus this PR): verified 2,210 of 4,188 (unchanged), tested equivalent 1,732 (proved 103), Mac-port view (Game + Vorbis, 2,685): ported 2,209, tested equivalent 457, pending 19: 0x4090ab 0x40b34a 0x413187 0x425b8b 0x448d11 0x496410 0x4c1716 0x4e5fdb 0x4f0059 (FL-77, scenario work) and 0x418e52 0x456516 0x471722 0x47c0f0 0x48f181 0x49d945 0x4a14c6 0x4ba56a 0x4e812f 0x4f7207 (prover).
 
 Glib answered "yes, keep the no-alias assumption" at 1:11 PM PDT on Oct 28. The prover's frame assumption (frame slots are out of reach of stores through other pointers and of callees) is the part of it that applies, and it stays switched off for a function that forms a frame address with `lea` (see below), so the rows that need more are still open:
 
@@ -75,4 +75,4 @@ Every row below has complete scenario coverage except the items named; each gap 
 | 0x49d945 | crash path (`idiv [ebp-0x70]` at 0x49e06b) | forward window loses the frame cell at three counting-loop headers | loop invariant entries in `tests/fl73_invariants.json` for those loops |
 | 0x4a14c6 | one direction | needed the removed callee-footprint model | sound footprint model (see above) |
 
-FL-77's own rows (0x4090ab 0x40b34a 0x413187 0x41e647 0x425b8b 0x448d11 0x4899ca 0x496410 0x4c1716 0x4e4cb6 0x4e5fdb 0x4f0059) are in its handoff.
+FL-77's own rows (0x4090ab 0x40b34a 0x413187 0x425b8b 0x448d11 0x496410 0x4c1716 0x4e5fdb 0x4f0059; its PR 267 cleared 0x41e647, 0x4899ca and 0x4e4cb6) are in its handoff.

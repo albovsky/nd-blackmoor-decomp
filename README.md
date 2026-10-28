@@ -8,6 +8,8 @@ The original GOG app is unchanged. This reconstruction is incomplete and is not 
 
 ## x86 matching progress (objdiff, ByteMatch)
 
+The whole-file x86 match is declared met under the Track M finish line in `AGENTS.md` (owner ruling of 2026-10-28): `outputs/blackmoor-decomp/scripts/build_game_exe.sh` reproduces the original SHA-256 from committed sources. The per-function view below is optional background work.
+
 `objdiff.json` defines one objdiff unit per function of the original `.text` (4,752: the M03 census split plus the two unsplit CRT spans), with categories `game`, `vorbis` and `crt_mfc`. Target objects are written at build time from the local `work/original/GAME.EXE`, one function code part per object. Base objects exist only for functions in the class `tool_assisted_reconstructed_assembly`: accepted in an audited `asm/batch-*-report.json` and unchanged since. They are assembled from `outputs/blackmoor-decomp/asm/*.s` with the pinned GNU as 2.43.1. Every other function counts as unmatched. Objects and the report go under the git-ignored `build/`, and no original bytes are committed. `script/objdiff_units.py` explains the details, including one storage-class change to the base object's data-item labels that keeps objdiff from sizing switch tables as code.
 
 ```bash
