@@ -7,7 +7,6 @@
   "0x4516c7": "timeout after 1500s",
   "0x453ce2": "timeout after 1500s",
   "0x456516": "timeout after 300s",
-  "0x45f0e6": "exit -9: ",
   "0x471722": "exit -6: terminate called after throwing an instance of 'out_of_memory_error'\n  what():  out of memory\n",
   "0x49173f": "timeout after 1500s",
   "0x4a4f58": "exit -6: terminate called after throwing an instance of 'out_of_memory_error'\n  what():  out of memory\n",
@@ -185,18 +184,6 @@
    ],
    "pool": "lower"
   },
-  "0x435015": {
-   "body": 9727,
-   "directions": [
-    27,
-    164
-   ],
-   "instructions": [
-    513,
-    2089
-   ],
-   "pool": "lower"
-  },
   "0x4381f4": {
    "body": 5629,
    "directions": [
@@ -218,18 +205,6 @@
    "instructions": [
     773,
     868
-   ],
-   "pool": "lower"
-  },
-  "0x43a7ca": {
-   "body": 10745,
-   "directions": [
-    234,
-    598
-   ],
-   "instructions": [
-    1081,
-    2335
    ],
    "pool": "lower"
   },
