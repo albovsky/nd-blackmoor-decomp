@@ -3,7 +3,6 @@
   "0x413187": "timeout after 900s",
   "0x425b8b": "timeout after 900s",
   "0x42f510": "timeout after 1500s",
-  "0x44ad41": "exit -9: ",
   "0x4516c7": "timeout after 1500s",
   "0x453ce2": "timeout after 1500s",
   "0x471722": "exit -6: terminate called after throwing an instance of 'out_of_memory_error'\n  what():  out of memory\n",
@@ -157,42 +156,6 @@
    ],
    "pool": "lower"
   },
-  "0x424aa8": {
-   "body": 4323,
-   "directions": [
-    70,
-    92
-   ],
-   "instructions": [
-    706,
-    975
-   ],
-   "pool": "lower"
-  },
-  "0x4381f4": {
-   "body": 5629,
-   "directions": [
-    46,
-    56
-   ],
-   "instructions": [
-    1025,
-    1100
-   ],
-   "pool": "lower"
-  },
-  "0x439822": {
-   "body": 4008,
-   "directions": [
-    130,
-    146
-   ],
-   "instructions": [
-    773,
-    868
-   ],
-   "pool": "lower"
-  },
   "0x448d11": {
    "body": 2593,
    "directions": [
@@ -238,18 +201,6 @@
    "instructions": [
     536,
     696
-   ],
-   "pool": "lower"
-  },
-  "0x467eb0": {
-   "body": 285,
-   "directions": [
-    13,
-    14
-   ],
-   "instructions": [
-    67,
-    73
    ],
    "pool": "lower"
   },
@@ -322,18 +273,6 @@
    "instructions": [
     559,
     1076
-   ],
-   "pool": "upper"
-  },
-  "0x491db2": {
-   "body": 1007,
-   "directions": [
-    27,
-    30
-   ],
-   "instructions": [
-    252,
-    262
    ],
    "pool": "upper"
   },
@@ -445,18 +384,6 @@
    ],
    "pool": "upper"
   },
-  "0x4bf9bb": {
-   "body": 2122,
-   "directions": [
-    50,
-    52
-   ],
-   "instructions": [
-    491,
-    492
-   ],
-   "pool": "upper"
-  },
   "0x4c1716": {
    "body": 4218,
    "directions": [
@@ -502,18 +429,6 @@
    "instructions": [
     166,
     205
-   ],
-   "pool": "upper"
-  },
-  "0x4da430": {
-   "body": 2273,
-   "directions": [
-    85,
-    86
-   ],
-   "instructions": [
-    430,
-    457
    ],
    "pool": "upper"
   },
