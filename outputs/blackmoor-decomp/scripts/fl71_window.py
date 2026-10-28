@@ -101,7 +101,7 @@ def run_window(an, order, S, T, query, frame=False):
     """execute the window; `query` is ('dir', 'taken'|'fall') or ('ins', None); returns the formula to refute"""
     M = an.M
     saved = M.split
-    M.split = saved and frame           # FL-73: `frame` keeps the full analysis's own frame assumption (only for a function that never forms the address of its frame)
+    M.split = frame and an.split_ok     # FL-73/75: `frame` adds the frame assumption; the caller has checked that no frame address can have been formed on the way (Analysis.frame_safe)
     try:
         incoming = {n: [] for n in order}
         incoming[S].append((z3.BoolVal(True), P.State.start()))
@@ -200,10 +200,12 @@ def prove_target(an, dom, T, query, timeout_ms=STEP_MS):
     """('unsat', hash, S) when some dominator window refutes the target, else ('unknown'|'sat', hash, S)"""
     chain = sorted(dom[T], key=lambda n: -len(dom[n]))        # nearest dominator first (T itself, then its immediate dominator, ...)
     last = ('unknown', '', None)
-    for frame in (False, True) if an.M.split else (False,):      # FL-73: the second pass adds the frame assumption of the full analysis (frame slots are out of reach of stores through other pointers)
+    for frame in (False, True) if an.split_ok else (False,):      # FL-73: the second pass adds the frame assumption of the full analysis (frame slots are out of reach of stores through other pointers)
         for S in chain[:MAX_STARTS]:
             order = window(an, dom, S, T)
             if order is None:
+                continue
+            if frame and not an.frame_safe(S, order):             # FL-75: a function that forms a frame address somewhere still has frame-safe windows in front of that point
                 continue
             try:
                 f = run_window(an, order, S, T, query, frame)

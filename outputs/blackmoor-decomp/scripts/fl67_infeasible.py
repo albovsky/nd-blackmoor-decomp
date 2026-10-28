@@ -722,7 +722,9 @@ class Analysis:
         self.md, self.insns = disassemble(image, self.va, self.body)
         self.by_addr = {i.address: i for i in self.insns}
         self.M = Machine(row, image)
-        self.M.split = SPLIT and not row.get('frame') and not frame_escapes(self.insns)      # a `frame` row starts with ebp = the entry frame address
+        self.split_ok = SPLIT and not row.get('frame')                                       # a `frame` row starts with ebp = the entry frame address
+        self.esc_addrs = [i.address for i in self.insns if frame_escapes([i])] if self.split_ok else []      # FL-75: where the function forms an address of its frame
+        self.M.split = self.split_ok and not self.esc_addrs
         for k, i in enumerate(self.insns[:-1]):
             nxt = self.insns[k + 1]
             if i.mnemonic == 'call' and nxt.mnemonic == 'add' and [nxt.reg_name(nxt.operands[0].reg)] == ['esp'] and nxt.operands[1].type == X.X86_OP_IMM:
@@ -884,6 +886,27 @@ class Analysis:
                         work.append(p)
             loops.setdefault(h, set()).update(body)
         self.loops = loops
+
+    def frame_safe(self, S, region):
+        """FL-75: the frame assumption holds in a window that starts at block S and executes the blocks `region` when no instruction that forms an address of the frame is in the region or can run before S
+        (no path from it to S). Then no run that reaches the window has handed out a pointer into its own frame yet, so only the argument slots of a call can be reached by other pointers (as in the whole-function case)."""
+        if not self.split_ok:
+            return False
+        if not self.esc_addrs:
+            return True
+        esc = {a for a, b in self.blocks.items() if any(i.address in self.esc_addrs for i in b['insns'])}
+        if esc & set(region):
+            return False
+        seen, work = {S}, [S]
+        while work:
+            n = work.pop()
+            if n in esc:
+                return False
+            for p in self.pred[n]:
+                if p not in seen:
+                    seen.add(p)
+                    work.append(p)
+        return True
 
     def loop_effects(self, header):
         """Registers/flags/memory that some instruction of the loop may change: run each instruction on a state of unique symbols."""
