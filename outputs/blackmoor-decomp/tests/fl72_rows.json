@@ -1,0 +1,11 @@
+{
+ "0x4d8dca": {
+  "body": 320,
+  "callees": {},
+  "imports": {},
+  "sites": {},
+  "fs": false,
+  "frame": false,
+  "note": "quicksort with two recursive calls run natively (FL41_CALL_LIFTED): the original runs its own recursion, so the row lists no callees"
+ }
+}

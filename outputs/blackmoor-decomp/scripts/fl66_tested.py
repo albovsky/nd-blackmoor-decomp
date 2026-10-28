@@ -45,7 +45,7 @@ RULE_ID2 = 'T-EQ-INFEASIBLE'
 RULE_TEXT2 = ('A pending function is tested equivalent by proof when its committed translation equals the original on every scenario kept for it, and every instruction and conditional-jump direction '
               'those scenarios do not reach is PROVED unreachable: scripts/fl67_infeasible.py symbolically executes the original bytes (all paths at once, z3) and shows that no start state of the '
               'function reaches it in a run that does not fault. Modelling assumptions: ebx/esi/edi/ebp survive a call and esp returns by the bytes the callee pops; the direction flag is clear; '
-              'an access at or above 0xfff00000, a division by zero and a quotient overflow fault; the image below .data is constant; a function that never forms the address of its own frame '
+              'an access at or above 0xfff00000, a division by zero and a quotient overflow fault; a call to a callee that never returns (tests/fl72_noreturn.json, AfxEndThread) ends the run; the image below .data is constant; a function that never forms the address of its own frame '
               'keeps its frame slots out of reach of stores through other pointers and of callees (except the argument slots pushed for the call). Not a verified port: never added to the verified count.')
 RULE_ID = 'T-EQ-COVERED'
 RULE_TEXT = ('A pending function is tested equivalent when its committed translation runs under Unicorn-vs-native differential scenarios that execute every instruction of the original function and take both '
@@ -58,6 +58,7 @@ POOLS = {
     'upper': {'world': 41, 'source': 'translated/original_methods_fl41_translated.c', 'table': 'tests/fl41_translated.json'},
     'upper57': {'world': 41, 'source': 'translated/original_methods_fl57_translated.c', 'table': 'tests/fl57_translated.json'},
     'fl68': {'world': 41, 'source': 'translated/original_methods_fl41_translated.c', 'table': 'tests/fl68_rows.json', 'lib': 'upper'},      # FL-68: rows whose translation sits in the upper file but whose table entry does not (the inline helpers)
+    'fl72': {'world': 41, 'source': 'translated/original_methods_fl59_handports.c', 'table': 'tests/fl72_rows.json'},                                  # FL-72: the quicksort 0x4d8dca (hand port with native recursion)
 }
 WORLD_FILES = {40: 'tests/fl40_pending.json', 41: 'tests/fl41_pending.json'}
 
@@ -218,6 +219,7 @@ def library(pool):
 
 
 SITES = PROJECT / 'tests/fl68_sites.json'
+NORETURN = PROJECT / 'tests/fl72_noreturn.json'
 
 
 def extra_sites():
@@ -234,8 +236,13 @@ def row_info(pool, key):
     sites = {int(a, 16): n for a, n in t.get('sites', {}).items()}
     sites.update({int(a, 16): n for a, n in extra_sites().get(key, {}).items()})            # FL-68: indirect calls and tail jumps registered by scripts/fl68_sites.py
     if p['world'] == 40:
-        return W.row_info(va, t['body'], cal, imp, t.get('fs', False), sites)            # FL-69: the fl40 world plays them too
-    return W.row_info(va, t['body'], cal, imp, t.get('fs', False), sites, t.get('frame', False))
+        row = W.row_info(va, t['body'], cal, imp, t.get('fs', False), sites)            # FL-69: the fl40 world plays them too
+    else:
+        row = W.row_info(va, t['body'], cal, imp, t.get('fs', False), sites, t.get('frame', False))
+    nr = (_cached(NORETURN) or {}).get(key)
+    if nr:
+        row['noreturn'] = {int(a, 16) for a in nr}                                      # FL-72: callees that never return (AfxEndThread): both worlds end the run at the call
+    return row
 
 
 def row_text(source, key):

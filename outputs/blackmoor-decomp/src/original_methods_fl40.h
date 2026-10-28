@@ -54,6 +54,7 @@ typedef struct Fl40Host {
         Fl40Regs rr_ = {eax, ecx, edx, ebx, esp, ebp, esi, edi};                                                                               \
         h->call(h->ctx, (target), &rr_);                                                                                                       \
         eax = rr_.eax; ecx = rr_.ecx; edx = rr_.edx;                                                                                                       \
+        if (rr_.esp == 0xfffffff0u) goto done; /* FL-72: the host marks a callee that never returns */                                                 \
     } while (0)
 
 /* the address the thread information block (fs:[0]) has in the model, and the divide error: the host sees a call to 0xffffffff and the function stops */

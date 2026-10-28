@@ -186,6 +186,8 @@ def apply_register_overrides(regs, overrides):
 
 
 STUB_WR = 0xffd00000       # FL-48: overrides at STUB_WR + 16*k (target address) and + 4 (value) make the k-th callee stub also store that dword (a callee may write any cell); both sides honour it
+# FL-72: a row may list callees that never return (`row['noreturn']`, tests/fl72_noreturn.json: AfxEndThread ends the thread): the run of both sides ends at such a call, after the callee's record, with esp as the call left it
+NORETURN_ESP = 0xfffffff0   # the host hands this esp back to the translation for such a call (the macro `FL41_CALL` then leaves the function)
 STUB_OVR = 0xfff00000      # FL-45: an override at STUB_OVR + 16*k + {0, 4, 8} sets eax, ecx, edx that the k-th callee stub returns (instead of the seeded draw); both sides honour it
 
 
@@ -242,6 +244,7 @@ class Trace:
         self.writes = []
         self.calls = []
         self.executed = set()
+        self.noreturn = False
         self.edges = set()
         self.fault = None
 
@@ -428,6 +431,10 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None, watch=Non
         uc.reg_write(X.UC_X86_REG_EAX, eax)
         uc.reg_write(X.UC_X86_REG_ECX, ecx_out)
         uc.reg_write(X.UC_X86_REG_EDX, edx)
+        if address in row.get('noreturn', ()):
+            trace.noreturn = True
+            uc.emu_stop()
+            return
         if net:
             return              # the instructions at the callee's address (see above) push or pop st(0) and return
         uc.reg_write(X.UC_X86_REG_ESP, esp + 4 + cleanup)
@@ -512,7 +519,7 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None, watch=Non
     except unicorn.UcError as ex:
         trace.fault = str(ex)
         return trace
-    if uc.reg_read(X.UC_X86_REG_EIP) != STOP and not at_end:
+    if uc.reg_read(X.UC_X86_REG_EIP) != STOP and not at_end and not trace.noreturn:
         trace.fault = 'instruction limit'
         return trace
     trace.regs = {name: uc.reg_read(getattr(X, 'UC_X86_REG_' + name.upper())) for name in ('eax', 'ecx', 'edx', 'ebx', 'esp', 'ebp', 'esi', 'edi')}
@@ -663,6 +670,8 @@ def run_native(lib, row, seed, overrides=()):
         rr.contents.eax = eax
         rr.contents.ecx = ecx_out
         rr.contents.edx = edx
+        if callee in row.get('noreturn', ()):
+            rr.contents.esp = NORETURN_ESP
 
     fpret = row.get('fpret') or {}
     fret_last = [0]
