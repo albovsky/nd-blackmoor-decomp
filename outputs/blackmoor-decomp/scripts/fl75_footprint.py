@@ -130,16 +130,18 @@ def callee_summary(image, addr, entry=frozenset()):
             index = ins.reg_name(o.mem.index) if o.mem.index else None
             if base == 'esp' or index in ('esp', 'ebp') or (base == 'ebp' and index):
                 return why(5, locals())
-            if base == 'ebp' and m != 'lea' and o.mem.disp + o.size > 8 and o.mem.disp < 12 and not src_form:
-                return why(6, locals())                                          # overlaps the argument slot [ebp+8, ebp+12)
-            if base == 'ebp' and m != 'lea' and (o.access == 0 or o.access & capstone.CS_AC_WRITE) and o.mem.disp + o.size > 0:
-                return why(17, locals())                                         # a write at or above [ebp+0] is the saved ebp, the return address or the caller's frame, not the callee's own frame
+            if base == 'ebp' and m != 'lea' and not src_form and o.mem.disp + o.size > 0:
+                return why(6, locals())                                          # a read or write at or above [ebp+0]: the saved ebp (a caller frame address), the return address, the argument slot, the caller's frame
         if m == 'lea':
             mem = ops[1].mem
             if mem.base and ins.reg_name(mem.base) in ('ebp', 'esp') and (ins.reg_name(mem.base) == 'esp' or mem.disp >= 0):
                 return why(7, locals())
             if mem.index and ins.reg_name(mem.index) in ('ebp', 'esp'):
                 return why(8, locals())
+        if m == 'leave' or (m == 'pop' and len(ops) == 1 and ops[0].type == X.X86_OP_REG and ins.reg_name(ops[0].reg) == 'ebp'):
+            after = _decode(md, image, ins.address + ins.size)               # the frame is torn down: ebp is the caller's from here, so nothing but the ret may follow
+            if not (after and after.mnemonic in ('ret', 'retn')):
+                return why(18, locals())
         if m in ('ret', 'retn'):
             if T & {'ebx', 'esi', 'edi'}:
                 return why(9, locals())                                    # a callee-saved register that still holds the pointer
@@ -166,16 +168,12 @@ def callee_summary(image, addr, entry=frozenset()):
             store = (m in STORES and ops and ops[0].type == X.X86_OP_MEM and ops[0].mem.base and SUB.get(ins.reg_name(ops[0].mem.base)) in T and not ops[0].mem.index
                      and ops[0].mem.segment == 0 and (len(ops) == 1 or ops[1].type != X.X86_OP_REG or SUB.get(ins.reg_name(ops[1].reg)) not in T)
                      and {SUB[ins.reg_name(ops[0].mem.base)]} == tainted_read)
-            load = (m in ('mov', 'movzx', 'movsx', 'fld', 'fild') and len(ops) == 2 and ops[0].type == X.X86_OP_REG and ops[1].type == X.X86_OP_MEM and ops[1].mem.base
-                    and SUB.get(ins.reg_name(ops[1].mem.base)) in T and not ops[1].mem.index and {SUB[ins.reg_name(ops[1].mem.base)]} == tainted_read) or \
-                   (m in ('fld', 'fild', 'fcom', 'fcomp', 'fadd', 'fsub', 'fmul', 'fdiv', 'fsubr', 'fdivr', 'ficom', 'ficomp') and ops and ops[0].type == X.X86_OP_MEM and ops[0].mem.base
-                    and SUB.get(ins.reg_name(ops[0].mem.base)) in T and not ops[0].mem.index and {SUB[ins.reg_name(ops[0].mem.base)]} == tainted_read)
             if store:
                 d = ops[0].mem.disp
                 lo = d if lo is None else min(lo, d)
                 hi = d + ops[0].size if hi is None else max(hi, d + ops[0].size)
-            elif not load:
-                return why(13, locals())
+            else:
+                return why(13, locals())                                       # any other use of the pointer, including a load through it (the cell may hold a frame address)
         if m == 'call':
             if T:
                 return why(14, locals())                                           # no call while a register holds the pointer (it could be passed in ecx or spilled by a callee that saves ebx/esi/edi)

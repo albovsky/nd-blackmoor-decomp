@@ -295,6 +295,9 @@ RET_PTR_DEAD = RET_PTR.replace(bytes.fromhex('c70007000000'), bytes.fromhex('31c
 CALLEE_BAD = {
     'high_write': '5589e5c7451007000000 5dc20400'.replace(' ', ''),                  # mov dword [ebp+16], 7
     'partial': '5589e58b5508b200c70207000000 5dc20400'.replace(' ', ''),            # mov edx,[ebp+8]; mov dl,0; mov dword [edx],7
+    'after_teardown': '5589e5c9c745f407000000c20400',                                 # leave; mov dword [ebp-12], 7 (ebp is the caller's by then)
+    'alias_load': '5589e58b55088b52f4c742fc07000000 5dc20400'.replace(' ', ''),    # mov edx,[ebp+8]; mov edx,[edx-12] (the pushed copy of the pointer); mov dword [edx-4],7
+    'saved_ebp': '5589e58b4500c740f407000000 5dc20400'.replace(' ', ''),            # mov eax,[ebp] (the caller's ebp); mov dword [eax-12], 7
 }
 
 
@@ -405,7 +408,7 @@ class Fl75(unittest.TestCase):
         jne = [i.address for i in an.insns if i.mnemonic == 'jne'][0]
         self.assertEqual(an.direction(jne, 'taken')[0], 'unsat')        # nothing writes [ebp-8]
 
-    def test_a_callee_with_a_write_above_its_frame_or_a_partly_overwritten_pointer_gets_no_footprint(self):
+    def test_a_callee_that_can_reach_the_caller_frame_by_another_way_gets_no_footprint(self):
         import fl75_footprint as FP
         caller = bytes.fromhex(FP_CALLER)
         for kind, hexa in CALLEE_BAD.items():
