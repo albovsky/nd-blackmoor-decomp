@@ -500,9 +500,10 @@ def from_analysis(an):
     an.graph()
     dom = dominators(an)
     if an.cut:
-        n = len(an.M.facts)
+        n, keys = len(an.M.facts), set(an.M.fact_keys)
         ok = validate_cuts(an, dom)
         del an.M.facts[n:]                                               # facts the validation windows assumed concern their own fresh symbols only
+        an.M.fact_keys = keys                                            # and the image bytes whose constant facts went with them are read again later
         if not ok:
             an.tight_tables, an.cut = False, {}
             an._stack_delta = None                                       # computed on the cut graph

@@ -260,6 +260,8 @@ class Invariants(unittest.TestCase):
 TWO_TABLES = bytes.fromhex('8b44240483f8017713ff248523104000b901000000c3b902000000c3c3b909000000c310104000161040001d1040001d104000')
 BAD_GUARD = bytes.fromhex('83fb0177178b442404ff248523104000b901000000c3b902000000c3c3b909000000c310104000161040001d1040001d104000')
 # push ebp; mov ebp,esp; sub esp,8; mov [ebp-4],0; [lea ecx,[ebp-4];] mov eax,[ebp+8]; mov [eax],7; cmp [ebp-4],0; jne never; [lea ecx,[ebp-4];] mov eax,ecx; ...; never: mov eax,9; ...
+# mov eax,[esp+4]; mov edx,[0x401000]; cmp eax,1; ja d; jmp [eax*4+tbl]; c1: mov ecx,1; ret; c2: mov ecx,2; ret; d: mov ecx,9; ret; tbl: dd c1, c2, c2, c1
+CONST_LOAD = bytes.fromhex('8b4424048b150010400083f8017713ff248528104000b901000000c3b902000000c3b909000000c3161040001c1040001c10400016104000')
 FRAME_EARLIER = bytes.fromhex('5589e583ec08c745fc000000008d4dfc8b4508c70007000000837dfc00750689c889ec5dc3b80900000089ec5dc3')
 FRAME_LATER = bytes.fromhex('5589e583ec08c745fc000000008b4508c70007000000837dfc0075098d4dfc89c889ec5dc3b80900000089ec5dc3')
 # call C; cmp eax,0x8000; jae never; ret; never: mov eax,9; ret; body_end: C: mov eax,[esp+4]; and eax,MASK; ret
@@ -291,8 +293,7 @@ def image_of(code, tail=b''):
 class Fl75(unittest.TestCase):
     """FL-75: jump tables cut at their range check, the frame assumption per window, callee return bounds."""
 
-    def two_tables(self, code=TWO_TABLES, tight=True):
-        body = 0x23
+    def two_tables(self, code=TWO_TABLES, tight=True, body=0x23):
         an = P.Analysis({'va': BASE, 'body': body, 'callees': {}, 'imports': {}, 'sites': None}, image_of(code), 20000)
         an.tight_tables = tight
         return an
@@ -334,6 +335,13 @@ class Fl75(unittest.TestCase):
         import fl71_window as Wn
         an, dom = Wn.from_analysis(self.two_tables(b'\xc3\x90\x90\x90' + TWO_TABLES[4:]))     # ret first: the switch is unreachable
         self.assertEqual([len(t) for t in an.table.values()], [2])           # nothing can run it, the cut stays
+
+    def test_the_constant_memory_cache_matches_the_facts_after_cut_validation(self):
+        import fl71_window as Wn
+        an, dom = Wn.from_analysis(self.two_tables(CONST_LOAD, body=0x28))     # the switch block reads image bytes before the jump
+        self.assertTrue(an.cut)
+        self.assertTrue(an.M.fact_keys)
+        self.assertEqual(len(an.M.fact_keys), len(an.M.facts))           # a key without its fact would never be added again
 
     def seh_row(self, code):
         an = P.Analysis({'va': BASE, 'body': len(code), 'callees': {}, 'imports': {}, 'sites': None}, image_of(code), 20000)
