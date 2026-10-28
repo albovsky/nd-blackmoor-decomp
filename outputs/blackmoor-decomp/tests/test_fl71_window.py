@@ -33,6 +33,11 @@ if HAVE_Z3:
     PROGRAMS['store_between'] = '8b4c2404 8b542408 803900 7409 c60200 803900 7402 c3 c3 c3'.replace(' ', '')
 
 
+# FL-75: a window ties esp to ebp (scripts/fl71_window.py stack_delta/relate), so it can rule out what the full analysis, which loses that tie at a generalised header, still finds possible. These are really unreachable:
+# in gen_loop_moves_esp `mov [esp], 1` writes [ebp-8] on every iteration, so after the loop [ebp-8] is 1, the jne at +0x1d is always taken and the `ret` after it never runs.
+STRONGER = {'gen_loop_moves_esp': {('f', BASE + 0x1d), ('i', BASE + 0x1f)}}
+
+
 def both(name):
     """(full verdicts, window verdicts) per target of the program"""
     code = bytes.fromhex(PROGRAMS[name])
@@ -64,7 +69,7 @@ class Synthetic(unittest.TestCase):
             except P.Unsupported:
                 continue
             for k, v in win.items():
-                if v == 'unsat':
+                if v == 'unsat' and k not in STRONGER.get(name, ()):
                     self.assertEqual(full[k], 'unsat', (name, k))
 
     def test_a_constant_test_in_front_of_a_jump(self):
@@ -93,8 +98,11 @@ class Synthetic(unittest.TestCase):
     def test_a_loop_that_moves_esp_keeps_its_jump_possible(self):
         full, win = both('gen_loop_moves_esp')
         for k, v in win.items():
-            if v == 'unsat':
+            if v == 'unsat' and k not in STRONGER['gen_loop_moves_esp']:
                 self.assertEqual(full[k], 'unsat', k)
+        self.assertEqual(win[('t', BASE + 0x1d)], 'sat')
+        for k in STRONGER['gen_loop_moves_esp']:
+            self.assertEqual(win[k], 'unsat', k)
 
 
 @unittest.skipUnless(HAVE_Z3, 'needs z3-solver, capstone')

@@ -212,6 +212,24 @@ class Invariants(unittest.TestCase):
         an.run()
         self.assertEqual(an.direction(COUNTER_NEVER, 'taken')[0], 'unsat')
 
+    def test_an_or_atom_holds_when_one_alternative_does(self):
+        """FL-75: {"or": [...]} atoms, proved like any atom: i >= 0 is inductive, so (i == 5 or i >= 0) is too, and it rules the same jump out"""
+        an = counter_analysis([{'or': [{'mem': COUNTER_SLOT, 'op': 'eq', 'val': 5}, {'mem': COUNTER_SLOT, 'op': 'sge', 'val': 0}]}])
+        an.run()
+        self.assertEqual(an.direction(COUNTER_NEVER, 'taken')[0], 'unsat')
+
+    def test_an_or_atom_that_a_back_edge_breaks_is_refused(self):
+        an = counter_analysis([{'or': [{'mem': COUNTER_SLOT, 'op': 'eq', 'val': 0}, {'mem': COUNTER_SLOT, 'op': 'eq', 'val': 1}]}])      # i reaches 2
+        with self.assertRaises(P.Unsupported) as ctx:
+            an.run()
+        self.assertIn('back edge', str(ctx.exception))
+
+    def test_an_or_atom_that_is_false_on_entry_is_refused(self):
+        an = counter_analysis([{'or': [{'mem': COUNTER_SLOT, 'op': 'eq', 'val': 7}, {'mem': COUNTER_SLOT, 'op': 'eq', 'val': 8}]}])
+        with self.assertRaises(P.Unsupported) as ctx:
+            an.run()
+        self.assertIn('entry edge', str(ctx.exception))
+
     def test_the_window_proof_uses_the_invariant_the_same_way(self):
         import fl71_window as Wn
         for atoms, verdict in (([], 'sat'), ([{'mem': COUNTER_SLOT, 'op': 'sge', 'val': 0}], 'unsat')):
@@ -233,9 +251,151 @@ class Invariants(unittest.TestCase):
             for header, atoms in headers.items():
                 self.assertTrue(header.startswith('0x'))
                 for at in atoms:
-                    self.assertIn(at['op'], P._INV_OPS)
-                    self.assertTrue(('val' in at) != ('mem2' in at))
+                    for a in at.get('or', [at]):
+                        self.assertIn(a['op'], P._INV_OPS)
+                        self.assertTrue(('val' in a) != ('mem2' in a))
 
+
+# FL-75 programs (assembled with nasm, org 0x401000; the asm is in the comment). `tbl` and the callees sit behind the body, in the image.
+TWO_TABLES = bytes.fromhex('8b44240483f8017713ff248523104000b901000000c3b902000000c3c3b909000000c310104000161040001d1040001d104000')
+BAD_GUARD = bytes.fromhex('83fb0177178b442404ff248523104000b901000000c3b902000000c3c3b909000000c310104000161040001d1040001d104000')
+# push ebp; mov ebp,esp; sub esp,8; mov [ebp-4],0; [lea ecx,[ebp-4];] mov eax,[ebp+8]; mov [eax],7; cmp [ebp-4],0; jne never; [lea ecx,[ebp-4];] mov eax,ecx; ...; never: mov eax,9; ...
+FRAME_EARLIER = bytes.fromhex('5589e583ec08c745fc000000008d4dfc8b4508c70007000000837dfc00750689c889ec5dc3b80900000089ec5dc3')
+FRAME_LATER = bytes.fromhex('5589e583ec08c745fc000000008b4508c70007000000837dfc0075098d4dfc89c889ec5dc3b80900000089ec5dc3')
+# call C; cmp eax,0x8000; jae never; ret; never: mov eax,9; ret; body_end: C: mov eax,[esp+4]; and eax,MASK; ret
+RETBOUND = {m: bytes.fromhex('e80e0000003d008000007301c3b809000000c38b440424' + m + 'c3') for m in ('25ff7f0000', '25ffff0000', '2500000080')}
+# push ebp; mov ebp,esp; sub esp,4; mov [ebp-4],0; mov eax,[ebp+8]; cmp eax,5; jne bad; mov eax,1; jmp done; bad: mov eax,100; cdq; idiv dword [ebp-4]; done: mov esp,ebp; pop ebp; ret
+FAULT_LATER = bytes.fromhex('5589e583ec04c745fc000000008b450883f8057507b801000000eb09b86400000099f77dfc89ec5dc3')
+
+
+# FAULT_LATER with a second exit on the path `bad`: cmp eax,6; jne tail; ... tail: mov esp,ebp; pop ebp; jmp 0x500000 (a tail call outside the body, which does not fault)
+FAULT_OR_TAIL = bytes.fromhex('5589e583ec04c745fc000000008b450883f8057507b801000000eb0983f806750899f77dfc89ec5dc389ec5de9cfef0f00')
+# push ebp; mov ebp,esp; mov eax,[ebp+8]; test eax,eax; jne tail; leave; jmp L; tail: mov eax,3; leave; jmp L; L: cmp esp,ebp; je yes; mov eax,1; ret; yes: mov eax,2; ret
+LEAVE_JOIN = bytes.fromhex('5589e58b450885c07503c9eb08b803000000c9eb0039ec7406b801000000c3b802000000c3')
+
+
+def image_of(code, tail=b''):
+    return bytes(BASE - P.IMAGE_BASE) + code + tail + bytes(64)
+
+
+@unittest.skipUnless(HAVE_Z3, 'needs z3-solver, capstone')
+class Fl75(unittest.TestCase):
+    """FL-75: jump tables cut at their range check, the frame assumption per window, callee return bounds."""
+
+    def two_tables(self, code=TWO_TABLES, tight=True):
+        body = 0x23
+        an = P.Analysis({'va': BASE, 'body': body, 'callees': {}, 'imports': {}, 'sites': None}, image_of(code), 20000)
+        an.tight_tables = tight
+        return an
+
+    def test_a_table_is_cut_at_its_range_check_and_the_cut_is_proved(self):
+        an = self.two_tables()
+        an.run()
+        self.assertEqual([len(t) for t in an.table.values()], [2])      # the next switch's two cells are no longer successors
+        self.assertEqual(an.instruction(BASE + 0x1d)[0], 'unsat')       # c2: reachable only through those cells
+        self.assertEqual(an.instruction(BASE + 0x16)[0], 'sat')
+
+    def test_without_the_cut_the_table_runs_into_the_next_one(self):
+        an = self.two_tables(tight=False)
+        an.run()
+        self.assertEqual([len(t) for t in an.table.values()], [4])
+        self.assertEqual(an.instruction(BASE + 0x1d)[0], 'unsat')       # the range check still rules the cells out, the graph just has the extra edges
+
+    def test_a_cut_that_the_prover_cannot_justify_is_refused(self):
+        an = self.two_tables(BAD_GUARD)                                # the range check is on ebx, the index is eax
+        with self.assertRaises(P.Unsupported) as ctx:
+            an.run()
+        self.assertIn('table escape', str(ctx.exception))
+
+    def test_a_window_does_not_use_a_cut_nobody_has_proved(self):
+        import fl71_window as Wn
+        an, dom = Wn.from_analysis(self.two_tables(BAD_GUARD))
+        c2 = BASE + 0x1d                                                # reachable with eax == 2, ebx <= 1: the range check is on ebx, so the cut to two cells is wrong
+        self.assertIn(Wn.block_of(an, c2), an.reach)
+        self.assertNotEqual(Wn.prove_faults(an, dom, ('ins', c2))[0], 'unsat')
+
+    def jne_window(self, code):
+        import fl71_window as Wn
+        an = P.Analysis({'va': BASE, 'body': len(code), 'callees': {}, 'imports': {}, 'sites': None}, image_of(code), 20000)
+        self.assertFalse(an.M.split)                                   # the lea: no whole-function frame assumption
+        an, dom = Wn.from_analysis(an)
+        jne = [i for i in an.insns if i.mnemonic == 'jne'][0].address
+        return Wn.prove_target(an, dom, Wn.block_of(an, jne, True), ('dir', 'taken'))[0]
+
+    def test_a_target_in_front_of_the_first_frame_address_gets_the_frame_assumption_in_a_window(self):
+        self.assertEqual(self.jne_window(FRAME_LATER), 'unsat')        # [ebp-4] = 0; a store through the argument pointer; [ebp-4] != 0 ?  (the lea comes after)
+
+    def test_a_target_behind_a_frame_address_gets_no_frame_assumption(self):
+        self.assertNotEqual(self.jne_window(FRAME_EARLIER), 'unsat')   # the same code with the lea in front: the pointer may alias the slot
+
+    def fault_window(self, mark):
+        import fl71_window as Wn
+        code = FAULT_LATER
+        an = P.Analysis({'va': BASE, 'body': len(code), 'callees': {}, 'imports': {}, 'sites': None}, image_of(code), 20000)
+        an, dom = Wn.from_analysis(an)
+        jne = [i for i in an.insns if i.mnemonic == 'jne'][0].address
+        return an, Wn, dom, jne
+
+    def test_the_stack_pointer_is_related_to_the_frame_pointer_in_every_block(self):
+        an, Wn, dom, jne = self.fault_window(None)
+        delta = Wn.stack_delta(an)
+        self.assertEqual(delta[BASE + 0x15], -4)                        # after `sub esp, 4`, esp is four below ebp on both branches
+        self.assertEqual(delta[BASE + 0x1c], -4)
+        self.assertNotIn(BASE, delta)                                   # the entry block starts before the prologue
+
+    def test_the_stack_pointer_tie_is_dropped_behind_a_16_bit_push(self):
+        import fl71_window as Wn
+        code = bytes.fromhex('5589e5665085c0740290 90c3'.replace(' ', ''))   # push ebp; mov ebp,esp; push ax; test eax,eax; je L; nop; nop; L: ret
+        self.assertEqual(len(code), 12)
+        an = P.Analysis({'va': BASE, 'body': len(code), 'callees': {}, 'imports': {}, 'sites': None}, image_of(code), 20000)
+        an, dom = Wn.from_analysis(an)
+        self.assertNotIn(BASE + 9, Wn.stack_delta(an))                  # esp moved by 2, not 4
+
+    def test_a_path_whose_every_run_faults_later_is_proved_unreachable_by_the_forward_window(self):
+        an, Wn, dom, jne = self.fault_window(None)
+        self.assertEqual(Wn.prove_faults(an, dom, ('dir', jne, 'taken'))[0], 'unsat')   # [ebp-4] = 0 reaches the idiv on every run through `bad`
+        self.assertNotEqual(Wn.prove_faults(an, dom, ('dir', jne, 'fall'))[0], 'unsat')  # the other direction returns without a fault
+
+    def test_the_committed_plan_hints_name_known_bounds(self):
+        hints = P.load_plan_hints(0x44b641)
+        self.assertEqual(hints[0x44b9c0], 9)
+        self.assertEqual(hints[0x44b75e], 'gen')
+        data = json.loads(P.PLANS.read_text())
+        for va, plan in data.items():
+            for h, v in plan.items():
+                self.assertTrue(v == 'gen' or v in P.UNROLL, (va, h, v))
+        self.assertEqual(P.load_plan_hints(0x401000), {})
+
+    def test_a_path_that_may_leave_by_a_tail_jump_is_not_one_that_faults_later(self):
+        import fl71_window as Wn
+        code = FAULT_OR_TAIL
+        an = P.Analysis({'va': BASE, 'body': len(code), 'callees': {}, 'imports': {}, 'sites': None}, image_of(code), 20000)
+        an, dom = Wn.from_analysis(an)
+        jne = [i for i in an.insns if i.mnemonic == 'jne'][0].address
+        self.assertNotEqual(Wn.prove_faults(an, dom, ('dir', jne, 'taken'))[0], 'unsat')        # eax == 5 is excluded, eax == 6 divides by zero, any other value jumps out of the function
+
+    def retbound(self, key):
+        code = RETBOUND[key]
+        an = P.Analysis({'va': BASE, 'body': 0x13, 'callees': {BASE + 0x13: 0}, 'imports': {}, 'sites': None}, image_of(code), 20000)
+        an.run()
+        return an
+
+    def test_a_callee_that_masks_eax_bounds_what_it_returns(self):
+        an = self.retbound('25ff7f0000')
+        self.assertEqual(an.M.ret_bound(BASE + 0x13), 0x7fff)
+        self.assertEqual(an.direction(BASE + 0xa, 'taken')[0], 'unsat')       # cmp eax,0x8000; jae never
+        an = self.retbound('25ffff0000')
+        self.assertEqual(an.M.ret_bound(BASE + 0x13), 0xffff)
+        self.assertEqual(an.direction(BASE + 0xa, 'taken')[0], 'sat')
+
+    def test_a_callee_whose_mask_can_be_negative_has_no_bound(self):
+        an = self.retbound('2500000080')
+        self.assertIsNone(an.M.ret_bound(BASE + 0x13))
+
+    def test_a_callee_with_a_jump_has_no_bound(self):
+        code = bytes.fromhex('e80e0000003d008000007301c3b809000000c3') + bytes.fromhex('8b4424048b0085c07401c3 25ff7f0000c3'.replace(' ', ''))
+        an = P.Analysis({'va': BASE, 'body': 0x13, 'callees': {BASE + 0x13: 0}, 'imports': {}, 'sites': None}, image_of(code), 20000)
+        self.assertIsNone(an.M.ret_bound(BASE + 0x13))
 
 def manifest():
     path = PROJECT / 'tasks/fl67-infeasible.json'

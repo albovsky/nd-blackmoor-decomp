@@ -17,7 +17,9 @@ in a run that does not fault. The proof is an exhaustive symbolic execution of t
   * an access whose address is at or above 0xfff00000, a division by zero and a quotient overflow FAULT in the world; a run that faults is not
     a scenario (scripts/fl66_tested.py skips it), so those conditions are assumed true on the way (a prefix of the run: this only removes states);
   * a call to a callee that the row lists as never returning (tests/fl72_noreturn.json: AfxEndThread, which ends the thread) ends the run: nothing after it is reachable (FL-72);
-  * bytes of the image below .data are constants (`DATA_START`); the direction flag is clear at entry and after calls (Win32 ABI).
+  * bytes of the image below .data are constants (`DATA_START`); the direction flag is clear at entry and after calls (Win32 ABI);
+  * FL-75: a direct callee whose own straight-line bytes end `and eax, K; ret` returns eax <= K (`Machine.ret_bound`, e.g. the CRT rand); a jump table is cut at the range check in front of the jump (`Analysis.tighten`) and
+    the prover requires, per jump, that no run can index past the cut (`table_escape` unsat), else the whole table is used as before; a window in front of the first frame address gets the frame assumption too (`Analysis.frame_safe`).
 
 A target (instruction or jump direction) is UNREACHABLE when the solver proves `ic(block) and branch condition` unsatisfiable. A target the
 solver cannot decide, or a function with an instruction the model does not know, gets NO proof. Everything over-approximates, so unsat is sound.
@@ -55,6 +57,7 @@ FAULT_LIMIT = 0xfff00000      # an access at or above it faults in the world (te
 DATA_START = 0x537000         # first writable page of .data; the image below it is constant
 IMAGE_BASE = 0x400000
 FLAGS = ('cf', 'zf', 'sf', 'of', 'pf', 'af')
+PLANS = PROJECT / 'tests' / 'fl75_plans.json'                     # FL-75: starting loop plan per function (a choice of abstraction, never trusted: a numeric bound is still checked by sink_unsat and bumped when it is too small)
 INVARIANTS = PROJECT / 'tests' / 'fl73_invariants.json'          # FL-73: loop invariants for generalised headers (CHECKED by the prover itself, never trusted)
 _INV_OPS = {'eq': lambda v, c: v == c, 'ne': lambda v, c: v != c, 'sge': lambda v, c: v >= c, 'sgt': lambda v, c: v > c, 'sle': lambda v, c: v <= c,
             'slt': lambda v, c: v < c, 'uge': z3.UGE, 'ugt': z3.UGT, 'ule': z3.ULE, 'ult': z3.ULT}
@@ -93,9 +96,18 @@ def fresh_array(tag='ma'):
     return z3.Array('%s%d' % (tag, _fresh[0]), z3.BitVecSort(32), z3.BitVecSort(8))
 
 
+def load_plan_hints(va):
+    """{loop header: 3|5|9|17|'gen'} from tests/fl75_plans.json. The loop plan is otherwise found by trying the bounds in turn, and the 3 s sink check (SINK_MS) that bumps a bound can go either way on a busy machine, which made a few rows flip between proved and open."""
+    try:
+        data = json.loads(PLANS.read_text())
+    except (OSError, ValueError):
+        return {}
+    return {int(h, 16): v for h, v in data.get(hex(va), {}).items() if v == 'gen' or v in UNROLL}
+
+
 def load_invariants(va):
     """{header block address: [atom, ...]} declared for the function at `va` in tests/fl73_invariants.json. An atom is {"mem": [register, displacement, size in bytes], "op": eq|ne|sge|sgt|sle|slt|uge|ugt|ule|ult, "val": n}
-    and says that the `size` bytes at register+displacement, read in the state at the head of a generalised loop, compare so with n (or, with "mem2" in place of "val", with the same-size slot [register, displacement, size]). A header with atoms keeps them only if
+    (or {"or": [atom, ...]}, FL-75) and says that the `size` bytes at register+displacement, read in the state at the head of a generalised loop, compare so with n (or, with "mem2" in place of "val", with the same-size slot [register, displacement, size]). A header with atoms keeps them only if
     `Analysis.verify_invariants` proves them: they hold on every entry edge, and every back edge preserves them (assuming them at the header)."""
     try:
         data = json.loads(INVARIANTS.read_text())
@@ -104,21 +116,25 @@ def load_invariants(va):
     return {int(h, 16): atoms for h, atoms in data.get(hex(va), {}).items()}
 
 
+def inv_atom(M, st, at):
+    if 'or' in at:                                                                 # FL-75: {"or": [atom, ...]} holds when any alternative does
+        alts = [inv_atom(M, st, a) for a in at['or']]
+        return z3.Or(*alts) if len(alts) > 1 else alts[0]
+    reg, disp, size = at['mem']
+    a = st.R[reg] + bv(disp, 32)
+    v = M.load(getattr(st, M.space(st, a)), a, size)
+    if 'mem2' in at:                                                               # compared with another slot of the same size
+        reg2, disp2, size2 = at['mem2']
+        assert size2 == size
+        a2 = st.R[reg2] + bv(disp2, 32)
+        other = M.load(getattr(st, M.space(st, a2)), a2, size)
+    else:
+        other = bv(at['val'], 8 * size)
+    return _INV_OPS[at['op']](v, other)
+
+
 def inv_parts(M, st, atoms):
-    out = []
-    for at in atoms:
-        reg, disp, size = at['mem']
-        a = st.R[reg] + bv(disp, 32)
-        v = M.load(getattr(st, M.space(st, a)), a, size)
-        if 'mem2' in at:                                                           # compared with another slot of the same size
-            reg2, disp2, size2 = at['mem2']
-            assert size2 == size
-            a2 = st.R[reg2] + bv(disp2, 32)
-            other = M.load(getattr(st, M.space(st, a2)), a2, size)
-        else:
-            other = bv(at['val'], 8 * size)
-        out.append(_INV_OPS[at['op']](v, other))
-    return out
+    return [inv_atom(M, st, at) for at in atoms]
 
 
 def inv_formula(M, st, atoms):
@@ -252,6 +268,7 @@ class Machine:
         self.imports = {int(k): v for k, v in row.get('imports', {}).items()}
         self.sites = {int(k): v for k, v in (row.get('sites') or {}).items()}
         self.noreturn = {int(a) for a in row.get('noreturn', ())}          # FL-72: callees that never return (tests/fl72_noreturn.json): a path that calls one ends there
+        self.bounds = {}        # FL-75: callee address -> the bound on eax that its bytes prove (ret_bound)
         self.split = False      # the frame assumption holds for this function (set by Analysis)
         self.after_call = {}    # call address -> bytes the next instruction `add esp, k` removes
         self.facts = []         # facts about the START memory (constant bytes of the image), valid in every query
@@ -598,6 +615,28 @@ class Machine:
         st.R['eax'], st.R['edx'] = z3.Extract(31, 0, q), z3.Extract(31, 0, rem)
         self.unknown_flags(st)
 
+    def ret_bound(self, addr):
+        """FL-75: K when the code at `addr` is straight-line (no jump, no second ret, a call at most) and ends `and eax, K; ret` with 0 <= K < 2**31: every return from it has 0 <= eax <= K (an unsigned compare, so also
+        non-negative). The CRT rand() is of this form. None otherwise. This reads the callee's own bytes, nothing is trusted."""
+        if addr in self.bounds:
+            return self.bounds[addr]
+        out = None
+        if IMAGE_BASE <= addr < DATA_START:
+            md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
+            md.detail = True
+            prev = None
+            for n, i in enumerate(md.disasm(self.image[addr - IMAGE_BASE:addr - IMAGE_BASE + 256], addr)):
+                if i.mnemonic in ('ret', 'retn'):
+                    if (i.operands == [] or i.mnemonic == 'ret') and prev is not None and prev.mnemonic == 'and' and prev.operands[1].type == X.X86_OP_IMM \
+                            and prev.operands[0].type == X.X86_OP_REG and prev.reg_name(prev.operands[0].reg) == 'eax' and 0 <= prev.operands[1].imm < 2 ** 31:
+                        out = prev.operands[1].imm
+                    break
+                if i.mnemonic.startswith('j') or i.mnemonic.startswith('loop') or i.mnemonic in ('int', 'int3', 'ud2', 'hlt', 'iret'):
+                    break
+                prev = i
+        self.bounds[addr] = out
+        return out
+
     def call(self, st, ins):
         op = ins.operands[0]
         pops = None
@@ -612,6 +651,10 @@ class Machine:
         sp = st.R['esp']
         for r in ('eax', 'ecx', 'edx'):
             st.R[r] = fresh(32, 'c')
+        if op.type == X.X86_OP_IMM:
+            k = self.ret_bound(op.imm & 0xffffffff)
+            if k is not None:
+                st.pc = z3.And(st.pc, z3.ULE(st.R['eax'], bv(k, 32)))      # FL-75: the callee's own code bounds what it returns (a prefix of the run: this only removes states)
         st.mem = fresh_array()
         st.fs = fresh_array('fa')
         if self.split:               # the callee may overwrite the argument slots that were pushed for it, nothing else of the frame
@@ -718,7 +761,9 @@ class Analysis:
         self.md, self.insns = disassemble(image, self.va, self.body)
         self.by_addr = {i.address: i for i in self.insns}
         self.M = Machine(row, image)
-        self.M.split = SPLIT and not row.get('frame') and not frame_escapes(self.insns)      # a `frame` row starts with ebp = the entry frame address
+        self.split_ok = SPLIT and not row.get('frame')                                       # a `frame` row starts with ebp = the entry frame address
+        self.esc_addrs = [i.address for i in self.insns if frame_escapes([i])] if self.split_ok else []      # FL-75: where the function forms an address of its frame
+        self.M.split = self.split_ok and not self.esc_addrs
         for k, i in enumerate(self.insns[:-1]):
             nxt = self.insns[k + 1]
             if i.mnemonic == 'call' and nxt.mnemonic == 'add' and [nxt.reg_name(nxt.operands[0].reg)] == ['esp'] and nxt.operands[1].type == X.X86_OP_IMM:
@@ -727,6 +772,19 @@ class Analysis:
         self.verdict = {}
         self.inv = load_invariants(self.va)
         self.gen_state, self.hdr_in, self.hdr_back = {}, {}, {}      # FL-73: per generalised header with invariants: its state, its entry edges, its back edges
+        self.tight_tables, self.cut, self.escapes = True, {}, []      # FL-75: tables cut at the range check (self.cut: jump -> the longer table that was cut); escapes: index-outside-the-cut conditions
+
+    def jump_targets(self):
+        """every address that a jump of the function can land on (direct targets and, when the table is readable, the targets of computed jumps)"""
+        out = set()
+        for i in self.insns:
+            if i.mnemonic.startswith('j') or i.mnemonic.startswith('loop'):
+                if i.operands[0].type == X.X86_OP_IMM:
+                    out.add(i.operands[0].imm)
+                else:
+                    tt = self.table_targets(i)
+                    out.update(t for _, t in tt) if tt else out.update(x.address for x in self.insns)      # an unreadable computed jump may land anywhere
+        return out
 
     def table_targets(self, ins):
         """Targets of `jmp [index*4 + table]` read from the constant table; None if the jump is not of that form."""
@@ -745,6 +803,23 @@ class Analysis:
             out.append((a, t))
         return out or None
 
+    def tighten(self, ins, tt):
+        """FL-75: the table runs on into the next switch's table (every cell is a valid target), which makes spurious edges and irreducible loops. Cut it at the bound of the range check just in front of the jump
+        (`cmp X, K; ja/jae default`): K+1 (K for jae) cells. This is only a PROPOSAL: execute() collects, per jump, the condition that the index falls outside the kept cells and run() requires it unsat."""
+        if not self.tight_tables:
+            return tt
+        k = self.insns.index(ins)
+        for j in range(k - 1, max(k - 14, 0), -1):
+            g = self.insns[j]
+            c = self.insns[j - 1]
+            if g.mnemonic in ('ja', 'jae', 'jnb', 'jnbe') and c.mnemonic == 'cmp' and c.operands[1].type == X.X86_OP_IMM:
+                n = (c.operands[1].imm & 0xffffffff) + (1 if g.mnemonic in ('ja', 'jnbe') else 0)
+                if 0 < n < len(tt):
+                    self.cut[ins.address] = tt
+                    return tt[:n]
+                return tt
+        return tt
+
     def build_blocks(self):
         leaders = {self.va}
         self.table = {}
@@ -758,6 +833,7 @@ class Analysis:
                 tt = self.table_targets(ins)
                 if tt is None:
                     raise Unsupported('indirect jump at 0x%x' % ins.address)
+                tt = self.tighten(ins, tt)
                 self.table[ins.address] = tt
                 for cell, _ in tt:
                     self.M.const_facts(cell, 4)
@@ -861,6 +937,27 @@ class Analysis:
                         work.append(p)
             loops.setdefault(h, set()).update(body)
         self.loops = loops
+
+    def frame_safe(self, S, region):
+        """FL-75: the frame assumption holds in a window that starts at block S and executes the blocks `region` when no instruction that forms an address of the frame is in the region or can run before S
+        (no path from it to S). Then no run that reaches the window has handed out a pointer into its own frame yet, so only the argument slots of a call can be reached by other pointers (as in the whole-function case)."""
+        if not self.split_ok:
+            return False
+        if not self.esc_addrs:
+            return True
+        esc = {a for a, b in self.blocks.items() if any(i.address in self.esc_addrs for i in b['insns'])}
+        if esc & set(region):
+            return False
+        seen, work = {S}, [S]
+        while work:
+            n = work.pop()
+            if n in esc:
+                return False
+            for p in self.pred[n]:
+                if p not in seen:
+                    seen.add(p)
+                    work.append(p)
+        return True
 
     def loop_effects(self, header):
         """Registers/flags/memory that some instruction of the loop may change: run each instruction on a state of unique symbols."""
@@ -972,7 +1069,7 @@ class Analysis:
                     st.fs = fresh_array('fa')
                 if a in self.inv:                                                          # FL-73: assumed here, proved in verify_invariants
                     self.gen_state[node], self.hdr_in[node] = st.copy(), list(items)
-                    self.M.facts.append(inv_formula(self.M, st, self.inv[a]))
+                    self.M.facts.append(z3.Implies(self.ic[node], inv_formula(self.M, st, self.inv[a])))        # only runs that arrive at the header satisfy it
             st.pc = z3.BoolVal(True)
             ins = self.blocks[a]['insns']
             br = None
@@ -984,6 +1081,8 @@ class Analysis:
             here = z3.And(self.ic[node], st.pc)
             conds = {}
             tgt_addr = {k: t for k, t in self.blocks[a]['succ']}
+            if last.address in self.cut:                     # FL-75: the run may not index past the cells that the cut table keeps
+                self.escapes.append(self.table_escape(st, here, last))
             for kind, t in succ[node]:
                 if kind == 'taken':
                     c = z3.And(here, br)
@@ -1007,6 +1106,18 @@ class Analysis:
                     continue
                 incoming[t].append((c, st))
 
+    def table_escape(self, st, here, last):
+        """the condition under which the (cut) table jump `last` reads a cell outside the kept ones"""
+        s2 = st.copy()
+        addr = self.M.ea(s2, last.operands[0])
+        return z3.And(here, *[addr != c for c, _ in self.table[last.address]])
+
+    def verify_escapes(self):
+        for k, esc in enumerate(self.escapes):
+            r, _ = self.check(esc)
+            if r != 'unsat':
+                raise Unsupported('table escape (%s)' % r)
+
     def verify_invariants(self):
         """FL-73: every invariant that execute() assumed at a generalised header is inductive: it holds on each entry edge (initiation) and, assumed at the header, on each back edge (consecution).
         The assumed facts must also be satisfiable (a contradictory invariant would make every query unsat). Raises Unsupported otherwise."""
@@ -1029,13 +1140,16 @@ class Analysis:
     def run(self):
         self.build_blocks()
         self.graph()
-        plan = {h: UNROLL[0] for h in self.loops}
+        hints = load_plan_hints(self.va)
+        plan = {h: hints.get(h, UNROLL[0]) for h in self.loops}
         self.plan = plan
         for _ in range(len(UNROLL) + 1):
+            self.escapes = []
             self.execute(plan)
             bad = [h for h in self.loops if plan[h] != 'gen' and not self.sink_unsat(h)]
             if not bad:
                 self.verify_invariants()
+                self.verify_escapes()
                 return
             for h in bad:
                 nxt = [u for u in UNROLL if u > plan[h]]
@@ -1108,6 +1222,20 @@ def prove_row(key, targets, timeout_ms=30000, image=None, fail_fast=False):
         out['directions'].update(win['directions'])
         todo = {'missing': [a for a in todo['missing'] if hex(a) not in win['instructions']],
                 'untaken': [[a, n] for a, n in todo['untaken'] if '%s:%s' % (hex(a), n) not in win['directions']]}
+        if (todo['missing'] or todo['untaken']) and any(i.mnemonic in ('div', 'idiv') for i in an0.insns):      # FL-75: what every run reaching it faults after (a division by a divisor just shown to be zero)
+            memo = {}
+            for a in list(todo['missing']):
+                S = Wn.block_of(an0, a)
+                v = memo.get(('i', S)) or memo.setdefault(('i', S), Wn.prove_faults(an0, dom, ('ins', a)))
+                if v[0] == 'unsat':
+                    out['instructions'][hex(a)] = [v[0], v[1]]
+                    todo['missing'].remove(a)
+            for a, n in list(todo['untaken']):
+                kind = 'taken' if n == 'taken' else 'fall'
+                v = memo.get(('d', a, kind)) or memo.setdefault(('d', a, kind), Wn.prove_faults(an0, dom, ('dir', a, kind)))
+                if v[0] == 'unsat':
+                    out['directions']['%s:%s' % (hex(a), n)] = [v[0], v[1]]
+                    todo['untaken'].remove([a, n])
         if not todo['missing'] and not todo['untaken']:
             out['status'] = 'proved'
             out['plan'] = {}                # no whole-function analysis was needed, so no loop plan
@@ -1119,7 +1247,14 @@ def prove_row(key, targets, timeout_ms=30000, image=None, fail_fast=False):
             raise
     try:
         an = Analysis(row, image, timeout_ms)
-        an.run()
+        try:
+            an.run()
+        except Unsupported:
+            if not an.cut:
+                raise
+            an = Analysis(row, image, timeout_ms)       # FL-75: the cut of a jump table could not be justified (or did not help): the whole table, as before
+            an.tight_tables = False
+            an.run()
         out['plan'] = {hex(h): v for h, v in sorted(an.plan.items())}
     except Unsupported as ex:
         out.update(status='unsupported', reason=str(ex))
