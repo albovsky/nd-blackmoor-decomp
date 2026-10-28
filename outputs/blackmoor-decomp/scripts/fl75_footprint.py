@@ -82,15 +82,16 @@ def why(k, loc):
     return None
 
 
-def callee_footprint(image, addr):
+def callee_footprint(image, addr, entry=frozenset()):
     """(lo, hi): the callee writes only bytes [p+lo, p+hi) of the memory its pointer argument p addresses (see callee_summary), or None"""
-    out = callee_summary(image, addr)
+    out = callee_summary(image, addr, entry)
     return out[:2] if out else None
 
 
-def callee_summary(image, addr):
+def callee_summary(image, addr, entry=frozenset()):
     """(lo, hi, regs) as callee_footprint, plus the set of eax / ecx / edx that hold exactly p at some `ret` (a callee that returns its struct pointer in eax); None when the callee passes no check.
-    A register that holds p at a ret is not unrelated to the caller's frame, so the caller's call model must not make it a fresh value (Machine.call)."""
+    A register that holds p at a ret is not unrelated to the caller's frame, so the caller's call model must not make it a fresh value (Machine.call).
+    `entry` names the registers that still hold p when the callee starts (the register of the caller's `lea R, [ebp+disp]; push R`, which the call does not clear): they start tainted, so a store through one counts in the footprint and a copy of one is refused."""
     md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
     md.detail = True
     first = _decode(md, image, addr)
@@ -98,7 +99,7 @@ def callee_summary(image, addr):
     if not (first and second and first.mnemonic == 'push' and first.op_str == 'ebp' and second.mnemonic == 'mov' and second.op_str == 'ebp, esp'):
         return why(1, locals())
     state = {}                       # address -> frozenset of tainted registers (union over the paths that reach it)
-    work = [(addr + first.size + second.size, frozenset())]
+    work = [(addr + first.size + second.size, frozenset(entry))]
     lo, hi = None, None
     rets = set()
     steps = 0
@@ -226,9 +227,9 @@ def call_footprints(insns, image, targets_of_jumps, row_va, body):
         if not ok:
             continue
         callee = insns[j].operands[0].imm & 0xffffffff
-        if callee not in cache:
-            cache[callee] = callee_summary(image, callee)
-        fp = cache[callee]
+        if (callee, R) not in cache:
+            cache[(callee, R)] = callee_summary(image, callee, frozenset({R}))
+        fp = cache[(callee, R)]
         if fp is None:
             continue
         leas[ins.address] = insns[j].address

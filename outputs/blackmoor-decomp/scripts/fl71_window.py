@@ -58,8 +58,8 @@ def dominators(an):
 
 
 def stack_delta(an):
-    """FL-75: {block: esp - ebp at its first instruction} for a function that starts `push ebp; mov ebp, esp` and changes esp only by push, pop, add or sub with an immediate, `mov esp, ebp`, leave and calls whose
-    pops are known; a block that two paths reach with different values gets none. A window starts in a fully general state (esp and ebp unrelated); this is the relation between them that every run has there."""
+    """FL-75: {block: esp - ebp at its first instruction} for a function that starts `push ebp; mov ebp, esp` and changes esp only by push, pop, add or sub with an immediate, `mov esp, ebp` and calls whose
+    pops are known; a block that two paths reach with different values gets none, and so does everything behind an instruction that changes ebp (`pop ebp`, `leave`: the caller's frame pointer has no known tie to esp). A window starts in a fully general state (esp and ebp unrelated); this is the relation between them that every run has there."""
     cached = getattr(an, '_stack_delta', None)
     if cached is not None:
         return cached
@@ -84,7 +84,7 @@ def stack_delta(an):
                 if m == 'push':
                     d -= 4
                 elif m == 'pop':
-                    if regs == ['esp']:
+                    if regs in (['esp'], ['ebp']):                    # pop ebp restores the caller's frame pointer: the tie to this frame ends here
                         good = False
                         break
                     d += 4
@@ -96,8 +96,9 @@ def stack_delta(an):
                     if i.address != second.address:
                         good = False
                         break
-                elif m == 'leave':
-                    d = E + 4
+                elif m == 'leave':                                    # restores the caller's ebp: no relation behind it
+                    good = False
+                    break
                 elif m == 'call':
                     op = ops[0]
                     pops = None
@@ -113,7 +114,7 @@ def stack_delta(an):
                     d += pops
                 else:
                     _, wr, _ = FPR(i)
-                    if 'esp' in wr:
+                    if 'esp' in wr or 'ebp' in wr:
                         good = False
                         break
             if not good:

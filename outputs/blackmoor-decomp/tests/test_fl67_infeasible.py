@@ -284,6 +284,12 @@ FAULT_OR_TAIL = bytes.fromhex('5589e583ec04c745fc000000008b450883f8057507b801000
 RET_PTR = bytes.fromhex('5589e583ec10c745f400000000c745f8000000008d45f850e81e000000c70007000000837df8007509b80100000089ec5dc3b80200000089ec5dc35589e58b45085dc20400')
 
 
+# push ebp; mov ebp,esp; mov eax,[ebp+8]; test eax,eax; jne tail; leave; jmp L; tail: mov eax,3; leave; jmp L; L: cmp esp,ebp; je yes; mov eax,1; ret; yes: mov eax,2; ret
+LEAVE_JOIN = bytes.fromhex('5589e58b450885c07503c9eb08b803000000c9eb0039ec7406b801000000c3b802000000c3')
+# callee that stores through the register that still holds the caller's pointer: push ebp; mov ebp,esp; mov dword [eax],7; pop ebp; ret 4
+ENTRY_ALIAS = bytes.fromhex('5589e5c700070000005dc20400')
+
+
 def image_of(code, tail=b''):
     return bytes(BASE - P.IMAGE_BASE) + code + tail + bytes(64)
 
@@ -379,6 +385,28 @@ class Fl75(unittest.TestCase):
         an.run()
         jne = [i.address for i in an.insns if i.mnemonic == 'jne'][0]
         self.assertEqual(an.direction(jne, 'taken')[0], 'sat')          # `mov [eax], 7` stores through the returned frame address
+
+    def test_nothing_is_tied_to_the_frame_pointer_after_leave(self):
+        import fl71_window as Wn
+        code = LEAVE_JOIN
+        an = P.Analysis({'va': BASE, 'body': len(code), 'callees': {}, 'imports': {}, 'sites': None}, image_of(code), 20000)
+        an, dom = Wn.from_analysis(an)
+        je = [i for i in an.insns if i.mnemonic == 'je'][0].address
+        self.assertNotEqual(Wn.prove_target(an, dom, Wn.block_of(an, je, True), ('dir', 'taken'))[0], 'unsat')    # after `leave` ebp is the caller's, esp == ebp is possible
+        self.assertNotIn(BASE + 0x1d, Wn.stack_delta(an))
+
+    def test_a_callee_that_stores_through_the_register_still_holding_the_pointer_has_that_in_its_footprint(self):
+        import fl75_footprint as FP
+        caller = bytes.fromhex(FP_CALLER)
+        image = image_of(caller, ENTRY_ALIAS)
+        self.assertEqual(FP.callee_footprint(image, BASE + 0x44), (0, 0))                   # without the entry register the store through eax is invisible; call_footprints always passes the register of the `lea`
+        self.assertEqual(FP.callee_footprint(image, BASE + 0x44, frozenset({'eax'})), (0, 4))
+        an = P.Analysis({'va': BASE, 'body': len(caller), 'callees': {BASE + 0x44: 4}, 'imports': {}, 'sites': None}, image, 20000)
+        self.assertTrue(an.M.split)
+        an.run()
+        jne_never, jne_maybe = [i.address for i in an.insns if i.mnemonic == 'jne']
+        self.assertEqual(an.direction(jne_never, 'taken')[0], 'unsat')
+        self.assertEqual(an.direction(jne_maybe, 'taken')[0], 'sat')                       # [ebp-8] is what the callee wrote
 
     def retbound(self, key):
         code = RETBOUND[key]
