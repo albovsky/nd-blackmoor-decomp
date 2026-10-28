@@ -4,7 +4,13 @@ Goal: clear the Mac-port pending rows that FL-72 was not working on, by making t
 
 ## Result
 
-RESULT_PLACEHOLDER
+Ten Mac-port rows cleared (PR PRNUM). Whole ledger: verified/ported 2,210 of 4,188 (unchanged), tested equivalent 1,696 (was 1,686), of which proved infeasible 96 (was 88). Mac-port view (Game + Vorbis, 2,685): ported 2,209, tested equivalent 421, pending 55.
+
+- Proved (T-EQ-INFEASIBLE, every missing item refuted by z3): 0x44b641, 0x44ffa3, 0x4a14c6, 0x4bbb3e, 0x417b04, 0x4b4a68, 0x45c18f, 0x4a0ec3 (crash-path row).
+- Tested equivalent by scenarios only: 0x4a6c61 (112/112 directions), 0x4867bd (94/94).
+- All 96 proved rows re-proved with the final prover (`tasks/fl73/tools/reprove_all.py`): still hold. One row (0x4a14c6) threw a Z3 out-of-memory error while two re-proofs ran at once; alone it proves in 52 s. Run `reprove_all.py` with at most one other heavy job.
+- Soundness: `tests.test_fl71_window` compares the windows with the full analysis. The new esp/ebp relation makes a window stronger than the full analysis on `gen_loop_moves_esp` (both targets are really unreachable); the test now lists those two explicitly (`STRONGER`).
+- Loop plans: the plan used to be found by a 3 s sink check, which flipped between runs on a busy machine (0x44b641 was proved or open depending on load). `tests/fl75_plans.json` now gives the starting plan per function; numeric bounds are still checked (`sink_unsat`) and bumped when too small. Added for 0x44b641.
 
 ## Prover changes (read before touching the provers)
 

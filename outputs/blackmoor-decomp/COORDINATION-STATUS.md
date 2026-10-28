@@ -32,6 +32,10 @@ GUI and hardware audio remain unverified: no window or speaker check has been do
 
 FL-72 (PRs 248, 251, 254, 257) cleared 27 Mac-port rows as tested equivalent, with new solver goals (jump tables, long strings, never-returning callees such as AfxEndThread) and one-row-per-process goal-directed searches. Whole ledger: 2,210 of 4,188 verified (unchanged), 1,686 tested equivalent (88 by proof). Mac-port view: 2,209 ported, 411 tested equivalent, 65 pending of 2,685 (FL-75's local clears not yet merged). Near-miss scenario sets went to FL-74 and FL-75 (`tasks/fl72/near-miss-scenarios*.json`). Pending rows, the memory and merge gotchas (never run `fl66_tested.py merge --write` from a local results directory on a shared branch) and next ideas are in `tasks/fl72-handoff.md`.
 
+## Handoff: FL-75 prover extensions for the last Mac-port rows (2026-10-28 PDT, cloud thread)
+
+FL-75 (PR PRNUM) cleared 10 Mac-port rows: 0x44b641, 0x44ffa3, 0x4a14c6, 0x4bbb3e, 0x417b04, 0x4b4a68, 0x45c18f, 0x4a0ec3 by proof and 0x4a6c61, 0x4867bd tested equivalent. The infeasibility prover now cuts jump tables at their range check (z3-checked), takes OR loop invariants and a plan-hint file, keeps the frame assumption per window, models callee write footprints and `and eax, K` return bounds, and proves "every run that takes this path faults later" with a forward window. Whole ledger: verified 2,210 of 4,188 (unchanged), tested equivalent 1,696. Mac-port view: ported 2,209, tested equivalent 421, pending 55 of 2,685. Open: 0x49d945 (crash path through three counting loops), parked 0x456516 0x471722 0x47c0f0. Details: `tasks/fl75-handoff.md`.
+
 ## Handoff: FL-74 stuck near-miss Mac-port rows (2026-10-28 PDT, cloud thread)
 
 FL-74 cleared 14 of FL-72's 19 near-miss rows (tested equivalent by hand-built scenarios, or proved infeasible: 0x4dc182, 0x4e467f, 0x41137f). Whole ledger: 2,210 of 4,188 verified (unchanged), 1,685 tested equivalent. Mac-port view: ported 2,209, tested equivalent 410, pending 66 of 2,685. Parked: 0x456516 (needs a stack-aliasing input), 0x44ffa3 and 0x4a14c6 (prover unknown), 0x44b641 (irreducible loop), 0x4bbb3e. Details: `tasks/fl74-handoff.md`.
