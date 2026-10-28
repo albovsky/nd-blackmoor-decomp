@@ -28,6 +28,10 @@ Live headless run (`--inspect-live-session --live-click-row 34 --live-ticks 3000
 
 GUI and hardware audio remain unverified: no window or speaker check has been done. This session had no computer-use tools and the shell cannot screen-capture, so the window click-through and listening pass still needs Glib (or a session with computer use). The windowed app does create the same scene session and tick loop (`blackmoor_app.mm` enables the scene runtime unless inspect-only) and reaches the menu; nothing past that was observed.
 
+## Handoff: FL-72 leftover Mac-port rows (2026-10-28 PDT, cloud thread)
+
+FL-72 (PRs 248, 251, 254, 257) cleared 27 Mac-port rows as tested equivalent, with new solver goals (jump tables, long strings, never-returning callees such as AfxEndThread) and one-row-per-process goal-directed searches. Whole ledger: 2,210 of 4,188 verified (unchanged), 1,686 tested equivalent (88 by proof). Mac-port view: 2,209 ported, 411 tested equivalent, 65 pending of 2,685 (FL-75's local clears not yet merged). Near-miss scenario sets went to FL-74 and FL-75 (`tasks/fl72/near-miss-scenarios*.json`). Pending rows, the memory and merge gotchas (never run `fl66_tested.py merge --write` from a local results directory on a shared branch) and next ideas are in `tasks/fl72-handoff.md`.
+
 ## Handoff: FL-74 stuck near-miss Mac-port rows (2026-10-28 PDT, cloud thread)
 
 FL-74 cleared 14 of FL-72's 19 near-miss rows (tested equivalent by hand-built scenarios, or proved infeasible: 0x4dc182, 0x4e467f, 0x41137f). Whole ledger: 2,210 of 4,188 verified (unchanged), 1,685 tested equivalent. Mac-port view: ported 2,209, tested equivalent 410, pending 66 of 2,685. Parked: 0x456516 (needs a stack-aliasing input), 0x44ffa3 and 0x4a14c6 (prover unknown), 0x44b641 (irreducible loop), 0x4bbb3e. Details: `tasks/fl74-handoff.md`.

@@ -4320,6 +4320,22 @@
    "source": "translated/original_methods_fl41_translated.c",
    "translation_sha256": "01de296b69ed37bb9279a9ba13f4d7beb9af2cfd61d5faf936460d4592c3ee82"
   },
+  "0x4d8dca": {
+   "body": 320,
+   "directions": [
+    18,
+    18
+   ],
+   "instructions": [
+    103,
+    103
+   ],
+   "pool": "fl72",
+   "scenarios_kept": 3,
+   "scenarios_run": 3,
+   "source": "translated/original_methods_fl59_handports.c",
+   "translation_sha256": "3daf96f1fc406684de21c2f0409b020da8d9889583d19001bda3c8ee74618376"
+  },
   "0x4d8fb6": {
    "body": 372,
    "directions": [
