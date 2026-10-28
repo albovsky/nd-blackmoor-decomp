@@ -28,6 +28,10 @@ Live headless run (`--inspect-live-session --live-click-row 34 --live-ticks 3000
 
 GUI and hardware audio remain unverified: no window or speaker check has been done. This session had no computer-use tools and the shell cannot screen-capture, so the window click-through and listening pass still needs Glib (or a session with computer use). The windowed app does create the same scene session and tick loop (`blackmoor_app.mm` enables the scene runtime unless inspect-only) and reaches the menu; nothing past that was observed.
 
+## Handoff: FL-73 hand-built scenarios and loop invariants for Mac-port dispatchers (2026-10-28 PDT, cloud thread)
+
+FL-73 (PRs 249, 250, 252) cleared 15 Mac-port rows: 0x4477d1, 0x47bb56, 0x482a08, 0x4a8d28, 0x427a50, 0x49251f, 0x49f86a, 0x4a0365, 0x49e455, 0x45f0e6, 0x435015, 0x4f2710, 0x43a7ca tested equivalent and 0x47ac33, 0x4933ff by proof. Whole ledger: 1,668 tested equivalent, verified unchanged at 2,210 of 4,188. Mac-port view: ported 2,209, tested equivalent 393, pending 83 of 2,685. The prover gained loop invariants (`tests/fl73_invariants.json`) and a frame-window soundness bug was fixed (all proved rows re-proved). Open: 0x471722 and 0x47c0f0 (one aliasing direction each). Details: `tasks/fl73-handoff.md`.
+
 ## Handoff: FL-71 window proofs and callee-store solver (2026-10-27 PDT, cloud thread)
 
 FL-71 (PR 245) cleared 0x4272b2 (tested equivalent) and 0x41f5b1, 0x48ae05 (by proof); main is at 1,630 tested equivalent with FL-70's PR 246, verified unchanged at 2,210 of 4,188. Mac-port view: ported 2,209, tested equivalent 355, pending 121 of 2,685. New tools `scripts/fl71_solve.py` (callee stores as solver inputs) and `scripts/fl71_window.py` (dominator-window proofs, run by `fl67_infeasible.prove_row`). 0x4f2710 improved to 635/798 but is not done; dispatchers and 0x4933ff, 0x47ac33, 0x4477d1, 0x47bb56 are still open. Details and scenarios: `tasks/fl71-handoff.md`, `tasks/fl71-scenarios.json`.
