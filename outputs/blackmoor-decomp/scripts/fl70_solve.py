@@ -42,9 +42,10 @@ SYMBOLIC = ('eax', 'ecx', 'edx', 'ebx', 'esi', 'edi')
 MAX_STEPS = 6000
 HANG_STEPS = 1500
 SOLVE_LIMIT = 40000
+LIMIT0 = {}
 REP_UNROLL = 64
 CONST_WINDOW = 160
-EDGE_FLIPS_PER_RUN = 24
+EDGE_FLIPS_PER_RUN = 64
 OTHER_FLIPS_PER_RUN = 12
 OCCURRENCES = 3
 VERBOSE = False
@@ -187,6 +188,25 @@ class Replay(P.Machine):
     def put_byte(self, st, addr, b):
         sp = 'frm' if STACK_LO <= addr < STACK_HI else 'mem'
         setattr(st, sp, z3.Store(getattr(st, sp), P.bv(addr, 32), P.bv(b, 8)))
+
+    def step(self, st, ins):
+        """FL-72: a jump through a table (`jmp [reg*4 + table]`, a switch) is a decision with one alternative per table entry that lies inside the function"""
+        if ins.mnemonic == 'jmp' and ins.operands[0].type == X.X86_OP_MEM:
+            m = ins.operands[0].mem
+            if m.index and not m.base and m.segment != X.X86_REG_FS:
+                idx = st.R[ins.reg_name(m.index)]
+                targets = []
+                for k in range(256):
+                    cell = (m.disp + m.scale * k) & M32
+                    if cell < P.IMAGE_BASE or cell + 4 > P.DATA_START:
+                        break
+                    t = int.from_bytes(self.image[cell - P.IMAGE_BASE:cell - P.IMAGE_BASE + 4], 'little')
+                    if t not in self.insns:
+                        break
+                    targets.append(t)
+                if targets:
+                    self.path.append(dict(kind='switch', pos=len(self.cons), addr=ins.address, idx=idx, targets=targets, taken=None, cond=None, alt=None))
+        return super().step(st, ins)
 
     # calls: the stub's results are symbols, its stores are what it really stored
     def call(self, st, ins):
@@ -613,7 +633,7 @@ def explore(key, base_scen, budget_s=300, fresh_seeds=6, solver_ms=6000, selfche
     p = T.POOLS[pool]
     W, G = T.world(p['world'])
     row = T.row_info(pool, key)
-    W.INSTRUCTION_LIMIT = min(W.INSTRUCTION_LIMIT, SOLVE_LIMIT)       # FL-72: a spin loop costs seconds per run at the world's limit; a scenario that needs more than this is not searched for
+    W.INSTRUCTION_LIMIT = LIMIT0.setdefault(id(W), W.INSTRUCTION_LIMIT)
     image = P.load_image()
     md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
     md.detail = True
@@ -652,6 +672,8 @@ def explore(key, base_scen, budget_s=300, fresh_seeds=6, solver_ms=6000, selfche
         hung = bool(tr.fault) and 'instruction limit' in str(tr.fault)
         if (tr.fault and not hung) or not recs:
             continue
+        if hung and not ex:                                       # FL-72: a row that has never completed is a spin loop: the world's limit costs seconds per run, so the search uses a short one
+            W.INSTRUCTION_LIMIT = min(W.INSTRUCTION_LIMIT, SOLVE_LIMIT)
         if hung:                                                  # FL-72: a run that never ends is not a scenario, but its first iterations still show which input holds the loop (0x44cf01: a spin on a global)
             recs = recs[:HANG_STEPS]
             reads = [r for r in reads if r[0] < HANG_STEPS]
@@ -695,6 +717,10 @@ def explore(key, base_scen, budget_s=300, fresh_seeds=6, solver_ms=6000, selfche
                         cands.append((1, d['pos'], z3.Not(d['cond']), d))
             elif d['kind'] == 'rep':
                 cands.append((0, d['pos'], z3.Not(d['cond']), d))
+            elif d['kind'] == 'switch':
+                for k, t in enumerate(d['targets']):
+                    if t not in ex:
+                        cands.append((0, d['pos'], d['idx'] == k, dict(kind='switch', addr=d['addr'])))
         for pos, goal, addr in rp.rep_goals:
             cands.append((0, pos, goal, dict(kind='repgoal', addr=addr)))
         cands.sort(key=lambda c: (c[0], c[1]))
