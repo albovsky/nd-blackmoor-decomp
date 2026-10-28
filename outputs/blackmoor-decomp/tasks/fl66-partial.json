@@ -904,18 +904,6 @@
    ],
    "pool": "upper"
   },
-  "0x4f2710": {
-   "body": 3333,
-   "directions": [
-    74,
-    76
-   ],
-   "instructions": [
-    795,
-    798
-   ],
-   "pool": "upper57"
-  },
   "0x4f3c26": {
    "body": 1897,
    "directions": [
