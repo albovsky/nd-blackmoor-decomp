@@ -26,6 +26,7 @@ for s,ov in scen:
     for rnd in range(12):
         tr=run(W,row,s,cur,observe=True)
         if tr.fault: break
+        used=[list(o) for o in cur]                                     # the overrides that produced tr
         b=reads(tr); changed=False
         for (pa,na),(pb,nb),op in pairs:
             if pa not in b or pb not in b or len(b[pa])<=na or len(b[pb])<=nb: continue
@@ -34,7 +35,7 @@ for s,ov in scen:
             if vb!=want:
                 cur=[o for o in cur if o[0]!=ab]+[[ab,nz,want]]; changed=True; break
         if not tr.fault and not (tr.executed<=ex and tr.edges<=ed):
-            ex|=tr.executed;ed|=tr.edges;kept.append([s,[list(o) for o in cur]]);print('new',s,rnd,cov(G,row,ex,ed)[:4],flush=True)
+            ex|=tr.executed;ed|=tr.edges;kept.append([s,used]);print('new',s,rnd,cov(G,row,ex,ed)[:4],flush=True)
         if not changed: break
 got,total,taken,dirs,missing,untaken=cov(G,row,ex,ed)
 print('final',got,total,taken,dirs,[(hex(a),n) for a,n in untaken])
