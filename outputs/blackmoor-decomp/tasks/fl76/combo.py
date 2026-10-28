@@ -5,7 +5,7 @@ import sys; sys.path.insert(0, '/home/user/nd-blackmoor-decomp/outputs/blackmoor
 from drv import *
 key = sys.argv[1]; out = sys.argv[2]; combos = eval(sys.argv[3]); files = sys.argv[4:]
 pool, W, G, row = setup(key)
-W.INSTRUCTION_LIMIT = 200000
+
 scen = F.known_scenarios(key, F.POOLS[pool]['world'], files)
 ex = set(); ed = set(); kept = []
 for s, ov in scen:

@@ -10,7 +10,7 @@ from drv import *
 import unicorn
 key = sys.argv[1]; out = sys.argv[2]; spec = eval(sys.argv[3]); files = sys.argv[4:]
 pool, W, G, row = setup(key)
-W.INSTRUCTION_LIMIT = 200000
+
 scen = F.known_scenarios(key, F.POOLS[pool]['world'], files)
 import os
 if os.environ.get('SEEDS'):
