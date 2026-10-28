@@ -15,7 +15,7 @@ function that passes `lea eax, [ebp - 0x18]; push eax; call C` (an out-parameter
     the caller has formed no other frame address) or through callees that were given no frame pointer.
 
 `call_footprints(analysis_insns, image, is_leader)` finds, in a caller, the escapes of the form `lea R, [ebp - K]` (R is eax, ecx or edx), then `push R` as the LAST push before a direct `call C`, with only
-instructions in between that neither read nor write R, push, pop, jump or call, and no jump target between the lea and the call; it returns ({lea address: call address}, {call address: (disp, lo, hi)})
+instructions in between that neither read nor write R, push, pop, jump or call, and no jump target between the lea and the call; it returns ({lea address: call address}, {call address: (disp, lo, hi, registers that may hold the pointer after the call)})
 for those whose C passes `callee_footprint`. The prover uses the pair so that such a function keeps the frame assumption, and the call havocs only [ebp + disp + lo, ebp + disp + hi) of the frame (and the pushed
 argument slots).
 """
@@ -83,6 +83,14 @@ def why(k, loc):
 
 
 def callee_footprint(image, addr):
+    """(lo, hi): the callee writes only bytes [p+lo, p+hi) of the memory its pointer argument p addresses (see callee_summary), or None"""
+    out = callee_summary(image, addr)
+    return out[:2] if out else None
+
+
+def callee_summary(image, addr):
+    """(lo, hi, regs) as callee_footprint, plus the set of eax / ecx / edx that hold exactly p at some `ret` (a callee that returns its struct pointer in eax); None when the callee passes no check.
+    A register that holds p at a ret is not unrelated to the caller's frame, so the caller's call model must not make it a fresh value (Machine.call)."""
     md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
     md.detail = True
     first = _decode(md, image, addr)
@@ -92,6 +100,7 @@ def callee_footprint(image, addr):
     state = {}                       # address -> frozenset of tainted registers (union over the paths that reach it)
     work = [(addr + first.size + second.size, frozenset())]
     lo, hi = None, None
+    rets = set()
     steps = 0
     while work:
         a, T = work.pop()
@@ -130,7 +139,8 @@ def callee_footprint(image, addr):
                 return why(8, locals())
         if m in ('ret', 'retn'):
             if T & {'ebx', 'esi', 'edi'}:
-                return why(9, locals())
+                return why(9, locals())                                    # a callee-saved register that still holds the pointer
+            rets |= T                                                      # eax / ecx / edx holding the pointer: reported, the caller models them as possibly the frame address
             continue
         if m in ('int3', 'hlt', 'ud2', 'int', 'iret') or m.startswith('loop'):
             if m.startswith('loop'):
@@ -175,9 +185,10 @@ def callee_footprint(image, addr):
                 return why(15, locals())
             work.append((ops[0].imm, T2))
         work.append((nxt, T2))
+    rets = frozenset(rets)
     if lo is None:
-        return (0, 0)                                                # the callee never writes through the pointer
-    return (lo, hi)
+        return (0, 0, rets)                                          # the callee never writes through the pointer
+    return (lo, hi, rets)
 
 
 def call_footprints(insns, image, targets_of_jumps, row_va, body):
@@ -216,10 +227,10 @@ def call_footprints(insns, image, targets_of_jumps, row_va, body):
             continue
         callee = insns[j].operands[0].imm & 0xffffffff
         if callee not in cache:
-            cache[callee] = callee_footprint(image, callee)
+            cache[callee] = callee_summary(image, callee)
         fp = cache[callee]
         if fp is None:
             continue
         leas[ins.address] = insns[j].address
-        calls[insns[j].address] = (mem.disp, fp[0], fp[1])
+        calls[insns[j].address] = (mem.disp, fp[0], fp[1], fp[2])
     return leas, calls

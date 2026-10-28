@@ -270,7 +270,7 @@ class Machine:
         self.sites = {int(k): v for k, v in (row.get('sites') or {}).items()}
         self.noreturn = {int(a) for a in row.get('noreturn', ())}          # FL-72: callees that never return (tests/fl72_noreturn.json): a path that calls one ends there
         self.bounds = {}        # FL-75: callee address -> the bound on eax that its bytes prove (ret_bound)
-        self.footprints = {}    # FL-75: call address -> (disp, lo, hi): the callee writes only [ebp+disp+lo, ebp+disp+hi) of the frame through its pointer argument
+        self.footprints = {}    # FL-75: call address -> (disp, lo, hi, regs): the callee writes only [ebp+disp+lo, ebp+disp+hi) of the frame through its pointer argument and may leave the pointer in `regs`
         self.split = False      # the frame assumption holds for this function (set by Analysis)
         self.after_call = {}    # call address -> bytes the next instruction `add esp, k` removes
         self.facts = []         # facts about the START memory (constant bytes of the image), valid in every query
@@ -668,6 +668,8 @@ class Machine:
             if fp:                                                       # FL-75: what the callee may write through the frame address it was given
                 for k in range(fp[1], fp[2]):
                     arr = z3.Store(arr, st.R['ebp'] + (fp[0] + k), fresh(8, 'x'))
+                for r in fp[3]:                                          # the callee returns its pointer argument in eax (or leaves it in ecx / edx): such a register may be the frame address, and a store through it hits the frame
+                    st.R[r] = z3.If(fresh_bool(), st.R['ebp'] + fp[0], st.R[r])
             st.frm = arr
         st.R['esp'] = sp + pops if pops is not None else fresh(32, 'sp')
         self.unknown_flags(st)

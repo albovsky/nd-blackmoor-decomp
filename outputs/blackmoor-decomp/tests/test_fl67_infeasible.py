@@ -278,6 +278,12 @@ FP_CALLEES = {
 FAULT_LATER = bytes.fromhex('5589e583ec04c745fc000000008b450883f8057507b801000000eb09b86400000099f77dfc89ec5dc3')
 
 
+# FAULT_LATER with a second exit on the path `bad`: cmp eax,6; jne tail; ... tail: mov esp,ebp; pop ebp; jmp 0x500000 (a tail call outside the body, which does not fault)
+FAULT_OR_TAIL = bytes.fromhex('5589e583ec04c745fc000000008b450883f8057507b801000000eb0983f806750899f77dfc89ec5dc389ec5de9cfef0f00')
+# push ebp; mov ebp,esp; sub esp,16; [ebp-12]=0; [ebp-8]=0; lea eax,[ebp-8]; push eax; call C; mov [eax],7; cmp [ebp-8],0; jne other; ...; C: push ebp; mov ebp,esp; mov eax,[ebp+8]; pop ebp; ret 4
+RET_PTR = bytes.fromhex('5589e583ec10c745f400000000c745f8000000008d45f850e81e000000c70007000000837df8007509b80100000089ec5dc3b80200000089ec5dc35589e58b45085dc20400')
+
+
 def image_of(code, tail=b''):
     return bytes(BASE - P.IMAGE_BASE) + code + tail + bytes(64)
 
@@ -354,6 +360,25 @@ class Fl75(unittest.TestCase):
             for h, v in plan.items():
                 self.assertTrue(v == 'gen' or v in P.UNROLL, (va, h, v))
         self.assertEqual(P.load_plan_hints(0x401000), {})
+
+    def test_a_path_that_may_leave_by_a_tail_jump_is_not_one_that_faults_later(self):
+        import fl71_window as Wn
+        code = FAULT_OR_TAIL
+        an = P.Analysis({'va': BASE, 'body': len(code), 'callees': {}, 'imports': {}, 'sites': None}, image_of(code), 20000)
+        an, dom = Wn.from_analysis(an)
+        jne = [i for i in an.insns if i.mnemonic == 'jne'][0].address
+        self.assertNotEqual(Wn.prove_faults(an, dom, ('dir', jne, 'taken'))[0], 'unsat')        # eax == 5 is excluded, eax == 6 divides by zero, any other value jumps out of the function
+
+    def test_a_callee_that_returns_its_pointer_leaves_the_frame_address_in_eax(self):
+        import fl75_footprint as FP
+        code = RET_PTR
+        image = image_of(code)
+        self.assertEqual(FP.callee_summary(image, BASE + 0x3b), (0, 0, frozenset({'eax'})))
+        an = P.Analysis({'va': BASE, 'body': 0x3b, 'callees': {BASE + 0x3b: 4}, 'imports': {}, 'sites': None}, image, 20000)
+        self.assertTrue(an.M.split)                                     # the frame assumption stays on
+        an.run()
+        jne = [i.address for i in an.insns if i.mnemonic == 'jne'][0]
+        self.assertEqual(an.direction(jne, 'taken')[0], 'sat')          # `mov [eax], 7` stores through the returned frame address
 
     def retbound(self, key):
         code = RETBOUND[key]

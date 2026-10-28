@@ -206,6 +206,7 @@ def run_window(an, order, S, T, query, frame=False, want_state=False):
         edge = {}
         ic = {}
         escapes, esc_seen = [], set()
+        arrival = None
         gen_state, hdr_in, hdr_back, done = {}, {}, {}, set()           # FL-73: loop invariants (tests/fl73_invariants.json) assumed at a generalised header, proved below
         for node in order:
             items = incoming[node]
@@ -230,8 +231,8 @@ def run_window(an, order, S, T, query, frame=False, want_state=False):
                     gen_state[node], hdr_in[node] = st.copy(), list(items)
                     M.facts.append(P.inv_formula(M, st, an.inv[node]))
             if node == T and query[0] == 'ins':
-                if want_state:                                      # FL-75: the merged state and condition on arrival at T, for a forward window that continues from there
-                    return ic[node], st
+                if want_state:                                      # FL-75: the merged state and condition on arrival at T, for a forward window that continues from there (returned only after the invariant and table checks below)
+                    arrival = (ic[node], st)
                 break
             done.add(node)
             st.pc = z3.BoolVal(True)
@@ -287,7 +288,7 @@ def run_window(an, order, S, T, query, frame=False, want_state=False):
             if an.check(esc, STEP_MS)[0] != 'unsat':
                 raise P.Unsupported('table escape in a window')
         if query[0] == 'ins':
-            return ic[T]
+            return arrival if want_state else ic[T]
         conds = [c for (n, kind, t), c in edge.items() if n == T and kind == query[1]]
         if not conds:
             return z3.BoolVal(False)
@@ -335,6 +336,7 @@ def run_forward(an, order, S, mark, frame=False, start=None):
         incoming = {n: [] for n in order}
         incoming[S].append(start if start else (z3.BoolVal(True), P.State.start()))
         completions = []
+        escapes, esc_seen = [], set()
         for node in order:
             items = incoming[node]
             if not items:
@@ -364,8 +366,8 @@ def run_forward(an, order, S, mark, frame=False, start=None):
                     br = res[1]
             here = z3.And(ic, st.pc)
             last = ins[-1]
-            if last.mnemonic in ('ret', 'retn'):
-                completions.append(here)
+            if last.mnemonic in ('ret', 'retn') or not an.blocks[node]['succ']:
+                completions.append(here)                            # a ret, or a jmp / fall-through out of the body (a tail call): the run leaves the function without a fault
             for kind, t in an.blocks[node]['succ']:
                 if node == S and mark[0] == 'dir' and kind != ('taken' if mark[2] == 'taken' else 'fall') and last.mnemonic.startswith('j') and last.mnemonic != 'jmp':
                     continue
@@ -376,11 +378,17 @@ def run_forward(an, order, S, mark, frame=False, start=None):
                 elif kind == 'tbl':
                     s2 = st.copy()
                     c = z3.And(here, M.mem_read(s2, last.operands[0], 4) == t)
+                    if last.address in an.cut and last.address not in esc_seen:     # a table cut at its range check: the index may not leave the kept cells (checked below)
+                        esc_seen.add(last.address)
+                        escapes.append(an.table_escape(st, here, last))
                 else:
                     c = here
                 if (node, t) in an.back or t not in incoming or t == S:
                     continue                                   # a back edge: the header's state was generalised, the run continues from there
                 incoming[t].append((c, st))
+        for esc in escapes:
+            if an.check(esc, STEP_MS)[0] != 'unsat':
+                raise P.Unsupported('table escape in a forward window')
         if not completions:
             return z3.BoolVal(False)
         return z3.Or(*completions) if len(completions) > 1 else completions[0]
