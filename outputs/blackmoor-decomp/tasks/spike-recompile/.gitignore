@@ -9,3 +9,6 @@ gamedir/Documents*
 __pycache__/
 gamedir/*
 !gamedir/GAME.INI.standin
+build.out
+run.out
+frames/

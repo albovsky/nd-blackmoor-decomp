@@ -28,13 +28,19 @@ static trace_fn py_trace;
 static Fl41Fpu fpu;
 static uint64_t fret_last;
 static jmp_buf *abort_env;
-static char abort_reason[256];
+static char abort_reason[320];
 static int depth;
 static uint64_t calls_native, calls_fallback, reads, writes;
+
+static uint32_t cstack[4096];
 
 static void host_abort(const char *why)
 {
     if (why != abort_reason) snprintf(abort_reason, sizeof abort_reason, "%s", why);
+    /* the innermost native frames, for the post-mortem */
+    size_t n = strlen(abort_reason);
+    for (int i = depth; i > 0 && i > depth - 8 && n + 12 < sizeof abort_reason; i--)
+        n += (size_t)snprintf(abort_reason + n, sizeof abort_reason - n, " <%x", cstack[i & 4095]);
     if (abort_env) longjmp(*abort_env, 1);
     fprintf(stderr, "host abort outside a run: %s\n", why);
     exit(3);
@@ -86,6 +92,8 @@ void host_wr(void *ctx, uint32_t a, int bytes, uint32_t v)
 {
     (void)ctx;
     writes++;
+    { static int w = -1; static uint32_t wa; if (w < 0) { const char *e = getenv("WATCH_ADDR"); w = e != NULL; if (e) wa = (uint32_t)strtoul(e, NULL, 16); }
+      if (w && a <= wa && wa < a + (uint32_t)bytes) fprintf(stderr, "WRITE %x bytes %d val %x in %x <%x <%x\n", a, bytes, v, cstack[depth & 4095], cstack[(depth - 1) & 4095], cstack[(depth - 2) & 4095]); }
     uint8_t *p = ptr(a, bytes, 1);
     if (p) { memcpy(p, &v, (size_t)bytes); return; }
     for (int i = 0; i < bytes; i++) *ptr(a + (uint32_t)i, 1, 1) = (uint8_t)(v >> (8 * i));
@@ -113,16 +121,21 @@ void host_call(void *ctx, uint32_t target, Fl41Regs *regs)
     lifted_fn fn = NULL;
     if (target - IMAGE_BASE < TABLE_SIZE) fn = table[target - IMAGE_BASE];
     if (depth > 4000) host_abort("call depth over 4000");
+    if (target == 0xffffffffu) fprintf(stderr, "TRAP eax=%x ecx=%x edx=%x ebx=%x esi=%x edi=%x ebp=%x esp=%x\n", regs->eax, regs->ecx, regs->edx, regs->ebx, regs->esi, regs->edi, regs->ebp, regs->esp);
     depth++;
+    cstack[depth & 4095] = target;
+    { static int w = -1; static uint32_t wva; if (w < 0) { const char *e = getenv("WATCH_VA"); w = e != NULL; if (e) wva = (uint32_t)strtoul(e, NULL, 16); }
+      if (w && target == wva) { uint32_t e = regs->esp; fprintf(stderr, "WATCH %x in st0=%Lg st1=%Lg top=%u esp=%x args %x %x %x %x ret %x\n", target, FL41_FST(&fpu, 0), FL41_FST(&fpu, 1), FL41_FTOP(&fpu), e, host_rd(NULL, e + 4, 4), host_rd(NULL, e + 8, 4), host_rd(NULL, e + 12, 4), host_rd(NULL, e + 16, 4), host_rd(NULL, e, 4)); } }
     if (fn) {
         calls_native++;
         if (py_trace) py_trace(target, 1);
-        Fl41Fpu saved = fpu;
-        memset(&fpu, 0, sizeof fpu);
-        fpu.cw = FL41_FCW_WIN32;
+        /* the callee starts on the caller's x87 stack (`__ftol` and friends consume the caller's st(0)); the caller's own state comes back below */
         fn(regs, &host);
         capture_fret();
-        fpu = saved;
+        { static int w2 = -1; static uint32_t wv; if (w2 < 0) { const char *e = getenv("WATCH_EAX"); w2 = e != NULL; if (e) wv = (uint32_t)strtoul(e, NULL, 16); }
+          if (w2 && regs->eax == wv) fprintf(stderr, "EAX %x returned by %x\n", wv, target); }
+        { static int w = -1; static uint32_t wva; if (w < 0) { const char *e = getenv("WATCH_VA"); w = e != NULL; if (e) wva = (uint32_t)strtoul(e, NULL, 16); }
+          if (w && target == wva) fprintf(stderr, "WATCH %x returns eax=%x st0=%Lg valid=%d top=%u\n", target, regs->eax, FL41_FST(&fpu, 0), fpu.valid[FL41_FTOP(&fpu)], FL41_FTOP(&fpu)); }
         if (py_trace) py_trace(target, 0);
     } else {
         calls_fallback++;
@@ -146,6 +159,9 @@ void host_init(fallback_fn fb, fault_fn ft, trace_fn tr)
     fpu.cw = FL41_FCW_WIN32;
 }
 
+/* the host x87 stack as bytes (sw, cw, valid[8], then eight 16-byte long doubles) so the Python side can hand it to the emulator and take it back */
+void host_fpu_get(uint8_t *out) { memcpy(out, &fpu.sw, 2); memcpy(out + 2, &fpu.cw, 2); memcpy(out + 4, fpu.valid, 8); memcpy(out + 12, fpu.st, sizeof fpu.st); }
+void host_fpu_set(const uint8_t *in) { memcpy(&fpu.sw, in, 2); memcpy(&fpu.cw, in + 2, 2); memcpy(fpu.valid, in + 4, 8); memcpy(fpu.st, in + 12, sizeof fpu.st); }
 void host_set_abort(const char *why) { snprintf(abort_reason, sizeof abort_reason, "%s", why); }
 const char *host_abort_reason(void) { return abort_reason; }
 void host_register(uint32_t va, lifted_fn fn) { if (va - IMAGE_BASE < TABLE_SIZE) table[va - IMAGE_BASE] = fn; }

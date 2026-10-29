@@ -84,6 +84,7 @@ class Machine:
         lib.host_register.argtypes = [ctypes.c_uint32, LIFTED]
         lib.host_has.argtypes = [ctypes.c_uint32]
         lib.host_abort_reason.restype = ctypes.c_char_p
+        lib.host_fpu_get.argtypes = [ctypes.c_void_p]; lib.host_fpu_set.argtypes = [ctypes.c_void_p]
         lib.host_set_abort.argtypes = [ctypes.c_char_p]
         lib.host_stats.argtypes = [ctypes.POINTER(ctypes.c_uint64 * 4)]
         lib.host_init.argtypes = [FALLBACK, FAULT, TRACE]
@@ -97,7 +98,7 @@ class Machine:
         self.surf_next = SURF_BASE
         self.frames = 0
         self.display = (640, 480, 16)
-        self.max_imports = max_imports
+        self.max_imports = int(os.environ.get("MAX_IMPORTS", max_imports))
         self.trace = trace
         self.depth = 0
         self.stop_reason = None
@@ -112,6 +113,7 @@ class Machine:
         self.next_handle = 0x100
         self.wndclasses = {}
         self.windows = {}
+        self.bink = {}
         self.hooks = {}
         self.timers = {}
         self.msgq = collections.deque()
@@ -185,8 +187,12 @@ class Machine:
         census = json.load(open(HERE / 'lift_census.json'))
         self.lifted = set()
         self._keep = []
+        forced_list = [x for x in os.environ.get('FORCE_UC', '').split(',') if x]            # debugging: run these (or lo-hi ranges) on the emulator instead
+        forced = {int(x, 16) for x in forced_list if '-' not in x}
+        ranges = [tuple(int(y, 16) for y in x.split('-')) for x in forced_list if '-' in x]
         for va in census['lifted']:
             v = int(va, 16)
+            if v in forced or any(lo <= v < hi for lo, hi in ranges): continue
             fn = LIFTED(('m%x_lifted' % v, self.lib))
             self._keep.append(fn)
             self.lib.host_register(v, fn)
@@ -328,6 +334,38 @@ class Machine:
             uc.hook_add(unicorn.UC_HOOK_CODE, on_code)
             pool.append(uc)
         return pool[level]
+    def fpu_to_uc(self, uc):
+        """the x87 stack is one machine state: hand the native side's stack to the emulator before a refused body runs"""
+        X = self.X
+        buf = (ctypes.c_uint8 * 140)()
+        self.lib.host_fpu_get(buf)
+        sw, cw = struct.unpack_from('<HH', bytes(buf), 0)
+        valid = bytes(buf[4:12])
+        top = (sw >> 11) & 7
+        uc.reg_write(X.UC_X86_REG_FPSW, sw)
+        uc.reg_write(X.UC_X86_REG_FPCW, cw)
+        tag = 0xffff
+        for phys in range(8):                                      # UC_X86_REG_FPn are the physical registers
+            if valid[phys]:
+                mant, exp = struct.unpack_from('<QH', bytes(buf), 12 + 16 * phys)
+                uc.reg_write(X.UC_X86_REG_FP0 + phys, (mant, exp))
+                tag &= ~(3 << (2 * phys))
+        uc.reg_write(X.UC_X86_REG_FPTAG, tag)
+    def fpu_from_uc(self, uc):
+        X = self.X
+        buf = (ctypes.c_uint8 * 140)()
+        self.lib.host_fpu_get(buf)
+        raw = bytearray(bytes(buf))
+        sw = uc.reg_read(X.UC_X86_REG_FPSW); cw = uc.reg_read(X.UC_X86_REG_FPCW); tag = uc.reg_read(X.UC_X86_REG_FPTAG)
+        top = (sw >> 11) & 7
+        struct.pack_into('<HH', raw, 0, sw, cw)
+        for phys in range(8):
+            live = ((tag >> (2 * phys)) & 3) != 3
+            raw[4 + phys] = 1 if live else 0
+            if live:
+                mant, exp = uc.reg_read(X.UC_X86_REG_FP0 + phys)
+                struct.pack_into('<QH', raw, 12 + 16 * phys, mant, exp)
+        self.lib.host_fpu_set((ctypes.c_uint8 * 140).from_buffer_copy(bytes(raw)))
     def run_unicorn(self, target, r):
         level = self.__dict__.setdefault('uc_level', 0)
         uc = self.uc_for(level)
@@ -340,6 +378,7 @@ class Machine:
         try:
             for n in ('eax', 'ecx', 'edx', 'ebx', 'esp', 'ebp', 'esi', 'edi'):
                 uc.reg_write(getattr(X, 'UC_X86_REG_' + n.upper()), getattr(r, n))
+            self.fpu_to_uc(uc)
             try:
                 uc.emu_start(target, 0)
             except Exception as ex:
@@ -349,6 +388,7 @@ class Machine:
             if state['ret_at'] is None or state['ret_at'][0] == 'budget':
                 raise StopRun('unicorn run of 0x%x did not reach its return (eip 0x%x, %s)' % (target, uc.reg_read(X.UC_X86_REG_EIP), state['ret_at']))
             self.uc_instr = getattr(self, 'uc_instr', 0) + state['count']
+            self.fpu_from_uc(uc)
             for n in ('eax', 'ecx', 'edx', 'ebx', 'esp', 'ebp', 'esi', 'edi'):
                 setattr(r, n, uc.reg_read(getattr(X, 'UC_X86_REG_' + n.upper())))
             at, b0 = state['ret_at']
@@ -505,7 +545,9 @@ class Machine:
     def api_QueryPerformanceFrequency(self, r, p): self.mem.w32(p, 1000000); self.mem.w32(p + 4, 0); return 1
     def api_QueryPerformanceCounter(self, r, p):
         t = int((time.time() - T0) * 1000000); self.mem.w32(p, t & 0xffffffff); self.mem.w32(p + 4, t >> 32); return 1
-    def api_GetTickCount(self, r): return (self.vclock + int((time.time() - T0) * 1000)) & 0xffffffff
+    def api_GetTickCount(self, r):
+        self.vclock += 1                                      # a game that busy-waits on the tick count makes time pass
+        return (self.vclock + int((time.time() - T0) * 1000)) & 0xffffffff
     def api_timeGetTime(self, r): return self.api_GetTickCount(r)
     def api_Sleep(self, r, ms): return 0
     def api_GetKeyboardType(self, r, n): return 4 if n == 0 else 0
@@ -612,6 +654,39 @@ class Machine:
     def api_SetEndOfFile(self, r, h): return 1
     def api_FlushFileBuffers(self, r, h): return 1
     def api_CloseHandle(self, r, h): self.handles.pop(h, None); return 1
+    # events: manual/auto reset flag and signalled state; waits never block (single guest thread, virtual clock)
+    def api_CreateEventA(self, r, attrs, manual, initial, name): return self.handle('event', {'manual': manual, 'set': initial})
+    def wait_one(self, h):
+        k = self.handles.get(h)
+        if k and k[0] == 'event':
+            if k[1]['set']:
+                if not k[1]['manual']: k[1]['set'] = 0
+                return True
+            return False
+        return True                                                  # other handles (threads, processes) count as signalled
+    def api_WaitForSingleObject(self, r, h, ms):
+        if self.wait_one(h): return 0
+        self.vclock += ms if ms != 0xffffffff else 5
+        return 0x102
+    def api_WaitForMultipleObjects(self, r, n, ptr, wait_all, ms):
+        hs = [self.mem.u32(ptr + 4 * i) for i in range(n)]
+        if wait_all:
+            if all(self.handles.get(h, ('', {'set': 1}))[1].get('set', 1) for h in hs):
+                for h in hs: self.wait_one(h)
+                return 0
+        else:
+            for i, h in enumerate(hs):
+                if self.wait_one(h): return i
+        self.vclock += ms if ms != 0xffffffff else 5            # the wait times out on the virtual clock
+        return 0x102
+    def api_SetEvent(self, r, h):
+        k = self.handles.get(h)
+        if k and k[0] == 'event': k[1]['set'] = 1
+        return 1
+    def api_ResetEvent(self, r, h):
+        k = self.handles.get(h)
+        if k and k[0] == 'event': k[1]['set'] = 0
+        return 1
     def find_data(self, out, path):
         name = os.path.basename(path).encode('latin-1')[:259]
         st = os.stat(path)
@@ -839,8 +914,32 @@ class Machine:
     def fill_msg(self, p, m):
         hwnd, msg, wp, lp = m
         self.mem.write(p, struct.pack('<IIIIIii', hwnd, msg, wp, lp, self.vclock & 0xffffffff, 320, 240))
+    def feed_input(self):
+        """INPUT="virtual_ms:move|click|key:arg,..." (e.g. 6000:click:290,46): queue the mouse and key messages for the game window when the virtual clock gets there"""
+        if not hasattr(self, 'input_script'):
+            self.input_script = []
+            for part in filter(None, os.environ.get('INPUT', '').split(';')):
+                at, kind, arg = part.split(':')
+                self.input_script.append((int(at), kind, [int(a, 0) for a in arg.split(',')]))
+            self.cursor = (320, 240)
+        if not self.input_script or self.vclock < self.input_script[0][0]: return
+        at, kind, a = self.input_script.pop(0)
+        hwnd = next((h for h, w in self.windows.items() if 'Nancy Drew' in w['title']), None)
+        if hwnd is None: return
+        if kind in ('move', 'click'):
+            self.cursor = (a[0], a[1]); lp = (a[1] << 16) | a[0]
+            self.msgq.append((hwnd, 0x0200, 0, lp))
+            if kind == 'click':
+                self.btn_until = self.vclock + (a[2] if len(a) > 2 else 300)
+                self.msgq.append((hwnd, 0x0201, 1, lp)); self.msgq.append((hwnd, 0x0202, 0, lp))
+            self.log.write('  INPUT %s %s at virtual %d ms\n' % (kind, a, self.vclock))
+        elif kind == 'key':
+            self.msgq.append((hwnd, 0x0100, a[0], 0)); self.msgq.append((hwnd, 0x0101, a[0], 0xc0000000))
+            self.__dict__.setdefault('keys_down', {})[a[0]] = self.vclock + 300
+            self.log.write('  INPUT key %s at virtual %d ms\n' % (a, self.vclock))
     def next_message(self):
         """the queue, then a due timer; the virtual clock advances 5 ms per empty poll"""
+        self.feed_input()
         if self.msgq:
             return self.msgq.popleft()
         self.vclock += 5
@@ -975,7 +1074,15 @@ class Machine:
         return ord(chr(p & 0xff).upper())
     def api_CharNextA(self, r, p): return p + (1 if self.mem.read(p, 1) != b'\0' else 0)
     def api_GetKeyState(self, r, k): return 0
-    def api_GetCursorPos(self, r, p): self.mem.w32(p, 320); self.mem.w32(p + 4, 240); return 1
+    def api_GetAsyncKeyState(self, r, vk):
+        # the game polls the mouse button and keys instead of waiting for messages: a scripted click holds VK_LBUTTON for 300 virtual ms
+        self.__dict__.setdefault('vk_seen', collections.Counter())[vk] += 1
+        if vk == 1 and self.vclock < getattr(self, 'btn_until', 0): return 0x8001
+        if vk in getattr(self, 'keys_down', {}) and self.vclock < self.keys_down[vk]: return 0x8001
+        return 0
+    def api_SetCursorPos(self, r, x, y): return 1          # the game re-centres the cursor every frame; the scripted position stays
+    def api_GetCursorPos(self, r, p):
+        x, y = getattr(self, 'cursor', (320, 240)); self.mem.w32(p, x); self.mem.w32(p + 4, y); return 1
     def api_SetCursor(self, r, c): return 0
     def api_ShowCursor(self, r, b):
         self.cursor_count = getattr(self, 'cursor_count', 0) + (1 if b else -1)
@@ -1273,8 +1380,15 @@ class Machine:
         sl, st, sr, sb = self.rect(srect, s_)
         ckey = s_['ckey'] if trans & 1 else None
         self.blit(d, x, y, s_, sl, st, sr - sl, sb - st, ckey, sr - sl, sb - st)
+        self.primary_dump(d)
         return 0
+    def primary_dump(self, d):
+        # the game draws straight onto the primary surface (BltFast, no Flip): take a picture after the 1st, 300th, 3000th ... blit
+        if not d.get('primary'): return
+        self.prim_blits = getattr(self, 'prim_blits', 0) + 1
+        if self.prim_blits in (1, 300, 3000, 30000, 100000): self.frame_dump(d)
     def blit(self, d, dx, dy, s_, sx, sy, w, h, ckey, dw, dh):
+        d['blits'] = d.get('blits', 0) + 1
         if w <= 0 or h <= 0: return
         stretch = (dw != w or dh != h) and dw > 0 and dh > 0
         for j in range(dh if stretch else h):
@@ -1316,6 +1430,59 @@ class Machine:
     # Bink video: the real decoder is a binary DLL; report a 565 surface, refuse to open movies (game treats it as skipped)
     def api__BinkDDSurfaceType_4(self, r, surf): return 10          # BINKSURFACE565
     def api_GetLastActivePopup(self, r, hwnd): return hwnd
+    # Bink movies: the original decoder is a binary x86 DLL, so ffmpeg decodes the file to RGB565 and the shim serves the frames
+    BINK_FIELDS = ('Width', 'Height', 'Frames', 'FrameNum', 'LastFrameNum', 'FrameRate', 'FrameRateDiv')
+    def bink_frames(self, b):
+        if 'raw' in b: return b['raw']
+        import subprocess
+        out = subprocess.run(['ffmpeg', '-v', 'error', '-i', b['path'], '-frames:v', '400', '-f', 'rawvideo', '-pix_fmt', 'rgb565le', '-'], capture_output=True).stdout
+        fsz = b['w'] * b['h'] * 2
+        b['raw'] = [out[i:i + fsz] for i in range(0, len(out) - fsz + 1, fsz)] or [bytes(fsz)]
+        return b['raw']
+    def api__BinkOpen_8(self, r, path, flags):
+        import subprocess
+        win = self.mem.cstr(path); self.fs_log('bink', win)
+        h = self.fs_path(win, must_exist=True)
+        if h is None: self.bink_error = 'file not found'; return 0
+        pr = subprocess.run(['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-count_packets', '-show_entries', 'stream=width,height,r_frame_rate,nb_read_packets',
+                             '-of', 'json', h], capture_output=True)
+        try:
+            s = json.loads(pr.stdout)['streams'][0]
+            w, ht, frames = int(s['width']), int(s['height']), max(int(s.get('nb_read_packets') or 1), 1)
+            num, den = (int(x) for x in s['r_frame_rate'].split('/'))
+        except Exception:
+            self.bink_error = 'not a Bink file'; return 0
+        p = self.alloc(0x400)
+        self.mem.write(p, bytes(0x400))
+        for k, v in enumerate((w, ht, frames, 1, 0, num * 1000 // max(den, 1), 1000)): self.mem.w32(p + 4 * k, v)
+        self.mem.w32(p + 32, flags)
+        self.bink[p] = {'path': h, 'w': w, 'h': ht, 'frames': frames}
+        self.log.write('  BinkOpen %s -> %dx%d, %d frames\n' % (win, w, ht, frames)); return p
+    def api__BinkGetError_0(self, r):
+        return self.cstring(getattr(self, 'bink_error', 'ok'))
+    def api__BinkClose_4(self, r, p): self.bink.pop(p, None); return 0
+    def api__BinkDoFrame_4(self, r, p): self.mem.w32(p + 16, self.mem.u32(p + 12)); return 0
+    def api__BinkNextFrame_4(self, r, p):
+        n = self.mem.u32(p + 12) + 1
+        self.mem.w32(p + 12, n if n <= self.mem.u32(p + 8) else 1); return 0
+    def api__BinkWait_4(self, r, p): return 0
+    def api__BinkGoto_12(self, r, p, frame, flags): self.mem.w32(p + 12, max(1, min(frame, self.mem.u32(p + 8)))); return 0
+    def api__BinkCopyToBuffer_28(self, r, p, dst, pitch, height, x, y, flags):
+        b = self.bink[p]; frames = self.bink_frames(b)
+        raw = frames[min(self.mem.u32(p + 16) - 1, len(frames) - 1)] if self.mem.u32(p + 16) else frames[0]
+        w, h = b['w'], b['h']
+        for j in range(h):
+            if y + j < 0 or y + j >= height: continue
+            self.mem.write(dst + (y + j) * pitch + x * 2, raw[j * w * 2:(j + 1) * w * 2])
+        return 0
+    def api__BinkGetSummary_8(self, r, p, out):
+        self.mem.write(out, bytes(0x100))
+        w, h, n, rate, div = (self.mem.u32(p + o) for o in (0, 4, 8, 20, 24))
+        for k, v in enumerate((w, h, n * 1000 * div // max(rate, 1), rate, div, rate, div, 0, n, 0)): self.mem.w32(out + 4 * k, v)
+        return 0
+    def api__BinkGetRealtime_12(self, r, p, out, frames): self.mem.write(out, bytes(0x40)); return 0
+    def api__BinkOpenDirectSound_4(self, r, guid): return 1
+    def api__BinkSetSoundSystem_8(self, r, fn, ds): return 1
     # DirectSound: a silent device whose buffers live in host memory and whose play cursor follows the virtual clock
     def api_DirectSoundCreate(self, r, guid, out, unk):
         self.reached_dsound = True
@@ -1323,7 +1490,11 @@ class Machine:
         self.log.write('  DirectSoundCreate -> IDirectSound\n'); return 0
     api__1 = api_DirectSoundCreate                               # DSOUND.dll ordinal 1
     def api__2(self, r, cb, ctx):                                # DirectSoundEnumerateA
-        self.call(cb, 0, self.cstring('Primary Sound Driver'), self.cstring(''), ctx); return 0
+        # the game's callback (0x4fa8d2) skips the null-GUID "Primary Sound Driver" entry and keeps the first real device's GUID
+        for guid, desc in ((0, 'Primary Sound Driver'), (self.alloc(16), 'Silent Sound Device')):
+            if guid: self.mem.write(guid, bytes([0x11] * 16))
+            if self.call(cb, guid, self.cstring(desc), self.cstring(''), ctx) == 0: break
+        return 0
     def api_IDirectSound_QueryInterface(self, r, this, iid, out): self.mem.w32(out, this); return 0
     def api_IDirectSound_AddRef(self, r, this): return 1
     def api_IDirectSound_Release(self, r, this): return 0
@@ -1352,7 +1523,15 @@ class Machine:
     def api_IDirectSound_DuplicateSoundBuffer(self, r, this, orig, out):
         o = dict(self.com(orig)); o['playing'] = 0
         self.mem.w32(out, self.com_new('IDirectSoundBuffer', DSB_METHODS, o)); return 0
-    def api_IDirectSoundBuffer_QueryInterface(self, r, this, iid, out): self.mem.w32(out, this); return 0
+    def api_IDirectSoundBuffer_QueryInterface(self, r, this, iid, out):
+        # 3D buffer and 3D listener get their own (stub) vtables so their methods do not land on the buffer's; no notify interface
+        tag = bytes(self.mem.read(iid, 4))
+        if tag == b'\x86\xfa\x9a\x27': self.mem.w32(out, self.com_new('IDirectSound3DBuffer', DS3DB_METHODS, {})); return 0
+        if tag == b'\x84\xfa\x9a\x27': self.mem.w32(out, self.com_new('IDirectSound3DListener', DS3DL_METHODS, {})); return 0
+        if tag == b'\x83\x07\x21\xb0': self.mem.w32(out, self.com_new('IDirectSoundNotify', DSN_METHODS, {'buf': this})); return 0
+        self.mem.w32(out, this); return 0
+    def api_IDirectSoundNotify_SetNotificationPositions(self, r, this, n, ptr):
+        self.com(this)['notify'] = [(self.mem.u32(ptr + 8 * i), self.mem.u32(ptr + 8 * i + 4)) for i in range(n)]; return 0
     def api_IDirectSoundBuffer_AddRef(self, r, this): return 1
     def api_IDirectSoundBuffer_Release(self, r, this): return 0
     def api_IDirectSoundBuffer_GetCaps(self, r, this, caps):
@@ -1421,6 +1600,15 @@ PALETTE_METHODS = [('QueryInterface', 2), ('AddRef', 0), ('Release', 0), ('GetCa
 
 DS_METHODS = [('QueryInterface', 2), ('AddRef', 0), ('Release', 0), ('CreateSoundBuffer', 3), ('GetCaps', 1), ('DuplicateSoundBuffer', 2), ('SetCooperativeLevel', 2),
               ('Compact', 0), ('GetSpeakerConfig', 1), ('SetSpeakerConfig', 1), ('Initialize', 1)]
+DS3DB_METHODS = [('QueryInterface', 2), ('AddRef', 0), ('Release', 0), ('GetAllParameters', 1), ('GetConeAngles', 2), ('GetConeOrientation', 1),
+                 ('GetConeOutsideVolume', 1), ('GetMaxDistance', 1), ('GetMinDistance', 1), ('GetMode', 1), ('GetPosition', 1), ('GetVelocity', 1),
+                 ('SetAllParameters', 2), ('SetConeAngles', 3), ('SetConeOrientation', 4), ('SetConeOutsideVolume', 2), ('SetMaxDistance', 2),
+                 ('SetMinDistance', 2), ('SetMode', 2), ('SetPosition', 4), ('SetVelocity', 4)]
+DS3DL_METHODS = [('QueryInterface', 2), ('AddRef', 0), ('Release', 0), ('GetAllParameters', 1), ('GetDistanceFactor', 1), ('GetDopplerFactor', 1),
+                 ('GetOrientation', 2), ('GetPosition', 1), ('GetRolloffFactor', 1), ('GetVelocity', 1), ('SetAllParameters', 2),
+                 ('SetDistanceFactor', 2), ('SetDopplerFactor', 2), ('SetOrientation', 7), ('SetPosition', 4), ('SetRolloffFactor', 2),
+                 ('SetVelocity', 4), ('CommitDeferredSettings', 0)]
+DSN_METHODS = [('QueryInterface', 2), ('AddRef', 0), ('Release', 0), ('SetNotificationPositions', 2)]
 DSB_METHODS = [('QueryInterface', 2), ('AddRef', 0), ('Release', 0), ('GetCaps', 1), ('GetCurrentPosition', 2), ('GetFormat', 3), ('GetVolume', 1), ('GetPan', 1),
                ('GetFrequency', 1), ('GetStatus', 1), ('Initialize', 2), ('Lock', 7), ('Play', 3), ('SetCurrentPosition', 1), ('SetFormat', 1), ('SetVolume', 1),
                ('SetPan', 1), ('SetFrequency', 1), ('Stop', 0), ('Unlock', 4), ('Restore', 0)]
@@ -1470,6 +1658,14 @@ def main():
            'imports_called': m.import_calls, 'distinct_imports': len(m.import_log), 'on_demand_pages': len(m.on_demand),
            'reached_create_window': getattr(m, 'reached_create_window', False), 'reached_ddraw': getattr(m, 'reached_ddraw', False), 'files_opened': m.files_opened, 'first_data_file': m.first_data_file, 'file_log': m.file_log[:40],
            'unicorn_instructions': getattr(m, 'uc_instr', 0)}
+    for o in m.com_objects.values():                                         # a picture of every surface that was a blit destination
+        if o.get('iface') == 'IDirectDrawSurface7' and o.get('blits'): m.log.write('SURFACE %dx%d primary=%s blits=%d\n' % (o['w'], o['h'], o['primary'], o['blits']))
+    m.log.write('VKSEEN %s\n' % dict(getattr(m, 'vk_seen', {})))
+    prim = next((o for o in m.com_objects.values() if o.get('primary')), None)
+    if prim: m.frames = 0; m.frame_dump(prim)                                  # the last picture of the primary surface
+    for spec in filter(None, os.environ.get('DUMP', '').split(',')):         # debugging: DUMP=addr:words,...
+        a, n = spec.split(':'); a = int(a, 16)
+        m.log.write('DUMP %x: %s\n' % (a, ' '.join('%x' % m.mem.u32(a + 4 * i) for i in range(int(n)))))
     m.log.write('\nRESULT %s\n' % json.dumps(out))
     m.log.write('imports by count:\n')
     for name, n in m.import_log.most_common():
