@@ -127,6 +127,7 @@ static int fs_path(const char *win0, int must_exist, char *out, size_t cap)
     }
     int start = 0;
     if (np && !strcmp(parts[0], "GAME")) start = 1;
+    if (have_plat && rc_plat.save_dir && start < np && !strncasecmp(parts[start], "Documents", 9)) snprintf(cur, sizeof cur, "%s", rc_plat.save_dir);
     for (int i = start; i < np; i++) {
         char hit[256] = "";
         DIR *d = opendir(cur);

@@ -14,6 +14,7 @@
 typedef struct Movie {
     uint32_t guest, w, h, frames, rate, div;
     void *handle;
+    int voice;                    /* the soundtrack's voice in the mixer, or -1 */
     uint32_t shown_at;            /* clock when the current frame was handed out */
     int started;
     uint32_t start_clock;
@@ -28,6 +29,19 @@ static Movie *movie_of(uint32_t p)
 {
     for (int i = 0; i < 64; i++) if (movies[i] && movies[i]->guest == p) return movies[i];
     return NULL;
+}
+
+/* the soundtrack starts with the first frame and follows a seek */
+static void start_sound(Movie *m, uint32_t frame0)
+{
+    const float *pcm;
+    uint64_t frames;
+    uint32_t channels, rate;
+    rc_voice_stop(m->voice);
+    m->voice = -1;
+    if (!rc_plat.bink_audio || rc_plat.bink_audio(rc_plat.user, m->handle, &pcm, &frames, &channels, &rate) != 0) return;
+    uint64_t at = m->rate ? (uint64_t)frame0 * 1000u * m->div / m->rate * rate / 1000u : 0;
+    m->voice = rc_voice_start(pcm, frames, channels, rate, at);
 }
 
 API(BinkDDSurfaceType) { UNUSED; RET(10); }                         /* BINKSURFACE565 */
@@ -46,6 +60,7 @@ API(BinkOpen)
     if (slot < 0) { rc_plat.bink_close(rc_plat.user, handle); bink_error = "too many open movies"; RET(0); }
     Movie *m = (Movie *)calloc(1, sizeof *m);
     m->guest = rc_alloc(0x400);
+    m->voice = -1;
     m->w = info.width; m->h = info.height; m->frames = info.frames ? info.frames : 1; m->handle = handle;
     m->rate = info.rate * 1000u / (info.rate_div ? info.rate_div : 1u); m->div = 1000;
     rc_zero(m->guest, 0x400);
@@ -68,6 +83,7 @@ API(BinkClose)
     (void)r;
     for (int i = 0; i < 64; i++)
         if (movies[i] && movies[i]->guest == a[0]) {
+            rc_voice_stop(movies[i]->voice);
             if (rc_plat.bink_close) rc_plat.bink_close(rc_plat.user, movies[i]->handle);
             free(movies[i]);
             movies[i] = NULL;
@@ -79,7 +95,10 @@ API(BinkDoFrame)
     (void)r;
     Movie *m = movie_of(a[0]);
     rc_w32(a[0] + 16, rc_u32(a[0] + 12));
-    if (m && !m->started) { m->started = 1; m->start_clock = rc_clock(); }
+    if (m && !m->started) {
+        m->started = 1; m->start_clock = rc_clock();
+        start_sound(m, 0);
+    }
     RET(0);
 }
 API(BinkNextFrame)
@@ -105,7 +124,10 @@ API(BinkGoto)
     uint32_t n = rc_u32(a[0] + 8), f = a[1] < n ? a[1] : n;
     rc_w32(a[0] + 12, f < 1 ? 1 : f);
     Movie *m = movie_of(a[0]);
-    if (m) m->start_clock = rc_clock() - (uint32_t)((uint64_t)(f < 1 ? 0 : f - 1) * 1000u * m->div / (m->rate ? m->rate : 1000u));
+    if (m) {
+        m->start_clock = rc_clock() - (uint32_t)((uint64_t)(f < 1 ? 0 : f - 1) * 1000u * m->div / (m->rate ? m->rate : 1000u));
+        if (m->started) start_sound(m, f < 1 ? 0 : f - 1);
+    }
     RET(0);
 }
 API(BinkCopyToBuffer)

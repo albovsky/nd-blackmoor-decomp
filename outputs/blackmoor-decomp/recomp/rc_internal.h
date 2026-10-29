@@ -15,6 +15,10 @@ uint32_t rc_surf_alloc(uint32_t bytes);
 void rc_surf_free(uint32_t p, uint32_t bytes);
 void rc_set_frame_hook(void (*hook)(int is_flip, uint64_t blits));
 
+/* DirectSound mixer: a movie's soundtrack plays as a voice beside the sound buffers */
+int rc_voice_start(const float *pcm, uint64_t frames, uint32_t channels, uint32_t rate, uint64_t start_frame);
+void rc_voice_stop(int id);
+
 /* Win32 */
 int rc_fs_resolve(const char *win, int must_exist, char *out, size_t cap);
 void rc_fs_log(const char *what, const char *win);

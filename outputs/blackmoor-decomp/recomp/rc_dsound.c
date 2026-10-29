@@ -94,6 +94,28 @@ static float sample_at(const DSBuf *b, uint32_t bytepos, int ch, int bits, int c
     return (float)s / 32768.0f;
 }
 
+typedef struct Voice { const float *pcm; uint64_t frames; uint32_t channels, rate; double pos; int active; } Voice;
+static Voice voices[8];
+
+int rc_voice_start(const float *pcm, uint64_t frames, uint32_t channels, uint32_t rate, uint64_t start_frame)
+{
+    if (!pcm || !frames || channels < 1 || channels > 2 || !rate) return -1;
+    pthread_mutex_lock(&ds_lock);
+    int id = -1;
+    for (int i = 0; i < 8; i++) if (!voices[i].active) { id = i; break; }
+    if (id >= 0) voices[id] = (Voice){pcm, frames, channels, rate, (double)start_frame, 1};
+    pthread_mutex_unlock(&ds_lock);
+    return id;
+}
+
+void rc_voice_stop(int id)
+{
+    if (id < 0 || id >= 8) return;
+    pthread_mutex_lock(&ds_lock);
+    voices[id].active = 0;
+    pthread_mutex_unlock(&ds_lock);
+}
+
 uint32_t rc_audio_render(int16_t *out, uint32_t frames, uint32_t rate)
 {
     memset(out, 0, (size_t)frames * 4);
@@ -127,6 +149,21 @@ uint32_t rc_audio_render(int16_t *out, uint32_t frames, uint32_t rate)
             mix[2 * f + 1] += (r0 + (r1 - r0) * (float)frac) * gr;
         }
         if (!rc_clock_is_virtual()) b->src_done = done;
+    }
+    for (int i = 0; i < 8; i++) {
+        Voice *v = &voices[i];
+        if (!v->active) continue;
+        double step = (double)v->rate / (double)rate;
+        for (uint32_t f = 0; f < frames; f++, v->pos += step) {
+            uint64_t idx = (uint64_t)v->pos;
+            if (idx + 1 >= v->frames) { v->active = 0; break; }
+            float frac = (float)(v->pos - (double)idx);
+            const float *p0 = v->pcm + idx * v->channels, *p1 = p0 + v->channels;
+            float l = p0[0] + (p1[0] - p0[0]) * frac;
+            float r = v->channels > 1 ? p0[1] + (p1[1] - p0[1]) * frac : l;
+            mix[2 * f] += l;
+            mix[2 * f + 1] += r;
+        }
     }
     pthread_mutex_unlock(&ds_lock);
     for (uint32_t f = 0; f < frames * 2; f++) {

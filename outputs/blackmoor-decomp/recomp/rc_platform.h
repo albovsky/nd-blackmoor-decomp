@@ -18,6 +18,8 @@ typedef struct RcPlatform {
     void *user;
     /* The folder that stands for C:\GAME (Ciftree, CDSound, CDVideo, Game.ini, ...). Writes (saves, the per-user Game.ini) land beside it. */
     const char *game_dir;
+    /* Where the game writes (C:\GAME\Documents*: its per-user Game.ini and saves). NULL: beside game_dir. */
+    const char *save_dir;
     /* Real time. NULL selects the deterministic virtual clock: every empty message poll and every GetTickCount moves time on, as in the Python spike. */
     uint64_t (*now_ms)(void *user);
     void (*sleep_ms)(void *user, uint32_t ms);
@@ -25,6 +27,8 @@ typedef struct RcPlatform {
     int (*bink_open)(void *user, const char *path, RcBinkInfo *info, void **movie);
     int (*bink_frame)(void *user, void *movie, uint32_t frame, uint16_t *rgb565, uint32_t pitch_pixels);
     void (*bink_close)(void *user, void *movie);
+    /* The movie's soundtrack as interleaved float PCM (owned by the platform until bink_close). Return 0 when there is one. May be NULL. */
+    int (*bink_audio)(void *user, void *movie, const float **pcm, uint64_t *frames, uint32_t *channels, uint32_t *rate);
     /* A line for the run log (may be NULL). */
     void (*log)(void *user, const char *line);
 } RcPlatform;
