@@ -9,6 +9,16 @@ sys.path.insert(0, str(PROJECT / 'tests')); sys.path.insert(0, str(PROJECT / 'sc
 import lift_fl41 as L
 OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path('.')
 L.BULK = True
+# fiadd/fisub/fimul/fidiv with an integer memory operand: the lifter refuses them; they are the float forms with that operand converted
+FIARITH = {"fiadd": "fadd", "fisub": "fsub", "fisubr": "fsubr", "fimul": "fmul", "fidiv": "fdiv", "fidivr": "fdivr"}
+_lift_x87 = L.lift_x87
+def lift_x87(c, i, mn):
+    if mn in FIARITH and i.operands and i.operands[0].type == L.X.X86_OP_MEM:
+        op, reverse = L.FARITH[FIARITH[mn]]
+        c.emit("{ long double d_ = FL41_FST(fp, 0), s_ = %s; FL41_FST(fp, 0) = fl41_fx_%s(fp, %s, %s); }" % (L.f_load(i, i.operands[0], "i"), op, "s_" if reverse else "d_", "d_" if reverse else "s_"))
+        return
+    return _lift_x87(c, i, mn)
+L.lift_x87 = lift_x87
 L.INLINE_CALLEES.add(0x50f978)
 spans = L.ledger_spans()
 entries = json.load(open(PROJECT / 'function-ledger.json'))['entries']
@@ -30,6 +40,7 @@ for n, va in enumerate(rows):
     if n % 500 == 0:
         print(n, len(ok), len(refused), '%.0fs' % (time.time() - t0), flush=True)
 parts_ok = parts_bad = 0
+part_size = {}
 for e in entries:
     c = int(e['va'], 16)
     parts = sorted(int(p, 16) for p in (e.get('derived_parts') or []))
@@ -41,6 +52,7 @@ for e in entries:
         try:
             text, callees, imports, fs, inline = L.lift(pva, nxt - pva)
             ok[pva] = text
+            part_size[pva] = nxt - pva
             meta[pva] = {'callees': {hex(a): v for a, v in callees.items()}, 'imports': {hex(a): v for a, v in imports.items()}, 'fs': fs,
                          'indirect': {hex(a): v for a, v in L.INDIRECT_SITES.get(pva, {}).items()}, 'inline': sorted(hex(x) for x in inline), 'part_of': e['va']}
             parts_ok += 1
@@ -59,6 +71,22 @@ for va in ok:
     ok[va] = t
     tails += n1 + n2
 print('tail jumps rewritten', tails)
+# a call through a register or pointer: the lifter assumed the callee pops what the caller pushed (stdcall), which is wrong for a
+# cdecl callback (qsort's comparator); take the callee's own `ret N` from its final esp instead
+ICALL = re.compile(r'FL41_CALL\(t_\); (?:esp \+= (\d+)u; )?esp \+= 4u; \}')
+icalls = 0
+for va in ok:
+    ok[va], n = ICALL.subn(lambda m: 'FL41_ICALL(t_, %su); }' % (m.group(1) or '0'), ok[va])
+    icalls += n
+print('indirect calls rewritten', icalls)
+# the x87 stack is global, as on the machine: a callee takes its operands from the caller's stack and leaves its result on it, so the
+# per-call model (callee on an empty stack, `fpush(fret)` / `fpop` in the caller) is dropped; the host no longer zeroes or restores the stack
+FPCALL = re.compile(r'(FL41_CALL\(0x[0-9a-f]+u\);\n(?:    esp \+= \d+u;\n)+)    fl41_fp(?:ush\(fp, fl41_ld_f64\(fp, h->fret\(h->ctx\)\)\)|op\(fp\));\n')
+fpcalls = 0
+for va in ok:
+    ok[va], n = FPCALL.subn(r'\1', ok[va])
+    fpcalls += n
+print('x87 per-call adjustments removed', fpcalls)
 # entry aliases for direct calls and tail jumps that land inside a function
 starts = sorted(ok)
 aliases = {}
@@ -73,7 +101,7 @@ for va, m in meta.items():
         if t in spans or t in ok or t in aliases:
             continue
         i = bisect.bisect_right(starts, t) - 1
-        if i >= 0 and starts[i] <= t < starts[i] + spans[starts[i]]:
+        if i >= 0 and starts[i] <= t < starts[i] + (spans.get(starts[i]) or part_size[starts[i]]):
             aliases[t] = starts[i]
 print('alias candidates', len(aliases))
 alias_text = {}

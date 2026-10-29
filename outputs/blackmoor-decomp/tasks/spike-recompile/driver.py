@@ -84,6 +84,7 @@ class Machine:
         lib.host_register.argtypes = [ctypes.c_uint32, LIFTED]
         lib.host_has.argtypes = [ctypes.c_uint32]
         lib.host_abort_reason.restype = ctypes.c_char_p
+        lib.host_fpu_get.argtypes = [ctypes.c_void_p]; lib.host_fpu_set.argtypes = [ctypes.c_void_p]
         lib.host_set_abort.argtypes = [ctypes.c_char_p]
         lib.host_stats.argtypes = [ctypes.POINTER(ctypes.c_uint64 * 4)]
         lib.host_init.argtypes = [FALLBACK, FAULT, TRACE]
@@ -185,8 +186,12 @@ class Machine:
         census = json.load(open(HERE / 'lift_census.json'))
         self.lifted = set()
         self._keep = []
+        forced_list = [x for x in os.environ.get('FORCE_UC', '').split(',') if x]            # debugging: run these (or lo-hi ranges) on the emulator instead
+        forced = {int(x, 16) for x in forced_list if '-' not in x}
+        ranges = [tuple(int(y, 16) for y in x.split('-')) for x in forced_list if '-' in x]
         for va in census['lifted']:
             v = int(va, 16)
+            if v in forced or any(lo <= v < hi for lo, hi in ranges): continue
             fn = LIFTED(('m%x_lifted' % v, self.lib))
             self._keep.append(fn)
             self.lib.host_register(v, fn)
@@ -328,6 +333,38 @@ class Machine:
             uc.hook_add(unicorn.UC_HOOK_CODE, on_code)
             pool.append(uc)
         return pool[level]
+    def fpu_to_uc(self, uc):
+        """the x87 stack is one machine state: hand the native side's stack to the emulator before a refused body runs"""
+        X = self.X
+        buf = (ctypes.c_uint8 * 140)()
+        self.lib.host_fpu_get(buf)
+        sw, cw = struct.unpack_from('<HH', bytes(buf), 0)
+        valid = bytes(buf[4:12])
+        top = (sw >> 11) & 7
+        uc.reg_write(X.UC_X86_REG_FPSW, sw)
+        uc.reg_write(X.UC_X86_REG_FPCW, cw)
+        tag = 0xffff
+        for phys in range(8):                                      # UC_X86_REG_FPn are the physical registers
+            if valid[phys]:
+                mant, exp = struct.unpack_from('<QH', bytes(buf), 12 + 16 * phys)
+                uc.reg_write(X.UC_X86_REG_FP0 + phys, (mant, exp))
+                tag &= ~(3 << (2 * phys))
+        uc.reg_write(X.UC_X86_REG_FPTAG, tag)
+    def fpu_from_uc(self, uc):
+        X = self.X
+        buf = (ctypes.c_uint8 * 140)()
+        self.lib.host_fpu_get(buf)
+        raw = bytearray(bytes(buf))
+        sw = uc.reg_read(X.UC_X86_REG_FPSW); cw = uc.reg_read(X.UC_X86_REG_FPCW); tag = uc.reg_read(X.UC_X86_REG_FPTAG)
+        top = (sw >> 11) & 7
+        struct.pack_into('<HH', raw, 0, sw, cw)
+        for phys in range(8):
+            live = ((tag >> (2 * phys)) & 3) != 3
+            raw[4 + phys] = 1 if live else 0
+            if live:
+                mant, exp = uc.reg_read(X.UC_X86_REG_FP0 + phys)
+                struct.pack_into('<QH', raw, 12 + 16 * phys, mant, exp)
+        self.lib.host_fpu_set((ctypes.c_uint8 * 140).from_buffer_copy(bytes(raw)))
     def run_unicorn(self, target, r):
         level = self.__dict__.setdefault('uc_level', 0)
         uc = self.uc_for(level)
@@ -340,6 +377,7 @@ class Machine:
         try:
             for n in ('eax', 'ecx', 'edx', 'ebx', 'esp', 'ebp', 'esi', 'edi'):
                 uc.reg_write(getattr(X, 'UC_X86_REG_' + n.upper()), getattr(r, n))
+            self.fpu_to_uc(uc)
             try:
                 uc.emu_start(target, 0)
             except Exception as ex:
@@ -349,6 +387,7 @@ class Machine:
             if state['ret_at'] is None or state['ret_at'][0] == 'budget':
                 raise StopRun('unicorn run of 0x%x did not reach its return (eip 0x%x, %s)' % (target, uc.reg_read(X.UC_X86_REG_EIP), state['ret_at']))
             self.uc_instr = getattr(self, 'uc_instr', 0) + state['count']
+            self.fpu_from_uc(uc)
             for n in ('eax', 'ecx', 'edx', 'ebx', 'esp', 'ebp', 'esi', 'edi'):
                 setattr(r, n, uc.reg_read(getattr(X, 'UC_X86_REG_' + n.upper())))
             at, b0 = state['ret_at']
@@ -612,6 +651,39 @@ class Machine:
     def api_SetEndOfFile(self, r, h): return 1
     def api_FlushFileBuffers(self, r, h): return 1
     def api_CloseHandle(self, r, h): self.handles.pop(h, None); return 1
+    # events: manual/auto reset flag and signalled state; waits never block (single guest thread, virtual clock)
+    def api_CreateEventA(self, r, attrs, manual, initial, name): return self.handle('event', {'manual': manual, 'set': initial})
+    def wait_one(self, h):
+        k = self.handles.get(h)
+        if k and k[0] == 'event':
+            if k[1]['set']:
+                if not k[1]['manual']: k[1]['set'] = 0
+                return True
+            return False
+        return True                                                  # other handles (threads, processes) count as signalled
+    def api_WaitForSingleObject(self, r, h, ms):
+        if self.wait_one(h): return 0
+        self.vclock += ms if ms != 0xffffffff else 5
+        return 0x102
+    def api_WaitForMultipleObjects(self, r, n, ptr, wait_all, ms):
+        hs = [self.mem.u32(ptr + 4 * i) for i in range(n)]
+        if wait_all:
+            if all(self.handles.get(h, ('', {'set': 1}))[1].get('set', 1) for h in hs):
+                for h in hs: self.wait_one(h)
+                return 0
+        else:
+            for i, h in enumerate(hs):
+                if self.wait_one(h): return i
+        self.vclock += ms if ms != 0xffffffff else 5            # the wait times out on the virtual clock
+        return 0x102
+    def api_SetEvent(self, r, h):
+        k = self.handles.get(h)
+        if k and k[0] == 'event': k[1]['set'] = 1
+        return 1
+    def api_ResetEvent(self, r, h):
+        k = self.handles.get(h)
+        if k and k[0] == 'event': k[1]['set'] = 0
+        return 1
     def find_data(self, out, path):
         name = os.path.basename(path).encode('latin-1')[:259]
         st = os.stat(path)
@@ -1273,7 +1345,13 @@ class Machine:
         sl, st, sr, sb = self.rect(srect, s_)
         ckey = s_['ckey'] if trans & 1 else None
         self.blit(d, x, y, s_, sl, st, sr - sl, sb - st, ckey, sr - sl, sb - st)
+        self.primary_dump(d)
         return 0
+    def primary_dump(self, d):
+        # the game draws straight onto the primary surface (BltFast, no Flip): take a picture after the 1st, 300th, 3000th ... blit
+        if not d.get('primary'): return
+        self.prim_blits = getattr(self, 'prim_blits', 0) + 1
+        if self.prim_blits in (1, 300, 3000, 30000, 100000): self.frame_dump(d)
     def blit(self, d, dx, dy, s_, sx, sy, w, h, ckey, dw, dh):
         if w <= 0 or h <= 0: return
         stretch = (dw != w or dh != h) and dw > 0 and dh > 0
@@ -1323,7 +1401,11 @@ class Machine:
         self.log.write('  DirectSoundCreate -> IDirectSound\n'); return 0
     api__1 = api_DirectSoundCreate                               # DSOUND.dll ordinal 1
     def api__2(self, r, cb, ctx):                                # DirectSoundEnumerateA
-        self.call(cb, 0, self.cstring('Primary Sound Driver'), self.cstring(''), ctx); return 0
+        # the game's callback (0x4fa8d2) skips the null-GUID "Primary Sound Driver" entry and keeps the first real device's GUID
+        for guid, desc in ((0, 'Primary Sound Driver'), (self.alloc(16), 'Silent Sound Device')):
+            if guid: self.mem.write(guid, bytes([0x11] * 16))
+            if self.call(cb, guid, self.cstring(desc), self.cstring(''), ctx) == 0: break
+        return 0
     def api_IDirectSound_QueryInterface(self, r, this, iid, out): self.mem.w32(out, this); return 0
     def api_IDirectSound_AddRef(self, r, this): return 1
     def api_IDirectSound_Release(self, r, this): return 0
@@ -1352,7 +1434,15 @@ class Machine:
     def api_IDirectSound_DuplicateSoundBuffer(self, r, this, orig, out):
         o = dict(self.com(orig)); o['playing'] = 0
         self.mem.w32(out, self.com_new('IDirectSoundBuffer', DSB_METHODS, o)); return 0
-    def api_IDirectSoundBuffer_QueryInterface(self, r, this, iid, out): self.mem.w32(out, this); return 0
+    def api_IDirectSoundBuffer_QueryInterface(self, r, this, iid, out):
+        # 3D buffer and 3D listener get their own (stub) vtables so their methods do not land on the buffer's; no notify interface
+        tag = bytes(self.mem.read(iid, 4))
+        if tag == b'\x86\xfa\x9a\x27': self.mem.w32(out, self.com_new('IDirectSound3DBuffer', DS3DB_METHODS, {})); return 0
+        if tag == b'\x84\xfa\x9a\x27': self.mem.w32(out, self.com_new('IDirectSound3DListener', DS3DL_METHODS, {})); return 0
+        if tag == b'\x83\x07\x21\xb0': self.mem.w32(out, self.com_new('IDirectSoundNotify', DSN_METHODS, {'buf': this})); return 0
+        self.mem.w32(out, this); return 0
+    def api_IDirectSoundNotify_SetNotificationPositions(self, r, this, n, ptr):
+        self.com(this)['notify'] = [(self.mem.u32(ptr + 8 * i), self.mem.u32(ptr + 8 * i + 4)) for i in range(n)]; return 0
     def api_IDirectSoundBuffer_AddRef(self, r, this): return 1
     def api_IDirectSoundBuffer_Release(self, r, this): return 0
     def api_IDirectSoundBuffer_GetCaps(self, r, this, caps):
@@ -1421,6 +1511,15 @@ PALETTE_METHODS = [('QueryInterface', 2), ('AddRef', 0), ('Release', 0), ('GetCa
 
 DS_METHODS = [('QueryInterface', 2), ('AddRef', 0), ('Release', 0), ('CreateSoundBuffer', 3), ('GetCaps', 1), ('DuplicateSoundBuffer', 2), ('SetCooperativeLevel', 2),
               ('Compact', 0), ('GetSpeakerConfig', 1), ('SetSpeakerConfig', 1), ('Initialize', 1)]
+DS3DB_METHODS = [('QueryInterface', 2), ('AddRef', 0), ('Release', 0), ('GetAllParameters', 1), ('GetConeAngles', 2), ('GetConeOrientation', 1),
+                 ('GetConeOutsideVolume', 1), ('GetMaxDistance', 1), ('GetMinDistance', 1), ('GetMode', 1), ('GetPosition', 1), ('GetVelocity', 1),
+                 ('SetAllParameters', 2), ('SetConeAngles', 3), ('SetConeOrientation', 4), ('SetConeOutsideVolume', 2), ('SetMaxDistance', 2),
+                 ('SetMinDistance', 2), ('SetMode', 2), ('SetPosition', 4), ('SetVelocity', 4)]
+DS3DL_METHODS = [('QueryInterface', 2), ('AddRef', 0), ('Release', 0), ('GetAllParameters', 1), ('GetDistanceFactor', 1), ('GetDopplerFactor', 1),
+                 ('GetOrientation', 2), ('GetPosition', 1), ('GetRolloffFactor', 1), ('GetVelocity', 1), ('SetAllParameters', 2),
+                 ('SetDistanceFactor', 2), ('SetDopplerFactor', 2), ('SetOrientation', 7), ('SetPosition', 4), ('SetRolloffFactor', 2),
+                 ('SetVelocity', 4), ('CommitDeferredSettings', 0)]
+DSN_METHODS = [('QueryInterface', 2), ('AddRef', 0), ('Release', 0), ('SetNotificationPositions', 2)]
 DSB_METHODS = [('QueryInterface', 2), ('AddRef', 0), ('Release', 0), ('GetCaps', 1), ('GetCurrentPosition', 2), ('GetFormat', 3), ('GetVolume', 1), ('GetPan', 1),
                ('GetFrequency', 1), ('GetStatus', 1), ('Initialize', 2), ('Lock', 7), ('Play', 3), ('SetCurrentPosition', 1), ('SetFormat', 1), ('SetVolume', 1),
                ('SetPan', 1), ('SetFrequency', 1), ('Stop', 0), ('Unlock', 4), ('Restore', 0)]
@@ -1470,6 +1569,11 @@ def main():
            'imports_called': m.import_calls, 'distinct_imports': len(m.import_log), 'on_demand_pages': len(m.on_demand),
            'reached_create_window': getattr(m, 'reached_create_window', False), 'reached_ddraw': getattr(m, 'reached_ddraw', False), 'files_opened': m.files_opened, 'first_data_file': m.first_data_file, 'file_log': m.file_log[:40],
            'unicorn_instructions': getattr(m, 'uc_instr', 0)}
+    prim = next((o for o in m.com_objects.values() if o.get('primary')), None)
+    if prim: m.frames = 0; m.frame_dump(prim)                                  # the last picture of the primary surface
+    for spec in filter(None, os.environ.get('DUMP', '').split(',')):         # debugging: DUMP=addr:words,...
+        a, n = spec.split(':'); a = int(a, 16)
+        m.log.write('DUMP %x: %s\n' % (a, ' '.join('%x' % m.mem.u32(a + 4 * i) for i in range(int(n)))))
     m.log.write('\nRESULT %s\n' % json.dumps(out))
     m.log.write('imports by count:\n')
     for name, n in m.import_log.most_common():
