@@ -2,6 +2,7 @@
  * not model. Each has the signature of a lifted function and is registered at the original address; it reads its arguments from the guest
  * stack at r->esp + 4, leaves the result in eax, and returns with r->esp past its own `ret` (cdecl: the return address only). The Python
  * spike ran these on the Unicorn emulator; the behaviour here is the C library routine they are, checked against the original code. */
+#include <math.h>
 #include <string.h>
 #include "rc.h"
 
@@ -139,6 +140,62 @@ done:
     r->esp += 4u;
 }
 
+/* 0x515da0 strspn, 0x515de0 strcspn, 0x515d30 strpbrk (cdecl, (const char *s, const char *set)): the originals build a 256-bit set of `set` with
+ * `bts` on the stack and scan s against it. strspn/strcspn return the length of the prefix of s inside / outside the set; strpbrk the address of the
+ * first character of s that is in the set, or NULL (the terminator is never in the set). */
+static void scan_set(Fl41Regs *r, int mode)
+{
+    uint8_t in[256] = {0};
+    for (uint32_t p = ARG(1), c; (c = rc_rd(p, 1)) != 0; p++) in[c] = 1;
+    uint32_t s = ARG(0), n = 0;
+    for (;; n++) {
+        uint32_t c = rc_rd(s + n, 1);
+        if (!c) { r->eax = mode == 2 ? 0 : n; break; }
+        if (mode == 0 && !in[c]) { r->eax = n; break; }                 /* strspn: first character outside the set */
+        if (mode == 1 && in[c]) { r->eax = n; break; }                  /* strcspn: first character in the set */
+        if (mode == 2 && in[c]) { r->eax = s + n; break; }              /* strpbrk */
+    }
+    r->ecx = 0;
+    r->esp += 4u;
+}
+static void port_strspn(Fl41Regs *r, const Fl41Host *h) { (void)h; scan_set(r, 0); }
+static void port_strcspn(Fl41Regs *r, const Fl41Host *h) { (void)h; scan_set(r, 1); }
+static void port_strpbrk(Fl41Regs *r, const Fl41Host *h) { (void)h; scan_set(r, 2); }
+
+/* 0x50f462, the body of _CIpow (0x50f440 stores x and y on the stack, leaves y in st(0) and calls it): pow(x, y) with x the double at [esp+4] (the
+ * return address is at [esp]) and y the double in st(0). The original runs on the x87 (fyl2x, f2xm1, fscale at extended precision) and reports domain
+ * errors through _matherr (fnsave/frstor); the host has no extended precision, so the result is libm's pow. It leaves exactly one value on the x87 stack. */
+static void port_pow(Fl41Regs *r, const Fl41Host *h)
+{
+    (void)h;
+    Fl41Fpu *f = rc_fpu();
+    uint64_t xb = (uint64_t)rc_u32(r->esp + 4u) | (uint64_t)rc_u32(r->esp + 8u) << 32;
+    double x;
+    memcpy(&x, &xb, 8);
+    FL41_FST(f, 0) = (long double)pow(x, (double)FL41_FST(f, 0));
+    r->esp += 4u;
+}
+
+/* 0x50de00 exp(double) (cdecl, the argument at [esp+4], the result pushed on the x87 stack) and its register form 0x50de0a (_CIexp: st(0) = exp(st(0))).
+ * Both load the "exp" descriptor at 0x5688ea and go through the C library's fxam dispatcher (0x51397b, 0x5137be) to the f2xm1 body at 0x513581, which
+ * the lifter refuses (ftst, fnsave); the host answers with libm's exp. */
+static void port_exp(Fl41Regs *r, const Fl41Host *h)
+{
+    (void)h;
+    uint64_t xb = (uint64_t)rc_u32(r->esp + 4u) | (uint64_t)rc_u32(r->esp + 8u) << 32;
+    double x;
+    memcpy(&x, &xb, 8);
+    fl41_fpush(rc_fpu(), (long double)exp(x));
+    r->esp += 4u;
+}
+static void port_ciexp(Fl41Regs *r, const Fl41Host *h)
+{
+    (void)h;
+    Fl41Fpu *f = rc_fpu();
+    FL41_FST(f, 0) = (long double)exp((double)FL41_FST(f, 0));
+    r->esp += 4u;
+}
+
 static void put(uint32_t va, void (*fn)(Fl41Regs *, const Fl41Host *))
 {
     if (!rc_has(va)) rc_register(va, fn);
@@ -146,6 +203,13 @@ static void put(uint32_t va, void (*fn)(Fl41Regs *, const Fl41Host *))
 
 void rc_unlifted_register(void)
 {
+    put(0x515da0u, port_strspn);
+    put(0x515de0u, port_strcspn);
+    put(0x515d30u, port_strpbrk);
+    put(0x50f462u, port_pow);
+    put(0x50de00u, port_exp);
+    put(0x50de0au, port_ciexp);
+    put(0x50ed50u, port_memmove);
     put(0x50db50u, port_strrchr);
     put(0x5130f0u, port_strcmp);
     put(0x50fa90u, port_memmove);

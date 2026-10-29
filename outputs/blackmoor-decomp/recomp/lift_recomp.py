@@ -32,10 +32,22 @@ rows = sorted(int(e['va'], 16) for e in entries)
 ok, refused = {}, {}
 meta = {}
 t0 = time.time()
+# bodies that rc_unlifted.c hand-ports (jump tables, `std`, `bts`, fnsave): never lifted, whatever the ledger says
+HAND_PORTED = {0x50de00, 0x50de0a, 0x50db50, 0x50ed50, 0x50f462, 0x50fa90, 0x5129a0, 0x5130f0, 0x515d30, 0x515da0, 0x515de0, 0x515e1e}
+FULL_SPAN = {int(e['va'], 16): e['span'] for e in entries}
 for n, va in enumerate(rows):
+    if va in HAND_PORTED:
+        refused[va] = 'hand-ported in rc_unlifted.c'
+        continue
     body = spans[va]
     try:
-        text, callees, imports, fs, inline = L.lift(va, body)
+        try:
+            text, callees, imports, fs, inline = L.lift(va, body)
+        except L.Unsupported as ex:
+            # a ledger body_size that ends inside an instruction: the whole span decodes
+            if not str(ex).startswith('disassembly stops') or FULL_SPAN[va] <= body:
+                raise
+            text, callees, imports, fs, inline = L.lift(va, FULL_SPAN[va])
         ok[va] = text
         meta[va] = {'callees': {hex(k): v for k, v in callees.items()}, 'imports': {hex(k): v for k, v in imports.items()}, 'fs': fs,
                     'indirect': {hex(k): v for k, v in L.INDIRECT_SITES.get(va, {}).items()}, 'inline': sorted(hex(x) for x in inline)}
@@ -52,7 +64,7 @@ for e in entries:
     parts = sorted(int(p, 16) for p in (e.get('derived_parts') or []))
     end = c + e['span']
     for k, pva in enumerate(parts):
-        if pva in ok:
+        if pva in ok or pva in HAND_PORTED:
             continue
         nxt = parts[k + 1] if k + 1 < len(parts) else end
         try:
@@ -64,14 +76,14 @@ for e in entries:
             parts_ok += 1
         except Exception as ex:
             # a part that runs into the jump table of its function: the table is data, so cut the part where the run of code pointers starts
-            m = re.search(r'disassembly stops at (0x[0-9a-f]+)', str(ex))
+            m = re.search(r'(?:disassembly stops|hlt) at (0x[0-9a-f]+)', str(ex))        # a table whose first bytes decode as `hlt` is cut where it starts
             if m:
                 img = L.od.load_image()
                 stop = int(m.group(1), 16)
                 t = stop & ~3
                 while t > pva and 0x401000 <= int.from_bytes(img.image[t - 4 - img.image_base:t - img.image_base], 'little') < 0x540000:
                     t -= 4
-                if pva < t < stop:
+                if pva < t <= stop:
                     try:
                         text, callees, imports, fs, inline = L.lift(pva, t - pva)
                         ok[pva] = text
@@ -162,10 +174,11 @@ for va in order:
     k = sizes.index(min(sizes))
     bins[k].append(va); sizes[k] += len(allfns[va])
 for k, vas in enumerate(bins):
-    with open(OUT / ('rc_lifted_%02d.c' % k), 'w') as f:
-        f.write('#include "rc_lift_prelude.h"\n')
-        for va in sorted(vas):
-            f.write('\n' + allfns[va])
+    text = '#include "rc_lift_prelude.h"\n' + ''.join('\n' + allfns[va] for va in sorted(vas))
+    path = OUT / ('rc_lifted_%02d.c' % k)
+    if path.exists() and path.read_text() == text:      # unchanged: keep the file (and its object) as it is
+        continue
+    path.write_text(text)
 lifted = sorted(allfns)
 
 # ---- imports: every entry of the PE's import table with the bytes its stdcall callee pops

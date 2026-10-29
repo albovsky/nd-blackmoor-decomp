@@ -229,9 +229,8 @@ void start_audio()
             return noErr;
         }];
     [g.engine attachNode:source];
-    [g.engine connect:source to:g.engine.mainMixerNode format:format];
     NSError *error = nil;
-    if (![g.engine startAndReturnError:&error]) {
+    if (![g.engine connect:source to:g.engine.mainMixerNode format:format error:&error] || ![g.engine startAndReturnError:&error]) {
         if (g.log) fprintf(g.log, "audio engine: %s\n", error.localizedDescription.UTF8String);
         g.engine = nil;
         start_silent_clock();

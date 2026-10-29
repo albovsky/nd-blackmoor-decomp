@@ -50,49 +50,6 @@ static inline uint64_t fl57_fist(Fl41Fpu *f, long double v, int bytes)
     return r;
 }
 #else
-/* Hosts without the x87 (arm64 macOS, where long double is double): the same operations over libm. Results are not bit-exact with the x87's
- * 64-bit mantissa; the rounding control in the control word is honoured. */
-#include <math.h>
-static inline long double fl57_round_cw(const Fl41Fpu *f, long double a)
-{
-    switch ((f->cw >> 10) & 3u) {
-    case 1: return floorl(a);
-    case 2: return ceill(a);
-    case 3: return truncl(a);
-    default: return nearbyintl(a);       /* ties to even, as the default control word */
-    }
-}
-static inline long double fl57_frndint(Fl41Fpu *f, long double a) { return fl57_round_cw(f, a); }
-static inline long double fl57_fsqrt(Fl41Fpu *f, long double a) { (void)f; return sqrtl(a); }
-static inline long double fl57_fabs(Fl41Fpu *f, long double a) { (void)f; return fabsl(a); }
-static inline long double fl57_fsin(Fl41Fpu *f, long double a) { f->sw = (uint16_t)(f->sw & ~0x0400u); return sinl(a); }
-static inline long double fl57_fcos(Fl41Fpu *f, long double a) { f->sw = (uint16_t)(f->sw & ~0x0400u); return cosl(a); }
-static inline long double fl57_f2xm1(Fl41Fpu *f, long double a) { (void)f; return expm1l(a * (long double)M_LN2); }
-static inline long double fl57_fprem(Fl41Fpu *f, long double a, long double b) { f->sw = (uint16_t)(f->sw & ~0x4700u); return fmodl(a, b); }
-static inline long double fl57_fprem1(Fl41Fpu *f, long double a, long double b) { f->sw = (uint16_t)(f->sw & ~0x4700u); return remainderl(a, b); }
-static inline long double fl57_fpatan(Fl41Fpu *f, long double a, long double b) { (void)f; return atan2l(b, a); }
-static inline long double fl57_fyl2x(Fl41Fpu *f, long double a, long double b) { (void)f; return b * log2l(a); }
-static inline long double fl57_fscale(Fl41Fpu *f, long double a, long double b) { (void)f; return ldexpl(a, (int)truncl(b)); }
-static inline void fl57_fxam(Fl41Fpu *f, long double a)
-{
-    uint16_t c = 0;
-    switch (fpclassify(a)) {
-    case FP_NAN: c = 0x0100; break;
-    case FP_NORMAL: c = 0x0400; break;
-    case FP_INFINITE: c = 0x0500; break;
-    case FP_ZERO: c = 0x4000; break;
-    default: c = 0x4400; break;          /* denormal */
-    }
-    if (signbit(a)) c |= 0x0200;
-    f->sw = (uint16_t)((f->sw & ~0x4700u) | c);
-}
-/* fist/fistp: round by the control word; an unrepresentable value stores the integer indefinite (the most negative value) */
-static inline uint64_t fl57_fist(Fl41Fpu *f, long double v, int bytes)
-{
-    long double r = fl57_round_cw(f, v);
-    if (bytes == 2) return (isnan(r) || r < -32768.0L || r > 32767.0L) ? 0x8000u : (uint16_t)(int16_t)r;
-    if (bytes == 4) return (isnan(r) || r < -2147483648.0L || r > 2147483647.0L) ? 0x80000000u : (uint32_t)(int32_t)r;
-    return (isnan(r) || r < -9223372036854775808.0L || r >= 9223372036854775808.0L) ? 0x8000000000000000ull : (uint64_t)(int64_t)r;
-}
+#include "original_methods_fl57_portable.h"
 #endif
 #endif

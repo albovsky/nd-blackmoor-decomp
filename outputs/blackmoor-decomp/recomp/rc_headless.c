@@ -133,20 +133,28 @@ static void poll_hook(void)
 {
     if (next_step >= nsteps) return;
     Step *st = &steps[next_step];
-    uint32_t due;
-    if (st->at[0] >= '0' && st->at[0] <= '9') due = (uint32_t)strtoul(st->at, NULL, 10);
+    static char prev_anchor[64];
+    static uint32_t prev_off, prev_delivered;
+    uint32_t due, off;
+    char anchor[64] = "";
+    if (st->at[0] >= '0' && st->at[0] <= '9') due = off = (uint32_t)strtoul(st->at, NULL, 10);
     else {
-        char name[64];
-        snprintf(name, sizeof name, "%s", st->at);
-        char *plus = strchr(name, '+');
-        uint32_t off = 0;
+        snprintf(anchor, sizeof anchor, "%s", st->at);
+        char *plus = strchr(anchor, '+');
+        off = 0;
         if (plus) { *plus = 0; off = (uint32_t)strtoul(plus + 1, NULL, 10); }
         uint32_t seen;
-        if (!rc_seen_at(name, &seen)) return;
+        if (!rc_seen_at(anchor, &seen)) return;
         due = seen + off;
     }
     uint32_t now = rc_clock();
     if (now < due) return;
+    /* the game can run ahead of the script (a scene load takes longer on the virtual clock than it did when the script was written): steps of
+     * one anchor keep the spacing they have in the script, so a hover is not delivered in the same instant as the click that follows it */
+    if (next_step > 0 && !strcmp(anchor, prev_anchor) && off >= prev_off && now < prev_delivered + (off - prev_off)) return;
+    snprintf(prev_anchor, sizeof prev_anchor, "%s", anchor);
+    prev_off = off;
+    prev_delivered = now;
     next_step++;
     if (!rc_main_hwnd) return;
     if (!strcmp(st->kind, "shot")) {
