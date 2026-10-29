@@ -1,6 +1,7 @@
 #ifndef BLACKMOOR_ORIGINAL_METHODS_FL41_X87_H
 #define BLACKMOOR_ORIGINAL_METHODS_FL41_X87_H
 
+#include <float.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -44,6 +45,7 @@ static inline long double fl41_fpop(Fl41Fpu *f)
 #define FL41_FCC 0x4700u      /* C0 C1 C2 C3 */
 
 /* the two halves of an 80-bit value: mantissa (bit 63 is the integer bit) and sign|exponent */
+#if LDBL_MANT_DIG == 64
 static inline uint64_t fl41_fmant(long double v) { uint64_t m; memcpy(&m, &v, 8); return m; }
 static inline uint16_t fl41_fexp(long double v) { uint16_t e; memcpy(&e, (const unsigned char *)&v + 8, 2); return e; }
 static inline long double fl41_fmake(uint64_t mant, uint16_t se)
@@ -53,6 +55,36 @@ static inline long double fl41_fmake(uint64_t mant, uint16_t se)
     memcpy((unsigned char *)&v + 8, &se, 2);
     return v;
 }
+#else
+/* `long double` is a plain double here (arm64 macOS): the halves are those of the double widened to the 80-bit layout, and back */
+static inline uint64_t fl41_dbits(long double v) { double d = (double)v; uint64_t b; memcpy(&b, &d, 8); return b; }
+static inline uint64_t fl41_fmant(long double v)
+{
+    uint64_t b = fl41_dbits(v), f = b & 0xfffffffffffffull;
+    unsigned e = (unsigned)((b >> 52) & 0x7ffu);
+    return e == 0 ? f << 11 : 0x8000000000000000ull | (f << 11);
+}
+static inline uint16_t fl41_fexp(long double v)
+{
+    uint64_t b = fl41_dbits(v);
+    unsigned e = (unsigned)((b >> 52) & 0x7ffu), sign = (unsigned)(b >> 63) << 15;
+    if (e == 0) return (uint16_t)sign;
+    return (uint16_t)(sign | (e == 0x7ffu ? 0x7fffu : e + 16383u - 1023u));
+}
+static inline long double fl41_fmake(uint64_t mant, uint16_t se)
+{
+    uint64_t sign = (uint64_t)(se >> 15) << 63, f = (mant << 1) >> 12;
+    unsigned e80 = se & 0x7fffu;
+    uint64_t b;
+    if (e80 == 0x7fffu) b = sign | 0x7ff0000000000000ull | f;
+    else if (e80 + 1023u <= 16383u) b = sign;                         /* underflows a double */
+    else if (e80 + 1023u - 16383u >= 0x7ffu) b = sign | 0x7ff0000000000000ull;
+    else b = sign | ((uint64_t)(e80 + 1023u - 16383u) << 52) | f;
+    double d;
+    memcpy(&d, &b, 8);
+    return d;
+}
+#endif
 
 /* The oracle (Unicorn, QEMU's softfloat) and the hardware differ on the conversion of a NaN to or from a memory format: the oracle keeps the quiet bit as it is (it neither
  * sets it nor requires it) and takes the top bits of the significand, a NaN that would lose all its bits becomes the default NaN. The translation follows the oracle there. */
@@ -222,11 +254,20 @@ static inline void fl41_fx_cmp(Fl41Fpu *f, long double a, long double b)
 /* fchs: flip the sign of st(0) (a bit operation: no flag, C1 clear) */
 static inline long double fl41_fchs(long double v)
 {
+#if LDBL_MANT_DIG == 64
     unsigned char b[sizeof(long double)];
     memcpy(b, &v, sizeof v);
     b[9] ^= 0x80u;
     memcpy(&v, b, sizeof v);
     return v;
+#else
+    double d = (double)v;           /* a plain double: flip its sign bit */
+    uint64_t bits;
+    memcpy(&bits, &d, 8);
+    bits ^= 0x8000000000000000ull;
+    memcpy(&d, &bits, 8);
+    return d;
+#endif
 }
 
 #endif

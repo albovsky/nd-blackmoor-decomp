@@ -160,8 +160,34 @@ void host_init(fallback_fn fb, fault_fn ft, trace_fn tr)
 }
 
 /* the host x87 stack as bytes (sw, cw, valid[8], then eight 16-byte long doubles) so the Python side can hand it to the emulator and take it back */
+#if LDBL_MANT_DIG == 64
 void host_fpu_get(uint8_t *out) { memcpy(out, &fpu.sw, 2); memcpy(out + 2, &fpu.cw, 2); memcpy(out + 4, fpu.valid, 8); memcpy(out + 12, fpu.st, sizeof fpu.st); }
 void host_fpu_set(const uint8_t *in) { memcpy(&fpu.sw, in, 2); memcpy(&fpu.cw, in + 2, 2); memcpy(fpu.valid, in + 4, 8); memcpy(fpu.st, in + 12, sizeof fpu.st); }
+#else
+/* `long double` is a plain double here (arm64 macOS): each register crosses as the 80-bit value (mantissa, then sign|exponent) in its 16-byte slot */
+void host_fpu_get(uint8_t *out)
+{
+    memcpy(out, &fpu.sw, 2); memcpy(out + 2, &fpu.cw, 2); memcpy(out + 4, fpu.valid, 8);
+    for (int i = 0; i < 8; i++) {
+        uint64_t m = fl41_fmant(fpu.st[i]);
+        uint16_t e = fl41_fexp(fpu.st[i]);
+        memset(out + 12 + 16 * i, 0, 16);
+        memcpy(out + 12 + 16 * i, &m, 8);
+        memcpy(out + 12 + 16 * i + 8, &e, 2);
+    }
+}
+void host_fpu_set(const uint8_t *in)
+{
+    memcpy(&fpu.sw, in, 2); memcpy(&fpu.cw, in + 2, 2); memcpy(fpu.valid, in + 4, 8);
+    for (int i = 0; i < 8; i++) {
+        uint64_t m;
+        uint16_t e;
+        memcpy(&m, in + 12 + 16 * i, 8);
+        memcpy(&e, in + 12 + 16 * i + 8, 2);
+        fpu.st[i] = fl41_fmake(m, e);
+    }
+}
+#endif
 void host_set_abort(const char *why) { snprintf(abort_reason, sizeof abort_reason, "%s", why); }
 const char *host_abort_reason(void) { return abort_reason; }
 void host_register(uint32_t va, lifted_fn fn) { if (va - IMAGE_BASE < TABLE_SIZE) table[va - IMAGE_BASE] = fn; }

@@ -55,3 +55,22 @@ frees and reuses blocks (the long run used to exhaust it).
    renderer and audio) and replace the hand-written modules subsystem by subsystem, or ship the lifted program as the game core.
 
 Rules that still hold: never write GAME.EXE; no rm; Unicorn is scaffold and oracle only; game data stays out of git.
+
+## Native host on arm64 macOS, headless (2026-10-29)
+
+`recomp/build_linux.sh` builds `rc_headless` on an Apple-silicon Mac (it needs python `pefile` and `capstone` on the path; `work/` must be reachable from the
+checkout, e.g. a symlink in a separate worktree). Run it as in `recomp/rc_headless.c`; the opening route reaches the suitcase (S2010, S2009, S2016, S2017)
+in about 35 s of wall time. Things that differ from x86-64 Linux and are fixed in the tree:
+
+- `long double` is 8 bytes there. The x87 model's byte access to 80-bit values and the `fl57_*` stubs for `fsin`, `fcos`, `fyl2x`, `fsqrt`, `fist` and the rest
+  (they returned their input) are replaced by the portable versions in `src/original_methods_fl57_portable.h`; the oracle's `host_fpu_get/set` converts through the
+  80-bit layout. Results are rounded to a double, not bit-exact against the 80-bit hardware.
+- The ledger's `body_size` ends inside an instruction for some functions: `lift_recomp.py` retries those with the whole `span`, cuts a part at a jump table whose
+  first bytes decode as `hlt`, and skips the bodies that `rc_unlifted.c` hand-ports (`pow` 0x50f462, `exp` 0x50de00/0x50de0a, `memmove` 0x50ed50, `strspn`,
+  `strcspn`, `strpbrk`, besides the earlier five).
+- The harness's `INPUT` parser nested `strtok`, so only the first step ran; it uses `strtok_r`. Steps that share an anchor keep their scripted spacing.
+- The native clock is purely virtual; the oracle's `GetTickCount` adds real elapsed time, so the two timelines differ by seconds and a script must not use absolute
+  times. Use file-relative times and, for the native run, later delays for the first scene click (the room takes about 8 s of virtual time before it takes input):
+  `INPUT="MAIN.CIF+1400:click:290,46;MAIN.CIF+4400:move:450,262;MAIN.CIF+5400:click:450,262,1500;S2010.CIF+16000:move:460,272;S2010.CIF+18000:click:460,272,2000;S2009.CIF+4000:move:250,262;S2009.CIF+5000:click:250,262,400;S2016.CIF+3000:move:335,322;S2016.CIF+4000:click:335,322,400;S2016.CIF+9000:shot:0,0"`.
+- Against the Python oracle on the same Mac (its own timeline: S2010 delays of 4000 and 5000 ms), the S2017 shot (suitcase open) is pixel-identical; of the numbered frames, 7 of 8 are identical and the
+  fourth (the fourth flip: a fade, at a different moment on each timeline) differs.

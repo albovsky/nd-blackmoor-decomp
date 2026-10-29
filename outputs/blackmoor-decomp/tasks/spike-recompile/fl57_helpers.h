@@ -50,18 +50,6 @@ static inline uint64_t fl57_fist(Fl41Fpu *f, long double v, int bytes)
     return r;
 }
 #else
-static inline long double fl57_frndint(Fl41Fpu *f, long double a) { (void)f; return (long double)(long long)(a + (a < 0 ? -0.5L : 0.5L)); }
-static inline long double fl57_fsqrt(Fl41Fpu *f, long double a) { (void)f; return a; }
-static inline long double fl57_fabs(Fl41Fpu *f, long double a) { (void)f; return a < 0 ? -a : a; }
-static inline long double fl57_fsin(Fl41Fpu *f, long double a) { (void)f; return a; }
-static inline long double fl57_fcos(Fl41Fpu *f, long double a) { (void)f; return a; }
-static inline long double fl57_f2xm1(Fl41Fpu *f, long double a) { (void)f; return a; }
-static inline long double fl57_fprem(Fl41Fpu *f, long double a, long double b) { (void)f; (void)b; return a; }
-static inline long double fl57_fprem1(Fl41Fpu *f, long double a, long double b) { (void)f; (void)b; return a; }
-static inline long double fl57_fpatan(Fl41Fpu *f, long double a, long double b) { (void)f; (void)b; return a; }
-static inline long double fl57_fyl2x(Fl41Fpu *f, long double a, long double b) { (void)f; (void)b; return a; }
-static inline long double fl57_fscale(Fl41Fpu *f, long double a, long double b) { (void)f; (void)b; return a; }
-static inline void fl57_fxam(Fl41Fpu *f, long double a) { (void)f; (void)a; }
-static inline uint64_t fl57_fist(Fl41Fpu *f, long double v, int bytes) { (void)f; (void)bytes; return (uint64_t)(long long)v; }
+#include "original_methods_fl57_portable.h"
 #endif
 #endif
