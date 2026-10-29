@@ -7,3 +7,5 @@ lift_census.json
 run.log
 gamedir/Documents*
 __pycache__/
+gamedir/*
+!gamedir/GAME.INI.standin
