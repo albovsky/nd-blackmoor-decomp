@@ -911,7 +911,6 @@ API(GetPrivateProfileStringA)
     if (cap == 0) RET(0);
     if (n > cap - 1) n = cap - 1;
     rc_write(a[3], v, n);
-    rc_w32(a[3] + n, 0);
     rc_wr(a[3] + n, 1, 0);
     RET(n);
 }

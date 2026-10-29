@@ -113,8 +113,8 @@ static int nsteps, next_step, shots;
 
 static void parse_input(const char *s)
 {
-    char *copy = strdup(s);
-    for (char *part = strtok(copy, ";"); part && nsteps < 512; part = strtok(NULL, ";")) {
+    char *copy = strdup(s), *outer = NULL;
+    for (char *part = strtok_r(copy, ";", &outer); part && nsteps < 512; part = strtok_r(NULL, ";", &outer)) {
         Step *st = &steps[nsteps];
         char *c1 = strchr(part, ':');
         char *c2 = c1 ? strchr(c1 + 1, ':') : NULL;
@@ -122,7 +122,8 @@ static void parse_input(const char *s)
         *c1 = 0; *c2 = 0;
         snprintf(st->at, sizeof st->at, "%s", part);
         snprintf(st->kind, sizeof st->kind, "%s", c1 + 1);
-        for (char *tok = strtok(c2 + 1, ","); tok && st->nargs < 4; tok = strtok(NULL, ",")) st->arg[st->nargs++] = (int32_t)strtol(tok, NULL, 0);
+        char *inner = NULL;
+        for (char *tok = strtok_r(c2 + 1, ",", &inner); tok && st->nargs < 4; tok = strtok_r(NULL, ",", &inner)) st->arg[st->nargs++] = (int32_t)strtol(tok, NULL, 0);
         nsteps++;
     }
     free(copy);

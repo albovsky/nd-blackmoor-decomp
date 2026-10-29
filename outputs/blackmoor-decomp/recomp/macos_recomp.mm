@@ -19,6 +19,8 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <time.h>
+#include <chrono>
+#include <thread>
 #include <unistd.h>
 #include <string>
 #include <vector>
@@ -194,9 +196,21 @@ void on_closed(void *)
 }
 
 // ---- sound: the DirectSound mix pulled by an AVAudioSourceNode ------------------------------------------------------------------------
+// Muted, or no audio engine: DirectSound positions and notifications are driven by the mixer, so keep pulling it and drop the samples.
+void start_silent_clock()
+{
+    std::thread([] {
+        std::vector<int16_t> scratch(2 * (size_t)(kAudioRate / 100));
+        for (;;) {
+            rc_audio_render(scratch.data(), (uint32_t)(kAudioRate / 100), kAudioRate);
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+    }).detach();
+}
+
 void start_audio()
 {
-    if (g.muted) return;
+    if (g.muted) { start_silent_clock(); return; }
     g.engine = [[AVAudioEngine alloc] init];
     AVAudioFormat *format = [[AVAudioFormat alloc] initStandardFormatWithSampleRate:kAudioRate channels:2];
     AVAudioSourceNode *source = [[AVAudioSourceNode alloc] initWithFormat:format
@@ -220,6 +234,7 @@ void start_audio()
     if (![g.engine startAndReturnError:&error]) {
         if (g.log) fprintf(g.log, "audio engine: %s\n", error.localizedDescription.UTF8String);
         g.engine = nil;
+        start_silent_clock();
     }
 }
 
