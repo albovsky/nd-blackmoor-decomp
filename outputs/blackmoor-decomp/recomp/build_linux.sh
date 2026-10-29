@@ -16,8 +16,10 @@ if [ ! -f "$OUT/rc_generated.c" ] || [ -n "${RELIFT:-}" ]; then
 fi
 ls "$OUT"/rc_lifted_*.c > "$OUT/lifted.list"
 cd "$OUT"
-# the lifted files: one compile each, in parallel, skipped when the object is newer than its source and the headers
-cat lifted.list | xargs -P "$JOBS" -I{} sh -c 'o=${1%.c}.o; if [ ! -f "$o" ] || [ "$1" -nt "$o" ]; then '"$CC"' '"$CFLAGS"' -c "$1" -o "$o"; fi' _ {}
+# the lifted files: one compile each, in parallel, skipped when the object is newer than its source and than every header it includes
+NEWEST_HEADER=$(ls -t "$PROJECT/src/original_methods_fl41.h" "$PROJECT/src/original_methods_fl41_x87.h" "$HERE/rc_lift_prelude.h" "$HERE/rc_fl57_helpers.h" "$HERE/rc.h" | head -1)
+export NEWEST_HEADER
+cat lifted.list | xargs -P "$JOBS" -I{} sh -c 'o=${1%.c}.o; if [ ! -f "$o" ] || [ "$1" -nt "$o" ] || [ "$NEWEST_HEADER" -nt "$o" ]; then '"$CC"' '"$CFLAGS"' -c "$1" -o "$o"; fi' _ {}
 for f in rc_generated rc_core rc_win32 rc_ddraw rc_dsound rc_bink rc_main rc_unlifted rc_headless; do
     src="$HERE/$f.c"; [ -f "$src" ] || src="$OUT/$f.c"
     $CC -O2 -fPIC -Wall -Wextra -Wno-unused-parameter -I"$PROJECT/src" -I"$HERE" -I"$OUT" -c "$src" -o "$f.o"

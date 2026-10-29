@@ -17,8 +17,10 @@ if [ ! -f "$build/rc_generated.c" ] || [ -n "${RELIFT:-}" ]; then
     python3 -I "$here/lift_recomp.py" "$build" "${CHUNKS:-24}"
 fi
 cc=(xcrun --sdk macosx clang -arch arm64 "-mmacosx-version-min=$min_os")
-# the lifted functions: one compile each, in parallel, skipped when the object is newer than its source
-ls "$build"/rc_lifted_*.c | xargs -P "$jobs" -I{} bash -c 'o="${1%.c}.o"; if [ ! -f "$o" ] || [ "$1" -nt "$o" ]; then "${@:2}" -c "$1" -o "$o"; fi' _ {} \
+# the lifted functions: one compile each, in parallel, skipped when the object is newer than its source and than every header it includes
+newest_header="$(ls -t "$src/original_methods_fl41.h" "$src/original_methods_fl41_x87.h" "$here/rc_lift_prelude.h" "$here/rc_fl57_helpers.h" "$here/rc.h" | head -1)"
+export newest_header
+ls "$build"/rc_lifted_*.c | xargs -P "$jobs" -I{} bash -c 'o="${1%.c}.o"; if [ ! -f "$o" ] || [ "$1" -nt "$o" ] || [ "$newest_header" -nt "$o" ]; then "${@:2}" -c "$1" -o "$o"; fi' _ {} \
     "${cc[@]}" -O1 -w -I"$src" -I"$here" -I"$build"
 objects=("$build"/rc_lifted_*.o)
 for f in rc_generated rc_core rc_win32 rc_ddraw rc_dsound rc_bink rc_main rc_unlifted; do
