@@ -198,6 +198,7 @@ int main(void)
     rc_set_poll_hook(poll_hook);
     rc_set_frame_hook(frame_hook);
     if (getenv("MAX_IMPORTS")) rc_set_import_budget(strtoull(getenv("MAX_IMPORTS"), NULL, 10));
+    if (getenv("MAX_IDLE_POLLS")) rc_set_max_idle_polls((uint32_t)strtoul(getenv("MAX_IDLE_POLLS"), NULL, 10));   /* idle polls of the message loop in all (5 virtual ms each) before the run is stopped */
     char error[512];
     if (rc_start(exe ? exe : "../../work/original/GAME.EXE", error, sizeof error)) { fprintf(stderr, "rc_start: %s\n", error); return 2; }
     struct timespec t0, t1;
