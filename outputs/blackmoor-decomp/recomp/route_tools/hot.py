@@ -2,11 +2,12 @@
   python3 hot.py S2010
 Derived hotspot geometry only; scenes.txt itself is local analysis output and is not committed."""
 import sys, struct, re
+from scenes_lib import load_blocks
 # usage: hot.py SCENE   -> the navigation rows of the scene with their rectangles
 want = sys.argv[1]
-txt = open('scenes.txt').read().split('\nSCENE ')
-for blk in txt:
-    if not blk.startswith(want + ' '): continue
+blocks = load_blocks()
+if want not in blocks: raise SystemExit('no scene %s in scenes.txt' % want)
+for blk in [blocks[want]]:
     lines = blk.split('\n'); print(lines[0][:120])
     for ln in lines[1:]:
         m = re.match(r'\s+(\d+) t=(\w\w) s=(\w\w) k=(\d) \'(.*?)\' body=(\w*) deps=(\d+)(.*)', ln)

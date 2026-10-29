@@ -66,10 +66,11 @@ anchor `S2010.CIF`. The runs are deterministic, so a prefix of steps always give
 checkpoint used here is `m0`, saved in the bedroom's first view right after the suitcase (S2010, `UICELLPOPUP_OVL.CIF+23000` after the opening route
 below with the phone closed and the two back-outs `move:320,372`/click and `move:190,355`/click).
 
-`route_tools/` has the helpers used to find the clicks: `scenedump.c` lists the action rows of every decoded scene resource through the production parser
-(`cc -I src route_tools/scenedump.c src/scene_resource.c src/hiff.c`), `hot.py SCENE` prints a scene's exits with their rectangles (action 0x0b: one
-rectangle; 0x0c: one rectangle per view frame; 0x62: a hotspot), `chain.py "S3301:5 S3302:11"` gives the click at the centre of each row's rectangle and `rt.py` turns
-click tokens into `INPUT` steps. A turn in a panorama (S2010 has 20 views) is a click in the left or right edge strip with a short hold (150 ms): one click is
+`route_tools/` has the helpers used to find the clicks: `python3 route_tools/mkscenes.py` writes `scenes.txt` (the action rows of every decoded scene resource,
+one block per scene id, through the production parser via `scenedump.c`; it reads the decoded resources under `work/analysis` and the file stays out of git),
+`hot.py SCENE` prints a scene's exits with their rectangles (action 0x0b: one rectangle; 0x0c: one rectangle per view frame; 0x62: a hotspot),
+`chain.py "S3301:5 S3302:11 S2010:8:10"` gives the click at the centre of each row's rectangle (`scene:row[:frame]`, the frame picks the rectangle of a 0x0c
+row) and `rt.py` turns click tokens into `INPUT` steps. Run them in the folder that holds `scenes.txt`. A turn in a panorama (S2010 has 20 views) is a click in the left or right edge strip with a short hold (150 ms): one click is
 one step of the view.
 
 ## Bedroom to the stair lock (from the `m0` save, anchor `S2010.CIF`)
