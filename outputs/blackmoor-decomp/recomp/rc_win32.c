@@ -772,12 +772,53 @@ API(GetFileSize)
     if (a[1]) rc_w32(a[1], 0);
     RET(fstat(f->fd, &st) == 0 ? (uint32_t)st.st_size : 0);
 }
+/* file mappings: a mapping object keeps its own descriptor on the file; a view is a copy of the file's bytes in the guest heap (the game maps the
+ * .AVF puzzle videos read-only), freed by UnmapViewOfFile. A mapping of INVALID_HANDLE_VALUE is anonymous, zero-filled memory. */
+typedef struct MapObj { int fd; uint32_t size; } MapObj;
+API(CreateFileMappingA)
+{
+    (void)r;
+    FileObj *f = file_of(a[0]);
+    MapObj *m = (MapObj *)calloc(1, sizeof *m);
+    m->fd = -1;
+    if (f) {
+        struct stat st;
+        if (fstat(f->fd, &st) != 0) { free(m); last_error = 6; RET(0); }
+        m->fd = dup(f->fd);
+        m->size = a[4] ? a[4] : (uint32_t)st.st_size;
+    } else if (a[0] == 0xffffffffu && a[4]) {
+        m->size = a[4];
+    } else { free(m); last_error = 6; RET(0); }
+    RET(rc_handle_new(RC_H_MAP, m));
+}
+API(MapViewOfFile)
+{
+    (void)r;
+    MapObj *m = (MapObj *)rc_handle_obj(a[0], RC_H_MAP);
+    if (!m) { last_error = 6; RET(0); }
+    uint32_t off = a[3], len = a[4] ? a[4] : (m->size > off ? m->size - off : 0);
+    if (off > m->size || !len) { last_error = 87; RET(0); }
+    uint32_t base = rc_heap_get(len, 1);
+    if (m->fd >= 0) {
+        uint8_t tmp[65536];
+        for (uint32_t got = 0; got < len;) {
+            uint32_t chunk = len - got < sizeof tmp ? len - got : (uint32_t)sizeof tmp;
+            ssize_t n = pread(m->fd, tmp, chunk, (off_t)(off + got));
+            if (n <= 0) break;
+            rc_write(base + got, tmp, (size_t)n);
+            got += (uint32_t)n;
+        }
+    }
+    RET(base);
+}
+API(UnmapViewOfFile) { (void)r; rc_heap_put(a[0]); RET(1); }
 API(CloseHandle)
 {
     (void)r;
     FileObj *f = file_of(a[0]);
     if (f) { close(f->fd); free(f); }
     else if (rc_handle_kind(a[0]) == RC_H_EVENT) free(rc_handle_obj(a[0], RC_H_EVENT));
+    else if (rc_handle_kind(a[0]) == RC_H_MAP) { MapObj *m = (MapObj *)rc_handle_obj(a[0], RC_H_MAP); if (m->fd >= 0) close(m->fd); free(m); }
     rc_handle_close(a[0]);
     RET(1);
 }
@@ -1578,7 +1619,7 @@ static const ApiEnt api_table[] = {
     E(GetSystemMetrics), E(GetDC), EA("ReleaseDC", ReleaseDC), E(GetDeviceCaps), E(RegOpenKeyExA), E(RegCreateKeyExA), E(RegQueryValueExA),
     EA("RegSetValueExA", Zero), EA("RegCloseKey", Zero), E(GetCurrentDirectoryA), E(SetCurrentDirectoryA), E(GetWindowsDirectoryA),
     E(GetSystemDirectoryA), E(GetFileAttributesA), E(PathFileExistsA), E(PathAppendA), E(CopyFileA), E(DeleteFileA), E(CreateFileA), E(ReadFile),
-    E(WriteFile), E(SetFilePointer), E(GetFileSize), EA("SetEndOfFile", One), EA("FlushFileBuffers", One), E(CloseHandle), E(CreateEventA),
+    E(WriteFile), E(SetFilePointer), E(GetFileSize), E(CreateFileMappingA), E(MapViewOfFile), E(UnmapViewOfFile), EA("SetEndOfFile", One), EA("FlushFileBuffers", One), E(CloseHandle), E(CreateEventA),
     E(WaitForSingleObject), E(WaitForMultipleObjects), E(SetEvent), E(ResetEvent), E(FindFirstFileA), E(FindNextFileA), E(FindClose),
     E(GetPrivateProfileIntA), E(GetPrivateProfileStringA), E(WritePrivateProfileStringA), E(GetDriveTypeA), E(GetLogicalDrives), E(MessageBoxA),
     E(LoadCursorA), E(LoadIconA), E(LoadImageA), E(RegisterClassA), E(RegisterClassExA), E(GetClassInfoA), EA("GetClassInfoExA", GetClassInfoA),

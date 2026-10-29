@@ -116,7 +116,7 @@ void *rc_handle_obj(uint32_t h, int kind);
 int rc_handle_kind(uint32_t h);
 void rc_handle_close(uint32_t h);
 enum { RC_H_NONE = 0, RC_H_HEAP, RC_H_MODULE, RC_H_DC, RC_H_CURSOR, RC_H_ICON, RC_H_IMAGE, RC_H_WINDOW, RC_H_ACCEL, RC_H_DWP, RC_H_MENU,
-       RC_H_KEY, RC_H_FILE, RC_H_EVENT, RC_H_FIND, RC_H_HOOK, RC_H_RES, RC_H_GDI, RC_H_SURFDC };
+       RC_H_KEY, RC_H_FILE, RC_H_EVENT, RC_H_FIND, RC_H_HOOK, RC_H_RES, RC_H_GDI, RC_H_SURFDC, RC_H_MAP };
 uint32_t rc_guest_string(const char *s);           /* a NUL-terminated string in the guest heap */
 
 /* time: real milliseconds when the platform has a clock, otherwise the deterministic virtual clock the Python spike used */
