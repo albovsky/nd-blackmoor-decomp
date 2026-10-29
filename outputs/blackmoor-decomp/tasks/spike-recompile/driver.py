@@ -98,7 +98,7 @@ class Machine:
         self.surf_next = SURF_BASE
         self.frames = 0
         self.display = (640, 480, 16)
-        self.max_imports = max_imports
+        self.max_imports = int(os.environ.get("MAX_IMPORTS", max_imports))
         self.trace = trace
         self.depth = 0
         self.stop_reason = None
@@ -113,6 +113,7 @@ class Machine:
         self.next_handle = 0x100
         self.wndclasses = {}
         self.windows = {}
+        self.bink = {}
         self.hooks = {}
         self.timers = {}
         self.msgq = collections.deque()
@@ -544,7 +545,9 @@ class Machine:
     def api_QueryPerformanceFrequency(self, r, p): self.mem.w32(p, 1000000); self.mem.w32(p + 4, 0); return 1
     def api_QueryPerformanceCounter(self, r, p):
         t = int((time.time() - T0) * 1000000); self.mem.w32(p, t & 0xffffffff); self.mem.w32(p + 4, t >> 32); return 1
-    def api_GetTickCount(self, r): return (self.vclock + int((time.time() - T0) * 1000)) & 0xffffffff
+    def api_GetTickCount(self, r):
+        self.vclock += 1                                      # a game that busy-waits on the tick count makes time pass
+        return (self.vclock + int((time.time() - T0) * 1000)) & 0xffffffff
     def api_timeGetTime(self, r): return self.api_GetTickCount(r)
     def api_Sleep(self, r, ms): return 0
     def api_GetKeyboardType(self, r, n): return 4 if n == 0 else 0
@@ -911,8 +914,32 @@ class Machine:
     def fill_msg(self, p, m):
         hwnd, msg, wp, lp = m
         self.mem.write(p, struct.pack('<IIIIIii', hwnd, msg, wp, lp, self.vclock & 0xffffffff, 320, 240))
+    def feed_input(self):
+        """INPUT="virtual_ms:move|click|key:arg,..." (e.g. 6000:click:290,46): queue the mouse and key messages for the game window when the virtual clock gets there"""
+        if not hasattr(self, 'input_script'):
+            self.input_script = []
+            for part in filter(None, os.environ.get('INPUT', '').split(';')):
+                at, kind, arg = part.split(':')
+                self.input_script.append((int(at), kind, [int(a, 0) for a in arg.split(',')]))
+            self.cursor = (320, 240)
+        if not self.input_script or self.vclock < self.input_script[0][0]: return
+        at, kind, a = self.input_script.pop(0)
+        hwnd = next((h for h, w in self.windows.items() if 'Nancy Drew' in w['title']), None)
+        if hwnd is None: return
+        if kind in ('move', 'click'):
+            self.cursor = (a[0], a[1]); lp = (a[1] << 16) | a[0]
+            self.msgq.append((hwnd, 0x0200, 0, lp))
+            if kind == 'click':
+                self.btn_until = self.vclock + (a[2] if len(a) > 2 else 300)
+                self.msgq.append((hwnd, 0x0201, 1, lp)); self.msgq.append((hwnd, 0x0202, 0, lp))
+            self.log.write('  INPUT %s %s at virtual %d ms\n' % (kind, a, self.vclock))
+        elif kind == 'key':
+            self.msgq.append((hwnd, 0x0100, a[0], 0)); self.msgq.append((hwnd, 0x0101, a[0], 0xc0000000))
+            self.__dict__.setdefault('keys_down', {})[a[0]] = self.vclock + 300
+            self.log.write('  INPUT key %s at virtual %d ms\n' % (a, self.vclock))
     def next_message(self):
         """the queue, then a due timer; the virtual clock advances 5 ms per empty poll"""
+        self.feed_input()
         if self.msgq:
             return self.msgq.popleft()
         self.vclock += 5
@@ -1047,7 +1074,15 @@ class Machine:
         return ord(chr(p & 0xff).upper())
     def api_CharNextA(self, r, p): return p + (1 if self.mem.read(p, 1) != b'\0' else 0)
     def api_GetKeyState(self, r, k): return 0
-    def api_GetCursorPos(self, r, p): self.mem.w32(p, 320); self.mem.w32(p + 4, 240); return 1
+    def api_GetAsyncKeyState(self, r, vk):
+        # the game polls the mouse button and keys instead of waiting for messages: a scripted click holds VK_LBUTTON for 300 virtual ms
+        self.__dict__.setdefault('vk_seen', collections.Counter())[vk] += 1
+        if vk == 1 and self.vclock < getattr(self, 'btn_until', 0): return 0x8001
+        if vk in getattr(self, 'keys_down', {}) and self.vclock < self.keys_down[vk]: return 0x8001
+        return 0
+    def api_SetCursorPos(self, r, x, y): return 1          # the game re-centres the cursor every frame; the scripted position stays
+    def api_GetCursorPos(self, r, p):
+        x, y = getattr(self, 'cursor', (320, 240)); self.mem.w32(p, x); self.mem.w32(p + 4, y); return 1
     def api_SetCursor(self, r, c): return 0
     def api_ShowCursor(self, r, b):
         self.cursor_count = getattr(self, 'cursor_count', 0) + (1 if b else -1)
@@ -1353,6 +1388,7 @@ class Machine:
         self.prim_blits = getattr(self, 'prim_blits', 0) + 1
         if self.prim_blits in (1, 300, 3000, 30000, 100000): self.frame_dump(d)
     def blit(self, d, dx, dy, s_, sx, sy, w, h, ckey, dw, dh):
+        d['blits'] = d.get('blits', 0) + 1
         if w <= 0 or h <= 0: return
         stretch = (dw != w or dh != h) and dw > 0 and dh > 0
         for j in range(dh if stretch else h):
@@ -1394,6 +1430,59 @@ class Machine:
     # Bink video: the real decoder is a binary DLL; report a 565 surface, refuse to open movies (game treats it as skipped)
     def api__BinkDDSurfaceType_4(self, r, surf): return 10          # BINKSURFACE565
     def api_GetLastActivePopup(self, r, hwnd): return hwnd
+    # Bink movies: the original decoder is a binary x86 DLL, so ffmpeg decodes the file to RGB565 and the shim serves the frames
+    BINK_FIELDS = ('Width', 'Height', 'Frames', 'FrameNum', 'LastFrameNum', 'FrameRate', 'FrameRateDiv')
+    def bink_frames(self, b):
+        if 'raw' in b: return b['raw']
+        import subprocess
+        out = subprocess.run(['ffmpeg', '-v', 'error', '-i', b['path'], '-frames:v', '400', '-f', 'rawvideo', '-pix_fmt', 'rgb565le', '-'], capture_output=True).stdout
+        fsz = b['w'] * b['h'] * 2
+        b['raw'] = [out[i:i + fsz] for i in range(0, len(out) - fsz + 1, fsz)] or [bytes(fsz)]
+        return b['raw']
+    def api__BinkOpen_8(self, r, path, flags):
+        import subprocess
+        win = self.mem.cstr(path); self.fs_log('bink', win)
+        h = self.fs_path(win, must_exist=True)
+        if h is None: self.bink_error = 'file not found'; return 0
+        pr = subprocess.run(['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-count_packets', '-show_entries', 'stream=width,height,r_frame_rate,nb_read_packets',
+                             '-of', 'json', h], capture_output=True)
+        try:
+            s = json.loads(pr.stdout)['streams'][0]
+            w, ht, frames = int(s['width']), int(s['height']), max(int(s.get('nb_read_packets') or 1), 1)
+            num, den = (int(x) for x in s['r_frame_rate'].split('/'))
+        except Exception:
+            self.bink_error = 'not a Bink file'; return 0
+        p = self.alloc(0x400)
+        self.mem.write(p, bytes(0x400))
+        for k, v in enumerate((w, ht, frames, 1, 0, num * 1000 // max(den, 1), 1000)): self.mem.w32(p + 4 * k, v)
+        self.mem.w32(p + 32, flags)
+        self.bink[p] = {'path': h, 'w': w, 'h': ht, 'frames': frames}
+        self.log.write('  BinkOpen %s -> %dx%d, %d frames\n' % (win, w, ht, frames)); return p
+    def api__BinkGetError_0(self, r):
+        return self.cstring(getattr(self, 'bink_error', 'ok'))
+    def api__BinkClose_4(self, r, p): self.bink.pop(p, None); return 0
+    def api__BinkDoFrame_4(self, r, p): self.mem.w32(p + 16, self.mem.u32(p + 12)); return 0
+    def api__BinkNextFrame_4(self, r, p):
+        n = self.mem.u32(p + 12) + 1
+        self.mem.w32(p + 12, n if n <= self.mem.u32(p + 8) else 1); return 0
+    def api__BinkWait_4(self, r, p): return 0
+    def api__BinkGoto_12(self, r, p, frame, flags): self.mem.w32(p + 12, max(1, min(frame, self.mem.u32(p + 8)))); return 0
+    def api__BinkCopyToBuffer_28(self, r, p, dst, pitch, height, x, y, flags):
+        b = self.bink[p]; frames = self.bink_frames(b)
+        raw = frames[min(self.mem.u32(p + 16) - 1, len(frames) - 1)] if self.mem.u32(p + 16) else frames[0]
+        w, h = b['w'], b['h']
+        for j in range(h):
+            if y + j < 0 or y + j >= height: continue
+            self.mem.write(dst + (y + j) * pitch + x * 2, raw[j * w * 2:(j + 1) * w * 2])
+        return 0
+    def api__BinkGetSummary_8(self, r, p, out):
+        self.mem.write(out, bytes(0x100))
+        w, h, n, rate, div = (self.mem.u32(p + o) for o in (0, 4, 8, 20, 24))
+        for k, v in enumerate((w, h, n * 1000 * div // max(rate, 1), rate, div, rate, div, 0, n, 0)): self.mem.w32(out + 4 * k, v)
+        return 0
+    def api__BinkGetRealtime_12(self, r, p, out, frames): self.mem.write(out, bytes(0x40)); return 0
+    def api__BinkOpenDirectSound_4(self, r, guid): return 1
+    def api__BinkSetSoundSystem_8(self, r, fn, ds): return 1
     # DirectSound: a silent device whose buffers live in host memory and whose play cursor follows the virtual clock
     def api_DirectSoundCreate(self, r, guid, out, unk):
         self.reached_dsound = True
@@ -1569,6 +1658,9 @@ def main():
            'imports_called': m.import_calls, 'distinct_imports': len(m.import_log), 'on_demand_pages': len(m.on_demand),
            'reached_create_window': getattr(m, 'reached_create_window', False), 'reached_ddraw': getattr(m, 'reached_ddraw', False), 'files_opened': m.files_opened, 'first_data_file': m.first_data_file, 'file_log': m.file_log[:40],
            'unicorn_instructions': getattr(m, 'uc_instr', 0)}
+    for o in m.com_objects.values():                                         # a picture of every surface that was a blit destination
+        if o.get('iface') == 'IDirectDrawSurface7' and o.get('blits'): m.log.write('SURFACE %dx%d primary=%s blits=%d\n' % (o['w'], o['h'], o['primary'], o['blits']))
+    m.log.write('VKSEEN %s\n' % dict(getattr(m, 'vk_seen', {})))
     prim = next((o for o in m.com_objects.values() if o.get('primary')), None)
     if prim: m.frames = 0; m.frame_dump(prim)                                  # the last picture of the primary surface
     for spec in filter(None, os.environ.get('DUMP', '').split(',')):         # debugging: DUMP=addr:words,...

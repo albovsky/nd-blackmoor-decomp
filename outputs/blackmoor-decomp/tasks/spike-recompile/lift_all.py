@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Spike: lift every ledger function with the FL41 lifter in bulk mode; write all_lifted.c and a refusal census."""
-import json, sys, time, collections, traceback
+import json, sys, time, collections, traceback, re
 from pathlib import Path
 sys.dont_write_bytecode = True
 HERE = Path(__file__).resolve().parent
@@ -57,6 +57,25 @@ for e in entries:
                          'indirect': {hex(a): v for a, v in L.INDIRECT_SITES.get(pva, {}).items()}, 'inline': sorted(hex(x) for x in inline), 'part_of': e['va']}
             parts_ok += 1
         except Exception as ex:
+            # a part that runs into the jump table of its function: the table is data, so cut the part where the run of code pointers starts
+            m = re.search(r'disassembly stops at (0x[0-9a-f]+)', str(ex))
+            if m:
+                img = L.od.load_image()
+                stop = int(m.group(1), 16)
+                t = stop & ~3
+                while t > pva and 0x401000 <= int.from_bytes(img.image[t - 4 - img.image_base:t - img.image_base], 'little') < 0x540000:
+                    t -= 4
+                if pva < t < stop:
+                    try:
+                        text, callees, imports, fs, inline = L.lift(pva, t - pva)
+                        ok[pva] = text
+                        part_size[pva] = t - pva
+                        meta[pva] = {'callees': {hex(a): v for a, v in callees.items()}, 'imports': {hex(a): v for a, v in imports.items()}, 'fs': fs,
+                                     'indirect': {hex(a): v for a, v in L.INDIRECT_SITES.get(pva, {}).items()}, 'inline': sorted(hex(x) for x in inline), 'part_of': e['va']}
+                        parts_ok += 1
+                        continue
+                    except Exception as ex2:
+                        ex = ex2
             refused[pva] = 'part of %s: %s' % (e['va'], str(ex)[:120])
             parts_bad += 1
 print('derived parts lifted', parts_ok, 'refused', parts_bad)
