@@ -16,7 +16,7 @@ IMAGE_BASE = 0x400000
 STACK_BASE, STACK_SIZE = 0x7c000000, 0x100000
 TIB = 0x7d000000
 MAGIC = 0x7e000000              # import stubs: 16 bytes each
-HEAP_BASE, HEAP_SIZE = 0x10000000, 0x4000000
+HEAP_BASE, HEAP_SIZE = 0x10000000, 0x10000000
 SURF_BASE, SURF_SIZE = 0x20000000, 0x20000000   # DirectDraw surface memory (mmap is lazy)
 STOP = 0x7f000000               # return address that ends a Unicorn run
 PAGE = 0x1000
@@ -456,18 +456,28 @@ class Machine:
     def api_HeapCreate(self, r, flags, init, maxsize): return self.handle('heap')
     def api_HeapDestroy(self, r, h): return 1
     def api_GetProcessHeap(self, r): return 0x100
-    def api_HeapAlloc(self, r, heap, flags, size):
-        p = self.alloc(size)
+    def heap_get(self, size, zero):
+        """a block from the size-class free list (zeroed when asked) or fresh from the bump pointer"""
+        rounded = (max(size, 1) + 15) & ~15
+        fl = self.__dict__.setdefault('free_blocks', {}).get(rounded)
+        if fl:
+            p = fl.pop()
+            if zero: self.mem.write(p, bytes(rounded))
+        else:
+            p = self.alloc(rounded)
         self.handles.setdefault('sizes', {})[p] = size
         return p
+    def heap_put(self, p):
+        size = self.handles.get('sizes', {}).pop(p, None)
+        if size is not None: self.__dict__.setdefault('free_blocks', {}).setdefault((max(size, 1) + 15) & ~15, []).append(p)
+    def api_HeapAlloc(self, r, heap, flags, size): return self.heap_get(size, flags & 8)
     def api_HeapReAlloc(self, r, heap, flags, p, size):
-        q = self.alloc(size)
+        q = self.heap_get(size, flags & 8)
         old = self.handles.get('sizes', {}).get(p, 0)
-        if old:
-            self.mem.write(q, self.mem.read(p, min(old, size)))
-        self.handles.setdefault('sizes', {})[q] = size
+        if old: self.mem.write(q, self.mem.read(p, min(old, size)))
+        self.heap_put(p)
         return q
-    def api_HeapFree(self, r, heap, flags, p): return 1
+    def api_HeapFree(self, r, heap, flags, p): self.heap_put(p); return 1
     def api_HeapSize(self, r, heap, flags, p): return self.handles.get('sizes', {}).get(p, 0)
     def api_VirtualAlloc(self, r, addr, size, kind, prot): return self.alloc(size)
     def api_VirtualFree(self, r, addr, size, kind): return 1
@@ -584,7 +594,8 @@ class Machine:
         return cur
     def fs_log(self, what, win):
         self.file_log.append((what, win))
-        self.log.write('  FILE %s %s\n' % (what, win))
+        self.log.write('  FILE %s %s  [virtual %d ms]\n' % (what, win, self.vclock))
+        self.__dict__.setdefault('seen_at', {}).setdefault(os.path.basename(win.replace('\\', '/')).upper(), self.vclock)
     def api_GetFileAttributesA(self, r, p):
         win = self.mem.cstr(p); h = self.fs_path(win); self.fs_log('attr', win)
         if h is None: self.last_error = 2; return 0xffffffff
@@ -665,10 +676,12 @@ class Machine:
             return False
         return True                                                  # other handles (threads, processes) count as signalled
     def api_WaitForSingleObject(self, r, h, ms):
+        self.ds_tick()
         if self.wait_one(h): return 0
         self.vclock += ms if ms != 0xffffffff else 5
         return 0x102
     def api_WaitForMultipleObjects(self, r, n, ptr, wait_all, ms):
+        self.ds_tick()
         hs = [self.mem.u32(ptr + 4 * i) for i in range(n)]
         if wait_all:
             if all(self.handles.get(h, ('', {'set': 1}))[1].get('set', 1) for h in hs):
@@ -920,12 +933,28 @@ class Machine:
             self.input_script = []
             for part in filter(None, os.environ.get('INPUT', '').split(';')):
                 at, kind, arg = part.split(':')
-                self.input_script.append((int(at), kind, [int(a, 0) for a in arg.split(',')]))
+                self.input_script.append((at, kind, [int(a, 0) for a in arg.split(',')]))
             self.cursor = (320, 240)
-        if not self.input_script or self.vclock < self.input_script[0][0]: return
+        if not self.input_script: return
+        # a time is virtual milliseconds, or FILE.EXT+ms: that many ms after the game first opened that file (S2010.CIF+3000)
+        at = self.input_script[0][0]
+        if at.isdigit(): due = int(at)
+        else:
+            name, _, off = at.partition('+')
+            seen = getattr(self, 'seen_at', {}).get(name.upper())
+            if seen is None: return
+            due = seen + int(off or 0)
+        if self.vclock < due: return
         at, kind, a = self.input_script.pop(0)
         hwnd = next((h for h, w in self.windows.items() if 'Nancy Drew' in w['title']), None)
         if hwnd is None: return
+        if kind == 'shot':                                       # a picture of the primary surface, named shotNN.ppm in frames/
+            prim = next((o for o in self.com_objects.values() if o.get('primary')), None)
+            if prim:
+                self.shots = getattr(self, 'shots', 0) + 1
+                f = self.frames; self.frames = 100 + self.shots - 1; self.frame_dump(prim); self.frames = f
+                self.log.write('  SHOT %d at virtual %d ms\n' % (self.shots, self.vclock))
+            return
         if kind in ('move', 'click'):
             self.cursor = (a[0], a[1]); lp = (a[1] << 16) | a[0]
             self.msgq.append((hwnd, 0x0200, 0, lp))
@@ -1386,7 +1415,7 @@ class Machine:
         # the game draws straight onto the primary surface (BltFast, no Flip): take a picture after the 1st, 300th, 3000th ... blit
         if not d.get('primary'): return
         self.prim_blits = getattr(self, 'prim_blits', 0) + 1
-        if self.prim_blits in (1, 300, 3000, 30000, 100000): self.frame_dump(d)
+        if self.prim_blits in (1, 300, 3000) or self.prim_blits % 20000 == 0: self.frame_dump(d)
     def blit(self, d, dx, dy, s_, sx, sy, w, h, ckey, dw, dh):
         d['blits'] = d.get('blits', 0) + 1
         if w <= 0 or h <= 0: return
@@ -1414,7 +1443,7 @@ class Machine:
                 self.mem.write(dst, bytes(cur))
     def frame_dump(self, o):
         self.frames += 1
-        if self.frames > 40: return
+        if self.frames > 60 and not 100 <= self.frames < 140: return
         os.makedirs(HERE / 'frames', exist_ok=True)
         w, h = o['w'], o['h']
         out = bytearray()
@@ -1561,6 +1590,7 @@ class Machine:
     def api_IDirectSoundBuffer_GetFrequency(self, r, this, out): self.mem.w32(out, self.com(this)['freq']); return 0
     def api_IDirectSoundBuffer_SetFrequency(self, r, this, v): self.com(this)['freq'] = v; return 0
     def api_IDirectSoundBuffer_GetStatus(self, r, this, out):
+        self.ds_tick()
         o = self.com(this); self.dsb_pos(o)
         self.mem.w32(out, (0x1 | (0x4 if o['playing'] & 1 else 0)) if o['playing'] else 0); return 0
     def api_IDirectSoundBuffer_Initialize(self, r, this, ds, desc): return 0
@@ -1575,11 +1605,48 @@ class Machine:
         return 0
     def api_IDirectSoundBuffer_Unlock(self, r, this, p1, n1, p2, n2): return 0
     def api_IDirectSoundBuffer_Play(self, r, this, res, pri, flags):
-        o = self.com(this); o['playing'] = 0x10 | (flags & 1); o['start'] = self.vclock; return 0
+        o = self.com(this); o['playing'] = 0x10 | (flags & 1); o['start'] = self.vclock; o['gen'] = o.get('gen', 0) + 1; return 0
     def api_IDirectSoundBuffer_Stop(self, r, this):
-        o = self.com(this); o['pos'] = self.dsb_pos(o); o['playing'] = 0; return 0
+        o = self.com(this); self.ds_tick(); o['pos'] = self.dsb_pos(o); o['playing'] = 0; self.ds_fire_stop(this); return 0
     def api_IDirectSoundBuffer_SetCurrentPosition(self, r, this, pos):
-        o = self.com(this); o['pos'] = pos % o['size']; o['start'] = self.vclock; return 0
+        o = self.com(this); o['pos'] = pos % o['size']; o['start'] = self.vclock; o['gen'] = o.get('gen', 0) + 1; return 0
+    def ds_fire_stop(self, buf):
+        for n in self.com_objects.values():
+            if n.get('iface') == 'IDirectSoundNotify' and n.get('buf') == buf:
+                for off, ev in n.get('notify', ()):
+                    if off == 0xffffffff: self.set_event(ev)
+    def set_event(self, h):
+        k = self.handles.get(h)
+        if k and k[0] == 'event': k[1]['set'] = 1
+    def ds_tick(self):
+        """the silent device plays on the virtual clock: signal the notify events whose buffer positions have passed (and DSBPN_OFFSETSTOP when a one-shot buffer ends)"""
+        for n in list(self.com_objects.values()):
+            if n.get('iface') != 'IDirectSoundNotify' or not n.get('notify'): continue
+            b = self.com(n['buf'])
+            if not b or not b['playing']: 
+                if b and n.get('ended_gen') != b.get('gen') and n.get('was_playing'):
+                    n['ended_gen'] = b.get('gen'); n['was_playing'] = False
+                    for off, ev in n['notify']:
+                        if off == 0xffffffff: self.set_event(ev)
+                continue
+            bps = struct.unpack('<I', b['fmt'][8:12])[0] or 88200
+            t = b['pos'] + (self.vclock - b['start']) * bps // 1000
+            loop = bool(b['playing'] & 1)
+            if n.get('gen') != b.get('gen'):
+                n['gen'] = b.get('gen'); n['last_t'] = b['pos']; n['was_playing'] = True
+            last = n['last_t']
+            if not loop and t >= b['size']:
+                t = b['size']
+            for off, ev in n['notify']:
+                if off == 0xffffffff: continue
+                kn = (t - off) // b['size'] if t >= off else -1
+                kl = (last - off) // b['size'] if last >= off else -1
+                if kn > kl and (loop or kl < 0): self.set_event(ev)
+            n['last_t'] = t
+            if not loop and t >= b['size']:
+                b['playing'] = 0; b['pos'] = 0; n['was_playing'] = False; n['ended_gen'] = b.get('gen')
+                for off, ev in n['notify']:
+                    if off == 0xffffffff: self.set_event(ev)
     def api_IDirectSoundBuffer_Restore(self, r, this): return 0
 
 
