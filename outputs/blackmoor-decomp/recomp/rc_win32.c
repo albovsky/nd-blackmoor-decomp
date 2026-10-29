@@ -1419,7 +1419,37 @@ API(GetMessageA)
     fill_msg(a[0], m);
     RET(m.msg == 0x0012 ? 0 : 1);
 }
-API(TranslateMessage) { UNUSED; RET(0); }
+/* WM_KEYDOWN of a printable key becomes a WM_CHAR (US layout; the platform sends virtual keys, not characters) */
+static uint32_t vk_char(uint32_t vk, int shift)
+{
+    static const char shifted_digits[] = ")!@#$%^&*(";
+    if (vk >= 'A' && vk <= 'Z') return shift ? vk : vk + 32u;
+    if (vk >= '0' && vk <= '9') return shift ? (uint32_t)shifted_digits[vk - '0'] : vk;
+    switch (vk) {
+    case 0x20: return ' ';
+    case 0x08: return 8;
+    case 0x0d: return 13;
+    case 0x09: return 9;
+    case 0xba: return shift ? ':' : ';';
+    case 0xbb: return shift ? '+' : '=';
+    case 0xbc: return shift ? '<' : ',';
+    case 0xbd: return shift ? '_' : '-';
+    case 0xbe: return shift ? '>' : '.';
+    case 0xbf: return shift ? '?' : '/';
+    case 0xc0: return shift ? '~' : '`';
+    case 0xde: return shift ? '"' : '\'';
+    default: return 0;
+    }
+}
+API(TranslateMessage)
+{
+    (void)r;
+    if (rc_u32(a[0] + 4) != 0x0100u) RET(0);
+    uint32_t ch = vk_char(rc_u32(a[0] + 8), key_flag[0x10] || key_flag[0xa0] || key_flag[0xa1]);
+    if (!ch) RET(0);
+    rc_msg_post(rc_u32(a[0]), 0x0102u, ch, 0u);
+    RET(1);
+}
 API(DispatchMessageA)
 {
     (void)r;
