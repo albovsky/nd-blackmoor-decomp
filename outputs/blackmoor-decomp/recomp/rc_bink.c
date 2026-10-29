@@ -95,9 +95,11 @@ API(BinkDoFrame)
     (void)r;
     Movie *m = movie_of(a[0]);
     rc_w32(a[0] + 16, rc_u32(a[0] + 12));
-    if (m && !m->started) {
-        m->started = 1; m->start_clock = rc_clock();
-        start_sound(m, 0);
+    if (m && !m->started) {                          /* the timeline starts at the frame a BinkGoto before this call chose */
+        uint32_t cur = rc_u32(a[0] + 12), f0 = cur > 0 ? cur - 1u : 0u;
+        m->started = 1;
+        m->start_clock = rc_clock() - (uint32_t)((uint64_t)f0 * 1000u * m->div / (m->rate ? m->rate : 1000u));
+        start_sound(m, f0);
     }
     RET(0);
 }
