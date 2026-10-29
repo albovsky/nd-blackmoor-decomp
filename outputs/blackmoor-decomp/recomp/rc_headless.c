@@ -165,9 +165,16 @@ static void poll_hook(void)
         int click = !strcmp(st->kind, "click");
         rc_input_event(click ? 1 : 0, st->arg[0], st->arg[1], st->nargs > 2 ? (uint32_t)st->arg[2] : 300u, 0);
         rc_log("  INPUT %s at virtual %u ms", st->kind, now);
-    } else if (!strcmp(st->kind, "key")) {
-        rc_input_event(2, 0, 0, 300, (uint32_t)st->arg[0]);
-        rc_log("  INPUT key at virtual %u ms", now);
+    } else if (!strcmp(st->kind, "key")) {                 /* a key press and release as the platform sends them: a printable one makes a WM_CHAR */
+        rc_input_key((uint32_t)st->arg[0], 1);
+        rc_input_key((uint32_t)st->arg[0], 0);
+        rc_log("  INPUT key %d at virtual %u ms", st->arg[0], now);
+    } else if (!strcmp(st->kind, "keydown") || !strcmp(st->kind, "keyup")) {     /* keydown:16 before a letter makes it a capital, keyup:16 after */
+        rc_input_key((uint32_t)st->arg[0], !strcmp(st->kind, "keydown"));
+        rc_log("  INPUT %s %d at virtual %u ms", st->kind, st->arg[0], now);
+    } else if (!strcmp(st->kind, "keyhold")) {             /* the key stays down for arg[1] virtual ms, for a game that polls the key state */
+        rc_input_event(2, 0, 0, st->nargs > 1 ? (uint32_t)st->arg[1] : 300u, (uint32_t)st->arg[0]);
+        rc_log("  INPUT keyhold %d at virtual %u ms", st->arg[0], now);
     }
 }
 
