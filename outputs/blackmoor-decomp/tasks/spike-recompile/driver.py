@@ -17,6 +17,7 @@ STACK_BASE, STACK_SIZE = 0x7c000000, 0x100000
 TIB = 0x7d000000
 MAGIC = 0x7e000000              # import stubs: 16 bytes each
 HEAP_BASE, HEAP_SIZE = 0x10000000, 0x4000000
+SURF_BASE, SURF_SIZE = 0x20000000, 0x20000000   # DirectDraw surface memory (mmap is lazy)
 STOP = 0x7f000000               # return address that ends a Unicorn run
 PAGE = 0x1000
 
@@ -90,6 +91,12 @@ class Machine:
         self.log = open(HERE / 'run.log', 'w')
         self.import_log = collections.Counter()
         self.import_calls = 0
+        self.com_vtables = {}
+        self.com_objects = {}
+        self.com_stub_count = 0
+        self.surf_next = SURF_BASE
+        self.frames = 0
+        self.display = (640, 480, 16)
         self.max_imports = max_imports
         self.trace = trace
         self.depth = 0
@@ -105,6 +112,13 @@ class Machine:
         self.next_handle = 0x100
         self.wndclasses = {}
         self.windows = {}
+        self.hooks = {}
+        self.timers = {}
+        self.msgq = collections.deque()
+        self.vclock = 1000
+        self.idle_polls = 0
+        self.max_idle_polls = 20000
+        self.msg_log = 0
         self.tls = {}
         self.last_error = 0
         self.file_log = []
@@ -129,6 +143,7 @@ class Machine:
         self.mem.map(STACK_BASE, STACK_SIZE, 'stack')
         self.mem.map(TIB, PAGE, 'tib')
         self.mem.map(HEAP_BASE, HEAP_SIZE, 'heap')
+        self.mem.map(SURF_BASE, SURF_SIZE, 'surfaces')
         self.mem.map(MAGIC, 0x10000, 'magic')
         self.mem.map(STOP, PAGE, 'stop')
         m = self.mem
@@ -222,6 +237,7 @@ class Machine:
                 return self.call_import(self.thunks[target], r)
             if IMAGE_BASE <= target < IMAGE_BASE + self.image_size:
                 return self.run_unicorn(target, r)
+            self.log.write('BAD CALL 0x%x: stack %s\n  last calls %s\n' % (target, ' '.join('0x%x' % t for t in self.stack[-25:]), ' '.join('0x%x' % t for t in self.ring[-40:])))
             self.lib.host_set_abort(('call to 0x%08x: not lifted, not an import, not in the image' % target).encode())
             return -3
         except StopRun as ex:
@@ -242,7 +258,7 @@ class Machine:
         self.import_log[name] += 1
         if self.import_calls > self.max_imports:
             raise StopRun('import budget exhausted')
-        fn = getattr(self, 'api_' + name, None)
+        fn = getattr(self, 'api_' + name.replace('@', '_').replace('#', '_'), None)
         nargs = n // 4
         if fn is not None:
             nargs = fn.__code__.co_argcount - 2
@@ -489,7 +505,7 @@ class Machine:
     def api_QueryPerformanceFrequency(self, r, p): self.mem.w32(p, 1000000); self.mem.w32(p + 4, 0); return 1
     def api_QueryPerformanceCounter(self, r, p):
         t = int((time.time() - T0) * 1000000); self.mem.w32(p, t & 0xffffffff); self.mem.w32(p + 4, t >> 32); return 1
-    def api_GetTickCount(self, r): return int((time.time() - T0) * 1000) & 0xffffffff
+    def api_GetTickCount(self, r): return (self.vclock + int((time.time() - T0) * 1000)) & 0xffffffff
     def api_timeGetTime(self, r): return self.api_GetTickCount(r)
     def api_Sleep(self, r, ms): return 0
     def api_GetKeyboardType(self, r, n): return 4 if n == 0 else 0
@@ -667,38 +683,202 @@ class Machine:
         n = self.mem.cstr(cls) if cls >= 0x10000 else cls
         t = self.mem.cstr(title) if title else ''
         hwnd = self.handle('window', n)
+        if x == 0x80000000: x = 0
+        if y == 0x80000000: y = 0
+        if w == 0x80000000: w = 640
+        if hgt == 0x80000000: hgt = 480
         self.log.write('  CreateWindowExA(class=%r, title=%r, style=0x%x, %dx%d) -> hwnd 0x%x\n' % (n, t, style, w, hgt, hwnd))
-        self.windows[hwnd] = (n, self.wndclasses.get(n))
+        self.windows[hwnd] = {'cls': n, 'proc': self.wndclasses.get(n), 'title': t, 'style': style, 'ex': ex, 'rect': (x, y, x + w, y + hgt),
+                              'parent': parent, 'user': 0, 'id': menu if parent else 0, 'visible': False}
         self.reached_create_window = True
-        proc = self.wndclasses.get(n)
-        if proc:
-            cs = self.alloc(48)
-            self.mem.w32(cs, param); self.mem.w32(cs + 4, inst); self.mem.w32(cs + 8, menu); self.mem.w32(cs + 12, parent)
-            self.mem.w32(cs + 16, hgt); self.mem.w32(cs + 20, w); self.mem.w32(cs + 24, y); self.mem.w32(cs + 28, x)
-            self.mem.w32(cs + 32, style); self.mem.w32(cs + 36, title); self.mem.w32(cs + 40, cls); self.mem.w32(cs + 44, ex)
+        cs = self.alloc(48)
+        self.mem.w32(cs, param); self.mem.w32(cs + 4, inst); self.mem.w32(cs + 8, menu); self.mem.w32(cs + 12, parent)
+        self.mem.w32(cs + 16, hgt); self.mem.w32(cs + 20, w); self.mem.w32(cs + 24, y); self.mem.w32(cs + 28, x)
+        self.mem.w32(cs + 32, style); self.mem.w32(cs + 36, title); self.mem.w32(cs + 40, cls); self.mem.w32(cs + 44, ex)
+        hook = self.hooks.get(5)                 # WH_CBT: MFC attaches its CWnd and subclasses here
+        if hook:
+            cbt = self.alloc(8); self.mem.w32(cbt, cs); self.mem.w32(cbt + 4, 0)
+            self.call(hook, 3, hwnd, cbt)        # HCBT_CREATEWND
+        if self.windows[hwnd]['proc']:
             self.send(hwnd, 0x0081, 0, cs)       # WM_NCCREATE
             self.send(hwnd, 0x0001, 0, cs)       # WM_CREATE
+        if style & 0x10000000:                   # WS_VISIBLE
+            self.show_window(hwnd)
         return hwnd
+    def api_DestroyWindow(self, r, hwnd):
+        if hwnd in self.windows:
+            self.send(hwnd, 0x0002, 0, 0); self.send(hwnd, 0x0082, 0, 0)   # WM_DESTROY, WM_NCDESTROY
+        return 1
+    def api_CallNextHookEx(self, r, hook, code, wp, lp): return 0
+    def api_CallWindowProcA(self, r, proc, hwnd, msg, wp, lp): return self.call(proc, hwnd, msg, wp, lp)
+    def api_IsWindowEnabled(self, r, hwnd): return 1
+    def api_EnableWindow(self, r, hwnd, en): return 0
+    def api_GetTopWindow(self, r, hwnd): return 0
+    def api_GetWindow(self, r, hwnd, cmd): return 0
+    def api_GetDlgItem(self, r, hwnd, id_): return 0
+    def api_LoadAcceleratorsA(self, r, inst, name): return self.handle('accel')
+    def api_BeginDeferWindowPos(self, r, n): return self.handle('dwp')
+    def api_DeferWindowPos(self, r, dwp, hwnd, after, x, y, cx, cy, flags): return dwp
+    def api_EndDeferWindowPos(self, r, dwp): return 1
+    def api_GetCapture(self, r): return 0
+    def api_SetCapture(self, r, hwnd): return 0
+    def api_ReleaseCapture(self, r): return 1
+    def api_ClientToScreen(self, r, hwnd, pt): return 1
+    def api_ScreenToClient(self, r, hwnd, pt): return 1
+    def api_GetSystemMenu(self, r, hwnd, revert): return self.handle('menu')
+    def api_GetMenu(self, r, hwnd): return 0
+    def api_SetMenu(self, r, hwnd, menu): return 1
+    def api_DrawMenuBar(self, r, hwnd): return 1
+    def api_SetWindowTextA(self, r, hwnd, text): return 1
+    def api_GetWindowTextA(self, r, hwnd, buf, n):
+        t = self.windows.get(hwnd, {}).get('title', '').encode('latin-1')[:max(n - 1, 0)]; self.mem.write(buf, t + b'\0'); return len(t)
+    def api_GetWindowTextLengthA(self, r, hwnd): return len(self.windows.get(hwnd, {}).get('title', ''))
+    def api_SetRect(self, r, p, l, t, rt, b): self.mem.write(p, struct.pack('<iiii', l, t, rt, b)); return 1
+    def api_CopyRect(self, r, d, s_): self.mem.write(d, self.mem.read(s_, 16)); return 1
+    def api_IntersectRect(self, r, d, a, b):
+        al, at, ar, ab = struct.unpack('<iiii', self.mem.read(a, 16)); bl, bt, br, bb = struct.unpack('<iiii', self.mem.read(b, 16))
+        l, t, rt, bo = max(al, bl), max(at, bt), min(ar, br), min(ab, bb)
+        if rt <= l or bo <= t: self.mem.write(d, bytes(16)); return 0
+        self.mem.write(d, struct.pack('<iiii', l, t, rt, bo)); return 1
+    def api_PtInRect(self, r, p, x, y):
+        l, t, rt, b = struct.unpack('<iiii', self.mem.read(p, 16)); x = x - (1 << 32) if x & 0x80000000 else x; y = y - (1 << 32) if y & 0x80000000 else y
+        return 1 if l <= x < rt and t <= y < b else 0
+    def api_IsRectEmpty(self, r, p):
+        l, t, rt, b = struct.unpack('<iiii', self.mem.read(p, 16)); return 1 if rt <= l or b <= t else 0
+    def api_OffsetRect(self, r, p, dx, dy):
+        l, t, rt, b = struct.unpack('<iiii', self.mem.read(p, 16)); dx = dx - (1 << 32) if dx & 0x80000000 else dx; dy = dy - (1 << 32) if dy & 0x80000000 else dy
+        self.mem.write(p, struct.pack('<iiii', l + dx, t + dy, rt + dx, b + dy)); return 1
+    def api_SetWindowsHookExA(self, r, kind, proc, inst, tid):
+        self.hooks[kind] = proc; return self.handle('hook', kind)
+    def api_UnhookWindowsHookEx(self, r, h):
+        kind = self.handles.get(h, (None, None))[1]
+        self.hooks.pop(kind, None); return 1
     def send(self, hwnd, msg, wp, lp):
-        proc = self.windows.get(hwnd, (None, None))[1]
+        wnd = self.windows.get(hwnd)
+        proc = wnd['proc'] if wnd else 0
         if not proc:
             return 0
-        self.log.write('  -> WndProc 0x%x(hwnd=0x%x, msg=0x%04x, wp=0x%x, lp=0x%x)\n' % (proc, hwnd, msg, wp, lp))
+        if self.msg_log < 400 or msg not in (0x0113, 0x000f, 0x0020, 0x0084, 0x0200):
+            self.msg_log += 1
+            self.log.write('  -> WndProc 0x%x(hwnd=0x%x, msg=0x%04x, wp=0x%x, lp=0x%x)\n' % (proc, hwnd, msg, wp, lp))
         return self.call(proc, hwnd, msg, wp, lp)
     def api_SendMessageA(self, r, hwnd, msg, wp, lp): return self.send(hwnd, msg, wp, lp)
-    def api_DefWindowProcA(self, r, hwnd, msg, wp, lp): return 0
-    def api_SetWindowLongA(self, r, hwnd, i, v): return 0
-    def api_GetWindowLongA(self, r, hwnd, i): return 0
-    def api_ShowWindow(self, r, hwnd, cmd): self.log.write('  ShowWindow(0x%x, %d)\n' % (hwnd, cmd)); return 0
-    def api_UpdateWindow(self, r, hwnd): return 1
-    def api_GetMessageA(self, r, msg, hwnd, a, b):
-        self.msg_loops = getattr(self, 'msg_loops', 0) + 1
-        raise StopRun('GetMessageA: reached the message loop')
-    def api_PeekMessageA(self, r, msg, hwnd, a, b, remove):
-        self.msg_loops = getattr(self, 'msg_loops', 0) + 1
-        if self.msg_loops > 50:
-            raise StopRun('PeekMessageA: reached the message loop')
+    def api_PostMessageA(self, r, hwnd, msg, wp, lp): self.msgq.append((hwnd, msg, wp, lp)); return 1
+    def api_PostQuitMessage(self, r, code): self.msgq.append((0, 0x0012, code, 0)); return 0
+    def api_DefWindowProcA(self, r, hwnd, msg, wp, lp):
+        if msg == 0x0081: return 1               # WM_NCCREATE
+        if msg == 0x0083 or msg == 0x0005: return 0
         return 0
+    def api_SetWindowLongA(self, r, hwnd, i, v):
+        wnd = self.windows.get(hwnd)
+        if not wnd: return 0
+        i = i - (1 << 32) if i & 0x80000000 else i
+        key = {-4: 'proc', -16: 'style', -20: 'ex', -21: 'user', -12: 'id'}.get(i)
+        if key is None: return 0
+        old = wnd[key]; wnd[key] = v
+        if key == 'proc': self.log.write('  subclass hwnd 0x%x: proc 0x%x -> 0x%x\n' % (hwnd, old or 0, v))
+        return old or 0
+    def api_GetWindowLongA(self, r, hwnd, i):
+        wnd = self.windows.get(hwnd)
+        if not wnd: return 0
+        i = i - (1 << 32) if i & 0x80000000 else i
+        key = {-4: 'proc', -16: 'style', -20: 'ex', -21: 'user', -12: 'id'}.get(i)
+        return (wnd[key] or 0) if key else 0
+    def show_window(self, hwnd):
+        wnd = self.windows[hwnd]
+        if wnd['visible']: return
+        wnd['visible'] = True
+        l, t, rt, b = wnd['rect']
+        self.send(hwnd, 0x0018, 1, 0)                                   # WM_SHOWWINDOW
+        self.send(hwnd, 0x0005, 0, ((b - t) << 16) | ((rt - l) & 0xffff))  # WM_SIZE
+        self.send(hwnd, 0x001c, 1, 0)                                   # WM_ACTIVATEAPP
+        self.send(hwnd, 0x0086, 1, 0)                                   # WM_NCACTIVATE
+        self.send(hwnd, 0x0006, 1, 0)                                   # WM_ACTIVATE
+        self.send(hwnd, 0x0007, 0, 0)                                   # WM_SETFOCUS
+        self.msgq.append((hwnd, 0x000f, 0, 0))                          # WM_PAINT
+    def api_ShowWindow(self, r, hwnd, cmd):
+        self.log.write('  ShowWindow(0x%x, %d)\n' % (hwnd, cmd))
+        if cmd and hwnd in self.windows: self.show_window(hwnd)
+        return 0
+    def api_UpdateWindow(self, r, hwnd): self.send(hwnd, 0x000f, 0, 0); return 1
+    def api_InvalidateRect(self, r, hwnd, rect, erase):
+        if (hwnd, 0x000f, 0, 0) not in self.msgq: self.msgq.append((hwnd, 0x000f, 0, 0))
+        return 1
+    def api_ValidateRect(self, r, hwnd, rect): return 1
+    def api_BeginPaint(self, r, hwnd, ps):
+        wnd = self.windows.get(hwnd); l, t, rt, b = wnd['rect'] if wnd else (0, 0, 640, 480)
+        self.mem.write(ps, struct.pack('<IIiiii', self.handle('dc'), 0, 0, 0, rt - l, b - t) + bytes(64 - 24)); return self.mem.u32(ps)
+    def api_EndPaint(self, r, hwnd, ps): return 1
+    def api_GetClientRect(self, r, hwnd, p):
+        wnd = self.windows.get(hwnd); l, t, rt, b = wnd['rect'] if wnd else (0, 0, 640, 480)
+        self.mem.write(p, struct.pack('<iiii', 0, 0, rt - l, b - t)); return 1
+    def api_GetWindowRect(self, r, hwnd, p):
+        wnd = self.windows.get(hwnd); self.mem.write(p, struct.pack('<iiii', *(wnd['rect'] if wnd else (0, 0, 640, 480)))); return 1
+    def api_SetFocus(self, r, hwnd): old = getattr(self, 'focus', 0); self.focus = hwnd; return old
+    def api_GetFocus(self, r): return getattr(self, 'focus', 0)
+    def api_SetActiveWindow(self, r, hwnd): return 0
+    def api_GetActiveWindow(self, r): return getattr(self, 'focus', 0)
+    def api_GetForegroundWindow(self, r): return getattr(self, 'focus', 0)
+    def api_SetForegroundWindow(self, r, hwnd): return 1
+    def api_IsWindow(self, r, hwnd): return 1 if hwnd in self.windows else 0
+    def api_IsWindowVisible(self, r, hwnd): return 1 if hwnd in self.windows and self.windows[hwnd]['visible'] else 0
+    def api_GetParent(self, r, hwnd): return self.windows.get(hwnd, {}).get('parent', 0)
+    def api_SetWindowPos(self, r, hwnd, after, x, y, cx, cy, flags):
+        wnd = self.windows.get(hwnd)
+        if wnd and not flags & 0x1: wnd['rect'] = (x, y, x + cx, y + cy) if not flags & 0x2 else (x, y, x + (wnd['rect'][2] - wnd['rect'][0]), y + (wnd['rect'][3] - wnd['rect'][1]))
+        return 1
+    def api_MoveWindow(self, r, hwnd, x, y, w, h, repaint):
+        wnd = self.windows.get(hwnd)
+        if wnd: wnd['rect'] = (x, y, x + w, y + h)
+        return 1
+    def api_SetTimer(self, r, hwnd, tid, elapse, proc):
+        tid = tid or (len(self.timers) + 1)
+        self.timers[(hwnd, tid)] = (max(elapse, 1), proc, self.vclock)
+        self.log.write('  SetTimer(hwnd=0x%x, id=%d, %d ms)\n' % (hwnd, tid, elapse)); return tid
+    def api_KillTimer(self, r, hwnd, tid): self.timers.pop((hwnd, tid), None); return 1
+    def fill_msg(self, p, m):
+        hwnd, msg, wp, lp = m
+        self.mem.write(p, struct.pack('<IIIIIii', hwnd, msg, wp, lp, self.vclock & 0xffffffff, 320, 240))
+    def next_message(self):
+        """the queue, then a due timer; the virtual clock advances 5 ms per empty poll"""
+        if self.msgq:
+            return self.msgq.popleft()
+        self.vclock += 5
+        self.idle_polls += 1
+        if self.idle_polls in (200, 2000):
+            self.log.write('IDLE SAMPLE at poll %d, last native calls: %s\n' % (self.idle_polls, ' '.join('0x%x' % t for t in self.ring[-80:])))
+        for (hwnd, tid), (elapse, proc, last) in list(self.timers.items()):
+            if self.vclock - last >= elapse:
+                self.timers[(hwnd, tid)] = (elapse, proc, self.vclock)
+                return (hwnd, 0x0113, tid, proc)
+        return None
+    def api_PeekMessageA(self, r, msg, hwnd, a, b, flags):
+        m = self.next_message()
+        if m is None:
+            if self.idle_polls > self.max_idle_polls: raise StopRun('message loop idle for %d polls' % self.idle_polls)
+            return 0
+        self.fill_msg(msg, m)
+        if not flags & 1: self.msgq.appendleft(m)        # PM_NOREMOVE
+        return 1
+    def api_GetMessageA(self, r, msg, hwnd, a, b):
+        while True:
+            m = self.next_message()
+            if m is not None: break
+            if self.idle_polls > self.max_idle_polls: raise StopRun('message loop idle for %d polls' % self.idle_polls)
+        self.fill_msg(msg, m)
+        return 0 if m[1] == 0x0012 else 1
+    def api_TranslateMessage(self, r, msg): return 0
+    def api_DispatchMessageA(self, r, msg):
+        hwnd, m, wp, lp = struct.unpack('<IIII', self.mem.read(msg, 16))
+        if m == 0x0113 and lp:                           # WM_TIMER with a TIMERPROC
+            return self.call(lp, hwnd, m, wp, self.vclock)
+        return self.send(hwnd, m, wp, lp)
+    def api_GetTimeZoneInformation(self, r, out): self.mem.write(out, bytes(172)); return 0
+    def api_GetComputerNameA(self, r, buf, n): self.mem.write(buf, b'SPIKE\0'); self.mem.w32(n, 5); return 1
+    def api_GlobalMemoryStatus(self, r, ms):
+        self.mem.write(ms, struct.pack('<8I', 32, 40, 512 << 20, 300 << 20, 1024 << 20, 900 << 20, 2047 << 20, 1900 << 20))
+    def api_SetRectEmpty(self, r, p): self.mem.write(p, bytes(16)); return 1
+    def api_FindWindowA(self, r, cls, title): return 0
     def api_LoadStringA(self, r, inst, sid, buf, n):
         s = self.resource_string(sid)
         self.log.write('  LoadStringA(%d) -> %r\n' % (sid, s))
@@ -797,16 +977,14 @@ class Machine:
     def api_GetKeyState(self, r, k): return 0
     def api_GetCursorPos(self, r, p): self.mem.w32(p, 320); self.mem.w32(p + 4, 240); return 1
     def api_SetCursor(self, r, c): return 0
-    def api_ShowCursor(self, r, b): return 0
+    def api_ShowCursor(self, r, b):
+        self.cursor_count = getattr(self, 'cursor_count', 0) + (1 if b else -1)
+        return self.cursor_count & 0xffffffff
     def api_GetDesktopWindow(self, r): return 0x10
-    def api_GetWindowRect(self, r, h, p):
-        self.mem.write(p, struct.pack('<iiii', 0, 0, 640, 480)); return 1
-    api_GetClientRect = api_GetWindowRect
     def api_SystemParametersInfoA(self, r, a, b, p, f):
         if a == 0x30 and p: self.mem.write(p, struct.pack('<iiii', 0, 0, 1024, 768))
         return 1
     def api_GetSysColor(self, r, i): return 0xc0c0c0
-    def api_GetActiveWindow(self, r): return 0
     def api_SHGetSpecialFolderPathA(self, r, hwnd, buf, csidl, create):
         self.mem.write(buf, b'C:\\GAME\\Documents%d\0' % csidl)
         os.makedirs(os.path.join(GAMEDIR, 'Documents%d' % csidl), exist_ok=True); return 1
@@ -867,8 +1045,6 @@ class Machine:
             node = (co, o + l); last = (vo, vb)
         self.mem.u32w(out_ptr, block + last[0]); self.mem.u32w(out_len, last[1] if path[0].lower() != 'stringfileinfo' else last[1] // 2 or last[1])
         return 1
-    def api_SetWindowsHookExA(self, r, kind, proc, inst, tid): return self.handle('hook')
-    def api_UnhookWindowsHookEx(self, r, h): return 1
     def api_GetKeyboardLayout(self, r, tid): return 0x04090409
     def api_WritePrivateProfileStringA(self, r, sec, key, val, path): return 1
     def api_wsprintfA(self, r, buf, fmt):
@@ -907,16 +1083,347 @@ class Machine:
     def api_OleInitialize(self, r, p): return 0
     def api_RaiseException(self, r, code, flags, n, args):
         raise StopRun('RaiseException(0x%08x) (a C++ throw or a fault)' % code)
+    # ---- COM objects: a vtable of import-like stubs, methods answered by api_<Interface>_<Method> ----
+    def com_class(self, iface, methods):
+        if iface in self.com_vtables:
+            return self.com_vtables[iface]
+        vt = self.alloc(4 * len(methods))
+        for i, (name, nargs) in enumerate(methods):
+            stub = MAGIC + 0x8000 + 0x10 * self.com_stub_count
+            self.com_stub_count += 1
+            n = 4 * (nargs + 1)
+            self.mem.write(stub, b'\xc2' + struct.pack('<H', n))
+            self.imports[stub] = (iface + '_' + name, 'COM', stub, n)
+            self.stub_to_slot[stub] = stub
+            self.mem.w32(vt + 4 * i, stub)
+        self.com_vtables[iface] = vt
+        return vt
+    def com_new(self, iface, methods, obj):
+        p = self.alloc(0x40)
+        self.mem.w32(p, self.com_class(iface, methods))
+        obj['iface'] = iface
+        self.com_objects[p] = obj
+        return p
+    def com(self, this):
+        return self.com_objects.get(this)
+    def cstring(self, text):
+        p = self.alloc(len(text) + 1)
+        self.mem.write(p, text.encode('latin-1') + b'\0')
+        return p
+
+    # DirectDraw
+    def api_DirectDrawEnumerateExA(self, r, cb, ctx, flags):
+        self.reached_ddraw = True
+        self.log.write('  DirectDrawEnumerateExA -> one device\n')
+        self.call(cb, 0, self.cstring('Primary Display Driver'), self.cstring('display'), ctx, 0)
+        return 0
+    def ddraw_new(self):
+        return self.com_new('IDirectDraw7', DD7_METHODS, {'surfaces': []})
     def api_DirectDrawCreateEx(self, r, guid, out, iid, unk):
-        self.log.write('  DirectDrawCreateEx\n'); self.reached_ddraw = True
-        return 0x80004005
+        self.reached_ddraw = True
+        self.mem.w32(out, self.ddraw_new()); self.log.write('  DirectDrawCreateEx -> IDirectDraw7\n'); return 0
     def api_DirectDrawCreate(self, r, guid, out, unk):
-        self.log.write('  DirectDrawCreate\n'); self.reached_ddraw = True
-        return 0x80004005
-    def api_DirectDrawEnumerateExA(self, r, cb, ctx, flags): self.reached_ddraw = True; return 0
-    def api_DirectSoundCreate(self, r, guid, out, unk): self.reached_dsound = True; return 0x80004005
+        self.reached_ddraw = True
+        self.mem.w32(out, self.ddraw_new()); return 0
+    def api_IDirectDraw7_QueryInterface(self, r, this, iid, out): self.mem.w32(out, this); return 0
+    def api_IDirectDraw7_AddRef(self, r, this): return 1
+    def api_IDirectDraw7_Release(self, r, this): return 0
+    def api_IDirectDraw7_SetCooperativeLevel(self, r, this, hwnd, flags):
+        self.log.write('  SetCooperativeLevel(hwnd=0x%x, flags=0x%x)\n' % (hwnd, flags)); return 0
+    def api_IDirectDraw7_SetDisplayMode(self, r, this, w, h, bpp, rate, flags):
+        self.log.write('  SetDisplayMode(%dx%dx%d)\n' % (w, h, bpp)); self.display = (w, h, bpp or 16); return 0
+    def api_IDirectDraw7_RestoreDisplayMode(self, r, this): return 0
+    def api_IDirectDraw7_GetDisplayMode(self, r, this, desc):
+        self.fill_desc(desc, {'w': self.display[0], 'h': self.display[1], 'pitch': self.display[0] * 2, 'caps': 0, 'buf': 0}); return 0
+    def api_IDirectDraw7_EnumDisplayModes(self, r, this, flags, desc, ctx, cb):
+        for w, h in ((640, 480), (800, 600), (1024, 768)):
+            d = self.alloc(0x7c)
+            self.fill_desc(d, {'w': w, 'h': h, 'pitch': w * 2, 'caps': 0, 'buf': 0})
+            self.mem.w32(d + 0x14, 60)       # dwRefreshRate shares the back-buffer-count slot
+            if not self.call(cb, d, ctx): break
+        return 0
+    def api_IDirectDraw7_GetCaps(self, r, this, caps, hel):
+        for p in (caps, hel):
+            if not p: continue
+            size = self.mem.u32(p)
+            self.mem.write(p + 4, bytes(max(size - 4, 0)))
+            self.mem.w32(p + 4, 0x40 | 0x4000000 | 0x8000000 | 0x80 | 0x100)     # BLT, BLTCOLORFILL, BLTSTRETCH, BLTQUEUE, CANBLTSYSMEM
+            self.mem.w32(p + 0x14, 64 << 20); self.mem.w32(p + 0x18, 64 << 20)  # dwVidMemTotal, dwVidMemFree
+        return 0
+    def api_IDirectDraw7_GetAvailableVidMem(self, r, this, caps, total, free):
+        if total: self.mem.w32(total, 64 << 20)
+        if free: self.mem.w32(free, 60 << 20)
+        return 0
+    def api_IDirectDraw7_GetDeviceIdentifier(self, r, this, ident, flags):
+        self.mem.write(ident, bytes(0x4c0))
+        self.mem.write(ident, b'display.drv\0'); self.mem.write(ident + 0x200, b'Primary Display Driver\0')
+        self.mem.w32(ident + 0x400, 0x5000f); self.mem.w32(ident + 0x404, 0x0007000d)   # driver version
+        return 0
+    def api_IDirectDraw7_GetMonitorFrequency(self, r, this, out): self.mem.w32(out, 60); return 0
+    def api_IDirectDraw7_WaitForVerticalBlank(self, r, this, flags, ev): return 0
+    def api_IDirectDraw7_TestCooperativeLevel(self, r, this): return 0
+    def api_IDirectDraw7_RestoreAllSurfaces(self, r, this): return 0
+    def api_IDirectDraw7_FlipToGDISurface(self, r, this): return 0
+    def api_IDirectDraw7_GetGDISurface(self, r, this, out):
+        prim = next((p for p, o in self.com_objects.items() if o.get('primary')), 0)
+        self.mem.w32(out, prim); return 0 if prim else 0x887601c2
+    def api_IDirectDraw7_CreateClipper(self, r, this, flags, out, unk):
+        self.mem.w32(out, self.com_new('IDirectDrawClipper', CLIPPER_METHODS, {})); return 0
+    def api_IDirectDrawClipper_SetHWnd(self, r, this, flags, hwnd): return 0
+    def api_IDirectDrawClipper_Release(self, r, this): return 0
+    def api_IDirectDraw7_CreatePalette(self, r, this, flags, entries, out, unk):
+        self.mem.w32(out, self.com_new('IDirectDrawPalette', PALETTE_METHODS, {})); return 0
+    def api_IDirectDraw7_CreateSurface(self, r, this, desc, out, unk):
+        flags = self.mem.u32(desc + 4); caps = self.mem.u32(desc + 0x68)
+        w = self.mem.u32(desc + 0xc) if flags & 4 else self.display[0]
+        h = self.mem.u32(desc + 8) if flags & 2 else self.display[1]
+        nback = self.mem.u32(desc + 0x14) if flags & 0x20 else 0
+        surf = self.surface_new(w, h, caps, primary=bool(caps & 0x200))
+        o = self.com(surf)
+        if nback:
+            back = self.surface_new(w, h, (caps & ~0x200) | 0x4, primary=False)   # DDSCAPS_BACKBUFFER
+            o['back'] = back
+        self.mem.w32(out, surf)
+        if len(self.com_objects) < 40 or caps & 0x200:
+            self.log.write('  CreateSurface(%dx%d caps=0x%x back=%d) -> 0x%x\n' % (w, h, caps, nback, surf))
+        return 0
+    def surface_new(self, w, h, caps, primary):
+        pitch = (w * 2 + 7) & ~7
+        buf = self.surf_next
+        self.surf_next += (pitch * h + 0xfff) & ~0xfff
+        if self.surf_next > SURF_BASE + SURF_SIZE: raise StopRun('surface memory exhausted')
+        return self.com_new('IDirectDrawSurface7', DDS7_METHODS, {'w': w, 'h': h, 'pitch': pitch, 'buf': buf, 'caps': caps, 'primary': primary, 'ckey': None})
+    def fill_desc(self, desc, o):
+        self.mem.write(desc, bytes(0x7c))
+        self.mem.w32(desc, 0x7c)
+        self.mem.w32(desc + 4, 0x1 | 0x2 | 0x4 | 0x8 | 0x800 | 0x1000)   # CAPS HEIGHT WIDTH PITCH LPSURFACE PIXELFORMAT
+        self.mem.w32(desc + 8, o['h']); self.mem.w32(desc + 0xc, o['w']); self.mem.w32(desc + 0x10, o['pitch'])
+        self.mem.w32(desc + 0x24, o['buf'])
+        self.mem.w32(desc + 0x48, 32); self.mem.w32(desc + 0x4c, 0x40)      # DDPF_RGB
+        self.mem.w32(desc + 0x54, 16); self.mem.w32(desc + 0x58, 0xf800); self.mem.w32(desc + 0x5c, 0x07e0); self.mem.w32(desc + 0x60, 0x001f)
+        self.mem.w32(desc + 0x68, o['caps'])
+    def api_IDirectDrawSurface7_QueryInterface(self, r, this, iid, out): self.mem.w32(out, this); return 0
+    def api_IDirectDrawSurface7_AddRef(self, r, this): return 1
+    def api_IDirectDrawSurface7_Release(self, r, this): return 0
+    def api_IDirectDrawSurface7_GetSurfaceDesc(self, r, this, desc): self.fill_desc(desc, self.com(this)); return 0
+    def api_IDirectDrawSurface7_GetPixelFormat(self, r, this, pf):
+        d = self.alloc(0x7c); self.fill_desc(d, self.com(this)); self.mem.write(pf, self.mem.read(d + 0x48, 32)); return 0
+    def api_IDirectDrawSurface7_GetCaps(self, r, this, caps): self.mem.write(caps, struct.pack('<IIII', self.com(this)['caps'], 0, 0, 0)); return 0
+    def api_IDirectDrawSurface7_GetAttachedSurface(self, r, this, caps, out):
+        back = self.com(this).get('back')
+        if not back: return 0x887601c2
+        self.mem.w32(out, back); return 0
+    def api_IDirectDrawSurface7_Lock(self, r, this, rect, desc, flags, ev):
+        o = self.com(this); self.fill_desc(desc, o)
+        if rect:
+            l, t = struct.unpack('<ii', self.mem.read(rect, 8))
+            self.mem.w32(desc + 0x24, o['buf'] + t * o['pitch'] + l * 2)
+        return 0
+    def api_IDirectDrawSurface7_Unlock(self, r, this, rect): return 0
+    def api_IDirectDrawSurface7_SetSurfaceDesc(self, r, this, desc, flags):
+        o = self.com(this); f = self.mem.u32(desc + 4)
+        if f & 0x800: o['buf'] = self.mem.u32(desc + 0x24); o['client'] = True
+        if f & 0x8: o['pitch'] = self.mem.u32(desc + 0x10)
+        if f & 0x4: o['w'] = self.mem.u32(desc + 0xc)
+        if f & 0x2: o['h'] = self.mem.u32(desc + 8)
+        self.log.write('  SetSurfaceDesc(0x%x: %dx%d pitch %d buf 0x%x)\n' % (this, o['w'], o['h'], o['pitch'], o['buf']))
+        return 0
+    def api_SetThreadPriority(self, r, h, pri): return 1
+    def api_IDirectDrawSurface7_IsLost(self, r, this): return 0
+    def api_IDirectDrawSurface7_Restore(self, r, this): return 0
+    def api_IDirectDrawSurface7_SetClipper(self, r, this, clipper): return 0
+    def api_IDirectDrawSurface7_SetPalette(self, r, this, pal): return 0
+    def api_IDirectDrawSurface7_GetDC(self, r, this, out): self.mem.w32(out, self.handle('surfdc', this)); return 0
+    def api_IDirectDrawSurface7_ReleaseDC(self, r, this, dc): return 0
+    def api_IDirectDrawSurface7_SetColorKey(self, r, this, flags, key):
+        self.com(this)['ckey'] = self.mem.u32(key) if key else None; return 0
+    def api_IDirectDrawSurface7_GetColorKey(self, r, this, flags, key):
+        ck = self.com(this)['ckey']
+        if ck is None: return 0x8876021b
+        self.mem.write(key, struct.pack('<II', ck, ck)); return 0
+    def api_IDirectDrawSurface7_GetBltStatus(self, r, this, flags): return 0
+    def api_IDirectDrawSurface7_GetFlipStatus(self, r, this, flags): return 0
+    def api_IDirectDrawSurface7_Flip(self, r, this, override, flags):
+        o = self.com(this); back = self.com(o.get('back') or 0)
+        if back:
+            o['buf'], back['buf'] = back['buf'], o['buf']
+        self.frame_dump(o)
+        return 0
+    def rect(self, p, o):
+        if not p: return (0, 0, o['w'], o['h'])
+        l, t, rt, b = struct.unpack('<iiii', self.mem.read(p, 16))
+        return (l, t, rt, b)
+    def api_IDirectDrawSurface7_Blt(self, r, this, drect, src, srect, flags, fx):
+        d = self.com(this); dl, dt, dr, db = self.rect(drect, d)
+        if flags & 0x400:                                 # DDBLT_COLORFILL
+            color = self.mem.u32(fx + 0x50) & 0xffff
+            row = struct.pack('<H', color) * max(dr - dl, 0)
+            for y in range(max(dt, 0), min(db, d['h'])):
+                self.mem.write(d['buf'] + y * d['pitch'] + dl * 2, row)
+            return 0
+        s_ = self.com(src)
+        if s_ is None: return 0
+        sl, st, sr, sb = self.rect(srect, s_)
+        ckey = s_['ckey'] if flags & 0x8000 else None     # DDBLT_KEYSRC
+        self.blit(d, dl, dt, s_, sl, st, sr - sl, sb - st, ckey, dr - dl, db - dt)
+        return 0
+    def api_IDirectDrawSurface7_BltFast(self, r, this, x, y, src, srect, trans):
+        d = self.com(this); s_ = self.com(src)
+        if s_ is None: return 0
+        sl, st, sr, sb = self.rect(srect, s_)
+        ckey = s_['ckey'] if trans & 1 else None
+        self.blit(d, x, y, s_, sl, st, sr - sl, sb - st, ckey, sr - sl, sb - st)
+        return 0
+    def blit(self, d, dx, dy, s_, sx, sy, w, h, ckey, dw, dh):
+        if w <= 0 or h <= 0: return
+        stretch = (dw != w or dh != h) and dw > 0 and dh > 0
+        for j in range(dh if stretch else h):
+            ty = dy + j
+            if ty < 0 or ty >= d['h']: continue
+            syy = sy + (j * h // dh if stretch else j)
+            if syy < 0 or syy >= s_['h']: continue
+            srow = self.mem.read(s_['buf'] + syy * s_['pitch'] + sx * 2, w * 2)
+            if stretch:
+                srow = b''.join(srow[2 * (i * w // dw):2 * (i * w // dw) + 2] for i in range(dw))
+            n = dw if stretch else w
+            x0 = max(dx, 0); x1 = min(dx + n, d['w'])
+            if x1 <= x0: continue
+            seg = srow[2 * (x0 - dx):2 * (x1 - dx)]
+            dst = d['buf'] + ty * d['pitch'] + x0 * 2
+            if ckey is None:
+                self.mem.write(dst, seg)
+            else:
+                cur = bytearray(self.mem.read(dst, len(seg)))
+                key = struct.pack('<H', ckey & 0xffff)
+                for i in range(0, len(seg), 2):
+                    if seg[i:i + 2] != key: cur[i:i + 2] = seg[i:i + 2]
+                self.mem.write(dst, bytes(cur))
+    def frame_dump(self, o):
+        self.frames += 1
+        if self.frames > 40: return
+        os.makedirs(HERE / 'frames', exist_ok=True)
+        w, h = o['w'], o['h']
+        out = bytearray()
+        for y in range(h):
+            row = self.mem.read(o['buf'] + y * o['pitch'], w * 2)
+            for i in range(0, w * 2, 2):
+                v = row[i] | (row[i + 1] << 8)
+                out += bytes(((v >> 11) << 3, ((v >> 5) & 0x3f) << 2, (v & 0x1f) << 3))
+        with open(HERE / 'frames' / ('frame%03d.ppm' % self.frames), 'wb') as f:
+            f.write(b'P6 %d %d 255\n' % (w, h) + bytes(out))
+        self.log.write('  FRAME %d dumped (%dx%d)\n' % (self.frames, w, h))
+
+    # Bink video: the real decoder is a binary DLL; report a 565 surface, refuse to open movies (game treats it as skipped)
+    def api__BinkDDSurfaceType_4(self, r, surf): return 10          # BINKSURFACE565
+    def api_GetLastActivePopup(self, r, hwnd): return hwnd
+    # DirectSound: a silent device whose buffers live in host memory and whose play cursor follows the virtual clock
+    def api_DirectSoundCreate(self, r, guid, out, unk):
+        self.reached_dsound = True
+        self.mem.w32(out, self.com_new('IDirectSound', DS_METHODS, {'buffers': 0}))
+        self.log.write('  DirectSoundCreate -> IDirectSound\n'); return 0
+    api__1 = api_DirectSoundCreate                               # DSOUND.dll ordinal 1
+    def api__2(self, r, cb, ctx):                                # DirectSoundEnumerateA
+        self.call(cb, 0, self.cstring('Primary Sound Driver'), self.cstring(''), ctx); return 0
+    def api_IDirectSound_QueryInterface(self, r, this, iid, out): self.mem.w32(out, this); return 0
+    def api_IDirectSound_AddRef(self, r, this): return 1
+    def api_IDirectSound_Release(self, r, this): return 0
+    def api_IDirectSound_SetCooperativeLevel(self, r, this, hwnd, level): return 0
+    def api_IDirectSound_Compact(self, r, this): return 0
+    def api_IDirectSound_GetSpeakerConfig(self, r, this, out): self.mem.w32(out, 4); return 0
+    def api_IDirectSound_SetSpeakerConfig(self, r, this, cfg): return 0
+    def api_IDirectSound_Initialize(self, r, this, guid): return 0
+    def api_IDirectSound_GetCaps(self, r, this, caps):
+        size = self.mem.u32(caps); self.mem.write(caps + 4, bytes(max(size - 4, 0)))
+        self.mem.w32(caps + 4, 0x1 | 0x20 | 0x40 | 0x80 | 0x100 | 0x200 | 0x400 | 0x800)   # primary 16/stereo, secondary mono/stereo/8/16
+        self.mem.w32(caps + 8, 100); self.mem.w32(caps + 0xc, 100000)                        # min/max secondary rate
+        self.mem.w32(caps + 0x10, 32); self.mem.w32(caps + 0x14, 32); self.mem.w32(caps + 0x18, 32); self.mem.w32(caps + 0x1c, 32)
+        return 0
+    def api_IDirectSound_CreateSoundBuffer(self, r, this, desc, out, unk):
+        flags = self.mem.u32(desc + 4); nbytes = self.mem.u32(desc + 8); fmt = self.mem.u32(desc + 0x10)
+        if flags & 1 or nbytes == 0: nbytes = 0x10000
+        nbytes = min(nbytes, 16 << 20)
+        buf = self.surf_next; self.surf_next += (nbytes + 0xfff) & ~0xfff
+        wf = self.mem.read(fmt, 18) if fmt else struct.pack('<HHIIHH', 1, 2, 22050, 88200, 4, 16)
+        self.com(this)['buffers'] += 1
+        o = {'size': nbytes, 'buf': buf, 'flags': flags, 'fmt': wf, 'playing': 0, 'pos': 0, 'start': 0, 'volume': 0, 'pan': 0, 'freq': struct.unpack('<I', wf[4:8])[0]}
+        self.mem.w32(out, self.com_new('IDirectSoundBuffer', DSB_METHODS, o))
+        if self.com(this)['buffers'] <= 20: self.log.write('  CreateSoundBuffer(%d bytes, flags 0x%x)\n' % (nbytes, flags))
+        return 0
+    def api_IDirectSound_DuplicateSoundBuffer(self, r, this, orig, out):
+        o = dict(self.com(orig)); o['playing'] = 0
+        self.mem.w32(out, self.com_new('IDirectSoundBuffer', DSB_METHODS, o)); return 0
+    def api_IDirectSoundBuffer_QueryInterface(self, r, this, iid, out): self.mem.w32(out, this); return 0
+    def api_IDirectSoundBuffer_AddRef(self, r, this): return 1
+    def api_IDirectSoundBuffer_Release(self, r, this): return 0
+    def api_IDirectSoundBuffer_GetCaps(self, r, this, caps):
+        o = self.com(this); self.mem.write(caps, struct.pack('<IIIII', 20, o['flags'] | 0x8, o['size'], 0, 0)); return 0
+    def dsb_pos(self, o):
+        if not o['playing']: return o['pos']
+        bps = struct.unpack('<I', o['fmt'][8:12])[0] or 88200
+        pos = o['pos'] + (self.vclock - o['start']) * bps // 1000
+        if o['playing'] & 1: return pos % o['size']           # DSBPLAY_LOOPING
+        if pos >= o['size']: o['playing'] = 0; o['pos'] = 0; return 0
+        return pos
+    def api_IDirectSoundBuffer_GetCurrentPosition(self, r, this, play, write):
+        pos = self.dsb_pos(self.com(this))
+        if play: self.mem.w32(play, pos)
+        if write: self.mem.w32(write, pos)
+        return 0
+    def api_IDirectSoundBuffer_GetFormat(self, r, this, fmt, n, written):
+        o = self.com(this)
+        if fmt: self.mem.write(fmt, o['fmt'][:n])
+        if written: self.mem.w32(written, len(o['fmt']))
+        return 0
+    def api_IDirectSoundBuffer_SetFormat(self, r, this, fmt): self.com(this)['fmt'] = self.mem.read(fmt, 18); return 0
+    def api_IDirectSoundBuffer_GetVolume(self, r, this, out): self.mem.w32(out, self.com(this)['volume']); return 0
+    def api_IDirectSoundBuffer_SetVolume(self, r, this, v): self.com(this)['volume'] = v; return 0
+    def api_IDirectSoundBuffer_GetPan(self, r, this, out): self.mem.w32(out, self.com(this)['pan']); return 0
+    def api_IDirectSoundBuffer_SetPan(self, r, this, v): self.com(this)['pan'] = v; return 0
+    def api_IDirectSoundBuffer_GetFrequency(self, r, this, out): self.mem.w32(out, self.com(this)['freq']); return 0
+    def api_IDirectSoundBuffer_SetFrequency(self, r, this, v): self.com(this)['freq'] = v; return 0
+    def api_IDirectSoundBuffer_GetStatus(self, r, this, out):
+        o = self.com(this); self.dsb_pos(o)
+        self.mem.w32(out, (0x1 | (0x4 if o['playing'] & 1 else 0)) if o['playing'] else 0); return 0
+    def api_IDirectSoundBuffer_Initialize(self, r, this, ds, desc): return 0
+    def api_IDirectSoundBuffer_Lock(self, r, this, offset, nbytes, p1, n1, p2, n2, flags):
+        o = self.com(this)
+        if flags & 2: nbytes = o['size']                       # DSBLOCK_ENTIREBUFFER
+        if flags & 1: offset = self.dsb_pos(o)                 # DSBLOCK_FROMWRITECURSOR
+        offset %= o['size']; first = min(nbytes, o['size'] - offset)
+        self.mem.w32(p1, o['buf'] + offset); self.mem.w32(n1, first)
+        if p2: self.mem.w32(p2, o['buf'] if nbytes > first else 0)
+        if n2: self.mem.w32(n2, nbytes - first if nbytes > first else 0)
+        return 0
+    def api_IDirectSoundBuffer_Unlock(self, r, this, p1, n1, p2, n2): return 0
+    def api_IDirectSoundBuffer_Play(self, r, this, res, pri, flags):
+        o = self.com(this); o['playing'] = 0x10 | (flags & 1); o['start'] = self.vclock; return 0
+    def api_IDirectSoundBuffer_Stop(self, r, this):
+        o = self.com(this); o['pos'] = self.dsb_pos(o); o['playing'] = 0; return 0
+    def api_IDirectSoundBuffer_SetCurrentPosition(self, r, this, pos):
+        o = self.com(this); o['pos'] = pos % o['size']; o['start'] = self.vclock; return 0
+    def api_IDirectSoundBuffer_Restore(self, r, this): return 0
 
 
+DD7_METHODS = [('QueryInterface', 2), ('AddRef', 0), ('Release', 0), ('Compact', 0), ('CreateClipper', 3), ('CreatePalette', 4), ('CreateSurface', 3),
+               ('DuplicateSurface', 2), ('EnumDisplayModes', 4), ('EnumSurfaces', 4), ('FlipToGDISurface', 0), ('GetCaps', 2), ('GetDisplayMode', 1),
+               ('GetFourCCCodes', 2), ('GetGDISurface', 1), ('GetMonitorFrequency', 1), ('GetScanLine', 1), ('GetVerticalBlankStatus', 1), ('Initialize', 1),
+               ('RestoreDisplayMode', 0), ('SetCooperativeLevel', 2), ('SetDisplayMode', 5), ('WaitForVerticalBlank', 2), ('GetAvailableVidMem', 3),
+               ('GetSurfaceFromDC', 2), ('RestoreAllSurfaces', 0), ('TestCooperativeLevel', 0), ('GetDeviceIdentifier', 2), ('StartModeTest', 3), ('EvaluateMode', 2)]
+DDS7_METHODS = [('QueryInterface', 2), ('AddRef', 0), ('Release', 0), ('AddAttachedSurface', 1), ('AddOverlayDirtyRect', 1), ('Blt', 5), ('BltBatch', 3),
+                ('BltFast', 5), ('DeleteAttachedSurface', 2), ('EnumAttachedSurfaces', 2), ('EnumOverlayZOrders', 3), ('Flip', 2), ('GetAttachedSurface', 2),
+                ('GetBltStatus', 1), ('GetCaps', 1), ('GetClipper', 1), ('GetColorKey', 2), ('GetDC', 1), ('GetFlipStatus', 1), ('GetOverlayPosition', 2),
+                ('GetPalette', 1), ('GetPixelFormat', 1), ('GetSurfaceDesc', 1), ('Initialize', 2), ('IsLost', 0), ('Lock', 4), ('ReleaseDC', 1), ('Restore', 0),
+                ('SetClipper', 1), ('SetColorKey', 2), ('SetOverlayPosition', 2), ('SetPalette', 1), ('Unlock', 1), ('UpdateOverlay', 5), ('UpdateOverlayDisplay', 1),
+                ('UpdateOverlayZOrder', 2), ('GetDDInterface', 1), ('PageLock', 1), ('PageUnlock', 1), ('SetSurfaceDesc', 2), ('SetPrivateData', 4), ('GetPrivateData', 3),
+                ('FreePrivateData', 1), ('GetUniquenessValue', 1), ('ChangeUniquenessValue', 0), ('SetPriority', 1), ('GetPriority', 1), ('SetLOD', 1), ('GetLOD', 1)]
+CLIPPER_METHODS = [('QueryInterface', 2), ('AddRef', 0), ('Release', 0), ('GetClipList', 3), ('GetHWnd', 1), ('Initialize', 2), ('IsClipListChanged', 1), ('SetClipList', 2), ('SetHWnd', 2)]
+PALETTE_METHODS = [('QueryInterface', 2), ('AddRef', 0), ('Release', 0), ('GetCaps', 1), ('GetEntries', 4), ('Initialize', 3), ('SetEntries', 4)]
+
+DS_METHODS = [('QueryInterface', 2), ('AddRef', 0), ('Release', 0), ('CreateSoundBuffer', 3), ('GetCaps', 1), ('DuplicateSoundBuffer', 2), ('SetCooperativeLevel', 2),
+              ('Compact', 0), ('GetSpeakerConfig', 1), ('SetSpeakerConfig', 1), ('Initialize', 1)]
+DSB_METHODS = [('QueryInterface', 2), ('AddRef', 0), ('Release', 0), ('GetCaps', 1), ('GetCurrentPosition', 2), ('GetFormat', 3), ('GetVolume', 1), ('GetPan', 1),
+               ('GetFrequency', 1), ('GetStatus', 1), ('Initialize', 2), ('Lock', 7), ('Play', 3), ('SetCurrentPosition', 1), ('SetFormat', 1), ('SetVolume', 1),
+               ('SetPan', 1), ('SetFrequency', 1), ('Stop', 0), ('Unlock', 4), ('Restore', 0)]
 ARGS = {'GetStringTypeW': 4, 'GetStringTypeA': 5, 'LCMapStringW': 6, 'LCMapStringA': 6, 'MultiByteToWideChar': 6, 'WideCharToMultiByte': 8,
         'GetModuleHandleA': 1, 'GetProcAddress': 2, 'LoadLibraryA': 1, 'FreeLibrary': 1, 'RtlUnwind': 4, 'RaiseException': 4,
         'GetLocaleInfoA': 4, 'GetLocaleInfoW': 4, 'CompareStringA': 6, 'CompareStringW': 6, 'IsValidCodePage': 1, 'IsValidLocale': 2,
