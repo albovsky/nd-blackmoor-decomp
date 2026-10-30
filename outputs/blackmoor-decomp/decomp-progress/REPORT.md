@@ -31,16 +31,16 @@ Test totals come from `status.json` `current_integration.full_suite` at its reco
 
 Playable evidence: `blackmoor-playable-status/2` / `seeded_committed_integration`; source `495c5ed1ea2baefcf3b44b196fd546b0342a7814`; native SHA-256 `unavailable (seed)`; 0 session ticks.
 
-`playable-status.json` sha256 `828f03856fa4458c41763c6a483fa1474a98a1188da73d789e78c52f8769e108`. Derivation and limits: `README.md`.
+`playable-status.json` sha256 `a17ebbf387d36a1d7b22b346b559e566236642901ea93cf07e030b2e7e0bd043`. Derivation and limits: `README.md`.
 
 ## Function ledger
 
-**Needed for the Mac port: 2,685 functions** (Game and Vorbis/Ogg): 2,209 ported, 221 tested equivalent (a second tier, not counted as ported), 255 pending, 0 not needed. Game 2,031 of 2,507 ported; Vorbis and Ogg 178 of 178 ported.
+**Needed for the Mac port: 2,685 functions** (Game and Vorbis/Ogg): 2,209 ported, 457 tested equivalent (a second tier, not counted as ported), 19 pending, 0 not needed. Game 2,031 of 2,507 ported; Vorbis and Ogg 178 of 178 ported.
 CRT and MFC (1,503 functions) is Microsoft runtime code that macOS supplies, so it is left out of the Mac-port view and still counts in the x86 match view below.
 
 **x86 match view, all 4,188 functions:** 2,210 ported, 128 not needed, 1,850 pending (44.17%).
 
-**Tested equivalent: 1,315** of the pending functions (a second tier, not counted as ported): game 221, crt_mfc 1,094.
+**Tested equivalent: 1,732** of the pending functions (a second tier, not counted as ported): game 457, crt_mfc 1,275.
 
 | Status | Class | Functions |
 |---|---|---:|
@@ -51,8 +51,8 @@ CRT and MFC (1,503 functions) is Microsoft runtime code that macOS supplies, so 
 | not_needed | `nn_rule` | 72 |
 | not_needed | `nn_reviewed` | 56 |
 | pending | `candidate_port` | 182 |
-| pending | `partial_native` | 321 |
-| pending | `static_navigation_only` | 163 |
+| pending | `partial_native` | 322 |
+| pending | `static_navigation_only` | 162 |
 | pending | `none` | 1,184 |
 
 | Region | Functions | Ported | Not needed | Pending |
@@ -78,7 +78,7 @@ Caveats:
 - Region seams are accurate to a few hundred bytes; a seam function is never decided by a rule.
 - Private receipts are not re-hashed at build time: the page shows only a receipt's name and sha256. Cited committed src/ and tests/ files are re-hashed, so changing one needs extract_function_evidence.py --write and build_function_ledger.py --write before this map can be rebuilt.
 
-Ledger `function-ledger.json` sha256 `d0f85faa2f5ca0aad43bc48a14f3a9e964eab4da3335ca3495e64d231aa6faa1`; 1,799 pinned inputs; see `README.md` for how it is derived and checked.
+Ledger `function-ledger.json` sha256 `2ba8dcc671adc0934b37bc2e4cecf6e3c2fbfcb74a54d4aecfd942603f5165a9`; 1,834 pinned inputs; see `README.md` for how it is derived and checked.
 
 ## x86 matching
 
