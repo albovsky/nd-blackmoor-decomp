@@ -183,6 +183,13 @@ waxing gibbous, full, waning gibbous, last quarter, waning crescent, new, waxing
 quarter (LEPUS), green waning gibbous (PISCES). The scene script flags 1025 to 1029 show which dials are right (`RC_FLAGS`, below). Inside: a telescope lens (S2075, S2076:
 "This lens is supposed to go into a telescope that sits on a tripod").
 
+### After the moon box (S2074 to S2014), looked at on the native build only
+
+From S2076 the lens is taken in S2074 (click its hotspot `326,177`; the S2075 scene around it takes bottom-strip clicks `310,352` to leave), then S2040, S2011, S2010.
+Six right turns (`630,200`, hold 150) from the nook exit face the telescope table; `528,272` in the view with the tripod opens S2014 (the tripod, "Hmmm. A tripod.").
+With the lens (toolbox slot 0, `62,100`) picked up, a click at `310,190` on the tripod head left a small cap on its left arm that the view did not show before
+(pictures only; the scene's own flag was not read, so this is not claimed as the solved step). Not yet tried: the star chart S2015 and the telescope S2078.
+
 ## Debug switches of rc_headless
 
 * `shot` steps write `frames/shotNNN.ppm` from 1; the numbered flip dumps stay `frameNNN.ppm`.
