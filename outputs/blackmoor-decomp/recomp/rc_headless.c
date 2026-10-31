@@ -72,13 +72,13 @@ static int bink_frame(void *u, void *movie, uint32_t frame, uint16_t *rgb565, ui
 static void bink_close(void *u, void *movie) { (void)u; Movie *m = (Movie *)movie; free(m->raw); free(m); }
 
 /* ---- frames ---- */
-static void dump_frame(int number)
+static void dump_frame_as(const char *prefix, int number)
 {
     const uint16_t *px;
     uint32_t w, h, pitch;
     if (!rc_get_primary(&px, &w, &h, &pitch)) return;
     char path[700];
-    snprintf(path, sizeof path, "%s/frames/frame%03d.ppm", out_dir, number);
+    snprintf(path, sizeof path, "%s/frames/%s%03d.ppm", out_dir, prefix, number);
     FILE *f = fopen(path, "wb");
     if (!f) return;
     fprintf(f, "P6 %u %u 255\n", w, h);
@@ -90,8 +90,9 @@ static void dump_frame(int number)
         }
     }
     fclose(f);
-    rc_log("  FRAME %d dumped (%ux%u)", number, w, h);
+    rc_log("  %s %d dumped (%ux%u)", prefix[0] == 's' ? "SHOTFILE" : "FRAME", number, w, h);
 }
+static void dump_frame(int number) { dump_frame_as("frame", number); }
 
 static void numbered_dump(void)         /* the spike's policy: the first 60 pictures and pictures 100 to 139 */
 {
@@ -129,9 +130,39 @@ static void parse_input(const char *s)
     free(copy);
 }
 
+static uint32_t script_done_at;                  /* virtual ms at which the last step was delivered */
+
+/* RC_FLAGS="1000-1030,1716,2075": the game's event flags (dwords at 0x585801 + 4 * n, the table of its scene scripts) that are not zero, logged at every shot */
+static void dump_flags(void)
+{
+    const char *e = getenv("RC_FLAGS");
+    if (!e) return;
+    char line[1024] = "";
+    size_t n = 0;
+    while (*e) {
+        char *end;
+        unsigned lo = (unsigned)strtoul(e, &end, 10), hi = lo;
+        if (*end == '-') hi = (unsigned)strtoul(end + 1, &end, 10);
+        for (unsigned f = lo; f <= hi && n + 16 < sizeof line; f++) {
+            uint32_t v = rc_rd(0x585801u + 4u * f, 4);
+            if (v) n += (size_t)snprintf(line + n, sizeof line - n, " %u=%u", f, v);
+        }
+        e = *end == ',' ? end + 1 : end;
+        if (end == e && *e) break;
+    }
+    rc_log("  FLAGS%s", line);
+}
+
 static void poll_hook(void)
 {
-    if (next_step >= nsteps) return;
+    if (next_step >= nsteps) {
+        /* the script is over: stop SCRIPT_TAIL_MS (default 5000, 0 = never) of virtual time later, so a route does not run on to the idle limit */
+        static uint32_t tail = 5000;
+        static int tail_init;
+        if (!tail_init) { tail_init = 1; if (getenv("SCRIPT_TAIL_MS")) tail = (uint32_t)strtoul(getenv("SCRIPT_TAIL_MS"), NULL, 10); }
+        if (nsteps && tail && script_done_at && rc_clock() >= script_done_at + tail) rc_request_stop();
+        return;
+    }
     Step *st = &steps[next_step];
     static char prev_anchor[64];
     static uint32_t prev_off, prev_delivered;
@@ -156,11 +187,13 @@ static void poll_hook(void)
     prev_off = off;
     prev_delivered = now;
     next_step++;
+    if (next_step >= nsteps) script_done_at = now;
     if (!rc_main_hwnd) return;
     if (!strcmp(st->kind, "shot")) {
         shots++;
-        dump_frame(100 + shots - 1);
+        dump_frame_as("shot", shots);                       /* frames/shotNNN.ppm, numbered from 1 (the numbered flip dumps use frameNNN) */
         rc_log("  SHOT %d at virtual %u ms", shots, now);
+        dump_flags();
     } else if (!strcmp(st->kind, "move") || !strcmp(st->kind, "click")) {
         int click = !strcmp(st->kind, "click");
         rc_input_event(click ? 1 : 0, st->arg[0], st->arg[1], st->nargs > 2 ? (uint32_t)st->arg[2] : 300u, 0);
