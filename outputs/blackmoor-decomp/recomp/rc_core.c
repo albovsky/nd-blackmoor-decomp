@@ -266,6 +266,20 @@ int rc_unimpl_api(Fl41Regs *r, const uint32_t *a, uint32_t *ret) { (void)r; (voi
 
 static uint32_t live_esp;          /* esp of the innermost host function being played (0 outside one): nested guest calls run below it */
 
+static int trace_window_open(void)
+{
+    static int init;
+    static uint32_t from, to;
+    if (!init) {
+        init = 1;
+        const char *e = getenv("RC_TRACE_MS");
+        if (e) { char *end; from = (uint32_t)strtoul(e, &end, 10); if (*end == '-') to = (uint32_t)strtoul(end + 1, NULL, 10); }
+    }
+    if (!to) return 0;
+    uint32_t now = rc_clock();
+    return now >= from && now < to;
+}
+
 static void call_stub(RcStub *s, Fl41Regs *regs)
 {
     uint32_t a[13];
@@ -284,6 +298,13 @@ static void call_stub(RcStub *s, Fl41Regs *regs)
     live_esp = regs->esp;
     int never = s->fn(regs, a, &ret);
     live_esp = saved_live;
+    if (trace_window_open()) {                                          /* RC_TRACE_MS=from-to: every import call in that virtual-time window */
+        char args[160] = "";
+        size_t n = 0;
+        uint32_t cnt = s->cleanup / 4u;
+        for (uint32_t i = 0; i < cnt && i < 13 && n + 14 < sizeof args; i++) n += (size_t)snprintf(args + n, sizeof args - n, "%s0x%x", i ? "," : "", a[i]);
+        rc_log("CALL %s!%s(%s) -> 0x%x", s->dll, s->name, args, ret);
+    }
     if (never) { regs->esp = 0xfffffff0u; return; }                     /* a call that never returns */
     regs->eax = ret;
 }
