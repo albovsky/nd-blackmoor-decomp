@@ -1,4 +1,5 @@
 #include "macos_platform.h"
+#include "macos_platform_background.h"
 #include "native_display_geometry.h"
 
 #import <AppKit/AppKit.h>
@@ -235,9 +236,9 @@ void blackmoor_macos_set_title(BlackmoorMacPlatform *platform, const char *title
     if (value != nil) platform->owner.window.title = value;
 }
 
-BlackmoorMacPlatform *blackmoor_macos_open(
+static BlackmoorMacPlatform *open_platform(
     const char *title, uint32_t width, uint32_t height,
-    const BlackmoorPlatformCallbacks *callbacks, void *context,
+    const BlackmoorPlatformCallbacks *callbacks, void *context, bool background,
     char *error, size_t error_capacity)
 {
     if (error && error_capacity) error[0] = '\0';
@@ -252,7 +253,8 @@ BlackmoorMacPlatform *blackmoor_macos_open(
         ? NATIVE_DISPLAY_STRETCH : NATIVE_DISPLAY_FIT;
     if (callbacks) p->callbacks = *callbacks;
     [NSApplication sharedApplication];
-    [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
+    [NSApp setActivationPolicy:(background ? NSApplicationActivationPolicyAccessory
+                                           : NSApplicationActivationPolicyRegular)];
     p->owner = [[BlackmoorWindowOwner alloc] init];
     p->owner.platform = p;
     install_display_menu(p);
@@ -271,14 +273,16 @@ BlackmoorMacPlatform *blackmoor_macos_open(
     window.acceptsMouseMovedEvents = YES;
     p->owner.window = window;
     [window center];
-    [window makeKeyAndOrderFront:nil];
-    [window makeFirstResponder:p->view];
-    if (@available(macOS 14.0, *)) [NSApp activate];
-    else {
+    if (!background) {
+        [window makeKeyAndOrderFront:nil];
+        [window makeFirstResponder:p->view];
+        if (@available(macOS 14.0, *)) [NSApp activate];
+        else {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
-        [NSApp activateIgnoringOtherApps:YES];
+            [NSApp activateIgnoringOtherApps:YES];
 #pragma clang diagnostic pop
+        }
     }
     __weak BlackmoorWindowOwner *owner = p->owner;
     p->owner.timer = [NSTimer scheduledTimerWithTimeInterval:1.0 / 60.0 repeats:YES block:^(NSTimer *timer) {
@@ -288,6 +292,24 @@ BlackmoorMacPlatform *blackmoor_macos_open(
             current->callbacks.tick(current->context, blackmoor_macos_monotonic_ms());
     }];
     return p;
+}
+
+BlackmoorMacPlatform *blackmoor_macos_open(
+    const char *title, uint32_t width, uint32_t height,
+    const BlackmoorPlatformCallbacks *callbacks, void *context,
+    char *error, size_t error_capacity)
+{
+    return open_platform(title, width, height, callbacks, context, false,
+                         error, error_capacity);
+}
+
+BlackmoorMacPlatform *blackmoor_macos_open_background(
+    const char *title, uint32_t width, uint32_t height,
+    const BlackmoorPlatformCallbacks *callbacks, void *context,
+    char *error, size_t error_capacity)
+{
+    return open_platform(title, width, height, callbacks, context, true,
+                         error, error_capacity);
 }
 
 int blackmoor_macos_present(BlackmoorMacPlatform *p,

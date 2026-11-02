@@ -32,7 +32,11 @@ for f in bink_adapter bink_player bink_audio native_display_geometry; do
     "${cc[@]}" -std=c11 -O2 -Wall -Wextra -I"$ffmpeg_prefix/include" -c "$src/$f.c" -o "$build/$f.o"
     objects+=("$build/$f.o")
 done
-bundle="$project/Blackmoor Recompiled.app"
+bundle="${BLACKMOOR_BUNDLE_PATH:-$project/Blackmoor Recompiled.app}"
+if [[ "$bundle" != *.app ]]; then
+    printf 'Bundle target must end in .app: %s\n' "$bundle" >&2
+    exit 1
+fi
 stage="$(mktemp -d /private/tmp/blackmoor-recomp-build.XXXXXX)"
 mkdir -p "$stage/Blackmoor Recompiled.app/Contents/MacOS"
 xcrun --sdk macosx clang++ -arch arm64 "-mmacosx-version-min=$min_os" -std=c++17 -fobjc-arc -Wall -Wextra -O2 \
