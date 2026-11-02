@@ -260,4 +260,6 @@ The first view was black despite1906=1. Correcting the lifter's9-byte sqrt entry
 
 Final native f8b34e6d… public route passes in11.28s; exact m10 reload passes in1.23s.14 focused checks pass (13 route results +1 generated sqrt fixture over9 finite values); old sqrt fails7/9. Signed ARM64 app build passes without launch. Private receipt `telescope-use-receipt.json`; details and arithmetic limitations in RECOMP-04. Telescope use is now verified headlessly; the full game and final background app campaign remain incomplete. Next story target: Betty's crank, Drake and seedlings2348.
 
-Telescope review accepts634bc528 with no P1 or blocking P2. The targeted f8b34e6d run does not individually re-verify earlier legs or the other sqrt callers44bed5/490598/4f7207/4f95a4/4f9d18. Their broader fresh-chain replay is recorded separately when complete; the native finite-math fixture now uses exact equality.
+Telescope review accepts634bc528 with no P1 or blocking P2. The targeted f8b34e6d run does not individually re-verify earlier legs or the other sqrt callers44bed5/490598/4f7207/4f95a4/4f9d18. The completed broader replay now passes all10 New Game-to-m10 runs on f8b34e6d, with every source-save hash matching its preceding output (`sqrt-fresh-chain/verified-chain.json`); those other callers are not individually instrumented. the native finite-math fixture now uses exact equality.
+
+Final Sonnet follow-up accepts1bb45b8d. The fresh chain includes the optional Jane-to-Memory entry but does not solve Memory or finish the campaign.
