@@ -49,3 +49,5 @@ Final source pins supersede earlier pins where the path repeats:
 - `tests/recomp_background_platform_fixture.mm`: `8064c3b8a62f9f79b22d7c0b51a7a5ed175ea610926a10b77e2db112c40352b1`
 - `tests/test_recomp_background_platform.py`: `54dd79a23072b61c06b8bf142ae3d924078ce281d3671250f0649a4d79adea88`
 - `tests/test_recomp_diagnostic_result.py`: `7168d9430f5d60a71977af5ebe36c4e787155524ca183afe3a090ca8484fdc35`
+
+Final independent Sonnet follow-up accepts frozen32cbcb54 with noP1 or blockingP2 (`background-followup-review.txt`). All generated source pins are current. Nonblocking limits remain: exit6 wiring is only statically checked, a different guest abort racing a normal Quit can cause a safe false failure, and the observer does not establish every transient visibility state. No forced faults or displayed-window tests were added. Final follow-up changes after review only clarify documentation. Static extractor and ledger freshness checks pass in the clean frozen checkout.

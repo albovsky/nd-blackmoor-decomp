@@ -51,7 +51,7 @@ The original handoff below describes the earlier baseline. Its telescope-first s
 ## Rules that apply
 
 * Never modify GAME.EXE, `work/gamedata` or `work/original`. Game data and the lifted C are not in git.
-* No sound and no focus-stealing windows on Glib's Mac: always `--mute`, launch in the background (`open -g -j` or offscreen), prefer headless runs, verify audio by capturing samples to a WAV. Do not bring the game window to the front.
+* No sound and no focus-stealing windows on Glib's Mac: always `--mute`, exec the bundle binary directly with `--background --mute` (LaunchServices/open is untested), prefer headless runs, verify audio by capturing samples to a WAV. Do not bring the game window to the front.
 * No `rm` of any kind, one command per line, nothing chained. Reusing a branch that has merged history: merge the remote branch with `-s ours`, never force-push.
 * Codex review before merge; squash-merge your own PRs when it is clean. Slice completion, ledger and ownership rules are in `AGENTS.md`; the Track M finish line there is the x86 match, which already holds.
 * Report outcomes plainly: what was run, what was only looked at, what is unverified.
