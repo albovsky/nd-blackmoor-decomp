@@ -1716,7 +1716,7 @@ def load_tested_rows(root, inputs, uni, manifest, scenarios, schema, rule_id, ro
     exact_keys(doc["rule"], "id text".split(), (), manifest)
     if doc["rule"]["id"] != rule_id:
         fail(f"{manifest}: unknown rule")
-    text_value(doc["rule"]["text"], manifest, limit=2000)
+    text_value(doc["rule"]["text"], manifest, limit=8000)
     rows = doc["rows"]
     if not isinstance(rows, dict) or set(rows) != set(scen):
         fail(f"{manifest}: rows and scenarios differ")
