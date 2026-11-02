@@ -32,7 +32,6 @@ REASONS = {
 
 # Mac-port (Game + Vorbis) rows: va -> (reason code, note). Filled from the FL-75 and FL-77 handoffs.
 MAC_ROWS = {
-    "0x4090ab": ("no_scenarios_yet", "4,446-byte function; no scenario got past the entry (0 of 1,421 instructions)."),
     "0x40b34a": ("partial_coverage_gate_not_built", "Large loader with two switches (0x40b4ff, 0x40bab7); baseline 1,568 of 5,261 instructions and 87 of 362 directions, the hand-built switch state was not finished."),
     "0x418e52": ("needs_frame_assumption_in_prover", "Left: the je at 0x419886 taken. Eight lea of frame objects are passed to member calls."),
     "0x425b8b": ("impossible_direction_unproved", "Every instruction (246/246) and 15 of 16 directions covered; the jump at 0x425cf0 taken leads to a loop with no exit (jmp 0x425ee1, jmp 0x425c17, same test again), so every such run hits the instruction limit and the prover must discharge it."),
@@ -44,8 +43,6 @@ MAC_ROWS = {
     "0x4ba56a": ("prover_window_times_out", "71 of 98 directions from feasible gates; the function copies this+0x1bc..0x1c8 to this+0x1cc..0x1d8 and compares them. check --prove times out at 1,500 s (scenarios in tasks/fl76/out/0x4ba56a.json)."),
     "0x4e812f": ("prover_window_times_out", "10 directions and 39 instructions left, behind loops at 0x4e8212 and 0x4e851f; every window times out."),
     "0x496410": ("partial_coverage_gate_not_built", "24 KB function; baseline 366 of 4,985 instructions and 10 of 534 directions."),
-    "0x4c1716": ("partial_coverage_gate_not_built", "Best search reached 495 of 1,019 instructions and 68 of 160 directions; the rest needs hand-built state."),
-    "0x4f0059": ("partial_coverage_gate_not_built", "Baseline 165 of 2,237 instructions and 31 of 510 directions; searches timed out."),
 }
 
 CRT_RULES = {
