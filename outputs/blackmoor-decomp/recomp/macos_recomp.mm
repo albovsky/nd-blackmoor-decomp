@@ -5,7 +5,7 @@
 // the bink_player/bink_audio FFmpeg adapters, and an AVAudioEngine source node that pulls the DirectSound mix. It replaces none of the
 // host: GAME.EXE is read at start-up (read only) and never written.
 //
-//   BlackmoorRecompiled [--game-dir DIR] [--exe GAME.EXE] [--save-dir DIR] [--mute] [--log FILE]
+//   BlackmoorRecompiled [--game-dir DIR] [--exe GAME.EXE] [--save-dir DIR] [--mute] [--capture-audio FILE.wav] [--log FILE]
 //
 // DIR is the game folder (Ciftree, CDSound, CDVideo, Game.ini ...); GAME.EXE defaults to DIR/GAME.EXE.
 #import <AppKit/AppKit.h>
@@ -19,11 +19,13 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <time.h>
+#include <atomic>
 #include <chrono>
 #include <thread>
 #include <unistd.h>
 #include <string>
 #include <vector>
+#include "audio_capture.h"
 
 extern "C" {
 #include "bink_audio.h"
@@ -41,7 +43,7 @@ struct Recomp {
     BlackmoorMacPlatform *platform = nullptr;
     pthread_t game_thread{};
     bool game_thread_started = false;
-    volatile int game_done = 0;
+    std::atomic<bool> game_done{false};
     std::vector<uint8_t> rgba;
     uint64_t last_serial = ~0ull;
     int left_down = 0;
@@ -50,6 +52,10 @@ struct Recomp {
     FILE *log = nullptr;
     std::string game_dir, exe, save_dir;
     AVAudioEngine *engine = nil;
+    std::atomic<bool> audio_stopping{false};
+    std::atomic<unsigned> audio_callbacks{0};
+    std::thread silent_thread;
+    AudioCapture capture;
 };
 
 Recomp g;
@@ -141,7 +147,7 @@ void *game_main(void *)
     char why[600] = {};
     int rc = rc_main(why, sizeof why);
     if (g.log) { fprintf(g.log, "game stopped (%d): %s\n", rc, why); fflush(g.log); }
-    g.game_done = 1;
+    g.game_done.store(true, std::memory_order_release);
     dispatch_async(dispatch_get_main_queue(), ^{
         if (g.platform) blackmoor_macos_stop(g.platform);
     });
@@ -196,16 +202,39 @@ void on_closed(void *)
 }
 
 // ---- sound: the DirectSound mix pulled by an AVAudioSourceNode ------------------------------------------------------------------------
-// Muted, or no audio engine: DirectSound positions and notifications are driven by the mixer, so keep pulling it and drop the samples.
+// Tap the actual PCM16 mix before float conversion or muted playback suppression.
+// The capture queue copies samples here; only its writer thread touches the file.
+void render_audio(int16_t *stereo, uint32_t frames, const std::atomic<bool> *source_enabled = nullptr)
+{
+    // Keep the gate and in-flight counter in one atomic ordering: a callback that
+    // arrives after shutdown observes the gate; an earlier one is waited for.
+    g.audio_callbacks.fetch_add(1);
+    if (g.audio_stopping.load() || (source_enabled && !source_enabled->load())) memset(stereo, 0, (size_t)frames * 4);
+    else {
+        rc_audio_render(stereo, frames, kAudioRate);
+        g.capture.append(stereo, frames);
+    }
+    g.audio_callbacks.fetch_sub(1);
+}
+
+void await_audio_callbacks()
+{
+    while (g.audio_callbacks.load()) sleep_ms(nullptr, 1);
+}
+
+// Muted, or no audio engine: the mixer still drives DirectSound positions and
+// notifications. Capture its samples and discard playback without opening a device.
 void start_silent_clock()
 {
-    std::thread([] {
+    g.silent_thread = std::thread([] {
         std::vector<int16_t> scratch(2 * (size_t)(kAudioRate / 100));
-        for (;;) {
-            rc_audio_render(scratch.data(), (uint32_t)(kAudioRate / 100), kAudioRate);
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        auto next = std::chrono::steady_clock::now();
+        while (!g.audio_stopping.load(std::memory_order_acquire)) {
+            render_audio(scratch.data(), (uint32_t)(kAudioRate / 100));
+            next += std::chrono::milliseconds(10);
+            std::this_thread::sleep_until(next);
         }
-    }).detach();
+    });
 }
 
 void start_audio()
@@ -213,12 +242,13 @@ void start_audio()
     if (g.muted) { start_silent_clock(); return; }
     g.engine = [[AVAudioEngine alloc] init];
     AVAudioFormat *format = [[AVAudioFormat alloc] initStandardFormatWithSampleRate:kAudioRate channels:2];
+    auto source_enabled = std::make_shared<std::atomic<bool>>(true);
     AVAudioSourceNode *source = [[AVAudioSourceNode alloc] initWithFormat:format
         renderBlock:^OSStatus(BOOL *isSilence, const AudioTimeStamp *timestamp, AVAudioFrameCount frameCount, AudioBufferList *audioBufferList) {
             (void)timestamp;
             static thread_local std::vector<int16_t> scratch;
             if (scratch.size() < (size_t)frameCount * 2) scratch.resize((size_t)frameCount * 2);
-            rc_audio_render(scratch.data(), frameCount, kAudioRate);
+            render_audio(scratch.data(), frameCount, source_enabled.get());
             *isSilence = NO;
             float *left = (float *)audioBufferList->mBuffers[0].mData;
             float *right = audioBufferList->mNumberBuffers > 1 ? (float *)audioBufferList->mBuffers[1].mData : left;
@@ -232,9 +262,29 @@ void start_audio()
     NSError *error = nil;
     if (![g.engine connect:source to:g.engine.mainMixerNode format:format error:&error] || ![g.engine startAndReturnError:&error]) {
         if (g.log) fprintf(g.log, "audio engine: %s\n", error.localizedDescription.UTF8String);
+        source_enabled->store(false);
+        [g.engine stop];
+        await_audio_callbacks();
         g.engine = nil;
         start_silent_clock();
     }
+}
+
+bool stop_audio()
+{
+    g.audio_stopping.store(true);
+    if (g.engine) [g.engine stop];
+    if (g.silent_thread.joinable()) g.silent_thread.join();
+    // A callback already rendering must leave the capture queue before finalization.
+    // Later callbacks see audio_stopping and produce silence without touching it.
+    await_audio_callbacks();
+    std::string error;
+    if (!g.capture.finish(error)) {
+        fprintf(stderr, "audio capture: %s\n", error.c_str());
+        if (g.log) fprintf(g.log, "audio capture: %s\n", error.c_str());
+        return false;
+    }
+    return true;
 }
 
 bool file_exists(const std::string &path)
@@ -258,15 +308,17 @@ int main(int argc, char **argv)
         g.game_dir = getenv("BLACKMOOR_GAME_DIR") ? getenv("BLACKMOOR_GAME_DIR")
             : "/Applications/Nancy Drew - Curse of Blackmoor Manor.app/Contents/Resources/game/"
               "Nancy Drew Curse of the Blackmoor Manor.app/Contents/Resources/drive_c/GOG Games/Nancy Drew - Curse of Blackmoor Manor";
-        std::string log_path;
+        std::string log_path, capture_path;
+        bool capture_requested = false;
         for (int i = 1; i < argc; i++) {
             std::string a = argv[i];
             if (a == "--game-dir" && i + 1 < argc) g.game_dir = argv[++i];
             else if (a == "--exe" && i + 1 < argc) g.exe = argv[++i];
             else if (a == "--save-dir" && i + 1 < argc) g.save_dir = argv[++i];
             else if (a == "--log" && i + 1 < argc) log_path = argv[++i];
+            else if (a == "--capture-audio" && i + 1 < argc) { capture_path = argv[++i]; capture_requested = true; }
             else if (a == "--mute") g.muted = true;
-            else { fprintf(stderr, "usage: %s [--game-dir DIR] [--exe GAME.EXE] [--save-dir DIR] [--mute] [--log FILE]\n", argv[0]); return 2; }
+            else { fprintf(stderr, "usage: %s [--game-dir DIR] [--exe GAME.EXE] [--save-dir DIR] [--mute] [--capture-audio FILE.wav] [--log FILE]\n", argv[0]); return 2; }
         }
         if ([[NSUserDefaults standardUserDefaults] boolForKey:@"BlackmoorAudioMuted"]) g.muted = true;
         if (g.exe.empty()) g.exe = getenv("GAME_EXE") ? getenv("GAME_EXE") : g.game_dir + "/GAME.EXE";
@@ -296,25 +348,58 @@ int main(int argc, char **argv)
         g.platform = blackmoor_macos_open("Nancy Drew: Curse of Blackmoor Manor", kLogicalWidth, kLogicalHeight, &callbacks, nullptr, error, sizeof error);
         if (!g.platform) { fprintf(stderr, "cannot open the window: %s\n", error); return 3; }
 
-        start_audio();
+        if (capture_requested) {
+            std::string capture_error;
+            if (!g.capture.start(capture_path.c_str(), kAudioRate, capture_error)) {
+                fprintf(stderr, "cannot start audio capture: %s\n", capture_error.c_str());
+                blackmoor_macos_close(g.platform);
+                g.platform = nullptr;
+                if (g.log) fclose(g.log);
+                return 3;
+            }
+        }
+        try { start_audio(); }
+        catch (const std::exception &e) {
+            fprintf(stderr, "cannot start audio: %s\n", e.what());
+            stop_audio();
+            blackmoor_macos_close(g.platform);
+            g.platform = nullptr;
+            if (g.log) fclose(g.log);
+            return 3;
+        }
 
         // the guest has a deep call stack of large lifted frames: a 512 MiB stack (reserved, not committed)
         pthread_attr_t attr;
         pthread_attr_init(&attr);
         pthread_attr_setstacksize(&attr, (size_t)512 << 20);
-        if (pthread_create(&g.game_thread, &attr, game_main, nullptr) != 0) { fprintf(stderr, "cannot start the game thread\n"); return 3; }
+        int thread_error = pthread_create(&g.game_thread, &attr, game_main, nullptr);
+        pthread_attr_destroy(&attr);
+        if (thread_error != 0) {
+            fprintf(stderr, "cannot start the game thread\n");
+            stop_audio();
+            blackmoor_macos_close(g.platform);
+            g.platform = nullptr;
+            if (g.log) fclose(g.log);
+            return 3;
+        }
         g.game_thread_started = true;
 
         blackmoor_macos_run(g.platform);
 
         rc_request_stop();
-        for (int waited = 0; g.game_thread_started && !g.game_done && waited < 300; waited++) sleep_ms(nullptr, 10);
-        if (g.game_thread_started && !g.game_done) _exit(0);        // the game is inside a long loop that does not poll for the stop request
+        for (int waited = 0; g.game_thread_started && !g.game_done.load(std::memory_order_acquire) && waited < 300; waited++) sleep_ms(nullptr, 10);
+        bool capture_ok = stop_audio();
+        if (g.game_thread_started && !g.game_done.load(std::memory_order_acquire)) {
+            // The game is inside a long loop that does not poll for the stop request.
+            // Its capture has been drained and finalized before this forced exit.
+            if (g.log) fflush(g.log);
+            _exit(capture_ok ? 0 : 4);
+        }
         if (g.game_thread_started) pthread_join(g.game_thread, nullptr);
-        if (g.engine) [g.engine stop];
         blackmoor_macos_close(g.platform);
         g.platform = nullptr;
         if (g.log) fclose(g.log);
+        if (!capture_ok) return 4;
     }
     return 0;
 }
