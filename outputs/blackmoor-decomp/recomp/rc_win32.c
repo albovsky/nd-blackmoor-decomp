@@ -8,12 +8,13 @@
 #include <pthread.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdatomic.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
-#include "rc.h"
+#include "rc_internal.h"
 
 #define API(name) static int api_##name(Fl41Regs *r, const uint32_t *a, uint32_t *ret)
 #define UNUSED (void)r; (void)a; (void)ret
@@ -22,7 +23,7 @@
 
 RcPlatform rc_plat;
 static int have_plat;
-static volatile int stop_requested;
+static atomic_int stop_requested;
 
 void rc_set_platform(const RcPlatform *p) { rc_plat = *p; have_plat = 1; }
 void rc_request_stop(void) { stop_requested = 1; }
@@ -58,13 +59,19 @@ static void do_sleep(uint32_t ms)
 
 static void check_stop(void)
 {
-    if (stop_requested) rc_abort("stop requested");
+    if (stop_requested) {
+        /* A host process-stop request is not a worker fault. Normal in-game
+         * CThread shutdown still executes the original CRT/MFC ExitThread. */
+        if (!rc_thread_is_main()) rc_thread_exit(0);
+        rc_abort("stop requested");
+    }
 }
 
 /* ------------------------------------------------------------------ state */
-static uint32_t tls_vals[256];
-static uint32_t tls_next;
-static uint32_t last_error;
+static _Thread_local uint32_t tls_vals[256], tls_seen[256];
+static uint32_t tls_generation[256];
+static unsigned char tls_used[256];
+static _Thread_local uint32_t last_error;
 static uint32_t cmdline_ptr;
 static uint32_t dc_handle, cursor_h, icon_h, image_h, accel_h, gdi_h, menu_h, key_h;
 static int32_t cursor_count;
@@ -557,15 +564,106 @@ API(GetProcAddress)
     RET(0);
 }
 API(LoadLibraryA) { (void)r; char s[260]; rc_cstr(a[0], s, sizeof s); rc_log("  LoadLibraryA(%s)", s); RET(0); }
-API(GetCurrentThreadId) { UNUSED; RET(0x5678); }
+API(GetCurrentThreadId) { UNUSED; RET(rc_thread_id()); }
 API(GetCurrentProcessId) { UNUSED; RET(0x1234); }
 API(GetCurrentProcess) { UNUSED; RET(0xffffffffu); }
 API(GetCurrentThread) { UNUSED; RET(0xfffffffeu); }
-API(TlsAlloc) { UNUSED; if (tls_next >= 256) RET(0xffffffffu); tls_vals[tls_next] = 0; RET(tls_next++); }
-API(TlsSetValue) { (void)r; if (a[0] < 256) tls_vals[a[0]] = a[1]; RET(1); }
-API(TlsGetValue) { (void)r; RET(a[0] < 256 ? tls_vals[a[0]] : 0); }
-API(TlsFree) { UNUSED; RET(1); }
-API(CriticalSection) { UNUSED; RET(0); }
+API(TlsAlloc)
+{
+    UNUSED;
+    for (unsigned i = 0; i < 256; i++) if (!tls_used[i]) {
+        tls_used[i] = 1; tls_generation[i]++;
+        if (!tls_generation[i]) tls_generation[i]++;
+        RET(i);
+    }
+    last_error = 8; RET(UINT32_MAX);
+}
+API(TlsSetValue)
+{
+    (void)r;
+    if (a[0] >= 256 || !tls_used[a[0]]) { last_error = 87; RET(0); }
+    tls_vals[a[0]] = a[1]; tls_seen[a[0]] = tls_generation[a[0]]; RET(1);
+}
+API(TlsGetValue)
+{
+    (void)r;
+    if (a[0] >= 256 || !tls_used[a[0]]) { last_error = 87; RET(0); }
+    last_error = 0;
+    RET(tls_seen[a[0]] == tls_generation[a[0]] ? tls_vals[a[0]] : 0);
+}
+API(TlsFree)
+{
+    (void)r;
+    if (a[0] >= 256 || !tls_used[a[0]]) { last_error = 87; RET(0); }
+    tls_used[a[0]] = 0; RET(1);
+}
+
+typedef struct Critical { uint32_t address, owner, depth; struct Critical *next; } Critical;
+static Critical *criticals;
+static Critical *critical(uint32_t address)
+{
+    for (Critical *c = criticals; c; c = c->next) if (c->address == address) return c;
+    return NULL;
+}
+API(InitializeCriticalSection)
+{
+    (void)r;
+    Critical *c = critical(a[0]);
+    if (!c) { c = (Critical *)calloc(1, sizeof *c); if (!c) rc_abort("critical section allocation failed");
+        c->address = a[0]; c->next = criticals; criticals = c; }
+    c->owner = c->depth = 0;
+    rc_zero(a[0], 24); rc_w32(a[0] + 4, UINT32_MAX); RET(0);
+}
+API(EnterCriticalSection)
+{
+    (void)r;
+    Critical *c = critical(a[0]);
+    if (!c) rc_abort("uninitialized critical section 0x%x", a[0]);
+    while (c->depth && c->owner != rc_thread_id()) { check_stop(); rc_threads_yield(); }
+    c->owner = rc_thread_id(); c->depth++;
+    rc_w32(a[0] + 4, c->depth - 1); rc_w32(a[0] + 8, c->depth); rc_w32(a[0] + 12, c->owner); RET(0);
+}
+API(LeaveCriticalSection)
+{
+    (void)r;
+    Critical *c = critical(a[0]);
+    if (!c || !c->depth || c->owner != rc_thread_id()) rc_abort("critical section not owned by current thread");
+    if (!--c->depth) c->owner = 0;
+    rc_w32(a[0] + 4, c->depth - 1); rc_w32(a[0] + 8, c->depth); rc_w32(a[0] + 12, c->owner); RET(0);
+}
+API(DeleteCriticalSection)
+{
+    (void)r;
+    Critical **p = &criticals;
+    while (*p && (*p)->address != a[0]) p = &(*p)->next;
+    if (*p) { Critical *c = *p; if (c->depth) rc_abort("deleting owned critical section"); *p = c->next; free(c); }
+    RET(0);
+}
+
+static RcGuestThread *thread_of(uint32_t handle)
+{
+    return handle == 0xfffffffeu ? rc_thread_current() : (RcGuestThread *)rc_handle_obj(handle, RC_H_THREAD);
+}
+API(CreateThread)
+{
+    (void)r;
+    uint32_t id;
+    RcGuestThread *t = rc_thread_create(a[2], a[3], a[1], a[4], &id);
+    if (!t) { last_error = 8; RET(0); }
+    uint32_t handle = rc_handle_new(RC_H_THREAD, t);
+    if (a[5]) rc_w32(a[5], id);
+    RET(handle);
+}
+API(ResumeThread) { (void)r; uint32_t v = rc_thread_resume(thread_of(a[0])); if (v == UINT32_MAX) last_error = 6; RET(v); }
+API(SuspendThread) { (void)r; uint32_t v = rc_thread_suspend(thread_of(a[0])); if (v == UINT32_MAX) last_error = 6; RET(v); }
+API(GetExitCodeThread)
+{
+    (void)r;
+    RcGuestThread *t = thread_of(a[0]);
+    if (!t || !a[1]) { last_error = 6; RET(0); }
+    rc_w32(a[1], rc_thread_exit_code(t)); RET(1);
+}
+API(ExitThread) { (void)r; (void)ret; rc_thread_exit(a[0]); }
 API(GetLastError) { UNUSED; RET(last_error); }
 API(SetLastError) { (void)r; last_error = a[0]; RET(0); }
 API(SetUnhandledExceptionFilter) { UNUSED; RET(0); }
@@ -589,7 +687,18 @@ API(QueryPerformanceCounter)
     RET(1);
 }
 API(GetTickCount) { UNUSED; vus_add(1000u); RET(rc_clock()); }       /* a game that busy-waits on the tick count makes time pass */
-API(Sleep) { (void)r; if (!rc_clock_is_virtual()) { check_stop(); do_sleep(a[0]); } RET(0); }
+API(Sleep)
+{
+    (void)r;
+    check_stop();
+    if (!a[0]) { rc_threads_yield(); RET(0); }
+    uint32_t start = rc_clock();
+    while (rc_clock() - start < a[0]) {
+        rc_threads_yield(); check_stop();
+        if (rc_clock_is_virtual()) rc_clock_advance(1); else do_sleep(1);
+    }
+    RET(0);
+}
 API(GetKeyboardType) { (void)r; RET(a[0] == 0 ? 4 : 0); }
 API(GetSystemMetrics)
 {
@@ -817,13 +926,15 @@ API(CloseHandle)
     (void)r;
     FileObj *f = file_of(a[0]);
     if (f) { close(f->fd); free(f); }
+    else if (rc_handle_kind(a[0]) == RC_H_THREAD) rc_thread_close(thread_of(a[0]));
     else if (rc_handle_kind(a[0]) == RC_H_EVENT) free(rc_handle_obj(a[0], RC_H_EVENT));
     else if (rc_handle_kind(a[0]) == RC_H_MAP) { MapObj *m = (MapObj *)rc_handle_obj(a[0], RC_H_MAP); if (m->fd >= 0) close(m->fd); free(m); }
     rc_handle_close(a[0]);
     RET(1);
 }
 
-/* events: manual/auto reset flag and signalled state; the single guest thread waits on the virtual clock or on real time */
+/* Events are consumed under the guest token. Waits hand off to other guest
+ * continuations while preserving manual/auto reset and timeout semantics. */
 typedef struct Event { int manual, set; } Event;
 API(CreateEventA)
 {
@@ -841,23 +952,25 @@ static int wait_one(uint32_t h)
         if (e->set) { if (!e->manual) e->set = 0; return 1; }
         return 0;
     }
-    return 1;                                                 /* other handles (threads, processes) count as signalled */
+    RcGuestThread *t = thread_of(h);
+    if (t) return rc_thread_finished(t);
+    return 0;
 }
 API(SetEvent) { (void)r; Event *e = event_of(a[0]); if (e) e->set = 1; RET(1); }
 API(ResetEvent) { (void)r; Event *e = event_of(a[0]); if (e) e->set = 0; RET(1); }
 
-/* a wait that did not succeed at once: virtual time just passes; real time polls until the timeout */
+/* An unsatisfied wait must allow the actual signal producer to execute. */
 static uint32_t wait_timeout_loop(uint32_t ms, int (*test)(const uint32_t *, int *), const uint32_t *ctx, int *which)
 {
-    if (rc_clock_is_virtual()) { rc_clock_advance(ms != 0xffffffffu ? ms : 5u); return 0x102; }
     uint32_t start = rc_clock();
     for (;;) {
         check_stop();
-        if (poll_hook) poll_hook();
+        if (rc_thread_is_main() && poll_hook) poll_hook();
         rc_dsound_tick();
         if (test(ctx, which)) return 0;
         if (ms != 0xffffffffu && rc_clock() - start >= ms) return 0x102;
-        do_sleep(1);
+        rc_threads_yield();
+        if (rc_clock_is_virtual()) rc_clock_advance(1); else do_sleep(1);
     }
 }
 static int test_one(const uint32_t *ctx, int *which) { (void)which; return wait_one(ctx[0]); }
@@ -865,7 +978,9 @@ API(WaitForSingleObject)
 {
     (void)r;
     rc_dsound_tick();
+    if (!event_of(a[0]) && !thread_of(a[0])) { last_error = 6; RET(UINT32_MAX); }
     if (wait_one(a[0])) RET(0);
+    if (!a[1]) RET(0x102);
     uint32_t ctx[1] = {a[0]};
     RET(wait_timeout_loop(a[1], test_one, ctx, NULL));
 }
@@ -875,7 +990,10 @@ static int wait_many_test(uint32_t n, uint32_t ptr, int wait_all, int *which)
     if (n > 64) n = 64;
     for (uint32_t i = 0; i < n; i++) hs[i] = rc_u32(ptr + 4u * i);
     if (wait_all) {
-        for (uint32_t i = 0; i < n; i++) { Event *e = event_of(hs[i]); if (e && !e->set) return 0; }
+        for (uint32_t i = 0; i < n; i++) {
+            Event *e = event_of(hs[i]); RcGuestThread *t = thread_of(hs[i]);
+            if (e ? !e->set : (!t || !rc_thread_finished(t))) return 0;
+        }
         for (uint32_t i = 0; i < n; i++) wait_one(hs[i]);
         *which = 0;
         return 1;
@@ -886,18 +1004,24 @@ static int wait_many_test(uint32_t n, uint32_t ptr, int wait_all, int *which)
 API(WaitForMultipleObjects)
 {
     (void)r;
+    if (!a[0] || a[0] > 64) { last_error = 87; RET(UINT32_MAX); }
+    for (uint32_t i = 0; i < a[0]; i++) {
+        uint32_t h = rc_u32(a[1] + 4u * i);
+        if (!event_of(h) && !thread_of(h)) { last_error = 6; RET(UINT32_MAX); }
+    }
     rc_dsound_tick();
     int which = 0;
     if (wait_many_test(a[0], a[1], (int)a[2], &which)) RET((uint32_t)which);
-    if (rc_clock_is_virtual()) RET(wait_timeout_loop(a[3], NULL, NULL, NULL));
+    if (!a[3]) RET(0x102);
     uint32_t start = rc_clock();
     for (;;) {
         check_stop();
-        if (poll_hook) poll_hook();
+        if (rc_thread_is_main() && poll_hook) poll_hook();
         rc_dsound_tick();
         if (wait_many_test(a[0], a[1], (int)a[2], &which)) RET((uint32_t)which);
         if (a[3] != 0xffffffffu && rc_clock() - start >= a[3]) RET(0x102);
-        do_sleep(1);
+        rc_threads_yield();
+        if (rc_clock_is_virtual()) rc_clock_advance(1); else do_sleep(1);
     }
 }
 
@@ -1611,9 +1735,10 @@ static const ApiEnt api_table[] = {
     E(GetCommandLineA), EA("GetEnvironmentStrings", GetEnvironmentStrings), EA("GetEnvironmentStringsA", GetEnvironmentStrings), E(GetEnvironmentStringsW),
     EA("FreeEnvironmentStringsA", FreeEnvironmentStrings), EA("FreeEnvironmentStringsW", FreeEnvironmentStrings), E(GetStartupInfoA),
     E(GetModuleHandleA), E(GetModuleFileNameA), E(GetProcAddress), E(LoadLibraryA), E(GetCurrentThreadId), E(GetCurrentProcessId),
+    E(CreateThread), E(ResumeThread), E(SuspendThread), E(GetExitCodeThread), E(ExitThread),
     E(GetCurrentProcess), E(GetCurrentThread), E(TlsAlloc), E(TlsSetValue), E(TlsGetValue), E(TlsFree),
-    EA("InitializeCriticalSection", CriticalSection), EA("EnterCriticalSection", CriticalSection), EA("LeaveCriticalSection", CriticalSection),
-    EA("DeleteCriticalSection", CriticalSection), E(GetLastError), E(SetLastError), E(SetUnhandledExceptionFilter), E(UnhandledExceptionFilter),
+    E(InitializeCriticalSection), E(EnterCriticalSection), E(LeaveCriticalSection),
+    E(DeleteCriticalSection), E(GetLastError), E(SetLastError), E(SetUnhandledExceptionFilter), E(UnhandledExceptionFilter),
     E(GetACP), E(GetOEMCP), E(GetCPInfo), E(GetStdHandle), E(GetFileType), E(SetHandleCount), E(ExitProcess), E(TerminateProcess), E(GetSystemInfo),
     E(QueryPerformanceFrequency), E(QueryPerformanceCounter), E(GetTickCount), EA("timeGetTime", GetTickCount), E(Sleep), E(GetKeyboardType),
     E(GetSystemMetrics), E(GetDC), EA("ReleaseDC", ReleaseDC), E(GetDeviceCaps), E(RegOpenKeyExA), E(RegCreateKeyExA), E(RegQueryValueExA),

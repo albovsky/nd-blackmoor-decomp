@@ -265,6 +265,66 @@ void rc_set_import_budget(uint64_t n) { import_budget = n; }
 int rc_unimpl_api(Fl41Regs *r, const uint32_t *a, uint32_t *ret) { (void)r; (void)a; *ret = 0; return 0; }
 
 static uint32_t live_esp;          /* esp of the innermost host function being played (0 outside one): nested guest calls run below it */
+static uint32_t stack_top = RC_STACK_BASE + RC_STACK_SIZE;
+
+typedef struct GuestContext {
+    Fl41Fpu fpu;
+    uint64_t fret;
+    jmp_buf *abort;
+    char reason[512];
+    int depth;
+    uint32_t cstack[4096], live, top, stack;
+    uint8_t *tib;
+} GuestContext;
+
+void rc_context_save(void *context)
+{
+    GuestContext *c = (GuestContext *)context;
+    c->fpu = fpu; c->fret = fret_last; c->abort = abort_env; c->depth = depth;
+    memcpy(c->reason, abort_reason, sizeof c->reason);
+    memcpy(c->cstack, cstack, sizeof c->cstack);
+    c->live = live_esp; c->top = stack_top;
+}
+
+void rc_context_restore(void *context)
+{
+    GuestContext *c = (GuestContext *)context;
+    fpu = c->fpu; fret_last = c->fret; abort_env = c->abort; depth = c->depth;
+    memcpy(abort_reason, c->reason, sizeof abort_reason);
+    memcpy(cstack, c->cstack, sizeof cstack);
+    live_esp = c->live; stack_top = c->top;
+    rc_pages[RC_TIB / RC_PAGE] = c->tib;
+}
+
+void *rc_context_create(uint32_t size, uint32_t id)
+{
+    GuestContext *c = (GuestContext *)calloc(1, sizeof *c);
+    if (!c) return NULL;
+    if (!size) {
+        c->tib = rc_pages[RC_TIB / RC_PAGE];
+        rc_context_save(c);
+    } else {
+        if (size > 32u * 1024u * 1024u) { free(c); return NULL; }
+        size = (size + RC_PAGE - 1u) & ~(RC_PAGE - 1u);
+        if (size < 65536u) size = 65536u;
+        c->tib = (uint8_t *)calloc(1, RC_PAGE);
+        if (!c->tib) { free(c); return NULL; }
+        c->stack = rc_heap_get(size, 1); c->top = c->stack + size;
+        c->fpu.cw = FL41_FCW_WIN32;
+        const uint32_t fields[][2] = {{0,UINT32_MAX},{4,c->top},{8,c->stack},
+            {0x18,RC_TIB},{0x20,0x1234},{0x24,id},{0x30,RC_TIB + RC_PAGE}};
+        for (size_t i = 0; i < sizeof fields / sizeof fields[0]; i++)
+            memcpy(c->tib + fields[i][0], &fields[i][1], 4);
+    }
+    return c;
+}
+
+void rc_context_destroy(void *context)
+{
+    GuestContext *c = (GuestContext *)context;
+    if (c->stack) { rc_heap_put(c->stack); free(c->tib); }
+    free(c);
+}
 
 static int trace_window_open(void)
 {
@@ -285,6 +345,7 @@ static void call_stub(RcStub *s, Fl41Regs *regs)
     uint32_t a[13];
     for (int i = 0; i < 13; i++) a[i] = rc_rd(regs->esp + 4u + 4u * (uint32_t)i, 4);
     if (++imports_called > import_budget) rc_abort("import budget exhausted");
+    if (!(imports_called & 255u)) rc_threads_yield();
     s->calls++;
     if (s->calls <= 5) {
         char args[160] = "";
@@ -366,7 +427,7 @@ int rc_call_raw(uint32_t target, int nargs, const uint32_t *args, uint32_t ecx, 
     Fl41Regs r;
     memset(&r, 0, sizeof r);
     /* below the guest stack as it stands: the esp of the host function that is calling, or the top of the stack for the outermost call */
-    uint32_t sp = live_esp ? ((live_esp - 0x100u) & ~15u) : RC_STACK_BASE + RC_STACK_SIZE - 0x1000u;
+    uint32_t sp = live_esp ? ((live_esp - 0x100u) & ~15u) : stack_top - 0x1000u;
     sp -= 4u * (uint32_t)(nargs + 1);
     rc_w32(sp, RC_STOP);
     for (int i = 0; i < nargs; i++) rc_w32(sp + 4u + 4u * (uint32_t)i, args[i]);
@@ -591,7 +652,7 @@ void rc_core_init(void)
     memset(&fpu, 0, sizeof fpu);
     fpu.cw = FL41_FCW_WIN32;
     rc_map_new(RC_STACK_BASE, RC_STACK_SIZE);
-    rc_map_new(RC_TIB, RC_PAGE);
+    rc_map_new(RC_TIB, 2u * RC_PAGE);
     rc_map_new(RC_HEAP_BASE, RC_HEAP_SIZE);
     rc_map_new(RC_SURF_BASE, RC_SURF_SIZE);
     rc_map_new(RC_STOP, RC_PAGE);
@@ -601,5 +662,5 @@ void rc_core_init(void)
     rc_w32(RC_TIB + 0x18, RC_TIB);                   /* self */
     rc_w32(RC_TIB + 0x20, 0x1234u);                  /* pid */
     rc_w32(RC_TIB + 0x24, 0x5678u);                  /* tid */
-    rc_w32(RC_TIB + 0x30, RC_TIB + 0x800u);          /* PEB (fake, inside the page) */
+    rc_w32(RC_TIB + 0x30, RC_TIB + RC_PAGE);         /* process-shared PEB, outside the per-thread TIB page */
 }

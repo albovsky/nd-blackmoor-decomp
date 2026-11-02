@@ -1,0 +1,21 @@
+# Recompiled host: guest worker threads
+
+Continue the human's native recompiled GAME.EXE port authorization, one independently reviewed squash PR at a time. Root owns shared integration and publication. Original game data/executable and function evidence remain unchanged. This slice fixes the actual S3510 stop caused by unimplemented CreateThread; it does not substitute the old handwritten app or fake frame/handle results.
+
+## Contract
+
+Execute the original CRT 0x50fee4 → MFC 0x51eb41/0x51ebf8 → game worker chain. Creation/resume must honor the real ready/release events and suspend counts. One native pthread retains each generated C continuation, with one execution token serializing guest code and host tables. Every context has its own guest stack, TIB/SEH, x87, call/abort state, TLS, last error and identity; the fake PEB is process-shared. Yield on Sleep/waits and bounded import intervals. Recursive critical sections, completed thread waits, exit codes, nonreturning ExitThread, handle-close lifetime and process-stop cleanup must work. Normal game worker shutdown executes original MFC/CRT cleanup; a host process-stop may end remaining continuations at a safe boundary. Private original-code contract: `work/recomp-playability-20261101/thread-contract.md`.
+
+## Acceptance and evidence
+
+Four small tests link the actual runtime modules without game data or test stubs. They cover suspended startup and two-event handshake, independent stack/TLS/last-error/TIB/SEH/x87/fret state, recursive contention, natural return and nested nonreturning ExitThread, completion with exit code 259, Sleep time progress and closing a still-running handle. All pass; no fault/sanitizer/mutation/original-executable/oracle/device tests are used.
+
+Actual headless m8 continuation now enters S3510 and S1200, animates original Jane frames and accepts the first reply through S1202→S1203→S1204→S1205→S1206 (Memory). Three actual CRT/MFC workers terminate naturally with exit 0 on that route; final requested stop is clean. Two S1200 snapshots differ in 14,721 pixels in the character crop, establishing changing animation, not full image parity. A separate run stops while a worker remains active and now reports a process stop, with that worker ending with code 0. An early candidate misclassified that stop as a worker fault; the correction is included. The original baseline stops before S1200 with the CThread constructor error. Exact inputs, logs and crop hashes are private under `work/recomp-playability-20261101/{jane-thread-final,jane-animation-final,thread-animation-evidence.json}`.
+
+The full earlier New Game→m0→stairs/m1→lock/m4→slider/m5→moon/m6 chain passes again after the TLS/Sleep/wait changes, with a fresh original-data copy and only the preceding game-generated save per leg. Native macOS bundle build/signing passes without a launch. Root validation and frozen independent review are required before collection.
+
+## Explicit limits
+
+This is headless gameplay and selected host-thread semantics, not complete thread/API equivalence or a full campaign. Real-clock scheduling, hardware input/audio, per-thread Windows hooks, exceptional startup/worker faults, main-thread ExitThread, shutdown outside safe import boundaries, large stacks beyond the host's 32 MiB resource limit and other original worker families remain unverified or explicit refusals. Native concurrent UI/audio callback behavior retains its existing platform validation limits. Save/load/endgame and the final background app campaign remain incomplete. The prepared audio-capture slice is stashed separately. No ledger credit or whole-game completion claim is made.
+
+Pins: GAME.EXE `afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45`; native headless `c5ffc6d8549776b1ff3eb081faefe95e01e8b1d5e1c813dfd36e407b2b82ba1c`; thread module `da2c0e6f8111159b363504882a907205667160d1c7703ff9bdb0510e86fd4dce`; core `33c07c1aa45cc4a7c1788bd5c2d81224d9bf31b6949faf1ec4a43228ddc5f7c5`; Win32 host `44f7e7cfe8463019bff19bb03764d6d1f6bea4181468cdab1288a80c9bd9ede0`. Final combined thread/checker run passes eight tests. Build, exact inputs and per-leg results are retained privately; a comment-only change to the Win32 source reproduces the same exercised native hash.
