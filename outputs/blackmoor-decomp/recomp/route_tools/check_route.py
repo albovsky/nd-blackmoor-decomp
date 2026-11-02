@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Check an observed headless story leg, not merely its process exit.
 
-python3 check_route.py RUN_LOG SAVE_FILE [--route telescope-prep|jane-jigsaw|telescope-use]
+python3 check_route.py RUN_LOG SAVE_FILE [--route telescope-prep|jane-jigsaw|telescope-use|seedlings|crank-repair]
 The caller supplies a checkpoint produced by this run's normal Load & Save UI.
 This checks recorded observations, a matching file-open line and save size;
 fresh-folder/write provenance and saved contents require separate replay evidence.
@@ -11,6 +11,10 @@ import argparse
 import json
 import re
 from pathlib import Path
+
+
+# These RC_FLAGS cells overlap the original clock, not story events.
+CLOCK_OVERLAP_DIAGNOSTICS = frozenset(range(338, 342))
 
 
 def flag_scope(text):
@@ -24,7 +28,7 @@ def flag_scope(text):
         if not 0 <= lo <= hi <= 2250:
             raise ValueError('recorded RC_FLAGS range outside the game event table')
         flags.update(range(lo, hi + 1))
-    return flags
+    return flags - CLOCK_OVERLAP_DIAGNOSTICS
 
 
 def verify(log, save, route='telescope-prep'):
@@ -40,6 +44,16 @@ def verify(log, save, route='telescope-prep'):
         expected = [(3507, 0), (1605, 0), (2078, 0), (2081, 0), (2010, 19)]
         positive = {1424, 1567, 1570, 1574, 1905, 1906, 1980, 1993, 2036, 2037}
         negative = set()
+    elif route == 'seedlings':
+        expected = [(2348, 0), (2347, 0), (2347, 0)]
+        positive = {1535, 1838, 1839, 1968, 2002, 2080,
+                    1906, 1980, 1993, 2036, 2037}
+        negative = {1160, 1541}
+    elif route == 'crank-repair':
+        expected = [(2347, 0), (1000, 0), (1089, 0), (2711, 0),
+                    (2713, 0), (2702, 0), (2701, 0)]
+        positive = {1160, 1541, 1782, 1906, 2002}
+        negative = {1963}
     else:
         raise ValueError('unknown story route')
     observations = []
@@ -53,7 +67,8 @@ def verify(log, save, route='telescope-prep'):
         elif line.startswith('  RC_FLAGS '):
             scope = flag_scope(line.removeprefix('  RC_FLAGS '))
         elif line.startswith('  FLAGS') and state is not None:
-            values = {int(k): int(v) for k, v in re.findall(r'(\d+)=(\d+)', line)}
+            values = {int(k): int(v) for k, v in re.findall(r'(\d+)=(\d+)', line)
+                      if int(k) not in CLOCK_OVERLAP_DIAGNOSTICS}
             observations.append((state, scope.copy(), values))
     # Include the pre-click frame for the tripod, or the actual puzzle, win
     # conversation and normal room return for Jane's loan.
@@ -61,6 +76,10 @@ def verify(log, save, route='telescope-prep'):
     for observation in observations:
         state, scope, flags = observation
         if len(selected) < len(expected) and (state[0], state[2]) == expected[len(selected)]:
+            # The accepted route observes the panel before opening inventory,
+            # inside inventory, and finally with the real crank held.
+            if route == 'crank-repair' and len(selected) == 3 and state[3] != 20:
+                continue
             selected.append(observation)
     if len(selected) != len(expected):
         raise ValueError('missing ordered route observations')
@@ -80,6 +99,36 @@ def verify(log, save, route='telescope-prep'):
             raise ValueError('lens is not held before installation')
         if selected[3][2].get(1309, 0) != 1:
             raise ValueError('lens installation flag is not 1 in the filtered view')
+    if route == 'seedlings':
+        if any(state[1] != state[0] for state, _, _ in selected):
+            raise ValueError('seedlings route art does not match the observed scene')
+        if 2002 not in selected[0][1]:
+            raise ValueError('RC_FLAGS did not observe every required event')
+        if selected[0][2].get(2002, 0) != 0:
+            raise ValueError('seedlings puzzle was already complete before packing')
+        if selected[1][2].get(2002, 0) != 1:
+            raise ValueError('seedlings win was not observed before the checkpoint')
+        if selected[-1][0][3] != -1:
+            raise ValueError('seedlings checkpoint is not safe with an item held')
+    if route == 'crank-repair':
+        if any(state[0] != state[1] for state, _, _ in selected):
+            raise ValueError('crank route art scene does not match the requested scene')
+        for index in (0, 1, 2, 3, 4):
+            _, scope, flags = selected[index]
+            if not (positive | negative) <= scope:
+                raise ValueError('RC_FLAGS did not observe every required event')
+            if flags.get(1906, 0) != 1 or flags.get(2002, 0) != 1:
+                raise ValueError('telescope or seedlings prerequisite flag is not 1')
+            if flags.get(1963, 0) != 0 or flags.get(1782, 0) != 0:
+                raise ValueError('crank route began after keypad or card progression')
+            if index <= 1 and flags.get(1541, 0) != 0:
+                raise ValueError('crank reward was already present before claim')
+            if index >= 2 and flags.get(1541, 0) != 1:
+                raise ValueError('crank reward flag is not 1 after claim')
+            if flags.get(1160, 0) != (1 if index == 4 else 0):
+                raise ValueError('crank repair flag does not match pre/post-repair observations')
+        if selected[4][0][3] != -1 or selected[5][0][3] != -1 or selected[6][0][3] != -1:
+            raise ValueError('crank route did not return to a safe state with no held item')
     for _, scope, flags in selected[-2:]:
         if not (positive | negative) <= scope:
             raise ValueError('RC_FLAGS did not observe every required event')
@@ -98,14 +147,14 @@ def verify(log, save, route='telescope-prep'):
         raise ValueError('checkpoint save is missing or has an unexpected length')
     return {'route': route, 'scene': expected[-1][0], 'view': expected[-1][1],
             'flags_one': sorted(positive), 'flags_zero': sorted(negative),
-            'save': save.name, 'telescope_complete': route == 'telescope-use'}
+            'save': save.name, 'telescope_complete': route in ('telescope-use', 'seedlings', 'crank-repair')}
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('run_log', type=Path)
     parser.add_argument('save_file', type=Path)
-    parser.add_argument('--route', choices=('telescope-prep', 'jane-jigsaw', 'telescope-use'),
+    parser.add_argument('--route', choices=('telescope-prep', 'jane-jigsaw', 'telescope-use', 'seedlings', 'crank-repair'),
                         default='telescope-prep')
     args = parser.parse_args()
     try:
