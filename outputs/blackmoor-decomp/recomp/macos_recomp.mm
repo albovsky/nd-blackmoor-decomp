@@ -27,6 +27,7 @@
 #include <string>
 #include <vector>
 #include "audio_capture.h"
+#include "diagnostic_result.h"
 
 extern "C" {
 #include "bink_audio.h"
@@ -57,6 +58,7 @@ struct Recomp {
     uint64_t stop_deadline_ms = 0;
     std::string snapshot_path;
     std::atomic<bool> background_failed{false};
+    std::atomic<bool> diagnostic_guest_failed{false};
     std::atomic<unsigned> background_activations{0};
     id activation_observer = nil;
     FILE *log = nullptr;
@@ -222,6 +224,7 @@ void *game_main(void *)
 {
     char why[600] = {};
     int rc = rc_main(why, sizeof why);
+    g.diagnostic_guest_failed.store(!rc_diagnostic_guest_succeeded(rc, why), std::memory_order_release);
     if (g.log) { fprintf(g.log, "game stopped (%d): %s\n", rc, why); fflush(g.log); }
     g.game_done.store(true, std::memory_order_release);
     dispatch_async(dispatch_get_main_queue(), ^{
@@ -605,6 +608,11 @@ int main(int argc, char **argv)
         }
         const int join_error = g.game_thread_started ? pthread_join(g.game_thread, nullptr) : 0;
         bool diagnostics_ok = true;
+        if ((g.background || !g.snapshot_path.empty()) &&
+            g.diagnostic_guest_failed.load(std::memory_order_acquire)) {
+            frontend_message("diagnostic cleanup: guest ended abnormally; inspect game stopped reason");
+            diagnostics_ok = false;
+        }
         if (join_error && (g.background || !g.snapshot_path.empty())) {
             frontend_message("diagnostic cleanup: game-thread join failed");
             diagnostics_ok = false;
