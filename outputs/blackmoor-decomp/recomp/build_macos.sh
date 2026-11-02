@@ -23,7 +23,7 @@ export newest_header
 ls "$build"/rc_lifted_*.c | xargs -P "$jobs" -I{} bash -c 'o="${1%.c}.o"; if [ ! -f "$o" ] || [ "$1" -nt "$o" ] || [ "$newest_header" -nt "$o" ]; then "${@:2}" -c "$1" -o "$o"; fi' _ {} \
     "${cc[@]}" -O1 -w -I"$src" -I"$here" -I"$build"
 objects=("$build"/rc_lifted_*.o)
-for f in rc_generated rc_core rc_win32 rc_ddraw rc_dsound rc_bink rc_main rc_unlifted; do
+for f in rc_generated rc_core rc_threads rc_win32 rc_ddraw rc_dsound rc_bink rc_main rc_unlifted; do
     s="$here/$f.c"; [ -f "$s" ] || s="$build/$f.c"
     "${cc[@]}" -std=gnu11 -O2 -Wall -Wextra -Wno-unused-parameter -I"$src" -I"$here" -I"$build" -c "$s" -o "$build/$f.o"
     objects+=("$build/$f.o")

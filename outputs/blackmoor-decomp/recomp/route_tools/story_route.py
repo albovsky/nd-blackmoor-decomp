@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The story routes of ROUTES.md as INPUT strings for rc_headless.
 
-  python3 story_route.py LEG [--save NAME]      LEG is one of: stairs, lock, slider, moon, telescope-prep, slider-verify
+  python3 story_route.py LEG [--save NAME]      LEG is one of: stairs, lock, slider, moon, telescope-prep, linda, jane-intro, slider-verify
   python3 story_route.py slider-verify          replays the recorded 105 slider moves on the puzzle rules and prints whether they solve it
 
 Each leg starts from a save made in the game's own Load & Save screen and (with --save NAME) ends by saving the next one, so the legs chain:
@@ -11,6 +11,8 @@ Each leg starts from a save made in the game's own Load & Save screen and (with 
   m4  --slider--> m5 (S3303, the slider puzzle solved and the item taken)
   m5  --moon-->   m6 (S2076, the moon box open, the telescope lens)
   m6  --telescope-prep--> m7 (lens collected, star chart read, bedroom view 2)
+  m7  --linda--> m8 (Linda introduction complete, S4408)
+  m8  --jane-intro--> S1206 (Memory ready; complete it before the next save)
 
 Steps are `anchor+ms:kind:args` (rc_headless.c). `click x,y,hold` is a move 1 s before the click; `mv:x,y` a bare move; `key:VK` a key press.
 A bare click on a hotspot needs a move onto it first or the game ignores it (the cursor must have been seen there), so every click has its move.
@@ -213,6 +215,31 @@ def slider_moves():
     return out
 
 
+def leg_linda(save=None):
+    """m7 bedroom view2 -> Linda's introduction, flag1570, S4408 / m8."""
+    r = R().at('S2010.CIF', 8000).turns('left', 6)
+    r.clicks('64,171 317,167 277,175 317,162 336,162 317,162 473,161 128,162', 6000)
+    r.gap(10000).clicks('292,189 292,162', 8000)
+    r2 = R().at('S4405.CIF', 8000).clicks('72,165 316,180 391,170 276,166', 8000)
+    r3 = R().at('S1137.CIF', 50000).clicks('150,433,300', 6000)
+    r4 = R().at('S1136.CIF', 40000).clicks('150,433,300', 6000)
+    out = [r.text(), r2.text(), r3.text(), r4.text(), 'S1107.CIF+50000:shot:0,0']
+    if save:
+        out.append(menu_to_save_screen('S1107.CIF', 60000))
+        out.append(save_tail('S1107.CIF', 75000, save))
+    return ';'.join(out)
+
+
+def leg_jane_intro(save=None):
+    """m8 -> Jane's first conversation and S1206 Memory; no puzzle solve yet."""
+    if save:
+        raise ValueError('jane-intro ends inside Memory; save after completing the puzzle')
+    r = R().at('S4408.CIF', 8000).clicks('310,354 310,354', 8000).turns('left', 8)
+    r.clicks('290,195 312,163 415,163 325,161 325,161 219,163 481,219 308,193 292,162 306,173', 8000)
+    r2 = R().at('S1200.CIF', 50000).clicks('150,446,300', 6000)
+    return ';'.join([r.text(), r2.text(), 'S1206.CIF+8000:shot:0,0'])
+
+
 def leg_slider(save=None, gap=5000):
     """m4 -> m5. S3447 stairs hotspot, the slider puzzle S3450 (105 moves), the compartment S3452/S3453 item, the cancel strip at S3455, S3457, S3303."""
     r = R().at('S3447.CIF', 8000).clicks('mv:230,150 mv:241,166 241,166,300', 3000)
@@ -269,7 +296,8 @@ if __name__ == '__main__':
         print('the recorded 105 slider moves %s the puzzle' % ('solve' if ok else 'do NOT solve'))
         sys.exit(0 if ok else 1)
     legs = {'stairs': leg_stairs, 'lock': leg_lock, 'slider': leg_slider,
-            'moon': leg_moon, 'telescope-prep': leg_telescope_prep}
+            'moon': leg_moon, 'telescope-prep': leg_telescope_prep,
+            'linda': leg_linda, 'jane-intro': leg_jane_intro}
     if leg not in legs:
         sys.exit(__doc__)
     print(legs[leg](save))

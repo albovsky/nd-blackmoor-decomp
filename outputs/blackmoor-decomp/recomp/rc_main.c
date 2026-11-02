@@ -84,9 +84,11 @@ int rc_main(char *why, size_t why_capacity)
 {
     rc_log("entry 0x%x", entry_point);
     uint32_t eax = 0;
+    rc_threads_enter();
     int rc = rc_call_raw(entry_point, 0, NULL, 0, &eax);
     if (rc) snprintf(why, why_capacity, "%s", rc_abort_reason());
     else snprintf(why, why_capacity, "returned from the entry point (eax=%u)", eax);
+    rc_threads_leave();
     return rc;
 }
 
