@@ -26,7 +26,7 @@ Native SHA `cc7ce16f33aee31714b8d8586adeffcc6e2036e58f6522394626ed6f2e0eed56`; a
 
 ## Review and limits
 
-Independent Sonnet review and required registered-test hash refresh are pending. No function-port acceptance is added. Actual Linux execution, disk-full/write-close/flush errors, EINTR, prolonged full-buffer backpressure, aggregate16MiB exhaustion and other framebuffer sizes are unverified. Host correctness under real guest lifecycle failures is statically classified but not fault-tested. Broad crash-producing suites remain excluded by the owner's instruction. Full campaigns and final native credits remain incomplete; current public fixed-route story endsm17 while private Junior/Senior continuations proceed separately.
+Required registered-test hashes are refreshed from clean bfc94bd2; `live-input-refresh-receipt.json` verifies unchanged function statuses/classes/counts/native lift fields and1763peer claims. Independent Sonnet review and final static freshness checks are pending. No function-port acceptance is added. Actual Linux execution, disk-full/write-close/flush errors, EINTR, prolonged full-buffer backpressure, aggregate16MiB exhaustion and other framebuffer sizes are unverified. Host correctness under real guest lifecycle failures is statically classified but not fault-tested. Broad crash-producing suites remain excluded by the owner's instruction. Full campaigns and final native credits remain incomplete; current public fixed-route story endsm17 while private Junior/Senior continuations proceed separately.
 
 ## Source pins
 
