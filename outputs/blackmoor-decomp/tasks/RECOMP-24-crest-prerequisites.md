@@ -43,3 +43,13 @@ Root alone publishes under the original pasted HOW TO WORK5. Generated metadata 
 - `recomp/route_tools/check_route.py`: `36d7ca5633c532dd1f60af815978390e268e82b83a0628a072b522a49e2e7221`
 - `recomp/route_tools/ethel_live.py`: `90f731c2d36e0f4e62e38fc082b024283c5ab9101897cbea453caf9c6c45cd04`
 - `tests/test_recomp_route_check.py`: `2c71b3495a714e685310b7a7ab89c7a0bd72d2b64a8d3a4f17d88c1314088fea`
+
+## Independent review and accepted limits
+
+Sonnet high accepts frozen7cc06168 with no P1 or blocking findings (static-only). It confirms the four source pins and coherent scoped phase/lifecycle checks; actual game/finite-test results remain root's independently recorded evidence. Private Linda voice evidence is `work/recomp-playability-20261101/crest-prerequisites-public-candidate/voice-variants.json`, SHA256 `9514c0f4da7ea067d4afdc47d9b2beceab3bfab4ea46b306574b4d486b3b287b`.
+
+Root accepts the nonblocking clock boundary limits: the public checker validates source day/hour and valid monotone observations per run, without asserting exact saved-minute equality to first producer/reload capture. Original load/menu timing can differ by a minute. Read-only `root-crest-route-v1/clock-readback-audit.json` now records every saved clock and first/last producer/reload clocks next to the existing output hashes; the combined chain contains these same values. No raw game receipt, save or source code was changed. Exact source/output timestamps quoted above are observed facts, not a general clock-equality guarantee.
+
+Linda's slot7 may use the permitted1128..1133/1146 retained-art family with view0, then requires later1133; original1146 is established by the ordered global opens, not necessarily a sampled1146 state. Global-open and inherited observation-freshness limits remain explicit. Ethel receipt budget5 is constant; actual control summary independently shows exactly5. No broad test project, fault injection or gameplay rerun is added for these documented limits.
+
+Peer PR312 merged before the reviewed freeze and changes no compiled source. Required regeneration preserves all existing statuses/classes/native/oracle evidence and all1819peer tested-equivalent entries. Final freshness checks pass at8c82971c. The superseded pre-merge scratch refresh was cancelled before collection and its own scratch outputs restored; none reached the branch. Root remains sole publisher under the original authorization.

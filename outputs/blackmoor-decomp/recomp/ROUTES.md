@@ -426,3 +426,5 @@ Complete `gargoyle-inspect` scope:
 ```sh
 export RC_FLAGS='338-341,1148-1160,1162-1174,1192,1259,1349,1357,1361,1388,1404-1405,1408,1418,1435-1436,1465,1467,1476,1492,1494,1496,1498,1514,1525-1526,1541,1562,1569,1573,1575,1597,1677,1682,1692,1701,1774,1782-1783,1786,1788,1791,1804,1808-1809,1818,1820,1823,1836,1844,1865,1892-1893,1906,1922,1925,1947,1958,1960-1961,1963,1966-1967,1969-1972,1974,1977,1979-1981,1984-1985,1993-1994,1996-1997,1999-2002,2005,2014-2015,2018-2019,2036-2037,2039-2042,2050,2058-2060,2063,2069-2070,2077-2078,2092,2154,2156,2232'
 ```
+
+The Ethel client computes its complete scope automatically; it equals the right-fire/Linda scope above. The public clock contract is source day/hour plus valid monotone observations within each run, without source-to-first/reload minute equality. The packet records the exact saved and observed clocks for this proof.
