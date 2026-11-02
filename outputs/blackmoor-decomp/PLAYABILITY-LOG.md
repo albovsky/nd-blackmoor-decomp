@@ -99,3 +99,5 @@ Original game files and reserved ledger/evidence outputs are unchanged. Neither 
 - Venus follow-up: Sonnet high accepts frozen38937184 with no P1/P2; both static evidence/ledger checks pass. Input hashes explicitly include fragment trailing newlines, excluding the load prefix. Optional test gaps and shared save-name limits remain documented in RECOMP-11.
 
 - 2026-11-02 Pacific: root's current native chain continues m14→m15 Jupiter→m16 Moon key→m17 Moon column in4.75/19.39/7.16s. Three separate fresh reloads retain actual keys/lens and flags;17runs/16UI saves now link back to New Game. Public generators/checkers and35finite tests pass; RECOMP-12 records pending review. Private glyph-board instability requires live same-process input, now being implemented; full campaigns remain incomplete.
+
+- Column follow-up: Sonnet high acceptsf0ee6a90 with no P1/blocking P2; both static freshness checks pass. Remaining fixture/provenance limits are explicit in RECOMP-12; no compiled input changed.
