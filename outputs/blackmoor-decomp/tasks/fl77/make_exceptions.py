@@ -32,8 +32,6 @@ REASONS = {
 
 # Mac-port (Game + Vorbis) rows: va -> (reason code, note). Filled from the FL-75 and FL-77 handoffs.
 MAC_ROWS = {
-    "0x418e52": ("needs_frame_assumption_in_prover", "Left: the je at 0x419886 taken. Eight lea of frame objects are passed to member calls."),
-    "0x425b8b": ("impossible_direction_unproved", "Every instruction (246/246) and 15 of 16 directions covered; the jump at 0x425cf0 taken leads to a loop with no exit (jmp 0x425ee1, jmp 0x425c17, same test again), so every such run hits the instruction limit and the prover must discharge it."),
     "0x456516": ("needs_alias_model_in_prover", "Left: the jns at 0x456a0b fall-through. Needs a pointer into the stack (19 lea of frame addresses)."),
     "0x471722": ("needs_alias_model_in_prover", "One direction needs the `this` pointer aliased onto the record table (the only wild store is at 0x472063); a large dispatcher, and the solver ran out of memory."),
     "0x47c0f0": ("needs_alias_model_in_prover", "758 of 758 instructions; one direction needs pointer overlap (3 KB function)."),
@@ -50,6 +48,12 @@ CRT_RULES = {
     "0x511a1a": ("impossible_direction_unproved", "FDIV-bug probe: the fall-through at 0x511a4d needs x - (x/y)*y above a threshold, which cannot happen with fixed .rdata constants on a correct FPU. Scenarios reach 20 of 24 instructions and 1 of 2 directions; overriding the constants reaches 24 of 24 but the translation embeds them and then differs."),
     "0x52178e": ("census_unsplit_floor", "Both missing directions (5217a4, 5217a7) jump to code outside the 48-byte row body (0x5217c6, 0x5217cb); the world records no edge to an address outside the span, so no scenario can mark them. Coverage 21 of 21 instructions, 2 of 4 directions."),
     "0x50f462": ("needs_multi_cell_or_aliased_state", "The 50f46f fall-through needs the FPU control word at entry to differ from 0x27f, which fnstcw supplies and no override can set; the 50f491 and 50f4a9 directions depend on flags left by the call to 0x513c65. Coverage 17 of 18 instructions, 4 of 10 directions."),
+    "0x50df9d": ("needs_multi_cell_or_aliased_state", "x87 sqrt wrapper: the missing directions depend on the zero flag left by the caller before fnstcw, the control word from fnstcw, x87 status flags after the operation, and jumps to 0x513cbe and 0x513ccb outside the row span, whose edges the world does not record."),
+    "0x50e05d": ("needs_multi_cell_or_aliased_state", "x87 cos wrapper: the missing directions depend on the zero flag left by the caller before fnstcw, the control word from fnstcw, x87 status flags after the operation, and jumps to 0x513cbe and 0x513ccb outside the row span, whose edges the world does not record."),
+    "0x50e10d": ("needs_multi_cell_or_aliased_state", "x87 sin wrapper: the missing directions depend on the zero flag left by the caller before fnstcw, the control word from fnstcw, x87 status flags after the operation, and jumps to 0x513cbe and 0x513ccb outside the row span, whose edges the world does not record."),
+    "0x50e28d": ("needs_multi_cell_or_aliased_state", "x87 atan2 wrapper: the missing directions depend on the zero flag left by the caller before fnstcw, the control word from fnstcw, x87 status flags after the operation, and jumps to 0x513cbe and 0x513ccb outside the row span, whose edges the world does not record."),
+    "0x50eb20": ("impossible_direction_unproved", "Qword divide helper: the 50eba5 jb direction (carry from add edx, ecx) cannot happen because the estimate times the divisor stays below 2^64; the prover lacks that arithmetic fact. Coverage 70 of 70 instructions, 17 of 18 directions."),
+    "0x50ebca": ("impossible_direction_unproved", "realloc: the fall-throughs at 50ec67, 50ec6b and 50ecbd are impossible because edi comes from a nonzero value and esi was tested nonzero and not changed since; the prover has not discharged them. Coverage 121 of 125 instructions, 29 of 32 directions."),
     "0x510eda": ("original_faults_on_every_scenario", "The original faults on every scenario."),
     "0x510f3b": ("original_faults_on_every_scenario", "The original faults on every scenario."),
 }
