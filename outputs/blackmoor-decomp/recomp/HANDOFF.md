@@ -1,5 +1,9 @@
 # Handoff: recompiled GAME.EXE, state and next steps
 
+## Latest typing crest and native build, 2026-11-02 Pacific
+
+RECOMP-25 adds the direct Corbin portrait route and first-time Junior typing client. The actual first attempt wins2014 without an abandoned m46, preserves1687=0, accepts only the original post-win03:15 clock reset, picks/examines real crest2 and passes original UI save/fresh reload.108 finite checks pass. Portrait uses reviewed742; typing uses the new b49 native build after peer314's two call-next fixes. All4604other generated function bodies and registration/census are identical; both new ARM64 headless/Mac builds pass, Mac signature verified without launch. Sonnet accepts frozen8878b641 without blockers; guarded metadata83b9931f preserves1824peer claims. New native acceptance remains menu/load and this one typing/crest/reload; Mac acceptance is build/signature only. Exact hashes, OCR inputs, source boundary and unverified error/App paths are in RECOMP25/26; no full game or ending claim.
+
 ## Latest crest prerequisites, 2026-11-02 Pacific
 
 RECOMP-24 adds the right fire partial, bounded automatic Ethel dialogue, Linda curse clue and gargoyle inspection. Four final-source producer/fresh-reload pairs pass from public m39 through m43. The automatic Ethel client preserves the four original batches, earns2154 and saves at15:42; its earlier manual day-four fork is separate. Linda earns1492 and clears2154; gargoyle inspection earns1786/1783 while2014/1974 stay0.101 finite checks pass; original Linda Bye variants are source-verified. See packet for full pins, scopes and source-clock limits. Sonnet accepts frozen7cc06168; both final metadata checks pass atd071fbe7 after peer314 integration, preserving1824peer claims. Clock/global-open limits are recorded in the packet; the typing/crest and full fire win remain outside this slice.

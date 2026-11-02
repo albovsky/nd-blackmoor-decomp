@@ -428,3 +428,20 @@ export RC_FLAGS='338-341,1148-1160,1162-1174,1192,1259,1349,1357,1361,1388,1404-
 ```
 
 The Ethel client computes its complete scope automatically; it equals the right-fire/Linda scope above. The public clock contract is source day/hour plus valid monotone observations within each run, without source-to-first/reload minute equality. The packet records the exact saved and observed clocks for this proof.
+
+
+## Corbin portrait and first-time typing crest, 2026-11-02 Pacific
+
+`story_route.py corbin-portrait --save m45` goes directly from m43 through the first36library-walk events and unchanged49-event portrait/save body. No already-known family dialogue or intermediate m44 is needed. Actual1863 rises at2741,1935 is retained;92steps and fresh reload pass. Source is savedday3/16:14.
+
+`typing_live.py` takes native/game/source path+SHA arguments and required caller geometry, OCR executable and eng.traineddata paths+SHA pins; see private candidate usage and RECOMP25. `typing-start` preserves the exact first-entry48-event prefix and rejects a save tail. It enters1340 with2088new1 and1687/2014still0, then reads captured pixels and sends ordinary120ms letterVKs. The original game owns score/timer/win. Actual12OCRplans/70keys earn2014 with an ordered1343 file open on first attempt, no abortX/m46.
+
+Original4138 raw64 resets same-day03:15 after the win and clears1672; only that boundary is exempted from normal monotone clocks. Pick up2, examine through6200 and close to4114 without a PUT or held2 assumption. Actual m47saved03:17, crest2owned1,1687still0;203producersteps and19freshreloadsteps pass. Native b49 is a fresh peer314 build; portrait was on742. The2changed CRT helper bodies and unchanged4604body/registration proof are explicit in RECOMP26. Other layouts/fonts/Senior/retries and error paths remain unverified by this client.
+
+Complete `corbin-portrait` scope:
+
+```sh
+export RC_FLAGS='338-341,1148-1160,1162-1174,1192,1259,1349,1357,1361,1388,1404-1405,1408,1418,1435-1436,1465,1467,1476,1492,1494,1496,1498,1514,1525-1526,1541,1562,1569,1573,1575,1597,1677,1682,1687,1692,1701,1774,1782-1783,1786,1788,1791,1804,1808-1809,1818,1820,1823,1836,1844,1863,1865,1892-1893,1906,1922,1925,1947,1958,1960-1961,1963,1966-1967,1969-1972,1974,1977,1979-1981,1984-1985,1993-1994,1996-1997,1999-2002,2005,2014-2015,2018-2019,2036-2037,2039-2042,2050,2058-2060,2063,2069-2070,2077-2078,2088,2092,2154,2156,2232'
+```
+
+The typing client computes its complete scoped union automatically. Geometry/OCR training assets are caller-owned local inputs and are never bundled.
