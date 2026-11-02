@@ -26,7 +26,7 @@ Reviewed appcbb2ef85b3953d8d41b9796c290426b4ea5b1a250e5d65833ca1ddd81511d51c sep
 
 ## Review and limits
 
-Independent Sonnet review and required registered-test hash refresh are pending. No function-port acceptance is added. Alternate starts/inventories, Senior cadence, other story branches/columns/armor, full campaigns and final native credits remain incomplete. The broad crash-producing suite remains excluded; no existing test is weakened.
+Required registered-test hashes are refreshed from clean22842de4; `ghost-refresh-receipt.json` verifies unchanged function statuses/classes/counts/native lift fields and1763peer claims, plus exact public CLI/exercised fragment bytes. Independent Sonnet review and final static freshness checks are pending. No function-port acceptance is added. Alternate starts/inventories, Senior cadence, other story branches/columns/armor, full campaigns and final native credits remain incomplete. The broad crash-producing suite remains excluded; no existing test is weakened.
 
 ## Source pins
 
