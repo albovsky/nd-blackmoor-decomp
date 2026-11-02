@@ -2882,6 +2882,7 @@ done:
 void m50c635_lifted(Fl41Regs *r, const Fl41Host *h)
 {
     FL41_PROLOGUE
+    uint32_t esp0_ = esp;
     esp -= 4u; WR32(esp, ebp);  /* 0x50c635: push ebp */
     ebp = esp;  /* 0x50c636: mov ebp, esp */
     esp -= 4u; WR32(esp, ecx);  /* 0x50c638: push ecx */
@@ -2898,7 +2899,8 @@ void m50c635_lifted(Fl41Regs *r, const Fl41Host *h)
     ebx = RD32((uint32_t)(ebp + 0xcu));  /* 0x50c657: mov ebx, dword ptr [ebp + 0xc] */
     esp = RD32((uint32_t)(ebx + 0xfffffffcu));  /* 0x50c65a: mov esp, dword ptr [ebx - 4] */
     ebp = RD32((uint32_t)(ebp + 0xfffffffcu));  /* 0x50c65d: mov ebp, dword ptr [ebp - 4] */
-    { uint32_t t_ = eax; FL41_CALL(t_); esp += 12u; goto done; }  /* 0x50c660: jmp eax */
+    { uint32_t t_ = eax; if (t_ == 0x50c662u) goto L_50c662; FL41_CALL(t_); esp = esp0_ + 12u; goto done; }  /* 0x50c660: jmp eax */
+L_50c662:
     edi = RD32(esp); esp += 4u;  /* 0x50c662: pop edi */
     esi = RD32(esp); esp += 4u;  /* 0x50c663: pop esi */
     ebx = RD32(esp); esp += 4u;  /* 0x50c664: pop ebx */
@@ -2973,6 +2975,7 @@ done:
 void m50c82b_lifted(Fl41Regs *r, const Fl41Host *h)
 {
     FL41_PROLOGUE
+    uint32_t esp0_ = esp;
     esp -= 4u; WR32(esp, ebp);  /* 0x50c82b: push ebp */
     ebp = esp;  /* 0x50c82c: mov ebp, esp */
     esp -= 4u; WR32(esp, ebx);  /* 0x50c82e: push ebx */
@@ -3014,7 +3017,8 @@ L_50c88c:
     ebx = RD32((uint32_t)(ebp + 0xcu));  /* 0x50c88c: mov ebx, dword ptr [ebp + 0xc] */
     esp = RD32((uint32_t)(ebx + 0x1cu));  /* 0x50c88f: mov esp, dword ptr [ebx + 0x1c] */
     ebp = RD32((uint32_t)(ebx + 0x20u));  /* 0x50c892: mov ebp, dword ptr [ebx + 0x20] */
-    { uint32_t t_ = RD32((uint32_t)(ebx + 0x18u)); FL41_CALL(t_); esp += 4u; goto done; }  /* 0x50c895: jmp dword ptr [ebx + 0x18] */
+    { uint32_t t_ = RD32((uint32_t)(ebx + 0x18u)); if (t_ == 0x50c898u) goto L_50c898; FL41_CALL(t_); esp = esp0_ + 4u; goto done; }  /* 0x50c895: jmp dword ptr [ebx + 0x18] */
+L_50c898:
     esp -= 4u; WR32(esp, 0x1u);  /* 0x50c898: push 1 */
     eax = RD32(esp); esp += 4u;  /* 0x50c89a: pop eax */
 L_50c89b:

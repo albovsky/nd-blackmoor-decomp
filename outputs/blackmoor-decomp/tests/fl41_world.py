@@ -182,12 +182,64 @@ REG_NAMES = ('eax', 'ecx', 'edx', 'ebx', 'esi', 'edi', 'ebp')
 FPSW_OVERRIDE = REG_OVERRIDE + 4 * 16        # FL-78: an override here sets the x87 status word at the start of the run of a row that uses the x87 unit (a check of the sticky exception flags that a caller's operation left); outside REG_NAMES, so the searches that walk REG_NAMES do not draw it
 
 
+# FL-78 (round 10): more start state of a run, for the rows that read what their caller left (the x87 wrappers). All four are above REG_OVERRIDE, so every search that walks REG_NAMES leaves them alone.
+EFLAGS_OVERRIDE = REG_OVERRIDE + 4 * 17        # the arithmetic flags at entry, as in EFLAGS: CF 0x1, PF 0x4, ZF 0x40, SF 0x80, OF 0x800 (any other bit is ignored: the translation does not model AF and assumes the direction flag clear). The default is 0 (EFLAGS = 2)
+FCW_OVERRIDE = REG_OVERRIDE + 4 * 18           # the x87 control word at entry (default FCW = 0x27f), for a row that uses the x87 unit
+ST_OVERRIDE = REG_OVERRIDE + 0x100             # + 16 * i (size 8): the double (its 64 bits) that st(i) holds at entry, i = 0 .. 7 without gaps (st(0) first); the stack is empty by default
+FPRET_OVERRIDE = REG_OVERRIDE + 0x200          # + 16 * i (size 8): the callee number i of the row (sorted by address among row['callees']) leaves this double in st(0) on every call, in place of the drawn value (and a callee that is not known to return one does)
+FLAG_MASK = 0x8c5
+
+
 def apply_register_overrides(regs, overrides):
     for address, size_, value in overrides:
         if address == FPSW_OVERRIDE:
             regs['fpsw'] = value & 0xffff
+        elif address == EFLAGS_OVERRIDE:
+            regs['eflags'] = value & FLAG_MASK
+        elif address == FCW_OVERRIDE:
+            regs['fcw'] = value & 0xffff
+        elif ST_OVERRIDE <= address < ST_OVERRIDE + 16 * 8 and (address - ST_OVERRIDE) % 16 == 0:
+            regs.setdefault('st', {})[(address - ST_OVERRIDE) // 16] = value & 0xffffffffffffffff
+        elif FPRET_OVERRIDE <= address < FPRET_OVERRIDE + 16 * 64 and (address - FPRET_OVERRIDE) % 16 == 0:
+            regs.setdefault('fpret', {})[(address - FPRET_OVERRIDE) // 16] = value & 0xffffffffffffffff
         elif address >= REG_OVERRIDE:
             regs[REG_NAMES[(address - REG_OVERRIDE) // 4]] = value & 0xffffffff
+    if 'st' in regs:
+        if sorted(regs['st']) != list(range(len(regs['st']))):
+            raise ValueError('ST_OVERRIDE: st(0) .. st(n-1) without gaps')
+        regs['st'] = [regs['st'][i] for i in range(len(regs['st']))]
+
+
+def double_to_ext(bits):
+    """(mantissa, sign|exponent) of the 80-bit value that equals the double with these bits"""
+    sign, e, f = bits >> 63, (bits >> 52) & 0x7ff, bits & ((1 << 52) - 1)
+    if e == 0x7ff:
+        return (1 << 63) | (f << 11), (sign << 15) | 0x7fff
+    if e == 0:
+        if f == 0:
+            return 0, sign << 15
+        n = f.bit_length()
+        return f << (64 - n), (sign << 15) | (n - 1 - 1074 + 16383)
+    return (1 << 63) | (f << 11), (sign << 15) | (e - 1023 + 16383)
+
+
+def x87_start(regs):
+    """(status word, control word, [(physical register, mantissa, sign|exponent)]) of the x87 unit at entry"""
+    st = [double_to_ext(b) for b in regs.get('st', [])]
+    top = (8 - len(st)) & 7
+    sw = (regs.get('fpsw', 0) & ~0x3800) | (top << 11)
+    return sw, regs.get('fcw', FCW), [((top + i) & 7, m, e) for i, (m, e) in enumerate(st)]
+
+
+def fpret_overrides(row, regs):
+    """{callee: bits} of the FPRET_OVERRIDEs of a scenario"""
+    callees = sorted(row['callees'])
+    out = {}
+    for i, bits in regs.get('fpret', {}).items():
+        if i >= len(callees):
+            raise ValueError('FPRET_OVERRIDE: the row has %d callees' % len(callees))
+        out[callees[i]] = bits
+    return out
 
 
 STUB_WR = 0xffd00000       # FL-48: overrides at STUB_WR + 16*k (target address) and + 4 (value) make the k-th callee stub also store that dword (a callee may write any cell); both sides honour it
@@ -289,7 +341,12 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None, watch=Non
         if address < REG_OVERRIDE and IMAGE_BASE <= address and address + size_ <= IMAGE_BASE + len(image):
             image[address - IMAGE_BASE:address - IMAGE_BASE + size_] = (value & ((1 << (8 * size_)) - 1)).to_bytes(size_, 'little')
     stubs = {callee: (callee, cleanup) for callee, cleanup in row['callees'].items()}
-    fpret = row.get('fpret') or {}        # FL-52: callees that leave a value in st(0) (+1) or take one off it (-1): the stub is a real instruction there
+    fpret = dict(row.get('fpret') or {})        # FL-52: callees that leave a value in st(0) (+1) or take one off it (-1): the stub is a real instruction there
+    fp_ovr = fpret_overrides(row, regs)         # FL-78 (round 10): the value a callee leaves, chosen by the scenario
+    for callee in fp_ovr:
+        if fpret.get(callee, 0) < 0:
+            raise ValueError('FPRET_OVERRIDE on a callee that takes a value off st(0)')
+        fpret[callee] = 1
     for callee, net in fpret.items():
         cleanup = row['callees'][callee]
         code = (b'\xdd\x05' + struct.pack('<I', FPSLOT) if net > 0 else b'\xdd\xd8') + (b'\xc2' + struct.pack('<H', cleanup) if cleanup else b'\xc3')
@@ -307,9 +364,16 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None, watch=Non
     uc.mem_map(STOP & ~0xfff, 0x1000)
     uc.mem_write(STOP, b'\x90' * 16)
     if row.get('fpu'):
-        uc.reg_write(X.UC_X86_REG_FPCW, FCW)
-        if regs.get('fpsw'):
-            uc.reg_write(X.UC_X86_REG_FPSW, regs['fpsw'])
+        sw0, cw0, st0 = x87_start(regs)
+        uc.reg_write(X.UC_X86_REG_FPCW, cw0)
+        if sw0:
+            uc.reg_write(X.UC_X86_REG_FPSW, sw0)
+        if st0:                                   # FL-78 (round 10): registers of the stack at entry; the tag word marks them valid and the others empty
+            tag = 0xffff
+            for phys, mant, se in st0:
+                uc.reg_write(getattr(X, 'UC_X86_REG_FP%d' % phys), (mant, se))
+                tag &= ~(3 << (2 * phys))
+            uc.reg_write(X.UC_X86_REG_FPTAG, tag)
     trace = Trace()
     mapped = set()
     if row['fs']:
@@ -428,7 +492,7 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None, watch=Non
         held = tuple(uc.reg_read(getattr(X, 'UC_X86_REG_' + n)) for n in ('EAX', 'EDX', 'EBX', 'ESI', 'EDI', 'EBP'))
         net = fpret.get(address, 0) if address in stubs else 0
         if net > 0:
-            bits = fret_bits(stub_rng)
+            bits = fp_ovr.get(address, fret_bits(stub_rng))
             uc.mem_write(FPSLOT, struct.pack('<Q', bits))
             trace.calls.append((ident, ecx, held, words, eax, ecx_out, edx, writes, bits))
         elif net < 0:       # FL-55: the value the callee takes off st(0) is one of its inputs, so it is part of the call record (both sides)
@@ -460,6 +524,8 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None, watch=Non
         if target is None or target >= 0xfff00000:          # the access, or the fetch at the target, faults in the original (0xffffffff is also the translation's divide-error marker)
             trace.fault = 'access in a call target'
             uc.emu_stop()
+            return
+        if tail and target == after:                    # FL-78 (round 10): a jump to the instruction after it lands in the function's own code (an unwinder's resume jump): the original runs it, the translation has the label (lift_fl41.indirect_tail_jump)
             return
         if not tail:                                    # FL-68: a `jmp` through a register or a pointer is a tail call: no return address is pushed, the target returns to the caller of the function
             esp = (uc.reg_read(X.UC_X86_REG_ESP) - 4) & 0xffffffff
@@ -504,7 +570,7 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None, watch=Non
     sp = STACK_BASE + STACK_SIZE - 0x100 - 4 * (ARGS + 1)
     uc.mem_write(sp, struct.pack('<%dI' % (ARGS + 1), STOP, *args))
     uc.reg_write(X.UC_X86_REG_ESP, sp)
-    uc.reg_write(X.UC_X86_REG_EFLAGS, 2)
+    uc.reg_write(X.UC_X86_REG_EFLAGS, 2 | regs.get('eflags', 0))
     for address, size_, value in overrides:
         if address >= REG_OVERRIDE:
             continue
@@ -563,7 +629,7 @@ class Fpu(ctypes.Structure):
 
 
 class Host(ctypes.Structure):
-    _fields_ = [('ctx', ctypes.c_void_p), ('rd', RD), ('wr', WR), ('call', CALL), ('fret', FRET), ('fpu', ctypes.POINTER(Fpu))]
+    _fields_ = [('ctx', ctypes.c_void_p), ('rd', RD), ('wr', WR), ('call', CALL), ('fret', FRET), ('fpu', ctypes.POINTER(Fpu)), ('eflags', ctypes.c_uint32)]       # (eflags: FL-78 round 10, the arithmetic flags at entry, see EFLAGS_OVERRIDE)
 
 
 class Mem:
@@ -667,7 +733,7 @@ def run_native(lib, row, seed, overrides=()):
             mem.write_bytes(at, data)
         held = tuple(getattr(rr.contents, n) for n in ('eax', 'edx', 'ebx', 'esi', 'edi', 'ebp'))
         if fpret.get(callee, 0) > 0:
-            fret_last[0] = fret_bits(stub_rng)
+            fret_last[0] = fp_ovr.get(callee, fret_bits(stub_rng))
             trace.calls.append((callee, ecx, held, words, eax, ecx_out, edx, writes, fret_last[0]))
         elif fpret.get(callee, 0) < 0 and fpu is not None:       # FL-55: the value on top of st(0) goes into the call record, as on the original side
             at = 16 * ((fpu.sw >> 11) & 7)
@@ -681,14 +747,21 @@ def run_native(lib, row, seed, overrides=()):
         if callee in row.get('noreturn', ()):
             rr.contents.esp = NORETURN_ESP
 
-    fpret = row.get('fpret') or {}
+    fpret = dict(row.get('fpret') or {})
+    fp_ovr = fpret_overrides(row, regs)
+    for callee in fp_ovr:
+        if fpret.get(callee, 0) < 0:
+            raise ValueError('FPRET_OVERRIDE on a callee that takes a value off st(0)')
+        fpret[callee] = 1
     fret_last = [0]
     fpu = None
     if row.get('fpu'):
         fpu = Fpu()
-        fpu.cw = FCW
-        fpu.sw = regs.get('fpsw', 0)
-    host = Host(None, RD(rd), WR(wr), CALL(call), FRET(lambda ctx: fret_last[0]), ctypes.pointer(fpu) if fpu is not None else None)
+        fpu.sw, fpu.cw, st0 = x87_start(regs)
+        for phys, mant, se in st0:                # FL-78 (round 10): registers of the stack at entry
+            ctypes.memmove(ctypes.addressof(fpu) + 16 * phys, mant.to_bytes(8, 'little') + se.to_bytes(2, 'little'), 10)
+            fpu.valid[phys] = 1
+    host = Host(None, RD(rd), WR(wr), CALL(call), FRET(lambda ctx: fret_last[0]), ctypes.pointer(fpu) if fpu is not None else None, regs.get('eflags', 0))
     sp = STACK_BASE + STACK_SIZE - 0x100 - 4 * (ARGS + 1)
     for k, v in enumerate([STOP, *args]):
         mem.write(sp + 4 * k, 4, v)
