@@ -359,3 +359,7 @@ Post-key collection review: Sonnet accepts634c1963, both static freshness checks
 Both exact public fragments plus separate fresh save-only reloads pass with complete compact scopes from final public m26;68finite route fixtures pass. Packet RECOMP-18 and private `root-fullscope-dragon-light/verified-public-chain.json` pin sources, checkpoints and reload deltas. Every route uses normal original UI/saves; no host/game change. Alternate starts/Senior variants/full campaigns remain unverified by this slice.
 
 Dragon/light-request review: Sonnet acceptse5491478, both static freshness checks pass;1793peer records preserved. Lever positions are a source-derived solution, not directly logged state; runtime win is1997/3342 plus ordered opens. RECOMP-18 records bounded clock/subsequence/fixture limits and producer/reload input hashes. No post-review code change.
+
+## Real-clock headless menu completion, 2026-11-02 Pacific
+
+Real-clock headless previously had no `rc_audio_render` consumer, so original Load's click-sound gate never finished despite delivered pointer messages. RECOMP-20 supplies a44100Hz/441-frame per10ms silent consumer, fixed deadlines and joined shutdown. The exact failed7-step input now loads genuine m46/reaches4120 with clean finish/exit0; default virtual passes the same bytes without a consumer. No original gate/status is bypassed. Candidate native74229ec8, unchanged24lifted objects, no Macapp change. Packet/root acceptance pin exact source/input and14real-run rebases; broader sync/media/failure branches remain unverified.

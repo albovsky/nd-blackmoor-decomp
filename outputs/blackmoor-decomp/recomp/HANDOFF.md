@@ -1,5 +1,9 @@
 # Handoff: recompiled GAME.EXE, state and next steps
 
+## Latest native host fix, 2026-11-02 Pacific
+
+RECOMP-20 adds the missing device-free mixer consumer to real-clock headless runs. Original menu click sounds now complete and the exact formerly stalled Load sequence reads genuine m46/reaches4120; default virtual still passes unchanged. New candidate native74229ec8 has24identical lifted objects; Macapp unchanged. Finite consumption/lifecycle/pacing checks pass. See packet for exact hashes,14observed deadline rebases, failure-path limits and pending metadata/review. No output device or original state is touched.
+
 ## Latest dragon/light-request routes, 2026-11-02 Pacific
 
 RECOMP-18 adds exact `dragon-passage --save m27` and `glyph-request --save m28`. Four full-scope fresh producer/reload runs pass from final PR305 m26, with original dragon win/darkness/retreat and pending-only light request/rules exit.68finite route fixtures pass. No light or glyph win is claimed;2001/1357/1804 remain0. Sonnet accepts frozene5491478 and both static freshness checks pass. See packet for exact saves/source/reload hashes and accepted evidence limits. Compiled host/game/app are unchanged; full campaigns remain incomplete.
