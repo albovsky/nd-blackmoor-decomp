@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Check an observed headless story leg, not merely its process exit.
 
-python3 check_route.py RUN_LOG SAVE_FILE [--route telescope-prep|jane-jigsaw]
+python3 check_route.py RUN_LOG SAVE_FILE [--route telescope-prep|jane-jigsaw|telescope-use]
 The caller supplies a checkpoint produced by this run's normal Load & Save UI.
 This checks recorded observations, a matching file-open line and save size;
 fresh-folder/write provenance and saved contents require separate replay evidence.
@@ -36,6 +36,10 @@ def verify(log, save, route='telescope-prep'):
         expected = [(3575, 0), (1234, 0), (3510, 4)]
         positive = {1424, 1567, 1570, 1905, 1980, 1993}
         negative = {1309, 1906, 2036, 2037}
+    elif route == 'telescope-use':
+        expected = [(3507, 0), (1605, 0), (2078, 0), (2081, 0), (2010, 19)]
+        positive = {1424, 1567, 1570, 1574, 1905, 1906, 1980, 1993, 2036, 2037}
+        negative = set()
     else:
         raise ValueError('unknown story route')
     observations = []
@@ -66,6 +70,16 @@ def verify(log, save, route='telescope-prep'):
             raise ValueError('RC_FLAGS did not observe every required event')
         if flags.get(1424, 0) != 1 or flags.get(1980, 0) != 0:
             raise ValueError('puzzle did not start before the loan win')
+    if route == 'telescope-use':
+        state, scope, flags = selected[2]
+        if 1906 not in scope or 1309 not in selected[3][1]:
+            raise ValueError('RC_FLAGS did not observe every required event')
+        if flags.get(1906, 0) != 0:
+            raise ValueError('telescope was already complete before lens use')
+        if state[3] != 12:
+            raise ValueError('lens is not held before installation')
+        if selected[3][2].get(1309, 0) != 1:
+            raise ValueError('lens installation flag is not 1 in the filtered view')
     for _, scope, flags in selected[-2:]:
         if not (positive | negative) <= scope:
             raise ValueError('RC_FLAGS did not observe every required event')
@@ -84,14 +98,14 @@ def verify(log, save, route='telescope-prep'):
         raise ValueError('checkpoint save is missing or has an unexpected length')
     return {'route': route, 'scene': expected[-1][0], 'view': expected[-1][1],
             'flags_one': sorted(positive), 'flags_zero': sorted(negative),
-            'save': save.name, 'telescope_complete': False}
+            'save': save.name, 'telescope_complete': route == 'telescope-use'}
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('run_log', type=Path)
     parser.add_argument('save_file', type=Path)
-    parser.add_argument('--route', choices=('telescope-prep', 'jane-jigsaw'),
+    parser.add_argument('--route', choices=('telescope-prep', 'jane-jigsaw', 'telescope-use'),
                         default='telescope-prep')
     args = parser.parse_args()
     try:

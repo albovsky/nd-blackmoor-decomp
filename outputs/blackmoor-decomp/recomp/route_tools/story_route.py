@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The story routes of ROUTES.md as INPUT strings for rc_headless.
 
-  python3 story_route.py LEG [--save NAME]      LEG is one of: stairs, lock, slider, moon, telescope-prep, linda, jane-intro, jane-jigsaw, slider-verify
+  python3 story_route.py LEG [--save NAME]      LEG is one of: stairs, lock, slider, moon, telescope-prep, linda, jane-intro, jane-jigsaw, telescope-use, slider-verify
   python3 story_route.py slider-verify          replays the recorded 105 slider moves on the puzzle rules and prints whether they solve it
 
 Each leg starts from a save made in the game's own Load & Save screen and (with --save NAME) ends by saving the next one, so the legs chain:
@@ -14,6 +14,7 @@ Each leg starts from a save made in the game's own Load & Save screen and (with 
   m7  --linda--> m8 (Linda introduction complete, S4408)
   m8  --jane-intro--> S1206 (optional Memory branch, no save tail)
   m8  --jane-jigsaw--> m9 (Junior jigsaw won, telescope loan earned, S3510 view 4)
+  m9  --telescope-use--> m10 (delivery, Petrov call, filtered telescope, bedroom view 19)
 
 Steps are `anchor+ms:kind:args` (rc_headless.c). `click x,y,hold` is a move 1 s before the click; `mv:x,y` a bare move; `key:VK` a key press.
 A bare click on a hotspot needs a move onto it first or the game ignores it (the cursor must have been seen there), so every click has its move.
@@ -297,6 +298,39 @@ def leg_jane_jigsaw(save=None):
     return ';'.join(out)
 
 
+def leg_telescope_use(save=None):
+    """m9 -> telescope delivery, Petrov's call, filtered view and room/m10.
+
+    Uses the observed no-Ethel branch and first incoming Petrov call. Stops at
+    unopened anchors if those story conditions differ; it does not force them.
+    """
+    r = R().at('S3510.CIF', 8000).turns('left', 6)
+    r.clicks('290,195 312,182', 8000)
+    out = [r.text(), 'S3507.CIF+8000:shot:0,0',
+           R().at('S3507.CIF', 12000).clicks('234,171', 8000).text(),
+           R().at('S3303.CIF', 8000).clicks('317,162 309,352 298,162 294,162 304,162', 8000).text(),
+           R().at('S1601.CIF', 50000).clicks('150,414,300', 6000).text(),
+           R().at('S1602.CIF', 50000).clicks('150,440,300', 6000).text(),
+           'S1605.CIF+50000:shot:0,0',
+           R().at('S1605.CIF', 52000).clicks('22,405,6000', 6000).text()]
+    out += ['S1605.CIF+%d:move:22,%d' % (53300 + i * 300, y)
+            for i, y in enumerate((410, 415, 420, 425, 430, 435, 440, 445, 450, 455, 456))]
+    out += ['S1605.CIF+61000:shot:0,0',
+            R().at('S1605.CIF', 63000).clicks('150,430,100', 6000).text()]
+    # 6310 already closes the phone and restores 3308. An extra click on its
+    # former X would hit the hallway exit, putting the remaining route ahead.
+    room = R().at('S6310.CIF', 23000).clicks('532,161 292,189 292,162 353,173', 8000)
+    room.turns('right', 1).clicks('528,272 302,161 212,448 62,100', 8000)
+    out += [room.text(), 'S6310.CIF+87000:shot:0,0']
+    view = R().at('S6310.CIF', 89500).clicks('365,223 305,130', 8000)
+    view.clicks('shot 310,354 310,354 310,354 shot', 8000)
+    out.append(view.text())
+    if save:
+        out += [menu_to_save_screen('S6310.CIF', 150500),
+                save_tail('S6310.CIF', 163500, save)]
+    return ';'.join(out)
+
+
 def leg_slider(save=None, gap=5000):
     """m4 -> m5. S3447 stairs hotspot, the slider puzzle S3450 (105 moves), the compartment S3452/S3453 item, the cancel strip at S3455, S3457, S3303."""
     r = R().at('S3447.CIF', 8000).clicks('mv:230,150 mv:241,166 241,166,300', 3000)
@@ -355,7 +389,7 @@ if __name__ == '__main__':
     legs = {'stairs': leg_stairs, 'lock': leg_lock, 'slider': leg_slider,
             'moon': leg_moon, 'telescope-prep': leg_telescope_prep,
             'linda': leg_linda, 'jane-intro': leg_jane_intro,
-            'jane-jigsaw': leg_jane_jigsaw}
+            'jane-jigsaw': leg_jane_jigsaw, 'telescope-use': leg_telescope_use}
     if leg not in legs:
         sys.exit(__doc__)
     print(legs[leg](save))

@@ -87,5 +87,53 @@ class JaneJigsawResultTests(unittest.TestCase):
                            self.save, route='jane-jigsaw')
 
 
+class TelescopeUseResultTests(unittest.TestCase):
+    def setUp(self):
+        self.folder = tempfile.TemporaryDirectory()
+        self.addCleanup(self.folder.cleanup)
+        self.save = Path(self.folder.name) / 'm10.SAV'
+        self.save.write_bytes(bytes(170770))
+        self.log = ''
+        for i, (scene, view, held) in enumerate(((3507, 0, -1), (1605, 0, -1),
+                                                (2078, 0, 12), (2081, 0, -1),
+                                                (2010, 19, -1))):
+            self.log += ('  STATE requested_scene=%d art_scene=%d view=%d held_item=%d\n'
+                         '  RC_FLAGS 1309,1424,1567,1570,1574,1905-1906,1980,1993,2036-2037\n'
+                         '  FLAGS 1424=1 1567=1 1570=1 1905=1 1980=1 1993=1 2037=1%s%s\n' %
+                         (scene, scene, view, held,
+                          ' 1574=1 2036=1' if i else '',
+                          ' 1309=1 1906=1' if i >= 3 else ''))
+        self.log += '  FILE open C:\\GAME\\Documents5\\The Curse of Blackmoor Manor\\m10.SAV  [virtual 490000 ms]\n'
+        self.log += 'RESULT {"stopped":"stop requested <52a4c0"}\n'
+
+    def test_accepts_lens_installation_filtered_view_and_room_save(self):
+        result = checker.verify(self.log, self.save, route='telescope-use')
+        self.assertEqual((result['scene'], result['view']), (2010, 19))
+        self.assertTrue(result['telescope_complete'])
+
+    def test_refuses_preexisting_telescope_completion(self):
+        with self.assertRaisesRegex(ValueError, 'already complete'):
+            checker.verify(self.log.replace('  FLAGS ', '  FLAGS 1906=1 ', 3),
+                           self.save, route='telescope-use')
+
+    def test_refuses_use_without_held_lens(self):
+        with self.assertRaisesRegex(ValueError, 'lens is not held'):
+            checker.verify(self.log.replace('held_item=12', 'held_item=-1'),
+                           self.save, route='telescope-use')
+
+    def test_refuses_filtered_view_without_installation_flag(self):
+        with self.assertRaisesRegex(ValueError, 'installation flag'):
+            checker.verify(self.log.replace(' 1309=1', ''), self.save,
+                           route='telescope-use')
+
+    def test_refuses_unobserved_installation_or_missing_delivery(self):
+        with self.assertRaisesRegex(ValueError, 'every required event'):
+            checker.verify(self.log.replace('1309,', ''), self.save,
+                           route='telescope-use')
+        with self.assertRaisesRegex(ValueError, 'prerequisite flag'):
+            checker.verify(self.log.replace(' 2036=1', ''), self.save,
+                           route='telescope-use')
+
+
 if __name__ == '__main__':
     unittest.main()
