@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Check an observed headless story leg, not merely its process exit.
 
-python3 check_route.py RUN_LOG SAVE_FILE [--route telescope-prep|jane-jigsaw|telescope-use|seedlings|crank-repair|betty-key|venus-column|jupiter-column|moon-key|moon-column]
+python3 check_route.py RUN_LOG SAVE_FILE [--route telescope-prep|jane-jigsaw|telescope-use|seedlings|crank-repair|betty-key|venus-column|jupiter-column|moon-key|moon-column|nigel-computer|night-wait|goggles|ghost-hunt]
 The caller supplies a checkpoint produced by this run's normal Load & Save UI.
 This checks recorded observations, a matching file-open line and save size;
 fresh-folder/write provenance and saved contents require separate replay evidence.
@@ -17,7 +17,7 @@ from pathlib import Path
 CLOCK_OVERLAP_DIAGNOSTICS = frozenset(range(338, 342))
 
 
-def flag_scope(text):
+def flag_scope(text, include_clock=False):
     flags = set()
     for part in text.split(','):
         match = re.fullmatch(r'(\d+)(?:-(\d+))?', part)
@@ -28,7 +28,99 @@ def flag_scope(text):
         if not 0 <= lo <= hi <= 2250:
             raise ValueError('recorded RC_FLAGS range outside the game event table')
         flags.update(range(lo, hi + 1))
-    return flags - CLOCK_OVERLAP_DIAGNOSTICS
+    return flags if include_clock else flags - CLOCK_OVERLAP_DIAGNOSTICS
+
+
+# Recorded authored capture order: closeup before/after, then its original flag.
+GHOST_HUNT_STAGES = ((2354, 2351, 1174), (2325, 2325, 1173),
+                     (2694, 2694, 1172), (2693, 2693, 1171),
+                     (3432, 3432, 1163), (3433, 3433, 1164),
+                     (3431, 3431, 1162), (2691, 2691, 1169),
+                     (3434, 3434, 1165), (3435, 3435, 1166),
+                     (3436, 3436, 1167), (3437, 3437, 1168), (2692, 2692, 1170))
+GHOST_ROUTES = ('nigel-computer', 'night-wait', 'goggles', 'ghost-hunt')
+NIGHT_ROUTES = ('night-wait', 'goggles', 'ghost-hunt')
+COLUMN_PREREQUISITES = {1160, 1259, 1436, 1541, 1597, 1782, 1892, 1906, 1963, 1980,
+                        1981, 1993, 1994, 1996, 2000, 2002, 2015, 2019, 2036, 2037, 2077, 2092}
+NIGEL_FLAGS = {1573, 1677, 1682, 1692, 1701, 1823, 1985, 2069}
+HUNT_FLAGS = set(range(1162, 1175))
+
+
+def ghost_configuration(route):
+    positive = COLUMN_PREREQUISITES | NIGEL_FLAGS
+    negative = HUNT_FLAGS | {1192, 1788, 1893, 1947, 1958, 1961, 1999, 2039, 2040, 2063, 2070}
+    if route == 'nigel-computer':
+        expected = [(2626, 0), (2605, 15), (2605, 6), (4101, 0), (4112, 0),
+                    (1300, 0), (1304, 0), (1305, 0), (1306, 0), (1319, 0),
+                    (1307, 0), (1311, 0), (4112, 0), (4160, 0), (4165, 0),
+                    (4160, 0), (4111, 0), (4111, 0)]
+    elif route == 'night-wait':
+        expected = [(4111, 0), (4111, 0)]
+    elif route == 'goggles':
+        expected = [(4111, 0), (4105, 10), (2605, 19), (3308, 0), (3471, 0),
+                    (3473, 0), (3369, 0), (3368, 0), (3473, 0), (2605, 5),
+                    (4111, 0), (4111, 0), (4111, 0), (4111, 0)]
+        positive |= {1788, 1893}
+        negative -= {1788, 1893}
+    else:
+        expected = [(4111, 0), (4165, 0), (4111, 0)]
+        expected += [(scene, 0) for before, after, _ in GHOST_HUNT_STAGES
+                     for scene in (before, after)]
+        expected += [(4111, 0), (4178, 0), (4160, 0), (4111, 0), (4111, 0)]
+        positive |= HUNT_FLAGS | {1788, 1893, 1947, 1958, 2063}
+        negative = {1192, 1961, 1999, 2039, 2040, 2070}
+    return expected, positive, negative
+
+
+def verify_ghost_observations(route, observations, selected, clocks, positive, negative):
+    first_one = {
+        'nigel-computer': {1573: 6, 1701: 8, 1677: 9, 1682: 11,
+                           1692: 13, 2069: 13, 1823: 14, 1985: 14},
+        'night-wait': {}, 'goggles': {1893: 4, 1788: 6},
+        'ghost-hunt': {2063: 2, 1958: 28, 1947: 30,
+                       **{flag: 4 + 2 * i for i, (_, _, flag) in enumerate(GHOST_HUNT_STAGES)}},
+    }[route]
+    permanent_zero = negative - ({1192, 2039} if route == 'ghost-hunt' else set())
+    retained = positive - first_one.keys()
+    # A failure outside the selected snapshots must not be hidden.
+    for _, scope, flags in observations:
+        if not (permanent_zero | retained) <= scope:
+            raise ValueError('RC_FLAGS did not observe every required event')
+        if any(flags.get(f, 0) != 0 for f in permanent_zero):
+            raise ValueError('unexpected hunt failure, timer or story progression flag')
+        if any(flags.get(f, 0) != 1 for f in retained):
+            raise ValueError('ghost-route retained prerequisite flag is not 1')
+    for index, (state, scope, flags) in enumerate(selected):
+        if not (positive | negative) <= scope:
+            raise ValueError('RC_FLAGS did not observe every required event')
+        if any(flags.get(f, 0) != (1 if index >= phase else 0)
+               for f, phase in first_one.items()):
+            raise ValueError('ghost-route flags do not match pre/post-original-progression observations')
+        if route == 'ghost-hunt' and any(flags.get(f, 0) != (1 if 2 <= index < 30 else 0)
+                                          for f in (1192, 2039)):
+            raise ValueError('hunt timer did not follow original start/reward-clear observations')
+        if state[3] != (21 if route == 'goggles' and index == 11 else -1):
+            raise ValueError('ghost route has an unexpected held-item state')
+    if route not in NIGHT_ROUTES:
+        return None
+    previous = -1
+    for scope, clock in clocks:
+        if scope != CLOCK_OVERLAP_DIAGNOSTICS:
+            raise ValueError('clock diagnostics 338-341 were not fully observed')
+        day, hour, minute = clock['day'], clock['hour'], clock['minute']
+        if day < 1 or not 0 <= hour < 24 or not 0 <= minute < 60 or clock['total_minutes'] != hour * 60 + minute:
+            raise ValueError('invalid recorded clock diagnostics')
+        current = (day - 1) * 1440 + clock['total_minutes']
+        if current < previous:
+            raise ValueError('recorded original clock moved backwards')
+        previous = current
+        if route != 'night-wait' and not (day == 2 and hour < 4):
+            raise ValueError('original night gate was not observed')
+    if route == 'night-wait' and clocks[0][1]['day'] != 1:
+        raise ValueError('night wait did not start before the observed day transition')
+    if any(clock['day'] != 2 or clock['hour'] >= 4 for _, clock in clocks[-2:]):
+        raise ValueError('final original night gate was not observed')
+    return clocks[-1][1]
 
 
 def verify(log, save, route='telescope-prep'):
@@ -85,26 +177,36 @@ def verify(log, save, route='telescope-prep'):
         positive = {1160, 1259, 1436, 1541, 1597, 1782, 1892, 1906, 1963, 1980,
                     1981, 1993, 1994, 1996, 2000, 2002, 2015, 2019, 2036, 2037, 2077, 2092}
         negative = {1961, 1999, 2070}
+    elif route in GHOST_ROUTES:
+        expected, positive, negative = ghost_configuration(route)
     else:
         raise ValueError('unknown story route')
     observations = []
+    clocks = []
     state = None
     scope = set()
+    raw_scope = set()
     for line in log.splitlines():
         match = re.fullmatch(r'\s*STATE requested_scene=(\d+) art_scene=(\d+) view=(-?\d+) held_item=(-?\d+)', line)
         if match:
             state = tuple(map(int, match.groups()))
             scope = set()
+            raw_scope = set()
         elif line.startswith('  RC_FLAGS '):
-            scope = flag_scope(line.removeprefix('  RC_FLAGS '))
+            raw_scope = flag_scope(line.removeprefix('  RC_FLAGS '), include_clock=True)
+            scope = raw_scope - CLOCK_OVERLAP_DIAGNOSTICS
         elif line.startswith('  FLAGS') and state is not None:
-            values = {int(k): int(v) for k, v in re.findall(r'(\d+)=(\d+)', line)
-                      if int(k) not in CLOCK_OVERLAP_DIAGNOSTICS}
+            raw = {int(k): int(v) for k, v in re.findall(r'(\d+)=(\d+)', line)}
+            values = {k: v for k, v in raw.items() if k not in CLOCK_OVERLAP_DIAGNOSTICS}
             observations.append((state, scope.copy(), values))
+            clock = {'total_minutes': (raw.get(338, 0) >> 16) | ((raw.get(339, 0) & 65535) << 16),
+                     'hour': raw.get(340, 0) & 65535, 'minute': raw.get(339, 0) >> 16,
+                     'day': raw.get(340, 0) >> 16}
+            clocks.append((raw_scope & CLOCK_OVERLAP_DIAGNOSTICS, clock))
     # Include the pre-click frame for the tripod, or the actual puzzle, win
     # conversation and normal room return for Jane's loan.
     held_steps = {'jupiter-column': {4: 6}, 'moon-key': {7: 12, 13: 11},
-                  'moon-column': {4: 11}}.get(route, {})
+                  'moon-column': {4: 11}, 'goggles': {11: 21}}.get(route, {})
     selected = []
     for observation in observations:
         state, scope, flags = observation
@@ -122,7 +224,7 @@ def verify(log, save, route='telescope-prep'):
             selected.append(observation)
     if len(selected) != len(expected):
         raise ValueError('missing ordered route observations')
-    if route in ('jupiter-column', 'moon-key', 'moon-column'):
+    if route in ('jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES:
         # Earlier inventory shots can share scene/view/held cells. Check the
         # final two observations, rather than treating those as checkpoints.
         if any((state[0], state[2]) != expected[-1] for state, _, _ in observations[-2:]):
@@ -174,7 +276,7 @@ def verify(log, save, route='telescope-prep'):
                 raise ValueError('crank repair flag does not match pre/post-repair observations')
         if selected[4][0][3] != -1 or selected[5][0][3] != -1 or selected[6][0][3] != -1:
             raise ValueError('crank route did not return to a safe state with no held item')
-    if route in ('betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column'):
+    if route in ('betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES:
         if any(state[0] != state[1] for state, _, _ in selected):
             raise ValueError('key route art scene does not match the requested scene')
         if any(state[3] != -1 for state, _, _ in selected[-2:]):
@@ -220,6 +322,9 @@ def verify(log, save, route='telescope-prep'):
             raise ValueError('Moon lens installation did not consume the held lens')
         if selected[14][0][3] != -1:
             raise ValueError('Moon key was not put away before return')
+    clock_diagnostics = None
+    if route in GHOST_ROUTES:
+        clock_diagnostics = verify_ghost_observations(route, observations, selected, clocks, positive, negative)
     for _, scope, flags in selected[-2:]:
         if not (positive | negative) <= scope:
             raise ValueError('RC_FLAGS did not observe every required event')
@@ -236,16 +341,19 @@ def verify(log, save, route='telescope-prep'):
         raise ValueError('this run did not open the requested checkpoint save')
     if not save.is_file() or save.stat().st_size != 170770:
         raise ValueError('checkpoint save is missing or has an unexpected length')
-    return {'route': route, 'scene': expected[-1][0], 'view': expected[-1][1],
+    result = {'route': route, 'scene': expected[-1][0], 'view': expected[-1][1],
             'flags_one': sorted(positive), 'flags_zero': sorted(negative),
-            'save': save.name, 'telescope_complete': route in ('telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column')}
+            'save': save.name, 'telescope_complete': route in ('telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES}
+    if clock_diagnostics is not None:
+        result['clock_diagnostics'] = clock_diagnostics
+    return result
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('run_log', type=Path)
     parser.add_argument('save_file', type=Path)
-    parser.add_argument('--route', choices=('telescope-prep', 'jane-jigsaw', 'telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column'),
+    parser.add_argument('--route', choices=('telescope-prep', 'jane-jigsaw', 'telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES,
                         default='telescope-prep')
     args = parser.parse_args()
     try:

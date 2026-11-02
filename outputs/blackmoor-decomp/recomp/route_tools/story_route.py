@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The story routes of ROUTES.md as INPUT strings for rc_headless.
 
-  python3 story_route.py LEG [--save NAME]      LEG is one of: stairs, lock, slider, moon, telescope-prep, linda, jane-intro, jane-jigsaw, telescope-use, seedlings, crank-repair, betty-key, venus-column, jupiter-column, moon-key, moon-column, slider-verify
+  python3 story_route.py LEG [--save NAME]      LEG is one of: stairs, lock, slider, moon, telescope-prep, linda, jane-intro, jane-jigsaw, telescope-use, seedlings, crank-repair, betty-key, venus-column, jupiter-column, moon-key, moon-column, nigel-computer, night-wait, goggles, ghost-hunt, slider-verify
   python3 story_route.py slider-verify          replays the recorded 105 slider moves on the puzzle rules and prints whether they solve it
 
 Each leg starts from a save made in the game's own Load & Save screen and (with --save NAME) ends by saving the next one, so the legs chain:
@@ -22,6 +22,10 @@ Each leg starts from a save made in the game's own Load & Save screen and (with 
   m14 --jupiter-column--> m15 (real Jupiter key used and returned, safe S2631)
   m15 --moon-key--> m16 (authored hallway interruption, zodiac win, Moon key and lens retained, safe S2010 view 3)
   m16 --moon-column--> m17 (real Moon key used and returned, safe S2626; columns and armor remain incomplete)
+  m17 --nigel-computer--> m18 (Nigel, computer permission and hunt instructions; safe S4111, hunt not started)
+  m18 --night-wait--> m19 (ordinary original-clock wait into the night window; safe S4111)
+  m19 --goggles--> m20 (authored night interruption and real goggles 21; safe S4111)
+  m20 --ghost-hunt--> m21 (all thirteen original ghosts, win and reward; safe S4111)
 
 Steps are `anchor+ms:kind:args` (rc_headless.c). `click x,y,hold` is a move 1 s before the click; `mv:x,y` a bare move; `key:VK` a key press.
 A bare click on a hotspot needs a move onto it first or the game ignores it (the cursor must have been seen there), so every click has its move.
@@ -569,6 +573,243 @@ def leg_moon_column(save=None):
     return ';'.join(out)
 
 
+def leg_nigel_computer(save=None):
+    """m17 -> Nigel, computer permission and PURGAMENTUM instructions/m18.
+
+    Preserve the observed conversation choices and waits, then decline the hunt
+    and cancel normally. The timed game starts in a later night leg.
+    """
+    a = 'S2626.CIF'
+    r = R().at(a, 12000).clicks('shot', 0)
+    r.at(a, 20000).clicks('310,354 shot', 8000)
+    r.turns('right', 9).clicks('shot 268,160 385,162 307,160 307,160 shot 60,160 shot 463,232', 8000)
+    r.at(a, 190500).clicks('shot', 0)
+    for t, y, shot_at in ((200000, 440, 270000), (280000, 440, 350000),
+                           (360000, 434, 430000), (440000, 454, 510000),
+                           (520000, 434, 600000), (610000, 430, 730000),
+                           (740000, 452, 810000)):
+        r.at(a, t).clicks('150,%d,300' % y, 0)
+        r.at(a, shot_at - 1000).clicks('shot', 0)
+    r.at(a, 820000).clicks('570,160 310,174 310,174 310,189 229,220 shot', 8000)
+    r.at(a, 928000).clicks('shot', 0)
+    for i, ch in enumerate('PURGAMENTUM'):
+        r.at(a, 970000 + 500 * i).clicks('key:%d' % ord(ch), 0)
+    r.at(a, 975000).clicks('shot', 0)
+    r.at(a, 978000).clicks('key:13', 0)
+    r.at(a, 1069000).clicks('shot', 0)
+    r.at(a, 1080000).clicks('445,98 shot 310,354 shot', 8000)
+    out = [r.text()]
+    if save:
+        out += [menu_to_save_screen(a, 1124000), save_tail(a, 1142000, save)]
+    return ';'.join(out)
+
+
+def leg_night_wait(save=None):
+    """m18 -> m19 through ordinary original-clock waiting beside the computer.
+
+    Only idle time, moves and observations advance the original clock. The
+    checker must observe the actual day-two midnight-to-4AM window.
+    """
+    a = 'S4111.CIF'
+    r = R().at(a, 12000).clicks('shot', 0)
+    for slot in range(1, 15):
+        r.at(a, slot * 1000000).clicks('mv:320,60', 0)
+        if slot % 3 == 0:
+            r.at(a, slot * 1000000).clicks('shot', 0)
+    r.at(a, 14499000).clicks('shot', 0)
+    out = [r.text()]
+    if save:
+        out += [menu_to_save_screen(a, 14520000), save_tail(a, 14538000, save)]
+    return ';'.join(out)
+
+
+def leg_goggles(save=None):
+    """m19 -> authored night interruption, real goggles 21 and safe m20.
+
+    Keep every exercised navigation observation. Selecting an item closes the
+    bag; reopen it before PUT, then explicitly close inventory before saving.
+    """
+    a = 'S4111.CIF'
+    r = R()
+    def observed_walk(start, points):
+        for i, point in enumerate(points.split()):
+            t = start + 5000 * i
+            r.at(a, t).clicks(point, 0)
+            r.o.append('%s+%d:shot:0,0' % (a, t + 3500))
+    observed_walk(12000, '310,353 274,188 307,175 307,175 319,171 319,171')
+    observed_walk(43000, '310,161 68,161 161,161 311,164 329,163 329,163 '
+                  '126,163 326,162 326,162 326,162 220,164 299,163 '
+                  '295,163 305,163 310,353')
+    r.at(a, 133000).clicks('shot', 0)
+    r.at(a, 139000).clicks('500,280', 0)
+    r.at(a, 145000).clicks('shot', 0)
+    r.at(a, 161000).clicks('shot', 0)
+    r.at(a, 167000).clicks('432,112', 0)
+    r.at(a, 173000).clicks('shot', 0)
+    r.at(a, 185000).clicks('310,354', 0)
+    r.at(a, 190000).clicks('shot', 0)
+    r.at(a, 195000).clicks('310,354', 0)
+    r.at(a, 200000).clicks('shot', 0)
+    observed_walk(205000, '318,163 533,162 329,163 329,163 563,162 '
+                  '124,161 386,163 308,161 308,161')
+    observed_walk(251000, '307,175 307,175 307,175 303,190')
+    r.at(a, 271000).clicks('212,448 60,100', 5000).clicks('shot', 0)
+    r.at(a, 286000).clicks('212,448 62,100 360,20 shot', 5000)
+    out = [r.text()]
+    if save:
+        out += [menu_to_save_screen(a, 306000), save_tail(a, 324000, save)]
+    return ';'.join(out)
+
+
+def leg_ghost_hunt(save=None):
+    """m20 -> all thirteen original ghost captures and the earned m21 reward.
+
+    This is the accepted night route, with its short ordinary-input cadence.
+    No partial eleven-ghost probe or alternate hunt path is included.
+    """
+    entry = R().at('S4111.CIF', 12000).clicks('shot', 0)
+    entry.at('S4111.CIF', 20000).clicks('229,220', 0)
+    for i, ch in enumerate('PURGAMENTUM'):
+        entry.at('S4111.CIF', 35000 + 500 * i).clicks('key:%d' % ord(ch), 0)
+    entry.at('S4111.CIF', 42000).clicks('key:13', 0)
+    entry.at('S4111.CIF', 64000).clicks('shot', 0)
+    entry.at('S4111.CIF', 75000).clicks('173,96,300', 0)
+    a = 'S4172.CIF'
+    r = R().at(a, 1500)
+    def walk(points, gap=1200):
+        for point in points.split():
+            r.o += ['%s+%d:move:%s' % (a, r.t, point),
+                    '%s+%d:click:%s,300' % (a, r.t + 200, point)]
+            r.t += gap
+    def turn(direction, count):
+        x = 10 if direction == 'left' else 620
+        for _ in range(count):
+            r.o += ['%s+%d:move:%d,200' % (a, r.t, x),
+                    '%s+%d:move:320,60' % (a, r.t + 100)]
+            r.t += 1200
+    def observe():
+        r.o.append('%s+%d:shot:0,0' % (a, r.t - 50))
+    walk('310,354 310,354', gap=2000)
+    observe()
+    walk('310,353 274,188 307,175 307,175')
+    walk('319,171 319,171', gap=1700)
+    walk('310,161 316,146 270,162 381,164 310,193')
+    walk('313,169', gap=1700)
+    walk('308,161', gap=2200)
+    turn('right', 4)
+    walk('484,220 211,185 235,184 218,205 316,192 316,192 316,192 316,192 316,192 316,192 316,192 311,183 311,183 361,265 310,206')
+    observe()
+    walk('298,189', gap=1600)
+    observe()
+    walk('398,353')
+    turn('left', 2)
+    walk('102,196 92,348')
+    turn('left', 1)
+    walk('82,180 310,353 572,158 382,200 427,189 319,159 319,159 319,159 319,159 319,159 319,159 319,159 319,159 404,198 420,192 292,185 419,297')
+    observe()
+    walk('327,208', gap=1600)
+    observe()
+    walk('310,354')
+    observe()
+    walk('106,161')
+    walk('311,165 296,157 25,335', gap=1700)
+    observe()
+    walk('362,188', gap=1600)
+    observe()
+    walk('310,354')
+    observe()
+    walk('579,163 306,164')
+    walk('113,275', gap=1700)
+    observe()
+    walk('339,223', gap=1600)
+    observe()
+    walk('310,354')
+    observe()
+    walk('307,163 307,163', gap=1700)
+    walk('543,188 318,165 318,165 310,353 593,336')
+    observe()
+    walk('393,183', gap=1600)
+    observe()
+    walk('310,354')
+    observe()
+    walk('318,165 318,165 318,165 583,253')
+    observe()
+    walk('317,183', gap=1600)
+    observe()
+    walk('310,354')
+    observe()
+    walk('318,165 318,165 318,165 310,353 37,261')
+    observe()
+    walk('318,167', gap=1600)
+    observe()
+    walk('310,354')
+    observe()
+    walk('318,165 563,165')
+    walk('314,174', gap=1700)
+    walk('314,164', gap=2200)
+    walk('52,161 194,161 310,353')
+    walk('564,127', gap=1700)
+    observe()
+    walk('306,163', gap=1600)
+    observe()
+    walk('310,354')
+    observe()
+    walk('543,81 311,164 329,163 329,163 495,163 318,163 318,163 318,163 469,164 531,266')
+    observe()
+    walk('317,183', gap=1600)
+    observe()
+    walk('310,354')
+    observe()
+    walk('310,353 153,162 326,162 94,199')
+    observe()
+    walk('317,183', gap=1600)
+    observe()
+    walk('310,354')
+    observe()
+    walk('326,162 326,162 326,162 326,162 326,162')
+    walk('220,164', gap=1700)
+    walk('299,163 295,163 535,162 308,162 407,161 394,162 394,162 394,162 394,162 394,162 394,162 394,162 394,162 436,49')
+    observe()
+    walk('317,183', gap=1600)
+    observe()
+    walk('310,354')
+    observe()
+    walk('310,353 323,173 323,173 323,173 323,173 323,173 323,173 323,173 323,173 268,164 362,163 473,162 305,163 310,353 82,255')
+    observe()
+    walk('317,183', gap=1600)
+    observe()
+    walk('310,354')
+    observe()
+    walk('318,163 337,163 318,163')
+    walk('474,162', gap=1700)
+    walk('328,163 318,163 533,162 329,163 329,163 563,162 124,161')
+    walk('258,233', gap=1700)
+    observe()
+    walk('300,233', gap=1600)
+    observe()
+    walk('310,354')
+    observe()
+    walk('386,163')
+    walk('308,161', gap=1700)
+    walk('308,161', gap=2200)
+    walk('307,175 307,175 307,175 303,190')
+    observe()
+    walk('229,220', gap=3000)
+    for i, ch in enumerate('PURGAMENTUM'):
+        r.at(a, 239000 + 500 * i).clicks('key:%d' % ord(ch), 0)
+    r.at(a, 245500).clicks('key:13', 0)
+    r.at(a, 269450).clicks('shot', 0)
+    r.at(a, 275000).clicks('445,96', 0)
+    r.at(a, 280000).clicks('shot', 0)
+    r.at(a, 305000).clicks('shot', 0)
+    r.at(a, 310000).clicks('310,354', 0)
+    r.at(a, 315000).clicks('shot', 0)
+    out = [entry.text(), r.text()]
+    if save:
+        out += [menu_to_save_screen(a, 320000), save_tail(a, 338000, save)]
+    return ';'.join(out)
+
+
 def leg_slider(save=None, gap=5000):
     """m4 -> m5. S3447 stairs hotspot, the slider puzzle S3450 (105 moves), the compartment S3452/S3453 item, the cancel strip at S3455, S3457, S3303."""
     r = R().at('S3447.CIF', 8000).clicks('mv:230,150 mv:241,166 241,166,300', 3000)
@@ -631,7 +872,9 @@ if __name__ == '__main__':
             'seedlings': leg_seedlings, 'crank-repair': leg_crank_repair,
             'betty-key': leg_betty_key, 'venus-column': leg_venus_column,
             'jupiter-column': leg_jupiter_column, 'moon-key': leg_moon_key,
-            'moon-column': leg_moon_column}
+            'moon-column': leg_moon_column, 'nigel-computer': leg_nigel_computer,
+            'night-wait': leg_night_wait, 'goggles': leg_goggles,
+            'ghost-hunt': leg_ghost_hunt}
     if leg not in legs:
         sys.exit(__doc__)
     print(legs[leg](save))

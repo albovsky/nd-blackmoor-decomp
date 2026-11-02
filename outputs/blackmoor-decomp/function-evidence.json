@@ -1785,7 +1785,7 @@
   {"path":"outputs/blackmoor-decomp/tests/test_recomp_input_script.py","role":"test","sha256":"73e0786701c8f2a4b580462a3a0f9ed84ef5ac4c45d51a1d3a7d77486417f5b9"},
   {"path":"outputs/blackmoor-decomp/tests/test_recomp_pointer_input.py","role":"test","sha256":"f49baaddf9ca3393adc4954fef5a5d143f11070c2fad20f7587e8f7e687bb90a"},
   {"path":"outputs/blackmoor-decomp/tests/test_recomp_quit_lift.py","role":"test","sha256":"f16fc57d69c8d3f774f0229c1f4938fa5d080d3b96b61c3b3ad49d6aadb7804a"},
-  {"path":"outputs/blackmoor-decomp/tests/test_recomp_route_check.py","role":"test","sha256":"d2bbbc1cd7c4b42cf8a34e2582b47b66340e4254692279d81e1428d6d8f9f019"},
+  {"path":"outputs/blackmoor-decomp/tests/test_recomp_route_check.py","role":"test","sha256":"6ba6622128b956eb92c45d25e612c468b74f7295dc7ea4051961db83b63560bb"},
   {"path":"outputs/blackmoor-decomp/tests/test_recomp_sqrt.py","role":"test","sha256":"773d9993c858309a7b7906a1a1f039a1033e2bc87653a548d3ef64a988f3b75a"},
   {"path":"outputs/blackmoor-decomp/tests/test_recomp_threads.py","role":"test","sha256":"d4b3114b8969384caabb228186058515cc7219e251cd4e3b8ebf74e3106c9b43"},
   {"path":"outputs/blackmoor-decomp/tests/test_record_function_execution.py","role":"test","sha256":"e783f05a2cc8c8a9d4df797a89fed8d3eb35524848ad77a6cd4b26fe67db3422"},
