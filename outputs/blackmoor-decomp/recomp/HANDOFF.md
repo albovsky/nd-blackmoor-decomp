@@ -1,5 +1,9 @@
 # Handoff: recompiled GAME.EXE, state and next steps
 
+## Latest dragon/light-request routes, 2026-11-02 Pacific
+
+RECOMP-18 adds exact `dragon-passage --save m27` and `glyph-request --save m28`. Four full-scope fresh producer/reload runs pass from final PR305 m26, with original dragon win/darkness/retreat and pending-only light request/rules exit.68finite route fixtures pass. No light or glyph win is claimed;2001/1357/1804 remain0. Sonnet accepts frozene5491478 and both static freshness checks pass. See packet for exact saves/source/reload hashes and accepted evidence limits. Compiled host/game/app are unchanged; full campaigns remain incomplete.
+
 ## Latest post-key routes, 2026-11-02 Pacific
 
 RECOMP-17 publishes `slide-ball --save m25` and `saturn-column --save m26`: original Ethel introduction, real7 door, first slide/ball3, precisely timed bullseye/key16 and actual Saturn use. Four full-scope fresh producer/reload runs pass, with actual3/16 reload and two final safe frames;61finite route fixtures pass. Exact working movie timing and bag slots are preserved. Sonnet accepts634c1963 and both static freshness checks pass; see packet/private verified-public-chain for pins and accepted nonblocking gaps. Supplementary private Junior and Senior evidence records all five word-lock stages solved/reloaded and continue to the fire lock; full campaigns remain incomplete.

@@ -1086,5 +1086,133 @@ class PostKeyRouteInputTests(unittest.TestCase):
                 self.assertLess(count + 7, 512)
 
 
+class DragonLightRouteTests(unittest.TestCase):
+    prior = PostKeyRouteTests.prior | {1562, 1971, 1575, 1844, 2050, 1970, 1820, 2005}
+    opens = {'dragon-passage': (3332, 3338, 3339, 3342, 3343, 3417, 3418, 2903, 3326),
+             'glyph-request': (1216, 1217, 1280, 1281, 3585, 3513, 3562, 3513, 3522, 3510)}
+    setUp = PostKeyRouteTests.setUp
+    observed_log = PostKeyRouteTests.observed_log
+
+    def frames(self, route):
+        save = Path(self.folder.name) / ('m27.SAV' if route == 'dragon-passage' else 'm28.SAV')
+        save.write_bytes(bytes(170770))
+        prior = set(self.prior)
+        if route == 'dragon-passage':
+            # Two pre-lever3332 frames occur before the distinct2078 rise.
+            states = ((2620, 0), (3332, 0), (3332, 0), (3332, 0),
+                      (3342, 0), (3343, 0), (3417, 0), (3418, 0), (3326, 0), (3326, 0))
+            phases = {2078: 3, 1997: 4, 1925: 5, 1865: 5}
+        else:
+            prior |= {1997, 2078, 1925, 1865}
+            states = ((3326, 0), (3510, 0), (3510, 4), (1217, 0),
+                      (3585, 0), (3562, 0), (3513, 0), (3510, 4), (3510, 4))
+            phases = {1791: 3, 1349: 4, 1418: 4, 1408: 4, 1361: 5, 1388: 5}
+        frames = []
+        for index, (scene, view) in enumerate(states):
+            flags = {f: 1 for f in prior}
+            flags.update({f: 1 for f, phase in phases.items() if index >= phase})
+            frames.append({'scene': scene, 'art': scene, 'view': view, 'held': -1,
+                           'flags': flags, 'scope': '338-341,1000-2230', 'clock': (2, 16, 30)})
+        return save, frames
+
+    def test_accepts_distinct_dragon_phases_and_only_pending_glyph_request(self):
+        for route, final in (('dragon-passage', (3326, 0)), ('glyph-request', (3510, 4))):
+            with self.subTest(route=route):
+                save, frames = self.frames(route)
+                result = checker.verify(self.observed_log(route, save, frames), save, route)
+                self.assertEqual((result['scene'], result['view']), final)
+                self.assertTrue({2001, 1357, 1804} <= set(result['flags_zero']))
+                if route == 'glyph-request':
+                    self.assertTrue(result['glyph_pending'])
+                self.assertFalse(set(range(338, 342)) & (set(result['flags_one']) | set(result['flags_zero'])))
+
+    def test_requires_source_zeros_and_separate_early_lever_request_exit_phases(self):
+        for route, index, flag, value in (('dragon-passage', 0, 1997, 1),
+                ('dragon-passage', 3, 2078, 0), ('dragon-passage', 3, 1997, 1),
+                ('dragon-passage', 5, 1865, 0), ('glyph-request', 0, 1408, 1),
+                ('glyph-request', 3, 1349, 1), ('glyph-request', 4, 1361, 1),
+                ('glyph-request', 5, 1388, 0)):
+            with self.subTest(route=route, index=index, flag=flag):
+                save, frames = self.frames(route)
+                frames[index]['flags'][flag] = value
+                with self.assertRaisesRegex(ValueError, 'ordered|phase|pre/post'):
+                    checker.verify(self.observed_log(route, save, frames), save, route)
+
+    def test_refuses_false_glyph_or_light_reward_and_any_held_item(self):
+        for field, value in (('2001', 1), ('1357', 1), ('1804', 1), ('held', 4)):
+            with self.subTest(field=field):
+                save, frames = self.frames('glyph-request')
+                if field == 'held':
+                    frames[-1]['held'] = value
+                else:
+                    frames[-1]['flags'][int(field)] = value
+                with self.assertRaisesRegex(ValueError, 'unexpected|holds'):
+                    checker.verify(self.observed_log('glyph-request', save, frames), save, 'glyph-request')
+
+    def test_requires_exact_art_and_authored_win_darkness_rules_exit_resources(self):
+        for route in ('dragon-passage', 'glyph-request'):
+            for failure in ('art', 'resource'):
+                with self.subTest(route=route, failure=failure):
+                    save, frames = self.frames(route)
+                    opened = list(self.opens[route])
+                    if failure == 'art':
+                        frames[4]['art'] = 4408
+                    else:
+                        opened.remove(3339 if route == 'dragon-passage' else 1281)
+                    with self.assertRaisesRegex(ValueError, 'art|authored scene'):
+                        checker.verify(self.observed_log(route, save, frames, opened), save, route)
+
+    def test_extra_nonselected_frame_still_requires_scope_retained_and_failure_zeros(self):
+        for route in ('dragon-passage', 'glyph-request'):
+            for failure in ('retained', 'failure', 'scope'):
+                with self.subTest(route=route, failure=failure):
+                    save, frames = self.frames(route)
+                    extra = dict(frames[0], scene=9998, art=9998, flags=dict(frames[0]['flags']))
+                    if failure == 'retained':
+                        extra['flags'][2005] = 0
+                    elif failure == 'failure':
+                        extra['flags'][2040] = 1
+                    else:
+                        extra['scope'] = '338-341,1000-1960,1962-2230'
+                    frames.insert(1, extra)
+                    with self.assertRaisesRegex(ValueError, 'prerequisite|unexpected|every required'):
+                        checker.verify(self.observed_log(route, save, frames), save, route)
+
+    def test_requires_safe_final_pair_and_observed_clock_gate(self):
+        for route in ('dragon-passage', 'glyph-request'):
+            for failure in ('safe', 'gate', 'clock_scope'):
+                with self.subTest(route=route, failure=failure):
+                    save, frames = self.frames(route)
+                    if failure == 'safe':
+                        frames[-1]['view'] = 3
+                    elif failure == 'gate':
+                        frames[-1]['clock'] = (2, 21, 0)
+                    else:
+                        frames[-1]['scope'] = '1000-2230'
+                    with self.assertRaisesRegex(ValueError, 'ordered|safe|clock'):
+                        checker.verify(self.observed_log(route, save, frames), save, route)
+
+
+class DragonLightRouteInputTests(unittest.TestCase):
+    def test_exact_exercised_fragments_and_save_name_only_parameterization(self):
+        import hashlib
+        spec = importlib.util.spec_from_file_location('dragon_light_story', MODULE.with_name('story_route.py'))
+        story = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(story)
+        for leg, name, digest, count, anchor, menu_at, save_at in (
+                (story.leg_dragon_passage, 'm27', 'e9b1b7ad2e9a91ddab83bae04b5393970b9237b0db6da640d5204ba4ed824a5a',
+                 121, 'S2620.CIF', 262000, 280000),
+                (story.leg_glyph_request, 'm28', '0944f1819901148f8e5dfde32777ddc97183ac88aef8a2a6dcbf868ce9dc4d7d',
+                 106, 'S3585.CIF', 62000, 80000)):
+            with self.subTest(save=name):
+                actual = leg(save=name)
+                self.assertEqual(hashlib.sha256((actual + '\n').encode()).hexdigest(), digest)
+                self.assertEqual(len(actual.split(';')), count)
+                expected = ';'.join([leg(), story.menu_to_save_screen(anchor, menu_at),
+                                      story.save_tail(anchor, save_at, 'request')])
+                self.assertEqual(leg(save='request'), expected)
+                self.assertLess(count + 7, 512)
+
+
 if __name__ == '__main__':
     unittest.main()

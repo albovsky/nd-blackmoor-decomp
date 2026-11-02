@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Check an observed headless story leg, not merely its process exit.
 
-python3 check_route.py RUN_LOG SAVE_FILE [--route telescope-prep|jane-jigsaw|telescope-use|seedlings|crank-repair|betty-key|venus-column|jupiter-column|moon-key|moon-column|nigel-computer|night-wait|goggles|ghost-hunt|afternoon-door|linda-passage|bul-key|slide-ball|saturn-column]
+python3 check_route.py RUN_LOG SAVE_FILE [--route telescope-prep|jane-jigsaw|telescope-use|seedlings|crank-repair|betty-key|venus-column|jupiter-column|moon-key|moon-column|nigel-computer|night-wait|goggles|ghost-hunt|afternoon-door|linda-passage|bul-key|slide-ball|saturn-column|dragon-passage|glyph-request]
 The caller supplies a checkpoint produced by this run's normal Load & Save UI.
 This checks recorded observations, a matching file-open line and save size;
 fresh-folder/write provenance and saved contents require separate replay evidence.
@@ -280,6 +280,69 @@ def verify_post_key_observations(route, log, observations, selected, clocks, pos
     return clocks[-1][1]
 
 
+DRAGON_LIGHT_ROUTES = ('dragon-passage', 'glyph-request')
+DRAGON_LIGHT_SCENES = {
+    'dragon-passage': (3332, 3338, 3339, 3342, 3343, 3417, 3418, 2903, 3326),
+    'glyph-request': (1216, 1217, 1280, 1281, 3585, 3513, 3562, 3513, 3522, 3510),
+}
+
+
+def dragon_light_configuration(route):
+    _, retained, zero = post_key_configuration('saturn-column')
+    zero = zero | {2001, 1357, 1804}
+    passage = {1997, 2078, 1925, 1865}
+    request = {1349, 1418, 1791, 1408, 1361, 1388}
+    if route == 'dragon-passage':
+        expected = [(2620, 0), (3332, 0), (3332, 0), (3342, 0),
+                    (3343, 0), (3417, 0), (3418, 0), (3326, 0), (3326, 0)]
+        return expected, retained | passage, zero | request
+    if route == 'glyph-request':
+        expected = [(3326, 0), (3510, 0), (3510, 4), (1217, 0),
+                    (3585, 0), (3562, 0), (3513, 0), (3510, 4), (3510, 4)]
+        return expected, retained | passage | request, zero
+    raise ValueError('unknown dragon/light route')
+
+
+def verify_dragon_light_observations(route, log, observations, selected, clocks, positive, negative):
+    first_one = {'dragon-passage': {2078: 2, 1997: 3, 1925: 4, 1865: 4},
+                 'glyph-request': {1791: 3, 1349: 4, 1418: 4, 1408: 4, 1361: 5, 1388: 5}}[route]
+    retained = positive - first_one.keys()
+    previous = {f: 0 for f in first_one}
+    for state, scope, flags in observations:
+        if not (positive | negative) <= scope:
+            raise ValueError('RC_FLAGS did not observe every required dragon/light event')
+        if any(flags.get(f, 0) != 1 for f in retained):
+            raise ValueError('dragon/light retained prerequisite flag is not 1')
+        if any(flags.get(f, 0) != 0 for f in negative):
+            raise ValueError('unexpected dragon/light unmet, win, reward, failure or timer flag')
+        if state[3] != -1:
+            raise ValueError('dragon/light route unexpectedly holds an item')
+        for f in first_one:
+            value = flags.get(f, 0)
+            if value not in (0, 1) or value < previous[f]:
+                raise ValueError('dragon/light phase flag is not binary/monotone')
+            previous[f] = value
+    for index, (state, _, flags) in enumerate(selected):
+        if state[1] != state[0]:
+            raise ValueError('dragon/light art scene differs from requested frame')
+        if any(flags.get(f, 0) != (1 if index >= phase else 0)
+               for f, phase in first_one.items()):
+            raise ValueError('dragon/light flags do not match pre/post-original-progression observations')
+    verify_clock_diagnostics(clocks)
+    low, high = (14, 20) if route == 'dragon-passage' else (16, 19)
+    if any(clock['day'] != 2 or not low <= clock['hour'] <= high for _, clock in clocks):
+        raise ValueError('dragon/light observed clock gate was not retained')
+    opened = [int(m[1]) for m in re.finditer(r'FILE open .*\\S(\d+)\.CIF\s+\[virtual \d+ ms\]', log)]
+    cursor = 0
+    for scene in DRAGON_LIGHT_SCENES[route]:
+        while cursor < len(opened) and opened[cursor] != scene:
+            cursor += 1
+        if cursor == len(opened):
+            raise ValueError('missing ordered dragon/light authored scene opens')
+        cursor += 1
+    return clocks[-1][1]
+
+
 def verify(log, save, route='telescope-prep'):
     if route == 'telescope-prep':
         expected = [(2010, 0), (2014, 0), (2026, 0), (2010, 2)]
@@ -340,6 +403,8 @@ def verify(log, save, route='telescope-prep'):
         expected, positive, negative = passage_configuration(route)
     elif route in POST_KEY_ROUTES:
         expected, positive, negative = post_key_configuration(route)
+    elif route in DRAGON_LIGHT_ROUTES:
+        expected, positive, negative = dragon_light_configuration(route)
     else:
         raise ValueError('unknown story route')
     observations = []
@@ -383,10 +448,13 @@ def verify(log, save, route='telescope-prep'):
                 continue
             if len(selected) in held_steps and state[3] != held_steps[len(selected)]:
                 continue
+            if route == 'dragon-passage' and len(selected) == 2 and flags.get(2078, 0) != 1:
+                # The first lever observation can repeat3332 before2078 rises.
+                continue
             selected.append(observation)
     if len(selected) != len(expected):
         raise ValueError('missing ordered route observations')
-    if route in ('jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES:
+    if route in ('jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES:
         # Earlier inventory shots can share scene/view/held cells. Check the
         # final two observations, rather than treating those as checkpoints.
         if any((state[0], state[2]) != expected[-1] for state, _, _ in observations[-2:]):
@@ -491,6 +559,8 @@ def verify(log, save, route='telescope-prep'):
         clock_diagnostics = verify_passage_observations(route, log, observations, selected, clocks, positive, negative)
     if route in POST_KEY_ROUTES:
         clock_diagnostics = verify_post_key_observations(route, log, observations, selected, clocks, positive, negative)
+    if route in DRAGON_LIGHT_ROUTES:
+        clock_diagnostics = verify_dragon_light_observations(route, log, observations, selected, clocks, positive, negative)
     for _, scope, flags in selected[-2:]:
         if not (positive | negative) <= scope:
             raise ValueError('RC_FLAGS did not observe every required event')
@@ -509,7 +579,9 @@ def verify(log, save, route='telescope-prep'):
         raise ValueError('checkpoint save is missing or has an unexpected length')
     result = {'route': route, 'scene': expected[-1][0], 'view': expected[-1][1],
             'flags_one': sorted(positive), 'flags_zero': sorted(negative),
-            'save': save.name, 'telescope_complete': route in ('telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES}
+            'save': save.name, 'telescope_complete': route in ('telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES}
+    if route == 'glyph-request':
+        result['glyph_pending'] = True
     if clock_diagnostics is not None:
         result['clock_diagnostics'] = clock_diagnostics
     return result
@@ -519,7 +591,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('run_log', type=Path)
     parser.add_argument('save_file', type=Path)
-    parser.add_argument('--route', choices=('telescope-prep', 'jane-jigsaw', 'telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES,
+    parser.add_argument('--route', choices=('telescope-prep', 'jane-jigsaw', 'telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES,
                         default='telescope-prep')
     args = parser.parse_args()
     try:
