@@ -2064,5 +2064,187 @@ class RuneLightRouteTests(unittest.TestCase):
             story.leg_rune_light_start('m51')
 
 
+class FireAlchemyEntryTests(unittest.TestCase):
+    prior = (RuneLightRouteTests.prior - {1514, 1809, 2041}) | {1510, 1932, 1935}
+    fire = set(range(1148, 1160)) | {1804, 1875, 1972, 2059}
+    opens = {
+        'fire-phosphorus': (3506, 3507, 3303, 3304, 3366, 3415, 3416, 3499, 2900, 2965, 2969, 3050, 3198,
+                            3111, 3112, 3116, 3124, 3128, 2963, 3036, 3061, 3095, 3096, 3037),
+        'moving-room-entry': (3037, 3056, 4300, 4302, 4303, 4301, 4304, 4305, 3046),
+        'alchemy-snake-clue': (3190, 3046),
+        'nigel-library': (3047, 3055, 4300, 4302, 4303, 4301, 4304, 4305, 3038, 2901,
+                           3311, 3312, 2605, 4100, 4101, 4112),
+        # Literal observed1392, independent of the permitted original variant set.
+        'nigel-snake': (1300, 1371, 1392, 4112),
+        'alchemy-return': (4399, 2619, 3366, 3415, 3416, 3499, 2900, 2969, 3050, 2963,
+                           3036, 3037, 4300, 4302, 4303, 4301, 4304, 4305, 3046),
+    }
+    setUp = PostKeyRouteTests.setUp
+    observed_log = PostKeyRouteTests.observed_log
+
+    def frames(self, route):
+        prior = set(self.prior)
+        if route == 'fire-phosphorus':
+            scenes = (3510, 3401, 3402, 3403, 3404, 3405, 3367, 3416, 3198,
+                      3111, 3111, 3111, 3111, 2963, 3096, 3096, 3037, 3037)
+            phases = {1148: 10, 1155: 10, 2059: 10, 1149: 11, 1153: 11,
+                      1151: 12, 1152: 13, 1159: 13, 1972: 13, 1804: 14, 1875: 14}
+            rooms = (0,) * 18
+            held = (-1,) * 8 + (4,) * 7 + (-1, 13, 13)
+            number = 52
+        else:
+            prior |= self.fire
+            if route == 'moving-room-entry':
+                scenes = (3037, 3056, 4300, 4302, 4302, 4303, 4302, 4303, 4302, 3046, 3046)
+                phases, rooms, number = {2073: 6, 1989: 9}, (0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 2), 53
+            else:
+                prior |= {1989, 2073}
+                if route == 'alchemy-snake-clue':
+                    scenes, phases, rooms, number = (3046, 3190, 3046, 3046), {1922: 1}, (2,) * 4, 54
+                else:
+                    prior.add(1922)
+                    if route == 'nigel-library':
+                        scenes, phases, rooms, number = (3046, 4302, 4302, 3038, 4112, 4112), {1514: 4, 1672: 4}, (2, 3, 0, 0, 0, 0), 55
+                    else:
+                        prior |= {1514, 1672}
+                        if route == 'nigel-snake':
+                            scenes, phases, rooms, number = (4112, 1300, 1371, 1371, 4112, 4112), {1694: 2}, (0,) * 6, 56
+                        else:
+                            prior.add(1694)
+                            scenes = (4112, 3401, 3402, 3403, 3404, 3405, 3367, 3416, 3056,
+                                      4300, 4302, 4302, 4303, 4302, 4303, 4302, 3046, 3046)
+                            phases, rooms, number = {}, (0,) * 13 + (1, 1, 2, 2, 2), 57
+            if route in ('nigel-snake', 'alchemy-return'):
+                prior |= {1563, 1679}
+            held = ((13, -1, -1, -1, -1, -1) if route == 'nigel-snake' else
+                    (-1,) * 8 + (13,) * 10 if route == 'alchemy-return' else (13,) * len(scenes))
+        save = Path(self.folder.name) / ('m%d.SAV' % number)
+        save.write_bytes(bytes(170770))
+        frames = []
+        for i, scene in enumerate(scenes):
+            flags = {f: 1 for f in prior}
+            flags.update({f: int(i >= phase) for f, phase in phases.items()})
+            flags.update({1510+j: int(j == rooms[i]) for j in range(4)})
+            if route == 'fire-phosphorus':
+                flags[2041] = int(8 <= i < 14)
+            # Literal retained m53/m57 pulse; m55's inverse passage follows
+            # the same original4300 setter and3038 clearer.
+            flags[2137] = int((number == 53 and 2 <= i < 9) or
+                              (number == 55 and 1 <= i < 3) or
+                              (number == 57 and 9 <= i < 16))
+            minutes = 15*60 + i
+            frames.append({'scene': scene, 'art': scene, 'view': 4 if i == 0 and number == 52 else 0,
+                           'held': held[i], 'flags': flags, 'scope': '338-341,1000-2250',
+                           'clock': (3, minutes//60, minutes%60)})
+        return save, frames
+
+    def test_accepts_six_bounded_legs_without_claiming_alchemy_win(self):
+        for route in self.opens:
+            with self.subTest(route=route):
+                save, frames = self.frames(route)
+                result = checker.verify(self.observed_log(route, save, frames), save, route)
+                self.assertFalse(result['alchemy_won'])
+                self.assertEqual(result['alchemy_knowledge_ready'], route == 'alchemy-return')
+                self.assertTrue({1932, 1935, 2014, 2003} <= set(result['flags_one']))
+                self.assertTrue({1687, 1960, 2053, 2132} <= set(result['flags_zero']))
+                self.assertFalse(set(range(338, 342)) & (set(result['flags_one']) | set(result['flags_zero'])))
+
+    def test_requires_two_panel_win_retained_fire1514zero_and_effective_1875_phase(self):
+        for index, flag, value in ((0, 1514, 1), (1, 1514, 1), (17, 1514, 1), (0, 1875, 1), (14, 1875, 0),
+                                   (9, 2059, 1), (10, 1155, 0), (12, 1972, 1), (13, 1972, 0),
+                                   (8, 2041, 0), (14, 2041, 1)):
+            save, frames = self.frames('fire-phosphorus')
+            frames[index]['flags'][flag] = value
+            with self.subTest(index=index, flag=flag), self.assertRaises(ValueError):
+                checker.verify(self.observed_log('fire-phosphorus', save, frames), save, 'fire-phosphorus')
+        save, frames = self.frames('fire-phosphorus')
+        for frame in frames:
+            frame['clock'] = (3, 23, 0)
+        # Clock alone cannot run a scene-local3312 action that was never loaded.
+        checker.verify(self.observed_log('fire-phosphorus', save, frames), save, 'fire-phosphorus')
+
+    def test_requires_original_room_turns_clue_and_nigel_knowledge(self):
+        for route, index, updates in (
+                ('moving-room-entry', 6, {1511: 0, 1512: 1}),
+                ('moving-room-entry', 7, {1510: 1}),
+                ('moving-room-entry', 6, {2073: 0}), ('moving-room-entry', 9, {1989: 0}),
+                ('alchemy-snake-clue', 0, {1922: 1}), ('alchemy-snake-clue', 1, {1922: 0}),
+                ('nigel-library', 1, {1513: 0, 1510: 1}), ('nigel-library', 4, {1672: 0}),
+                ('nigel-library', 0, {1514: 1}), ('nigel-library', 3, {1514: 1}),
+                ('nigel-library', 4, {1514: 0}),
+                ('nigel-snake', 0, {1694: 1}), ('nigel-snake', 1, {1694: 1}),
+                ('nigel-snake', 2, {1694: 0}), ('nigel-snake', 0, {1704: 1}),
+                ('nigel-snake', 0, {1679: 0}), ('nigel-snake', 2, {1698: 1}),
+                ('nigel-snake', 0, {1563: 0}), ('nigel-snake', 0, {1683: 1}),
+                ('moving-room-entry', 0, {2137: 1}), ('moving-room-entry', 2, {2137: 0}),
+                ('moving-room-entry', 8, {2137: 2}), ('moving-room-entry', 9, {2137: 1}),
+                ('nigel-library', 0, {2137: 1}), ('nigel-library', 1, {2137: 0}),
+                ('nigel-library', 3, {2137: 1}), ('alchemy-return', 8, {2137: 1}),
+                ('alchemy-return', 9, {2137: 0}), ('alchemy-return', 16, {2137: 1})):
+            save, frames = self.frames(route)
+            frames[index]['flags'].update(updates)
+            with self.subTest(route=route, index=index), self.assertRaises(ValueError):
+                checker.verify(self.observed_log(route, save, frames), save, route)
+
+    def test_requires_real13_safe_pair_scope_and_every_extra_observation(self):
+        for failure in ('held', 'art', 'safe_pair', 'scope', 'extra_failure', 'extra_retained', 'missing_resource'):
+            save, frames = self.frames('alchemy-return')
+            opened = self.opens['alchemy-return']
+            if failure == 'held':
+                frames[8]['held'] = -1
+            elif failure == 'art':
+                frames[8]['art'] = 3046
+            elif failure == 'safe_pair':
+                frames[-1]['view'] = 1
+            elif failure == 'missing_resource':
+                opened = tuple(s for s in opened if s != 4301)
+            else:
+                extra = dict(frames[0], scene=9998, art=9998, flags=dict(frames[0]['flags']))
+                if failure == 'scope':
+                    extra['scope'] = '338-341,1000-1693,1695-2250'
+                elif failure == 'extra_failure':
+                    extra['flags'][2132] = 1
+                else:
+                    extra['flags'][1935] = 0
+                frames.insert(1, extra)
+            with self.subTest(failure=failure), self.assertRaises(ValueError):
+                checker.verify(self.observed_log('alchemy-return', save, frames, opened), save, 'alchemy-return')
+
+    def test_accepts_original_bye_variants_and_refuses_other_voice_or_closed_npc_window(self):
+        save, frames = self.frames('nigel-snake')
+        for bye in (1390, 1391, 1392, 1393):
+            checker.verify(self.observed_log('nigel-snake', save, frames, (1300, 1371, bye, 4112)), save, 'nigel-snake')
+        with self.assertRaisesRegex(ValueError, 'authored scene'):
+            checker.verify(self.observed_log('nigel-snake', save, frames, (1300, 1371, 1394, 4112)), save, 'nigel-snake')
+        for route in ('nigel-library', 'nigel-snake'):
+            save, frames = self.frames(route)
+            for frame in frames:
+                frame['clock'] = (3, 22, 0)
+            with self.assertRaisesRegex(ValueError, 'presence window'):
+                checker.verify(self.observed_log(route, save, frames), save, route)
+
+    def test_exact_retained_fragments_explicit_daytime_delta_and_composed_ui_save(self):
+        import hashlib
+        spec = importlib.util.spec_from_file_location('fire_alchemy_story', MODULE.with_name('story_route.py'))
+        story = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(story)
+        for function, name, size, digest, anchor, menu, tail in (
+                (story.leg_fire_phosphorus, 'm52', 164, '638abfd09b637726f9ed3195cfc8070c17a8ad7e3cde9bcb6045804dce752018', 'S3510.CIF', 400000, 418000),
+                (story.leg_moving_room_entry, 'm53', 53, '6ca877a6fadd76e78bb33e7d946f8a85bf85216296a40cafd3b2adade804dffe', 'S3037.CIF', 165000, 183000),
+                (story.leg_alchemy_snake_clue, 'm54', 30, '5dafe1cbe30ea27b0932650de78ab43973e0db5cb1803b40eed228f3eaa6ace5', 'S3046.CIF', 67000, 85000),
+                (story.leg_nigel_library, 'm55', 142, 'dd88c6cfb4e2c02103b00528160bbad83201a60508819cb9d536ad0f9429b852', 'S3046.CIF', 372500, 390500),
+                (story.leg_nigel_snake, 'm56', 46, '592e58f4ef42bbedece6621cf6683c91f3908cc31026613bcf9f3d4fc4033566', 'S4112.CIF', 245000, 263000),
+                (story.leg_alchemy_return, 'm57', 174, '32be847f405089c1b67dd462e0d4402aed4a038b4a4dc693538a81d0617e3771', 'S3037.CIF', 166000, 184000)):
+            body = function(name)
+            with self.subTest(route=function.__name__):
+                self.assertEqual(hashlib.sha256((body+'\n').encode()).hexdigest(), digest)
+                self.assertEqual(len(body.split(';')), size)
+                self.assertEqual(function('x9'), ';'.join((function(), story.menu_to_save_screen(anchor, menu), story.save_tail(anchor, tail, 'x9'))))
+        self.assertIn('S3046.CIF+289500:move:328,163', story.leg_nigel_library())
+        self.assertIn('S4112.CIF+80000:move:150,459;S4112.CIF+81000:click:150,459,600', story.leg_nigel_snake())
+        self.assertIn('S4112.CIF+185500:move:22,456;S4112.CIF+190000:shot:0,0', story.leg_nigel_snake())
+        self.assertIn('S4112.CIF+200000:move:150,438;S4112.CIF+201000:click:150,438,600', story.leg_nigel_snake())
+
+
 if __name__ == '__main__':
     unittest.main()

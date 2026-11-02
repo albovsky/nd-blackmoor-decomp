@@ -1,5 +1,9 @@
 # Handoff: recompiled GAME.EXE, state and next steps
 
+## Latest fire passage and alchemy entry, 2026-11-02 Pacific
+
+RECOMP-29 adds six route legs tested on the pinned b49 build: fresh-light m51 through the complete fire puzzle and physical item13, moving rooms, snake clue, daytime Nigel knowledge1694 and safe alchemy entrance3046/held13 at16:20. All six producer/fresh-output-only reload pairs and101 finite route checks pass. Source-backed1514/2137 phase corrections revalidate retained runs. The later Nigel list needs the exercised Senior-compatible snake selection/scroll/Bye; the corrected frozen body passes one fresh retry. Sonnet accepts frozen43fa8998 without blockers. Mechanical refresh preserves all1832 incoming peer claims. The packet records exact saves, inputs, effective CIFs, source/build boundaries and checker limits. Separate Junior/Senior campaigns reach earned credits. Memory wins on both difficulties and a Senior Cake win are private results awaiting their own review/collection; optional games and final Mac acceptance remain separate.
+
 ## Latest post-rune light replacement, 2026-11-02 Pacific
 
 RECOMP-28 adds a genuine used5/afternoon wait checkpoint then bounded later paid glyph context with unchanged policy/IO. Actual m49→m50(3335/held5/14:36)→m51(3510/view4/held-1/14:57,fresh4) passes both producer/fresh-reload pairs onb49. The later11item bag needs its actual empty134,310PUT; sourcebagguard and rune-only input fix preserve first-paid defaults.118finite checks pass. Initialcontroller refusal is retained; finalv3matchespre-playfreeze. Sonnet accepts frozen2ebc3ccc without blockers; guarded metadatada1925c2 preserves1824peer claims. Packet records effective loose-resource/clock evidence, original-authored auxiliary saves and accepted outer-proof/coverage limits. Both complete difficulty campaigns have ignited the well; Junior has the corrected forge15 and is exercising the final encounter. Ending remains unverified.

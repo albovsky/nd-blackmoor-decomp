@@ -933,6 +933,156 @@ def verify_rune_light_observations(route, log, observations, selected, clocks, p
     return clocks[-1][1]
 
 
+FIRE_ALCHEMY_ROUTES = ('fire-phosphorus', 'moving-room-entry', 'alchemy-snake-clue',
+                       'nigel-library', 'nigel-snake', 'alchemy-return')
+NIGEL_BYE_SCENES = (1390, 1391, 1392, 1393)
+ROOM_ORIENTATION_FLAGS = (1510, 1511, 1512, 1513)
+FIRE_ALCHEMY_SCENES = {
+    'fire-phosphorus': (3506, 3507, 3303, 3304, 3366, 3415, 3416, 3499, 2900, 2965, 2969, 3050, 3198,
+                        3111, 3112, 3116, 3124, 3128, 2963, 3036, 3061, 3095, 3096, 3037),
+    'moving-room-entry': (3037, 3056, 4300, 4302, 4303, 4301, 4304, 4305, 3046),
+    'alchemy-snake-clue': (3190, 3046),
+    'nigel-library': (3047, 3055, 4300, 4302, 4303, 4301, 4304, 4305, 3038, 2901,
+                       3311, 3312, 2605, 4100, 4101, 4112),
+    'nigel-snake': (1300, 1371, NIGEL_BYE_SCENES, 4112),
+    'alchemy-return': (4399, 2619, 3366, 3415, 3416, 3499, 2900, 2969, 3050, 2963,
+                       3036, 3037, 4300, 4302, 4303, 4301, 4304, 4305, 3046),
+}
+
+
+def fire_alchemy_configuration(route):
+    _, prior, zero = rune_light_configuration('rune-light-replacement')
+    # Actual source1510/1932/1935 are retained conditions, not new rewards.
+    prior |= {1510, 1932, 1935}
+    zero |= {1511, 1512, 1513, 1694, 1747, 1748, 1749, 1750, 1989, 2073, 2053, 2132}
+    zero |= set(range(2136, 2146))
+    # Fire/moving/clue never instantiate a1514 writer;3312 is reached later
+    # on the library walk. Its daytime action restores1514 with Nigel presence.
+    fire = set(range(1148, 1160)) | {1804, 1875, 1972, 2059}
+    if route == 'fire-phosphorus':
+        states = [(3510, 4), (3401, 0), (3402, 0), (3403, 0), (3404, 0), (3405, 0),
+                  (3367, 0), (3416, 0), (3198, 0)] + [(3111, 0)] * 4 + [(2963, 0),
+                  (3096, 0), (3096, 0), (3037, 0), (3037, 0)]
+        return states, prior | fire, zero - fire
+    prior |= fire
+    zero -= fire
+    if route == 'moving-room-entry':
+        states = [(3037, 0), (3056, 0), (4300, 0), (4302, 0), (4302, 0), (4303, 0),
+                  (4302, 0), (4303, 0), (4302, 0), (3046, 0), (3046, 0)]
+        return states, (prior - {1510}) | {1512, 1989, 2073}, (zero - {1512, 1989, 2073}) | {1510}
+    prior = (prior - {1510}) | {1512, 1989, 2073}
+    zero = (zero - {1512, 1989, 2073}) | {1510}
+    if route == 'alchemy-snake-clue':
+        return [(3046, 0), (3190, 0), (3046, 0), (3046, 0)], prior | {1922}, zero - {1922}
+    prior |= {1922}
+    zero -= {1922}
+    # Source-backed Nigel presence/list conditions, scoped when that NPC is relevant.
+    zero |= {1670, 1673, 1674, 1675, 1680, 1684, 1705}
+    if route == 'nigel-library':
+        states = [(3046, 0), (4302, 0), (4302, 0), (3038, 0), (4112, 0), (4112, 0)]
+        return states, (prior - {1512}) | {1510, 1514, 1672}, (zero - {1510, 1514, 1672}) | {1512}
+    prior = (prior - {1512}) | {1510, 1514, 1672}
+    zero = (zero - {1510, 1514, 1672}) | {1512}
+    # These predicates fix the exercised Nigel response order without adding
+    # unrelated fields whose branches are already excluded by retained flags.
+    prior |= {1563, 1679}
+    zero |= {1683, 1698, 1704, 1874, 1901}
+    if route == 'nigel-snake':
+        return [(4112, 0), (1300, 0), (1371, 0), (1371, 0), (4112, 0), (4112, 0)], prior | {1694}, zero - {1694}
+    if route == 'alchemy-return':
+        states = [(4112, 0), (3401, 0), (3402, 0), (3403, 0), (3404, 0), (3405, 0),
+                  (3367, 0), (3416, 0), (3056, 0), (4300, 0), (4302, 0), (4302, 0),
+                  (4303, 0), (4302, 0), (4303, 0), (4302, 0), (3046, 0), (3046, 0)]
+        return states, (prior - {1510}) | {1512, 1694}, (zero - {1512, 1694}) | {1510}
+    raise ValueError('unknown fire/alchemy-entry route')
+
+
+def verify_fire_alchemy_observations(route, log, observations, selected, clocks, positive, negative):
+    up = {'fire-phosphorus': {1148: 10, 1155: 10, 2059: 10, 1149: 11, 1153: 11,
+                              1151: 12, 1152: 13, 1159: 13, 1972: 13, 1804: 14, 1875: 14},
+          'moving-room-entry': {2073: 6, 1989: 9}, 'alchemy-snake-clue': {1922: 1},
+          'nigel-library': {1514: 4, 1672: 4}, 'nigel-snake': {1694: 2}, 'alchemy-return': {}}[route]
+    room_pulse = {'moving-room-entry': (2, 9), 'nigel-library': (1, 3),
+                  'alchemy-return': (9, 16)}.get(route)
+    changing = up.keys() | set(ROOM_ORIENTATION_FLAGS) | ({2041} if route == 'fire-phosphorus' else set())
+    if room_pulse:
+        changing |= {2137}
+    orientations = {'fire-phosphorus': [0] * 18, 'moving-room-entry': [0] * 6 + [1, 1, 2, 2, 2],
+                    'alchemy-snake-clue': [2] * 4, 'nigel-library': [2, 3, 0, 0, 0, 0],
+                    'nigel-snake': [0] * 6, 'alchemy-return': [0] * 13 + [1, 1, 2, 2, 2]}[route]
+    allowed_order = list(dict.fromkeys(orientations))
+    orientation_phase = 0
+    previous = {f: 0 for f in up}
+    light_seen = light_closed = False
+    room_seen = room_closed = False
+    for state, scope, flags in observations:
+        if not (positive | negative) <= scope:
+            raise ValueError('RC_FLAGS did not observe every required fire/alchemy event')
+        if any(flags.get(f, 0) != 1 for f in positive - changing):
+            raise ValueError('fire/alchemy retained prerequisite differs')
+        if any(flags.get(f, 0) != 0 for f in negative - changing):
+            raise ValueError('unexpected fire/alchemy future, failure, timer or room event')
+        for f in previous:
+            value = flags.get(f, 0)
+            if value not in (0, 1) or value < previous[f]:
+                raise ValueError('fire/alchemy original progression is not binary/monotone')
+            previous[f] = value
+        room = [flags.get(f, 0) for f in ROOM_ORIENTATION_FLAGS]
+        if any(v not in (0, 1) for v in room) or sum(room) != 1:
+            raise ValueError('original first-room orientation is not one-hot')
+        orientation = room.index(1)
+        if orientation != allowed_order[orientation_phase]:
+            orientation_phase += 1
+            if orientation_phase == len(allowed_order) or orientation != allowed_order[orientation_phase]:
+                raise ValueError('first-room orientation skipped or reversed an original turn')
+        if route == 'fire-phosphorus':
+            value = flags.get(2041, 0)
+            if value not in (0, 1) or (light_closed and value):
+                raise ValueError('fire route light activation/reset cycle differs')
+            if light_seen and not value:
+                light_closed = True
+            light_seen |= value == 1
+        if room_pulse:
+            # Original raw6B sets2137 at4300/4301 and clears it at3038/3046.
+            value = flags.get(2137, 0)
+            if value not in (0, 1) or value != int(4300 <= state[0] <= 4305) or (room_closed and value):
+                raise ValueError('original2137 moving-room entry/exit pulse differs')
+            if room_seen and not value:
+                room_closed = True
+            room_seen |= value == 1
+        allowed_held = ((-1, 4, 13) if route == 'fire-phosphorus' else
+                        (13, -1) if route in ('nigel-snake', 'alchemy-return') else (13,))
+        if state[1] != state[0] or state[3] not in allowed_held:
+            raise ValueError('fire/alchemy art or real held item differs')
+    for i, (state, _, flags) in enumerate(selected):
+        held = ((4 if 8 <= i <= 14 else 13 if i >= 16 else -1) if route == 'fire-phosphorus' else
+                (13 if i == 0 else -1) if route == 'nigel-snake' else
+                (-1 if i < 8 else 13) if route == 'alchemy-return' else 13)
+        if state[3] != held or flags.get(ROOM_ORIENTATION_FLAGS[orientations[i]], 0) != 1:
+            raise ValueError('fire/alchemy actual13 or ordered room phase differs')
+        if any(flags.get(f, 0) != int(i >= phase) for f, phase in up.items()):
+            raise ValueError('fire/alchemy source and authored progression phases differ')
+        if room_pulse and flags.get(2137, 0) != int(room_pulse[0] <= i < room_pulse[1]):
+            raise ValueError('original2137 selected entry/exit phases differ')
+        if route == 'fire-phosphorus' and flags.get(2041, 0) != int(8 <= i < 14):
+            raise ValueError('fire route did not retain then reset actual light4')
+    verify_clock_diagnostics(clocks)
+    if route in ('nigel-library', 'nigel-snake'):
+        relevant = selected[-2:] if route == 'nigel-library' else selected[:1]
+        if any(not 480 <= clocks[observations.index(o)][1]['total_minutes'] <= 1260 for o in relevant):
+            raise ValueError('original Nigel08:00..21:00 presence window differs')
+    opened = [int(m[1]) for m in re.finditer(r'FILE open .*\\S(\d+)\.CIF\s+\[virtual \d+ ms\]', log)]
+    cursor = 0
+    for stage in FIRE_ALCHEMY_SCENES[route]:
+        alternatives = stage if isinstance(stage, tuple) else (stage,)
+        while cursor < len(opened) and opened[cursor] not in alternatives:
+            cursor += 1
+        if cursor == len(opened):
+            raise ValueError('missing ordered fire/alchemy authored scene opens')
+        cursor += 1
+    return clocks[-1][1]
+
+
 def verify(log, save, route='telescope-prep'):
     if route == 'telescope-prep':
         expected = [(2010, 0), (2014, 0), (2026, 0), (2010, 2)]
@@ -1009,6 +1159,8 @@ def verify(log, save, route='telescope-prep'):
         expected, positive, negative = oil_rune_configuration(route)
     elif route in RUNE_LIGHT_ROUTES:
         expected, positive, negative = rune_light_configuration(route)
+    elif route in FIRE_ALCHEMY_ROUTES:
+        expected, positive, negative = fire_alchemy_configuration(route)
     else:
         raise ValueError('unknown story route')
     observations = []
@@ -1077,7 +1229,7 @@ def verify(log, save, route='telescope-prep'):
             selected.append(observation)
     if len(selected) != len(expected):
         raise ValueError('missing ordered route observations')
-    if route in ('jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES + CREST_PREREQUISITE_ROUTES + TYPING_CREST_ROUTES + OIL_RUNE_ROUTES + RUNE_LIGHT_ROUTES:
+    if route in ('jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES + CREST_PREREQUISITE_ROUTES + TYPING_CREST_ROUTES + OIL_RUNE_ROUTES + RUNE_LIGHT_ROUTES + FIRE_ALCHEMY_ROUTES:
         # Earlier inventory shots can share scene/view/held cells. Check the
         # final two observations, rather than treating those as checkpoints.
         if any((state[0], state[2]) != expected[-1] for state, _, _ in observations[-2:]):
@@ -1198,6 +1350,8 @@ def verify(log, save, route='telescope-prep'):
         clock_diagnostics = verify_oil_rune_observations(route, log, observations, selected, clocks, positive, negative)
     if route in RUNE_LIGHT_ROUTES:
         clock_diagnostics = verify_rune_light_observations(route, log, observations, selected, clocks, positive, negative)
+    if route in FIRE_ALCHEMY_ROUTES:
+        clock_diagnostics = verify_fire_alchemy_observations(route, log, observations, selected, clocks, positive, negative)
     for _, scope, flags in selected[-2:]:
         if not (positive | negative) <= scope:
             raise ValueError('RC_FLAGS did not observe every required event')
@@ -1216,7 +1370,7 @@ def verify(log, save, route='telescope-prep'):
         raise ValueError('checkpoint save is missing or has an unexpected length')
     result = {'route': route, 'scene': expected[-1][0], 'view': expected[-1][1],
             'flags_one': sorted(positive), 'flags_zero': sorted(negative),
-            'save': save.name, 'telescope_complete': route in ('telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES + CREST_PREREQUISITE_ROUTES + TYPING_CREST_ROUTES + OIL_RUNE_ROUTES + RUNE_LIGHT_ROUTES}
+            'save': save.name, 'telescope_complete': route in ('telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES + CREST_PREREQUISITE_ROUTES + TYPING_CREST_ROUTES + OIL_RUNE_ROUTES + RUNE_LIGHT_ROUTES + FIRE_ALCHEMY_ROUTES}
     if route in WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES:
         result['word_lock_won'] = route == 'word-lock'
     if route in TYPING_CREST_ROUTES:
@@ -1225,6 +1379,9 @@ def verify(log, save, route='telescope-prep'):
         result['rune_won'] = route == 'rune-passage'
     if route in RUNE_LIGHT_ROUTES:
         result['fresh_light_earned'] = route == 'rune-light-replacement'
+    if route in FIRE_ALCHEMY_ROUTES:
+        result['alchemy_knowledge_ready'] = route == 'alchemy-return'
+        result['alchemy_won'] = False
     if route == 'glyph-request':
         result['glyph_pending'] = True
     if route == 'glyph-win':
@@ -1239,7 +1396,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('run_log', type=Path)
     parser.add_argument('save_file', type=Path)
-    parser.add_argument('--route', choices=('telescope-prep', 'jane-jigsaw', 'telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES + CREST_PREREQUISITE_ROUTES + TYPING_CREST_ROUTES + OIL_RUNE_ROUTES + RUNE_LIGHT_ROUTES,
+    parser.add_argument('--route', choices=('telescope-prep', 'jane-jigsaw', 'telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES + CREST_PREREQUISITE_ROUTES + TYPING_CREST_ROUTES + OIL_RUNE_ROUTES + RUNE_LIGHT_ROUTES + FIRE_ALCHEMY_ROUTES,
                         default='telescope-prep')
     args = parser.parse_args()
     try:

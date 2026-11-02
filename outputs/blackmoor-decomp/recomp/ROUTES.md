@@ -461,3 +461,10 @@ The typing client computes its complete scoped union automatically. Geometry/OCR
 `repeat_glyph_live.py --context rune-passage --save-name m51` starts from genuine m50 and enters the paid board directly, with no abandoned pending game. Glyph/IO policy and default first-paid mode remain unchanged. Its exact sourcebagguard supports the later11item inventory: selectfresh4, reopenbag, empty134,310PUT/X. Reload uses206,243selection then134,310PUT. Actual17plans/new1299/1949/fresh4 win,287producer/22reloadsteps pass. UI m51safe3510/view4/held-1/day3/14:57,4owned1 and5/13zero. Source/input/output/atlas/scopes and accepted limits are in RECOMP28.
 
 Long-wait replay settings: `MAX_IDLE_POLLS=4000000`, `MAX_IMPORTS=90000000`, and the complete `rune-light-wait` RC_FLAGS scope in RECOMP-28. Verify the static save with `check_route.py RUN_LOG M50.SAV --route rune-light-wait`; the completed client producer uses `--route rune-light-replacement` for M51.SAV and verifies its fresh reload separately.
+
+
+## Fire to alchemy entrance, 2026-11-02 Pacific
+
+The six named routes `fire-phosphorus`, `moving-room-entry`, `alchemy-snake-clue`, `nigel-library`, `nigel-snake`, `alchemy-return` continue actualm51throughgenuinem52..m57. Fullfire/real13, correct moving-room orientations,1922clue and actualNigel1371/1694 pass originalUI saves and independentfreshreloads. Newsource has no fire3312visit, so1514 stays0 until actualdaytimelibrarywalk; room2137 legitimately pulses within4300..4305 and clearsbeforeexit. Effective3036adds1875.
+
+`nigel-library` removes only the old11Mwait, preserving othernavigation; currentUI m55saved15:46. `nigel-snake` uses the exercised source-matched Seniorquestion150,459/caption-scroll/Bye150,438 timing, with prechoice1300/new1371 verified. The oldJunior150,421 selects another currenttopic and is retained as a refused run. Final m57safe3046/held13/day3 16:20 has1694; noAlchemywin claimed. Use MAX_IMPORTS=90000000/MAX_IDLE_POLLS=300000, full one/zero union fromcheck_route.fire_alchemy_configuration plus338–341, --save m52..m57 and matching --route verifier. Exact source/output/input/scopes and bounded limits are in RECOMP29.
