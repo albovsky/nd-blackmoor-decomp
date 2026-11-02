@@ -12,7 +12,7 @@ import unittest
 
 PROJECT = Path(__file__).resolve().parents[1]
 WORK = Path(os.environ.get('BLACKMOOR_ORIGINAL_WORK', PROJECT.parents[1] / 'work'))
-ORIGINAL = PROJECT.parents[1] / 'work/original/GAME.EXE'
+ORIGINAL = WORK / 'original/GAME.EXE'
 ORIGINAL_SHA256 = 'afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45'
 HAVE_LIFT_DEPS = all(importlib.util.find_spec(name) is not None
                      for name in ('capstone', 'pefile'))
