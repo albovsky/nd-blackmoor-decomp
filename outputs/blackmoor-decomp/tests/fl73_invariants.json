@@ -23,5 +23,10 @@
   "0x4e0f16": [
    {"mem": ["ebp", -4, 4], "op": "sge", "val": 0}
   ]
+ },
+ "0x50ebca": {
+  "0x50ebfa": [
+   {"reg": "esi", "op": "ne", "val": 0}
+  ]
  }
 }

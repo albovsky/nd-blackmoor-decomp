@@ -52,6 +52,7 @@ z3.set_param('memory_max_size', int(os.environ.get('FL67_MEM_MB', '3500')))     
 CHECKER_VERSION = 2
 SPLIT = True                  # the frame assumption (module text), applied to functions that never hand out a frame address
 UNROLL = (3, 5, 9, 17)         # trip-count bounds tried per loop; a loop that can still iterate after the last one gets a generalised header
+HINT_ONLY = 33                 # FL-78 (round 7): a bound that only tests/fl75_plans.json can ask for (a loop that shifts a 32 bit register to zero runs at most 32 times); the search never tries it
 MAX_NODES = 6000
 SINK_MS = 3000                 # the check that a loop cannot run past its unrolled copies; unknown counts as can
 REP_EXACT = 64
@@ -111,12 +112,12 @@ def load_plan_hints(va):
         data = json.loads(PLANS.read_text())
     except (OSError, ValueError):
         return {}
-    return {int(h, 16): v for h, v in data.get(hex(va), {}).items() if v == 'gen' or v in UNROLL}
+    return {int(h, 16): v for h, v in data.get(hex(va), {}).items() if v == 'gen' or v in UNROLL or v == HINT_ONLY}
 
 
 def load_invariants(va):
     """{header block address: [atom, ...]} declared for the function at `va` in tests/fl73_invariants.json. An atom is {"mem": [register, displacement, size in bytes], "op": eq|ne|sge|sgt|sle|slt|uge|ugt|ule|ult, "val": n}
-    (or {"or": [atom, ...]}, FL-75) and says that the `size` bytes at register+displacement, read in the state at the head of a generalised loop, compare so with n (or, with "mem2" in place of "val", with the same-size slot [register, displacement, size]). A header with atoms keeps them only if
+    (or {"reg": register, "op": ..., "val": n | "reg2": register}, FL-78: a whole register; or {"or": [atom, ...]}, FL-75) and says that the `size` bytes at register+displacement, read in the state at the head of a generalised loop, compare so with n (or, with "mem2" in place of "val", with the same-size slot [register, displacement, size]). A header with atoms keeps them only if
     `Analysis.verify_invariants` proves them: they hold on every entry edge, and every back edge preserves them (assuming them at the header)."""
     try:
         data = json.loads(INVARIANTS.read_text())
@@ -129,6 +130,9 @@ def inv_atom(M, st, at):
     if 'or' in at:                                                                 # FL-75: {"or": [atom, ...]} holds when any alternative does
         alts = [inv_atom(M, st, a) for a in at['or']]
         return z3.Or(*alts) if len(alts) > 1 else alts[0]
+    if 'reg' in at:                                                                # FL-78 (round 7): {"reg": register, "op": ..., "val": n} compares a whole register, in the state at the head of the loop, with n (or with the register "reg2")
+        other = st.R[at['reg2']] if 'reg2' in at else bv(at['val'], 32)
+        return _INV_OPS[at['op']](st.R[at['reg']], other)
     reg, disp, size = at['mem']
     a = st.R[reg] + bv(disp, 32)
     v = M.load(getattr(st, M.space(st, a)), a, size)
@@ -191,13 +195,14 @@ def ite(c, a, b):
 
 class State:
     """Registers (eight 32-bit z3 terms), flags (z3 Booleans), the two memories (data and fs-relative) and the facts assumed along the way."""
-    __slots__ = ('R', 'F', 'mem', 'frm', 'fs', 'pc')
+    __slots__ = ('R', 'F', 'mem', 'frm', 'fs', 'pc', 'fp')
 
-    def __init__(self, R, F, mem, frm, fs, pc):
+    def __init__(self, R, F, mem, frm, fs, pc, fp=(None, None)):
         self.R, self.F, self.mem, self.frm, self.fs, self.pc = R, F, mem, frm, fs, pc
+        self.fp = fp                           # FL-78 (round 7): what is known of the x87 unit: (the 64 bits of st(0) when the last x87 instruction loaded or compared them, the status word a compare produced); (None, None) otherwise
 
     def copy(self):
-        return State(dict(self.R), dict(self.F), self.mem, self.frm, self.fs, self.pc)
+        return State(dict(self.R), dict(self.F), self.mem, self.frm, self.fs, self.pc, self.fp)
 
     @staticmethod
     def start():
@@ -225,6 +230,8 @@ def has_frame_term(e):
         if z3.is_const(x) and x.decl().kind() == z3.Z3_OP_UNINTERPRETED:
             n = x.decl().name()
             found = n in ('s_esp', 's_ebp') or (n.startswith('sp') and n[2:].isdigit())          # FL-73: s_ebp too: a window that starts after the prologue has ebp and esp as separate symbols, both frame pointers
+        elif x.decl().kind() == z3.Z3_OP_ITE:
+            todo.extend(x.children()[1:])            # FL-78 (round 7): the value of `If(c, a, b)` is a or b; the condition c (the path condition of a merged state mentions s_esp) does not make the value a frame address
         elif x.decl().kind() not in (z3.Z3_OP_SELECT, z3.Z3_OP_STORE):          # a value read from memory is not a frame address (nothing ever formed one)
             todo.extend(x.children())
     if len(_frame_cache) > 200000:
@@ -1025,6 +1032,7 @@ def merge(items):
         out.mem = ite(c, s.mem, out.mem)
         out.frm = ite(c, s.frm, out.frm)
         out.fs = ite(c, s.fs, out.fs)
+        out.fp = tuple(None if a is None or b is None else ite(c, a, b) for a, b in zip(s.fp, out.fp))
     out.pc = z3.BoolVal(True)
     return out
 
@@ -1274,6 +1282,8 @@ class Machine:
             self.write(st, ops[0], ~self.read(st, ops[0]))
         elif m in ('shl', 'shr', 'sar'):
             self.shift(st, m, ops)
+        elif m in ('rcl', 'rcr'):
+            self.rotate_carry(st, m, ops)
         elif m == 'imul':
             self.imul(st, ops)
         elif m in ('mul', 'div', 'idiv'):
@@ -1289,6 +1299,10 @@ class Machine:
             st.R['ebp'] = self.pop(st)
         elif m == 'call':
             self.call(st, ins)
+        elif m == 'sahf':                                              # FL-78 (round 7): CF, PF, AF, ZF, SF from bits 0, 2, 4, 6, 7 of ah
+            ah = st.R['eax']
+            for flag, bit in (('cf', 8), ('pf', 10), ('af', 12), ('zf', 14), ('sf', 15)):
+                st.F[flag] = z3.Extract(bit, bit, ah) == 1
         elif m.startswith('f') or m == 'wait':
             self.x87(st, ins)
         elif m in ('jmp', 'ret'):
@@ -1315,6 +1329,23 @@ class Machine:
         if cc not in CC:
             raise Unsupported('jump ' + m)
         return self.cond(st, cc)
+
+    def rotate_carry(self, st, m, ops):
+        """FL-78 (round 7): `rcl` / `rcr` by the immediate 1 of a register or memory operand (the multi-word shift of an unsigned 64 bit division): the carry flag goes in at one end and the bit that leaves goes to cf. The overflow flag is left unknown, zf sf pf af are unchanged."""
+        if len(ops) != 2 or ops[1].type != X.X86_OP_IMM or ops[1].imm & 31 != 1:
+            raise Unsupported(m)
+        w = 8 * ops[0].size
+        a = self.read(st, ops[0])
+        cin = z3.If(st.F['cf'], bv(1, 1), bv(0, 1))
+        if m == 'rcr':
+            r = z3.Concat(cin, z3.Extract(w - 1, 1, a))
+            out = z3.Extract(0, 0, a) == 1
+        else:
+            r = z3.Concat(z3.Extract(w - 2, 0, a), cin)
+            out = z3.Extract(w - 1, w - 1, a) == 1
+        st.F['cf'] = out
+        st.F['of'] = fresh_bool()
+        self.write(st, ops[0], r)
 
     def shift(self, st, m, ops):
         w = 8 * ops[0].size
@@ -1429,6 +1460,7 @@ class Machine:
             pops = self.sites.get(ins.address)
         if op.type != X.X86_OP_IMM:
             self.read(st, op, 4)                     # the pointer is read (and must not fault)
+        st.fp = (None, None)                         # the callee may use the x87 unit
         sp = st.R['esp']
         ptrs = [(z3.simplify(self.load(st.frm, sp + off, 4)), ext) for off, ext in self.out_writes.get(ins.address, ())] if self.split else []         # FL-78: frame pointers the callee writes through (read before the argument slots are overwritten)
         for r in ('eax', 'ecx', 'edx'):
@@ -1518,9 +1550,41 @@ class Machine:
         else:
             raise Unsupported(base)
 
+    def x87_compare(self, st, ins):
+        """FL-78 (round 7): the one x87 pattern the prover models: `fld qword ptr [m]` or `fldz` puts 64 known bits in st(0); `fcom` / `fcomp qword ptr [m]` of those bits sets the condition codes (C0 st0 < m or unordered, C2 unordered, C3 st0 == m or unordered;
+        the other bits of the status word are unknown) and `fnstsw ax` then gives that status word, so `sahf` and a conditional jump see an exact compare. Everything else on the x87 unit stays over-approximated, and forgets what is known.
+        The assumptions (RULE_TEXT2): the x87 stack does not overflow or underflow at these instructions and the floating-point exceptions are masked. True when the instruction was handled."""
+        m, ops = ins.mnemonic, ins.operands
+        top, sw = st.fp
+        if m == 'fld' and len(ops) == 1 and ops[0].type == X.X86_OP_MEM and ops[0].size == 8 and not ops[0].mem.segment:
+            st.fp = (self.mem_read(st, ops[0], 8), None)
+            return True
+        if m == 'fldz' and not ops:
+            st.fp = (bv(0, 64), None)
+            return True
+        if m in ('fcom', 'fcomp') and len(ops) == 1 and ops[0].type == X.X86_OP_MEM and ops[0].size == 8 and not ops[0].mem.segment and top is not None:
+            other = self.mem_read(st, ops[0], 8)
+            sort = z3.FPSort(11, 53)
+            x, y = z3.fpBVToFP(top, sort), z3.fpBVToFP(other, sort)
+            unordered = z3.Or(z3.fpIsNaN(x), z3.fpIsNaN(y))
+            word = fresh(16, 'fs')
+            word = word & bv(~0x4500, 16)
+            word = word | z3.If(z3.Or(z3.fpLT(x, y), unordered), bv(0x0100, 16), bv(0, 16))
+            word = word | z3.If(unordered, bv(0x0400, 16), bv(0, 16))
+            word = word | z3.If(z3.Or(z3.fpEQ(x, y), unordered), bv(0x4000, 16), bv(0, 16))
+            st.fp = (top if m == 'fcom' else None, word)
+            return True
+        if m in ('fnstsw', 'fstsw') and len(ops) == 1 and ops[0].type == X.X86_OP_REG and sw is not None:
+            self.reg_set(st, 'ax', sw)
+            return True
+        return False
+
     def x87(self, st, ins):
         m = ins.mnemonic
         ops = ins.operands
+        if self.x87_compare(st, ins):
+            return
+        st.fp = (None, None)                                           # any other x87 instruction may change st(0) and the status word
         for op in ops:
             if op.type == X.X86_OP_MEM:
                 a = self.ea(st, op)
@@ -1592,7 +1656,16 @@ class Analysis:
         out = set(self.used)
         if self.M.split:
             out.add('frame-assumption')
+        regs = {a['reg'] for atoms in self.inv.values() for at in atoms for a in (at.get('or') or [at]) if 'reg' in a}
+        if regs:                                                                     # FL-78 (round 7): a register atom of a loop invariant (proved by the prover itself) holds across the calls of the loop only if callees keep it
+            out.add('register-loop-invariant-checked')
+            if regs & set(CALLEE_SAVED):
+                out.add('callee-saved-registers-unread-and-kept-by-callees')
+            if any(i.mnemonic == 'call' and i.operands[0].type == X.X86_OP_MEM for i in self.insns):
+                out.add('import-reads-no-register-and-clobbers-eax-ecx-edx')
         for i in self.insns:                                                        # every direct call target of the body, listed in the row or not
+            if i.mnemonic in ('fcom', 'fcomp') and i.operands and i.operands[0].type == X.X86_OP_MEM and i.operands[0].size == 8:
+                out.add('x87-compare-model')
             if i.mnemonic == 'call' and i.operands[0].type == X.X86_OP_IMM and self.M.is_pure(i.operands[0].imm & 0xffffffff):
                 out.add('pure-callee:0x%x' % (i.operands[0].imm & 0xffffffff))
         return sorted(out)
@@ -1900,6 +1973,7 @@ class Analysis:
                     st.R[r] = fresh(32, 'sp' if r in ('esp', 'ebp') else 'lp')      # a stack register stays a frame term
                 for f in FLAGS:
                     st.F[f] = fresh_bool()
+                st.fp = (None, None)
                 if mem:
                     st.mem = fresh_array()
                     st.frm = fresh_array('fr')
