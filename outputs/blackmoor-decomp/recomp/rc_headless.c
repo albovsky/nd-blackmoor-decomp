@@ -135,6 +135,11 @@ static uint32_t script_done_at;                  /* virtual ms at which the last
 /* RC_FLAGS="1000-1030,1716,2075": the game's event flags (dwords at 0x585801 + 4 * n, the table of its scene scripts) that are not zero, logged at every shot */
 static void dump_flags(void)
 {
+    /* Read the original scene/view cells alongside flags so route coordinates
+     * can be tied to the actual panorama frame, including retained-art scenes. */
+    rc_log("  STATE requested_scene=%u art_scene=%u view=%d held_item=%d",
+           rc_u16(0x5bb57b), rc_u16(0x5bb57f),
+           (int)(int16_t)rc_u16(0x5bb50b), (int)(int16_t)rc_u16(0x583a29));
     const char *e = getenv("RC_FLAGS");
     if (!e) return;
     char line[1024] = "";

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The story routes of ROUTES.md as INPUT strings for rc_headless.
 
-  python3 story_route.py LEG [--save NAME]      LEG is one of: stairs, lock, slider, moon, slider-verify
+  python3 story_route.py LEG [--save NAME]      LEG is one of: stairs, lock, slider, moon, telescope-prep, slider-verify
   python3 story_route.py slider-verify          replays the recorded 105 slider moves on the puzzle rules and prints whether they solve it
 
 Each leg starts from a save made in the game's own Load & Save screen and (with --save NAME) ends by saving the next one, so the legs chain:
@@ -10,6 +10,7 @@ Each leg starts from a save made in the game's own Load & Save screen and (with 
   m1  --lock-->   m4 (S3447, behind the S3448 lock: key, order, delivery, butter, grease, unlock)
   m4  --slider--> m5 (S3303, the slider puzzle solved and the item taken)
   m5  --moon-->   m6 (S2076, the moon box open, the telescope lens)
+  m6  --telescope-prep--> m7 (lens collected, star chart read, bedroom view 2)
 
 Steps are `anchor+ms:kind:args` (rc_headless.c). `click x,y,hold` is a move 1 s before the click; `mv:x,y` a bare move; `key:VK` a key press.
 A bare click on a hotspot needs a move onto it first or the game ignores it (the cursor must have been seen there), so every click has its move.
@@ -56,6 +57,19 @@ class R:
 
     def text(self):
         return ';'.join(self.o)
+
+    def turns(self, direction, count):
+        """One panorama frame per short edge hover, with AutoMove enabled.
+
+        A normal click's one-second pre-hover pans several frames. Moving back
+        inside after 100 ms keeps each turn below the game's 400 ms repeat.
+        """
+        x = {'left': 10, 'right': 620}[direction]
+        for _ in range(count):
+            self.o.append('%s+%d:move:%d,200' % (self.a, self.t, x))
+            self.o.append('%s+%d:move:320,60' % (self.a, self.t + 100))
+            self.t += 2500
+        return self
 
 
 def save_tail(anchor, t, name):
@@ -167,6 +181,27 @@ def leg_moon(save=None):
     return ';'.join(out)
 
 
+def leg_telescope_prep(save=None):
+    """m6 -> m7: collect the lens, inspect the empty tripod and read the chart.
+
+    This does not install the telescope: Jane must lend it first (1980),
+    followed by delivery flags 2037/2036. Telescope completion is flag 1906.
+    """
+    r = R().at('S2076.CIF', 8000)
+    r.clicks('310,352 326,177 310,352 310,352 310,352', 8000)
+    # The moon-box return enters bedroom frame 8. Eight single right turns
+    # reach frame 0; the tripod's return explicitly selects frame 19.
+    r.turns('right', 8).clicks('528,272 shot 310,352 48,157', 8000)
+    r.clicks('303,182 337,164 559,188 559,188 559,188 shot', 8000)
+    # The last chart page pops straight to S2015, then back to bedroom frame 2.
+    r.clicks('310,352 310,352 310,352 shot', 8000)
+    out = [r.text()]
+    if save:
+        out.append(menu_to_save_screen(r.a, r.t + 5000))
+        out.append(save_tail(r.a, r.t + 18000, save))
+    return ';'.join(out)
+
+
 def slider_moves():
     """The recorded 105 moves: (piece, direction 16 left, 17 up, 18 down, 19 right, x, y). x, y are the zone centres of the native port's frame, whose
     view origin is (10, 10); the game itself takes (x - 10, y - 10)."""
@@ -233,7 +268,8 @@ if __name__ == '__main__':
         ok = verify_slider()
         print('the recorded 105 slider moves %s the puzzle' % ('solve' if ok else 'do NOT solve'))
         sys.exit(0 if ok else 1)
-    legs = {'stairs': leg_stairs, 'lock': leg_lock, 'slider': leg_slider, 'moon': leg_moon}
+    legs = {'stairs': leg_stairs, 'lock': leg_lock, 'slider': leg_slider,
+            'moon': leg_moon, 'telescope-prep': leg_telescope_prep}
     if leg not in legs:
         sys.exit(__doc__)
     print(legs[leg](save))

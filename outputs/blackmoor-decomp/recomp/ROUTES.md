@@ -197,3 +197,15 @@ With the lens (toolbox slot 0, `62,100`) picked up, a click at `310,190` on the 
 * `RC_FLAGS="1000-1030,1716"`: at every shot, log the non-zero event flags in those ranges (the game's table at 0x585801 + 4 * n).
 * `RC_TRACE_MS=from-to`: log every import call (name, arguments, result) in that range of virtual milliseconds.
 * Long routes need `MAX_IDLE_POLLS` and `MAX_IMPORTS` raised (the 105-move slider run uses 900000 and 90000000).
+
+## Telescope preparation, verified 2026-11-01, 19:38 PST
+
+`python3 route_tools/story_route.py telescope-prep --save m7` continues the game's own `m6` save. It leaves the lens diagram, collects item12 in S2074, backs out through S2075/S2040/S2011, inspects the tripod in S2014, and reads S2015→S2022→S2023→S2024→S2025→S2026. It returns to bedroom S2010, view2, and saves m7. A fresh-folder replay of the opening and all four earlier legs produced its input m6; each leg used only the preceding game-generated save. The final preparation leg passes in 6.88 seconds of wall time.
+
+The game's chart flags are 1953, 1949, 1834 and 1843; all are 1 at S2026 and remain 1 after the return/save. Lens-knowledge flag1905 and moon-solved flag1993 are also 1. This does **not** complete the telescope: 1980, 2037, 2036, 1309 and 1906 are still 0. The actual prerequisite is Jane's telescope loan: request it, win her timed jigsaw, then follow the delivery scenes. After the telescope is available, installing the lens sets1309 and looking through it sets1906. These later steps are statically mapped, not yet verified by this route.
+
+Use `R.turns('right', n)` / `R.turns('left', n)` for new panorama routes with the default AutoMove=1. Each moves to the edge for100ms and back inside, below the400ms repeat delay; a right turn decrements the view, a left turn increments it. The old click helper spends a second hovering before its click and can pan many frames. Actual m6 return enters bedroom view8; eight short right turns reach view0. The tripod's own return selects view19, where the chart hotspot is48,157. The chart's return selects view2. The previous six-right-turn/528,272 recipe was not a verified telescope solve.
+
+Every `shot` now logs `STATE requested_scene=... art_scene=... view=... held_item=...` by reading the original game cells. `requested_scene` may be a pending transition; `art_scene` remains the background owner in retained-art scenes. These reads never change gameplay state. `RC_FLAGS` still logs the requested nonzero event flags.
+
+Private evidence: `work/recomp-playability-20261101/` contains the build, opening/stairs/lock/slider/moon runs, exact final route input and `telescope-prep-final/run.log`. Native headless SHA-256: `72e3ba3c55b71056927e6ea8bec07ca986d60e7e100b0372b2da54135388e4a1`; original GAME.EXE remains `afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45`. All runs use scratch copies of the data and the game's own save UI. Full story, telescope completion and the final background macOS-app playthrough remain unverified.

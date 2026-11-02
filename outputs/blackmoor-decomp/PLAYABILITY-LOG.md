@@ -1,5 +1,7 @@
 # Native playability log
 
+2026-11-01, 19:38 PST — Recompiled GAME.EXE host: rebuilt current main and replayed New Game→m0→stairs/m1→key/grease lock/m4→105-move slider/m5→moon box/m6, each leg in a fresh scratch data folder with only its preceding game-generated save. New `telescope-prep` reaches S2074 lens pickup, S2014 tripod and S2026 after reading every chart page, then returns to S2010 view2 and writes m7. Original flags1834/1843/1949/1953,1905,1993 are1; final preparation run passes in6.88s. Short edge hovers now give deterministic single-frame panorama turns; shot logs report original scene/view cells. Native SHA-256 `72e3ba3c55b71056927e6ea8bec07ca986d60e7e100b0372b2da54135388e4a1`; exact inputs/logs and private checkpoints are under `work/recomp-playability-20261101/`. Next prerequisite is Jane's telescope loan/jigsaw:1980/2037/2036 and telescope1309/1906 are still0. This is headless recompiled gameplay, not an old handwritten-app or full-game completion claim. Independent review is pending.
+
 2026-10-24 — native ARM64 macOS, owner-local GOG data. **The game remains incomplete.**
 
 - Live GUI baseline: New Game and Junior Detective clicks work in fullscreen; S0 captions, opening letter and the 24-scene opening sequence reach S2010. Widescreen preserves the 4:3 image with side bars. Local screenshots are in `work/playability-20261024/gui-S0.png` and `gui-S2010.png`. Mouse automation remains intermittent; a normal GUI release enters S2008; continuous automated click-through and right-button checks remain unverified.
