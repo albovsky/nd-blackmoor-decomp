@@ -5,7 +5,7 @@
 // the bink_player/bink_audio FFmpeg adapters, and an AVAudioEngine source node that pulls the DirectSound mix. It replaces none of the
 // host: GAME.EXE is read at start-up (read only) and never written.
 //
-//   BlackmoorRecompiled [--game-dir DIR] [--exe GAME.EXE] [--save-dir DIR] [--mute] [--capture-audio FILE.wav] [--log FILE]
+//   BlackmoorRecompiled [--game-dir DIR] [--exe GAME.EXE] [--save-dir DIR] [--mute] [--capture-audio FILE.wav] [--log FILE] [--background] [--stop-after-ms N] [--snapshot FILE.ppm]
 //
 // DIR is the game folder (Ciftree, CDSound, CDVideo, Game.ini ...); GAME.EXE defaults to DIR/GAME.EXE.
 #import <AppKit/AppKit.h>
@@ -13,6 +13,7 @@
 #import <Foundation/Foundation.h>
 
 #include <dispatch/dispatch.h>
+#include <errno.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,6 +32,7 @@ extern "C" {
 #include "bink_audio.h"
 #include "bink_player.h"
 #include "macos_platform.h"
+#include "macos_platform_background.h"
 #include "rc_platform.h"
 }
 
@@ -38,6 +40,7 @@ namespace {
 
 constexpr uint32_t kLogicalWidth = 640, kLogicalHeight = 480;
 constexpr uint32_t kAudioRate = 44100;
+constexpr uint32_t kDefaultBackgroundStopMs = 5000, kMaxStopAfterMs = 600000;
 
 struct Recomp {
     BlackmoorMacPlatform *platform = nullptr;
@@ -49,6 +52,13 @@ struct Recomp {
     int left_down = 0;
     int32_t pointer_x = 0, pointer_y = 0;
     bool muted = false;
+    bool background = false, terminate_requested = false;
+    uint32_t stop_after_ms = 0;
+    uint64_t stop_deadline_ms = 0;
+    std::string snapshot_path;
+    std::atomic<bool> background_failed{false};
+    std::atomic<unsigned> background_activations{0};
+    id activation_observer = nil;
     FILE *log = nullptr;
     std::string game_dir, exe, save_dir;
     AVAudioEngine *engine = nil;
@@ -78,6 +88,70 @@ void sleep_ms(void *, uint32_t ms)
 void log_line(void *, const char *line)
 {
     if (g.log) { fputs(line, g.log); fputc('\n', g.log); }
+}
+
+// Background diagnostics observe only this process; no system input is posted.
+void frontend_message(const char *message)
+{
+    fprintf(stderr, "%s\n", message);
+    if (g.log) { fprintf(g.log, "%s\n", message); fflush(g.log); }
+}
+
+bool parse_stop_after_ms(const char *text, uint32_t *result)
+{
+    if (!text || !*text) return false;
+    uint32_t value = 0;
+    for (const char *p = text; *p; ++p) {
+        if (*p < '0' || *p > '9') return false;
+        uint32_t digit = (uint32_t)(*p - '0');
+        if (value > kMaxStopAfterMs / 10u ||
+            (value == kMaxStopAfterMs / 10u && digit > kMaxStopAfterMs % 10u)) return false;
+        value = value * 10u + digit;
+    }
+    if (!value) return false;
+    *result = value;
+    return true;
+}
+
+void start_background_observation()
+{
+    if (!g.background) return;
+    const pid_t process = getpid();
+    g.activation_observer = [[[NSWorkspace sharedWorkspace] notificationCenter]
+        addObserverForName:NSWorkspaceDidActivateApplicationNotification
+        object:nil queue:nil usingBlock:^(NSNotification *notification) {
+            NSRunningApplication *application = notification.userInfo[NSWorkspaceApplicationKey];
+            if (application.processIdentifier == process) {
+                // Delivery may be on another thread; do not touch FILE handles.
+                g.background_activations.fetch_add(1, std::memory_order_relaxed);
+                g.background_failed.store(true, std::memory_order_release);
+            }
+        }];
+}
+
+void stop_background_observation()
+{
+    if (!g.activation_observer) return;
+    [[[NSWorkspace sharedWorkspace] notificationCenter] removeObserver:g.activation_observer];
+    g.activation_observer = nil;
+}
+
+void record_background_status(const char *stage)
+{
+    if (!g.background) return;
+    bool active = NSApp.isActive, key = NSApp.keyWindow != nil, visible = false;
+    for (NSWindow *window in NSApp.windows) {
+        key = key || window.isKeyWindow;
+        visible = visible || window.isVisible;
+    }
+    unsigned activations = g.background_activations.load(std::memory_order_acquire);
+    if (active || key || visible || activations)
+        g.background_failed.store(true, std::memory_order_release);
+    char line[256];
+    snprintf(line, sizeof line,
+             "BACKGROUND stage=%s active=%d key=%d visible=%d activations=%u",
+             stage, (int)active, (int)key, (int)visible, activations);
+    frontend_message(line);
 }
 
 // ---- Bink movies through the app's FFmpeg adapters --------------------------------------------------------------------------------
@@ -187,6 +261,12 @@ void on_tick(void *, uint32_t)
         if (g.log) fputs(message, g.log);
     }
     present_primary();
+    if (g.stop_deadline_ms && !g.terminate_requested && now_ms(nullptr) >= g.stop_deadline_ms) {
+        g.terminate_requested = true;
+        frontend_message("STOP_AFTER action=NSApp.terminate requested_once=1");
+        // Exercise the same delegate and cleanup path as the actual Cmd-Q menu.
+        [NSApp terminate:nil];
+    }
 }
 
 int32_t clamp_coordinate(int32_t v, int32_t limit) { return v < 0 ? 0 : (v >= limit ? limit - 1 : v); }
@@ -304,6 +384,56 @@ bool file_exists(const std::string &path)
     return stat(path.c_str(), &st) == 0;
 }
 
+// Called only after successful game-thread join. rc_main has also joined all
+// guest workers, and stop_audio has joined the mixer/capture producers.
+bool write_primary_snapshot(const std::string &path)
+{
+    const uint16_t *pixels = nullptr;
+    uint32_t width = 0, height = 0, pitch = 0;
+    if (!rc_get_primary(&pixels, &width, &height, &pitch) || !pixels ||
+        width != kLogicalWidth || height != kLogicalHeight ||
+        pitch < kLogicalWidth * 2u || pitch % 2u ||
+        pitch > 268435456u / kLogicalHeight) {
+        frontend_message("SNAPSHOT kind=logical-framebuffer failed=unavailable-or-invalid-primary");
+        return false;
+    }
+    FILE *file = fopen(path.c_str(), "wb");
+    if (!file) {
+        const int open_error = errno;
+        fprintf(stderr, "SNAPSHOT kind=logical-framebuffer open failed: %s\n", strerror(open_error));
+        if (g.log) fprintf(g.log, "SNAPSHOT kind=logical-framebuffer open failed: %s\n", strerror(open_error));
+        return false;
+    }
+    int io_error = 0;
+    auto save_io_error = [&] { if (!io_error) io_error = errno ? errno : EIO; };
+    if (fprintf(file, "P6\n%u %u\n255\n", width, height) < 0) save_io_error();
+    uint8_t row[kLogicalWidth * 3u];
+    for (uint32_t y = 0; y < height && !io_error; ++y) {
+        const uint8_t *source = (const uint8_t *)pixels + (size_t)y * pitch;
+        for (uint32_t x = 0; x < width; ++x) {
+            uint16_t value;
+            memcpy(&value, source + (size_t)x * 2u, sizeof value);
+            uint8_t red = (uint8_t)((value >> 11) & 31u);
+            uint8_t green = (uint8_t)((value >> 5) & 63u);
+            uint8_t blue = (uint8_t)(value & 31u);
+            row[x * 3u] = (uint8_t)((red << 3) | (red >> 2));
+            row[x * 3u + 1u] = (uint8_t)((green << 2) | (green >> 4));
+            row[x * 3u + 2u] = (uint8_t)((blue << 3) | (blue >> 2));
+        }
+        if (fwrite(row, 1, sizeof row, file) != sizeof row) save_io_error();
+    }
+    if (fflush(file) != 0) save_io_error();
+    if (fclose(file) != 0) save_io_error();
+    if (io_error) {
+        fprintf(stderr, "SNAPSHOT kind=logical-framebuffer write failed: %s\n", strerror(io_error));
+        if (g.log) fprintf(g.log, "SNAPSHOT kind=logical-framebuffer write failed: %s\n", strerror(io_error));
+        return false;
+    }
+    fprintf(stderr, "SNAPSHOT kind=logical-framebuffer width=%u height=%u path=%s\n", width, height, path.c_str());
+    if (g.log) fprintf(g.log, "SNAPSHOT kind=logical-framebuffer width=%u height=%u path=%s\n", width, height, path.c_str());
+    return true;
+}
+
 void make_directories(const std::string &path)
 {
     for (size_t i = 1; i < path.size(); i++)
@@ -352,9 +482,22 @@ int main(int argc, char **argv)
             else if (a == "--log" && i + 1 < argc) log_path = argv[++i];
             else if (a == "--capture-audio" && i + 1 < argc) { capture_path = argv[++i]; capture_requested = true; }
             else if (a == "--mute") g.muted = true;
-            else { fprintf(stderr, "usage: %s [--game-dir DIR] [--exe GAME.EXE] [--save-dir DIR] [--mute] [--capture-audio FILE.wav] [--log FILE]\n", argv[0]); return 2; }
+            else if (a == "--background") g.background = true;
+            else if (a == "--stop-after-ms" && i + 1 < argc) {
+                if (!parse_stop_after_ms(argv[++i], &g.stop_after_ms)) {
+                    fprintf(stderr, "--stop-after-ms requires decimal milliseconds in 1..%u\n", kMaxStopAfterMs);
+                    return 2;
+                }
+            }
+            else if (a == "--snapshot" && i + 1 < argc) {
+                g.snapshot_path = argv[++i];
+                if (g.snapshot_path.empty()) { fputs("--snapshot requires a nonempty path\n", stderr); return 2; }
+            }
+            else { fprintf(stderr, "usage: %s [--game-dir DIR] [--exe GAME.EXE] [--save-dir DIR] [--mute] [--capture-audio FILE.wav] [--log FILE] [--background] [--stop-after-ms N] [--snapshot FILE.ppm]\n", argv[0]); return 2; }
         }
         if ([[NSUserDefaults standardUserDefaults] boolForKey:@"BlackmoorAudioMuted"]) g.muted = true;
+        if (g.background && !g.muted) { fputs("--background requires effective --mute\n", stderr); return 2; }
+        if (g.background && !g.stop_after_ms) g.stop_after_ms = kDefaultBackgroundStopMs;
         if (g.exe.empty()) g.exe = getenv("GAME_EXE") ? getenv("GAME_EXE") : g.game_dir + "/GAME.EXE";
         if (g.save_dir.empty()) {
             NSArray *support = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES);
@@ -379,11 +522,27 @@ int main(int argc, char **argv)
 
         BlackmoorPlatformCallbacks callbacks{};
         callbacks.tick = on_tick; callbacks.pointer = on_pointer; callbacks.key = on_key; callbacks.closed = on_closed;
+        start_background_observation();
         [NSApplication sharedApplication];
         application_delegate = [[BlackmoorRecompApplicationDelegate alloc] init];
         NSApp.delegate = application_delegate;
-        g.platform = blackmoor_macos_open("Nancy Drew: Curse of Blackmoor Manor", kLogicalWidth, kLogicalHeight, &callbacks, nullptr, error, sizeof error);
-        if (!g.platform) { fprintf(stderr, "cannot open the window: %s\n", error); return 3; }
+        auto open_window = g.background ? blackmoor_macos_open_background : blackmoor_macos_open;
+        g.platform = open_window("Nancy Drew: Curse of Blackmoor Manor", kLogicalWidth, kLogicalHeight, &callbacks, nullptr, error, sizeof error);
+        if (!g.platform) {
+            fprintf(stderr, "cannot open the window: %s\n", error);
+            stop_background_observation();
+            if (g.log) fclose(g.log);
+            return g.background_failed.load(std::memory_order_acquire) ? 6 : 3;
+        }
+        record_background_status("opened");
+        if (g.background_failed.load(std::memory_order_acquire)) {
+            blackmoor_macos_close(g.platform);
+            g.platform = nullptr;
+            stop_background_observation();
+            if (g.log) fclose(g.log);
+            return 6;
+        }
+        if (g.stop_after_ms) g.stop_deadline_ms = now_ms(nullptr) + g.stop_after_ms;
 
         if (capture_requested) {
             std::string capture_error;
@@ -391,8 +550,9 @@ int main(int argc, char **argv)
                 fprintf(stderr, "cannot start audio capture: %s\n", capture_error.c_str());
                 blackmoor_macos_close(g.platform);
                 g.platform = nullptr;
+                stop_background_observation();
                 if (g.log) fclose(g.log);
-                return 3;
+                return g.background_failed.load(std::memory_order_acquire) ? 6 : 3;
             }
             g.capture_enabled = true;
         }
@@ -402,8 +562,9 @@ int main(int argc, char **argv)
             stop_audio();
             blackmoor_macos_close(g.platform);
             g.platform = nullptr;
+            stop_background_observation();
             if (g.log) fclose(g.log);
-            return 3;
+            return g.background_failed.load(std::memory_order_acquire) ? 6 : 3;
         }
 
         // the guest has a deep call stack of large lifted frames: a 512 MiB stack (reserved, not committed)
@@ -417,12 +578,14 @@ int main(int argc, char **argv)
             stop_audio();
             blackmoor_macos_close(g.platform);
             g.platform = nullptr;
+            stop_background_observation();
             if (g.log) fclose(g.log);
-            return 3;
+            return g.background_failed.load(std::memory_order_acquire) ? 6 : 3;
         }
         g.game_thread_started = true;
 
         blackmoor_macos_run(g.platform);
+        record_background_status("stop");
 
         // Keep shutdown bounded even if a producer is blocked on a host lock
         // or filesystem I/O. A timeout is an explicit failure, never success.
@@ -440,11 +603,25 @@ int main(int argc, char **argv)
             if (g.log) fflush(g.log);
             _exit(5);
         }
-        if (g.game_thread_started) pthread_join(g.game_thread, nullptr);
+        const int join_error = g.game_thread_started ? pthread_join(g.game_thread, nullptr) : 0;
+        bool diagnostics_ok = true;
+        if (join_error && (g.background || !g.snapshot_path.empty())) {
+            frontend_message("diagnostic cleanup: game-thread join failed");
+            diagnostics_ok = false;
+        }
+        // Snapshot reads begin only after the game and all workers are joined.
+        if (!g.snapshot_path.empty() && diagnostics_ok)
+            diagnostics_ok = write_primary_snapshot(g.snapshot_path);
         blackmoor_macos_close(g.platform);
         g.platform = nullptr;
+        stop_background_observation();
+        if (g.background_failed.load(std::memory_order_acquire)) {
+            frontend_message("BACKGROUND result=failed quiet-mode-contract");
+            diagnostics_ok = false;
+        }
         if (g.log) fclose(g.log);
         shutdown_finished->store(true, std::memory_order_release);
+        if (!diagnostics_ok) return 6;
         if (!capture_ok) return 4;
     }
     return 0;

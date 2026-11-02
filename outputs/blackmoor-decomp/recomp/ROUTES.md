@@ -271,3 +271,7 @@ The recompiled frontend now builds with `--capture-audio FILE.wav`, tapping PCM1
 Audio review follow-up: normal Cmd-Q is now routed back through main's producer/capture cleanup, and a5-second watchdog ends stuck shutdown with exit status5. Capture-start failure is3, capture-finalization failure4. Actual app/Cmd-Q checks still await background mode; the unverified filesystem/streaming branches are listed in RECOMP-05.
 
 Audio follow-up review accepts17d2fdda with no P1 or blocking P2. Runtime Cmd-Q/background acceptance, filesystem failures, continuous streaming and system-logout coordination remain unverified; see RECOMP-05.
+
+## Background Mac startup, 2026-11-02, 00:25 Pacific
+
+The signed recompiled app now supports `--background --mute --stop-after-ms 5000 --snapshot FILE.ppm --capture-audio FILE.wav`, with scratch `--game-dir` and `--save-dir`. Actual native startup reaches the title splash, remains inactive/hidden with0activation notifications and exits0 through the normal Quit delegate. Logical framebuffer and nonempty finalized mixer WAV are private under `background-app-20261102/`; this is not a displayed-window screenshot or a synchronization pass. The5.49s process captured3.73s PCM; startup/cadence timing remains unverified. An opt-in actual-AppKit fixture passes4ticks/5presentations without visibility/activation. See RECOMP-06 for pins and limits. Native app room input, movies and save/load are next; headless fresh chain through m10 remains the campaign evidence.
