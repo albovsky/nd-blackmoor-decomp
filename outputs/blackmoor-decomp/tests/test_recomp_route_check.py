@@ -421,5 +421,137 @@ class VenusKeyInputTests(unittest.TestCase):
                 self.assertLess(len(actual.split(';')) + 7, 512)  # original-menu load prefix
 
 
+class ColumnContinuationResultTests(unittest.TestCase):
+    # Small synthetic observations follow the accepted m14 -> m17 traces.
+    records = {
+        'jupiter-column': ('m15', ((2633, 0, -1), (2605, 8, -1), (2605, 5, -1),
+                                  (2631, 0, -1), (2631, 0, 6), (2681, 0, -1),
+                                  (2631, 0, -1), (2631, 0, -1)), {1436: 5, 1981: 5}),
+        'moon-key': ('m16', ((2631, 0, -1), (2605, 5, -1), (2605, 0, -1), (3345, 0, -1),
+                            (2010, 1, -1), (2010, 3, -1), (2082, 0, -1), (2082, 0, 12),
+                            (2083, 0, -1), (2085, 0, -1), (2090, 0, -1), (2087, 0, -1),
+                            (2088, 0, -1), (2087, 0, 11), (2087, 0, -1), (2083, 0, -1),
+                            (2018, 0, -1), (2010, 3, -1), (2010, 3, -1)),
+                     {1259: 3, 2077: 8, 1996: 9, 2019: 11, 2092: 11}),
+        'moon-column': ('m17', ((2010, 3, -1), (2605, 5, -1), (2605, 15, -1),
+                               (2626, 0, -1), (2626, 0, 11), (2684, 0, -1),
+                               (2626, 0, -1), (2626, 0, -1)), {1597: 5, 1994: 5}),
+    }
+
+    def setUp(self):
+        self.folder = tempfile.TemporaryDirectory()
+        self.addCleanup(self.folder.cleanup)
+
+    def frames(self, route):
+        name, states, transitions = self.records[route]
+        save = Path(self.folder.name) / (name + '.SAV')
+        save.write_bytes(bytes(170770))
+        prior = {1160, 1541, 1782, 1892, 1906, 1963, 1980, 1993, 2000, 2002, 2015, 2036, 2037}
+        if route != 'jupiter-column':
+            prior |= {1436, 1981}
+        if route == 'moon-column':
+            prior |= {1259, 1996, 2019, 2077, 2092}
+        frames = []
+        for index, (scene, view, held) in enumerate(states):
+            flags = {f: 1 for f in prior}
+            flags.update({f: 1 for f, first in transitions.items() if index >= first})
+            frames.append({'scene': scene, 'view': view, 'held': held, 'flags': flags,
+                           'scope': '1000-2230'})
+        return save, frames
+
+    def observed_log(self, save, frames):
+        log = ''
+        for frame in frames:
+            log += ('  STATE requested_scene=%d art_scene=%d view=%d held_item=%d\n'
+                    '  RC_FLAGS %s\n  FLAGS %s\n' %
+                    (frame['scene'], frame['scene'], frame['view'], frame['held'], frame['scope'],
+                     ' '.join('%d=%d' % pair for pair in sorted(frame['flags'].items()))))
+        return log + ('  FILE open C:\\GAME\\Documents5\\The Curse of Blackmoor Manor\\%s  [virtual 800000 ms]\n'
+                      'RESULT {"stopped":"stop requested <52a4c0"}\n' % save.name)
+
+    def test_accepts_original_transitions_and_safe_checkpoints(self):
+        for route, (name, states, _) in self.records.items():
+            with self.subTest(route=route):
+                save, frames = self.frames(route)
+                result = checker.verify(self.observed_log(save, frames), save, route)
+                self.assertEqual((result['scene'], result['view']), states[-1][:2])
+                self.assertTrue(result['telescope_complete'])
+                self.assertTrue({1961, 1999, 2070} <= set(result['flags_zero']))
+
+    def test_requires_actual_held_jupiter_key_lens_and_moon_key(self):
+        for route, index in (('jupiter-column', 4), ('moon-key', 7),
+                             ('moon-key', 13), ('moon-column', 4)):
+            with self.subTest(route=route, index=index):
+                save, frames = self.frames(route)
+                frames[index]['held'] = -1
+                with self.assertRaisesRegex(ValueError, 'ordered'):
+                    checker.verify(self.observed_log(save, frames), save, route)
+
+    def test_rejects_preexisting_or_missing_original_progression(self):
+        for route, index, flag, value in (
+                ('jupiter-column', 3, 1981, 1), ('jupiter-column', 5, 1436, 0),
+                ('moon-key', 7, 2077, 1), ('moon-key', 11, 2092, 0),
+                ('moon-column', 4, 1994, 1), ('moon-column', 5, 1597, 0)):
+            with self.subTest(route=route, flag=flag, value=value):
+                save, frames = self.frames(route)
+                frames[index]['flags'][flag] = value
+                with self.assertRaisesRegex(ValueError, 'pre/post'):
+                    checker.verify(self.observed_log(save, frames), save, route)
+
+    def test_requires_scope_retained_prerequisites_and_unmet_columns(self):
+        for route in self.records:
+            for failure in ('scope', 'retained', 'progression'):
+                with self.subTest(route=route, failure=failure):
+                    save, frames = self.frames(route)
+                    if failure == 'scope':
+                        frames[-1]['scope'] = '1000-2069,2071-2230'
+                        reason = 'every required event'
+                    elif failure == 'retained':
+                        frames[0]['flags'][1980] = 0
+                        reason = 'prerequisite flag'
+                    else:
+                        frames[1]['flags'][1999] = 1
+                        reason = 'progression flag'
+                    with self.assertRaisesRegex(ValueError, reason):
+                        checker.verify(self.observed_log(save, frames), save, route)
+
+    def test_requires_ordered_win_and_final_safe_observations(self):
+        for route, win in (('jupiter-column', 5), ('moon-key', 10), ('moon-column', 5)):
+            with self.subTest(route=route, failure='order'):
+                save, frames = self.frames(route)
+                frames[win], frames[win + 1] = frames[win + 1], frames[win]
+                with self.assertRaisesRegex(ValueError, 'ordered'):
+                    checker.verify(self.observed_log(save, frames), save, route)
+            with self.subTest(route=route, failure='safe'):
+                save, frames = self.frames(route)
+                # An earlier inventory/room shot must not hide the final state.
+                frames.insert(-2, dict(frames[-2]))
+                frames[-1]['held'] = 11
+                with self.assertRaisesRegex(ValueError, 'safe state'):
+                    checker.verify(self.observed_log(save, frames), save, route)
+
+
+class ColumnContinuationInputTests(unittest.TestCase):
+    def test_public_legs_reproduce_exact_inputs_and_parameterize_only_save_tail(self):
+        import hashlib
+        spec = importlib.util.spec_from_file_location('column_story', MODULE.with_name('story_route.py'))
+        story = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(story)
+        for leg, name, digest, anchor, menu_at, save_at in (
+                (story.leg_jupiter_column, 'm15', '47f42005408fe847d5a805a13db4a12fb8777be2892a7e11669ac1bc9f84b6bf',
+                 'S2633.CIF', 175000, 193000),
+                (story.leg_moon_key, 'm16', '11e34f389bff961eb03c3820b2ee26efeb383ceb29c8bad42263c059a360a10b',
+                 'S2631.CIF', 725000, 743000),
+                (story.leg_moon_column, 'm17', 'd78a583c31b6cf0c259a80f813967f240ff69ffdad6392a406449e5f8fe8be28',
+                 'S2010.CIF', 289500, 307500)):
+            with self.subTest(save=name):
+                actual = leg(save=name)
+                self.assertEqual(hashlib.sha256((actual + '\n').encode()).hexdigest(), digest)
+                expected = ';'.join([leg(), story.menu_to_save_screen(anchor, menu_at),
+                                      story.save_tail(anchor, save_at, 'columns')])
+                self.assertEqual(leg(save='columns'), expected)
+                self.assertLess(len(actual.split(';')) + 7, 512)
+
+
 if __name__ == '__main__':
     unittest.main()

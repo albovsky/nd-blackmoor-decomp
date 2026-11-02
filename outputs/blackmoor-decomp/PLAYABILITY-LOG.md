@@ -97,3 +97,7 @@ Original game files and reserved ledger/evidence outputs are unchanged. Neither 
 - 2026-11-02, 03:54 Pacific: root's fresh0c5fc594 chain continues m12→m13→m14. Betty's observed card-game win grants actual19/1963; Venus use sets1892/2000/2015 and ends safe2633.52.69/5.38s, complete scripts, matching source/copy hashes and both independent save-only reloads pass. Public routes/checkers and29finite tests are ready; RECOMP-11 records pins and pending review. Other columns/armor and full campaigns remain incomplete.
 
 - Venus follow-up: Sonnet high accepts frozen38937184 with no P1/P2; both static evidence/ledger checks pass. Input hashes explicitly include fragment trailing newlines, excluding the load prefix. Optional test gaps and shared save-name limits remain documented in RECOMP-11.
+
+- 2026-11-02 Pacific: root's current native chain continues m14→m15 Jupiter→m16 Moon key→m17 Moon column in4.75/19.39/7.16s. Three separate fresh reloads retain actual keys/lens and flags;17runs/16UI saves now link back to New Game. Public generators/checkers and35finite tests pass; RECOMP-12 records pending review. Private glyph-board instability requires live same-process input, now being implemented; full campaigns remain incomplete.
+
+- Column follow-up: Sonnet high acceptsf0ee6a90 with no P1/blocking P2; both static freshness checks pass. Remaining fixture/provenance limits are explicit in RECOMP-12; no compiled input changed.

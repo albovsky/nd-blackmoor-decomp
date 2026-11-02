@@ -18,6 +18,8 @@ RECOMP-10 wires right AppKit callbacks and explicit script `pointer:x,y,mask` to
 
 ## State
 
+Jupiter/Moon public continuation now reachesm17/safe2626 using actual6, lens12 and key11. Root replays/reloads all three new legs on0c5fc594; combined17-run/16-save New Game lineage is retained privately. See RECOMP-12 for accepted Sonnet reviewf0ee6a90, static freshness checks and exact flags/hashes. Next known automation blocker is live observation/input for the unstable glyph board at the separate private story frontier; the guest puzzle itself executes.
+
 Public story continuation now has `betty-key --save m13` and `venus-column --save m14`: root's0c5fc594 fresh chain/reloads earn real19 and set1892/2000/2015, ending safe2633. See RECOMP-11/ROUTES for exact scoped flags, checkpoint hashes and the bounded observed-deal limitation. Jupiter/Moon route candidates are queued privately next. The reviewed host already includes PR297 right input; Sonnet review accepts these routes at38937184 with no P1/P2, and static freshness checks pass.
 
 * The game is lifted from the owner's GAME.EXE to C (`lift_recomp.py`: 4,605 functions lifted, 165 refused, see below) and runs on the native host (`rc_core.c`, `rc_win32.c`, `rc_ddraw.c`, `rc_dsound.c`, `rc_bink.c`, `rc_main.c`). Lifted C is a build output, never committed.
