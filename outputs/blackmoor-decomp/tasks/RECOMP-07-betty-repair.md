@@ -27,3 +27,5 @@ The modified registered checker test requires both evidence generators to be ref
 - `recomp/route_tools/story_route.py`: `2a8898a3c0561b993a707d609198e010436c337bf3be0cfa8e96842570a38b37`
 - `recomp/route_tools/check_route.py`: `335bca633b91d6037b2913cd8b52ec84a502737166216f97ff20ada47a6e1415`
 - `tests/test_recomp_route_check.py`: `147a05ebf0216a5158028b9ac51fd47f2185324c0e62a81ea8b61c89f0bc354a`
+
+Independent Sonnet high review accepts frozen e9bf99c6 with no P1 or blocking P2 (`betty-review.txt`). Root also reran the final combined public checker on both retained root logs and checkpoints; `betty-final-public-checkers.json` pins that final checker and confirms both results. The earlier seedlings replay receipt correctly retains its earlier candidate-source pins; this new record establishes final-checker acceptance without rewriting history. Static evidence and ledger freshness checks both finish successfully. The checker’s documented limits and untested rejection branches remain; no new function-port credit is claimed.
