@@ -1,5 +1,9 @@
 # Handoff: recompiled GAME.EXE, state and next steps
 
+## Latest post-key routes, 2026-11-02 Pacific
+
+RECOMP-17 publishes `slide-ball --save m25` and `saturn-column --save m26`: original Ethel introduction, real7 door, first slide/ball3, precisely timed bullseye/key16 and actual Saturn use. Four full-scope fresh producer/reload runs pass, with actual3/16 reload and two final safe frames;61finite route fixtures pass. Exact working movie timing and bag slots are preserved. Metadata/review collection is pending; see packet/private verified-public-chain for pins. Private Junior and Senior campaigns have both solved and reloaded all five word-lock stages and continue to the fire lock; full campaigns remain incomplete.
+
 ## Latest navigation, 2026-11-02 Pacific
 
 RECOMP-16 extends the public route chain through afternoon/Linda m23 and provides `bul-start` plus the bounded `bul_live.py` ordinary-input client. Exact client wins actual key7 and passes original UI save/fresh reload in observed Junior and Senior runs. The earlier fixed policy loss and initial PPM-parser refusal remain historical failures. No host/game implementation change. Sonnet accepts58a97c22; both freshness checks pass. See RECOMP-16/BUL-LIVE.md for commands, pins, bounds and accepted nonblocking test gaps; other deals/full campaigns are incomplete. Private campaigns continue through the word clue and paid replacement-light glyph game.

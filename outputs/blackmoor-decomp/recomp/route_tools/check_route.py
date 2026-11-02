@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Check an observed headless story leg, not merely its process exit.
 
-python3 check_route.py RUN_LOG SAVE_FILE [--route telescope-prep|jane-jigsaw|telescope-use|seedlings|crank-repair|betty-key|venus-column|jupiter-column|moon-key|moon-column|nigel-computer|night-wait|goggles|ghost-hunt|afternoon-door|linda-passage|bul-key]
+python3 check_route.py RUN_LOG SAVE_FILE [--route telescope-prep|jane-jigsaw|telescope-use|seedlings|crank-repair|betty-key|venus-column|jupiter-column|moon-key|moon-column|nigel-computer|night-wait|goggles|ghost-hunt|afternoon-door|linda-passage|bul-key|slide-ball|saturn-column]
 The caller supplies a checkpoint produced by this run's normal Load & Save UI.
 This checks recorded observations, a matching file-open line and save size;
 fresh-folder/write provenance and saved contents require separate replay evidence.
@@ -213,6 +213,73 @@ def verify_passage_observations(route, log, observations, selected, clocks, posi
     return clocks[-1][1]
 
 
+POST_KEY_ROUTES = ('slide-ball', 'saturn-column')
+POST_KEY_SCENES = {
+    'slide-ball': (1420, 1400, 1401, 3310, 3360, 3361, 3330, 3344, 3425, 3420, 2676, 3215),
+    'saturn-column': (3420, 3421, 3426, 2677, 2620, 2685, 2620),
+}
+
+
+def post_key_configuration(route):
+    _, retained, _ = passage_configuration('bul-key')
+    zero = {1961, 1969, 1999, 2070, 1192, 2039, 2040}
+    slide = {1562, 1971, 1575, 1844, 2050}
+    if route == 'slide-ball':
+        expected = [(3510, 4), (1400, 0), (1401, 0), (3310, 0),
+                    (3360, 0), (3361, 0), (3330, 0), (3344, 0),
+                    (3425, 0), (2676, 0), (3215, 0), (3215, 0),
+                    (3215, 0), (3215, 0), (3215, 0)]
+        return expected, retained | slide, zero | {1970, 1820, 2005}
+    if route == 'saturn-column':
+        expected = [(3215, 0), (3420, 0), (3421, 0), (2677, 0),
+                    (2677, 0), (2620, 0), (2685, 0), (2620, 0), (2620, 0)]
+        return expected, retained | slide | {1970, 1820, 2005}, zero
+    raise ValueError('unknown post-key route')
+
+
+def verify_post_key_observations(route, log, observations, selected, clocks, positive, negative):
+    first_one = {'slide-ball': {1562: 1, 1971: 5, 1575: 9, 1844: 9, 2050: 11},
+                 'saturn-column': {1970: 3, 1820: 6, 2005: 6}}[route]
+    retained = positive - first_one.keys()
+    previous = {f: 0 for f in first_one}
+    # Check every recorded observation, including extra nonselected frames.
+    for _, scope, flags in observations:
+        if not (positive | negative) <= scope:
+            raise ValueError('RC_FLAGS did not observe every required post-key event')
+        if any(flags.get(f, 0) != 1 for f in retained):
+            raise ValueError('post-key retained prerequisite flag is not 1')
+        if any(flags.get(f, 0) != 0 for f in negative):
+            raise ValueError('unexpected post-key unmet, failure or timer flag')
+        for f in first_one:
+            value = flags.get(f, 0)
+            if value not in (0, 1) or value < previous[f]:
+                raise ValueError('post-key phase flag is not binary/monotone')
+            previous[f] = value
+    held_steps = {'slide-ball': {4: 7, 12: 3}, 'saturn-column': {4: 16, 5: 16}}[route]
+    for index, (state, _, flags) in enumerate(selected):
+        if state[1] != state[0]:
+            raise ValueError('post-key art scene differs from requested frame')
+        if state[3] != held_steps.get(index, -1):
+            raise ValueError('post-key expected held item or final safe state differs')
+        if any(flags.get(f, 0) != (1 if index >= phase else 0)
+               for f, phase in first_one.items()):
+            raise ValueError('post-key flags do not match pre/post-original-progression observations')
+    verify_clock_diagnostics(clocks)
+    if any(clock['day'] != 2 or not 14 <= clock['hour'] <= 20 for _, clock in clocks):
+        raise ValueError('post-key original afternoon gate was not observed')
+    opened = [int(m[1]) for m in re.finditer(r'FILE open .*\\S(\d+)\.CIF\s+\[virtual \d+ ms\]', log)]
+    cursor = 0
+    for scene in POST_KEY_SCENES[route]:
+        while cursor < len(opened) and opened[cursor] != scene:
+            cursor += 1
+        if cursor == len(opened):
+            raise ValueError('missing ordered post-key authored scene opens')
+        cursor += 1
+    # 1005 was zero in the observed hit. It is not a positive prerequisite;
+    # 2050 remains pickup history after the original ball-consumption path.
+    return clocks[-1][1]
+
+
 def verify(log, save, route='telescope-prep'):
     if route == 'telescope-prep':
         expected = [(2010, 0), (2014, 0), (2026, 0), (2010, 2)]
@@ -271,6 +338,8 @@ def verify(log, save, route='telescope-prep'):
         expected, positive, negative = ghost_configuration(route)
     elif route in PASSAGE_ROUTES:
         expected, positive, negative = passage_configuration(route)
+    elif route in POST_KEY_ROUTES:
+        expected, positive, negative = post_key_configuration(route)
     else:
         raise ValueError('unknown story route')
     observations = []
@@ -298,7 +367,8 @@ def verify(log, save, route='telescope-prep'):
     # Include the pre-click frame for the tripod, or the actual puzzle, win
     # conversation and normal room return for Jane's loan.
     held_steps = {'jupiter-column': {4: 6}, 'moon-key': {7: 12, 13: 11},
-                  'moon-column': {4: 11}, 'goggles': {11: 21}, 'bul-key': {13: 7}}.get(route, {})
+                  'moon-column': {4: 11}, 'goggles': {11: 21}, 'bul-key': {13: 7},
+                  'slide-ball': {4: 7, 12: 3}, 'saturn-column': {4: 16, 5: 16}}.get(route, {})
     selected = []
     for observation in observations:
         state, scope, flags = observation
@@ -316,7 +386,7 @@ def verify(log, save, route='telescope-prep'):
             selected.append(observation)
     if len(selected) != len(expected):
         raise ValueError('missing ordered route observations')
-    if route in ('jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES:
+    if route in ('jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES:
         # Earlier inventory shots can share scene/view/held cells. Check the
         # final two observations, rather than treating those as checkpoints.
         if any((state[0], state[2]) != expected[-1] for state, _, _ in observations[-2:]):
@@ -419,6 +489,8 @@ def verify(log, save, route='telescope-prep'):
         clock_diagnostics = verify_ghost_observations(route, observations, selected, clocks, positive, negative)
     if route in PASSAGE_ROUTES:
         clock_diagnostics = verify_passage_observations(route, log, observations, selected, clocks, positive, negative)
+    if route in POST_KEY_ROUTES:
+        clock_diagnostics = verify_post_key_observations(route, log, observations, selected, clocks, positive, negative)
     for _, scope, flags in selected[-2:]:
         if not (positive | negative) <= scope:
             raise ValueError('RC_FLAGS did not observe every required event')
@@ -437,7 +509,7 @@ def verify(log, save, route='telescope-prep'):
         raise ValueError('checkpoint save is missing or has an unexpected length')
     result = {'route': route, 'scene': expected[-1][0], 'view': expected[-1][1],
             'flags_one': sorted(positive), 'flags_zero': sorted(negative),
-            'save': save.name, 'telescope_complete': route in ('telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES}
+            'save': save.name, 'telescope_complete': route in ('telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES}
     if clock_diagnostics is not None:
         result['clock_diagnostics'] = clock_diagnostics
     return result
@@ -447,7 +519,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('run_log', type=Path)
     parser.add_argument('save_file', type=Path)
-    parser.add_argument('--route', choices=('telescope-prep', 'jane-jigsaw', 'telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES,
+    parser.add_argument('--route', choices=('telescope-prep', 'jane-jigsaw', 'telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES,
                         default='telescope-prep')
     args = parser.parse_args()
     try:
