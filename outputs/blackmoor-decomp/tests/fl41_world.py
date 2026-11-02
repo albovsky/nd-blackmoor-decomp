@@ -179,9 +179,14 @@ REG_OVERRIDE = 0xffff0000        # FL-62 (as FL-54 in fl40_world): an override a
 REG_NAMES = ('eax', 'ecx', 'edx', 'ebx', 'esi', 'edi', 'ebp')
 
 
+FPSW_OVERRIDE = REG_OVERRIDE + 4 * 16        # FL-78: an override here sets the x87 status word at the start of the run of a row that uses the x87 unit (a check of the sticky exception flags that a caller's operation left); outside REG_NAMES, so the searches that walk REG_NAMES do not draw it
+
+
 def apply_register_overrides(regs, overrides):
     for address, size_, value in overrides:
-        if address >= REG_OVERRIDE:
+        if address == FPSW_OVERRIDE:
+            regs['fpsw'] = value & 0xffff
+        elif address >= REG_OVERRIDE:
             regs[REG_NAMES[(address - REG_OVERRIDE) // 4]] = value & 0xffffffff
 
 
@@ -303,6 +308,8 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None, watch=Non
     uc.mem_write(STOP, b'\x90' * 16)
     if row.get('fpu'):
         uc.reg_write(X.UC_X86_REG_FPCW, FCW)
+        if regs.get('fpsw'):
+            uc.reg_write(X.UC_X86_REG_FPSW, regs['fpsw'])
     trace = Trace()
     mapped = set()
     if row['fs']:
@@ -680,6 +687,7 @@ def run_native(lib, row, seed, overrides=()):
     if row.get('fpu'):
         fpu = Fpu()
         fpu.cw = FCW
+        fpu.sw = regs.get('fpsw', 0)
     host = Host(None, RD(rd), WR(wr), CALL(call), FRET(lambda ctx: fret_last[0]), ctypes.pointer(fpu) if fpu is not None else None)
     sp = STACK_BASE + STACK_SIZE - 0x100 - 4 * (ARGS + 1)
     for k, v in enumerate([STOP, *args]):

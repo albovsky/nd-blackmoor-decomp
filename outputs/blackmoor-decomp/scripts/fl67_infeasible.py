@@ -68,7 +68,7 @@ INVARIANTS = PROJECT / 'tests' / 'fl73_invariants.json'          # FL-73: loop i
 # Review round 3 (0x418e52): 0x50d0a9 is the CRT fopen (a thunk: push 0x40; push mode; push name; call _fsopen; it only reads its two strings); 0x50cf61 is fread(buf, size, count, stream) (lock the stream, _fread_lk: imul size*count, copy
 # from the stream into buf, unlock): it writes at most size*count bytes at buf; 0x50cd72 is _makepath(path, drive, dir, fname, ext) (copies the pieces into path, the length is the sum of theirs). An entry with a third element lists a function that
 # WRITES through the frame address in a destination position (an optional fourth element lists the only positions where a frame address is accepted: fread also writes through its stream argument, so there it is the buffer only): ('mul', a, b) = at most arg a * arg b bytes (both pushed as immediates), None = any bytes of the frame (the call is modelled as overwriting the whole frame and memory).
-LIBRARY_WRITERS = {0x50ca3e: ('sprintf', (0,)), 0x50d0a9: ('fopen', ()), 0x50cf61: ('fread', (0,), ('mul', 1, 2), (0,)), 0x50cd72: ('_makepath', (0,), None)}
+LIBRARY_WRITERS = {0x50ca3e: ('sprintf', (0,)), 0x50d0a9: ('fopen', ()), 0x50d8e0: ('strstr', ()), 0x50cf61: ('fread', (0,), ('mul', 1, 2), (0,)), 0x50cd72: ('_makepath', (0,), None)}
 _INV_OPS = {'eq': lambda v, c: v == c, 'ne': lambda v, c: v != c, 'sge': lambda v, c: v >= c, 'sgt': lambda v, c: v > c, 'sle': lambda v, c: v <= c,
             'slt': lambda v, c: v < c, 'uge': z3.UGE, 'ugt': z3.UGT, 'ule': z3.ULE, 'ult': z3.ULT}
 FULL = ('eax', 'ecx', 'edx', 'ebx', 'esp', 'ebp', 'esi', 'edi')
@@ -240,6 +240,31 @@ def has_frame_term(e):
     return found
 
 
+def pure_frame_term(e):
+    """FL-78 (round 9): True when the 32-bit value `e` is a frame address on every path: built only from constants and the frame symbols (s_esp, s_ebp, spN) by arithmetic, extract / concat and `If` (whose condition is not looked at). A value read from memory, a register of the caller or a fresh unknown anywhere in it makes it False (on that path it is not a frame address)."""
+    todo, seen = [e], set()
+    while todo:
+        x = todo.pop()
+        if x.get_id() in seen:
+            continue
+        seen.add(x.get_id())
+        if z3.is_bv_value(x):
+            continue
+        if z3.is_const(x) and x.decl().kind() == z3.Z3_OP_UNINTERPRETED:
+            n = x.decl().name()
+            if n in ('s_esp', 's_ebp') or (n.startswith('sp') and n[2:].isdigit()):
+                continue
+            return False
+        k = x.decl().kind()
+        if k == z3.Z3_OP_ITE:
+            todo.extend(x.children()[1:])
+        elif k in (z3.Z3_OP_SELECT, z3.Z3_OP_STORE) or z3.is_const(x):
+            return False
+        else:
+            todo.extend(x.children())
+    return True
+
+
 def callee_leaks(insns):
     """FL-78 review: True when a function analysed as a callee (out_param_extent, readonly_param, pure_callee) hands out its own frame base or names a 16 or 8 bit part of esp / ebp (`frame_ok`): `push ebp` is allowed only as the first instruction (the prologue) and `mov ebp, esp` only as the second; any other push of ebp or esp, `pusha`/`pushad`/`enter`, or a second `mov ebp, esp` could pass the callee's frame
     (from which its argument slots are reachable) to another function."""
@@ -371,6 +396,8 @@ def _rw(i):
 
 
 CALLEE_SAVED = ('ebx', 'esi', 'edi', 'ebp')
+ALL_STRING_OPS = frozenset(op + w for op in ('movs', 'stos', 'cmps', 'scas', 'lods', 'ins', 'outs') for w in 'bwd') | {'xlat', 'xlatb'}
+STRING_OPS = frozenset(op + w for op in ('movs', 'stos', 'ins') for w in 'bwd')                  # the string instructions that write memory (cmps, scas, lods, outs only read it)
 X87_STORES = ('fst', 'fist', 'fnst', 'fsave', 'fnsave', 'fbst', 'fxsave')         # capstone reports the memory operand of an x87 store as read
 
 
@@ -395,6 +422,7 @@ for _e in ('esi', 'edi', 'ebp', 'esp'):
 _ALL = frozenset(('l', 'h', 'u'))
 _EFFECTS, _IN_PROGRESS, _CYCLES, _ASSUME = {}, set(), [0], {}
 _FX = [set()]                                                                              # the assumptions call_effect relied on, per computation in progress (named in the proof record: Analysis.assumptions)                                         # call_effect: results per (image, callee, register), and the callees being followed (a cycle is not followed)
+LIBRARY_POINTS_INTO_ARGUMENT = frozenset(('strstr',))                      # FL-78 (round 9 review): the listed library functions whose result is a pointer into a source argument (so into the frame buffer when that is a frame address)
 LIBRARY_RETURNS = frozenset((0x50ca3e, 0x50d0a9, 0x50cf61))                 # FL-78: the listed library functions that return a value in eax (so they overwrite it)
 
 
@@ -480,7 +508,38 @@ def call_effect(image, call, R, depth=0, imports=None, writers=None):
     return out
 
 
-def scan(by_addr, start, R, parts, image=None, depth=0, imports=None, writers=None, rets=None):
+def _addr_only(i, fam):
+    """FL-78 (round 9, pointer cell): True when the instruction reads the register `fam` only as the base or index of a memory operand (a load, a store or a compare through it) and does not compute with it: not `lea`, not as an explicit register operand that is read (`mov [eax], eax`, `push eax`, `cmp eax, 1`), not implicitly (string instructions, `mul`, `cdq`, ...)."""
+    if i.mnemonic == 'lea' or i.mnemonic.split()[-1] in ALL_STRING_OPS:           # (a string instruction or xlat advances the register it addresses through: the result is still a pointer)
+        return False
+    explicit, addr = set(), set()
+    for o in i.operands:
+        if o.type == X.X86_OP_REG and o.access & capstone.CS_AC_READ:
+            explicit.add(REGS[i.reg_name(o.reg)][0])
+        elif o.type == X.X86_OP_MEM:
+            idx = REGS[i.reg_name(o.mem.index)][0] if o.mem.index and i.reg_name(o.mem.index) in REGS else None
+            if idx == fam and (o.mem.scale != 1 or o.mem.base):          # FL-78 (round 9 review): the register as a scaled index, or as the index added to another base, is not the address it holds
+                return False
+            addr.update(REGS[i.reg_name(r)][0] for r in (o.mem.base, o.mem.index) if r and i.reg_name(r) in REGS)
+    rd, _ = _rw_raw(i)
+    implicit = {REGS[n][0] for n in rd if n in REGS} - explicit - addr
+    return fam not in explicit and fam not in implicit and fam in addr
+
+
+def _result_use_ok(i, fam):
+    """FL-78 (round 9 review): True when the instruction uses the register `fam`, which holds a pointer into a frame buffer (the result of strstr), in a way that cannot write through it or let it go: a compare or a test (flags only), or a load through it (it is the base or index of memory operands that the instruction only reads, `_addr_only`). A store through it (`mov byte [eax], 1`,
+    `inc dword [eax]`, `xchg`, an x87 store, a bit-test-and-set), a copy, arithmetic, `lea`, a push and a return of it are not."""
+    if i.mnemonic in ('test', 'cmp'):
+        return all(o.type != X.X86_OP_MEM or not o.access & capstone.CS_AC_WRITE for o in i.operands)
+    if not _addr_only(i, fam) or i.mnemonic.startswith(X87_STORES) or i.mnemonic.split()[-1] in ('bts', 'btr', 'btc', 'xchg', 'xadd', 'cmpxchg', 'cmpxchg8b'):
+        return False
+    for o in i.operands:
+        if o.type == X.X86_OP_MEM and o.access & capstone.CS_AC_WRITE:
+            return False
+    return True
+
+
+def scan(by_addr, start, R, parts, image=None, depth=0, imports=None, writers=None, rets=None, addr_ok=False, users=None):
     """FL-78: True when no path from the instruction at `start` reads a part of the register R that still holds the old value (`parts`, of l h u) before writing it. A write of a name covers its parts (`mov ax, 1` the l and h parts, `mov eax, ..` all);
     a call is `call_effect`; a jump with an unknown target, or a path that leaves the body, counts as a read. At a ret: with `rets` (the body of a callee) the parts still held are added to it and the path ends; without it (the function being
     analysed) the ret reads eax and the callee-saved registers, which go back to the caller."""
@@ -497,7 +556,10 @@ def scan(by_addr, start, R, parts, image=None, depth=0, imports=None, writers=No
             i = by_addr[a]
             rd, wr = _rw_raw(i)
             if any(_REGP.get(n, (None, ()))[0] == fam and _REGP[n][1] & live for n in rd):
-                return False
+                if not (addr_ok(i, fam) if callable(addr_ok) else addr_ok and _addr_only(i, fam)):          # (addr_ok: a read of R as the address of a memory operand is not a read of its value, for the pointer cell; or a function that says which reads are harmless)
+                    return False
+                if users is not None:
+                    users.add(i.address)
             for n in wr:
                 if _REGP.get(n, (None, ()))[0] == fam:
                     live = live - _REGP[n][1]
@@ -910,7 +972,7 @@ def readonly_param(image, addr, argoff, writers, imports=None):
         if call.operands[0].type != X.X86_OP_IMM:
             return False
         entry = writers.get(call.operands[0].imm & 0xffffffff)
-        if entry is None or n in entry[1] or add < 4 * (n + 1) or len(entry) > 3 and n not in entry[3]:         # (the positions where a frame address is accepted: fread also writes through its stream)
+        if entry is None or n in entry[1] or add < 4 * (n + 1) or len(entry) > 3 and n not in entry[3] or entry[0] in LIBRARY_POINTS_INTO_ARGUMENT:         # (the positions where a frame address is accepted: fread also writes through its stream; strstr hands a pointer into the buffer back, which this callee could return)
             return False
         if entry[0] == 'sprintf' and not constant_format(image, pushes, n, writers):
             return False
@@ -1003,6 +1065,8 @@ def _library_arg_lea(insns, ins, targets, by_addr, writers, image, callees, impo
         else:
             if entry[0] == 'sprintf' and not constant_format(image, pushes, n, writers):
                 return None
+            if entry[0] in LIBRARY_POINTS_INTO_ARGUMENT and not scan(by_addr, call.address + call.size, 'eax', _ALL, image, 1, imports, writers, None, addr_ok=_result_use_ok):          # FL-78 (round 9 review): eax is a pointer into the buffer: only compared, tested or read through
+                return None
             regs, info = (R,), {'kind': 'source', 'fn': entry[0]}
     else:
         if image is None:
@@ -1021,6 +1085,82 @@ def _library_arg_lea(insns, ins, targets, by_addr, writers, image, callees, impo
     if any(not dead_from(by_addr, after, r, image, imports=imports, writers=writers) for r in regs):
         return None
     return info
+
+
+def cell_lea(insns, ins, targets, by_addr, image=None, imports=None, writers=None):
+    """FL-78 (round 9): a description when `lea R, [ebp+disp]` (R in eax, ecx, edx) is followed in a straight line (no jump, call or branch target) by `mov dword ptr [ebp+c], R` (c <= -4: a 4 byte local) as the first instruction that touches R, and R is dead after the store:
+    the frame address goes into the local `c` (a pointer cell) and nowhere else. `pointer_cell` checks that the cell is used only as a pointer."""
+    try:
+        ops = ins.operands
+        if ins.mnemonic != 'lea' or ops[0].type != X.X86_OP_REG or ops[0].size != 4:
+            return None
+        R = ins.reg_name(ops[0].reg)
+        mem = ops[1].mem
+        if R not in ('eax', 'ecx', 'edx') or not mem.base or ins.reg_name(mem.base) != 'ebp' or mem.index or mem.segment:
+            return None
+        pos = {i.address: k for k, i in enumerate(insns)}
+        j = pos[ins.address] + 1
+        while True:
+            if j >= len(insns):
+                return None
+            i = insns[j]
+            if i.address in targets:
+                return None
+            rd, wr = _rw(i)
+            if R in rd or R in _full(wr):
+                break
+            if i.mnemonic in ('call', 'ret', 'retn', 'jmp') or i.mnemonic.startswith('j') or i.mnemonic.startswith('loop'):
+                return None
+            j += 1
+        first = insns[j]
+        o = first.operands
+        if first.mnemonic != 'mov' or len(o) != 2 or o[0].type != X.X86_OP_MEM or o[1].type != X.X86_OP_REG or first.reg_name(o[1].reg) != R or o[0].size != 4:
+            return None
+        m = o[0].mem
+        if not m.base or first.reg_name(m.base) != 'ebp' or m.index or m.segment or m.disp > -4:
+            return None
+        if not dead_from(by_addr, first.address + first.size, R, image, imports=imports, writers=writers):
+            return None
+        return {'kind': 'cell', 'cell': m.disp, 'store': first.address}
+    except capstone.CsError:
+        return None
+
+
+def pointer_cell(insns, leas, kinds, by_addr, image=None, imports=None, writers=None):
+    """FL-78 (round 9): the pointer-cell rule for a function whose only unexplained frame addresses are the `cell_lea`s `leas` ({lea address: description}); `kinds` are the kinds of the frame addresses that library_arg_lea followed. The result is {'loads': [...], 'rmw': [...]} (the addresses of the
+    instructions that read the cell) or None. Conditions: the leas share one cell (a 4 byte local); the other frame addresses are only read (library source, read-only callee, string comparison); no memory operand with esp as base, or ebp or esp as index (it could reach the cell); every
+    access to the cell's bytes through ebp+disp is one of: the stores of the leas, `mov r32, [cell]` (r in eax, ecx, edx) after which r is used only as the address of memory operands until it is overwritten (`scan` with addr_ok: not computed with, not stored, not passed, not live at a ret or across a call that
+    could read it), or `add dword ptr [cell], imm`. So the cell holds a frame address only, and every register that holds a copy of it is used as an address."""
+    cells = {v['cell'] for v in leas.values()}
+    if len(cells) != 1 or any(k not in ('source', 'ro', 'cmps') for k in kinds):
+        return None
+    c = next(iter(cells))
+    stores = {v['store'] for v in leas.values()}
+    loads, rmw, users = [], [], set()
+    for i in insns:
+        for o in i.operands:
+            if o.type != X.X86_OP_MEM or o.mem.segment == X.X86_REG_FS:
+                continue
+            m = o.mem
+            base = i.reg_name(m.base) if m.base else None
+            index = i.reg_name(m.index) if m.index else None
+            if base == 'esp' or index in ('esp', 'ebp') or (base == 'ebp' and index):
+                return None
+            if base != 'ebp' or not (m.disp < c + 4 and c < m.disp + o.size):
+                continue
+            if i.address in stores and i.mnemonic == 'mov' and o is i.operands[0]:
+                continue
+            if i.mnemonic == 'mov' and o is i.operands[1] and o.size == 4 and m.disp == c and i.operands[0].type == X.X86_OP_REG and i.operands[0].size == 4 and i.reg_name(i.operands[0].reg) in ('eax', 'ecx', 'edx'):
+                r = i.reg_name(i.operands[0].reg)
+                if not scan(by_addr, i.address + i.size, r, _ALL, image, 1, imports, writers, None, addr_ok=True, users=users):
+                    return None
+                loads.append(i.address)
+                continue
+            if i.mnemonic == 'add' and o is i.operands[0] and o.size == 4 and m.disp == c and i.operands[1].type == X.X86_OP_IMM:
+                rmw.append(i.address)
+                continue
+            return None
+    return {'loads': loads, 'rmw': rmw, 'users': users}
 
 
 def merge(items):
@@ -1054,6 +1194,7 @@ class Machine:
         self.bounds = {}        # FL-75: callee address -> the bound on eax that its bytes prove (ret_bound)
         self.split = False      # the frame assumption holds for this function (set by Analysis)
         self.temps = None       # FL-78 (round 8): (L, delta) in a window run under the stack-discipline assumption (`Analysis.temps_info`): only the call temporaries (addresses below ebp - L) are in `frm`; delta = esp - ebp at the window's start
+        self.cell_ops = set()   # FL-78 (round 9): the instructions that read a pointer cell (pointer_cell): the value they read must be a frame address (mem_read raises Unsupported otherwise)
         self.after_call = {}    # call address -> bytes the next instruction `add esp, k` removes
         self.out_writes = {}    # FL-78: call address -> [(offset of the pushed frame pointer from esp at the call, bytes the callee writes through it)] (library_arg_lea kind 'out')
         self.pure = {}          # FL-78: callee address -> pure_callee (memoised): a call of one leaves memory as it was
@@ -1137,7 +1278,12 @@ class Machine:
             c = a.as_long() if z3.is_bv_value(a) else None
             if c is not None and IMAGE_BASE <= c and c + n <= DATA_START:
                 self.const_facts(c, n)
-        return self.load(getattr(st, sp), a, n)
+        v = self.load(getattr(st, sp), a, n)
+        if self.split and self.ins is not None and self.ins.address in self.cell_ops:
+            v = z3.simplify(v)                                      # FL-78 (round 9): a read of the pointer cell must give a frame address, else the registers that take it would be followed as ordinary pointers (their stores would go to `mem`)
+            if sp != 'frm' or n != 4 or not pure_frame_term(v):
+                raise Unsupported('the pointer cell does not hold a frame address on every path here')
+        return v
 
     def const_facts(self, c, n):
         for k in range(n):
@@ -1658,17 +1804,31 @@ class Analysis:
         targets = self.branch_targets()
         self.split_ok = SPLIT and not row.get('frame') and self.va not in targets             # a `frame` row starts with ebp = the entry frame address; a jump back to the entry runs the prologue again (FL-78 round 8 review: the frame base is pushed once per run only)
         self.esc_addrs = []                                                                   # FL-75: where the function forms an address of its frame
+        self.cell_users = set()
         self.used = set()                                                                     # FL-78 review: the assumptions the frame-address rules relied on (named in the proof record)
         _FX.append(set())
+        kinds = []
         for i in (self.insns if self.split_ok else ()):
             if frame_escapes([i], self.insns[0]) and not seh_registration(self.insns, i, targets):
                 info = library_arg_lea(self.insns, i, targets, self.by_addr, image=image, callees=self.M.callees, imports=import_slots() | set(self.M.imports))       # FL-78: a frame address that is followed to its end (library_arg_lea) is not one
                 if info and info['kind'] in ('out', 'dest'):
                     self.M.out_writes.setdefault(info['call'], []).append((info['off'], info['extent']))
                 if info:
+                    kinds.append(info['kind'])
                     self.used.add({'source': 'library-source:%s', 'dest': 'library-destination:%s'}.get(info['kind'], '%s-rule') % (info.get('fn') or info['kind']))
                 if not info:
                     self.esc_addrs.append(i.address)
+        self.frame_formers = list(self.esc_addrs)                                              # FL-78 (round 9 review): where the function forms an address of its frame that the frame assumption does not follow to its end; kept when the pointer cell rule clears esc_addrs (frame_safe: a window that can run after such a `lea` has had a frame address handed out)
+        if self.esc_addrs and self.split_ok:                                                  # FL-78 (round 9): frame addresses that only go into one pointer cell (cell_lea / pointer_cell)
+            imps = import_slots() | set(self.M.imports)
+            leas = {a: cell_lea(self.insns, self.by_addr[a], targets, self.by_addr, image=image, imports=imps) for a in self.esc_addrs if self.by_addr[a].mnemonic == 'lea'}
+            if len(leas) == len(self.esc_addrs) and all(leas.values()):
+                got = pointer_cell(self.insns, leas, kinds, self.by_addr, image=image, imports=imps)
+                if got:
+                    self.esc_addrs = []
+                    self.M.cell_ops = set(got['loads']) | set(got['rmw'])
+                    self.cell_users = got['users']                                        # the instructions that read a register holding a copy of the cell (an address); a store among them writes the frame at an address not known statically
+                    self.used.add('pointer-cell-frame-address')
         self.M.split = self.split_ok and not self.esc_addrs
         self.used |= _FX.pop()
         for k, i in enumerate(self.insns[:-1]):
@@ -1889,7 +2049,7 @@ class Analysis:
         if sub.mnemonic != 'sub' or sub.op_str.split(',')[0].strip() != 'esp' or sub.operands[1].type != X.X86_OP_IMM or not 0 < sub.operands[1].imm < 0x10000:
             return None
         L = sub.operands[1].imm
-        for a in self.esc_addrs:
+        for a in self.frame_formers:
             i = self.by_addr[a]
             if i.mnemonic != 'lea':
                 return None
@@ -1905,7 +2065,7 @@ class Analysis:
         (no path from it to S). Then no run that reaches the window has handed out a pointer into its own frame yet, so only the argument slots of a call can be reached by other pointers (as in the whole-function case)."""
         if not self.split_ok:
             return False
-        if not self.esc_addrs:
+        if not self.frame_formers:
             return True
         esc = {a for a, b in self.blocks.items() if any(i.address in self.esc_addrs for i in b['insns'])}
         if esc & set(region):
@@ -1919,19 +2079,35 @@ class Analysis:
                 if p not in seen:
                     seen.add(p)
                     work.append(p)
+        cells = {a for a, b in self.blocks.items() if any(i.address in self.frame_formers for i in b['insns'])} - esc
+        if cells:                                                    # FL-78 (round 9 review): the `lea` of a pointer cell may be in the window (it sets the cell and the registers loaded from it come after it) but not run before it: then the cell and the registers that copy it hold anything
+            seen, work = set(), list(self.pred[S])
+            while work:
+                n = work.pop()
+                if n in cells:
+                    return False
+                if n not in seen:
+                    seen.add(n)
+                    work.extend(p for p in self.pred[n] if p not in seen)
         return True
 
     def loop_effects(self, header):
         """Registers/flags/memory that some instruction of the loop may change: run each instruction on a state of unique symbols."""
+        key = ('loop_effects', header)
+        if key in self.__dict__.setdefault('_effects_memo', {}):
+            return self._effects_memo[key]
         regs, mem, fs = set(), False, False
         for a in self.loops[header]:
             for ins in self.blocks[a]['insns']:
                 st = State.start()
                 before = State(dict(st.R), dict(st.F), st.mem, st.frm, st.fs, st.pc)
+                cells, self.M.cell_ops = self.M.cell_ops, set()            # FL-78 (round 9): an instruction on a state of unique symbols: a pointer cell holds nothing known here
                 try:
                     self.M.step(st, ins)
                 except Unsupported:
                     raise
+                finally:
+                    self.M.cell_ops = cells
                 for r in FULL:
                     if not same(st.R[r], before.R[r]):
                         regs.add(r)
@@ -1939,7 +2115,44 @@ class Analysis:
                     mem = True
                 if not same(st.fs, before.fs):
                     fs = True
+        self._effects_memo[key] = (regs, mem, fs)
         return regs, mem, fs
+
+    def loop_frame_writes(self, header):
+        """FL-78 (round 9): under the frame assumption, the frame bytes that the loop of `header` may write, as [(displacement from ebp, size)], or None when that cannot be said and the frame memory at the header is wholly unknown. Only a loop whose every memory write is
+        either through ebp + a constant (the locals) or through an address that is not a frame address qualifies: no call, push, pop, string instruction that writes (movs, stos, ins), `enter`, `leave`, `ret`, no esp based or ebp-with-index operand, and no store through a register that holds a copy of a pointer cell
+        (`cell_users`). A store through any other address lands in `mem` under the frame assumption, which the header forgets anyway."""
+        out = []
+        for a in self.loops[header]:
+            for ins in self.blocks[a]['insns']:
+                m = ins.mnemonic
+                if m.split()[0] == 'lock' or m.split()[-1] in STRING_OPS or m in ('push', 'pop', 'call', 'ret', 'retn', 'leave', 'enter', 'pusha', 'pushad', 'popa', 'popad', 'pushfd', 'popfd', 'pushf', 'popf', 'xchg', 'cmpxchg', 'xadd') \
+                        or m.startswith(('fsave', 'fnsave', 'frstor', 'fxsave', 'fxrstor', 'xsave', 'xrstor')):
+                    return None
+                try:
+                    rd, wr = ins.regs_access()
+                except capstone.CsError:
+                    return None
+                if {'esp', 'ebp', 'sp', 'bp', 'spl', 'bpl'} & {ins.reg_name(r) for r in wr}:                  # (round 9 review: a loop that writes ebp moves every frame address)
+                    return None
+                if m.split()[-1] in ('bts', 'btr', 'btc', 'cmpxchg8b', 'cmpxchg16b') and any(o.type == X.X86_OP_MEM for o in ins.operands):          # (capstone reports their memory operand as read only)
+                    return None
+                for o in ins.operands:
+                    if o.type != X.X86_OP_MEM or o.mem.segment == X.X86_REG_FS:
+                        continue
+                    base = ins.reg_name(o.mem.base) if o.mem.base else None
+                    index = ins.reg_name(o.mem.index) if o.mem.index else None
+                    if base == 'esp' or index in ('esp', 'ebp'):
+                        return None
+                    written = bool(o.access & capstone.CS_AC_WRITE) or m.startswith(X87_STORES)
+                    if base == 'ebp':
+                        if index:
+                            return None
+                        if written:
+                            out.append((o.mem.disp, o.size))
+                    elif written and ins.address in self.cell_users:
+                        return None
+        return out
 
     # ---- loops: exact unrolling when the trip count is provably small, else a generalised header ---------------------------------------------------
 
