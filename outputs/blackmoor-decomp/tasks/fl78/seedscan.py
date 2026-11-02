@@ -5,7 +5,10 @@ sys.path.insert(0,'/home/user/nd-blackmoor-decomp/outputs/blackmoor-decomp/tasks
 sys.path.insert(0,'/home/user/nd-blackmoor-decomp/outputs/blackmoor-decomp/tasks/fl77')
 from drv import *
 import pipe
-key,out,pf,rng_,recipe=sys.argv[1],sys.argv[2],sys.argv[3],sys.argv[4],eval(sys.argv[5])
+_P0=0x20000000
+P0,P1,P2,P3,P4,P5,P6,P7=[_P0+0x10000*i for i in range(8)]
+_r=sys.argv[5]
+key,out,pf,rng_,recipe=sys.argv[1],sys.argv[2],sys.argv[3],sys.argv[4],eval(open(_r[1:]).read() if _r.startswith('@') else _r)
 req=int(sys.argv[6],16) if len(sys.argv)>6 else None
 pool,W,G,row=setup(key)
 if os.environ.get('LIM'): W.INSTRUCTION_LIMIT=int(os.environ['LIM'])
