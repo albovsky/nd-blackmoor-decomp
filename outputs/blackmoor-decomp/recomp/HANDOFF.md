@@ -1,5 +1,9 @@
 # Handoff: recompiled GAME.EXE, state and next steps
 
+## Latest glyph progression, 2026-11-02 Pacific
+
+RECOMP-19 adds the first-time Junior `glyph_live.py` client, using ordinary FIFO events selected from captured tiles and a caller-pinned private atlas. Actual final public m28 now produces a real glyph win, earned glowstick4, UI m29 and fresh save-only reload. Producer234steps/26ACK and reload22steps pass with normal exits,17 pixel plans;83 finite route/input checks pass. Source/atlas/data remain unchanged. Host74229ec8 uses default virtual mode; no game/host rules change. Frozen review and generated metadata collection are pending. See packet for exact pins and first-time/Junior limits. Continuous campaigns are further ahead: Junior phosphorus/moving rooms, Senior gargoyle/runes; neither has reached ending credits.
+
 ## Latest native host fix, 2026-11-02 Pacific
 
 RECOMP-20 adds the missing device-free mixer consumer to real-clock headless runs. Original menu click sounds now complete and the exact formerly stalled Load sequence reads genuine m46/reaches4120; default virtual still passes unchanged. Reviewed native74229ec8 has24identical lifted objects; Macapp unchanged. Finite consumption/lifecycle/pacing checks pass. Sonnet accepts production91229e7d and final test/evidence deltaa8882f97 without blocking findings; both final metadata freshness checks pass, preserving1793peer tested-equivalent claims. See packet for exact hashes,14observed deadline rebases and failure-path limits. No output device or original state is touched.

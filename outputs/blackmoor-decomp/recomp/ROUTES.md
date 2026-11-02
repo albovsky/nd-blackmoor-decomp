@@ -363,3 +363,10 @@ Dragon/light-request review: Sonnet acceptse5491478, both static freshness check
 ## Real-clock headless menu completion, 2026-11-02 Pacific
 
 Real-clock headless previously had no `rc_audio_render` consumer, so original Load's click-sound gate never finished despite delivered pointer messages. RECOMP-20 supplies a44100Hz/441-frame per10ms silent consumer, fixed deadlines and joined shutdown. The exact failed7-step input now loads genuine m46/reaches4120 with clean finish/exit0; default virtual passes the same bytes without a consumer. No original gate/status is bypassed. Candidate native74229ec8, unchanged24lifted objects, no Macapp change. Packet/root acceptance pin exact source/input and14real-run rebases; broader sync/media/failure branches remain unverified.
+
+
+## First-time glyph win and glowstick, 2026-11-02 Pacific
+
+Run `route_tools/glyph_live.py` with required native/source/atlas SHA pins; see GLYPH-LIVE.md. Source is final public PR307m28 f4ed2561 at3510/view4/held-1, Junior0, pending1418=1 and2001/1357=0. The client uses actual closed captures and17 observed pixel plans with250ms holds,500ms endpoint spacing and200ms swap gaps. Original1299 open/2001 win leads through1294/1295; click287,176 earns the glowstick at1945,1357=1 and1418=0. Preserve the six-second caption thumb scroll, Bye150,438, bag, actual4 at60,100, PUT/X and original UI save. The source clock gate is checked at entry; solving may legitimately advance beyond19:00.
+
+Root actual full-scope run `glyph-public-root-fullscope-v1` yields m29 SHA8e78b53b96edc328391abb3fba92103889408c7f8fd261fc1d6f0f3d7da94678:234steps/34shots/finish27 in6.827s. Fresh clone starts with only m29, selects actual4 at134,243, PUT/X, two safe final observations:22steps/5shots/finish2 in2.382s. Both normal exits/failed0 and all protected inputs unchanged; maximum FLAGS line579bytes. Reload preserves the accepted prefix plus explicit center73000/shot76000. No generated continue-save appeared in this run; any authored continue output remains noncanonical. Junior first-time only; other boards/repeat/Senior and failure-I/O paths are unverified by this client. No ending claim.
