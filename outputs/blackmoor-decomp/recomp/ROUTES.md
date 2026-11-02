@@ -391,3 +391,11 @@ From current public m35 use `story_route.py light-depletion --save m36`, then `p
 `repeat_glyph_live.py` takes the same explicit native/source/atlas path+SHA arguments as glyph_live.py, with save-name m38 and a300second session bound. It refuses first-time/Senior/later-shape sources; the private atlas remains caller input. The new actual1299 open after3588, continuation1295,1949reward and original used5→fresh4 prove this round. Exact first-paid caption/Bye/inventory/save inputs are preserved. Root actual18plans/248steps and fresh22-stepreload both pass, source m38saved14:50. See packet/private scopes for complete RC_FLAGS; the CLI selects its exact union automatically.
 
 Then `story_route.py word-lock --save m39`:87ordinaryleft wheel clicks solveLEECH*,BOOK**,BONNET,GLASS*,HILL**, producing original4376..4380→4387 and all1984/1967/1966/1977/2018/1979. New1972is deliberately unmet.372deliveredsteps and independentfreshreload pass; all public body strings match native runs exactly, no state/save/RNG writes. All4producer/reloadpairs and saved item4/5/13 fields are independently checked. First-paid Junior/current source only; natural failure, other boards/timings/inventory and later fire/endgame remain outside this slice.
+
+For `light-depletion` and `paid-light-request`, use this complete scope; append`,1972` for `word-lock`. The repeat client sets its own exact scope.
+
+```sh
+export RC_FLAGS='338-341,1160,1162-1174,1192,1259,1349,1357,1361,1388,1404-1405,1408,1418,1435-1436,1465,1467,1476,1494,1496,1498,1525-1526,1541,1562,1569,1573,1575,1597,1677,1682,1692,1701,1774,1782,1788,1791,1804,1818,1820,1823,1836,1844,1865,1892-1893,1906,1922,1925,1947,1958,1960-1961,1963,1966-1967,1969-1971,1977,1979-1981,1984-1985,1993-1994,1996-1997,1999-2002,2005,2015,2018-2019,2036-2037,2039-2042,2050,2058,2063,2069-2070,2077-2078,2092,2154,2156,2232,1514,1809'
+```
+
+The6M wait is pinned to the observed09:22 save. Other09:xx sources can arrive in hour15 and be refused by the repeat client's hour14 gate; derive another ordinary wait for such sources.

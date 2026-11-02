@@ -34,7 +34,7 @@ No retry, synthetic state/clock/RNG/save writes or original-resource edits. New 
 |word-five-stage-m39|372|67.87|705|
 |reload-m39|9|1.22|704|
 
-Limits: first-paid Junior/current inventory and source clocks only; other deals/clock/NPC/second-repeat/Senior branches, natural-loss/I/O/error paths and all-board success unverified by this slice. Existing inherited observation-freshness/global-open-order limits remain; actual combined receipts/full-log audits establish this success. Fixed1809phase follows actual original flags, not the earlier broad spec's implication that it rose on request. Shuffle fallback remains unexercised. A late refused copy may leave an unaccepted artifact; only outeraccepted=true marks collection. Full campaigns/app ending remain unfinished. Metadata freshness and frozen independent Sonnet review pending; root alone publishes under original pasted HOW TO WORK5.
+Limits: first-paid Junior/current inventory and source clocks only; other deals/clock/NPC/second-repeat/Senior branches, natural-loss/I/O/error paths and all-board success unverified by this slice. Existing inherited observation-freshness/global-open-order limits remain; actual combined receipts/full-log audits establish this success. Fixed1809phase follows actual original flags, not the earlier broad spec's implication that it rose on request. Shuffle fallback remains unexercised. A late refused copy may leave an unaccepted artifact; only outeraccepted=true marks collection. Full campaigns/app ending remain unfinished. Sonnet accepts frozen4fc14455; both final metadata freshness checks pass at e66d198b, preserving all existing claims/native evidence and1793peer records; root alone publishes under original pasted HOW TO WORK5.
 
 ## Source pins
 
@@ -43,3 +43,17 @@ Limits: first-paid Junior/current inventory and source clocks only; other deals/
 - `recomp/route_tools/repeat_glyph_live.py`: `43936749171d40817a81ec61acdd63b7c4fc1121d75fc81121e69faf5ce73a71`
 - `tests/test_recomp_route_check.py`: `017fd89563996ebeff862b1db19912273caf23dabb135323422685a7787502e1`
 - `tests/test_recomp_glyph_live.py`: `e651af219bcbd329d8709022740c4bf9052e70d7e67ced8c0dea74a8d5d48014`
+
+## Independent review follow-up
+
+Sonnet high accepts frozen4fc14455 with no P1/code blockers. Root fixes the two publication traceability gaps using documentation and read-only evidence only: ROUTES now contains the full1809scope and word-stage1972 addition; private `serialized-inventory-audit.json` records actual4/5/13 values plus each existing output hash. The combined chain JSON now records these same per-output values. No raw game/client receipt, save, executable, atlas or source code was changed. This records the assertions already checked during collection rather than rerunning gameplay.
+
+Root accepts the remaining documented nonblocking coverage limits: monotonic-regression/repeated2042/held5bad-extra branches lack direct fixtures; only repeat has a committed reload verifier, while the other three actual fresh reloads and saved fields are verified by root's private audit. Resource opens remain a global subsequence. Exact source09:22 is the6M wait target; other hour9sources can arrive too late for this narrow repeat client. Save-set snapshots are recorded and source-only startup is enforced by fresh clone creation; later authored continue output is permitted and never input. Budget48/64 fields are maxima. No broad/error-injection suite is added.
+
+Repeat producer/reload complete the8run table:248steps/6.308s and22steps/2.213s. Their maximum FLAGS lengths are recorded below. The original packet brief is retained as authorization/ownership history; the root acceptance sections describe the collected result. Function-port/fullcampaign/appending remain unclaimed.
+
+- Repeat producer maximum FLAGS bytes: 670.
+
+- Repeat reload maximum FLAGS bytes: 656.
+
+Final evidence/ledger check logs and guarded refresh receipt use private `word-lock-` prefix. Review publication findings P2-1/P2-2 are addressed by committed scopes and the recorded read-only inventory audit. Coverage gaps remain explicit; code bytes still equal reviewed4fc14455.

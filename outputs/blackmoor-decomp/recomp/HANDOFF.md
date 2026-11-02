@@ -2,7 +2,7 @@
 
 ## Latest word-lock win, 2026-11-02 Pacific
 
-RECOMP-23 adds authored light depletion, the paid replacement request, bounded `repeat_glyph_live.py` and all five word-lock stages. Four actual producer/save-only reload pairs pass from public m35 through safe4387/m39, all stage flags new1 and next fire1972=0. Repeat success uses new1299→1295→1949, never preexisting2001; real5→4 and item ownership/reload are verified.97finite checks pass, first-time/Bul behavior unchanged. See packet for exact new-source6M wait, all8runs/pins and first-paid/Junior limits. Frozen review/metadata pending. Independent Junior has passed alchemy and entered the lab; Senior has also solved/reloaded alchemy. No ending claim.
+RECOMP-23 adds authored light depletion, the paid replacement request, bounded `repeat_glyph_live.py` and all five word-lock stages. Four actual producer/save-only reload pairs pass from public m35 through safe4387/m39, all stage flags new1 and next fire1972=0. Repeat success uses new1299→1295→1949, never preexisting2001; real5→4 and item ownership/reload are verified.97finite checks pass, first-time/Bul behavior unchanged. See packet for exact new-source6M wait, all8runs/pins and first-paid/Junior limits. Sonnet accepts frozen4fc14455; public scopes/inventory evidence findings are addressed, and both final metadata freshness checks pass at e66d198b (1793peer claims preserved). Separate uncollected campaign reports place both difficulties past alchemy; those endgame results are outside this slice. No ending claim.
 
 ## Latest word prerequisites, 2026-11-02 Pacific
 
