@@ -1033,17 +1033,19 @@ MAC_PORT_LABELS = {"game": "Game", "vorbis": "Vorbis and Ogg"}
 MAC_PORT_EXCLUDED = ("crt_mfc",)         # Microsoft runtime code the Mac supplies: out of the Mac-port view whatever its rows say
 
 
-def mac_port_summary(counts: dict, te_by_region: dict) -> dict:
+def mac_port_summary(counts: dict, te_by_region: dict, de_by_region: dict | None = None) -> dict:
     """Headline numbers for the native Mac port: Game and Vorbis/Ogg only, with CRT and MFC set aside whole.
 
-    Tested equivalent is a slice of pending, so `pending` here is the rest of pending."""
+    Tested equivalent and documented exceptions are slices of pending, so `pending` here is the rest of pending."""
+    de_by_region = de_by_region or {}
+
     def tally(region):
         r = counts["region"][region]
-        te = te_by_region[region]
-        return {"total": sum(r.values()), "ported": r["ported"], "tested_equivalent": te,
-                "pending": r["pending"] - te, "not_needed": r["not_needed"]}
+        te, de = te_by_region[region], de_by_region.get(region, 0)
+        return {"total": sum(r.values()), "ported": r["ported"], "tested_equivalent": te, "documented_exception": de,
+                "pending": r["pending"] - te - de, "not_needed": r["not_needed"]}
     by_region = {r: tally(r) for r in MAC_PORT_REGIONS}
-    out = {k: sum(v[k] for v in by_region.values()) for k in ("total", "ported", "tested_equivalent", "pending", "not_needed")}
+    out = {k: sum(v[k] for v in by_region.values()) for k in ("total", "ported", "tested_equivalent", "documented_exception", "pending", "not_needed")}
     excluded = {r: tally(r) for r in MAC_PORT_EXCLUDED}
     return {"regions": list(MAC_PORT_REGIONS), "excluded_regions": list(MAC_PORT_EXCLUDED), **out, "by_region": by_region,
             "excluded": {"total": sum(v["total"] for v in excluded.values()), "by_region": excluded}}
@@ -1059,7 +1061,8 @@ def function_ledger_report(panel):
     ex = mp["excluded"]
     lines += [f"**Needed for the Mac port: {mp['total']:,} functions** (Game and Vorbis/Ogg): {mp['ported']:,} ported, "
               f"{mp['tested_equivalent']:,} tested equivalent (a second tier, not counted as ported), "
-              f"{mp['pending']:,} pending, {mp['not_needed']:,} not needed. "
+              + (f"{mp['documented_exception']:,} documented exceptions (work stopped, reason recorded), " if mp["documented_exception"] else "")
+              + f"{mp['pending']:,} pending, {mp['not_needed']:,} not needed. "
               + "; ".join(f"{MAC_PORT_LABELS[r]} {v['ported']:,} of {v['total']:,} ported" for r, v in mp["by_region"].items()) + ".",
               f"CRT and MFC ({ex['total']:,} functions) is Microsoft runtime code that macOS supplies, so it is left out of the Mac-port view "
               "and still counts in the x86 match view below.", ""]
@@ -1069,6 +1072,11 @@ def function_ledger_report(panel):
     if te["count"]:
         lines += [f"**Tested equivalent: {te['count']:,}** of the pending functions (a second tier, not counted as ported): "
                   f"{', '.join(f'{r} {k:,}' for r, k in te['by_region'].items() if k)}.", ""]
+    de = panel["documented_exceptions"]
+    if de["count"]:
+        lines += [f"**Documented exceptions: {de['count']:,}** of the pending functions (work stopped, never counted as ported or tested equivalent): "
+                  f"{', '.join(f'{r} {k:,}' for r, k in de['by_region'].items() if k)}. By reason: "
+                  + "; ".join(f"`{k}` {v:,} ({de['reasons'][k]})" for k, v in de["by_reason"].items()) + ".", ""]
     if st["ported"] == 0 and st["not_needed"] == 0:
         lines += ["With 0 ported and 0 not needed, this ledger is the honest baseline: every function is pending "
                   "until a reviewed acceptance says otherwise. The pending subclasses are leads, not progress.", ""]
@@ -1153,6 +1161,9 @@ def compact_function_ledger(ledger: dict, ledger_sha256: str) -> dict:
 
     te_set = set((ledger.get("tested_equivalent") or {}).get("vas", ()))
     te_by_region = {r: 0 for r in regions}
+    de_doc = ledger.get("documented_exceptions") or {"vas": [], "by_reason": {}, "reasons": {}, "rows": {}}
+    de_set = set(de_doc["vas"])
+    de_by_region = {r: 0 for r in regions}
     rows, details = [], [{}]
     cross = {key: {s: 0 for s in statuses} for key in ("complete", "partial", "none")}
     for e in ledger["entries"]:
@@ -1180,15 +1191,23 @@ def compact_function_ledger(ledger: dict, ledger_sha256: str) -> dict:
             details.append(d)
         te = 1 if e["va"] in te_set else 0
         te_by_region[e["region"]] += te
+        de = 1 if e["va"] in de_set else 0
+        de_by_region[e["region"]] += de
+        if de:                      # the reason code and note ride in the details so the page can show them
+            row = de_doc["rows"][e["va"]]
+            if not ev_i:
+                ev_i = len(details)
+                details.append({})
+            details[ev_i]["e"] = [row["reason"], row["note"]]
         rows.append([int(e["va"], 16), e["span"], regions.index(e["region"]),
-                     statuses.index(e["status"]), classes.index(e["class"]), ev_i, te])
+                     statuses.index(e["status"]), classes.index(e["class"]), ev_i, te, de])
         cross["complete" if x and x["complete"] else "partial" if x else "none"][e["status"]] += 1
     counts = ledger["counts"]
     # Defence in depth: the compact rows must reproduce the validated counts.
     by_status = [0] * len(statuses)
     by_class = [0] * len(classes)
     by_region = [[0] * len(statuses) for _ in regions]
-    for _, _, ri, si, ci, _, _ in rows:
+    for _, _, ri, si, ci, _, _, _ in rows:
         by_status[si] += 1
         by_class[ci] += 1
         by_region[ri][si] += 1
@@ -1199,6 +1218,8 @@ def compact_function_ledger(ledger: dict, ledger_sha256: str) -> dict:
         raise ProgressError("function ledger rows disagree with the ledger counts")
     if sum(te_by_region.values()) != len(te_set):
         raise ProgressError("function ledger tested-equivalent list names a function that is not in the ledger")
+    if sum(de_by_region.values()) != len(de_set):
+        raise ProgressError("function ledger documented-exception list names a function that is not in the ledger")
     x86 = counts["x86"]
     if (cross["complete"]["ported"] != x86["complete_ported"]
             or sum(sum(c.values()) for k, c in cross.items() if k != "none") != x86["matched"]
@@ -1206,7 +1227,8 @@ def compact_function_ledger(ledger: dict, ledger_sha256: str) -> dict:
         raise ProgressError("function ledger x86 cross-tab disagrees with the ledger counts")
     return {"schema": ledger["schema"], "ledger_sha256": ledger_sha256, "total": counts["total"],
             "counts": counts, "tested_equivalent": {"count": len(te_set), "by_region": te_by_region},
-            "mac_port": mac_port_summary(counts, te_by_region), "statuses": statuses, "regions": regions, "classes": classes,
+            "documented_exceptions": {"count": len(de_set), "by_region": de_by_region, "by_reason": de_doc["by_reason"], "reasons": de_doc["reasons"]},
+            "mac_port": mac_port_summary(counts, te_by_region, de_by_region), "statuses": statuses, "regions": regions, "classes": classes,
             "class_status": [statuses.index(FNL.CLASS_STATUS[c]) for c in classes],
             "uses": uses, "crosstab": cross, "caveats": list(LEDGER_CAVEATS), "input_count": len(ledger["inputs"]),
             "paths": paths, "receipts": receipts, "items": items, "details": details, "rows": rows}
