@@ -1,0 +1,178 @@
+{
+  "scope": "One actual first Memory win/save/freshreload per difficulty on reviewed b49 using frozen private controllers, plus two new public-CLI entry probes. No whole-controller public solve or whole-game claim.",
+  "native_sha256": "b49eaa71885a02e9e096b9766f020576ef0a0381837cd036f0875bab49351e24",
+  "runtime_evidence": [
+    {
+      "profile": "junior",
+      "proof_sha256": "d3354e356ee3c347c77320afcfe2a2a92503237222232b43f8cf67dfba37c475",
+      "source_sha256": "ca0793b073a6358da3e3d58b3cda6ed3ce99875a50988cdeca77c6b7db6a5678",
+      "output_sha256": "72fbc77e229e5b98e799a2dd573f550c4db42c675a05dc8198796a6b2ed0f71f",
+      "source_difficulty": 0,
+      "source_clock": {
+        "total_minutes": 897,
+        "minute": 57,
+        "hour": 14,
+        "day": 3
+      },
+      "output_clock": {
+        "total_minutes": 197,
+        "minute": 17,
+        "hour": 3,
+        "day": 4
+      },
+      "source_state": [
+        3510,
+        3510,
+        4,
+        -1
+      ],
+      "final_state": [
+        3510,
+        3510,
+        4,
+        -1
+      ],
+      "authored_pair_limit": 40,
+      "attempt_observations": {
+        "submitted_pairs": 23,
+        "pixel_confirmed_settled_pairs_before_final_original_win": 22,
+        "discovery_pairs": 12,
+        "discovery_matches": 1,
+        "recall_submitted_pairs": 11,
+        "matched_card_count_before_final_original_win": 22,
+        "authoritative_final_win": "original1207/1988 followed by first-win1345; not inferred from predicted pixels/ACK"
+      },
+      "producer": {
+        "control_summary": "CONTROL SUMMARY complete=1 finish_id=75 acked=74 requests=75 steps=340/340 shots=124 bytes=5757 pending=0 clock_ms=14868373 failed=0 reason=",
+        "returncode": 0,
+        "error": null,
+        "wall_seconds": 93.482,
+        "source_unchanged": true,
+        "copy_unchanged": true,
+        "requests_sha256": "ad46014730110b0057d1cd365e2b675ee22e31ac2d5ef3c74811d1de18c5c904",
+        "log_sha256": "20e495c98d2a4b803fee07cc40db2da6ae84b354e344d9ae777d190066ba634c"
+      },
+      "reload": {
+        "control_summary": "CONTROL SUMMARY complete=1 finish_id=2 acked=1 requests=2 steps=10/10 shots=3 bytes=292 pending=0 clock_ms=42540 failed=0 reason=",
+        "returncode": 0,
+        "error": null,
+        "wall_seconds": 1.415,
+        "source_unchanged": true,
+        "copy_unchanged": true,
+        "requests_sha256": "6c17686b3a43098c03944cdd19e3eb67420fd4efb05f605a66860c1e25df9817",
+        "log_sha256": "1003ada703670c4b29d2f735ffb21585e8d2c20428ab4dcec4855087e7f93500"
+      },
+      "new_win": "1207/1988 then durable1345,1208 clears1988/2072",
+      "item_presence_unchanged": true,
+      "no_item_reward": true,
+      "source_build_boundary": "genuine public b49 save"
+    },
+    {
+      "profile": "senior",
+      "proof_sha256": "273d08f5bd1a485bf1e2dd191a3335f68381062a6eb3261d4ab6ec4b81d98f6f",
+      "source_sha256": "b0b49b4ca3692367e8da83c5a5b54957fed33a56e1aaaed68e3b26c01b0f9bb6",
+      "output_sha256": "bf59e493b0c84f90687dd135120a50f8caeb16e12484279407247fcb0f1b8dcd",
+      "source_difficulty": 2,
+      "source_clock": {
+        "total_minutes": 876,
+        "minute": 36,
+        "hour": 14,
+        "day": 3
+      },
+      "output_clock": {
+        "total_minutes": 1400,
+        "minute": 20,
+        "hour": 23,
+        "day": 3
+      },
+      "source_state": [
+        3510,
+        3510,
+        4,
+        -1
+      ],
+      "final_state": [
+        3510,
+        3510,
+        4,
+        -1
+      ],
+      "authored_pair_limit": 25,
+      "attempt_observations": {
+        "submitted_pairs": 24,
+        "discovery_pairs": 12,
+        "discovery_matches": 0,
+        "recall_pairs": 12,
+        "captured_settled_pairs_before_final_original_win": 23,
+        "matched_cards_before_final_win": 22,
+        "authored_Senior_limit": 25,
+        "authoritative_win": "original1207/1988 then first durable1345; no ACK/prediction-only acceptance"
+      },
+      "producer": {
+        "control_summary": "CONTROL SUMMARY complete=1 finish_id=78 acked=77 requests=78 steps=353/353 shots=129 bytes=5966 pending=0 clock_ms=10553598 failed=0 reason=",
+        "returncode": 0,
+        "error": null,
+        "wall_seconds": 68.613,
+        "source_unchanged": true,
+        "copy_unchanged": true,
+        "requests_sha256": "e43a4c19bc9b9891ce2dad15cb4dd650246e1f91f8ba3a4595d3dc4e1ad2d9d8",
+        "log_sha256": "9f87e6d975b38577a48014ebe6d638a1e5a7eeefae0469780f66d018d0451060"
+      },
+      "reload": {
+        "control_summary": "CONTROL SUMMARY complete=1 finish_id=2 acked=1 requests=2 steps=10/10 shots=3 bytes=292 pending=0 clock_ms=42540 failed=0 reason=",
+        "returncode": 0,
+        "error": null,
+        "wall_seconds": 1.366,
+        "source_unchanged": true,
+        "copy_unchanged": true,
+        "requests_sha256": "6c17686b3a43098c03944cdd19e3eb67420fd4efb05f605a66860c1e25df9817",
+        "log_sha256": "2393e6a8e609242b6147b1b4034be989a637470965daa60cc0be9c21b8cb6643"
+      },
+      "new_win": "1207/1988 then durable1345,1208 clears1988/2072",
+      "item_presence_unchanged": true,
+      "no_item_reward": true,
+      "source_build_boundary": "genuine cc7 save, ordinary b49 Load"
+    }
+  ],
+  "public_entry_probes": [
+    {
+      "profile": "junior",
+      "receipt_sha256": "d86a366f7a3821c7bc8b126399241c05fc796f8b36987099614466f9a06d32c6",
+      "producer_receipt_sha256": "c5a12e771da4cea63e6b8cb30f8049d91c786bbae227a0920fe08aeb49af29ca",
+      "summary": "CONTROL SUMMARY complete=1 finish_id=2 acked=1 requests=2 steps=11/11 shots=2 bytes=330 pending=0 clock_ms=75876 failed=0 reason=",
+      "native_exit": 0,
+      "actual_state": [
+        1200,
+        1200,
+        0,
+        -1
+      ],
+      "source_copy_unchanged": true,
+      "protected_inputs_unchanged": true,
+      "scope": "new public CLI/profile/Session integration only; no game reply or puzzle attempt"
+    },
+    {
+      "profile": "senior",
+      "receipt_sha256": "2273b17b59d39df9c6c762c6739ff638957183b8ee52b18b961a1ee063d15f2d",
+      "producer_receipt_sha256": "7ae98e6d71c8e425d24f20478bef6a2e92004bf35eae15d2ead7c913d07cbf5f",
+      "summary": "CONTROL SUMMARY complete=1 finish_id=2 acked=1 requests=2 steps=11/11 shots=2 bytes=330 pending=0 clock_ms=75503 failed=0 reason=",
+      "native_exit": 0,
+      "actual_state": [
+        1200,
+        1200,
+        0,
+        -1
+      ],
+      "source_copy_unchanged": true,
+      "protected_inputs_unchanged": true,
+      "scope": "new public CLI/profile/Session integration only; no game reply or puzzle attempt"
+    }
+  ],
+  "public_controller_sha256": "fe292eea808108a2d58a2fbefcd57d426b5481117668564fb053786d90c64445",
+  "pixel_policy_sha256": "32eec2a0a3a966b7fea35637a9982162b8acb16ce4f753cbecbeb672a7204024",
+  "source_guard_sha256": "5a918de111ecbeac8883a7f024852f6fc215be43f9461bc21ed814a3512aeebd",
+  "structural_comparison_sha256": "3ebded169697b6911854a4b5870103f750ebc43be44a8f5202a3edf39e686b6f",
+  "preserved_full_entry_sha256": "3fde243f5481fac3116136b0ae93f78ce0e4c0e12d9e3b3dffb796c01695ada0",
+  "accepted_core_equivalence": "same pixel helper, nine IO functions and producer-to-win/save/reload tail; parameterized guard predicates checked on both original source/output pairs",
+  "unverified": "Sanitized controller complete solve glue has not run; alternate sources/deals/retries/new hosts and final Mac acceptance not granted. Private Senior source_native_boundary includes preserved prelaunch wording; terminal producer/reload evidence establishes the actual Senior run."
+}

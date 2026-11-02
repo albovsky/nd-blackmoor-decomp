@@ -1,5 +1,11 @@
 # Scripted routes on the native recompiled build
 
+## Optional Memory
+
+`recomp/route_tools/memory_live.py` reuses ordinary Session/PPM input and learns only exposed card faces. Explicit profiles under `memory_profiles/` verify the genuine save's hash, difficulty, clock and prerequisites without changing state. The included12-event body preserves the observed Jane game request and Memory selection; shared Load makes19 events. See `MEMORY.md` for probe/solve commands and bounded post-win Bye input.
+
+Actual private Junior/Senior runs on b49 win in23/24 pairs, then save/reload safely at3510/view4/held-1 with new1345 and cleared1988/2072, unchanged inventory and natural clock progression. No item reward exists. The collected policy, nine IO helpers and producer/save/reload tail match those executed runs; the new public CLI/profile glue has two actual11-step entry probes and six finite check groups, but no new whole public solve. `campaigns/memory-optional.json` and RECOMP-31 preserve the exact distinction. These optional branches are not spliced into either story campaign.
+
 ## Earned ending
 
 `python3 recomp/route_tools/earned_ending_route.py > work/ending-input.txt` emits the exact45 ordinary events from the only genuine pre-ending save in the Load list. Use `--without-load` for its38-event body or `--slot-y Y` for another observed save row. There is no save tail. Start at3844/view0/held15 with2004=1, using the game's own pre-ending UI save; the helper neither creates nor edits one. It preserves the S3909+200ms short escape and observed post-win Aeolus N1,N2,W2,W2 walk. Award continuation anchors6517 rather than assuming one difficulty's award.

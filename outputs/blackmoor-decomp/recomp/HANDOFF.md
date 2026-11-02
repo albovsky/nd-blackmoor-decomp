@@ -1,5 +1,9 @@
 # Handoff: recompiled GAME.EXE, state and next steps
 
+## Latest Memory verification, 2026-11-02 Pacific
+
+RECOMP-31 adds a captured-pixel Memory client, explicit read-only Junior/Senior source profiles and the original observed entry input. Both first wins on reviewed b49 are recorded:23/24 submitted pairs, actual1207/1988→new1345, normal room return, genuine UI saves and fresh-save-only reloads. The public pixel helper and play/save/reload core match those frozen private runs. Its new CLI/profile integration passes two separate11-step entry probes to Jane1200; complete public solve glue is not relabeled as newly executed. Six finite groups and both genuine source/output checks pass. Source/build/evidence boundaries and remaining variants are in packet31. Sonnet accepts frozen cfee725a with no blocking findings; no whole-game completion is claimed.
+
 ## Latest earned ending, 2026-11-02 Pacific
 
 RECOMP-30 adds finite earned-ending input and public-safe Junior/Senior campaign manifests. New ending replays on reviewed b49 start from genuine m77/s85 before key15 use; both complete45/45 ordinary events, reach story→award→teaser→6562/CREDITBK/CRED01 and stop normally. Junior is58.04 native seconds, Senior58.14; each has11 requested captures and visibly different scrolling-credit frames. Four finite input checks pass. Historical full campaigns retain f8/660/0c/cc7 boundaries; these new runs prove only the b49 ending. Packet30 records pins and the additive correction of a private postcheck's wrong capture-count/API assumption; gameplay was not repeated for that correction. Sonnet accepts frozen46345686 without blockers; final documentation/test corrections preserve the emitted input and executable route AST. Final background Mac acceptance and whole-goal completion remain open.
