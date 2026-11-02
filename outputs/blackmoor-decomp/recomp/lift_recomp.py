@@ -41,6 +41,13 @@ for n, va in enumerate(rows):
         continue
     body = spans[va]
     try:
+        if va == 0x50df94:
+            # This CRT sqrt entry ends in __fload, which returns into 0x50df9d.
+            # The audited asm binds the 9-byte fragment to that 157-byte body;
+            # ending here would return its input instead of taking the sqrt.
+            if body != 9 or FULL_SPAN[va] != 9 or spans.get(0x50df9d) != 157:
+                raise L.Unsupported('CRT sqrt continuation extent changed')
+            body += spans[0x50df9d]
         try:
             text, callees, imports, fs, inline = L.lift(va, body)
         except L.Unsupported as ex:
