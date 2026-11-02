@@ -172,6 +172,13 @@ def FPR(ins):
     return names(rd), names(wr), None
 
 
+def temps_of(an, S):
+    """FL-78 (round 8): (L, delta) for a window that starts at block S under the stack-discipline assumption (`Analysis.temps_info`: L, the size of the locals; delta = esp - ebp at S), or None when the function does not qualify or the tie at S is unknown."""
+    L = an.temps_info()
+    delta = stack_delta(an).get(S)
+    return None if L is None or delta is None or delta > -L else (L, delta)       # (esp inside the locals area at S: the pushes would land on locals)
+
+
 def relate(an, S, st):
     """the formula  s_esp == s_ebp + delta  for the start state of a window at block S (True when the delta is unknown)"""
     delta = stack_delta(an).get(S)
@@ -223,8 +230,10 @@ def window(an, dom, S, T):
 def run_window(an, order, S, T, query, frame=False, want_state=False, start=None):
     """execute the window; `query` is ('dir', 'taken'|'fall') or ('ins', None); returns the formula to refute"""
     M = an.M
-    saved = M.split
-    M.split = frame and an.split_ok     # FL-73/75: `frame` adds the frame assumption; the caller has checked that no frame address can have been formed on the way (Analysis.frame_safe)
+    saved, saved_t = M.split, M.temps
+    M.split = bool(frame) and an.split_ok
+    M.temps = temps_of(an, S) if frame == 'temps' else None
+    # FL-73/75: `frame` adds the frame assumption; the caller has checked that no frame address can have been formed on the way (Analysis.frame_safe)
     try:
         incoming = {n: [] for n in order}
         incoming[S].append(start if start else (z3.BoolVal(True), P.State.start()))      # FL-78: `start` (condition, state) for a window that begins in a given state (prove_closed_loop)
@@ -328,7 +337,7 @@ def run_window(an, order, S, T, query, frame=False, want_state=False, start=None
             return z3.BoolVal(False)
         return z3.Or(*conds) if len(conds) > 1 else conds[0]
     finally:
-        M.split = saved
+        M.split, M.temps = saved, saved_t
 
 
 def forward_region(an, S):
@@ -393,11 +402,12 @@ def check_forward_invariants(an, inv, gen_state, hdr_in, hdr_back, tie=None, pre
                 raise P.Unsupported('forward invariant at 0x%x is not preserved by a back edge (atoms %s)' % (h, bad))
 
 
-def run_forward(an, order, S, mark, frame=False, start=None, inv=None, tie=None):
+def run_forward(an, order, S, mark, frame=False, start=None, inv=None, tie=None, temps=None):
     """FL-75: the formula "a run that starts at S in ANY state, takes the marked edge (or executes the marked block), does not fault, and reaches a ret". Unsat means every run through the target faults later."""
     M = an.M
-    saved = M.split
-    M.split = frame and an.split_ok
+    saved, saved_t = M.split, M.temps
+    M.split = bool(frame) and an.split_ok
+    M.temps = temps if frame == 'temps' else None            # FL-78 (round 8): (L, delta) of the window that `start` came from
     try:
         incoming = {n: [] for n in order}
         incoming[S].append(start if start else (z3.BoolVal(True), P.State.start()))
@@ -496,18 +506,21 @@ def prove_faults(an, dom, mark, timeout_ms=STEP_MS):
         return 'unsupported', ''
     chain = sorted(dom[T], key=lambda n: -len(dom[n]))
     last = ('unknown', '')
-    for frame in (False, True) if an.split_ok else (False,):
+    for frame in (False, True, 'temps') if an.split_ok else (False,):
         for D in chain[:MAX_STARTS]:
             orderA = window(an, dom, D, T)
             if orderA is None:
                 continue
-            if frame and not an.frame_safe(D, list(orderA) + orderB):
+            if frame == 'temps':
+                if temps_of(an, D) is None:                           # FL-78 (round 8): the third pass: the stack-discipline assumption, for windows that the frame assumption cannot cover (an address of the frame was formed before)
+                    continue
+            elif frame and not an.frame_safe(D, list(orderA) + orderB):
                 continue
             kept = len(an.M.facts), set(an.M.fact_keys), len(an.M.inv_facts)
             try:
                 start = run_window(an, orderA, D, T, ('ins', None), frame, want_state=True)
                 tie = relate(an, D, P.State.start())
-                f = run_forward(an, orderB, T, mark, frame, start=start, inv=load_forward_invariants(an.va, mark, T), tie=tie)
+                f = run_forward(an, orderB, T, mark, frame, start=start, inv=load_forward_invariants(an.va, mark, T), tie=tie, temps=temps_of(an, D))
             except P.Unsupported as ex:
                 discard_facts(an, kept)
                 if VERBOSE:
@@ -519,6 +532,8 @@ def prove_faults(an, dom, mark, timeout_ms=STEP_MS):
             if VERBOSE:
                 print('   forward D=%#x T=%#x blocks %d+%d frame=%s -> %s' % (D, T, len(orderA), len(orderB), frame, r), flush=True)
             if r == 'unsat':
+                if frame == 'temps':
+                    an.stack_discipline_used = True
                 return 'unsat', h
             last = (r, h)
     return last
@@ -616,12 +631,15 @@ def prove_target(an, dom, T, query, timeout_ms=STEP_MS):
     """('unsat', hash, S) when some dominator window refutes the target, else ('unknown'|'sat', hash, S)"""
     chain = sorted(dom[T], key=lambda n: -len(dom[n]))        # nearest dominator first (T itself, then its immediate dominator, ...)
     last = ('unknown', '', None)
-    for frame in (False, True) if an.split_ok else (False,):      # FL-73: the second pass adds the frame assumption of the full analysis (frame slots are out of reach of stores through other pointers)
+    for frame in (False, True, 'temps') if an.split_ok else (False,):      # FL-73: the second pass adds the frame assumption of the full analysis (frame slots are out of reach of stores through other pointers); FL-78 (round 8): the third the stack-discipline assumption
         for S in chain[:MAX_STARTS]:
             order = window(an, dom, S, T)
             if order is None:
                 continue
-            if frame and not an.frame_safe(S, order):             # FL-75: a function that forms a frame address somewhere still has frame-safe windows in front of that point
+            if frame == 'temps':
+                if temps_of(an, S) is None or an.frame_safe(S, order):         # a window that the frame assumption covers has had its pass
+                    continue
+            elif frame and not an.frame_safe(S, order):             # FL-75: a function that forms a frame address somewhere still has frame-safe windows in front of that point
                 continue
             kept = len(an.M.facts), set(an.M.fact_keys), len(an.M.inv_facts)
             try:
@@ -635,6 +653,8 @@ def prove_target(an, dom, T, query, timeout_ms=STEP_MS):
             if VERBOSE:
                 print('   window S=%#x blocks %d frame=%s -> %s' % (S, len(order), frame, r), flush=True)
             if r == 'unsat':
+                if frame == 'temps':
+                    an.stack_discipline_used = True
                 return 'unsat', h, S
             last = (r, h, S)
     return last

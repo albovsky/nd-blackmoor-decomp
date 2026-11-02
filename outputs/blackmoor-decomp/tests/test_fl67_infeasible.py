@@ -552,7 +552,7 @@ class Fl78(unittest.TestCase):
     def test_an_address_that_goes_anywhere_else_switches_it_off(self):
         for name in ('dest_arg', 'read_after', 'no_add', 'ecx_then_call', 'branch_between', 'copy_kept', 'stored_elsewhere', 'fmt_reg', 'fmt_is_frame', 'push_ebp', 'call_keeps_edx_read', 'ecx_call_keeps_read', 'call_writes_ax_read_eax'):
             an, lib = lib78(name)
-            self.assertEqual(len(an.esc_addrs), 1, name)
+            self.assertEqual(len(an.esc_addrs), 2 if name == 'push_ebp' else 1, name)          # (round 8 review: the pushed frame base is an escape of its own)
             self.assertFalse(an.M.split, name)
             self.assertEqual(self.jne_never(an), 'sat', name)
 
@@ -636,7 +636,7 @@ class Fl78(unittest.TestCase):
 
     def test_pushing_the_frame_base_between_switches_it_off(self):                                 # FL-78 review (minor c)
         an, lib = lib78('push_ebp')
-        self.assertEqual(len(an.esc_addrs), 1)
+        self.assertEqual(len(an.esc_addrs), 2)                                                      # the lea, and (round 8 review) the push of the frame base itself
 
     def test_a_register_that_is_overwritten_after_the_call_is_dead(self):
         an, lib = lib78('killed_by_write')
@@ -913,6 +913,19 @@ LIB4 = {
     'out_wl': (47, '5589e583ec20c745fc000000008d55ec526a05e81700000083c408837dfc007507b801000000c9c3b809000000c9c35589e58b450cd94508d918d9eedd58045159ff75088f45dc6a0383c40483ec0483c404c745e4010000005dc3', {'never': 40, 'cal': 47}),
     'caller_popad': (34, '5589e583ec20c745fc0000000061837dfc007507b801000000c9c3b809000000c9c390', {'never': 27}),
     'caller_wl': (47, '5589e583ec20c745fc000000005159ff75fc8f45f883c40483ec04837dfc007507b801000000c9c3b809000000c9c390', {'never': 40}),
+    'sd_reread': (62, '5589e583ec208d45f08b4d088901837d100074248b4d0c8b41046a058b510483c40439c27509b80100000089ec5dc3b80200000089ec5dc331c089ec5dc390', {'target': 47, 'out': 56}),
+    'sd_esp': (62, '5589e583ec208d04248b4d088901837d100074248b4d0c8b41046a058b510483c40439c27509b80100000089ec5dc3b80200000089ec5dc331c089ec5dc390', {'target': 47, 'out': 56}),
+    'sd_below': (62, '5589e583ec208d45d08b4d088901837d100074248b4d0c8b41046a058b510483c40439c27509b80100000089ec5dc3b80200000089ec5dc331c089ec5dc390', {'target': 47, 'out': 56}),
+    'sd_index': (63, '5589e583ec208d4415f08b4d088901837d100074248b4d0c8b41046a058b510483c40439c27509b80100000089ec5dc3b80200000089ec5dc331c089ec5dc390', {'target': 48, 'out': 57}),
+    'sd_movesp': (61, '5589e583ec2089e08b4d088901837d100074248b4d0c8b41046a058b510483c40439c27509b80100000089ec5dc3b80200000089ec5dc331c089ec5dc390', {'target': 46, 'out': 55}),
+    'sd_local': (66, '5589e583ec208d45f08945ec837d1000742ac745f0010000008b45ecc700020000008b55f083fa017509b80100000089ec5dc3b80200000089ec5dc331c089ec5dc390', {'target': 51, 'out': 60}),
+    'pe_mid': (44, '5589e583ec10c745fc000000006a0555e81700000083c4045983f9057507b801000000c9c3b802000000c9c38b442404c740ec07000000c3', {'target': 37, 'f': 44}),
+    'pe_ok': (43, '5589e583ec10c745fc070000006a05e81700000083c404837dfc077507b801000000c9c3b802000000c9c38b442404c3', {'target': 36, 'f': 43}),
+    'sd_string': (63, '5589e583ec208d45f08b4d088901837d100074258d7df8c745f80100000031c0ab837df8017509b80100000089ec5dc3b80200000089ec5dc331c089ec5dc390', {'target': 48, 'out': 57}),
+    'sd_bound': (70, '5589e583ec208d45e08b4d088901837d1000742c8b4d088b01c745e001000000c700020000008b55e083fa017509b80100000089ec5dc3b80200000089ec5dc331c089ec5dc390', {'target': 55, 'out': 64}),
+    'sd_call': (67, '5589e583ec208d45f08b4d088901837d10007429c745f0010000006a00e82100000083c404837df0017509b80100000089ec5dc3b80200000089ec5dc331c089ec5dc38b4424048908c3', {'target': 52, 'out': 61, 'g': 67}),
+    'pe_loop': (59, '5589e583ec10837d0800751f6a05b801000000ff7500e82000000083c4045983f9057510b801000000c9c3c7450800000000ebccb802000000c9c38b442404c740d807000000c3', {'start': 0, 'again': 6, 'second': 43, 'bad': 52, 'f': 59}),
+    'pe_loop_ok': (59, '5589e583ec10837d0800751f6a05b801000000ff7500e82000000083c4045983f9057510b801000000c9c3c7450800000000ebd2b802000000c9c38b442404c740d807000000c3', {'start': 0, 'again': 6, 'second': 43, 'bad': 52, 'f': 59}),
 }
 
 
@@ -928,6 +941,21 @@ def an4(name, writers=None, run=True):
         if run:
             an.run()
     return an, img, labels
+
+
+def win4(name, jcc='jne', kind='taken', nth=0):
+    """(window verdict, whole-function verdict, analysis) for the first `jcc` of a LIB4 program whose function labels (f, g, ...) are callees that pop nothing"""
+    import fl71_window as Wn
+    body, hexcode, labels = LIB4[name]
+    img = bytes(image_of(bytes.fromhex(hexcode))) + bytes(64)
+    callees = {BASE + v: 0 for k, v in labels.items() if k in ('f', 'ro', 'lib', 'cal', 'g', 'pc')}
+    row = {'va': BASE, 'body': body, 'callees': callees, 'imports': {}, 'sites': None}
+    whole = P.Analysis(row, img, 20000)
+    whole.run()
+    an, dom = Wn.from_analysis(P.Analysis(row, img, 20000))
+    j = [i for i in an.insns if i.mnemonic == jcc][nth].address
+    T = Wn.block_of(an, j, True)
+    return Wn.prove_target(an, dom, T, ('dir', kind))[0], whole.direction(j, kind)[0], an
 
 
 @unittest.skipUnless(HAVE_Z3, 'needs z3-solver, capstone')
@@ -984,14 +1012,14 @@ class Fl78Review4(unittest.TestCase):
         an, img, L = an4('out_plain', run=False)
         self.assertEqual(an.esc_addrs, [])
         self.assertEqual(list(an.M.out_writes.values()), [[(4, 12)]])
-        with mock.patch.object(P, 'callee_leaks', return_value=False):
+        with mock.patch.object(P, 'callee_leaks', return_value=False), mock.patch.object(P, 'frame_escapes', return_value=False):          # (the round 8 review whitelist refuses the pushed ebp as well)
             an, img, L = an4('out_pushebp', run=False)
         self.assertEqual(an.esc_addrs, [])                               # accepted without the check
         an, img, L = an4('ro_pushebp', {'lib': ('fopen', ())}, run=False)
         self.assertEqual(len(an.esc_addrs), 1)
         an, img, L = an4('ro_plain', {'lib': ('fopen', ())}, run=False)
         self.assertEqual(an.esc_addrs, [])
-        with mock.patch.object(P, 'callee_leaks', return_value=False):
+        with mock.patch.object(P, 'callee_leaks', return_value=False), mock.patch.object(P, 'frame_escapes', return_value=False):
             an, img, L = an4('ro_pushebp', {'lib': ('fopen', ())}, run=False)
         self.assertEqual(an.esc_addrs, [])
 
@@ -1215,6 +1243,116 @@ class Fl78Review4(unittest.TestCase):
         # the compare is entirely inside one round: still exact in the window and in the whole function
         win, whole = window('fp_inside', 'jne', 'fall')
         self.assertEqual((win, whole), ('unsat', 'unsat'))
+
+    def test_the_stack_discipline_assumption_keeps_only_call_temporaries_apart(self):                  # round 8
+        import fl71_window as Wn
+        from unittest import mock
+
+        def window(name, jcc, kind):
+            body, hexcode, labels = LIB4[name]
+            img = bytes(image_of(bytes.fromhex(hexcode))) + bytes(64)
+            an = P.Analysis({'va': BASE, 'body': body, 'callees': {}, 'imports': {}, 'sites': None}, img, 20000)
+            an, dom = Wn.from_analysis(an)
+            j = [i for i in an.insns if i.mnemonic == jcc][0].address
+            T = Wn.block_of(an, j, True)
+            return Wn.prove_target(an, dom, T, ('dir', kind))[0], an
+        # a pointer to a local goes to the caller's object, so no frame assumption; then a value is read through another pointer, a temporary is pushed, the value is read again: the pushed slot is not where
+        # any pointer formed from a local points, so the two reads agree (pushes in a window are not stores to what a mem pointer reads)
+        verdict, an = window('sd_reread', 'jne', 'taken')
+        self.assertEqual(verdict, 'unsat')
+        self.assertTrue(an.stack_discipline_used)
+        self.assertEqual(an.temps_info(), 0x20)
+        # without the assumption (the function does not qualify) a pointer in the second argument may point at the slot that is pushed
+        with mock.patch.object(P.Analysis, 'temps_info', return_value=None):
+            self.assertNotEqual(window('sd_reread', 'jne', 'taken')[0], 'unsat')
+        # refused: an address of a call temporary (esp based), of a slot below the locals, an indexed one, a copy of esp: each can reach a pushed slot
+        for name in ('sd_esp', 'sd_below', 'sd_index', 'sd_movesp'):
+            verdict, an = window(name, 'jne', 'taken')
+            self.assertIsNone(an.temps_info(), name)
+            self.assertNotEqual(verdict, 'unsat', name)
+        # the locals themselves are ordinary memory: a store through the pointer to a local changes what a read of the local gives
+        verdict, an = window('sd_local', 'jne', 'taken')
+        self.assertEqual(an.temps_info(), 0x20)
+        self.assertEqual(verdict, 'sat')
+
+    def test_a_push_of_the_frame_base_after_the_prologue_refuses_the_frame_assumption(self):          # round 8 review, MAJOR
+        # `push ebp` in the body hands the frame base to a callee, which writes [arg - 0x14] = [ebp - 0x14]: the local is not out of reach
+        win, whole, an = win4('pe_mid')
+        self.assertNotEqual(whole, 'unsat')
+        self.assertNotEqual(win, 'unsat')
+        self.assertFalse(an.M.split)
+        self.assertIsNone(an.temps_info())
+        # the prologue's own `push ebp` (the first instruction) is still accepted: the local survives the call
+        win, whole, an = win4('pe_ok')
+        self.assertEqual((win, whole), ('unsat', 'unsat'))
+        self.assertTrue(an.M.split)
+        # (the whitelist itself)
+        import capstone
+        md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
+        md.detail = True
+        push = next(md.disasm(b'\x55', BASE))
+        self.assertTrue(P.frame_ok(push, True))
+        self.assertFalse(P.frame_ok(push))
+        nop = next(md.disasm(b'\x90', BASE - 1))
+        self.assertTrue(P.frame_escapes([push], nop))                                                  # not the first instruction of the function
+        self.assertFalse(P.frame_escapes([push], push))
+
+    def test_a_jump_back_to_the_entry_runs_the_prologue_push_again(self):                           # round 8 review, latent major
+        # `second: ... jmp start` pushes the frame base a second time, and the callee writes through it: the second `jne` (the pushed value changed) is feasible
+        win, whole, an = win4('pe_loop', nth=1)
+        self.assertNotEqual(whole, 'unsat')
+        self.assertNotEqual(win, 'unsat')
+        self.assertFalse(an.split_ok)
+        self.assertIsNone(an.temps_info())
+        # the same function that jumps back to after the prologue pushes it once: the local survives, still proved
+        win, whole, an = win4('pe_loop_ok', nth=1)
+        self.assertEqual((win, whole), ('unsat', 'unsat'))
+        self.assertTrue(an.split_ok)
+        # a callee whose body jumps back to its entry is not accepted by callee_leaks either
+        import capstone
+        md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
+        md.detail = True
+        loop = list(md.disasm(bytes.fromhex('5589e5ebfb'), BASE))                                     # push ebp; mov ebp, esp; jmp BASE
+        self.assertEqual([i.mnemonic for i in loop], ['push', 'mov', 'jmp'])
+        self.assertTrue(P.callee_leaks(loop))
+        self.assertFalse(P.callee_leaks(loop[:2]))
+
+    def test_the_stack_discipline_boundaries(self):                                                   # round 8 review, minors 1 to 3
+        from unittest import mock
+        # a string instruction on a frame address is not modelled (the store would land in the temporaries' array, the read of the local in ordinary memory)
+        win, whole, an = win4('sd_string')
+        self.assertEqual(an.temps_info(), 0x20)
+        self.assertNotEqual(win, 'unsat')
+        # the lowest local ebp - L is ordinary memory: a store through the escaped pointer to it is seen by a read of it
+        win, whole, an = win4('sd_bound')
+        self.assertEqual(an.temps_info(), 0x20)
+        self.assertEqual(win, 'sat')
+        # a call may change the locals (an escaped pointer): nothing is known of a local across it
+        win, whole, an = win4('sd_call')
+        self.assertEqual(an.temps_info(), 0x20)
+        self.assertEqual(win, 'sat')
+        # a window that starts with esp inside the locals is not used
+        import fl71_window as Wn
+        self.assertIsNone(Wn.temps_of(an, min(an.blocks)))
+        with mock.patch.object(Wn, 'stack_delta', return_value={0x401000: -0x10}), mock.patch.object(P.Analysis, 'temps_info', return_value=0x20):
+            self.assertIsNone(Wn.temps_of(an, 0x401000))
+        with mock.patch.object(Wn, 'stack_delta', return_value={0x401000: -0x20}), mock.patch.object(P.Analysis, 'temps_info', return_value=0x20):
+            self.assertEqual(Wn.temps_of(an, 0x401000), (0x20, -0x20))
+        # an access that straddles ebp - L, and the address of a call temporary stored or pushed, are not modelled
+        M = an.M
+        s_ebp = z3.BitVec('s_ebp', 32)
+        M.temps = (0x20, -0x20)
+        M.split = True
+        try:
+            self.assertTrue(M.is_temp(s_ebp - 0x24, 4))
+            self.assertFalse(M.is_temp(s_ebp - 0x20, 4))
+            with self.assertRaises(P.Unsupported):
+                M.is_temp(s_ebp - 0x22, 4)
+            with self.assertRaises(P.Unsupported):
+                M.temp_value(s_ebp - 0x30)
+            M.temp_value(s_ebp - 0x10)                                                                   # a pointer to a local may be stored
+        finally:
+            M.temps, M.split = None, False
 
     def test_the_proof_record_names_the_assumptions(self):                                              # MINOR e
         img = P.load_image()
