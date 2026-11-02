@@ -124,4 +124,6 @@ Original game files and reserved ledger/evidence outputs are unchanged. Neither 
 
 - Key-wager review: Sonnet accepts58a97c22, no P1; root accepts nonblocking orchestration/refusal, extra-observation and prefix-fixture gaps recorded in RECOMP-16. Both static freshness checks pass, preserving1781peer claims; no code changed after review.
 
-- 2026-11-02 Pacific: public post-key routes now pass Ethel/real7 door, first slide/ball3, timed bullseye/key16 and Saturn use. Four full-scope fresh runs pass166/22/150/22steps, actual3/16 and two final safe observations.61finite route fixtures pass; RECOMP-17 records pending review. No host/game patch. Both separate difficulty campaigns have meanwhile solved/reloaded the five-stage word lock and continue to the two-sided fire lock.
+- 2026-11-02 Pacific: public post-key routes now pass Ethel/real7 door, first slide/ball3, timed bullseye/key16 and Saturn use. Four full-scope fresh runs pass166/22/150/22steps, actual3/16 and two final safe observations.61finite route fixtures pass; RECOMP-17 records pending review. No host/game patch. Supplementary private evidence shows both separate difficulty campaigns have solved/reloaded the five-stage word lock and continue to the two-sided fire lock.
+
+- Post-key review: Sonnet accepts634c1963 with no P1/blocker; both static freshness checks pass. Required metadata preserves1781peer claims. Exact reload hashes and accepted nonblocking fixture limits are in RECOMP-17. No code changed after review.

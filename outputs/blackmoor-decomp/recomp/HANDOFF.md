@@ -2,7 +2,7 @@
 
 ## Latest post-key routes, 2026-11-02 Pacific
 
-RECOMP-17 publishes `slide-ball --save m25` and `saturn-column --save m26`: original Ethel introduction, real7 door, first slide/ball3, precisely timed bullseye/key16 and actual Saturn use. Four full-scope fresh producer/reload runs pass, with actual3/16 reload and two final safe frames;61finite route fixtures pass. Exact working movie timing and bag slots are preserved. Metadata/review collection is pending; see packet/private verified-public-chain for pins. Private Junior and Senior campaigns have both solved and reloaded all five word-lock stages and continue to the fire lock; full campaigns remain incomplete.
+RECOMP-17 publishes `slide-ball --save m25` and `saturn-column --save m26`: original Ethel introduction, real7 door, first slide/ball3, precisely timed bullseye/key16 and actual Saturn use. Four full-scope fresh producer/reload runs pass, with actual3/16 reload and two final safe frames;61finite route fixtures pass. Exact working movie timing and bag slots are preserved. Sonnet accepts634c1963 and both static freshness checks pass; see packet/private verified-public-chain for pins and accepted nonblocking gaps. Supplementary private Junior and Senior evidence records all five word-lock stages solved/reloaded and continue to the fire lock; full campaigns remain incomplete.
 
 ## Latest navigation, 2026-11-02 Pacific
 

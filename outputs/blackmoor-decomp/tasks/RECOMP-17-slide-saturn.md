@@ -28,7 +28,7 @@ Reuse the existing finite test file. Add only meaningful exact-fragment/save-nam
 
 ## Remaining limits
 
-These are observed Junior route/clock/inventory starts, not every start or a timing guarantee on every platform. Senior post-key variants, other movie pacing, full campaigns and final native credits remain unverified until separate runs. No new function-port acceptance. Final evidence pins, run results and review are pending implementation/collection.
+These are observed Junior route/clock/inventory starts, not every start or a timing guarantee on every platform. Senior post-key variants, other movie pacing, full campaigns and final native credits remain unverified until separate runs. No new function-port acceptance. Root collection below records exact pins, scoped runs and accepted review.
 
 ## Root collection, 2026-11-02 Pacific
 
@@ -36,10 +36,17 @@ The exact public fragments match the retained159/143-step inputs byte for byte. 
 
 Fresh save-only reloads each deliver22steps/own stop/exit0 in1.88/1.91s, select actual3/16, PUT/X and end with two safe observations. Their original13-step prefixes are unchanged; root appends a center move at52s and settled shot at55s, an explicit two-token delta. Source/copy/output hashes match, each reload contains only its genuine input save, every required retained/zero flag is scoped and observed, and largest nonzero FLAGS records are481/501bytes. Exact scopes, inputs, receipts/checkpoints and independent audit: `work/recomp-playability-20261101/root-fullscope-slide-saturn/verified-public-chain.json`; raw runs are under `columns-continuation/root-fullscope-*`. No original state is modified to make a check pass.
 
-Private current-native campaigns independently continue past the word lock; these two fixed public legs remain observed Junior evidence. Required metadata refresh, source pins and frozen independent review are pending. Compiled game/host/app inputs are unchanged.
+Private current-native campaigns independently continue past the word lock; these two fixed public legs remain observed Junior evidence. Required metadata is regenerated from75e72786, preserving all function statuses/classes/counts/native fields and1781peer claims. Both frozen static freshness checks pass; private xrefs/receipts are not rehashed. Sonnet accepts634c1963 with no P1 or blocker (`slide-saturn-review.txt`). Compiled game/host/app inputs are unchanged.
 
 ## Candidate source pins
 
 - `recomp/route_tools/story_route.py`: `553e5f821575769e9e6dc1fee1f9ec342e33faf77bd359e3347dc20b44526b39`
 - `recomp/route_tools/check_route.py`: `8c89f9a1c407424b563f2caa4122100ca5ef52e5a843f813da6c530d3325a716`
 - `tests/test_recomp_route_check.py`: `f334ade965d78ef81f817ba9b78fdf1a305669c1a6e512f015442f25fa8fb551`
+
+Root accepts nonblocking gaps in separate held-consumption and extra-frame binary/monotone fixtures; the code enforces those guards and actual runs supply positive evidence. Scene-open order is a subsequence; exact movie timing is bound by the input fragment hash rather than independently derived from log events. Reload checks are private evidence; their full-input SHA256 pins are:
+
+- `root-fullscope-reload-m25`: `74dd8da144c0f9510757f6403c6245fa28f77debf6507109574d57bf3ecffdb4`
+- `root-fullscope-reload-m26`: `491cc423dbd81f55766aaa7d295b49cd71bce8824a621ab516a4fd09544bb62f`
+
+Supplementary five-stage word-lock claims refer to private `columns-continuation/verified-m39-native.json` and `senior-chain/verified-senior-wordlock.json`; they are not this fixed public route acceptance. No code changed after review.
