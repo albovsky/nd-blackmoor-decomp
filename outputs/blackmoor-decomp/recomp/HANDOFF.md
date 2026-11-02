@@ -18,6 +18,8 @@ RECOMP-10 wires right AppKit callbacks and explicit script `pointer:x,y,mask` to
 
 ## State
 
+Public story continuation now has `betty-key --save m13` and `venus-column --save m14`: root's0c5fc594 fresh chain/reloads earn real19 and set1892/2000/2015, ending safe2633. See RECOMP-11/ROUTES for exact scoped flags, checkpoint hashes and the bounded observed-deal limitation. Jupiter/Moon route candidates are queued privately next. The reviewed host already includes PR297 right input; independent review of these two routes is pending.
+
 * The game is lifted from the owner's GAME.EXE to C (`lift_recomp.py`: 4,605 functions lifted, 165 refused, see below) and runs on the native host (`rc_core.c`, `rc_win32.c`, `rc_ddraw.c`, `rc_dsound.c`, `rc_bink.c`, `rc_main.c`). Lifted C is a build output, never committed.
 * **What runs (headless, `rc_headless`, deterministic virtual clock):** New Game, the intro movies, Nancy's room, the suitcase and phone, Load & Save, the credits, and the story routes of `route_tools/story_route.py` through four legs: the stair lock piano, the key and grease, the S3450 slider puzzle, and the moon box (S2038) to the telescope lens (S2076). All were run end to end from a fresh game directory on 2026-10-31.
 * **Furthest scene reached:** S2076/S2074 (lens taken), then S2040, S2011, S2010; S2014 (tripod) opened and looked at. The telescope step is not finished: tripod S2014, star chart S2015, telescope S2078 are untried or unconfirmed (`ROUTES.md`, "After the moon box"). Confirm progress with `RC_FLAGS` (the scene script flags), not only pictures.
