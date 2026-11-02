@@ -17,6 +17,7 @@
 #include "rc_input_script.h"
 #include "rc_input_control.h"
 #include "diagnostic_result.h"
+#include "rc_headless_audio.h"
 
 static FILE *logf;
 static char out_dir[512];
@@ -229,10 +230,43 @@ int main(void)
         }
         return 2;
     }
+    RcHeadlessAudio *audio_pump = NULL;
+    if (!rc_clock_is_virtual()) {
+        audio_pump = rc_headless_audio_start(error, sizeof error);
+        if (!audio_pump) {
+            fprintf(stderr, "%s\n", error);
+            if (input_control) {
+                rc_input_control_fail(input_control, error);
+                rc_input_control_end(input_control); rc_input_control_destroy(input_control);
+            }
+            if (input_script) rc_input_script_destroy(input_script);
+            if (logf) fclose(logf);
+            return 6;
+        }
+    }
     struct timespec t0, t1;
     clock_gettime(CLOCK_MONOTONIC, &t0);
     char why[600];
     int guest_result = rc_main(why, sizeof why);
+    RcHeadlessAudioStats audio_stats;
+    const int audio_started = audio_pump != NULL;
+    int audio_failed = 0;
+    if (audio_started)
+        audio_failed = rc_headless_audio_stop(audio_pump, &audio_stats, error, sizeof error);
+    if (audio_started)
+        rc_log("  HEADLESS_AUDIO calls=%llu frames=%llu rebases=%llu error=%d",
+               (unsigned long long)audio_stats.calls, (unsigned long long)audio_stats.frames,
+               (unsigned long long)audio_stats.rebases, audio_stats.error);
+    if (audio_failed) {
+        fprintf(stderr, "%s\n", error);
+        if (input_control) {
+            rc_input_control_fail(input_control, error);
+            rc_input_control_end(input_control); rc_input_control_destroy(input_control);
+        }
+        if (input_script) rc_input_script_destroy(input_script);
+        if (logf) fclose(logf);
+        return 6;
+    }
     clock_gettime(CLOCK_MONOTONIC, &t1);
     double secs = (double)(t1.tv_sec - t0.tv_sec) + (double)(t1.tv_nsec - t0.tv_nsec) / 1e9;
     frames_dumped = 0;
