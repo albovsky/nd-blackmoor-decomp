@@ -135,5 +135,157 @@ class TelescopeUseResultTests(unittest.TestCase):
                            route='telescope-use')
 
 
+class SeedlingsResultTests(unittest.TestCase):
+    def setUp(self):
+        self.folder = tempfile.TemporaryDirectory()
+        self.addCleanup(self.folder.cleanup)
+        self.save = Path(self.folder.name) / 'm11.SAV'
+        self.save.write_bytes(bytes(170770))
+        self.observations = []
+        for scene, won in ((2348, False), (2347, True), (2347, True)):
+            self.observations.append(
+                '  STATE requested_scene=%d art_scene=%d view=0 held_item=-1\n'
+                '  RC_FLAGS 1160,1535,1541,1838-1839,1906,1968,1980,1993,2002,2036-2037,2080\n'
+                '  FLAGS 1535=1 1838=1 1839=1 1906=1 1968=1 1980=1 1993=1 2036=1 2037=1 2080=1%s\n' %
+                (scene, scene, ' 2002=1' if won else ''))
+        self.tail = ('  FILE open C:\\GAME\\Documents5\\The Curse of Blackmoor Manor\\m11.SAV  [virtual 1150404 ms]\n'
+                     'RESULT {"stopped":"stop requested <52a4c0"}\n')
+        self.log = ''.join(self.observations) + self.tail
+
+    def test_accepts_observed_packing_win_and_safe_checkpoint(self):
+        result = checker.verify(self.log, self.save, route='seedlings')
+        self.assertEqual((result['scene'], result['view']), (2347, 0))
+        self.assertIn(2002, result['flags_one'])
+        self.assertEqual(result['flags_zero'], [1160, 1541])
+        self.assertTrue(result['telescope_complete'])
+
+    def test_refuses_missing_win_or_preexisting_completion(self):
+        with self.assertRaisesRegex(ValueError, 'win was not observed'):
+            checker.verify(self.log.replace(' 2002=1', '', 1), self.save,
+                           route='seedlings')
+        log = self.log.replace('  FLAGS ', '  FLAGS 2002=1 ', 1)
+        with self.assertRaisesRegex(ValueError, 'already complete'):
+            checker.verify(log, self.save, route='seedlings')
+
+    def test_refuses_reordered_or_missing_safe_room_observation(self):
+        log = ''.join((self.observations[1], self.observations[0],
+                       self.observations[2])) + self.tail
+        with self.assertRaisesRegex(ValueError, 'ordered'):
+            checker.verify(log, self.save, route='seedlings')
+        with self.assertRaisesRegex(ValueError, 'ordered'):
+            checker.verify(''.join(self.observations[:2]) + self.tail,
+                           self.save, route='seedlings')
+        log = ''.join(self.observations[:2]) + self.observations[2].replace(
+            'held_item=-1', 'held_item=5') + self.tail
+        with self.assertRaisesRegex(ValueError, 'not safe'):
+            checker.verify(log, self.save, route='seedlings')
+
+    def test_refuses_unobserved_flags_and_unexercised_progression(self):
+        with self.assertRaisesRegex(ValueError, 'every required event'):
+            checker.verify(self.log.replace('2002,', ''), self.save,
+                           route='seedlings')
+        with self.assertRaisesRegex(ValueError, 'every required event'):
+            checker.verify(self.log.replace('1541,', ''), self.save,
+                           route='seedlings')
+        with self.assertRaisesRegex(ValueError, 'progression flag'):
+            checker.verify(self.log.replace('  FLAGS ', '  FLAGS 1160=1 '),
+                           self.save, route='seedlings')
+        with self.assertRaisesRegex(ValueError, 'prerequisite flag'):
+            checker.verify(self.log.replace(' 1906=1', ''), self.save,
+                           route='seedlings')
+
+    def test_route_reproduces_exercised_input_and_parameterizes_save_name(self):
+        route_module = MODULE.with_name('story_route.py')
+        route_spec = importlib.util.spec_from_file_location('recomp_story_route', route_module)
+        story = importlib.util.module_from_spec(route_spec)
+        route_spec.loader.exec_module(story)
+        # Digest of the accepted ordinary INPUT, including its trailing newline.
+        import hashlib
+        actual = story.leg_seedlings(save='m11')
+        self.assertEqual(hashlib.sha256((actual + '\n').encode()).hexdigest(),
+                         '3a2ad43204fec5c9d31aa318f569aa4f957a388c02ff46592f40d7f7e185d878')
+        prefix = story.leg_seedlings()
+        self.assertTrue(actual.startswith(prefix + ';'))
+        self.assertIn('S2347.CIF+41000:click:306,194,300', prefix)
+        renamed = story.leg_seedlings(save='plants')
+        expected_tail = ';'.join([story.menu_to_save_screen('S2348.CIF', 250000),
+                                  story.save_tail('S2348.CIF', 268000, 'plants')])
+        self.assertEqual(renamed, prefix + ';' + expected_tail)
+
+
+class CrankRepairResultTests(unittest.TestCase):
+    def setUp(self):
+        self.folder = tempfile.TemporaryDirectory()
+        self.addCleanup(self.folder.cleanup)
+        self.save = Path(self.folder.name) / 'm12.SAV'
+        self.save.write_bytes(bytes(170770))
+        self.frames = []
+        states = ((2347, -1), (1000, -1), (1089, -1),
+                  (2711, -1), (2711, 20), (2713, -1), (2702, -1), (2701, -1))
+        for index, (scene, held) in enumerate(states):
+            # Synthetic non-boolean values exercise the clock distinction.
+            flags = {338: 7, 339: 11, 340: 13, 341: 17,
+                     1906: 1, 2002: 1}
+            if index >= 2:
+                flags[1541] = 1
+            if index >= 5:
+                flags[1160] = 1
+            if index >= 6:
+                flags[1782] = 1
+            self.frames.append({'scene': scene, 'held': held,
+                                'scope': '338-341,1160,1541,1782,1906,1963,2002',
+                                'flags': flags})
+
+    def observed_log(self):
+        log = ''
+        for frame in self.frames:
+            scene = frame['scene']
+            log += ('  STATE requested_scene=%d art_scene=%d view=0 held_item=%d\n'
+                    '  RC_FLAGS %s\n  FLAGS %s\n' %
+                    (scene, scene, frame['held'], frame['scope'],
+                     ' '.join('%d=%d' % pair for pair in frame['flags'].items())))
+        log += '  FILE open C:\\GAME\\Documents5\\The Curse of Blackmoor Manor\\m12.SAV  [virtual 10952596 ms]\n'
+        return log + 'RESULT {"stopped":"stop requested <52a4c0"}\n'
+
+    def test_accepts_reward_repair_and_keypad_without_claiming_card_win(self):
+        result = checker.verify(self.observed_log(), self.save, route='crank-repair')
+        self.assertEqual((result['scene'], result['view']), (2701, 0))
+        self.assertEqual(result['flags_one'], [1160, 1541, 1782, 1906, 2002])
+        self.assertEqual(result['flags_zero'], [1963])
+        self.assertTrue(result['telescope_complete'])
+        self.assertEqual(checker.flag_scope('338-341,1160'), {1160})
+
+    def test_rejects_preexisting_reward_or_repair_before_crank_use(self):
+        self.frames[0]['flags'][1541] = 1
+        with self.assertRaisesRegex(ValueError, 'before claim'):
+            checker.verify(self.observed_log(), self.save, route='crank-repair')
+        self.frames[0]['flags'][1541] = 0
+        self.frames[4]['flags'][1160] = 1
+        with self.assertRaisesRegex(ValueError, 'pre/post-repair'):
+            checker.verify(self.observed_log(), self.save, route='crank-repair')
+
+    def test_requires_actual_held_crank_and_empty_hand_at_safe_checkpoint(self):
+        self.frames[4]['held'] = -1
+        with self.assertRaisesRegex(ValueError, 'ordered'):
+            checker.verify(self.observed_log(), self.save, route='crank-repair')
+        self.frames[4]['held'] = 20
+        self.frames[-1]['held'] = 20
+        with self.assertRaisesRegex(ValueError, 'safe state'):
+            checker.verify(self.observed_log(), self.save, route='crank-repair')
+
+    def test_requires_observed_card_zero_and_keypad_entrance(self):
+        self.frames[-1]['scope'] = self.frames[-1]['scope'].replace(',1963', '')
+        with self.assertRaisesRegex(ValueError, 'every required event'):
+            checker.verify(self.observed_log(), self.save, route='crank-repair')
+        self.frames[-1]['scope'] += ',1963'
+        self.frames[-1]['flags'][1963] = 1
+        with self.assertRaisesRegex(ValueError, 'progression flag'):
+            checker.verify(self.observed_log(), self.save, route='crank-repair')
+        self.frames[-1]['flags'][1963] = 0
+        self.frames[-1]['flags'][1782] = 0
+        with self.assertRaisesRegex(ValueError, 'prerequisite flag'):
+            checker.verify(self.observed_log(), self.save, route='crank-repair')
+
+
 if __name__ == '__main__':
     unittest.main()

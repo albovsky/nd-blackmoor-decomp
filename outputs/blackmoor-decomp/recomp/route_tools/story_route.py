@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The story routes of ROUTES.md as INPUT strings for rc_headless.
 
-  python3 story_route.py LEG [--save NAME]      LEG is one of: stairs, lock, slider, moon, telescope-prep, linda, jane-intro, jane-jigsaw, telescope-use, slider-verify
+  python3 story_route.py LEG [--save NAME]      LEG is one of: stairs, lock, slider, moon, telescope-prep, linda, jane-intro, jane-jigsaw, telescope-use, seedlings, crank-repair, slider-verify
   python3 story_route.py slider-verify          replays the recorded 105 slider moves on the puzzle rules and prints whether they solve it
 
 Each leg starts from a save made in the game's own Load & Save screen and (with --save NAME) ends by saving the next one, so the legs chain:
@@ -15,6 +15,8 @@ Each leg starts from a save made in the game's own Load & Save screen and (with 
   m8  --jane-intro--> S1206 (optional Memory branch, no save tail)
   m8  --jane-jigsaw--> m9 (Junior jigsaw won, telescope loan earned, S3510 view 4)
   m9  --telescope-use--> m10 (delivery, Petrov call, filtered telescope, bedroom view 19)
+  m10 --seedlings--> m11 (S2347, seedlings packed; crank not yet collected)
+  m11 --crank-repair--> m12 (Drake's crank reward, Betty repaired, keypad visited, safe S2701)
 
 Steps are `anchor+ms:kind:args` (rc_headless.c). `click x,y,hold` is a move 1 s before the click; `mv:x,y` a bare move; `key:VK` a key press.
 A bare click on a hotspot needs a move onto it first or the game ignores it (the cursor must have been seen there), so every click has its move.
@@ -331,6 +333,113 @@ def leg_telescope_use(save=None):
     return ';'.join(out)
 
 
+def leg_seedlings(save=None):
+    """m10 -> Betty, Drake's seedling errand, zero-rotation packing and m11.
+
+    Uses the exercised first dialogue choices and ordinary pointer placements.
+    Crank collection/installation follows later; this stops safely in S2347.
+    """
+    walk = R().at('S2010.CIF', 8000).turns('left', 9)
+    walk.clicks('64,171 317,167 277,175 317,162 336,162 317,162 473,161 '
+                '327,162 317,162 532,161 328,162 328,162 562,161', 8000)
+    walk.at('S2605.CIF', 8000).turns('left', 2)
+    walk.clicks('230,148 66,166 313,133 312,270', 8000)
+    out = [walk.text(), 'S2708.CIF+20000:shot:0,0']
+    out.append(R().at('S2708.CIF', 25000).clicks('310,354', 9000).clicks(
+        '576,161 584,161 298,160 570,161 310,160 '
+        '315,145 269,161 380,163 310,192 312,168 307,160', 8000).text())
+    drake = R().at('S2300.CIF', 8000).turns('right', 5)
+    drake.clicks('334,222 210,184 234,183 217,204 '
+                 + '315,191 ' * 7
+                 + '47,157 81,179 352,183 489,169 327,234', 8000)
+    out += [drake.text(), 'S1000.CIF+50000:shot:0,0',
+            R().at('S1008.CIF', 50000).clicks('150,448,300', 6000).text()]
+    for scene, y in ((1010, 433), (1002, 448), (1007, 460), (1055, 448)):
+        anchor = 'S%d.CIF' % scene
+        out += [anchor + '+50000:shot:0,0',
+                R().at(anchor, 60000).clicks('150,%d,300' % y, 6000).text()]
+    out.append('S2347.CIF+30000:shot:0,0')
+    # 1085 opens 2347, which automatically opens 2348. This now-empty-area
+    # click did not enter the puzzle; retain its exercised timing unchanged.
+    out.append(R().at('S2347.CIF', 40000).clicks('306,194,300', 6000).text())
+    picks_drops = [
+        ((540, 61), (84, 83)), ((536, 151), (174, 63)),
+        ((427, 42), (244, 63)), ((427, 121), (184, 133)),
+        ((331, 286), (254, 143)), ((510, 229), (54, 173)),
+        ((333, 151), (104, 153)), ((330, 205), (94, 193)),
+        ((565, 209), (134, 193)), ((415, 295), (194, 213)),
+        ((496, 306), (254, 223)), ((337, 66), (64, 263)),
+        ((568, 287), (124, 263)), ((419, 213), (214, 283)),
+    ]
+    puzzle = R().at('S2348.CIF', 8000)
+    for pick, drop in picks_drops:
+        t = puzzle.t
+        puzzle.clicks('%d,%d,300' % pick, 16000)
+        # Preserve both exercised drop hovers and the 2 s gap before click.
+        puzzle.o += ['S2348.CIF+%d:move:%d,%d' % (t + offset, *drop)
+                     for offset in (5000, 6000)]
+        puzzle.o.append('S2348.CIF+%d:click:%d,%d,300' % (t + 8000, *drop))
+    out += [puzzle.text(), 'S2348.CIF+228000:shot:0,0']
+    if save:
+        # Anchor to puzzle entry, since 2347 was also seen before the win.
+        out += [menu_to_save_screen('S2348.CIF', 250000),
+                save_tail('S2348.CIF', 268000, save)]
+    return ';'.join(out)
+
+
+def leg_crank_repair(save=None):
+    """m11 -> m12. Let the original clock reach morning, claim crank20,
+    repair Betty with the held item, visit the keypad, and return to S2701.
+
+    The accepted m11 starts at 22:22. Preserve the ordinary overnight wait;
+    these mouse events never set the game's clock or story state. The card
+    game and its Venus-key reward remain beyond this checkpoint.
+    """
+    r = R().at('S2347.CIF', 7000).clicks('shot', 0)
+    for wait_slot in range(1, 10):
+        x = 110 if wait_slot % 2 else 100
+        r.at('S2347.CIF', wait_slot * 1000000).clicks('mv:%d,300' % x, 0)
+    r.at('S2347.CIF', 9949000).clicks('shot', 0)
+    r.at('S2347.CIF', 10008000).clicks('310,354 310,354 91,180 312,182 310,182', 8000)
+    r.turns('right', 7).clicks('381,199 426,188' + ' 318,158' * 8 + ' 403,197 419,191 291,184', 8000)
+    r.turns('left', 1).clicks('253,160 310,164 295,156 310,354 310,192 312,168 307,160', 8000)
+    # Leave and reenter through the authored daytime housekeeping scene.
+    conservatory = R().at('S2399.CIF', 8000).clicks('shot', 0)
+    conservatory.at('S2399.CIF', 11000).turns('right', 5)
+    conservatory.clicks('334,222 210,184 234,183 217,204' + ' 315,191' * 7 +
+                       ' 47,157 81,179 352,183 489,169 327,234', 8000)
+    out = [r.text(), conservatory.text()]
+    # Claim the seedlings reward, then say goodbye, using the original caption
+    # slider. Each click holds while the subsequent moves drag its thumb down.
+    for anchor, reply_y in (('S1000.CIF', 418), ('S1089.CIF', 430)):
+        out.append(R().at(anchor, 49000).clicks('shot', 0)
+                   .at(anchor, 60000).clicks('22,405,6000', 0).text())
+        out += ['%s+%d:move:22,%d' % (anchor, 61500 + i * 500, y)
+                for i, y in enumerate((410, 415, 420, 425, 430, 435, 440, 445, 450, 455, 456))]
+        out.append(R().at(anchor, 71000).clicks('shot', 0)
+                   .at(anchor, 80000).clicks('150,%d,300' % reply_y, 0).text())
+    repair = R().at('S1089.CIF', 99000).clicks('shot', 0)
+    repair.at('S1089.CIF', 120000).clicks('310,354 91,180 312,182 310,182', 8000)
+    repair.turns('right', 7).clicks('381,199 426,188' + ' 318,158' * 8 + ' 403,197 419,191 291,184', 8000)
+    repair.turns('left', 1).clicks('253,160 310,164 295,156 312,163 380,146', 8000)
+    repair.turns('left', 1).clicks('230,148 66,166 308,302', 8000)
+    repair.clicks('shot 212,448', 8000)
+    repair.at('S1089.CIF', 358500).clicks('shot', 0)
+    repair.at('S1089.CIF', 367500).clicks('62,100', 0)
+    repair.at('S1089.CIF', 375500).clicks('shot', 0)
+    repair.at('S1089.CIF', 383500).clicks('311,127', 0)
+    out += [repair.text(),
+            R().at('S2713.CIF', 7000).clicks('shot', 0)
+            .at('S2713.CIF', 18000).clicks('310,40,300', 0).text(),
+            R().at('S2701.CIF', 8000).clicks('312,270,300', 0).text(),
+            R().at('S2702.CIF', 15000).clicks('shot', 0)
+            .at('S2702.CIF', 24000).clicks('135,354,300', 0).text()]
+    if save:
+        out += [menu_to_save_screen('S2702.CIF', 32000),
+                save_tail('S2702.CIF', 50000, save)]
+    return ';'.join(out)
+
+
 def leg_slider(save=None, gap=5000):
     """m4 -> m5. S3447 stairs hotspot, the slider puzzle S3450 (105 moves), the compartment S3452/S3453 item, the cancel strip at S3455, S3457, S3303."""
     r = R().at('S3447.CIF', 8000).clicks('mv:230,150 mv:241,166 241,166,300', 3000)
@@ -389,7 +498,8 @@ if __name__ == '__main__':
     legs = {'stairs': leg_stairs, 'lock': leg_lock, 'slider': leg_slider,
             'moon': leg_moon, 'telescope-prep': leg_telescope_prep,
             'linda': leg_linda, 'jane-intro': leg_jane_intro,
-            'jane-jigsaw': leg_jane_jigsaw, 'telescope-use': leg_telescope_use}
+            'jane-jigsaw': leg_jane_jigsaw, 'telescope-use': leg_telescope_use,
+            'seedlings': leg_seedlings, 'crank-repair': leg_crank_repair}
     if leg not in legs:
         sys.exit(__doc__)
     print(legs[leg](save))
