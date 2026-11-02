@@ -553,5 +553,205 @@ class ColumnContinuationInputTests(unittest.TestCase):
                 self.assertLess(len(actual.split(';')) + 7, 512)
 
 
+class GhostRouteResultTests(unittest.TestCase):
+    # Handwritten compact observations from the accepted four-leg sequence.
+    prior = {1160, 1259, 1436, 1541, 1597, 1782, 1892, 1906, 1963, 1980,
+             1981, 1993, 1994, 1996, 2000, 2002, 2015, 2019, 2036, 2037, 2077, 2092}
+    nigel = {1573, 1677, 1682, 1692, 1701, 1823, 1985, 2069}
+    captures = ((2354, 2351, 1174), (2325, 2325, 1173), (2694, 2694, 1172),
+                (2693, 2693, 1171), (3432, 3432, 1163), (3433, 3433, 1164),
+                (3431, 3431, 1162), (2691, 2691, 1169), (3434, 3434, 1165),
+                (3435, 3435, 1166), (3436, 3436, 1167), (3437, 3437, 1168), (2692, 2692, 1170))
+    routes = ('nigel-computer', 'night-wait', 'goggles', 'ghost-hunt')
+
+    def setUp(self):
+        self.folder = tempfile.TemporaryDirectory()
+        self.addCleanup(self.folder.cleanup)
+
+    def frames(self, route):
+        number = self.routes.index(route) + 18
+        save = Path(self.folder.name) / ('m%d.SAV' % number)
+        save.write_bytes(bytes(170770))
+        prior = set(self.prior)
+        held = {}
+        if route == 'nigel-computer':
+            states = ((2626, 0), (2605, 15), (2605, 6), (4101, 0), (4112, 0),
+                      (1300, 0), (1304, 0), (1305, 0), (1306, 0), (1319, 0),
+                      (1307, 0), (1311, 0), (4112, 0), (4160, 0), (4165, 0),
+                      (4160, 0), (4111, 0), (4111, 0))
+            phases = {1573: 6, 1701: 8, 1677: 9, 1682: 11, 1692: 13, 2069: 13, 1823: 14, 1985: 14}
+        elif route == 'night-wait':
+            states = ((4111, 0),) * 3
+            prior |= self.nigel
+            phases = {}
+        elif route == 'goggles':
+            states = ((4111, 0), (4105, 10), (2605, 19), (3308, 0), (3471, 0),
+                      (3473, 0), (3369, 0), (3368, 0), (3473, 0), (2605, 5),
+                      (4111, 0), (4111, 0), (4111, 0), (4111, 0))
+            prior |= self.nigel
+            phases = {1893: 4, 1788: 6}
+            held = {11: 21}
+        else:
+            states = [(4111, 0), (4165, 0), (4111, 0)]
+            states += [(scene, 0) for first, second, _ in self.captures for scene in (first, second)]
+            states += [(4111, 0), (4178, 0), (4160, 0), (4111, 0), (4111, 0)]
+            prior |= self.nigel | {1788, 1893}
+            phases = {2063: 2, 1958: 28, 1947: 30}
+            phases.update({flag: 4 + 2 * i for i, (_, _, flag) in enumerate(self.captures)})
+        frames = []
+        for index, (scene, view) in enumerate(states):
+            flags = {f: 1 for f in prior}
+            flags.update({f: 1 for f, first in phases.items() if index >= first})
+            if route == 'ghost-hunt' and 2 <= index < 30:
+                flags.update({1192: 1, 2039: 1})
+            clock = (1, 12, 24) if route == 'nigel-computer' else (2, 1, 0)
+            if route == 'night-wait':
+                clock = (1, 12, 24) if index == 0 else (2, 0, 28 + index)
+            frames.append({'scene': scene, 'view': view, 'held': held.get(index, -1),
+                           'flags': flags, 'scope': '338-341,1000-2230', 'clock': clock})
+        return save, frames
+
+    def observed_log(self, save, frames):
+        log = ''
+        for index, frame in enumerate(frames):
+            day, hour, minute = frame['clock']
+            total = hour * 60 + minute
+            raw = dict(frame['flags'])
+            raw.update({338: (total & 65535) << 16,
+                        339: (total >> 16) | (minute << 16),
+                        340: (day << 16) | hour, 341: 123456 + index * 20})
+            log += ('  STATE requested_scene=%d art_scene=%d view=%d held_item=%d\n'
+                    '  RC_FLAGS %s\n  FLAGS %s\n' %
+                    (frame['scene'], frame['scene'], frame['view'], frame['held'], frame['scope'],
+                     ' '.join('%d=%d' % pair for pair in sorted(raw.items()) if pair[1])))
+        return log + ('  FILE open C:\\GAME\\Documents5\\The Curse of Blackmoor Manor\\%s  [virtual 15000000 ms]\n'
+                      'RESULT {"stopped":"stop requested <52a4c0"}\n' % save.name)
+
+    def test_accepts_four_coherent_legs_and_separates_clock_diagnostics(self):
+        for route in self.routes:
+            with self.subTest(route=route):
+                save, frames = self.frames(route)
+                result = checker.verify(self.observed_log(save, frames), save, route)
+                self.assertEqual((result['scene'], result['view']), (4111, 0))
+                self.assertFalse(set(range(338, 342)) & (set(result['flags_one']) | set(result['flags_zero'])))
+                if route != 'nigel-computer':
+                    self.assertEqual(result['clock_diagnostics']['day'], 2)
+                    self.assertLess(result['clock_diagnostics']['hour'], 4)
+                if route == 'ghost-hunt':
+                    self.assertTrue(set(range(1162, 1175)) <= set(result['flags_one']))
+
+    def test_requires_actual_goggles_instead_of_another_held_item(self):
+        save, frames = self.frames('goggles')
+        frames[11]['held'] = 11
+        with self.assertRaisesRegex(ValueError, 'ordered'):
+            checker.verify(self.observed_log(save, frames), save, 'goggles')
+
+    def test_rejects_preexisting_or_missing_original_progression(self):
+        for route, index, flag, value in (
+                ('nigel-computer', 0, 1985, 1), ('nigel-computer', 11, 1682, 0),
+                ('goggles', 0, 1893, 1), ('goggles', 6, 1788, 0),
+                ('ghost-hunt', 0, 1958, 1), ('ghost-hunt', 30, 1947, 0)):
+            with self.subTest(route=route, flag=flag):
+                save, frames = self.frames(route)
+                frames[index]['flags'][flag] = value
+                with self.assertRaisesRegex(ValueError, 'pre/post'):
+                    checker.verify(self.observed_log(save, frames), save, route)
+
+    def test_refuses_partial_hunt_despite_clean_reward_shaped_log(self):
+        for missing in ((1170,), (1170, 1171)):
+            with self.subTest(missing=missing):
+                save, frames = self.frames('ghost-hunt')
+                for frame in frames:
+                    for flag in missing:
+                        frame['flags'].pop(flag, None)
+                with self.assertRaisesRegex(ValueError, 'pre/post'):
+                    checker.verify(self.observed_log(save, frames), save, 'ghost-hunt')
+
+    def test_requires_failure_zero_and_original_timer_start_and_clear(self):
+        for route in self.routes:
+            with self.subTest(route=route, failure='failed'):
+                save, frames = self.frames(route)
+                frames[1]['flags'][2040] = 1
+                with self.assertRaisesRegex(ValueError, 'hunt failure'):
+                    checker.verify(self.observed_log(save, frames), save, route)
+        for index, flag, value in ((2, 2039, 0), (-1, 1192, 1)):
+            with self.subTest(index=index, flag=flag):
+                save, frames = self.frames('ghost-hunt')
+                frames[index]['flags'][flag] = value
+                with self.assertRaisesRegex(ValueError, 'hunt timer'):
+                    checker.verify(self.observed_log(save, frames), save, 'ghost-hunt')
+
+    def test_requires_failure_scope_and_retained_column_prerequisites(self):
+        for route in self.routes:
+            for failure in ('scope', 'retained'):
+                with self.subTest(route=route, failure=failure):
+                    save, frames = self.frames(route)
+                    if failure == 'scope':
+                        frames[-1]['scope'] = '338-341,1000-2039,2041-2230'
+                        reason = 'every required event'
+                    else:
+                        frames[0]['flags'][1994] = 0
+                        reason = 'prerequisite flag'
+                    with self.assertRaisesRegex(ValueError, reason):
+                        checker.verify(self.observed_log(save, frames), save, route)
+
+    def test_requires_observed_original_clock_and_night_transition(self):
+        for route in ('night-wait', 'goggles', 'ghost-hunt'):
+            for failure in ('scope', 'daylight'):
+                with self.subTest(route=route, failure=failure):
+                    save, frames = self.frames(route)
+                    if failure == 'scope':
+                        frames[-1]['scope'] = '1000-2230'
+                        reason = 'clock diagnostics'
+                    else:
+                        frames[-1]['clock'] = (2, 4, 0)
+                        reason = 'night gate'
+                    with self.assertRaisesRegex(ValueError, reason):
+                        checker.verify(self.observed_log(save, frames), save, route)
+        save, frames = self.frames('night-wait')
+        frames[0]['clock'] = (2, 0, 0)
+        with self.assertRaisesRegex(ValueError, 'day transition'):
+            checker.verify(self.observed_log(save, frames), save, 'night-wait')
+
+    def test_requires_scene_order_and_final_two_safe_observations(self):
+        for route, index in (('nigel-computer', 8), ('goggles', 6), ('ghost-hunt', 3)):
+            with self.subTest(route=route, failure='order'):
+                save, frames = self.frames(route)
+                frames[index], frames[index + 1] = frames[index + 1], frames[index]
+                with self.assertRaisesRegex(ValueError, 'ordered'):
+                    checker.verify(self.observed_log(save, frames), save, route)
+        for route in self.routes:
+            with self.subTest(route=route, failure='safe'):
+                save, frames = self.frames(route)
+                frames.insert(-2, dict(frames[-2]))
+                frames[-1]['held'] = 11
+                with self.assertRaisesRegex(ValueError, 'safe state'):
+                    checker.verify(self.observed_log(save, frames), save, route)
+
+
+class GhostRouteInputTests(unittest.TestCase):
+    def test_four_public_legs_reproduce_accepted_inputs_and_parameterize_saves(self):
+        import hashlib
+        spec = importlib.util.spec_from_file_location('ghost_story', MODULE.with_name('story_route.py'))
+        story = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(story)
+        for leg, name, digest, anchor, menu_at, save_at in (
+                (story.leg_nigel_computer, 'm18', '52c545579227030215cd10953a84f2984ffb8f211d6843f176970214fa9d3051',
+                 'S2626.CIF', 1124000, 1142000),
+                (story.leg_night_wait, 'm19', '41bbb3250aa75634704ba849e4ef0f2a6aa9c0f47bc57d71eab02c29748ad30e',
+                 'S4111.CIF', 14520000, 14538000),
+                (story.leg_goggles, 'm20', '8d58cb0b2d783007dadb99d0d5ffa085f8979b8dcb6ec4abacef09a06b30b6ec',
+                 'S4111.CIF', 306000, 324000),
+                (story.leg_ghost_hunt, 'm21', 'bd72dd8e706fe3c999704b892e826971edc75ecc87d220e520c58ff14097f33b',
+                 'S4172.CIF', 320000, 338000)):
+            with self.subTest(save=name):
+                actual = leg(save=name)
+                self.assertEqual(hashlib.sha256((actual + '\n').encode()).hexdigest(), digest)
+                expected = ';'.join([leg(), story.menu_to_save_screen(anchor, menu_at),
+                                      story.save_tail(anchor, save_at, 'ghost')])
+                self.assertEqual(leg(save='ghost'), expected)
+                self.assertLess(len(actual.split(';')) + 7, 512)
+
+
 if __name__ == '__main__':
     unittest.main()
