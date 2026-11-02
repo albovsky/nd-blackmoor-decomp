@@ -242,6 +242,11 @@ def run_window(an, order, S, T, query, frame=False, want_state=False, start=None
         escapes, esc_seen = [], set()
         arrival = None
         gen_state, hdr_in, hdr_back, done = {}, {}, {}, set()           # FL-73: loop invariants (tests/fl73_invariants.json) assumed at a generalised header, proved below
+        first_visit = set()                                             # FL-78 (round 9): the target is the only back edge of a loop (a `jne` to its own header): a run takes it for the first time with the header entered only from outside the loop, so the header is not generalised
+        if query[0] == 'dir':
+            for u, h in an.back:
+                if u == T and {x for x, hh in an.back if hh == h} == {T} and any(t == h and k == query[1] for k, t in an.blocks[T]['succ']):
+                    first_visit.add(h)
         preds, tag = {}, object()                                       # FL-78 review: the predecessors of each block (for the headers a run passed before a header), and the key of this window's invariant facts
         for node in order:
             items = incoming[node]
@@ -250,7 +255,7 @@ def run_window(an, order, S, T, query, frame=False, want_state=False, start=None
                 continue
             st = P.merge(items)
             ic[node] = z3.Or(*[c for c, _ in items]) if len(items) > 1 else items[0][0]
-            if node != S and node in an.loops and any(h == node and u in incoming for u, h in an.back):
+            if node != S and node in an.loops and node not in first_visit and any(h == node and u in incoming for u, h in an.back):
                 regs, mem, fs = an.loop_effects(node)         # a loop header with a back edge in the window: the state of any iteration
                 for r in P.FULL:
                     if r in regs:
@@ -262,7 +267,15 @@ def run_window(an, order, S, T, query, frame=False, want_state=False, start=None
                 st.fp = (None, None)                                                     # FL-78 (round 7): the loop may use the x87 unit, what the header state knew of st(0) and the status word is gone
                 if mem:
                     st.mem = P.fresh_array()
-                    st.frm = P.fresh_array('fr')
+                    fw = an.loop_frame_writes(node) if M.split and M.temps is None else None
+                    if fw is None:
+                        st.frm = P.fresh_array('fr')
+                    else:                                                                # FL-78 (round 9): under the frame assumption the loop writes only these locals; the other frame bytes keep their value
+                        arr = st.frm
+                        for disp, size in fw:
+                            for k in range(size):
+                                arr = z3.Store(arr, st.R['ebp'] + P.bv(disp + k, 32), P.fresh(8, 'fb'))
+                        st.frm = arr
                 if fs:
                     st.fs = P.fresh_array('fa')
                 if node in an.inv:

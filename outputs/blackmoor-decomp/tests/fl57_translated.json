@@ -1347,7 +1347,6 @@
   "body": 97,
   "callees": {
    "0x510dd3": 0,
-   "0x510f36": 0,
    "0x516650": 0
   },
   "directions": [
@@ -1355,9 +1354,7 @@
    2
   ],
   "fs": true,
-  "guessed_callee_pops": [
-   "0x510f36"
-  ],
+  "guessed_callee_pops": [],
   "imports": {},
   "instructions": [
    0,
@@ -1371,17 +1368,14 @@
   "assumed_x87_math": {},
   "body": 86,
   "callees": {
-   "0x510eda": 0,
-   "0x510f8c": 0
+   "0x510eda": 0
   },
   "directions": [
    0,
    2
   ],
   "fs": true,
-  "guessed_callee_pops": [
-   "0x510f8c"
-  ],
+  "guessed_callee_pops": [],
   "imports": {},
   "instructions": [
    0,
@@ -1954,9 +1948,8 @@
  },
  "0x513ccb": {
   "assumed_x87_math": {},
-  "body": 225,
+  "body": 42,
   "callees": {
-   "0x513bc0": 0,
    "0x513bd7": 0
   },
   "directions": [
@@ -1964,9 +1957,7 @@
    22
   ],
   "fs": false,
-  "guessed_callee_pops": [
-   "0x513be0"
-  ],
+  "guessed_callee_pops": [],
   "imports": {},
   "instructions": [
    0,

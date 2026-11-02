@@ -12,6 +12,7 @@ from pathlib import Path
 import struct
 import sys
 import unittest
+from unittest import mock
 
 sys.dont_write_bytecode = True
 HERE = Path(__file__).resolve().parent
@@ -236,8 +237,11 @@ class Invariants(unittest.TestCase):
         for atoms, verdict in (([], 'sat'), ([{'mem': COUNTER_SLOT, 'op': 'sge', 'val': 0}], 'unsat')):
             an, dom = Wn.from_analysis(counter_analysis(atoms))
             T = Wn.block_of(an, COUNTER_NEVER, True)
-            got = Wn.prove_target(an, dom, T, ('dir', 'taken'))[0]
+            with mock.patch.object(P.Analysis, 'loop_frame_writes', return_value=None):          # (a header that forgets the whole frame, as before round 9; with the bytes the loop does not write kept, [ebp-6] settles this jump without the invariant)
+                got = Wn.prove_target(an, dom, T, ('dir', 'taken'))[0]
             self.assertEqual(got == 'unsat', verdict == 'unsat', (atoms, got))
+        an, dom = Wn.from_analysis(counter_analysis([]))
+        self.assertEqual(Wn.prove_target(an, dom, Wn.block_of(an, COUNTER_NEVER, True), ('dir', 'taken'))[0], 'unsat')
 
     def test_the_window_proof_refuses_a_broken_invariant(self):
         import fl71_window as Wn
@@ -926,6 +930,39 @@ LIB4 = {
     'sd_call': (67, '5589e583ec208d45f08b4d088901837d10007429c745f0010000006a00e82100000083c404837df0017509b80100000089ec5dc3b80200000089ec5dc331c089ec5dc38b4424048908c3', {'target': 52, 'out': 61, 'g': 67}),
     'pe_loop': (59, '5589e583ec10837d0800751f6a05b801000000ff7500e82000000083c4045983f9057510b801000000c9c3c7450800000000ebccb802000000c9c38b442404c740d807000000c3', {'start': 0, 'again': 6, 'second': 43, 'bad': 52, 'f': 59}),
     'pe_loop_ok': (59, '5589e583ec10837d0800751f6a05b801000000ff7500e82000000083c4045983f9057510b801000000c9c3c7450800000000ebd2b802000000c9c38b442404c740d807000000c3', {'start': 0, 'again': 6, 'second': 43, 'bad': 52, 'f': 59}),
+    'pc_ok': (55, '5589e583ec40c645fd008d45fc8945f08b4d08c70105000000e8190000008b45f08a500180fa007507b801000000c9c3b802000000c9c3c38b442404c6400107c3c6400107c3', {'start': 0, 'bad': 48, 'f': 55, 'g': 56, 'cal': 65}),
+    'pc_add': (58, '5589e583ec40c645fd008d45fc8945f08b4d08c701050000008345f001e8180000008b45f08a1080fa007507b801000000c9c3b802000000c9c3c38b442404c6400107c3c6400107c3', {'start': 0, 'bad': 51, 'f': 58, 'g': 59, 'cal': 68}),
+    'pc_push': (61, '5589e583ec40c645fd008d45fc8945f08b4d08c70105000000ff75f0e81d00000083c4048b45f08a500180fa007507b801000000c9c3b802000000c9c3c38b442404c6400107c3c6400107c3', {'start': 0, 'bad': 54, 'f': 61, 'g': 62, 'cal': 71}),
+    'pc_copy': (57, '5589e583ec40c645fd008d45fc8945f08b4d08c70105000000e81b0000008b45f089c18a510180fa007507b801000000c9c3b802000000c9c3c38b442404c6400107c3c6400107c3', {'start': 0, 'bad': 50, 'f': 57, 'g': 58, 'cal': 67}),
+    'pc_stash': (68, '5589e583ec40c645fd008d45fc8945f08b4d08c701050000008b55088b45f089420452e81d00000083c4048b45f08a500180fa007507b801000000c9c3b802000000c9c3c38b4424048b4004c6400107c38b442404c6400107c3c6400107c3', {'start': 0, 'bad': 61, 'f': 68, 'h': 69, 'g': 81, 'cal': 90}),
+    'pc_call': (58, '5589e583ec40c645fd008d45fc8945f08b4d08c701050000008b45f0e8230000008b45f08a55fd80fa007507b801000000c9c3b802000000c9c3c38b442404c6400107c3c6400107c3', {'start': 0, 'bad': 51, 'f': 58, 'g': 59, 'cal': 68}),
+    'pc_lea': (57, '5589e583ec40c645fd008d45fc8945f08b4d08c70105000000e81b0000008b45f08d70018a1680fa007507b801000000c9c3b802000000c9c3c38b442404c6400107c3c6400107c3', {'start': 0, 'bad': 50, 'f': 57, 'g': 58, 'cal': 67}),
+    'pc_store': (74, '5589e583ec40c645fd008d45fc8945f08b4d08c70105000000e82c000000c745f0000000008b45088945f08d45fc8945f08b45f08a500180fa007507b801000000c9c3b802000000c9c3c38b442404c6400107c3c6400107c3', {'start': 0, 'bad': 67, 'f': 74, 'g': 75, 'cal': 84}),
+    'pc_byte': (59, '5589e583ec40c645fd008d45fc8945f08b4d08c70105000000c645f001e8190000008b45f08a500180fa007507b801000000c9c3b802000000c9c3c38b442404c6400107c3c6400107c3', {'start': 0, 'bad': 52, 'f': 59, 'g': 60, 'cal': 69}),
+    'pc_sub': (59, '5589e583ec40c645fd008d45fc8945f08b4d08c70105000000836df001e8190000008b45f08a500180fa007507b801000000c9c3b802000000c9c3c38b442404c6400107c3c6400107c3', {'start': 0, 'bad': 52, 'f': 59, 'g': 60, 'cal': 69}),
+    'pc_index': (62, '5589e583ec40c645fd008d45fc8945f08b4d08c701050000008b5d08894c9dd0e8190000008b45f08a500180fa007507b801000000c9c3b802000000c9c3c38b442404c6400107c3c6400107c3', {'start': 0, 'bad': 55, 'f': 62, 'g': 63, 'cal': 72}),
+    'pc_second': (62, '5589e583ec40c645fd008d45fc8945f08b4d08c701050000008d55e052e81d00000083c4048b45f08a500180fa007507b801000000c9c3b802000000c9c3c38b442404c6400107c3c6400107c3', {'start': 0, 'bad': 55, 'f': 62, 'g': 63, 'cal': 72}),
+    'pc_esp': (58, '5589e583ec40c645fd008d45fc8945f08b4d08c701050000008b1424e8190000008b45f08a500180fa007507b801000000c9c3b802000000c9c3c38b442404c6400107c3c6400107c3', {'start': 0, 'bad': 51, 'f': 58, 'g': 59, 'cal': 68}),
+    'pc_live': (59, '5589e583ec40c645fd008d45fc8945f08b4d08c7010500000050e81d00000083c4048b45f08a500180fa007507b801000000c9c3b802000000c9c3c38b442404c6400107c3c6400107c3', {'start': 0, 'bad': 52, 'f': 59, 'g': 60, 'cal': 69}),
+    'pc_later': (61, '5589e583ec40c645fd008d45fc8945f08b4d08c70105000000837d0c007405e8190000008b45f08a500180fa007507b801000000c9c3b802000000c9c3c38b442404c6400107c3c6400107c3', {'start': 0, 'later': 36, 'bad': 54, 'f': 61, 'g': 62, 'cal': 71}),
+    'pc_cond': (61, '5589e583ec40c645fd00837d0c0074068d45fc8945f08b4d08c70105000000e8190000008b45f08a500180fa007507b801000000c9c3b802000000c9c3c38b442404c6400107c3c6400107c3', {'start': 0, 'skip': 22, 'bad': 54, 'f': 61, 'g': 62, 'cal': 71}),
+    'pl_ok': (52, '5589e583ec40c645fd00c745ec000000008b4d08c60105ff45ec837dec057cf1807dfd007507b801000000c9c3b802000000c9c3c3', {'start': 0, 'top': 17, 'bad': 45, 'f': 52}),
+    'pl_wr': (50, '5589e583ec40c645fd00c745ec00000000c645fd01ff45ec837dec057cf3807dfd007507b801000000c9c3b802000000c9c3c3', {'start': 0, 'top': 17, 'bad': 43, 'f': 50}),
+    'pl_cellw': (65, '5589e583ec40c645fd00c745ec000000008d45fc8945f0807dfd00751d8b45f0c6400107ff45ec837dec057cea807dfd007507b801000000c9c3b802000000c9c3c3', {'start': 0, 'top': 23, 'bad': 58, 'f': 65}),
+    'pl_idx': (53, '5589e583ec40c645fd00c745ec000000008b5d08894c9dd0ff45ec837dec057cf3807dfd007507b801000000c9c3b802000000c9c3c3', {'start': 0, 'top': 20, 'bad': 46, 'f': 53}),
+    'pl_call': (51, '5589e583ec40c645fd00c745ec00000000e81d000000ff45ec837dec057cf2807dfd007507b801000000c9c3b802000000c9c3c3', {'start': 0, 'top': 17, 'bad': 44, 'f': 51}),
+    'pl_first': (28, '5589e583ec40c645fd00e80d000000807dfd0075f5b801000000c9c3c3', {'start': 0, 'top': 10, 'f': 28}),
+    'pl_first2': (40, '5589e583ec40c645fd00e819000000807dfd0075f5837d08007406c645fd01ebe9b801000000c9c3c3', {'start': 0, 'top': 10, 'out': 33, 'f': 40}),
+    'pc_win': (55, '5589e583ec208d45f08945fc8b4dfc837d0800740142c745f005000000c70107000000837df0057407b802000000c9c3b801000000c9c390', {'start': 0, 'J': 22, 'ok': 48}),
+    'ss_test': (62, '5589e583ec40c745e0414141418d55e0680010400052e82300000083c40885c074058a08803800817de0414141417507b801000000c9c3b802000000c9c38b442404c3', {'start': 0, 'none': 39, 'bad': 55, 'lib': 62}),
+    'ss_store': (56, '5589e583ec40c745e0414141418d55e0680010400052e81d00000083c408c60042817de0414141417507b801000000c9c3b802000000c9c38b442404c3', {'start': 0, 'bad': 49, 'lib': 56}),
+    'ss_rmw': (59, '5589e583ec40c745e0414141418d55e0680010400052e82000000083c40885c07402fe00817de0414141417507b801000000c9c3b802000000c9c38b442404c3', {'start': 0, 'none': 36, 'bad': 52, 'lib': 59}),
+    'ss_copy': (58, '5589e583ec40c745e0414141418d55e0680010400052e81f00000083c40889c1c60142817de0414141417507b801000000c9c3b802000000c9c38b442404c3', {'start': 0, 'bad': 51, 'lib': 58}),
+    'ss_push': (58, '5589e583ec40c745e0414141418d55e0680010400052e81f00000083c4085059c60142817de0414141417507b801000000c9c3b802000000c9c38b442404c3', {'start': 0, 'bad': 51, 'lib': 58}),
+    'pl_ebp': (50, '5589e583ec40c645fd00c745ec0000000089eb89ddff45ec837dec057cf3807dfd007507b801000000c9c3b802000000c9c3c3', {'start': 0, 'top': 17, 'bad': 43, 'f': 50}),
+    'pl_bts': (51, '5589e583ec40c645fd00c745ec000000000fba75f818ff45ec837dec057cf2807dfd007507b801000000c9c3b802000000c9c3c3', {'start': 0, 'top': 17, 'bad': 44, 'f': 51}),
+    'pl_bt': (51, '5589e583ec40c645fd00c745ec000000000fba65f818ff45ec837dec057cf2807dfd007507b801000000c9c3b802000000c9c3c3', {'start': 0, 'top': 17, 'bad': 44, 'f': 51}),
+    'pl_cx8': (50, '5589e583ec40c645fd00c745ec000000000fc74dd0ff45ec837dec057cf3807dfd007507b801000000c9c3b802000000c9c3c3', {'start': 0, 'top': 17, 'bad': 43, 'f': 50}),
 }
 
 
@@ -956,6 +993,17 @@ def win4(name, jcc='jne', kind='taken', nth=0):
     j = [i for i in an.insns if i.mnemonic == jcc][nth].address
     T = Wn.block_of(an, j, True)
     return Wn.prove_target(an, dom, T, ('dir', kind))[0], whole.direction(j, kind)[0], an
+
+
+def win_only(name, jcc='jne', kind='taken', nth=0):
+    """(window verdict, analysis) for the `nth` `jcc` of a LIB4 program (no whole-function run: some programs make it give up)"""
+    import fl71_window as Wn
+    body, hexcode, labels = LIB4[name]
+    img = bytes(image_of(bytes.fromhex(hexcode))) + bytes(64)
+    callees = {BASE + v: 0 for k, v in labels.items() if k in ('f', 'ro', 'lib', 'cal', 'g', 'pc', 'h')}
+    an, dom = Wn.from_analysis(P.Analysis({'va': BASE, 'body': body, 'callees': callees, 'imports': {}, 'sites': None}, img, 20000))
+    j = [i for i in an.insns if i.mnemonic == jcc][nth].address
+    return Wn.prove_target(an, dom, Wn.block_of(an, j, True), ('dir', kind))[0], an
 
 
 @unittest.skipUnless(HAVE_Z3, 'needs z3-solver, capstone')
@@ -1029,9 +1077,10 @@ class Fl78Review4(unittest.TestCase):
             self.assertEqual(P.pure_callee(img, BASE + L['pc']), want, name)
 
     def test_a_pure_callee_that_moves_esp_up_and_pushes_is_not_pure(self):
-        an, img, L = an4('pure_shrink')
-        jne = [i.address for i in an.insns if i.mnemonic == 'jne'][0]
-        self.assertEqual(an.direction(jne, 'taken')[0], 'sat')
+        with mock.patch.object(P, 'pointer_cell', return_value=None):          # (the stored `lea` is a pointer cell with no load since round 9: the frame assumption would then keep [ebp-0x30] across the call whether or not the callee is pure)
+            an, img, L = an4('pure_shrink')
+            jne = [i.address for i in an.insns if i.mnemonic == 'jne'][0]
+            self.assertEqual(an.direction(jne, 'taken')[0], 'sat')
 
     def test_bsf_and_bsr_read_their_destination(self):                                                  # MINOR c
         import capstone
@@ -1812,6 +1861,195 @@ class Fl78Circular(unittest.TestCase):
         an, dom = Wn.from_analysis(self.analysis([KEEP_ZERO]))
         with self.leaky():
             Wn.run_window(an, Wn.window(an, dom, BASE, T), BASE, T, ('ins', None), False)            # accepted without the change
+
+@unittest.skipUnless(HAVE_Z3, 'needs z3-solver, capstone')
+class Fl78Review5(unittest.TestCase):
+    """FL-78 round 9 (0x48f181): the pointer cell, the library function strstr, the loop header that forgets only the frame bytes the loop writes, the first visit of the only back edge."""
+
+    REFUSED = ('pc_push', 'pc_copy', 'pc_stash', 'pc_call', 'pc_lea', 'pc_store', 'pc_byte', 'pc_sub', 'pc_index', 'pc_second', 'pc_esp', 'pc_live')
+
+    def test_a_frame_address_that_only_goes_into_a_pointer_cell_keeps_the_frame_assumption(self):
+        # [ebp-3] is zeroed, a pointer to [ebp-4] is kept in the local [ebp-0x10], a store through an ordinary pointer and a call come, the byte is read through the pointer
+        for name in ('pc_ok', 'pc_add'):
+            win, whole, an = win4(name)
+            self.assertEqual((win, whole), ('unsat', 'unsat'), name)
+            self.assertTrue(an.M.split, name)
+            self.assertEqual(an.esc_addrs, [], name)
+            self.assertIn('pointer-cell-frame-address', an.assumptions(), name)
+            self.assertTrue(an.M.cell_ops, name)
+        # without the rule the lea is an escape, the frame assumption is off and the call or the store may change [ebp-3]
+        with mock.patch.object(P, 'pointer_cell', return_value=None):
+            win, whole, an = win4('pc_ok')
+            self.assertNotEqual((win, whole), ('unsat', 'unsat'))
+            self.assertFalse(an.M.split)
+
+    def test_every_other_use_of_the_cell_refuses_it(self):
+        # the cell pushed to a callee that writes through it, copied to another register, stored in the heap and written through there, held in a register across a call that writes through it, computed with (`lea`),
+        # written a second time, written as a byte, decremented, an indexed frame operand, a second frame address passed to a callee, an esp based operand: each leaves the lea an escape
+        for name in self.REFUSED:
+            win, an = win_only(name)
+            self.assertFalse(an.M.split, name)
+            self.assertEqual(an.M.cell_ops, set(), name)
+            self.assertNotEqual(win, 'unsat', name)
+            self.assertNotIn('pointer-cell-frame-address', an.assumptions(), name)
+
+    def test_a_cell_that_is_not_set_on_every_path_gives_up(self):
+        # the lea and the store are in a branch: on the other path the cell holds whatever the frame held, which is not a frame address
+        with self.assertRaisesRegex(P.Unsupported, 'pointer cell'):
+            win4('pc_cond')
+        import z3
+        s_esp, junk = z3.BitVec('s_esp', 32), z3.BitVec('h1', 32)
+        arr = z3.Array('s_frm', z3.BitVecSort(32), z3.BitVecSort(8))
+        self.assertTrue(P.pure_frame_term(s_esp - 4 + 2))
+        self.assertTrue(P.pure_frame_term(z3.If(z3.Bool('c'), s_esp, s_esp - 8)))
+        self.assertFalse(P.pure_frame_term(z3.If(z3.Bool('c'), s_esp, junk)))
+        self.assertFalse(P.pure_frame_term(z3.Concat(*[z3.Select(arr, s_esp + k) for k in reversed(range(4))])))
+        self.assertFalse(P.pure_frame_term(s_esp + junk))
+
+    def test_a_register_loaded_from_the_cell_is_only_an_address(self):
+        import capstone
+        md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
+        md.detail = True
+        ins = lambda hexcode: next(md.disasm(bytes.fromhex(hexcode), BASE))
+        self.assertTrue(P._addr_only(ins('8a5001'), 'eax'))              # mov dl, [eax+1]
+        self.assertTrue(P._addr_only(ins('c60005'), 'eax'))              # mov byte [eax], 5
+        self.assertTrue(P._addr_only(ins('3a10'), 'eax'))                # cmp dl, [eax]
+        self.assertFalse(P._addr_only(ins('8d7001'), 'eax'))             # lea esi, [eax+1]
+        self.assertTrue(P._addr_only(ins('8908'), 'eax'))                # mov [eax], ecx
+        self.assertFalse(P._addr_only(ins('8900'), 'eax'))               # mov [eax], eax stores the pointer
+        self.assertFalse(P._addr_only(ins('89c1'), 'eax'))               # mov ecx, eax
+        self.assertFalse(P._addr_only(ins('50'), 'eax'))                 # push eax
+        self.assertFalse(P._addr_only(ins('83f801'), 'eax'))             # cmp eax, 1
+        self.assertFalse(P._addr_only(ins('f3a4'), 'esi'))               # rep movsb reads esi implicitly
+        self.assertFalse(P._addr_only(ins('f7e1'), 'eax'))               # mul ecx reads eax
+
+    def test_strstr_is_a_listed_read_only_library_function(self):
+        self.assertEqual(P.LIBRARY_WRITERS[0x50d8e0], ('strstr', ()))
+        image = P.load_image()
+        if image is None:
+            self.skipTest('needs the pinned image')
+        import capstone
+        md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
+        md.detail = True
+        body = list(md.disasm(bytes(image[0x50d8e0 - P.IMAGE_BASE:0x50d960 - P.IMAGE_BASE]), 0x50d8e0))
+        self.assertTrue(any(i.mnemonic == 'ret' for i in body))
+        self.assertFalse(any(o.access & capstone.CS_AC_WRITE for i in body for o in i.operands if o.type == P.X.X86_OP_MEM))        # (it writes no memory)
+        self.assertFalse(any(i.mnemonic in ('push', 'call') and i.operands[0].type == P.X.X86_OP_MEM for i in body))
+        an = P.Analysis(P.row_of('0x48f181'), image, 1000)
+        self.assertTrue(an.M.split)
+        self.assertEqual(an.esc_addrs, [])
+        self.assertEqual({a for a in an.used if a.startswith('library-source')}, {'library-source:strstr'})
+
+    def test_a_loop_header_forgets_only_the_frame_bytes_the_loop_writes(self):
+        # the loop stores through an ordinary pointer and counts in [ebp-0x14]: [ebp-3] survives it
+        win, an = win_only('pl_ok')
+        self.assertEqual(win, 'unsat')
+        h = next(h for h in an.loops)
+        self.assertEqual(an.loop_frame_writes(h), [(-0x14, 4)])
+        # the loop writes [ebp-3] itself / through an indexed operand / through a register holding the cell / calls something: the byte is not known after it (or the window gives up)
+        self.assertEqual(win_only('pl_wr')[0], 'sat')
+        self.assertIsNone(win_only('pl_idx')[1].loop_frame_writes(next(iter(win_only('pl_idx')[1].loops))))
+        self.assertNotEqual(win_only('pl_idx')[0], 'unsat')
+        win, an = win_only('pl_cellw')
+        self.assertNotEqual(win, 'unsat')
+        self.assertIsNone(an.loop_frame_writes(next(iter(an.loops))))
+        self.assertTrue(an.cell_users)
+        self.assertNotEqual(win_only('pl_call')[0], 'unsat')
+        self.assertIsNone(win_only('pl_call')[1].loop_frame_writes(next(iter(win_only('pl_call')[1].loops))))
+        # without the selective header the whole frame is forgotten, as before
+        with mock.patch.object(P.Analysis, 'loop_frame_writes', return_value=None):
+            self.assertEqual(win_only('pl_ok')[0], 'sat')
+        # a store through the cell register that the rule did not see would be missed
+        with mock.patch.object(P.Analysis, 'loop_frame_writes', lambda self_, h: [(-0x14, 4)]):
+            self.assertEqual(win_only('pl_cellw')[0], 'unsat')                                       # (the regression the cell_users check prevents: [ebp-3] is written through the pointer)
+
+    def test_the_only_back_edge_asked_for_is_taken_for_the_first_time_with_the_header_entered_from_outside(self):
+        win, an = win_only('pl_first')                                    # `jne top` after a call: [ebp-3] is still zero the first time round
+        self.assertEqual(win, 'unsat')
+        # a second back edge that sets the byte makes a later round possible: the exemption does not apply
+        win, an = win_only('pl_first2')
+        self.assertEqual(win, 'sat')
+        # and it is only for the direction of that edge: the other direction of the same jump is a plain window
+        self.assertEqual(win_only('pl_first', kind='fall')[0], 'sat')
+
+
+
+@unittest.skipUnless(HAVE_Z3, 'needs z3-solver, capstone')
+class Fl78Review6(unittest.TestCase):
+    """FL-78 round 9 review: a window after the lea of a pointer cell, the result of strstr, a loop that writes ebp or sets a bit in memory, the cell register as a scaled or added index."""
+
+    STR = {'lib': ('strstr', ())}
+
+    def window_of(self, name, jcc, kind, nth, formers=None):
+        import fl71_window as Wn
+        body, hexcode, labels = LIB4[name]
+        img = bytes(image_of(bytes.fromhex(hexcode))) + bytes(64)
+        an, dom = Wn.from_analysis(P.Analysis({'va': BASE, 'body': body, 'callees': {}, 'imports': {}, 'sites': None}, img, 20000))
+        if formers is not None:
+            an.frame_formers = formers
+        j = [i for i in an.insns if i.mnemonic == jcc][nth].address
+        return Wn.prove_target(an, dom, Wn.block_of(an, j, True), ('dir', kind))[0], an
+
+    def test_a_window_that_starts_after_the_lea_of_a_pointer_cell_has_no_frame_assumption(self):          # MAJOR 1
+        # `mov ecx, [cell]` is in front of the branch, the store through ecx is after it: [ebp-0x10] is 7 whenever the window starts there
+        win, whole, an = win4('pc_win', jcc='je', kind='fall', nth=1)
+        self.assertEqual((win, whole), ('sat', 'sat'))
+        self.assertEqual(an.esc_addrs, [])                                    # (the cell rule applies: the whole function keeps the frame assumption)
+        self.assertEqual(len(an.frame_formers), 1)
+        # the frame pass of a window is for windows that no lea can have run in front of: without the lea in frame_formers the window wrongly rules the direction out
+        self.assertEqual(self.window_of('pc_win', 'je', 'fall', 1, formers=[])[0], 'unsat')
+        # a window in front of the lea still has it (pc_ok: the window starts at the entry)
+        win, whole, an = win4('pc_ok')
+        self.assertEqual((win, whole), ('unsat', 'unsat'))
+
+    def test_the_result_of_strstr_is_a_pointer_into_the_buffer(self):          # MAJOR 2
+        an, img, L = an4('ss_test', writers=self.STR)                          # eax is tested, read through and compared: the buffer is only read
+        self.assertTrue(an.M.split)
+        self.assertEqual(an.esc_addrs, [])
+        self.assertIn('library-source:strstr', an.assumptions())
+        jne = [i.address for i in an.insns if i.mnemonic == 'jne'][0]
+        self.assertEqual(an.direction(jne, 'taken')[0], 'unsat')
+        for name in ('ss_store', 'ss_rmw', 'ss_push', 'ss_copy'):              # a store through it, a read-modify-write, a push, a copy: the lea is an escape and the buffer may change
+            an, img, L = an4(name, writers=self.STR)
+            self.assertFalse(an.M.split, name)
+            self.assertEqual(len(an.esc_addrs), 1, name)
+            jne = [i.address for i in an.insns if i.mnemonic == 'jne'][0]
+            self.assertEqual(an.direction(jne, 'taken')[0], 'sat', name)
+        # without the rule the store goes to ordinary memory and the direction is wrongly ruled out
+        with mock.patch.object(P, 'LIBRARY_POINTS_INTO_ARGUMENT', frozenset()):
+            an, img, L = an4('ss_store', writers=self.STR)
+            self.assertTrue(an.M.split)
+            jne = [i.address for i in an.insns if i.mnemonic == 'jne'][0]
+            self.assertEqual(an.direction(jne, 'taken')[0], 'unsat')
+        # a read-only callee that passes the pointer on to strstr could return the result: not accepted
+        self.assertIn('strstr', P.LIBRARY_POINTS_INTO_ARGUMENT)
+
+    def loop_writes(self, name):
+        import fl71_window as Wn
+        body, hexcode, labels = LIB4[name]
+        img = bytes(image_of(bytes.fromhex(hexcode))) + bytes(64)
+        an, dom = Wn.from_analysis(P.Analysis({'va': BASE, 'body': body, 'callees': {}, 'imports': {}, 'sites': None}, img, 20000))
+        return an.loop_frame_writes(next(iter(an.loops)))
+
+    def test_a_loop_that_writes_ebp_or_sets_a_bit_in_memory_forgets_the_whole_frame(self):          # MINOR 1, 2
+        self.assertEqual(self.loop_writes('pl_bt'), [(-0x14, 4)])                # (bt only reads: still accepted)
+        self.assertIsNone(self.loop_writes('pl_ebp'))                            # mov ebp, ebx
+        self.assertIsNone(self.loop_writes('pl_bts'))                            # btr dword [ebp-8], 24
+        self.assertIsNone(self.loop_writes('pl_cx8'))                            # cmpxchg8b [ebp-0x30]
+
+    def test_the_cell_register_is_not_a_scaled_index_or_added_to_a_base(self):          # MINOR 3
+        import capstone
+        md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
+        md.detail = True
+        ins = lambda hexcode: next(md.disasm(bytes.fromhex(hexcode), BASE))
+        self.assertFalse(P._addr_only(ins('8a144500000000'), 'eax'))            # mov dl, [eax*2]
+        self.assertTrue(P._addr_only(ins('8a140500000000'), 'eax'))             # mov dl, [eax*1]: the address it holds
+        self.assertTrue(P._addr_only(ins('8a5010'), 'eax'))                     # mov dl, [eax+0x10]
+        self.assertFalse(P._addr_only(ins('8a1408'), 'ecx'))                    # mov dl, [eax+ecx]: ecx added to another base
+        self.assertTrue(P._addr_only(ins('8a1408'), 'eax'))                     # (eax as the base, ecx an ordinary index)
+        self.assertFalse(P._addr_only(ins('8a1441'), 'eax'))                    # mov dl, [ecx+eax*2]
+        self.assertTrue(P._addr_only(ins('8a1441'), 'ecx'))
+        self.assertTrue(P._addr_only(ins('8a1488'), 'eax'))                     # mov dl, [eax+ecx*4]
 
 
 if __name__ == '__main__':

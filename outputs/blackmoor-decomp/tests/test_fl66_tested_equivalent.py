@@ -122,6 +122,35 @@ class Replay(unittest.TestCase):
         bad = text.replace(jump, jump.replace('0x51aaf7u', '0x51a8d3u'))          # the translation jumps to another callee
         self.assertEqual(T.check_row(key, scenarios=[(1, [])], lib=lib_of(bad))['status'], 'mismatch')
 
+    def test_a_call_to_the_next_instruction_only_pushes_the_address(self):
+        """FL-78: `call 0x510f8c` at 0x510f87 (an SEH epilog idiom, the target is the next instruction) is a push of 0x510f8c, not a call to a stub: as a stub it plays the `jmp` at 0x510f8c twice and the run
+        returns into garbage (the original faulted on every scenario of 0x510eda and 0x510f3b). The lifter lists no callee there, the committed table agrees, the rows run, and the old table (with the stub) faults."""
+        import lift_fl41 as L
+        for key, nxt, size in (('0x510f3b', 0x510f8c, 86), ('0x510eda', 0x510f36, 97)):
+            pool = T.pool_of(key)
+            table = T.pool_table(pool)[key]
+            self.assertEqual(table['body'], size, key)
+            was = L.BULK
+            L.BULK = True
+            try:
+                text, callees, _, _, _ = L.lift(int(key, 16), table['body'])
+            finally:
+                L.BULK = was
+            self.assertNotIn(nxt, callees, key)
+            self.assertNotIn('FL41_CALL(0x%xu)' % nxt, text, key)
+            self.assertIn('esp -= 4u; WR32(esp, 0x%xu);' % nxt, text, key)
+            self.assertNotIn(hex(nxt), table['callees'], key)
+            W, _ = T.world(T.POOLS[pool]['world'])
+            row = T.row_info(pool, key)
+            self.assertIsNone(W.run_original(row, 0, []).fault, key)
+            old = dict(table, callees=dict(table['callees'], **{hex(nxt): 0}))
+            was_table = T.pool_table
+            T.pool_table = lambda name, old=old, key=key, was_table=was_table: dict(was_table(name), **{key: old})
+            try:
+                self.assertIsNotNone(W.run_original(T.row_info(pool, key), 0, []).fault, key)
+            finally:
+                T.pool_table = was_table
+
 
 if __name__ == '__main__':
     unittest.main()

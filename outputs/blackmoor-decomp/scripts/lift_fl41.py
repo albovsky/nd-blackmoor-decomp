@@ -752,6 +752,9 @@ def lift_one(c, i):
                 return indirect_call(c, i, ops[0])                 # FL-55b: a call through a register or a memory operand
             raise Unsupported("indirect call at 0x%x" % a)
         t = ops[0].imm
+        if t == a + i.size:                                        # FL-78: `call` to the next instruction (`call $+5`, an SEH epilog idiom) only pushes the address of the next instruction: no callee runs
+            e("esp -= 4u; WR32(esp, 0x%xu);" % (a + i.size))
+            return
         if t == c.va and not BULK:
             raise Unsupported("recursive call at 0x%x" % a)
         if t in INLINE_CALLEES:
