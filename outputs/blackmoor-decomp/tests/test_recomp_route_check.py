@@ -1460,5 +1460,119 @@ class WordPrerequisiteInputTests(unittest.TestCase):
                 self.assertIn('key:88', typed)
 
 
+class ReplacementWordLockTests(unittest.TestCase):
+    prior = WordPrerequisiteRouteTests.prior | {1514, 1818, 1836, 2232, 1569, 1467,
+                                               1525, 1526, 1465, 1476, 1774}
+    opens = {
+        'light-depletion': (2910, 3175, 3180, 3181, 2942, 3058, 2903, 3326, 3334, 3335),
+        'paid-light-request': (3345, 3346, 3500, 3505, 3510, 1200, 1282, 1281, 3585, 3513, 3522, 3510),
+        'repeat-glyph-win': (3588, 1299, 1295, 1949, 3510),
+        'word-lock': (2910, 2942, 4375, 4389, 4376, 4377, 4378, 4379, 4380, 4387),
+    }
+    setUp = PostKeyRouteTests.setUp
+    observed_log = PostKeyRouteTests.observed_log
+
+    def frames(self, route):
+        states = {
+            'light-depletion': ((3335, 0), (3332, 0), (3342, 0), (3343, 0), (2910, 0), (3175, 0),
+                                (2912, 0), (2933, 0), (2933, 0), (2942, 0), (3058, 0), (3326, 0), (3335, 0), (3335, 0)),
+            'paid-light-request': ((3335, 0), (3335, 0), (3335, 0), (3345, 0), (3346, 0), (3505, 0),
+                                   (3510, 4), (1200, 0), (3585, 0), (3513, 0), (3510, 4), (3510, 4)),
+            'repeat-glyph-win': ((3510, 4), (3588, 0), (1295, 0), (1949, 0), (3510, 4), (3510, 4), (3510, 4)),
+            'word-lock': ((3510, 4), (3332, 0), (3342, 0), (3343, 0), (2910, 0), (2942, 0), (4376, 0),
+                          (4377, 0), (4378, 0), (4379, 0), (4380, 0), (4387, 0), (4387, 0)),
+        }[route]
+        number = {'light-depletion': 36, 'paid-light-request': 37, 'repeat-glyph-win': 38, 'word-lock': 39}[route]
+        save = Path(self.folder.name) / ('m%d.SAV' % number)
+        save.write_bytes(bytes(170770))
+        held = {'light-depletion': {4: 4, 5: 4, 6: 4, 7: 4}, 'paid-light-request': {1: 5},
+                'repeat-glyph-win': {4: 4}, 'word-lock': {4: 4, 5: 4}}[route]
+        frames = []
+        for i, (scene, view) in enumerate(states):
+            flags = {f: 1 for f in self.prior}
+            if route == 'light-depletion':
+                flags.update({1809: int(i >= 5), 2041: int(i < 6), 2042: int(6 <= i < 8)})
+                minutes = 8*60 + 59 + i
+            elif route == 'paid-light-request':
+                flags.update({1809: 1, 1418: int(i >= 8)})
+                minutes = 9*60 + 22 if i == 0 else 14*60 + 23 + i
+            elif route == 'repeat-glyph-win':
+                flags.update({1418: int(i < 3), 1809: int(i < 3)})
+                minutes = 14*60 + 38 + i
+            else:
+                phases = {2041: 4, 1984: 7, 1967: 8, 1966: 9, 1977: 10, 2018: 11, 1979: 11}
+                flags.update({f: int(i >= phase) for f, phase in phases.items()})
+                minutes = 14*60 + 59 + i
+            frames.append({'scene': scene, 'art': scene, 'view': view, 'held': held.get(i, -1),
+                           'flags': flags, 'scope': '338-341,1000-2250', 'clock': (3, minutes//60, minutes%60)})
+        return save, frames
+
+    def test_accepts_depletion_paid_used5_fresh_repeat_and_all_five_word_stages(self):
+        for route in self.opens:
+            with self.subTest(route=route):
+                save, frames = self.frames(route)
+                result = checker.verify(self.observed_log(route, save, frames), save, route)
+                self.assertEqual(result['word_lock_won'], route == 'word-lock')
+                self.assertIn(2001, result['flags_one'])
+                if route == 'word-lock':
+                    self.assertTrue({1984, 1967, 1966, 1977, 2018, 1979} <= set(result['flags_one']))
+                    self.assertIn(1972, result['flags_zero'])
+
+    def test_refuses_false_phase_item_stage_extra_failure_missing_win_open_and_finish(self):
+        cases = (('light-depletion', 0, 'flag', 1809, 1), ('light-depletion', 6, 'flag', 2042, 0),
+                 ('light-depletion', 8, 'held', 0, 4), ('paid-light-request', 1, 'held', 0, -1),
+                 ('paid-light-request', 7, 'flag', 1418, 1), ('repeat-glyph-win', 2, 'flag', 1809, 0),
+                 ('repeat-glyph-win', 4, 'held', 0, 5), ('word-lock', 8, 'flag', 1984, 0),
+                 ('word-lock', 11, 'flag', 1979, 0), ('word-lock', 6, 'art', 0, 4389))
+        for route, index, field, flag, value in cases:
+            with self.subTest(route=route, index=index, field=field, flag=flag):
+                save, frames = self.frames(route)
+                if field == 'flag':
+                    frames[index]['flags'][flag] = value
+                else:
+                    frames[index][field] = value
+                with self.assertRaises(ValueError):
+                    checker.verify(self.observed_log(route, save, frames), save, route)
+        for failure in ('extra', 'scope', 'win_open', 'source_clock', 'finish'):
+            route = 'word-lock' if failure in ('extra', 'scope') else 'repeat-glyph-win'
+            save, frames = self.frames(route)
+            opened = self.opens[route]
+            if failure in ('extra', 'scope'):
+                extra = dict(frames[0], scene=9998, art=9998, flags=dict(frames[0]['flags']))
+                if failure == 'extra':
+                    extra['flags'][1972] = 1
+                else:
+                    extra['scope'] = '338-341,1000-1971,1973-2250'
+                frames.insert(1, extra)
+            elif failure == 'win_open':
+                opened = (3588, 1295, 1949, 3510)
+            elif failure == 'source_clock':
+                frames[0]['clock'] = (3, 13, 38)
+            log = self.observed_log(route, save, frames, opened)
+            if failure == 'finish':
+                log = log.replace('stop requested', 'message loop idle')
+            with self.subTest(failure=failure), self.assertRaises(ValueError):
+                checker.verify(log, save, route)
+
+    def test_exact_input_fragments_87_wheel_clicks_and_name_only_save_tail(self):
+        import hashlib
+        spec = importlib.util.spec_from_file_location('word_lock_story', MODULE.with_name('story_route.py'))
+        story = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(story)
+        expected = (('light_depletion', 'm36', 238, 'b0274d785d13d95e1141120e6ec79ec956c1d3aca36ce869e55f1811e66f72c1'),
+                    ('paid_light_request', 'm37', 98, 'ac5dc7bf051928d1317e78d6d7fe23dd38f0e683846f5d9b3850522a9c595060'),
+                    ('word_lock', 'm39', 365, '740200c1bc5483eaf5efadb82197e03d8eecbb5a2ed0f3c918d129f5289115b7'))
+        for name, save, count, digest in expected:
+            leg = getattr(story, 'leg_' + name)
+            payload = leg(save)
+            self.assertEqual(hashlib.sha256(payload.encode()).hexdigest(), digest)
+            self.assertEqual(len(payload.split(';')), count)
+            self.assertLessEqual(count + 7, 512)
+            self.assertTrue(payload.startswith(leg() + ';'))
+            self.assertIn(':key:88', leg(save + 'x'))
+        wheels = [event for event in story.leg_word_lock().split(';') if ':click:' in event and ',271,600' in event]
+        self.assertEqual(len(wheels), 87)
+
+
 if __name__ == '__main__':
     unittest.main()
