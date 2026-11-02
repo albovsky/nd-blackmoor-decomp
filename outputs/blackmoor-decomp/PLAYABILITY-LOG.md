@@ -78,4 +78,4 @@ Original game files and reserved ledger/evidence outputs are unchanged. Neither 
 
 - 2026-11-01, 23:29 Pacific, Mac frontend: add asynchronous offline PCM16 WAV capture and orderly mixer/capture shutdown. Fix final-frame drain race;6 device-free tests pass and signed ARM64 app builds. No app/game capture has run yet. Next app slice: background startup and bounded native input/frame checks; current headless gameplay through m10 remains verified.
 
-- Audio review found a normal Cmd-Q path that bypassed capture cleanup. The retained app delegate now routes Quit through controlled main shutdown; signed ARM64 rebuild passes. Restore prior silent-clock cadence and add bounded failure reporting. Follow-up review pending; actual app launch remains deferred to background mode.
+- Audio review found a normal Cmd-Q path that bypassed capture cleanup. The retained app delegate now routes Quit through controlled main shutdown; signed ARM64 rebuild passes. Restore prior silent-clock cadence and add bounded failure reporting. Follow-up review accepts17d2fdda with no P1 or blocking P2; actual app/Cmd-Q launch checks remain the next background slice’s acceptance gate.

@@ -25,7 +25,7 @@ ARM64 bundle builds and signs (`audio-capture-app-build.log`), with executable S
 Source pins:
 - `recomp/audio_capture.cpp`: `59dcb9852d92ce10b47c3ee7265555f665758f932ca43fbfcbc6d33bce1212f8`
 - `recomp/audio_capture.h`: `b4a5c8faa825ad9798c4bbce022a9e8cf8d26764ad70b1851b0db34827fa788f`
-- `recomp/macos_recomp.mm`: `a3a41e5bfdca100ec392cb444890b3896877c775c644438a8527f34bc4492875`
+- `recomp/macos_recomp.mm`: `3e578592254dc85ecd42eaba6256cd40878a126b2d10b6a0f460f6162a49ba1f`
 - `recomp/build_macos.sh`: `2f806cd3305912e3edaa67c4913d9e3b9dd54becf0fd2c40e54b6f1e5a81d21f`
 - `tests/recomp_audio_capture_fixture.cpp`: `6d600118576051a099a8d3f24389e56f584055899af0cd76ca54a976e4181233`
 - `tests/test_recomp_audio_capture.py`: `3056a09d2a5b588cae8275fba8a93ef45138d4f1f81c51a5f61181bd1dd60752`
@@ -37,3 +37,5 @@ A retained NSApplicationDelegate now intercepts normal Quit, cancels immediate A
 The original10ms-after-render silent-clock cadence is restored, avoiding catch-up bursts after stalls. A main-thread tick reports the first capture rejection without file I/O on the producer. A5-second shutdown watchdog bounds a stuck game/producer/filesystem path and returns failure5; that path may leave an unfinalized capture and is not claimed clean. The watchdog is not exercised with deliberate stalls/faults.
 
 Coverage gaps: actual app/audio callbacks and Cmd-Q have not run; continuous overlapping ring streaming,4GiB limit, short writes, disk/flush/truncate/header failures and combined errors have only static review. A filesystem failure can zero-fill or leave an incomplete tail despite a rewritten header; captures with failure status are not trustworthy audio evidence. Six synthetic queue tests remain the runtime evidence. Original game PCM, timing and hardware remain unverified.
+
+Final static follow-up accepts17d2fdda with no P1 or blocking P2 (`audio-followup-review.txt`). Cmd-Q bypass is resolved by design; actual quiet app/Cmd-Q execution is the first gate of the next background slice. The watchdog covers run-loop return through fclose, not subsequent global destructors/atexit, and communicates only exit status5. Status precedence is5 over4 over0. A non-polling guest can delay Quit for up to3s before forced failure. NSTerminateCancel may cancel a system logout request before the app exits; normal Quit is the supported path, with logout coordination unverified. The final source change after review only clarifies a comment; compiled behavior is unchanged.

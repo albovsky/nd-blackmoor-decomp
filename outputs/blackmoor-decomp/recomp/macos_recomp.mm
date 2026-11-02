@@ -436,7 +436,7 @@ int main(int argc, char **argv)
         bool capture_ok = stop_audio();
         if (g.game_thread_started && !g.game_done.load(std::memory_order_acquire)) {
             // The game is inside a long loop that does not poll for the stop request.
-            // Its capture has been finalized, but this is not a clean game exit.
+            // Capture finalization was attempted; this is not a clean game exit.
             if (g.log) fflush(g.log);
             _exit(5);
         }
