@@ -49,5 +49,43 @@ class RouteResultTests(unittest.TestCase):
             checker.verify(self.log, self.save)
 
 
+class JaneJigsawResultTests(unittest.TestCase):
+    def setUp(self):
+        self.folder = tempfile.TemporaryDirectory()
+        self.addCleanup(self.folder.cleanup)
+        self.save = Path(self.folder.name) / 'm9.SAV'
+        self.save.write_bytes(bytes(170770))
+        self.log = '\n'.join(
+            '  STATE requested_scene=%d art_scene=%d view=%d held_item=-1\n'
+            '  RC_FLAGS 1309,1424,1567,1570,1905-1906,1980,1993,2036-2037\n'
+            '  FLAGS 1424=1 1567=1 1570=1 1905=1 1993=1%s' %
+            (scene, scene, view, ' 1980=1' if scene != 3575 else '')
+            for scene, view in ((3575, 0), (1234, 0), (3510, 4)))
+        self.log += '\n  FILE open C:\\GAME\\Documents5\\The Curse of Blackmoor Manor\\m9.SAV  [virtual 650000 ms]\n'
+        self.log += 'RESULT {"stopped":"stop requested <52a4c0"}\n'
+
+    def test_accepts_observed_jigsaw_win_and_room_checkpoint(self):
+        result = checker.verify(self.log, self.save, route='jane-jigsaw')
+        self.assertEqual((result['scene'], result['view']), (3510, 4))
+        self.assertIn(1980, result['flags_one'])
+        self.assertFalse(result['telescope_complete'])
+
+    def test_refuses_room_return_without_loan_win_flag(self):
+        with self.assertRaisesRegex(ValueError, 'prerequisite flag'):
+            checker.verify(self.log.replace(' 1980=1', ''), self.save,
+                           route='jane-jigsaw')
+
+    def test_refuses_checkpoint_while_still_in_conversation(self):
+        with self.assertRaisesRegex(ValueError, 'ordered'):
+            checker.verify(self.log.replace('requested_scene=3510',
+                                            'requested_scene=1234'), self.save,
+                           route='jane-jigsaw')
+
+    def test_refuses_a_preexisting_loan_win(self):
+        with self.assertRaisesRegex(ValueError, 'before the loan win'):
+            checker.verify(self.log.replace('1993=1', '1993=1 1980=1', 1),
+                           self.save, route='jane-jigsaw')
+
+
 if __name__ == '__main__':
     unittest.main()
