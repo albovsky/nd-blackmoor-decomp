@@ -55,6 +55,12 @@ class RecompThreadTests(unittest.TestCase):
     def test_real_clock_sleep_callback_releases_guest_execution_token(self):
         self.run_fixture('real-sleep')
 
+    def test_real_clock_exit_code_sleep_zero_poll_allows_sleeping_worker_to_stop(self):
+        self.run_fixture('real-sleep-stop-poll')
+
+    def test_real_clock_worker_suspended_during_sleep_waits_for_resume(self):
+        self.run_fixture('real-sleep-suspended')
+
     def test_shutdown_unwinds_blocked_and_suspended_workers_and_clears_handles(self):
         self.run_fixture('shutdown')
 

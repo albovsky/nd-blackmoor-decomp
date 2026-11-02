@@ -76,7 +76,7 @@ void rc_threads_sleep(uint32_t ms)
     platform_sleep(ms);
     pthread_mutex_lock(&token);
     current->sleeping = 0;
-    if (!owner) owner = current;
+    if (!owner && (!current->suspends || stopping)) owner = current;
     pthread_cond_broadcast(&changed);
     while (owner != current) pthread_cond_wait(&changed, &token);
     rc_context_restore(current->context);
@@ -93,6 +93,23 @@ void rc_threads_yield(void)
     rc_context_save(current->context);
     RcGuestThread *next;
     while (!(next = next_runnable(current))) pthread_cond_wait(&changed, &token);
+    if (next == current) {
+        int sleeper = 0;
+        for (RcGuestThread *p = threads; p; p = p->next)
+            if (p != current && !p->finished && p->sleeping) sleeper = 1;
+        if (sleeper) {
+            /* A sleeper needs the mutex to become runnable. Sleep(0), idle
+             * polling and critical-section contention must not monopolize it
+             * just because the current guest is the only eligible one now. */
+            struct timespec deadline;
+            clock_gettime(CLOCK_REALTIME, &deadline);
+            deadline.tv_nsec += 1000000L;
+            if (deadline.tv_nsec >= 1000000000L) { deadline.tv_sec++; deadline.tv_nsec -= 1000000000L; }
+            pthread_cond_timedwait(&changed, &token, &deadline);
+            next = next_runnable(current);
+            while (!next) { pthread_cond_wait(&changed, &token); next = next_runnable(current); }
+        }
+    }
     owner = next;
     pthread_cond_broadcast(&changed);
     while (owner != current) pthread_cond_wait(&changed, &token);

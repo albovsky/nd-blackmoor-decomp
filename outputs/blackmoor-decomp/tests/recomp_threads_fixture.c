@@ -1,6 +1,7 @@
 /* Guest-thread integration fixtures. These are small lifted-style callbacks,
  * not translated game code; all imports and scheduling use the actual host. */
 #include <stdint.h>
+#include <errno.h>
 #include <pthread.h>
 #include <stdatomic.h>
 #include <stdio.h>
@@ -521,6 +522,182 @@ static void real_sleep_parent(Fl41Regs *r, const Fl41Host *h)
     finish(r, entry_sp, 0, 0);
 }
 
+static struct timespec native_deadline(unsigned milliseconds)
+{
+    struct timespec deadline;
+    CHECK(timespec_get(&deadline, TIME_UTC) == TIME_UTC);
+    deadline.tv_sec += milliseconds / 1000u;
+    deadline.tv_nsec += (long)(milliseconds % 1000u) * 1000000L;
+    if (deadline.tv_nsec >= 1000000000L) {
+        deadline.tv_sec++;
+        deadline.tv_nsec -= 1000000000L;
+    }
+    return deadline;
+}
+
+static void check_before_deadline(const struct timespec *deadline)
+{
+    struct timespec now;
+    CHECK(timespec_get(&now, TIME_UTC) == TIME_UTC);
+    CHECK(now.tv_sec < deadline->tv_sec ||
+          (now.tv_sec == deadline->tv_sec && now.tv_nsec < deadline->tv_nsec));
+}
+
+/* The original CThread stop path sets a flag, then polls ExitCode/Sleep(0).
+ * Keep the worker inside platform_sleep until the flag has been set: a sole
+ * runnable poller must release the token so that sleeper can become runnable. */
+static unsigned stop_sleep_entered, stop_sleep_release, stop_sleep_progress;
+static uint32_t stop_sleep_stop;
+
+static void stop_poll_sleep(void *user, uint32_t milliseconds)
+{
+    (void)user;
+    CHECK(milliseconds == 1 && !rc_thread_is_main());
+    CHECK(pthread_mutex_lock(&sleep_lock) == 0);
+    CHECK(stop_sleep_entered == 0);
+    stop_sleep_entered = 1;
+    CHECK(pthread_cond_broadcast(&sleep_changed) == 0);
+    struct timespec deadline = native_deadline(5000);
+    while (!stop_sleep_release)
+        CHECK(pthread_cond_timedwait(&sleep_changed, &sleep_lock, &deadline) == 0);
+    atomic_fetch_add(&fake_now, milliseconds);
+    CHECK(pthread_mutex_unlock(&sleep_lock) == 0);
+}
+
+static void stop_poll_worker(Fl41Regs *r, const Fl41Host *h)
+{
+    (void)h;
+    uint32_t entry_sp = r->esp;
+    r->esp -= 0x200u;
+    do {
+        API(r, SLEEP, 1);
+        stop_sleep_progress++;
+    } while (!stop_sleep_stop);
+    finish(r, entry_sp, 0, 1);
+}
+
+static void stop_poll_parent(Fl41Regs *r, const Fl41Host *h)
+{
+    (void)h;
+    uint32_t entry_sp = r->esp;
+    r->esp -= 0x200u;
+    CHECK(!rc_clock_is_virtual());
+    uint32_t worker = thread(r, WORKER_VA, 0, 0, r->esp + 0x80u);
+    /* Sleep(1) first yields once before it enters platform_sleep. */
+    API(r, SLEEP, 0);
+    API(r, SLEEP, 0);
+    CHECK(pthread_mutex_lock(&sleep_lock) == 0);
+    struct timespec deadline = native_deadline(5000);
+    while (!stop_sleep_entered)
+        CHECK(pthread_cond_timedwait(&sleep_changed, &sleep_lock, &deadline) == 0);
+    CHECK(stop_sleep_progress == 0);
+    stop_sleep_stop = 1;
+    stop_sleep_release = 1;
+    CHECK(pthread_cond_broadcast(&sleep_changed) == 0);
+    CHECK(pthread_mutex_unlock(&sleep_lock) == 0);
+
+    deadline = native_deadline(5000);
+    unsigned polls = 0;
+    uint32_t code;
+    while ((code = exit_code(r, worker)) == STILL_ACTIVE) {
+        check_before_deadline(&deadline);
+        polls++;
+        API(r, SLEEP, 0);
+    }
+    CHECK(polls > 0 && code == 0 && stop_sleep_progress == 1);
+    close_handle(r, worker);
+    finish(r, entry_sp, 0, 0);
+}
+
+/* Suspend a worker already in platform_sleep, then sleep the parent too.
+ * The worker's callback returns while neither guest is runnable. It must stay
+ * before the guest instruction after Sleep until the parent's ResumeThread. */
+static unsigned suspended_sleep_entered, suspended_sleep_release;
+static unsigned suspended_sleep_returning, suspended_parent_sleeping;
+static unsigned suspended_sleep_progress;
+
+static void suspended_sleep(void *user, uint32_t milliseconds)
+{
+    (void)user;
+    CHECK(milliseconds == 1);
+    CHECK(pthread_mutex_lock(&sleep_lock) == 0);
+    struct timespec deadline = native_deadline(5000);
+    if (!rc_thread_is_main()) {
+        CHECK(suspended_sleep_entered == 0);
+        suspended_sleep_entered = 1;
+        CHECK(pthread_cond_broadcast(&sleep_changed) == 0);
+        while (!suspended_sleep_release)
+            CHECK(pthread_cond_timedwait(&sleep_changed, &sleep_lock, &deadline) == 0);
+        CHECK(suspended_parent_sleeping == 1);
+        suspended_sleep_returning = 1;
+        CHECK(pthread_cond_broadcast(&sleep_changed) == 0);
+    } else {
+        CHECK(suspended_sleep_entered == 1 && suspended_sleep_progress == 0);
+        suspended_parent_sleeping = 1;
+        suspended_sleep_release = 1;
+        CHECK(pthread_cond_broadcast(&sleep_changed) == 0);
+        while (!suspended_sleep_returning)
+            CHECK(pthread_cond_timedwait(&sleep_changed, &sleep_lock, &deadline) == 0);
+        /* Keep the parent asleep after the worker callback returns. A broken
+         * NULL-owner claim signals progress here without waiting for Resume. */
+        deadline = native_deadline(100);
+        int error = 0;
+        while (!suspended_sleep_progress && error != ETIMEDOUT) {
+            error = pthread_cond_timedwait(&sleep_changed, &sleep_lock, &deadline);
+            CHECK(error == 0 || error == ETIMEDOUT);
+        }
+        CHECK(error == ETIMEDOUT && suspended_sleep_progress == 0);
+        suspended_parent_sleeping = 0;
+    }
+    atomic_fetch_add(&fake_now, milliseconds);
+    CHECK(pthread_mutex_unlock(&sleep_lock) == 0);
+}
+
+static void suspended_sleep_worker(Fl41Regs *r, const Fl41Host *h)
+{
+    (void)h;
+    uint32_t entry_sp = r->esp;
+    r->esp -= 0x200u;
+    API(r, SLEEP, 1);
+    CHECK(pthread_mutex_lock(&sleep_lock) == 0);
+    suspended_sleep_progress++;
+    CHECK(pthread_cond_broadcast(&sleep_changed) == 0);
+    CHECK(pthread_mutex_unlock(&sleep_lock) == 0);
+    finish(r, entry_sp, 0, 1);
+}
+
+static void suspended_sleep_parent(Fl41Regs *r, const Fl41Host *h)
+{
+    (void)h;
+    uint32_t entry_sp = r->esp;
+    r->esp -= 0x200u;
+    CHECK(!rc_clock_is_virtual());
+    uint32_t worker = thread(r, WORKER_VA, 0, 0, r->esp + 0x80u);
+    /* Sleep(1) first yields once before it enters platform_sleep. */
+    API(r, SLEEP, 0);
+    API(r, SLEEP, 0);
+    CHECK(pthread_mutex_lock(&sleep_lock) == 0);
+    struct timespec deadline = native_deadline(5000);
+    while (!suspended_sleep_entered)
+        CHECK(pthread_cond_timedwait(&sleep_changed, &sleep_lock, &deadline) == 0);
+    CHECK(suspended_sleep_progress == 0);
+    CHECK(pthread_mutex_unlock(&sleep_lock) == 0);
+    CHECK(API(r, SUSPEND_THREAD, worker) == 0);
+    API(r, SLEEP, 1);
+    CHECK(suspended_sleep_returning == 1 && suspended_sleep_progress == 0);
+    CHECK(exit_code(r, worker) == STILL_ACTIVE);
+    CHECK(API(r, RESUME_THREAD, worker) == 1);
+    deadline = native_deadline(5000);
+    uint32_t code;
+    while ((code = exit_code(r, worker)) == STILL_ACTIVE) {
+        check_before_deadline(&deadline);
+        API(r, SLEEP, 0);
+    }
+    CHECK(code == 0 && suspended_sleep_progress == 1);
+    close_handle(r, worker);
+    finish(r, entry_sp, 0, 0);
+}
+
 /* Host shutdown must unwind live continuations before freeing their contexts,
  * including an event waiter and a worker that has never been resumed. */
 static uint32_t shutdown_handles[2], shutdown_ready, shutdown_release;
@@ -563,10 +740,13 @@ static void shutdown_parent(Fl41Regs *r, const Fl41Host *h)
 int main(int argc, char **argv)
 {
     CHECK(argc == 2);
-    if (!strcmp(argv[1], "real-sleep")) {
+    if (!strcmp(argv[1], "real-sleep") || !strcmp(argv[1], "real-sleep-stop-poll") ||
+        !strcmp(argv[1], "real-sleep-suspended")) {
         RcPlatform platform = {0};
         platform.now_ms = fake_clock;
-        platform.sleep_ms = fake_sleep;
+        platform.sleep_ms = !strcmp(argv[1], "real-sleep") ? fake_sleep :
+                            !strcmp(argv[1], "real-sleep-stop-poll") ? stop_poll_sleep :
+                            suspended_sleep;
         rc_set_platform(&platform);
     }
     rc_core_init();
@@ -602,6 +782,12 @@ int main(int argc, char **argv)
     } else if (!strcmp(argv[1], "real-sleep")) {
         rc_register(PARENT_VA, real_sleep_parent);
         rc_register(WORKER_VA, real_sleep_worker);
+    } else if (!strcmp(argv[1], "real-sleep-stop-poll")) {
+        rc_register(PARENT_VA, stop_poll_parent);
+        rc_register(WORKER_VA, stop_poll_worker);
+    } else if (!strcmp(argv[1], "real-sleep-suspended")) {
+        rc_register(PARENT_VA, suspended_sleep_parent);
+        rc_register(WORKER_VA, suspended_sleep_worker);
     } else if (!strcmp(argv[1], "shutdown")) {
         rc_register(PARENT_VA, shutdown_parent);
         rc_register(WORKER_VA, shutdown_worker);
