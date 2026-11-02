@@ -7200,6 +7200,22 @@
    "source": "translated/original_methods_fl41_translated.c",
    "translation_sha256": "c778522c9a0e1a0dd7b538e6a8d9237d51cc41d2b730436c4c9e5d09d0c9cc5c"
   },
+  "0x50d550": {
+   "body": 257,
+   "directions": [
+    40,
+    40
+   ],
+   "instructions": [
+    103,
+    103
+   ],
+   "pool": "upper57",
+   "scenarios_kept": 17,
+   "scenarios_run": 18,
+   "source": "translated/original_methods_fl57_translated.c",
+   "translation_sha256": "d6d861831516d6accc2e743c1be18db63ffd488d4ecab3b8639507ca265ee6b1"
+  },
   "0x50d651": {
    "body": 46,
    "directions": [
@@ -7327,6 +7343,22 @@
    "scenarios_run": 1,
    "source": "translated/original_methods_fl41_translated.c",
    "translation_sha256": "8e24e6fe73af38e157590482509506ad9719b6714dcf4a76f7b51f999a5da9b6"
+  },
+  "0x50d805": {
+   "body": 163,
+   "directions": [
+    14,
+    14
+   ],
+   "instructions": [
+    51,
+    51
+   ],
+   "pool": "upper",
+   "scenarios_kept": 5,
+   "scenarios_run": 6,
+   "source": "translated/original_methods_fl41_translated.c",
+   "translation_sha256": "8a9650d69408621c2ae50f57828e52d30d24885914e5c1180a0f1442bf212e99"
   },
   "0x50d8aa": {
    "body": 9,
@@ -7951,6 +7983,22 @@
    "scenarios_run": 4,
    "source": "translated/original_methods_fl41_translated.c",
    "translation_sha256": "10cd04bb77076ea2a22f72e3ed77e040c2989a578356e59c5e4a2b4a18d66e32"
+  },
+  "0x50f1d9": {
+   "body": 78,
+   "directions": [
+    8,
+    8
+   ],
+   "instructions": [
+    39,
+    39
+   ],
+   "pool": "upper",
+   "scenarios_kept": 4,
+   "scenarios_run": 5,
+   "source": "translated/original_methods_fl41_translated.c",
+   "translation_sha256": "3cc14c50344d50a31ba6b260aef7f78858140b84d67fbb8b3eec9abb2b64bbac"
   },
   "0x50f227": {
    "body": 44,
@@ -14527,6 +14575,22 @@
    "scenarios_run": 7,
    "source": "translated/original_methods_fl41_translated.c",
    "translation_sha256": "5ac1914c9677f811a756fd7c25a5aa04307d96af4e97156cb90017c54d3cc348"
+  },
+  "0x51f8c4": {
+   "body": 101,
+   "directions": [
+    10,
+    10
+   ],
+   "instructions": [
+    43,
+    43
+   ],
+   "pool": "upper",
+   "scenarios_kept": 5,
+   "scenarios_run": 5,
+   "source": "translated/original_methods_fl41_translated.c",
+   "translation_sha256": "65b8ca23a95deeab0df202fbe7da9bbc0aaa1cfd0321e9104e7b3a52d5b1151d"
   },
   "0x51f929": {
    "body": 68,

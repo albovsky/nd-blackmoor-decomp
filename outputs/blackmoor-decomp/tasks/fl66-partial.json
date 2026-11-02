@@ -176,30 +176,6 @@
    ],
    "pool": "upper"
   },
-  "0x50d550": {
-   "body": 257,
-   "directions": [
-    39,
-    40
-   ],
-   "instructions": [
-    103,
-    103
-   ],
-   "pool": "upper57"
-  },
-  "0x50d805": {
-   "body": 163,
-   "directions": [
-    9,
-    14
-   ],
-   "instructions": [
-    44,
-    51
-   ],
-   "pool": "upper"
-  },
   "0x50df9d": {
    "body": 157,
    "directions": [
@@ -295,30 +271,6 @@
     132
    ],
    "pool": "upper"
-  },
-  "0x50f1d9": {
-   "body": 78,
-   "directions": [
-    5,
-    8
-   ],
-   "instructions": [
-    29,
-    39
-   ],
-   "pool": "upper"
-  },
-  "0x50f253": {
-   "body": 486,
-   "directions": [
-    21,
-    22
-   ],
-   "instructions": [
-    198,
-    198
-   ],
-   "pool": "upper57"
   },
   "0x50f462": {
    "body": 77,
@@ -800,18 +752,6 @@
    ],
    "pool": "upper57"
   },
-  "0x51a643": {
-   "body": 114,
-   "directions": [
-    15,
-    16
-   ],
-   "instructions": [
-    51,
-    51
-   ],
-   "pool": "upper"
-  },
   "0x51aa23": {
    "body": 170,
    "directions": [
@@ -989,18 +929,6 @@
    "instructions": [
     110,
     110
-   ],
-   "pool": "upper"
-  },
-  "0x51f8c4": {
-   "body": 101,
-   "directions": [
-    3,
-    10
-   ],
-   "instructions": [
-    18,
-    43
    ],
    "pool": "upper"
   },
