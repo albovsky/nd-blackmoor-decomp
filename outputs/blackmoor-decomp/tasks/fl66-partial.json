@@ -141,18 +141,6 @@
    ],
    "pool": "upper"
   },
-  "0x49d945": {
-   "body": 2312,
-   "directions": [
-    73,
-    76
-   ],
-   "instructions": [
-    563,
-    599
-   ],
-   "pool": "upper"
-  },
   "0x4a14c6": {
    "body": 1596,
    "directions": [
@@ -198,18 +186,6 @@
    "instructions": [
     245,
     284
-   ],
-   "pool": "upper"
-  },
-  "0x4f7207": {
-   "body": 1991,
-   "directions": [
-    57,
-    58
-   ],
-   "instructions": [
-    568,
-    569
    ],
    "pool": "upper"
   },
