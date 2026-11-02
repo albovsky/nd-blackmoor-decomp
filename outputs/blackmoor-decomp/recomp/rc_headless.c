@@ -14,6 +14,7 @@
 #include <unistd.h>
 #include "rc.h"
 #include "rc_internal.h"
+#include "rc_input_script.h"
 
 static FILE *logf;
 static char out_dir[512];
@@ -107,115 +108,17 @@ static void frame_hook(int is_flip, uint64_t blits)
     if (blits == 1 || blits == 300 || blits == 3000 || blits % 20000 == 0) numbered_dump();
 }
 
-/* ---- scripted input ---- */
-typedef struct Step { char at[64]; char kind[8]; int32_t arg[4]; int nargs; } Step;
-static Step steps[512];
-static int nsteps, next_step, shots;
-
-static void parse_input(const char *s)
+/* ---- shared scripted input ---- */
+static RcInputScript *input_script;
+static int script_shot(void *user, unsigned number, uint32_t now)
 {
-    char *copy = strdup(s), *outer = NULL;
-    for (char *part = strtok_r(copy, ";", &outer); part && nsteps < 512; part = strtok_r(NULL, ";", &outer)) {
-        Step *st = &steps[nsteps];
-        char *c1 = strchr(part, ':');
-        char *c2 = c1 ? strchr(c1 + 1, ':') : NULL;
-        if (!c2) continue;
-        *c1 = 0; *c2 = 0;
-        snprintf(st->at, sizeof st->at, "%s", part);
-        snprintf(st->kind, sizeof st->kind, "%s", c1 + 1);
-        char *inner = NULL;
-        for (char *tok = strtok_r(c2 + 1, ",", &inner); tok && st->nargs < 4; tok = strtok_r(NULL, ",", &inner)) st->arg[st->nargs++] = (int32_t)strtol(tok, NULL, 0);
-        nsteps++;
-    }
-    free(copy);
+    (void)user;
+    dump_frame_as("shot", (int)number);
+    rc_log("  SHOT %u at virtual %u ms", number, now);
+    rc_input_script_log_observation();
+    return 1; /* Existing headless frame I/O policy is unchanged. */
 }
-
-static uint32_t script_done_at;                  /* virtual ms at which the last step was delivered */
-
-/* RC_FLAGS="1000-1030,1716,2075": the game's event flags (dwords at 0x585801 + 4 * n, the table of its scene scripts) that are not zero, logged at every shot */
-static void dump_flags(void)
-{
-    /* Read the original scene/view cells alongside flags so route coordinates
-     * can be tied to the actual panorama frame, including retained-art scenes. */
-    rc_log("  STATE requested_scene=%u art_scene=%u view=%d held_item=%d",
-           rc_u16(0x5bb57b), rc_u16(0x5bb57f),
-           (int)(int16_t)rc_u16(0x5bb50b), (int)(int16_t)rc_u16(0x583a29));
-    const char *e = getenv("RC_FLAGS");
-    if (!e) return;
-    rc_log("  RC_FLAGS %s", e);
-    char line[1024] = "";
-    size_t n = 0;
-    while (*e) {
-        char *end;
-        unsigned lo = (unsigned)strtoul(e, &end, 10), hi = lo;
-        if (*end == '-') hi = (unsigned)strtoul(end + 1, &end, 10);
-        for (unsigned f = lo; f <= hi && n + 16 < sizeof line; f++) {
-            uint32_t v = rc_rd(0x585801u + 4u * f, 4);
-            if (v) n += (size_t)snprintf(line + n, sizeof line - n, " %u=%u", f, v);
-        }
-        e = *end == ',' ? end + 1 : end;
-        if (end == e && *e) break;
-    }
-    rc_log("  FLAGS%s", line);
-}
-
-static void poll_hook(void)
-{
-    if (next_step >= nsteps) {
-        /* the script is over: stop SCRIPT_TAIL_MS (default 5000, 0 = never) of virtual time later, so a route does not run on to the idle limit */
-        static uint32_t tail = 5000;
-        static int tail_init;
-        if (!tail_init) { tail_init = 1; if (getenv("SCRIPT_TAIL_MS")) tail = (uint32_t)strtoul(getenv("SCRIPT_TAIL_MS"), NULL, 10); }
-        if (nsteps && tail && script_done_at && rc_clock() >= script_done_at + tail) rc_request_stop();
-        return;
-    }
-    Step *st = &steps[next_step];
-    static char prev_anchor[64];
-    static uint32_t prev_off, prev_delivered;
-    uint32_t due, off;
-    char anchor[64] = "";
-    if (st->at[0] >= '0' && st->at[0] <= '9') due = off = (uint32_t)strtoul(st->at, NULL, 10);
-    else {
-        snprintf(anchor, sizeof anchor, "%s", st->at);
-        char *plus = strchr(anchor, '+');
-        off = 0;
-        if (plus) { *plus = 0; off = (uint32_t)strtoul(plus + 1, NULL, 10); }
-        uint32_t seen;
-        if (!rc_seen_at(anchor, &seen)) return;
-        due = seen + off;
-    }
-    uint32_t now = rc_clock();
-    if (now < due) return;
-    /* the game can run ahead of the script (a scene load takes longer on the virtual clock than it did when the script was written): steps of
-     * one anchor keep the spacing they have in the script, so a hover is not delivered in the same instant as the click that follows it */
-    if (next_step > 0 && !strcmp(anchor, prev_anchor) && off >= prev_off && now < prev_delivered + (off - prev_off)) return;
-    snprintf(prev_anchor, sizeof prev_anchor, "%s", anchor);
-    prev_off = off;
-    prev_delivered = now;
-    next_step++;
-    if (next_step >= nsteps) script_done_at = now;
-    if (!rc_main_hwnd) return;
-    if (!strcmp(st->kind, "shot")) {
-        shots++;
-        dump_frame_as("shot", shots);                       /* frames/shotNNN.ppm, numbered from 1 (the numbered flip dumps use frameNNN) */
-        rc_log("  SHOT %d at virtual %u ms", shots, now);
-        dump_flags();
-    } else if (!strcmp(st->kind, "move") || !strcmp(st->kind, "click")) {
-        int click = !strcmp(st->kind, "click");
-        rc_input_event(click ? 1 : 0, st->arg[0], st->arg[1], st->nargs > 2 ? (uint32_t)st->arg[2] : 300u, 0);
-        rc_log("  INPUT %s at virtual %u ms", st->kind, now);
-    } else if (!strcmp(st->kind, "key")) {                 /* a key press and release as the platform sends them: a printable one makes a WM_CHAR */
-        rc_input_key((uint32_t)st->arg[0], 1);
-        rc_input_key((uint32_t)st->arg[0], 0);
-        rc_log("  INPUT key %d at virtual %u ms", st->arg[0], now);
-    } else if (!strcmp(st->kind, "keydown") || !strcmp(st->kind, "keyup")) {     /* keydown:16 before a letter makes it a capital, keyup:16 after */
-        rc_input_key((uint32_t)st->arg[0], !strcmp(st->kind, "keydown"));
-        rc_log("  INPUT %s %d at virtual %u ms", st->kind, st->arg[0], now);
-    } else if (!strcmp(st->kind, "keyhold")) {             /* the key stays down for arg[1] virtual ms, for a game that polls the key state */
-        rc_input_event(2, 0, 0, st->nargs > 1 ? (uint32_t)st->arg[1] : 300u, (uint32_t)st->arg[0]);
-        rc_log("  INPUT keyhold %d at virtual %u ms", st->arg[0], now);
-    }
-}
+static void poll_hook(void) { rc_input_script_poll(input_script); }
 
 /* ---- real time (RC_REAL=1) ---- */
 static uint64_t real_now(void *u) { (void)u; struct timespec t; clock_gettime(CLOCK_MONOTONIC, &t); return (uint64_t)t.tv_sec * 1000u + (uint64_t)t.tv_nsec / 1000000u; }
@@ -240,12 +143,16 @@ int main(void)
     pl.bink_open = bink_open; pl.bink_frame = bink_frame; pl.bink_close = bink_close;
     if (getenv("RC_REAL")) { pl.now_ms = real_now; pl.sleep_ms = real_sleep; }
     rc_set_platform(&pl);
-    if (getenv("INPUT")) parse_input(getenv("INPUT"));
-    rc_set_poll_hook(poll_hook);
+    char error[512];
+    const char *input = getenv("INPUT");
+    if (input && *input) {
+        input_script = rc_input_script_parse(input, script_shot, NULL, error, sizeof error);
+        if (!input_script) { fprintf(stderr, "INPUT: %s\n", error); if (logf) fclose(logf); return 2; }
+        rc_set_poll_hook(poll_hook);
+    }
     rc_set_frame_hook(frame_hook);
     if (getenv("MAX_IMPORTS")) rc_set_import_budget(strtoull(getenv("MAX_IMPORTS"), NULL, 10));
     if (getenv("MAX_IDLE_POLLS")) rc_set_max_idle_polls((uint32_t)strtoul(getenv("MAX_IDLE_POLLS"), NULL, 10));   /* idle polls of the message loop in all (5 virtual ms each) before the run is stopped */
-    char error[512];
     if (rc_start(exe ? exe : "../../work/original/GAME.EXE", error, sizeof error)) { fprintf(stderr, "rc_start: %s\n", error); return 2; }
     struct timespec t0, t1;
     clock_gettime(CLOCK_MONOTONIC, &t0);
@@ -262,6 +169,13 @@ int main(void)
     char result[1400];
     snprintf(result, sizeof result, "{\"stopped\": \"%s\", \"seconds\": %.2f, \"virtual_ms\": %u, \"native_calls\": %llu, \"fallback_calls\": %llu, \"imports_called\": %llu, \"files_opened\": %u, \"first_data_file\": \"%s\"}",
              why, secs, virt, (unsigned long long)nat, (unsigned long long)fb, (unsigned long long)imp, rc_files_opened(), first ? first : "");
+    if (input_script) {
+        RcInputScriptStatus status = rc_input_script_status(input_script);
+        rc_log("  SCRIPT delivered=%u total=%u consumed=%u requested_stop=%d complete=%d",
+               status.delivered, status.total, status.consumed, status.requested_stop,
+               rc_input_script_completed(input_script));
+        rc_input_script_destroy(input_script);
+    }
     rc_log("\nRESULT %s", result);
     puts(result);
     if (logf) fclose(logf);

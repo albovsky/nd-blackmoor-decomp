@@ -20,9 +20,9 @@ cd "$OUT"
 NEWEST_HEADER=$(ls -t "$PROJECT/src/original_methods_fl41.h" "$PROJECT/src/original_methods_fl41_x87.h" "$HERE/rc_lift_prelude.h" "$HERE/rc_fl57_helpers.h" "$HERE/rc.h" | head -1)
 export NEWEST_HEADER
 cat lifted.list | xargs -P "$JOBS" -I{} sh -c 'o=${1%.c}.o; if [ ! -f "$o" ] || [ "$1" -nt "$o" ] || [ "$NEWEST_HEADER" -nt "$o" ]; then '"$CC"' '"$CFLAGS"' -c "$1" -o "$o"; fi' _ {}
-for f in rc_generated rc_core rc_threads rc_win32 rc_ddraw rc_dsound rc_bink rc_main rc_unlifted rc_headless; do
+for f in rc_generated rc_core rc_threads rc_win32 rc_ddraw rc_dsound rc_bink rc_main rc_unlifted rc_input_script rc_headless; do
     src="$HERE/$f.c"; [ -f "$src" ] || src="$OUT/$f.c"
     $CC -O2 -fPIC -Wall -Wextra -Wno-unused-parameter -I"$PROJECT/src" -I"$HERE" -I"$OUT" -c "$src" -o "$f.o"
 done
-$CC -o rc_headless rc_lifted_*.o rc_generated.o rc_core.o rc_threads.o rc_win32.o rc_ddraw.o rc_dsound.o rc_bink.o rc_main.o rc_unlifted.o rc_headless.o -lm -lpthread
+$CC -o rc_headless rc_lifted_*.o rc_generated.o rc_core.o rc_threads.o rc_win32.o rc_ddraw.o rc_dsound.o rc_bink.o rc_main.o rc_unlifted.o rc_input_script.o rc_headless.o -lm -lpthread
 echo "built $OUT/rc_headless"
