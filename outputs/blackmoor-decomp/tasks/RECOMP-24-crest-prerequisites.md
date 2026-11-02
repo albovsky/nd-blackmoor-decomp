@@ -53,3 +53,10 @@ Root accepts the nonblocking clock boundary limits: the public checker validates
 Linda's slot7 may use the permitted1128..1133/1146 retained-art family with view0, then requires later1133; original1146 is established by the ordered global opens, not necessarily a sampled1146 state. Global-open and inherited observation-freshness limits remain explicit. Ethel receipt budget5 is constant; actual control summary independently shows exactly5. No broad test project, fault injection or gameplay rerun is added for these documented limits.
 
 Peer PR312 merged before the reviewed freeze and changes no compiled source. Required regeneration preserves all existing statuses/classes/native/oracle evidence and all1819peer tested-equivalent entries. Final freshness checks pass at8c82971c. The superseded pre-merge scratch refresh was cancelled before collection and its own scratch outputs restored; none reached the branch. Root remains sole publisher under the original authorization.
+
+
+## Final peer integration
+
+Main advanced again through peer PR314 while publication was being prepared. Generated-file conflicts were resolved by taking the incoming main versions as the baseline and regenerating both files; no peer entries were hand-edited. Guarded refresh preserves all1824peer records and every current status/class/native/oracle field. The four reviewed root code/test blobs remain byte-identical to frozen7cc06168. Both final freshness checks pass atd071fbe7. Earlier1819/8c82971c records are historical pre-PR314 checks, superseded by this result.
+
+Gameplay receipts continue to pin reviewed native74229ec8. Peer314 changes the lifter's two call-next CRT helpers, so a clean current native generation is being assessed separately under RECOMP26; this slice does not claim a new rebuilt-native acceptance. The original GAME.EXE and actual route/save evidence are unchanged. Root publication remains in the original authorizing chat.

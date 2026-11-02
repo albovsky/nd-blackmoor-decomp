@@ -2,7 +2,7 @@
 
 ## Latest crest prerequisites, 2026-11-02 Pacific
 
-RECOMP-24 adds the right fire partial, bounded automatic Ethel dialogue, Linda curse clue and gargoyle inspection. Four final-source producer/fresh-reload pairs pass from public m39 through m43. The automatic Ethel client preserves the four original batches, earns2154 and saves at15:42; its earlier manual day-four fork is separate. Linda earns1492 and clears2154; gargoyle inspection earns1786/1783 while2014/1974 stay0.101 finite checks pass; original Linda Bye variants are source-verified. See packet for full pins, scopes and source-clock limits. Sonnet accepts frozen7cc06168; both final metadata checks pass at8c82971c, preserving1819peer claims. Clock/global-open limits are recorded in the packet; the typing/crest and full fire win remain outside this slice.
+RECOMP-24 adds the right fire partial, bounded automatic Ethel dialogue, Linda curse clue and gargoyle inspection. Four final-source producer/fresh-reload pairs pass from public m39 through m43. The automatic Ethel client preserves the four original batches, earns2154 and saves at15:42; its earlier manual day-four fork is separate. Linda earns1492 and clears2154; gargoyle inspection earns1786/1783 while2014/1974 stay0.101 finite checks pass; original Linda Bye variants are source-verified. See packet for full pins, scopes and source-clock limits. Sonnet accepts frozen7cc06168; both final metadata checks pass atd071fbe7 after peer314 integration, preserving1824peer claims. Clock/global-open limits are recorded in the packet; the typing/crest and full fire win remain outside this slice.
 
 ## Latest word-lock win, 2026-11-02 Pacific
 
