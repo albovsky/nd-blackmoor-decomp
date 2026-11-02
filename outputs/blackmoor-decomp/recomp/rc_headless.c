@@ -142,6 +142,7 @@ static void dump_flags(void)
            (int)(int16_t)rc_u16(0x5bb50b), (int)(int16_t)rc_u16(0x583a29));
     const char *e = getenv("RC_FLAGS");
     if (!e) return;
+    rc_log("  RC_FLAGS %s", e);
     char line[1024] = "";
     size_t n = 0;
     while (*e) {

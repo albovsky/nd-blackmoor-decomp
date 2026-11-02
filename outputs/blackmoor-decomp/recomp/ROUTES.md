@@ -114,7 +114,7 @@ of 800 ms (the default of the other steps) bounces straight back to the menu. Us
 
 ## Story routes: the stair lock to the moon box (2026-10-31)
 
-`route_tools/story_route.py` writes the `INPUT` strings of four legs that chain through the game's own saves. Run a leg from the save it starts at (the Load & Save list
+`route_tools/story_route.py` writes the `INPUT` strings of five legs that chain through the game's own saves. Run a leg from the save it starts at (the Load & Save list
 is ordered by the game, not by name, and a new save reshuffles it: `route_load.sh` takes the row's y, so look at the list, rows are 42.5 px apart from y = 105):
 
 | Leg | From | Does | Ends (with `--save NAME`) |
@@ -122,7 +122,8 @@ is ordered by the game, not by name, and a new save reshuffles it: `route_load.s
 | `stairs` | `m0` (bedroom right after the suitcase) | up to S3395 (see "Bedroom to the stair lock"), the piano, S3396/S3397, key 17 from S3398 | S3397, key 17 owned |
 | `lock` | S3397 | down the hall to S3448, the key shows the lock is stuck, back to the bedroom, the intercom order, S3350/S4400 (delivery), the tray, butter 25, back to the lock | S3447 |
 | `slider` | S3447 | the slider puzzle S3450 (105 moves), the compartment S3452/S3453 (item 6), S3455 cancel strip, S3457 | S3303 |
-| `moon` | S3303 | the library nook S2011, the moon box S2038, its five dials, the lens | S2076 |
+| `moon` | S3303 | the library nook S2011, the moon box S2038, its five dials, the lens diagram | S2076 |
+| `telescope-prep` | m6 / S2076 | collect lens 12, inspect tripod, read all chart pages | m7 / S2010 view 2 |
 
 ```
 python3 route_tools/story_route.py stairs --save m1        > leg1.txt     # then:  route_load.sh OUT ROW_Y_OF_m0 "$(cat leg1.txt)"
@@ -183,12 +184,9 @@ waxing gibbous, full, waning gibbous, last quarter, waning crescent, new, waxing
 quarter (LEPUS), green waning gibbous (PISCES). The scene script flags 1025 to 1029 show which dials are right (`RC_FLAGS`, below). Inside: a telescope lens (S2075, S2076:
 "This lens is supposed to go into a telescope that sits on a tripod").
 
-### After the moon box (S2074 to S2014), looked at on the native build only
+### Earlier moon-box continuation (superseded by the verified route below)
 
-From S2076 the lens is taken in S2074 (click its hotspot `326,177`; the S2075 scene around it takes bottom-strip clicks `310,352` to leave), then S2040, S2011, S2010.
-Six right turns (`630,200`, hold 150) from the nook exit face the telescope table; `528,272` in the view with the tripod opens S2014 (the tripod, "Hmmm. A tripod.").
-With the lens (toolbox slot 0, `62,100`) picked up, a click at `310,190` on the tripod head left a small cap on its left arm that the view did not show before
-(pictures only; the scene's own flag was not read, so this is not claimed as the solved step). Not yet tried: the star chart S2015 and the telescope S2078.
+The earlier continuation was picture-only and did not prove a telescope solve. Use `telescope-prep` below; the old six-click panorama recipe has been replaced by measured single-frame turns.
 
 ## Debug switches of rc_headless
 
@@ -200,12 +198,24 @@ With the lens (toolbox slot 0, `62,100`) picked up, a click at `310,190` on the 
 
 ## Telescope preparation, verified 2026-11-01, 19:38 PST
 
-`python3 route_tools/story_route.py telescope-prep --save m7` continues the game's own `m6` save. It leaves the lens diagram, collects item12 in S2074, backs out through S2075/S2040/S2011, inspects the tripod in S2014, and reads S2015→S2022→S2023→S2024→S2025→S2026. It returns to bedroom S2010, view2, and saves m7. A fresh-folder replay of the opening and all four earlier legs produced its input m6; each leg used only the preceding game-generated save. The final preparation leg passes in 6.88 seconds of wall time.
+Generate the next leg, then pass its steps to `route_load.sh` with the row of m6. Verify the resulting log and game-generated save:
 
-The game's chart flags are 1953, 1949, 1834 and 1843; all are 1 at S2026 and remain 1 after the return/save. Lens-knowledge flag1905 and moon-solved flag1993 are also 1. This does **not** complete the telescope: 1980, 2037, 2036, 1309 and 1906 are still 0. The actual prerequisite is Jane's telescope loan: request it, win her timed jigsaw, then follow the delivery scenes. After the telescope is available, installing the lens sets1309 and looking through it sets1906. These later steps are statically mapped, not yet verified by this route.
+```sh
+python3 route_tools/story_route.py telescope-prep --save m7 > leg5.txt
+```
 
-Use `R.turns('right', n)` / `R.turns('left', n)` for new panorama routes with the default AutoMove=1. Each moves to the edge for100ms and back inside, below the400ms repeat delay; a right turn decrements the view, a left turn increments it. The old click helper spends a second hovering before its click and can pan many frames. Actual m6 return enters bedroom view8; eight short right turns reach view0. The tripod's own return selects view19, where the chart hotspot is48,157. The chart's return selects view2. The previous six-right-turn/528,272 recipe was not a verified telescope solve.
+The loader invocation uses the documented `RC_HEADLESS`, `GAME_EXE` and scratch `RC_GAMEDIR` environment. For a folder containing only m6, its row is 105. Set `RC_FLAGS="1309,1834,1843,1905-1906,1949,1953,1980,1993,2036-2037"` before the run. Afterward:
 
-Every `shot` now logs `STATE requested_scene=... art_scene=... view=... held_item=...` by reading the original game cells. `requested_scene` may be a pending transition; `art_scene` remains the background owner in retained-art scenes. These reads never change gameplay state. `RC_FLAGS` still logs the requested nonzero event flags.
+```sh
+python3 route_tools/check_route.py OUT/run.log "SCRATCH/Documents5/The Curse of Blackmoor Manor/m7.SAV"
+```
 
-Private evidence: `work/recomp-playability-20261101/` contains the build, opening/stairs/lock/slider/moon runs, exact final route input and `telescope-prep-final/run.log`. Native headless SHA-256: `72e3ba3c55b71056927e6ea8bec07ca986d60e7e100b0372b2da54135388e4a1`; original GAME.EXE remains `afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45`. All runs use scratch copies of the data and the game's own save UI. Full story, telescope completion and the final background macOS-app playthrough remain unverified.
+The leg leaves S2076, collects lens 12 in S2074, backs out through S2075/S2040/S2011, inspects S2014 and reads S2015→S2022→S2023→S2024→S2025→S2026. It returns to S2010, view 2, and saves m7. The checker requires the ordered pre-turn/tripod/chart/return observations, the complete flag observation range, expected flag values, a clean requested stop and the checkpoint file. It rejects a process that merely exits successfully after missing the route.
+
+The original chart flags 1953, 1949, 1834 and 1843 are all 1 at S2026 and after the return. Lens-knowledge 1905 and moon-solved 1993 are also 1. The final log records that it observes 1980, 2037, 2036, 1309 and 1906; all remain 0. This is telescope **preparation**, not completion. Jane must lend the telescope after her timed jigsaw, followed by delivery scenes. Installing the lens then sets 1309; looking through it sets 1906. Those later interactions are statically mapped, not verified here.
+
+New virtual-clock routes use `R.turns('right', n)` / `R.turns('left', n)` with the default AutoMove=1. A 100 ms edge hover followed by a move inside is shorter than the 400 ms repeat gate. The old click helper spends a second hovering before its click and advances multiple frames. Actual m6 return enters view 8; eight short right turns reach view 0, checked before clicking the tripod. The tripod's return selects view 19, where the chart hotspot is 48,157; the chart's return selects view 2. These timings are not validated under `RC_REAL` or the macOS app.
+
+Every `shot` logs original `STATE requested_scene=... art_scene=... view=... held_item=...` cells and the exact `RC_FLAGS` range used. The requested scene can be a pending transition; the art scene remains the background owner in retained-art scenes. These observations never write game state.
+
+Private evidence under `work/recomp-playability-20261101/` records a fresh opening and save chain through stairs, lock, slider and moon. Each leg used a fresh data copy and only its preceding game-generated save. `telescope-prep-final/` records the frozen candidate, `telescope-prep-reviewed/` the checked review follow-up (7.89 seconds). Its native headless SHA-256 is `7f95700f202b7b2d1518545bc8a83dd8193c61d917ec1d20281053ef143e8d91`. Four small checker tests also pass. `lens-owned/run.log` proves item 12 through normal inventory selection on a fresh m7 load; `pan-short/run.log` records five individual right decrements. Complete story, telescope completion and the final background app playthrough remain unverified.

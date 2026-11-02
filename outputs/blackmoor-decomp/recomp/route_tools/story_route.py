@@ -191,10 +191,10 @@ def leg_telescope_prep(save=None):
     r.clicks('310,352 326,177 310,352 310,352 310,352', 8000)
     # The moon-box return enters bedroom frame 8. Eight single right turns
     # reach frame 0; the tripod's return explicitly selects frame 19.
-    r.turns('right', 8).clicks('528,272 shot 310,352 48,157', 8000)
+    r.turns('right', 8).clicks('shot 528,272 shot 310,352 48,157', 8000)
     r.clicks('303,182 337,164 559,188 559,188 559,188 shot', 8000)
     # The last chart page pops straight to S2015, then back to bedroom frame 2.
-    r.clicks('310,352 310,352 310,352 shot', 8000)
+    r.clicks('310,352 310,352 shot', 8000)
     out = [r.text()]
     if save:
         out.append(menu_to_save_screen(r.a, r.t + 5000))

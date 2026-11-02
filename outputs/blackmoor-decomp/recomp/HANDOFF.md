@@ -2,6 +2,14 @@
 
 For the Codex agent that finishes the native port. Written 2026-11-02. Main is at PR 278 (`deb83f82`); this note is the only change of its PR.
 
+## Current continuation (2026-11-01, Pacific)
+
+The resumed recompiled-host run rebuilt current main and replayed the opening and all four story legs from fresh scratch folders, chained through the game's own saves. New `story_route.py telescope-prep --save m7` collects lens 12, inspects the empty tripod, reads all chart pages through S2026 and returns to S2010 view 2. Run it through `route_load.sh`, then use `route_tools/check_route.py` on its log and m7 save. See the current ROUTES.md section and private `work/recomp-playability-20261101/` evidence. Telescope flags 1309/1906 remain 0; Jane's loan is a prerequisite, not a host defect to bypass.
+
+A separate private continuation completes Linda's intro, sets 1570 and saves m8 in S4408. It then reaches Jane's room S3510 and stops with `CreateThread` unimplemented. Next implementation: real guest worker-thread execution, suspended creation/resume, the MFC ready/release event handshake, per-thread stack/TLS/x87/SEH/abort state, event waits and clean exit. The existing virtual infinite wait returns a timeout and virtual Sleep does not yield; neither is sufficient for this worker. Do not replace the animation with a fake success handle. This continuation is evidence of the next blocker, not a reviewed campaign milestone.
+
+The original handoff below describes the earlier baseline. Its telescope-first step is superseded by the loan prerequisite and verified m7 preparation above. The macOS app and final full playthrough remain incomplete.
+
 ## State
 
 * The game is lifted from the owner's GAME.EXE to C (`lift_recomp.py`: 4,605 functions lifted, 165 refused, see below) and runs on the native host (`rc_core.c`, `rc_win32.c`, `rc_ddraw.c`, `rc_dsound.c`, `rc_bink.c`, `rc_main.c`). Lifted C is a build output, never committed.
