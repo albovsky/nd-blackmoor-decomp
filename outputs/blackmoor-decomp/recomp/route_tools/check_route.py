@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Check an observed headless story leg, not merely its process exit.
 
-python3 check_route.py RUN_LOG SAVE_FILE [--route telescope-prep|jane-jigsaw|telescope-use|seedlings|crank-repair]
+python3 check_route.py RUN_LOG SAVE_FILE [--route telescope-prep|jane-jigsaw|telescope-use|seedlings|crank-repair|betty-key|venus-column]
 The caller supplies a checkpoint produced by this run's normal Load & Save UI.
 This checks recorded observations, a matching file-open line and save size;
 fresh-folder/write provenance and saved contents require separate replay evidence.
@@ -54,6 +54,16 @@ def verify(log, save, route='telescope-prep'):
                     (2713, 0), (2702, 0), (2701, 0)]
         positive = {1160, 1541, 1782, 1906, 2002}
         negative = {1963}
+    elif route == 'betty-key':
+        expected = [(2701, 0), (2702, 0), (2704, 0), (2711, 0),
+                    (2711, 0), (2700, 0), (2700, 0)]
+        positive = {1160, 1541, 1782, 1906, 1963, 2002}
+        negative = set()
+    elif route == 'venus-column':
+        expected = [(2700, 0), (2605, 16), (2649, 0), (2649, 0),
+                    (2686, 0), (2633, 0), (2633, 0)]
+        positive = {1160, 1541, 1782, 1892, 1906, 1963, 2000, 2002, 2015}
+        negative = {1961, 1999, 2070}
     else:
         raise ValueError('unknown story route')
     observations = []
@@ -79,6 +89,10 @@ def verify(log, save, route='telescope-prep'):
             # The accepted route observes the panel before opening inventory,
             # inside inventory, and finally with the real crank held.
             if route == 'crank-repair' and len(selected) == 3 and state[3] != 20:
+                continue
+            if route == 'betty-key' and len(selected) == 4 and state[3] != 19:
+                continue
+            if route == 'venus-column' and len(selected) == 3 and state[3] != 19:
                 continue
             selected.append(observation)
     if len(selected) != len(expected):
@@ -129,6 +143,32 @@ def verify(log, save, route='telescope-prep'):
                 raise ValueError('crank repair flag does not match pre/post-repair observations')
         if selected[4][0][3] != -1 or selected[5][0][3] != -1 or selected[6][0][3] != -1:
             raise ValueError('crank route did not return to a safe state with no held item')
+    if route in ('betty-key', 'venus-column'):
+        if any(state[0] != state[1] for state, _, _ in selected):
+            raise ValueError('key route art scene does not match the requested scene')
+        if any(state[3] != -1 for state, _, _ in selected[-2:]):
+            raise ValueError('key route did not return to a safe state with no held item')
+    if route == 'betty-key':
+        for index, (_, scope, flags) in enumerate(selected):
+            if not positive <= scope:
+                raise ValueError('RC_FLAGS did not observe every required event')
+            if any(flags.get(f, 0) != 1 for f in positive - {1963}):
+                raise ValueError('Betty prerequisite flag is not 1')
+            if flags.get(1963, 0) != (0 if index < 3 else 1):
+                raise ValueError('Betty prize flag does not match pre/post-win observations')
+    if route == 'venus-column':
+        transition = {1892, 2000, 2015}
+        for index, (_, scope, flags) in enumerate(selected):
+            if not (positive | negative) <= scope:
+                raise ValueError('RC_FLAGS did not observe every required event')
+            if any(flags.get(f, 0) != 1 for f in positive - transition):
+                raise ValueError('Venus earned-key prerequisite flag is not 1')
+            if any(flags.get(f, 0) != (0 if index < 4 else 1) for f in transition):
+                raise ValueError('Venus flags do not match pre/post-key-use observations')
+            if any(flags.get(f, 0) != 0 for f in negative):
+                raise ValueError('unexpected column or armor progression flag')
+        if selected[4][0][3] != -1:
+            raise ValueError('Venus use did not consume the held key')
     for _, scope, flags in selected[-2:]:
         if not (positive | negative) <= scope:
             raise ValueError('RC_FLAGS did not observe every required event')
@@ -147,14 +187,14 @@ def verify(log, save, route='telescope-prep'):
         raise ValueError('checkpoint save is missing or has an unexpected length')
     return {'route': route, 'scene': expected[-1][0], 'view': expected[-1][1],
             'flags_one': sorted(positive), 'flags_zero': sorted(negative),
-            'save': save.name, 'telescope_complete': route in ('telescope-use', 'seedlings', 'crank-repair')}
+            'save': save.name, 'telescope_complete': route in ('telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column')}
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('run_log', type=Path)
     parser.add_argument('save_file', type=Path)
-    parser.add_argument('--route', choices=('telescope-prep', 'jane-jigsaw', 'telescope-use', 'seedlings', 'crank-repair'),
+    parser.add_argument('--route', choices=('telescope-prep', 'jane-jigsaw', 'telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column'),
                         default='telescope-prep')
     args = parser.parse_args()
     try:

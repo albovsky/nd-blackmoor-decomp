@@ -287,5 +287,139 @@ class CrankRepairResultTests(unittest.TestCase):
             checker.verify(self.observed_log(), self.save, route='crank-repair')
 
 
+class BettyKeyResultTests(unittest.TestCase):
+    def setUp(self):
+        self.folder = tempfile.TemporaryDirectory()
+        self.addCleanup(self.folder.cleanup)
+        self.save = Path(self.folder.name) / 'm13.SAV'
+        self.save.write_bytes(bytes(170770))
+        self.frames = []
+        for index, (scene, held) in enumerate(((2701, -1), (2702, -1), (2704, -1),
+                                               (2711, -1), (2711, 19),
+                                               (2700, -1), (2700, -1))):
+            flags = {1160: 1, 1541: 1, 1782: 1, 1906: 1, 2002: 1}
+            if index >= 3:
+                flags[1963] = 1
+            self.frames.append({'scene': scene, 'held': held, 'flags': flags,
+                                'scope': '1160,1541,1782,1906,1963,2002'})
+
+    def observed_log(self):
+        log = ''
+        for frame in self.frames:
+            log += ('  STATE requested_scene=%d art_scene=%d view=0 held_item=%d\n'
+                    '  RC_FLAGS %s\n  FLAGS %s\n' %
+                    (frame['scene'], frame['scene'], frame['held'], frame['scope'],
+                     ' '.join('%d=%d' % pair for pair in frame['flags'].items())))
+        return log + ('  FILE open C:\\GAME\\Documents5\\The Curse of Blackmoor Manor\\m13.SAV  [virtual 3530000 ms]\n'
+                      'RESULT {"stopped":"stop requested <52a4c0"}\n')
+
+    def test_accepts_observed_prize_key_and_safe_room(self):
+        result = checker.verify(self.observed_log(), self.save, route='betty-key')
+        self.assertEqual((result['scene'], result['view']), (2700, 0))
+        self.assertIn(1963, result['flags_one'])
+
+    def test_rejects_preexisting_or_missing_original_prize_flag(self):
+        self.frames[2]['flags'][1963] = 1
+        with self.assertRaisesRegex(ValueError, 'pre/post-win'):
+            checker.verify(self.observed_log(), self.save, route='betty-key')
+        self.frames[2]['flags'][1963] = 0
+        self.frames[3]['flags'][1963] = 0
+        with self.assertRaisesRegex(ValueError, 'pre/post-win'):
+            checker.verify(self.observed_log(), self.save, route='betty-key')
+
+    def test_requires_actual_key_and_observed_safe_checkpoint(self):
+        self.frames[4]['held'] = -1
+        with self.assertRaisesRegex(ValueError, 'ordered'):
+            checker.verify(self.observed_log(), self.save, route='betty-key')
+        self.frames[4]['held'] = 19
+        self.frames[-1]['held'] = 19
+        with self.assertRaisesRegex(ValueError, 'safe state'):
+            checker.verify(self.observed_log(), self.save, route='betty-key')
+        self.frames[-1]['held'] = -1
+        self.frames[0]['scope'] = self.frames[0]['scope'].replace(',1963', '')
+        with self.assertRaisesRegex(ValueError, 'every required event'):
+            checker.verify(self.observed_log(), self.save, route='betty-key')
+
+
+class VenusColumnResultTests(unittest.TestCase):
+    def setUp(self):
+        self.folder = tempfile.TemporaryDirectory()
+        self.addCleanup(self.folder.cleanup)
+        self.save = Path(self.folder.name) / 'm14.SAV'
+        self.save.write_bytes(bytes(170770))
+        self.frames = []
+        for index, (scene, view, held) in enumerate(((2700, 0, -1), (2605, 16, -1),
+                                                    (2649, 0, -1), (2649, 0, 19),
+                                                    (2686, 0, -1), (2633, 0, -1),
+                                                    (2633, 0, -1))):
+            flags = {1160: 1, 1541: 1, 1782: 1, 1906: 1, 1963: 1, 2002: 1}
+            if index >= 4:
+                flags.update({1892: 1, 2000: 1, 2015: 1})
+            self.frames.append({'scene': scene, 'view': view, 'held': held, 'flags': flags,
+                                'scope': '1160,1541,1782,1892,1906,1961,1963,1999,2000,2002,2015,2070'})
+
+    def observed_log(self):
+        log = ''
+        for frame in self.frames:
+            log += ('  STATE requested_scene=%d art_scene=%d view=%d held_item=%d\n'
+                    '  RC_FLAGS %s\n  FLAGS %s\n' %
+                    (frame['scene'], frame['scene'], frame['view'], frame['held'], frame['scope'],
+                     ' '.join('%d=%d' % pair for pair in frame['flags'].items())))
+        return log + ('  FILE open C:\\GAME\\Documents5\\The Curse of Blackmoor Manor\\m14.SAV  [virtual 260000 ms]\n'
+                      'RESULT {"stopped":"stop requested <52a4c0"}\n')
+
+    def test_accepts_actual_key_use_task_and_safe_room(self):
+        result = checker.verify(self.observed_log(), self.save, route='venus-column')
+        self.assertEqual((result['scene'], result['view']), (2633, 0))
+        self.assertTrue({1892, 2000, 2015} <= set(result['flags_one']))
+        self.assertEqual(result['flags_zero'], [1961, 1999, 2070])
+
+    def test_rejects_missing_key_or_false_completion_transition(self):
+        self.frames[3]['held'] = -1
+        with self.assertRaisesRegex(ValueError, 'ordered'):
+            checker.verify(self.observed_log(), self.save, route='venus-column')
+        self.frames[3]['held'] = 19
+        self.frames[2]['flags'][2000] = 1
+        with self.assertRaisesRegex(ValueError, 'pre/post-key-use'):
+            checker.verify(self.observed_log(), self.save, route='venus-column')
+        self.frames[2]['flags'][2000] = 0
+        self.frames[4]['flags'][1892] = 0
+        with self.assertRaisesRegex(ValueError, 'pre/post-key-use'):
+            checker.verify(self.observed_log(), self.save, route='venus-column')
+
+    def test_rejects_unobserved_zero_extra_progression_and_unsafe_checkpoint(self):
+        self.frames[-1]['scope'] = self.frames[-1]['scope'].replace(',2070', '')
+        with self.assertRaisesRegex(ValueError, 'every required event'):
+            checker.verify(self.observed_log(), self.save, route='venus-column')
+        self.frames[-1]['scope'] += ',2070'
+        self.frames[4]['flags'][1999] = 1
+        with self.assertRaisesRegex(ValueError, 'progression flag'):
+            checker.verify(self.observed_log(), self.save, route='venus-column')
+        self.frames[4]['flags'][1999] = 0
+        self.frames[-1]['held'] = 19
+        with self.assertRaisesRegex(ValueError, 'safe state'):
+            checker.verify(self.observed_log(), self.save, route='venus-column')
+
+
+class VenusKeyInputTests(unittest.TestCase):
+    def test_public_legs_reproduce_accepted_fragments_and_parameterize_save(self):
+        import hashlib
+        spec = importlib.util.spec_from_file_location('venus_story', MODULE.with_name('story_route.py'))
+        story = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(story)
+        for leg, name, digest, anchor, menu_at, save_at in (
+                (story.leg_betty_key, 'm13', '05f5524373caf2527584dd829192a2d5de63013dc1a9f9219577ed8b9489c8a9',
+                 'S2702.CIF', 3470000, 3488000),
+                (story.leg_venus_column, 'm14', 'd14780efffd5505256b404fcd15bae0a3f372edc909cbe034c84f6b3aac19c29',
+                 'S2700.CIF', 210000, 228000)):
+            with self.subTest(save=name):
+                actual = leg(save=name)
+                self.assertEqual(hashlib.sha256((actual + '\n').encode()).hexdigest(), digest)
+                expected = ';'.join([leg(), story.menu_to_save_screen(anchor, menu_at),
+                                      story.save_tail(anchor, save_at, 'venus')])
+                self.assertEqual(leg(save='venus'), expected)
+                self.assertLess(len(actual.split(';')) + 7, 512)  # original-menu load prefix
+
+
 if __name__ == '__main__':
     unittest.main()

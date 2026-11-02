@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The story routes of ROUTES.md as INPUT strings for rc_headless.
 
-  python3 story_route.py LEG [--save NAME]      LEG is one of: stairs, lock, slider, moon, telescope-prep, linda, jane-intro, jane-jigsaw, telescope-use, seedlings, crank-repair, slider-verify
+  python3 story_route.py LEG [--save NAME]      LEG is one of: stairs, lock, slider, moon, telescope-prep, linda, jane-intro, jane-jigsaw, telescope-use, seedlings, crank-repair, betty-key, venus-column, slider-verify
   python3 story_route.py slider-verify          replays the recorded 105 slider moves on the puzzle rules and prints whether they solve it
 
 Each leg starts from a save made in the game's own Load & Save screen and (with --save NAME) ends by saving the next one, so the legs chain:
@@ -17,6 +17,8 @@ Each leg starts from a save made in the game's own Load & Save screen and (with 
   m9  --telescope-use--> m10 (delivery, Petrov call, filtered telescope, bedroom view 19)
   m10 --seedlings--> m11 (S2347, seedlings packed; crank not yet collected)
   m11 --crank-repair--> m12 (Drake's crank reward, Betty repaired, keypad visited, safe S2701)
+  m12 --betty-key--> m13 (observed prize-game win, Venus key earned, safe S2700)
+  m13 --venus-column--> m14 (key purpose found, safe S2633; other columns remain)
 
 Steps are `anchor+ms:kind:args` (rc_headless.c). `click x,y,hold` is a move 1 s before the click; `mv:x,y` a bare move; `key:VK` a key press.
 A bare click on a hotspot needs a move onto it first or the game ignores it (the cursor must have been seen there), so every click has its move.
@@ -440,6 +442,59 @@ def leg_crank_repair(save=None):
     return ';'.join(out)
 
 
+def leg_betty_key(save=None):
+    """m12 -> original Betty prize win, real Venus key 19 and safe S2700/m13.
+
+    This bounded 160-request policy won the observed public-chain deal. Other
+    deals or difficulties can fail; the checker must observe the real prize.
+    """
+    out = [R().at('S2701.CIF', 8000).clicks('312,270', 8000).text(),
+           'S2702.CIF+13000:shot:0,0']
+    panel = R().at('S2702.CIF', 20000)
+    panel.clicks('279,321 155,321 465,321 217,321 527,321', 8000)
+    panel.clicks('310,354,300', 8000)
+    out += [panel.text(), 'S2702.CIF+120000:shot:0,0']
+    # Keep the first keypad anchor while original scripts enter the prize game.
+    # Only normal name requests are queued; no hand/deck/RNG data is consulted.
+    requests = R().at('S2702.CIF', 130000)
+    columns = (4, 7, 8, 3, 2, 5, 0, 6, 1, 9)
+    for request in range(160):
+        t = requests.t
+        x = 31 + 62 * columns[request % len(columns)]
+        requests.clicks('%d,321,300' % x, 20000)
+        if request % 5 == 4:
+            requests.o.append('S2702.CIF+%d:shot:0,0' % (t + 18000))
+    prize = R().at('S2702.CIF', 3350000)
+    prize.clicks('308,298 304,185 shot 212,448 shot 62,100 shot '
+                 '212,448 62,100 shot 360,20 shot 310,354 shot', 8000)
+    out += [requests.text(), prize.text()]
+    if save:
+        out += [menu_to_save_screen('S2702.CIF', 3470000),
+                save_tail('S2702.CIF', 3488000, save)]
+    return ';'.join(out)
+
+
+def leg_venus_column(save=None):
+    """m13 -> use the actual key 19 in Venus, task2000, safe S2633/m14.
+
+    This completes the key-purpose task, not all columns or armor orientation.
+    Uses the accepted m13 inventory layout and ordinary pointer clicks.
+    """
+    r = R().at('S2700.CIF', 12000).clicks('shot', 0)
+    r.at('S2700.CIF', 20000).clicks(
+        '576,161 584,161 298,160 570,161 310,160 315,145 shot '
+        '66,160 516,160 310,221 shot 212,448 shot 62,170 shot 278,187 shot', 8000)
+    r.at('S2700.CIF', 167000).clicks('shot', 0)
+    r.at('S2700.CIF', 176000).clicks('310,354', 8000)
+    r.at('S2700.CIF', 195000).clicks('shot', 0)
+    out = [r.text()]
+    if save:
+        # The original save auto-closes; an extra close click is unexercised.
+        out += [menu_to_save_screen('S2700.CIF', 210000),
+                save_tail('S2700.CIF', 228000, save)]
+    return ';'.join(out)
+
+
 def leg_slider(save=None, gap=5000):
     """m4 -> m5. S3447 stairs hotspot, the slider puzzle S3450 (105 moves), the compartment S3452/S3453 item, the cancel strip at S3455, S3457, S3303."""
     r = R().at('S3447.CIF', 8000).clicks('mv:230,150 mv:241,166 241,166,300', 3000)
@@ -499,7 +554,8 @@ if __name__ == '__main__':
             'moon': leg_moon, 'telescope-prep': leg_telescope_prep,
             'linda': leg_linda, 'jane-intro': leg_jane_intro,
             'jane-jigsaw': leg_jane_jigsaw, 'telescope-use': leg_telescope_use,
-            'seedlings': leg_seedlings, 'crank-repair': leg_crank_repair}
+            'seedlings': leg_seedlings, 'crank-repair': leg_crank_repair,
+            'betty-key': leg_betty_key, 'venus-column': leg_venus_column}
     if leg not in legs:
         sys.exit(__doc__)
     print(legs[leg](save))
