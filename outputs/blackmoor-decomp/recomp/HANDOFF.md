@@ -1,5 +1,9 @@
 # Handoff: recompiled GAME.EXE, state and next steps
 
+## Latest word-lock win, 2026-11-02 Pacific
+
+RECOMP-23 adds authored light depletion, the paid replacement request, bounded `repeat_glyph_live.py` and all five word-lock stages. Four actual producer/save-only reload pairs pass from public m35 through safe4387/m39, all stage flags new1 and next fire1972=0. Repeat success uses new1299→1295→1949, never preexisting2001; real5→4 and item ownership/reload are verified.97finite checks pass, first-time/Bul behavior unchanged. See packet for exact new-source6M wait, all8runs/pins and first-paid/Junior limits. Frozen review/metadata pending. Independent Junior has passed alchemy and entered the lab; Senior has also solved/reloaded alchemy. No ending claim.
+
 ## Latest word prerequisites, 2026-11-02 Pacific
 
 RECOMP-21 adds five exact ordinary-input legs from public glowstick m29: lit word clue, corrected daytime Loulou/Barber dialogue, source-specific18M morning wait, Drake magic-word knowledge and Loulou's LEECH answer. Five actual producer/save-only reload pairs pass through m35; the word lock itself remains unsolved in this public chain. Final-source Drake Bye1092 corrects an earlier1090 checker expectation. Root finite checks, full scoped audit and private hashes are in the packet. Sonnet accepts frozen5a859da0 without blockers; generated refresh preserves all claims/1793peer records, and both final freshness checks pass at767ab774. Continuous Junior/Senior campaigns remain further ahead toward alchemy/endgame.

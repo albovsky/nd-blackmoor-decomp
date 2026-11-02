@@ -12,6 +12,7 @@ sys.path.insert(0, str(TOOLS))
 import bul_live as io
 import check_route
 import glyph_live as glyph
+import repeat_glyph_live as repeat
 import glyph_pixels as pixels
 sys.path.pop(0)
 
@@ -117,6 +118,74 @@ class GlyphInputTests(unittest.TestCase):
         self.assertNotIn(1357, check_route.flag_scope(expected))
         with self.assertRaises(ValueError):
             io.flag_scope('')
+
+
+class RepeatGlyphInputTests(unittest.TestCase):
+    def test_preflight_requires_paid_junior_used5_without_later_word_progression(self):
+        _, one, zero = check_route.word_lock_configuration('paid-light-request')
+        data = bytearray(170770)
+        for value, offset in ((0, 0x9034), (-1, 0x10e), (3510, 0x21642), (3510, 0x21646), (4, 0x215d2)):
+            struct.pack_into('<h', data, offset, value)
+        for flag in one:
+            struct.pack_into('<I', data, 0x1ee6 + 4*flag, 1)
+        struct.pack_into('<I', data, 0x2ba + 4*5, 1)
+        for fmt, offset, value in (('<I', 0x2430, 14*60+38), ('<H', 0x2434, 38), ('<H', 0x2436, 14), ('<H', 0x2438, 3)):
+            struct.pack_into(fmt, data, offset, value)
+        with tempfile.TemporaryDirectory() as folder:
+            source = Path(folder) / 'synthetic.SAV'
+            source.write_bytes(data)
+            self.assertEqual(repeat.source_state(source)['inventory'], {4: 0, 5: 1, 13: 0})
+            for fmt, offset, value in (('<h', 0x9034, 2), ('<I', 0x2ba + 4*5, 0),
+                    ('<I', 0x2ba + 4*4, 1), ('<I', 0x1ee6 + 4*1809, 0),
+                    ('<I', 0x1ee6 + 4*1418, 0), ('<I', 0x1ee6 + 4*2001, 0), ('<I', 0x1ee6 + 4*2018, 1)):
+                changed = bytearray(data)
+                struct.pack_into(fmt, changed, offset, value)
+                source.write_bytes(changed)
+                with self.assertRaisesRegex(ValueError, 'first-paid pending Junior'):
+                    repeat.source_state(source)
+
+    def test_exact_first_paid_operator_payloads_and_retained_reload_prefix(self):
+        for payload, digest in ((repeat.caption_payload(), 'c50f2e849cb05ab38e91f82484fe3543458471bfdfec9519fc66edc97e5fa086'),
+                (repeat.bye_payload(), '8de547a400c20980c9f5f5dd0664db0f6d7839ac3f6e992270822b8cadaa33d4'),
+                (repeat.inventory_payload(), '26908e7ba49e0d00ff855601461ec87094e9fb692962d3ba09b44148067d819f'),
+                (repeat.save_payload('m38'), '89a0534c1e89ba265d58aa1629d415a310cbd567634ffcc5c615b3c9d6c001b8')):
+            self.assertEqual(hashlib.sha256(payload.encode()).hexdigest(), digest)
+        self.assertTrue(repeat.reload_payload().endswith('S3510.CIF+73000:move:320,60;S3510.CIF+76000:shot:0,0'))
+        self.assertEqual(repeat.save_payload('m38').split('24000:key:')[0], repeat.save_payload('m381').split('24000:key:')[0])
+        self.assertIs(repeat.send, glyph.send)
+        with self.assertRaises(ValueError):
+            repeat.save_payload('continue')
+
+    def test_old2001_and_handoff_without_new_board_win_are_not_fresh_win_proof(self):
+        def opened(*scenes):
+            return ''.join('  FILE open C:\\GAME\\Ciftree\\S%d.CIF  [virtual %d ms]\n' % (scene, i+1)
+                           for i, scene in enumerate(scenes))
+        old = '  FLAGS 1357=1 2001=1\n'
+        for scenes in ((), (3588,), (1295, 1949), (1299, 3588), (3588, 1295, 1949)):
+            self.assertFalse(repeat.has_fresh_win(old + opened(*scenes)))
+        self.assertTrue(repeat.has_fresh_win(old + opened(3588, 1299, 1295, 1949)))
+
+    def test_reload_requires_actual4_clear_pending_scope_and_final_safe_pair(self):
+        from types import SimpleNamespace
+        _, one, zero = check_route.word_lock_configuration('repeat-glyph-win')
+        def observations():
+            raw = {f: 1 for f in one}
+            raw.update({338: (14*60+59) << 16, 339: 59 << 16, 340: (3 << 16) | 14, 341: 0})
+            return [{'state': [3510, 3510, 4, held], 'scope': repeat.rc_flags(), 'flags': dict(raw)}
+                    for held in (-1, -1, 4, -1, -1)]
+        repeat.verify_reload(SimpleNamespace(observations=observations()))
+        for failure in ('used5', 'pending', 'scope', 'safe_pair'):
+            frames = observations()
+            if failure == 'used5':
+                frames[2]['state'][3] = 5
+            elif failure == 'pending':
+                frames[1]['flags'][1809] = 1
+            elif failure == 'scope':
+                frames[1]['scope'] = '338-341,1000-1808,1810-2250'
+            else:
+                frames[-1]['state'][3] = 4
+            with self.subTest(failure=failure), self.assertRaises(ValueError):
+                repeat.verify_reload(SimpleNamespace(observations=frames))
 
 
 if __name__ == '__main__':

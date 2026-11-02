@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The story routes of ROUTES.md as INPUT strings for rc_headless.
 
-  python3 story_route.py LEG [--save NAME]      LEG is one of: stairs, lock, slider, moon, telescope-prep, linda, jane-intro, jane-jigsaw, telescope-use, seedlings, crank-repair, betty-key, venus-column, jupiter-column, moon-key, moon-column, nigel-computer, night-wait, goggles, ghost-hunt, afternoon-door, linda-passage, bul-start, slide-ball, saturn-column, dragon-passage, glyph-request, lit-word-clue, loulou-barber, loulou-morning, drake-magic, loulou-answer, slider-verify
+  python3 story_route.py LEG [--save NAME]      LEG is one of: stairs, lock, slider, moon, telescope-prep, linda, jane-intro, jane-jigsaw, telescope-use, seedlings, crank-repair, betty-key, venus-column, jupiter-column, moon-key, moon-column, nigel-computer, night-wait, goggles, ghost-hunt, afternoon-door, linda-passage, bul-start, slide-ball, saturn-column, dragon-passage, glyph-request, lit-word-clue, loulou-barber, loulou-morning, drake-magic, loulou-answer, light-depletion, paid-light-request, word-lock, slider-verify
   python3 story_route.py slider-verify          replays the recorded 105 slider moves on the puzzle rules and prints whether they solve it
 
 Each leg starts from a save made in the game's own Load & Save screen and (with --save NAME) ends by saving the next one, so the legs chain:
@@ -1215,6 +1215,107 @@ def leg_loulou_answer(save=None):
     return ';'.join(out)
 
 
+def leg_light_depletion(save=None):
+    """m35 -> authored first-light depletion and ordinary retreat, safe m36."""
+    a = 'S3335.CIF'
+    r = R().at(a, 0)
+    _observed_walk(r, 12000, '212,448 360,20 560,188 316,166 315,168 315,168 321,162 214,163')
+    r.at(a, 52000).clicks('289,99 289,99 289,99 211,149 211,149 431,193 '
+                            '216,246 216,246 406,306 406,306 406,306', 3500)
+    r.at(a, 98500).clicks('shot', 0)
+    r.at(a, 103500).clicks('334,198', 0)
+    r.at(a, 108500).clicks('shot', 0)
+    r.at(a, 113500).clicks('282,166', 0)
+    r.at(a, 125500).clicks('mv:310,180 shot', 0)
+    _observed_walk(r, 130500, '271,165 240,164 235,164 295,169 298,167 309,168 '
+                   '291,167 332,164 302,169 311,168 213,166 207,167 228,165 '
+                   '306,168 308,166 329,165 306,164 339,167 306,165 310,164 341,166 310,166')
+    r.at(a, 240500).clicks('347,107', 0)
+    r.at(a, 260500).clicks('shot', 0)
+    _observed_walk(r, 275000, '201,355 228,165 237,166 314,165 305,165 377,165 '
+                   '316,164 302,167 320,164 315,164 399,164 401,165 345,166 '
+                   '345,166 310,164 377,165 358,166 304,167 309,166 307,164 '
+                   '322,167 315,169 391,167 359,163 359,163 315,162 326,162 '
+                   '315,168 315,168 439,162 324,196', 8000, 5000)
+    out = [r.text()]
+    if save:
+        out += [menu_to_save_screen(a, 523000), save_tail(a, 541000, save)]
+    return ';'.join(out)
+
+
+def leg_paid_light_request(save=None):
+    """m36 -> actual used5, first paid replacement topic and pending m37.
+
+    The six-million-ms ordinary wait belongs to this source, not all clocks.
+    Preserve the exercised caption thumb drag and first-paid150,418 reply.
+    """
+    a = 'S3335.CIF'
+    r = R().at(a, 6012000).clicks('212,448', 0)
+    r.at(a, 6015500).clicks('shot', 0)
+    r.at(a, 6019000).clicks('60,100', 0)
+    r.at(a, 6022500).clicks('shot', 0)
+    r.at(a, 6026000).clicks('212,448 62,100 360,20', 3500)
+    r.at(a, 6036500).clicks('shot', 0)
+    _observed_walk(r, 6040000, '58,189 326,162 326,162 326,162 326,162 326,162 '
+                   '326,162 220,164 482,220', 8000, 5000)
+    _observed_walk(r, 6112000, '310,194 310,194 63,172', 16000, 9000)
+    r.at(a, 6170000).clicks('310,190', 0)
+    r.at(a, 6178000).clicks('shot', 0)
+    r.at(a, 6194000).clicks('shot', 0)
+    r.at(a, 6230000).clicks('22,405,6000', 0)
+    r.o += ['%s+%d:move:22,%d' % (a, 6231400 + 400*i, y)
+            for i, y in enumerate((410, 415, 420, 425, 430, 435, 440, 445, 450, 455))]
+    r.at(a, 6235500).clicks('mv:22,456', 0)
+    r.at(a, 6238000).clicks('shot', 0)
+    r.at(a, 6270000).clicks('150,418', 0)
+    r.at(a, 6292000).clicks('shot', 0)
+    _observed_walk(r, 6294000, '310,355 310,355', 20000, 11000)
+    out = [r.text()]
+    if save:
+        out += [menu_to_save_screen(a, 6334000), save_tail(a, 6352000, save)]
+    return ';'.join(out)
+
+
+def leg_word_lock(save=None):
+    """m38 -> five original word-lock stages and safe4387/m39.
+
+    These are the observed left-wheel clicks for LEECH*, BOOK**, BONNET,
+    GLASS* and HILL**. The original game owns every wheel and win condition.
+    """
+    a = 'S3510.CIF'
+    r = R().at(a, 12000).turns('left', 6).clicks('shot', 0)
+    _observed_walk(r, 32000, '310,195 312,163 234,171', 10000, 6000)
+    _observed_walk(r, 62000, '318,163 474,162 328,163 318,163 303,163 '
+                   '318,163 318,163 318,163 469,164 316,166 315,168 '
+                   '315,168 321,162 214,163', 7000, 4500)
+    r.at(a, 168000).clicks('shot', 0)
+    r.at(a, 176000).clicks('289,99 289,99 289,99 211,149 211,149 431,193 '
+                             '216,246 216,246 406,306 406,306 406,306', 3500)
+    r.at(a, 222500).clicks('shot', 0)
+    r.at(a, 227500).clicks('334,198', 0)
+    r.at(a, 232500).clicks('shot', 0)
+    r.at(a, 237500).clicks('282,166', 0)
+    r.at(a, 249500).clicks('mv:310,180 shot', 0)
+    _observed_walk(r, 255000, '271,165 240,164 235,164 295,169 298,167 309,168 '
+                   '291,167 332,164 302,169 311,168 213,166 207,167 228,165 '
+                   '306,168 308,166 329,165 306,164 339,167 306,165 310,164 341,166 310,166', 4000, 3000)
+    r.at(a, 343000).clicks('347,107', 0)
+    r.at(a, 355000).clicks('shot', 0)
+    for start, counts, shot in ((358000, (2, 3, 1, 6, 6, 0), 403000),
+                                (404000, (1, 6, 1, 2, 1, 0), 435000),
+                                (436000, (0, 0, 1, 1, 5, 3), 465000),
+                                (466000, (5, 6, 4, 3, 3, 4), 525000),
+                                (526000, (4, 4, 4, 5, 6, 0), 581000)):
+        r.at(a, start)
+        for x, count in zip((225, 281, 337, 393, 449, 505), counts):
+            r.clicks(' '.join('%d,271' % x for _ in range(count)), 2000)
+        r.at(a, shot - 1000).clicks('shot', 0)
+    out = [r.text()]
+    if save:
+        out += [menu_to_save_screen(a, 582000), save_tail(a, 600000, save)]
+    return ';'.join(out)
+
+
 def verify_slider():
     """The puzzle rules of the body of S3450 (action_family_d3_runtime.c): five rows by six columns; types 0x10..0x13 are one-way edge arrows, 0x14 walls,
     1..10 the cell a piece of that number must rest on. A piece slides until a barrier or another piece stops it."""
@@ -1266,7 +1367,8 @@ if __name__ == '__main__':
             'dragon-passage': leg_dragon_passage, 'glyph-request': leg_glyph_request,
             'lit-word-clue': leg_lit_word_clue, 'loulou-barber': leg_loulou_barber,
             'loulou-morning': leg_loulou_morning, 'drake-magic': leg_drake_magic,
-            'loulou-answer': leg_loulou_answer}
+            'loulou-answer': leg_loulou_answer, 'light-depletion': leg_light_depletion,
+            'paid-light-request': leg_paid_light_request, 'word-lock': leg_word_lock}
     if leg not in legs:
         sys.exit(__doc__)
     print(legs[leg](save))
