@@ -243,9 +243,11 @@ def has_frame_term(e):
 def callee_leaks(insns):
     """FL-78 review: True when a function analysed as a callee (out_param_extent, readonly_param, pure_callee) hands out its own frame base or names a 16 or 8 bit part of esp / ebp (`frame_ok`): `push ebp` is allowed only as the first instruction (the prologue) and `mov ebp, esp` only as the second; any other push of ebp or esp, `pusha`/`pushad`/`enter`, or a second `mov ebp, esp` could pass the callee's frame
     (from which its argument slots are reachable) to another function."""
+    if insns and any(j.operands and j.operands[0].type == X.X86_OP_IMM and (j.mnemonic == 'jmp' or j.mnemonic.startswith('j') or j.mnemonic.startswith('loop')) and (j.operands[0].imm & 0xffffffff) == insns[0].address for j in insns):
+        return True                                    # FL-78 (round 8 review): a jump back to the entry runs the prologue's `push ebp` again
     for k, i in enumerate(insns):
         m = i.mnemonic
-        if not frame_ok(i):
+        if not frame_ok(i, k == 0):
             return True
         if m in ('pusha', 'pushad', 'enter', 'pushal'):
             return True
@@ -284,7 +286,7 @@ def frame_touch(i):
     return touched
 
 
-def frame_ok(i):
+def frame_ok(i, first=False):
     """FL-78 review (round 6): a whitelist. An instruction that reads or writes esp or ebp (or a part of them) other than as the address register of a memory operand is allowed only as one of: `push ebp` / `mov ebp, esp` (prologue; the position rules are `callee_leaks`'), push or pop of another 32 bit register, an immediate or a memory operand, call, ret, leave (not with a 0x66 prefix), `mov esp, ebp` / `mov ebp, esp`, add or sub esp, immediate. Everything else (popad, popaw, enter, pushfd, xchg, lea esp, bswap ebp, a 16 bit leave, `add sp, ..`, a push or pop with an operand size prefix, ...) is refused, however its effect on the frame base is spelled."""
     touched = frame_touch(i)
     if touched is None:
@@ -298,6 +300,8 @@ def frame_ok(i):
     names = [i.reg_name(o.reg) for o in ops if o.type == X.X86_OP_REG]
     if m in ('push', 'pop') and len(ops) == 1:
         if ops[0].type == X.X86_OP_REG:
+            if m == 'push' and names[0] == 'ebp' and not first:
+                return False                         # FL-78 (round 8 review): the frame base is never pushed, except by the prologue's `push ebp` as the first instruction: a pushed ebp is a frame address that a callee, or a pop, can take anywhere
             return names[0] != 'esp' and ops[0].size == 4
         return ops[0].type in (X.X86_OP_IMM, X.X86_OP_MEM) and not (names and names[0] == 'esp')
     if m == 'call' and len(ops) == 1:
@@ -311,7 +315,7 @@ def frame_ok(i):
     return False
 
 
-def frame_escapes(insns):
+def frame_escapes(insns, first=None):
     """True if some instruction can hand out an address of the stack frame or move the frame base in a way the checks do not follow: then the frame assumption is not used for the function.
     A `lea` with esp or ebp as base or index forms a frame address. Every other instruction that touches esp or ebp other than as a memory address register must pass `frame_ok` (a whitelist: the prologue push / mov, push and pop of other operands, call, ret, leave, mov esp / ebp, add or sub esp immediate)."""
     for i in insns:
@@ -321,7 +325,7 @@ def frame_escapes(insns):
                 return True
             if i.reg_name(mem.index) in FRAME_NAMES if mem.index else False:
                 return True
-        if not frame_ok(i):
+        if not frame_ok(i, i.address == (insns[0] if first is None else first).address):
             return True
     return False
 
@@ -1049,6 +1053,7 @@ class Machine:
         self.noreturn = {int(a) for a in row.get('noreturn', ())}          # FL-72: callees that never return (tests/fl72_noreturn.json): a path that calls one ends there
         self.bounds = {}        # FL-75: callee address -> the bound on eax that its bytes prove (ret_bound)
         self.split = False      # the frame assumption holds for this function (set by Analysis)
+        self.temps = None       # FL-78 (round 8): (L, delta) in a window run under the stack-discipline assumption (`Analysis.temps_info`): only the call temporaries (addresses below ebp - L) are in `frm`; delta = esp - ebp at the window's start
         self.after_call = {}    # call address -> bytes the next instruction `add esp, k` removes
         self.out_writes = {}    # FL-78: call address -> [(offset of the pushed frame pointer from esp at the call, bytes the callee writes through it)] (library_arg_lea kind 'out')
         self.pure = {}          # FL-78: callee address -> pure_callee (memoised): a call of one leaves memory as it was
@@ -1096,17 +1101,38 @@ class Machine:
     def assume_ok(self, st, addr, n):
         st.pc = z3.And(st.pc, z3.ULE(addr, bv(FAULT_LIMIT - n, 32)))
 
-    def space(self, st, a, op=None):
+    def space(self, st, a, op=None, n=1):
         """Which memory an address belongs to. With the frame assumption (see the module text) an address that is built from the entry esp (every ebp/esp-relative
         access) is in the function's own frame, every other address is not."""
         if op is not None and op.mem.segment == X.X86_REG_FS:
             return 'fs'
-        return 'frm' if self.split and has_frame_term(a) else 'mem'
+        if not (self.split and has_frame_term(a)):
+            return 'mem'
+        return 'frm' if self.temps is None or self.is_temp(a, n) else 'mem'
+
+    def is_temp(self, a, n=1):
+        """FL-78 (round 8), stack-discipline mode: True for a frame address below the locals (ebp - L), a call temporary: a pushed slot or an argument slot of a call. False for a frame address in the locals or the arguments of the function (then it is in `mem`, where
+        any pointer, an escaped `lea [ebp - X]` among them, may reach it). A frame address whose offset is not a constant is not modelled."""
+        L, delta = self.temps
+        s_esp, s_ebp = z3.BitVec('s_esp', 32), z3.BitVec('s_ebp', 32)
+        c = z3.simplify(z3.substitute(a, (s_esp, s_ebp + bv(delta, 32))) - s_ebp)
+        if not z3.is_bv_value(c):
+            raise Unsupported('a frame address with an offset that is not constant')
+        c = c.as_long()
+        c = c - (1 << 32) if c >= 1 << 31 else c
+        if c < -L < c + n:
+            raise Unsupported('an access that straddles the bottom of the locals')
+        return c < -L
+
+    def temp_value(self, val):
+        """FL-78 (round 8 review): in stack-discipline mode a value that is an address of a call temporary is not stored or pushed anywhere (the pointer could then be read back as an ordinary value and followed as one). Other values that contain a frame address are pointers to the locals."""
+        if self.temps is not None and self.split and has_frame_term(val) and (val.size() != 32 or self.is_temp(val)):
+            raise Unsupported('the address of a call temporary is stored')
 
     def mem_read(self, st, op, n):
         a = self.ea(st, op)
         self.assume_ok(st, a, n)
-        sp = self.space(st, a, op)
+        sp = self.space(st, a, op, n)
         if sp == 'mem':
             c = a.as_long() if z3.is_bv_value(a) else None
             if c is not None and IMAGE_BASE <= c and c + n <= DATA_START:
@@ -1126,13 +1152,14 @@ class Machine:
     def mem_write(self, st, op, val, n):
         a = self.ea(st, op)
         self.assume_ok(st, a, n)
-        sp = self.space(st, a, op)
+        sp = self.space(st, a, op, n)
+        self.temp_value(val)
         setattr(st, sp, self.store(getattr(st, sp), a, val, n))
 
     def mem_havoc(self, st, a, n):
         """A write of n unknown bytes at a."""
         self.assume_ok(st, a, n)
-        sp = self.space(st, a)
+        sp = self.space(st, a, None, n)
         arr = getattr(st, sp)
         for k in range(n):
             arr = z3.Store(arr, a + k, fresh(8, 'x'))
@@ -1161,7 +1188,8 @@ class Machine:
         sp = st.R['esp'] - 4
         st.R['esp'] = sp
         self.assume_ok(st, sp, 4)
-        space = self.space(st, sp)
+        space = self.space(st, sp, None, 4)
+        self.temp_value(val)
         setattr(st, space, self.store(getattr(st, space), sp, val, 4))
 
     @staticmethod
@@ -1173,7 +1201,7 @@ class Machine:
     def pop(self, st):
         sp = st.R['esp']
         self.assume_ok(st, sp, 4)
-        v = self.load(getattr(st, self.space(st, sp)), sp, 4)
+        v = self.load(getattr(st, self.space(st, sp, None, 4)), sp, 4)
         st.R['esp'] = sp + 4
         return v
 
@@ -1495,6 +1523,8 @@ class Machine:
         kind = base[:-1]
         edi, esi = st.R['edi'], st.R['esi']
         frame_dest = self.split and kind in ('movs', 'stos') and has_frame_term(edi)             # FL-78: the destination is a frame address that library_arg_lea followed (a copy into a local buffer)
+        if self.temps is not None and self.split and any(has_frame_term(r) for r in (edi, esi)):
+            raise Unsupported('a string instruction on a frame address in stack-discipline mode')       # FL-78 (round 8)
         if rep and frame_dest:
             self.assume_ok(st, edi, 1)
             st.mem = fresh_array()                                                                  # a store of unknown length through a frame address may write any byte of the frame (and, if the length
@@ -1544,7 +1574,7 @@ class Machine:
         elif kind == 'movs':
             self.assume_ok(st, esi, size)
             self.assume_ok(st, edi, size)
-            v = self.load(getattr(st, self.space(st, esi)), esi, size)
+            v = self.load(getattr(st, self.space(st, esi, None, size)), esi, size)
             setattr(st, dst, self.store(getattr(st, dst), edi, v, size))
             st.R['esi'], st.R['edi'] = esi + size, edi + size
         else:
@@ -1625,13 +1655,13 @@ class Analysis:
         self.md, self.insns = disassemble(image, self.va, self.body)
         self.by_addr = {i.address: i for i in self.insns}
         self.M = Machine(row, image)
-        self.split_ok = SPLIT and not row.get('frame')                                       # a `frame` row starts with ebp = the entry frame address
         targets = self.branch_targets()
+        self.split_ok = SPLIT and not row.get('frame') and self.va not in targets             # a `frame` row starts with ebp = the entry frame address; a jump back to the entry runs the prologue again (FL-78 round 8 review: the frame base is pushed once per run only)
         self.esc_addrs = []                                                                   # FL-75: where the function forms an address of its frame
         self.used = set()                                                                     # FL-78 review: the assumptions the frame-address rules relied on (named in the proof record)
         _FX.append(set())
         for i in (self.insns if self.split_ok else ()):
-            if frame_escapes([i]) and not seh_registration(self.insns, i, targets):
+            if frame_escapes([i], self.insns[0]) and not seh_registration(self.insns, i, targets):
                 info = library_arg_lea(self.insns, i, targets, self.by_addr, image=image, callees=self.M.callees, imports=import_slots() | set(self.M.imports))       # FL-78: a frame address that is followed to its end (library_arg_lea) is not one
                 if info and info['kind'] in ('out', 'dest'):
                     self.M.out_writes.setdefault(info['call'], []).append((info['off'], info['extent']))
@@ -1846,6 +1876,29 @@ class Analysis:
                         work.append(p)
             loops.setdefault(h, set()).update(body)
         self.loops = loops
+
+    def temps_info(self):
+        """FL-78 (round 8): L, the size of the locals, when the stack-discipline assumption can be used for this function, else None. The function starts `push ebp; mov ebp, esp; sub esp, L` and every place where it forms an address of its frame is `lea r, [ebp + d]` with no index and d >= -L (a pointer to its own locals or
+        arguments; `ebp` is only changed by the prologue and `leave`, see `frame_ok`). Anything else that forms a frame address (a `lea` of esp, `mov r, esp`, an index, an address below the locals) makes it None."""
+        if not self.split_ok:
+            return None
+        ins = self.insns
+        if len(ins) < 3 or [(i.mnemonic, i.op_str) for i in ins[:2]] != [('push', 'ebp'), ('mov', 'ebp, esp')]:
+            return None
+        sub = ins[2]
+        if sub.mnemonic != 'sub' or sub.op_str.split(',')[0].strip() != 'esp' or sub.operands[1].type != X.X86_OP_IMM or not 0 < sub.operands[1].imm < 0x10000:
+            return None
+        L = sub.operands[1].imm
+        for a in self.esc_addrs:
+            i = self.by_addr[a]
+            if i.mnemonic != 'lea':
+                return None
+            m = i.operands[1].mem
+            if i.reg_name(m.base) != 'ebp' if m.base else True:
+                return None
+            if m.index or m.disp < -L:
+                return None
+        return L
 
     def frame_safe(self, S, region):
         """FL-75: the frame assumption holds in a window that starts at block S and executes the blocks `region` when no instruction that forms an address of the frame is in the region or can run before S
@@ -2141,6 +2194,8 @@ def prove_row(key, targets, timeout_ms=30000, image=None, fail_fast=False):
         import fl71_window as Wn
         an0, dom = Wn.prepare(key, image)
         win = Wn.prove_row_windows(an0, dom, todo)
+        if getattr(an0, 'stack_discipline_used', False):
+            out['assumptions_used'] = sorted(set(out['assumptions_used']) | {'stack-discipline-assumption'})        # FL-78 (round 8): a window ran with only the call temporaries kept apart
         out['instructions'].update(win['instructions'])
         out['directions'].update(win['directions'])
         todo = {'missing': [a for a in todo['missing'] if hex(a) not in win['instructions']],
@@ -2165,6 +2220,8 @@ def prove_row(key, targets, timeout_ms=30000, image=None, fail_fast=False):
                 out['directions']['%s:%s' % (hex(a), n)] = [v[0], v[1]]
                 todo['untaken'].remove([a, n])
                 closed.append('%s:%s' % (hex(a), n))
+        if getattr(an0, 'stack_discipline_used', False):                 # the same for a proof by the fault windows
+            out['assumptions_used'] = sorted(set(out['assumptions_used']) | {'stack-discipline-assumption'})
         if not todo['missing'] and not todo['untaken']:
             if closed:
                 out['assumptions_used'] = sorted(set(out['assumptions_used']) | {'closed-loop-wait-semantics'})

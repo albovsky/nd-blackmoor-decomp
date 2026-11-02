@@ -32,8 +32,7 @@ REASONS = {
 
 # Mac-port (Game + Vorbis) rows: va -> (reason code, note). Filled from the FL-75 and FL-77 handoffs.
 MAC_ROWS = {
-    "0x456516": ("needs_alias_model_in_prover", "Left: the jns at 0x456a0b fall-through. Needs a pointer into the stack (19 lea of frame addresses)."),
-    "0x471722": ("needs_alias_model_in_prover", "One direction needs the `this` pointer aliased onto the record table (the only wild store is at 0x472063); a large dispatcher, and the solver ran out of memory."),
+    "0x471722": ("needs_multi_cell_or_aliased_state", "Scenarios cover every instruction (1151) and 173 of 174 directions; the last, 0x4721d3 taken, needs byte [obj+0xd3b] nonzero, but the function only ever writes it 0 and clears it before the compare, so it needs a heap-field invariant or an alias of two object pointers that the prover cannot express."),
     "0x48f181": ("impossible_direction_unproved", "1,076 of 1,076 instructions and 145 of 146 directions; the jump at 0x48f3a2 taken is impossible by construction. check --prove ran for 722 s with the committed scenarios and did not discharge it."),
     "0x4a14c6": ("needs_callee_footprint_model", "One direction left; a copy is compared against its own source."),
     "0x4e812f": ("prover_window_times_out", "10 directions and 39 instructions left, behind loops at 0x4e8212 and 0x4e851f; every window times out."),
