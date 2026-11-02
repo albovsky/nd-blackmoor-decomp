@@ -15,7 +15,7 @@ def watch(uc,ensure,trace,sp):
     def h(uc_,a,sz,u):
         if len(out)>12: return
         g=lambda r: hex(uc_.reg_read(getattr(X,'UC_X86_REG_'+r)))
-        out.append((hex(a),[g(r) for r in ('EAX','ECX','EDX','EBX','ESI','EDI','EBP','ESP')]))
+        out.append((hex(a),[g(r) for r in ("EAX","ECX","EDX","EBX","ESI","EDI","EBP","ESP")],[hex(x) for x in struct.unpack("<4I",bytes(uc_.mem_read(uc_.reg_read(X.UC_X86_REG_EBP)-12,16)))]))
     for p in pcs: uc.hook_add(unicorn.UC_HOOK_CODE,h,begin=p,end=p)
 tr=W.run_original(row,seed,[tuple(o) for o in SETS[idx]],watch=watch)
 print(tr.fault)
