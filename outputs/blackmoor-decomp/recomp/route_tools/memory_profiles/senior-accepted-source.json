@@ -1,0 +1,11 @@
+{
+  "name": "senior",
+  "difficulty": 2,
+  "source_sha256": "b0b49b4ca3692367e8da83c5a5b54957fed33a56e1aaaed68e3b26c01b0f9bb6",
+  "clock": {
+    "total_minutes": 876,
+    "minute": 36,
+    "hour": 14,
+    "day": 3
+  }
+}

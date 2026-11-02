@@ -1,0 +1,11 @@
+{
+  "name": "junior",
+  "difficulty": 0,
+  "source_sha256": "ca0793b073a6358da3e3d58b3cda6ed3ce99875a50988cdeca77c6b7db6a5678",
+  "clock": {
+    "total_minutes": 897,
+    "minute": 57,
+    "hour": 14,
+    "day": 3
+  }
+}
