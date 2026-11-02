@@ -1,5 +1,9 @@
 # Handoff: recompiled GAME.EXE, state and next steps
 
+## Latest Cake verification, 2026-11-02 Pacific
+
+RECOMP-32 adds the ordinary Cake client and six finite checks. Both new public-client runs pass on reviewed b49 from their separate genuine sources:91-step producers/24 captures and14-step/four-capture fresh reloads, all complete/exit0. Original ingredient selection, finish and baking produce actual cake1. UI saves return3520/view0/unheld; fresh inventory selection yields held1. Only inventory cell1 changes0→1. Historical private runs and the initial wrong-panorama refusal remain separate. Packet32 records exact pins and recipe/build limits. Independent review is pending; no whole-game completion is claimed.
+
 ## Latest Memory verification, 2026-11-02 Pacific
 
 RECOMP-31 adds a captured-pixel Memory client, explicit read-only Junior/Senior source profiles and the original observed entry input. Both first wins on reviewed b49 are recorded:23/24 submitted pairs, actual1207/1988→new1345, normal room return, genuine UI saves and fresh-save-only reloads. The public pixel helper and play/save/reload core match those frozen private runs. Its new CLI/profile integration passes two separate11-step entry probes to Jane1200; complete public solve glue is not relabeled as newly executed. Six finite groups and both genuine source/output checks pass. Source/build/evidence boundaries and remaining variants are in packet31. Sonnet accepts frozen cfee725a with no blocking findings; no whole-game completion is claimed.

@@ -1,0 +1,135 @@
+{
+  "scope": "Two new full public Cake client runs on reviewed b49; original baking, real1, UI save/fresh output-only held1 reload; optional branches remain outside campaignlineages",
+  "native_sha256": "b49eaa71885a02e9e096b9766f020576ef0a0381837cd036f0875bab49351e24",
+  "controller_sha256": "bfa9156d83be605c0dbaa8c14db99f1bf4c8967741993288031f47cc66d5c3d6",
+  "runs": [
+    {
+      "profile": "junior",
+      "accepted": true,
+      "outer_receipt_sha256": "4c7a32ec8806da881d8824615e4396e72d01357c8d2f293381ee39d854544529",
+      "controller_sha256": "bfa9156d83be605c0dbaa8c14db99f1bf4c8967741993288031f47cc66d5c3d6",
+      "output_sha256": "2422bc63e59d2c44d26eeddfe46316ff36bf503a895767d343d275e96183ce06",
+      "output_state": {
+        "difficulty": 0,
+        "held": -1,
+        "scene": 3520,
+        "art": 3520,
+        "view": 0,
+        "progression": {
+          "1338": 1,
+          "1502": 0,
+          "1503": 0,
+          "1567": 1
+        },
+        "clock_diagnostics": {
+          "total_minutes": 906,
+          "minute": 6,
+          "hour": 15,
+          "day": 3
+        },
+        "owned_cake_items": {
+          "0": false,
+          "1": true
+        }
+      },
+      "only_inventory_change": "item1:0\u21921; other39 cells unchanged",
+      "fresh_actual_held1": true,
+      "producer": {
+        "control_summary": "CONTROL SUMMARY complete=1 finish_id=24 acked=23 requests=24 steps=91/91 shots=24 bytes=1609 pending=0 clock_ms=238296 failed=0 reason=",
+        "returncode": 0,
+        "error": null,
+        "wall_seconds": 6.188,
+        "copy_unchanged": true,
+        "log_sha256": "07a903f707405b4c2edbae5160c0985e07ea59d85a52fd7b0078125b8184d5fe",
+        "source_sha256": "ca0793b073a6358da3e3d58b3cda6ed3ce99875a50988cdeca77c6b7db6a5678"
+      },
+      "reload": {
+        "control_summary": "CONTROL SUMMARY complete=1 finish_id=4 acked=3 requests=4 steps=14/14 shots=4 bytes=344 pending=0 clock_ms=60757 failed=0 reason=",
+        "returncode": 0,
+        "error": null,
+        "wall_seconds": 1.509,
+        "copy_unchanged": true,
+        "log_sha256": "c6593ab2cf6de356822fab6eb7575b653561868929465b0e7eb8783278d3103d",
+        "source_sha256": "2422bc63e59d2c44d26eeddfe46316ff36bf503a895767d343d275e96183ce06"
+      },
+      "output_and_copy_hashes": {
+        "produced_output": "2422bc63e59d2c44d26eeddfe46316ff36bf503a895767d343d275e96183ce06",
+        "reload_source": "2422bc63e59d2c44d26eeddfe46316ff36bf503a895767d343d275e96183ce06",
+        "reload_copy": "2422bc63e59d2c44d26eeddfe46316ff36bf503a895767d343d275e96183ce06",
+        "accepted_copy": "2422bc63e59d2c44d26eeddfe46316ff36bf503a895767d343d275e96183ce06"
+      },
+      "authored_auxiliary_outputs": {
+        "producer": {},
+        "reload": {}
+      },
+      "source_sha256": "ca0793b073a6358da3e3d58b3cda6ed3ce99875a50988cdeca77c6b7db6a5678",
+      "source_copy_sha256": "ca0793b073a6358da3e3d58b3cda6ed3ce99875a50988cdeca77c6b7db6a5678"
+    },
+    {
+      "profile": "senior",
+      "accepted": true,
+      "outer_receipt_sha256": "0efef0fd4c52ffeb1fbdade586674b8185bfe4012281c08eb6d1466c6c1fedb1",
+      "controller_sha256": "bfa9156d83be605c0dbaa8c14db99f1bf4c8967741993288031f47cc66d5c3d6",
+      "output_sha256": "e7a4d6f5729da0f6576a097d3012134450255554b0c8e569998d885fed4cb25e",
+      "output_state": {
+        "difficulty": 2,
+        "held": -1,
+        "scene": 3520,
+        "art": 3520,
+        "view": 0,
+        "progression": {
+          "1338": 1,
+          "1502": 0,
+          "1503": 0,
+          "1567": 1
+        },
+        "clock_diagnostics": {
+          "total_minutes": 885,
+          "minute": 45,
+          "hour": 14,
+          "day": 3
+        },
+        "owned_cake_items": {
+          "0": false,
+          "1": true
+        }
+      },
+      "only_inventory_change": "item1:0\u21921; other39 cells unchanged",
+      "fresh_actual_held1": true,
+      "producer": {
+        "control_summary": "CONTROL SUMMARY complete=1 finish_id=24 acked=23 requests=24 steps=91/91 shots=24 bytes=1609 pending=0 clock_ms=238130 failed=0 reason=",
+        "returncode": 0,
+        "error": null,
+        "wall_seconds": 6.257,
+        "copy_unchanged": true,
+        "log_sha256": "25e74dcf93f0f2e6452705cbeffe98d104047620f36d781ce677df4484110039",
+        "source_sha256": "b0b49b4ca3692367e8da83c5a5b54957fed33a56e1aaaed68e3b26c01b0f9bb6"
+      },
+      "reload": {
+        "control_summary": "CONTROL SUMMARY complete=1 finish_id=4 acked=3 requests=4 steps=14/14 shots=4 bytes=344 pending=0 clock_ms=60757 failed=0 reason=",
+        "returncode": 0,
+        "error": null,
+        "wall_seconds": 1.547,
+        "copy_unchanged": true,
+        "log_sha256": "b1fe04e8e91359c1093a0b996c136e755ffc648442c7efefe06117e1c230dbc6",
+        "source_sha256": "e7a4d6f5729da0f6576a097d3012134450255554b0c8e569998d885fed4cb25e"
+      },
+      "output_and_copy_hashes": {
+        "produced_output": "e7a4d6f5729da0f6576a097d3012134450255554b0c8e569998d885fed4cb25e",
+        "reload_source": "e7a4d6f5729da0f6576a097d3012134450255554b0c8e569998d885fed4cb25e",
+        "reload_copy": "e7a4d6f5729da0f6576a097d3012134450255554b0c8e569998d885fed4cb25e",
+        "accepted_copy": "e7a4d6f5729da0f6576a097d3012134450255554b0c8e569998d885fed4cb25e"
+      },
+      "authored_auxiliary_outputs": {
+        "producer": {},
+        "reload": {}
+      },
+      "source_sha256": "b0b49b4ca3692367e8da83c5a5b54957fed33a56e1aaaed68e3b26c01b0f9bb6",
+      "source_copy_sha256": "b0b49b4ca3692367e8da83c5a5b54957fed33a56e1aaaed68e3b26c01b0f9bb6"
+    }
+  ],
+  "historical_private_v3_proof_sha256": "aebc931cee5def48d1ee304b66e22d1d506fdb7af9f1666d20adca4580cb7368",
+  "earlier_Senior01_refusal_preserved": true,
+  "whole_game_complete": false,
+  "final_Mac_acceptance": false
+}
