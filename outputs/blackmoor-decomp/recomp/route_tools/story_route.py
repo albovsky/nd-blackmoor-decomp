@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The story routes of ROUTES.md as INPUT strings for rc_headless.
 
-  python3 story_route.py LEG [--save NAME]      LEG is one of: stairs, lock, slider, moon, telescope-prep, linda, jane-intro, jane-jigsaw, telescope-use, seedlings, crank-repair, betty-key, venus-column, jupiter-column, moon-key, moon-column, nigel-computer, night-wait, goggles, ghost-hunt, afternoon-door, linda-passage, bul-start, slider-verify
+  python3 story_route.py LEG [--save NAME]      LEG is one of: stairs, lock, slider, moon, telescope-prep, linda, jane-intro, jane-jigsaw, telescope-use, seedlings, crank-repair, betty-key, venus-column, jupiter-column, moon-key, moon-column, nigel-computer, night-wait, goggles, ghost-hunt, afternoon-door, linda-passage, bul-start, slide-ball, saturn-column, slider-verify
   python3 story_route.py slider-verify          replays the recorded 105 slider moves on the puzzle rules and prints whether they solve it
 
 Each leg starts from a save made in the game's own Load & Save screen and (with --save NAME) ends by saving the next one, so the legs chain:
@@ -30,6 +30,8 @@ Each leg starts from a save made in the game's own Load & Save screen and (with 
   m22 --linda-passage--> m23 (Linda passage conversation, safe S4408)
   m23 --bul-start--> S1261 (wagered Bul; live play required, no save tail)
   bul_live.py may earn and verify m24 through ordinary play; loss/incomplete runs are refused.
+  m24 --slide-ball--> m25 (first Ethel greeting, real7 door, first slide and actual ball3, safe S3215)
+  m25 --saturn-column--> m26 (movie-timed bullseye, real16 and Saturn use, safe S2620)
 
 Steps are `anchor+ms:kind:args` (rc_headless.c). `click x,y,hold` is a move 1 s before the click; `mv:x,y` a bare move; `key:VK` a key press.
 A bare click on a hotspot needs a move onto it first or the game ignores it (the cursor must have been seen there), so every click has its move.
@@ -943,6 +945,67 @@ def bul_win_tail(save):
     return ';'.join(out)
 
 
+def leg_slide_ball(save=None):
+    """Observed Junior m24 -> Ethel, real7 door, first slide and ball3.
+
+    Source Ethel/door/slide/ball flags are still zero. Keep the authored first
+    greeting, every exercised wait and the real inventory selections.
+    """
+    a = 'S3510.CIF'
+    r = R().at(a, 12000).turns('left', 6)
+    r.at(a, 27000).clicks('shot', 0)
+    _observed_walk(r, 33000, '310,195 312,163 234,171', 12000, 7000)
+    r.at(a, 80000).clicks('150,440', 0)
+    r.at(a, 125000).clicks('shot', 0)
+    r.at(a, 140000).clicks('150,421', 0)
+    r.at(a, 205000).clicks('shot', 0)
+    _observed_walk(r, 220000, '141,190 318,163 474,162 328,163 318,163 303,163 '
+                   '318,163 318,163 318,163 469,164 316,166')
+    r.at(a, 275000).clicks('212,448 280,174 shot 316,168 shot 316,168 shot '
+                            '65,162 shot 322,202 shot', 7000)
+    r.gap(12000).clicks('shot 274,178 shot', 7000)
+    r.gap(12000).clicks('shot', 5000)
+    _observed_walk(r, 402000, '55,162 280,163 304,163 306,164 307,163 307,163 '
+                   '543,188 310,353 318,165 318,165 318,165 318,165')
+    r.at(a, 462000).clicks('306,222 shot', 7000).gap(8000)
+    r.clicks('310,164 shot 212,448 60,100 shot 212,448 62,100 360,20 shot', 5000)
+    out = [r.text()]
+    if save:
+        out += [menu_to_save_screen(a, 529000), save_tail(a, 547000, save)]
+    return ';'.join(out)
+
+
+def leg_saturn_column(save=None):
+    """Observed Junior m25 -> original bullseye16 reward and Saturn use.
+
+    Movie timing is the exercised native timing, not a real-time FPS model.
+    The 15ms pre-hover/40ms click and corrected inventory slots are deliberate.
+    """
+    a = 'S3215.CIF'
+    r = R().at(a, 0)
+    _observed_walk(r, 12000, '310,353 318,165 563,165 314,174 314,164')
+    _observed_walk(r, 38000, '52,161 194,161 49,162 88,161 311,164 329,163 '
+                   '329,163 495,163 318,163 318,163 318,163 469,164 316,166 '
+                   '315,168 315,168 65,162')
+    r.at(a, 118000).clicks('322,202 shot', 7000)
+    r.at(a, 142000).clicks('shot', 0)
+    r.at(a, 149000).clicks('274,178', 0)
+    movie = 'HAL_SLIDE_ANIM.BIK'
+    r.o += [movie + '+800:shot:0,0', movie + '+835:move:380,140',
+            movie + '+850:click:380,140,40', movie + '+930:shot:0,0',
+            movie + '+6000:shot:0,0']
+    r.at(movie, 18000).clicks('310,217 shot 212,448 60,100 shot '
+                               '212,448 62,100 360,20 shot 310,100', 5000)
+    r.gap(6000).clicks('shot', 3000)
+    _observed_walk(r, 77000, '55,162 545,254 311,353 310,353 50,162 231,149')
+    r.at(movie, 107000).clicks('212,448 60,243 shot 310,226 shot', 5000)
+    r.gap(12000).clicks('310,354 shot', 7000)
+    out = [r.text()]
+    if save:
+        out += [menu_to_save_screen(movie, 158000), save_tail(movie, 176000, save)]
+    return ';'.join(out)
+
+
 def leg_slider(save=None, gap=5000):
     """m4 -> m5. S3447 stairs hotspot, the slider puzzle S3450 (105 moves), the compartment S3452/S3453 item, the cancel strip at S3455, S3457, S3303."""
     r = R().at('S3447.CIF', 8000).clicks('mv:230,150 mv:241,166 241,166,300', 3000)
@@ -1008,7 +1071,8 @@ if __name__ == '__main__':
             'moon-column': leg_moon_column, 'nigel-computer': leg_nigel_computer,
             'night-wait': leg_night_wait, 'goggles': leg_goggles,
             'ghost-hunt': leg_ghost_hunt, 'afternoon-door': leg_afternoon_door,
-            'linda-passage': leg_linda_passage, 'bul-start': leg_bul_start}
+            'linda-passage': leg_linda_passage, 'bul-start': leg_bul_start,
+            'slide-ball': leg_slide_ball, 'saturn-column': leg_saturn_column}
     if leg not in legs:
         sys.exit(__doc__)
     print(legs[leg](save))

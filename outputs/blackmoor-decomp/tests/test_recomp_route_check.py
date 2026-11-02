@@ -947,5 +947,144 @@ class PassageRouteInputTests(unittest.TestCase):
             story.leg_bul_start(save='m24')
 
 
+class PostKeyRouteTests(unittest.TestCase):
+    prior = PassageRouteResultTests.prior | {2058, 1494, 1496, 1498, 2156, 1404, 1435, 1405}
+    opens = {'slide-ball': (1420, 1400, 1401, 3310, 3360, 3361, 3330, 3344, 3425, 3420, 2676, 3215),
+             'saturn-column': (3420, 3421, 3426, 2677, 2620, 2685, 2620)}
+
+    def setUp(self):
+        self.folder = tempfile.TemporaryDirectory()
+        self.addCleanup(self.folder.cleanup)
+
+    def frames(self, route):
+        save = Path(self.folder.name) / ('m25.SAV' if route == 'slide-ball' else 'm26.SAV')
+        save.write_bytes(bytes(170770))
+        prior = set(self.prior)
+        if route == 'slide-ball':
+            states = ((3510, 4), (1400, 0), (1401, 0), (3310, 0),
+                      (3360, 0), (3361, 0), (3330, 0), (3344, 0),
+                      (3425, 0), (2676, 0), (3215, 0), (3215, 0),
+                      (3215, 0), (3215, 0), (3215, 0))
+            phases = {1562: 1, 1971: 5, 1575: 9, 1844: 9, 2050: 11}
+            held = {4: 7, 12: 3}
+        else:
+            prior |= {1562, 1971, 1575, 1844, 2050}
+            states = ((3215, 0), (3420, 0), (3421, 0), (2677, 0),
+                      (2677, 0), (2620, 0), (2685, 0), (2620, 0), (2620, 0))
+            phases = {1970: 3, 1820: 6, 2005: 6}
+            held = {4: 16, 5: 16}
+        frames = []
+        for index, (scene, view) in enumerate(states):
+            flags = {f: 1 for f in prior}
+            flags.update({f: 1 for f, phase in phases.items() if index >= phase})
+            frames.append({'scene': scene, 'art': scene, 'view': view,
+                           'held': held.get(index, -1), 'flags': flags,
+                           'scope': '338-341,1000-2230', 'clock': (2, 16, 0)})
+        return save, frames
+
+    def observed_log(self, route, save, frames, opened=None):
+        # Ordinary resource-order records and the existing observation encoder.
+        scenes = self.opens[route] if opened is None else opened
+        prefix = ''.join('  FILE open C:\\GAME\\Ciftree\\S%d.CIF  [virtual %d ms]\n' % (scene, 1000 + i)
+                         for i, scene in enumerate(scenes))
+        return prefix + PassageRouteResultTests.observed_log(self, save, frames, opened=())
+
+    def test_accepts_both_observed_routes_and_keeps_1005_out_of_requirements(self):
+        for route, final in (('slide-ball', 3215), ('saturn-column', 2620)):
+            with self.subTest(route=route):
+                save, frames = self.frames(route)
+                result = checker.verify(self.observed_log(route, save, frames), save, route)
+                self.assertEqual((result['scene'], result['view']), (final, 0))
+                self.assertEqual(result['clock_diagnostics']['day'], 2)
+                self.assertNotIn(1005, result['flags_one'])
+                self.assertNotIn(1005, result['flags_zero'])
+                self.assertFalse(set(range(338, 342)) & (set(result['flags_one']) | set(result['flags_zero'])))
+
+    def test_rejects_preexisting_or_missing_original_phase_flags(self):
+        for route, index, flag, value in (('slide-ball', 0, 1562, 1),
+                ('slide-ball', 0, 1971, 1), ('slide-ball', 5, 1971, 0),
+                ('slide-ball', 9, 1844, 0), ('slide-ball', 11, 2050, 0),
+                ('saturn-column', 0, 1970, 1), ('saturn-column', 5, 1820, 1),
+                ('saturn-column', 6, 2005, 0)):
+            with self.subTest(route=route, flag=flag, index=index):
+                save, frames = self.frames(route)
+                frames[index]['flags'][flag] = value
+                with self.assertRaisesRegex(ValueError, 'phase|pre/post'):
+                    checker.verify(self.observed_log(route, save, frames), save, route)
+
+    def test_requires_real_key_ball_and_saturn_item_and_matching_art(self):
+        for route, index, field, value in (('slide-ball', 4, 'held', 17),
+                ('slide-ball', 12, 'held', 7), ('slide-ball', 1, 'art', 4408),
+                ('saturn-column', 4, 'held', 21), ('saturn-column', 5, 'held', 3),
+                ('saturn-column', 1, 'art', 2676)):
+            with self.subTest(route=route, index=index, field=field):
+                save, frames = self.frames(route)
+                frames[index][field] = value
+                with self.assertRaisesRegex(ValueError, 'ordered|art|held'):
+                    checker.verify(self.observed_log(route, save, frames), save, route)
+
+    def test_requires_ordered_authored_slide_hit_and_column_resources(self):
+        for route, opened in (('slide-ball', (1420, 1400, 1401, 3310, 3360, 3361, 3330, 3344, 3425, 2676, 3215)),
+                ('saturn-column', (3420, 3421, 2677, 2620, 2685, 2620)),
+                ('saturn-column', (3420, 3426, 3421, 2677, 2620, 2685, 2620))):
+            with self.subTest(route=route, opened=opened):
+                save, frames = self.frames(route)
+                with self.assertRaisesRegex(ValueError, 'authored scene'):
+                    checker.verify(self.observed_log(route, save, frames, opened), save, route)
+
+    def test_nonselected_extra_observation_still_enforces_retained_zeros_and_scope(self):
+        for route in ('slide-ball', 'saturn-column'):
+            for failure in ('retained', 'unmet', 'timer', 'scope'):
+                with self.subTest(route=route, failure=failure):
+                    save, frames = self.frames(route)
+                    extra = dict(frames[0], scene=9998, art=9998, flags=dict(frames[0]['flags']))
+                    if failure == 'retained':
+                        extra['flags'][1958] = 0
+                    elif failure == 'unmet':
+                        extra['flags'][1961] = 1
+                    elif failure == 'timer':
+                        extra['flags'][1192] = 1
+                    else:
+                        extra['scope'] = '338-341,1000-1960,1962-2230'
+                    frames.insert(1, extra)
+                    with self.assertRaisesRegex(ValueError, 'prerequisite|unexpected post-key|every required'):
+                        checker.verify(self.observed_log(route, save, frames), save, route)
+
+    def test_requires_final_clear_pair_and_valid_afternoon_diagnostics(self):
+        for route in ('slide-ball', 'saturn-column'):
+            for failure in ('held', 'gate', 'clock_scope'):
+                with self.subTest(route=route, failure=failure):
+                    save, frames = self.frames(route)
+                    if failure == 'held':
+                        frames[-1]['held'] = 3
+                    elif failure == 'gate':
+                        frames[-1]['clock'] = (2, 21, 0)
+                    else:
+                        frames[-1]['scope'] = '1000-2230'
+                    with self.assertRaisesRegex(ValueError, 'safe|afternoon|clock'):
+                        checker.verify(self.observed_log(route, save, frames), save, route)
+
+
+class PostKeyRouteInputTests(unittest.TestCase):
+    def test_exact_exercised_fragments_and_save_name_only_parameterization(self):
+        import hashlib
+        spec = importlib.util.spec_from_file_location('post_key_story', MODULE.with_name('story_route.py'))
+        story = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(story)
+        for leg, name, digest, count, anchor, menu_at, save_at in (
+                (story.leg_slide_ball, 'm25', '997d7a93df511ef9225c2379d49637443b5497031de0aa96d1a7b73e94d2eae8',
+                 159, 'S3510.CIF', 529000, 547000),
+                (story.leg_saturn_column, 'm26', 'dc065ebbd5c903b602c40d265d0edecb10c4f8ff10842b8da00c0bb6f69ccfef',
+                 143, 'HAL_SLIDE_ANIM.BIK', 158000, 176000)):
+            with self.subTest(save=name):
+                actual = leg(save=name)
+                self.assertEqual(hashlib.sha256((actual + '\n').encode()).hexdigest(), digest)
+                self.assertEqual(len(actual.split(';')), count)
+                expected = ';'.join([leg(), story.menu_to_save_screen(anchor, menu_at),
+                                      story.save_tail(anchor, save_at, 'postkey')])
+                self.assertEqual(leg(save='postkey'), expected)
+                self.assertLess(count + 7, 512)
+
+
 if __name__ == '__main__':
     unittest.main()
