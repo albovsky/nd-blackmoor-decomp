@@ -40,5 +40,7 @@ Normal shutdown joins the consumer; render/clock/thread startup/join failure bra
 - `recomp/rc_headless_audio.c`: `1a94fa26bbbb18bd877938a4e0b4c1da1ab57beb504279ca678b40efa856a207`
 - `recomp/rc_headless_audio.h`: `c0f89906bc5e331563e3252e9f0798fde2e78343fa3e27bb1a32dbdc9e3f011e`
 - `recomp/build_linux.sh`: `edbef46d08845761835db2fe088c3ad13011c3546b0dfe01ec6c674c19e0b997`
-- `tests/recomp_headless_audio_fixture.c`: `3583771117410fb20ac5a2f56ceeb21a124aece362fe787a65899d101faefca9`
+- `tests/recomp_headless_audio_fixture.c`: `1291c2bb3729f2a278cf6dbe7b570ffa3ffac002d5b5aab45938f47be0d2cb53`
 - `tests/test_recomp_headless_audio.py`: `b033a1c8aa4279801fe1c34c7b4f092d3b6868228bc896b99ad294a30904d49a`
+
+Review follow-up tightens only the synthetic cadence bounds and renames a local test identifier that the evidence scanner mistook for an unrelated native symbol. Production/native74229ec8 is unchanged; no game replay or fault/mutation test is repeated for this test-only change. Generated evidence cleanup/final independent delta review remain pending.

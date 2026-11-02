@@ -1,5 +1,5 @@
-/* Catches a missing/wrong-quantum consumer, work-relative pacing drift,
- * unbounded catch-up, or a stop that leaves its render callback running.
+/* Checks synthetic consumption, joined statistics/restart, deadline policy
+ * and generous cadence bounds rather than an FPS benchmark.
  * Synthetic signed stereo only; no guest, audio backend or device. */
 #define _POSIX_C_SOURCE 200809L
 #include <errno.h>
@@ -62,13 +62,17 @@ static int wait_for_consumption(void)
 
 static void lifecycle(void)
 {
-    /* Restart after join: the former thread must not consume the next run. */
-    for (int run = 0; run < 2; ++run) {
+    /* Restart after join: the former thread must not consume the next pass. */
+    for (int pass_index = 0; pass_index < 2; ++pass_index) {
         pthread_mutex_lock(&observed_lock);
         observed_calls = observed_frames = bad_arguments = 0;
         remaining = 1323; /* exactly three required 441-frame quanta */
         pthread_mutex_unlock(&observed_lock);
         char error[160] = "";
+        struct timespec started, joined;
+        int clock_ok = clock_gettime(CLOCK_MONOTONIC, &started) == 0;
+        CHECK(clock_ok);
+        if (!clock_ok) return;
         RcHeadlessAudio *pump = rc_headless_audio_start(error, sizeof error);
         CHECK(pump != NULL);
         if (!pump) { fprintf(stderr, "%s\n", error); return; }
@@ -78,6 +82,15 @@ static void lifecycle(void)
         /* Always stop/join before checking the bounded wait's result. */
         CHECK(stopped == 0);
         if (stopped) { fprintf(stderr, "%s\n", error); return; }
+        clock_ok = clock_gettime(CLOCK_MONOTONIC, &joined) == 0;
+        CHECK(clock_ok);
+        if (!clock_ok) return;
+        uint64_t elapsed_ns = (uint64_t)(joined.tv_sec - started.tv_sec) * UINT64_C(1000000000)
+                            + joined.tv_nsec - started.tv_nsec;
+        /* Three immediate quanta would violate both bounds. Scheduling delays
+         * remain acceptable; this has no tight upper wall-time requirement. */
+        CHECK(elapsed_ns >= UINT64_C(15000000));
+        CHECK(stats.calls <= elapsed_ns / UINT64_C(10000000) + 3);
         CHECK(consumed);
         pthread_mutex_lock(&observed_lock);
         CHECK(remaining == 0);
