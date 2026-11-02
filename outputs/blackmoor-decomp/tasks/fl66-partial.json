@@ -26,36 +26,9 @@
      65300
     ]
    ]
-  ],
-  "0x51f4ec": [
-   0,
-   [
-    [
-     536871064,
-     4,
-     4194304
-    ],
-    [
-     4294901776,
-     4,
-     16842428
-    ]
-   ]
   ]
  },
  "partial": {
-  "0x48f181": {
-   "body": 4295,
-   "directions": [
-    145,
-    146
-   ],
-   "instructions": [
-    1076,
-    1076
-   ],
-   "pool": "upper"
-  },
   "0x496410": {
    "body": 24652,
    "directions": [
@@ -164,30 +137,6 @@
    ],
    "pool": "upper57"
   },
-  "0x510eda": {
-   "body": 97,
-   "directions": [
-    0,
-    2
-   ],
-   "instructions": [
-    0,
-    32
-   ],
-   "pool": "upper57"
-  },
-  "0x510f3b": {
-   "body": 86,
-   "directions": [
-    0,
-    2
-   ],
-   "instructions": [
-    0,
-    29
-   ],
-   "pool": "upper57"
-  },
   "0x5110a9": {
    "body": 1825,
    "directions": [
@@ -233,18 +182,6 @@
    "instructions": [
     76,
     94
-   ],
-   "pool": "upper57"
-  },
-  "0x513ccb": {
-   "body": 225,
-   "directions": [
-    0,
-    22
-   ],
-   "instructions": [
-    0,
-    79
    ],
    "pool": "upper57"
   },

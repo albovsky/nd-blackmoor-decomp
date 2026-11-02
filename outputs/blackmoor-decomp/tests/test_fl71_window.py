@@ -35,7 +35,8 @@ if HAVE_Z3:
 
 # FL-75: a window ties esp to ebp (scripts/fl71_window.py stack_delta/relate), so it can rule out what the full analysis, which loses that tie at a generalised header, still finds possible. These are really unreachable:
 # in gen_loop_moves_esp `mov [esp], 1` writes [ebp-8] on every iteration, so after the loop [ebp-8] is 1, the jne at +0x1d is always taken and the `ret` after it never runs.
-STRONGER = {'gen_loop_moves_esp': {('f', BASE + 0x1d), ('i', BASE + 0x1f)}}
+STRONGER = {'gen_loop_moves_esp': {('f', BASE + 0x1d), ('i', BASE + 0x1f)},
+            'word_counter': {('t', BASE + 0x4a), ('i', BASE + 0x5a), ('i', BASE + 0x5f), ('i', BASE + 0x60)}}              # FL-78 (round 9): the loop header forgets only [ebp-4]; [ebp-6] (-1, or a copy of the counter) keeps its value, so the counter cannot be -1 where [ebp-6] is not -1
 
 
 def both(name):

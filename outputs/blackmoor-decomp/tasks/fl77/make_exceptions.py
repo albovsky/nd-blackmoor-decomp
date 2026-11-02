@@ -33,7 +33,6 @@ REASONS = {
 # Mac-port (Game + Vorbis) rows: va -> (reason code, note). Filled from the FL-75 and FL-77 handoffs.
 MAC_ROWS = {
     "0x471722": ("needs_multi_cell_or_aliased_state", "Scenarios cover every instruction (1151) and 173 of 174 directions; the last, 0x4721d3 taken, needs byte [obj+0xd3b] nonzero, but the function only ever writes it 0 and clears it before the compare, so it needs a heap-field invariant or an alias of two object pointers that the prover cannot express."),
-    "0x48f181": ("impossible_direction_unproved", "1,076 of 1,076 instructions and 145 of 146 directions; the jump at 0x48f3a2 taken is impossible by construction. check --prove ran for 722 s with the committed scenarios and did not discharge it."),
     "0x4a14c6": ("needs_callee_footprint_model", "One direction left; a copy is compared against its own source."),
     "0x4e812f": ("prover_window_times_out", "10 directions and 39 instructions left, behind loops at 0x4e8212 and 0x4e851f; every window times out."),
     "0x496410": ("partial_coverage_gate_not_built", "24 KB rasterizer; generic fuzz hits the instruction limit (about 15,700 passes of the loop at 0x4966ee). The loop exits only when [this+0x50e1] or [this+0x50e5] has bit 0x1000000 set and bits 0x10000000 and 0x20000000 clear, derived from the polygon and edge tables, so it needs a model of those tables. Baseline 366 of 4,985 instructions and 10 of 534 directions."),
@@ -49,9 +48,6 @@ CRT_RULES = {
     "0x50e10d": ("needs_multi_cell_or_aliased_state", "x87 sin wrapper: the missing directions depend on the zero flag left by the caller before fnstcw, the control word from fnstcw, x87 status flags after the operation, and jumps to 0x513cbe and 0x513ccb outside the row span, whose edges the world does not record."),
     "0x50e28d": ("needs_multi_cell_or_aliased_state", "x87 atan2 wrapper: the missing directions depend on the zero flag left by the caller before fnstcw, the control word from fnstcw, x87 status flags after the operation, and jumps to 0x513cbe and 0x513ccb outside the row span, whose edges the world does not record."),
     "0x513cbe": ("needs_multi_cell_or_aliased_state", "Reads the control word the caller pushed at [esp]; in the test world the entry stack holds the return address there, so neither direction of the compare with 0x27f can be run."),
-    "0x513ccb": ("needs_multi_cell_or_aliased_state", "Reads the control word the caller pushed at [esp]; in the test world the entry stack holds the return address there, so neither direction of the compare with 0x27f can be run."),
-    "0x510eda": ("original_faults_on_every_scenario", "The original faults on every scenario."),
-    "0x510f3b": ("original_faults_on_every_scenario", "The original faults on every scenario."),
 }
 
 

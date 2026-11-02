@@ -9,7 +9,6 @@
   "impossible_direction_unproved": "Every instruction runs on the original bytes and the translation agrees on all scenarios; the one jump direction left is impossible by construction, and the prover (run with the scenarios) did not discharge it.",
   "needs_callee_footprint_model": "One direction is infeasible by reading the code, but the proof needed a callee-footprint model that was removed after review found gaps.",
   "needs_multi_cell_or_aliased_state": "The search reached everything except a few jump directions that need three or more cells to line up (a pointer aliasing the function's own pushes, wrapped address arithmetic, tail jumps with moved stacks), and the prover answers reachable.",
-  "original_faults_on_every_scenario": "The original faults on every generated scenario, so there is nothing to compare against.",
   "partial_coverage_gate_not_built": "Scenarios cover part of the function; the remaining code sits behind a gate whose state was not built (see the note for the coverage reached).",
   "prover_window_times_out": "Scenarios cover everything that can run; the remaining directions are provably impossible in principle (loops and copies of equal data) but every prover window times out.",
   "translation_mismatch_open": "New scenarios disagree between the translation and the original; the translation has a defect that has not been fixed."
@@ -18,10 +17,6 @@
   "0x471722": {
    "reason": "needs_multi_cell_or_aliased_state",
    "note": "Scenarios cover every instruction (1151) and 173 of 174 directions; the last, 0x4721d3 taken, needs byte [obj+0xd3b] nonzero, but the function only ever writes it 0 and clears it before the compare, so it needs a heap-field invariant or an alias of two object pointers that the prover cannot express."
-  },
-  "0x48f181": {
-   "reason": "impossible_direction_unproved",
-   "note": "1,076 of 1,076 instructions and 145 of 146 directions; the jump at 0x48f3a2 taken is impossible by construction. check --prove ran for 722 s with the committed scenarios and did not discharge it."
   },
   "0x496410": {
    "reason": "partial_coverage_gate_not_built",
@@ -75,14 +70,6 @@
    "reason": "census_unsplit_floor",
    "note": "memcpy: the census span is a floor and the lifter refuses its jump tables."
   },
-  "0x510eda": {
-   "reason": "original_faults_on_every_scenario",
-   "note": "The original faults on every scenario."
-  },
-  "0x510f3b": {
-   "reason": "original_faults_on_every_scenario",
-   "note": "The original faults on every scenario."
-  },
   "0x5110a9": {
    "reason": "needs_multi_cell_or_aliased_state",
    "note": "Partial coverage; the remaining directions need several cells aligned. Coverage reached: 81 of 595 instructions, 13 of 192 jump directions."
@@ -98,10 +85,6 @@
   "0x51384a": {
    "reason": "needs_multi_cell_or_aliased_state",
    "note": "Partial coverage; the remaining directions need several cells aligned. Coverage reached: 76 of 94 instructions, 18 of 26 jump directions."
-  },
-  "0x513ccb": {
-   "reason": "needs_multi_cell_or_aliased_state",
-   "note": "Reads the control word the caller pushed at [esp]; in the test world the entry stack holds the return address there, so neither direction of the compare with 0x27f can be run."
   },
   "0x514250": {
    "reason": "needs_multi_cell_or_aliased_state",
@@ -134,10 +117,6 @@
   "0x519561": {
    "reason": "needs_multi_cell_or_aliased_state",
    "note": "Partial coverage; the remaining directions need several cells aligned. Coverage reached: 218 of 239 instructions, 52 of 68 jump directions."
-  },
-  "0x51f4ec": {
-   "reason": "translation_mismatch_open",
-   "note": "A scenario found by the search disagrees with the translation."
   }
  }
 }
