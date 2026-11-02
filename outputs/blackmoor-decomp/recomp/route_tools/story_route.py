@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The story routes of ROUTES.md as INPUT strings for rc_headless.
 
-  python3 story_route.py LEG [--save NAME]      LEG is one of: stairs, lock, slider, moon, telescope-prep, linda, jane-intro, jane-jigsaw, telescope-use, seedlings, crank-repair, betty-key, venus-column, jupiter-column, moon-key, moon-column, nigel-computer, night-wait, goggles, ghost-hunt, afternoon-door, linda-passage, bul-start, slide-ball, saturn-column, dragon-passage, glyph-request, lit-word-clue, loulou-barber, loulou-morning, drake-magic, loulou-answer, light-depletion, paid-light-request, word-lock, right-fire-panel, ethel-start, linda-curse, gargoyle-inspect, corbin-portrait, typing-start, oil-gargoyle, rune-passage, slider-verify
+  python3 story_route.py LEG [--save NAME]      LEG is one of: stairs, lock, slider, moon, telescope-prep, linda, jane-intro, jane-jigsaw, telescope-use, seedlings, crank-repair, betty-key, venus-column, jupiter-column, moon-key, moon-column, nigel-computer, night-wait, goggles, ghost-hunt, afternoon-door, linda-passage, bul-start, slide-ball, saturn-column, dragon-passage, glyph-request, lit-word-clue, loulou-barber, loulou-morning, drake-magic, loulou-answer, light-depletion, paid-light-request, word-lock, right-fire-panel, ethel-start, linda-curse, gargoyle-inspect, corbin-portrait, typing-start, oil-gargoyle, rune-passage, rune-light-wait, rune-light-start, slider-verify
   python3 story_route.py slider-verify          replays the recorded 105 slider moves on the puzzle rules and prints whether they solve it
 
 Each leg starts from a save made in the game's own Load & Save screen and (with --save NAME) ends by saving the next one, so the legs chain:
@@ -1530,6 +1530,55 @@ def leg_rune_passage(save=None):
     return ';'.join(out)
 
 
+def leg_rune_light_wait(save=None):
+    """m49 -> original West exit/used5 and source-specific afternoon staging.
+
+    Keep the accepted61-event exit/inventory prefix. The12.9M ordinary gap
+    accounts for this source03:42,70minutes earlier than the old04:52 save.
+    End at a genuine3335/held5 UI checkpoint, without starting/abandoning play.
+    """
+    a = 'S3050.CIF'
+    r = R().at(a, 0)
+    _observed_walk(r, 12000, '311,355 310,166 320,168 310,166 310,166 308,166 307,164 126,165', 8000, 5000)
+    _observed_walk(r, 80000, '328,163 318,163 303,163 318,163 318,163 318,163 163,162 324,196', 8000, 5000)
+    r.at(a, 144000).clicks('212,448', 0)
+    r.at(a, 149000).clicks('shot', 0)
+    r.at(a, 156000).clicks('60,100', 0)
+    r.at(a, 161000).clicks('shot', 0)
+    r.at(a, 166000).clicks('212,448 62,100 360,20', 5000)
+    r.at(a, 181000).clicks('shot', 0)
+    r.at(a, 13081000).clicks('shot', 0)
+    out = [r.text()]
+    if save:
+        out += [menu_to_save_screen(a, 13086000), save_tail(a, 13104000, save)]
+    return ';'.join(out)
+
+
+def leg_rune_light_start(save=None):
+    """Afternoon3335/held5 -> actual later paid request3585; live-only prefix.
+
+    Preserve the old successful request suffix, rebased to this real staging
+    save.150,399 is this source's scrolled reply, not first-paid150,418.
+    """
+    if save is not None:
+        raise ValueError('rune-light-start is a live prefix; use repeat_glyph_live.py --context rune-passage')
+    a = 'S3335.CIF'
+    r = R().at(a, 0)
+    _observed_walk(r, 12000, '58,189 326,162 326,162 326,162 326,162 326,162 326,162 220,164 482,220', 8000, 5000)
+    _observed_walk(r, 84000, '310,194 310,194 63,172', 16000, 9000)
+    r.at(a, 142000).clicks('310,190', 0)
+    r.at(a, 150000).clicks('shot', 0)
+    r.at(a, 166000).clicks('shot', 0)
+    r.at(a, 202000).clicks('22,405,6000', 0)
+    r.o += ['%s+%d:move:22,%d' % (a, 203400 + 400*i, y)
+            for i, y in enumerate((410, 415, 420, 425, 430, 435, 440, 445, 450, 455))]
+    r.at(a, 207500).clicks('mv:22,456', 0)
+    r.at(a, 210000).clicks('shot', 0)
+    r.at(a, 227000).clicks('150,399', 0)
+    r.at(a, 250000).clicks('shot', 0)
+    return r.text()
+
+
 def verify_slider():
     """The puzzle rules of the body of S3450 (action_family_d3_runtime.c): five rows by six columns; types 0x10..0x13 are one-way edge arrows, 0x14 walls,
     1..10 the cell a piece of that number must rest on. A piece slides until a barrier or another piece stops it."""
@@ -1586,7 +1635,8 @@ if __name__ == '__main__':
             'right-fire-panel': leg_right_fire_panel, 'ethel-start': leg_ethel_start,
             'linda-curse': leg_linda_curse, 'gargoyle-inspect': leg_gargoyle_inspect,
             'corbin-portrait': leg_corbin_portrait, 'typing-start': leg_typing_start,
-            'oil-gargoyle': leg_oil_gargoyle, 'rune-passage': leg_rune_passage}
+            'oil-gargoyle': leg_oil_gargoyle, 'rune-passage': leg_rune_passage,
+            'rune-light-wait': leg_rune_light_wait, 'rune-light-start': leg_rune_light_start}
     if leg not in legs:
         sys.exit(__doc__)
     print(legs[leg](save))

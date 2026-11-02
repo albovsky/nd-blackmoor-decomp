@@ -1958,5 +1958,111 @@ class OilRuneRouteTests(unittest.TestCase):
             self.assertEqual(function('x9'), ';'.join((function(), story.menu_to_save_screen(anchor, menu), story.save_tail(anchor, tail, 'x9'))))
 
 
+class RuneLightRouteTests(unittest.TestCase):
+    prior = (OilRuneRouteTests.prior - {2041}) | {1570, 1944, 1974, 1877, 1864, 2003, 2081}
+    opens = {
+        'rune-light-wait': (3021, 3022, 3023, 3024, 3025, 3067, 3048, 2901, 3311,
+                            3312, 3313, 3314, 3315, 3316, 3317, 3334, 3335, 6200, 3335),
+        'rune-light-replacement': (3318, 3319, 3320, 3321, 3322, 3323, 3324, 3305,
+                                   3345, 3346, 3500, 3505, 3510, 1200, 1282, 1281, 3585,
+                                   3588, 1299, 1295, 1949, 3510),
+    }
+    setUp = PostKeyRouteTests.setUp
+    observed_log = PostKeyRouteTests.observed_log
+
+    def frames(self, route):
+        if route == 'rune-light-wait':
+            states = ((3050, 0), (3021, 0), (3022, 0), (3023, 0), (3024, 0), (3025, 0),
+                      (3067, 0), (3048, 0), (3311, 0), (3312, 0), (3313, 0), (3314, 0),
+                      (3315, 0), (3316, 0), (3317, 0), (3334, 0), (3335, 0), (3335, 0),
+                      (3335, 0), (3335, 0), (3335, 0), (3335, 0))
+            number = 50
+        else:
+            states = ((3335, 0), (3318, 0), (3319, 0), (3320, 0), (3321, 0), (3322, 0),
+                      (3323, 0), (3324, 0), (3305, 0), (3345, 0), (3346, 0), (3505, 0),
+                      (3510, 4), (1200, 0), (1200, 0), (1200, 0), (3585, 0),
+                      (3588, 0), (1295, 0), (1949, 0), (3510, 4), (3510, 4), (3510, 4))
+            number = 51
+        save = Path(self.folder.name) / ('m%d.SAV' % number)
+        save.write_bytes(bytes(170770))
+        frames = []
+        for i, (scene, view) in enumerate(states):
+            flags = {f: 1 for f in self.prior}
+            if route == 'rune-light-wait':
+                # Literal actual source1,3311still1,3312clear before the wait.
+                flags.update({2042: int(i < 8), 1514: int(i < 9), 1809: 1})
+                held = 4 if i < 8 else 5 if i >= 18 else -1
+                minutes = 222+i if i < 20 else 14*60+35+i-20
+            else:
+                flags.update({1514: 0, 1809: int(i < 19), 1418: int(16 <= i < 19)})
+                held = 5 if i < 13 else 4 if i == 20 else -1
+                minutes = 14*60+36+i
+            frames.append({'scene': scene, 'art': scene, 'view': view, 'held': held, 'flags': flags,
+                           'scope': '338-341,1000-2250', 'clock': (3, minutes//60, minutes%60)})
+        return save, frames
+
+    def test_accepts_safe_used5_wait_and_direct_paid_fresh_light_without_abandonment(self):
+        for route in self.opens:
+            save, frames = self.frames(route)
+            result = checker.verify(self.observed_log(route, save, frames), save, route)
+            self.assertEqual(result['fresh_light_earned'], route == 'rune-light-replacement')
+            self.assertIn(1514, result['flags_zero'])
+            self.assertTrue({1864, 2003, 2081, 2014, 1974, 1570} <= set(result['flags_one']))
+            self.assertTrue({1672, 1687, 1972, 2158} <= set(result['flags_zero']))
+
+    def test_refuses_false_depletion_1514_phase_old_win_wrong_item_scope_or_door_clock(self):
+        for failure in ('early1514', 'missing1514clear', 'missing2042clear', 'missing5', 'no_new1299',
+                        'early_pending', 'pending_not_cleared', 'old1809', 'fake4', 'extra_failure', 'scope', 'door_clock'):
+            route = 'rune-light-wait' if failure in ('early1514', 'missing1514clear', 'missing2042clear', 'missing5') else 'rune-light-replacement'
+            save, frames = self.frames(route)
+            opened = self.opens[route]
+            if failure == 'early1514':
+                frames[8]['flags'][1514] = 0
+            elif failure == 'missing1514clear':
+                frames[9]['flags'][1514] = 1
+            elif failure == 'missing2042clear':
+                frames[8]['flags'][2042] = 1
+            elif failure == 'missing5':
+                frames[18]['held'] = -1
+            elif failure == 'no_new1299':
+                opened = tuple(scene for scene in opened if scene != 1299)
+            elif failure == 'early_pending':
+                frames[0]['flags'][1418] = 1
+            elif failure == 'pending_not_cleared':
+                frames[19]['flags'][1418] = 1
+            elif failure == 'old1809':
+                frames[19]['flags'][1809] = 1
+            elif failure == 'fake4':
+                frames[20]['held'] = 5
+            elif failure == 'extra_failure':
+                extra = dict(frames[1], scene=9998, art=9998, flags=dict(frames[1]['flags']))
+                extra['flags'][1972] = 1
+                frames.insert(2, extra)
+            elif failure == 'scope':
+                frames[1]['scope'] = '338-341,1000-1569,1571-2250'
+            elif failure == 'door_clock':
+                for frame in frames:
+                    frame['clock'] = (3, 13, 59)
+            with self.subTest(failure=failure), self.assertRaises(ValueError):
+                checker.verify(self.observed_log(route, save, frames, opened), save, route)
+
+    def test_preserves_wait_body_and_rebased_request_only_without_pending_exit_or_save(self):
+        import hashlib
+        spec = importlib.util.spec_from_file_location('rune_light_story', MODULE.with_name('story_route.py'))
+        story = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(story)
+        body = story.leg_rune_light_wait('m50')
+        self.assertEqual(hashlib.sha256((body+'\n').encode()).hexdigest(), '80cc9c24c48595e80d9fb936cc8940c83bb638338dbf3f4f7316ae9ce1ff6f11')
+        self.assertEqual(len(body.split(';')), 84)
+        self.assertIn('S3050.CIF+13082000:shot:0,0', body)
+        start = story.leg_rune_light_start()
+        self.assertEqual(hashlib.sha256(start.encode()).hexdigest(), '5b638d96f628e0004e17713a228fabc740d454c7178e5ac75bbccb21ebe343bd')
+        self.assertEqual(len(start.split(';')), 57)
+        self.assertIn('S3335.CIF+228000:click:150,399,600', start)
+        self.assertNotIn(':click:310,355', start)
+        with self.assertRaisesRegex(ValueError, 'live prefix'):
+            story.leg_rune_light_start('m51')
+
+
 if __name__ == '__main__':
     unittest.main()

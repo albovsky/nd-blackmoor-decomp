@@ -853,6 +853,86 @@ def verify_oil_rune_observations(route, log, observations, selected, clocks, pos
     return clocks[-1][1]
 
 
+RUNE_LIGHT_ROUTES = ('rune-light-wait', 'rune-light-replacement')
+RUNE_LIGHT_SCENES = {
+    'rune-light-wait': (3021, 3022, 3023, 3024, 3025, 3067, 3048, 2901, 3311,
+                        3312, 3313, 3314, 3315, 3316, 3317, 3334, 3335, 6200, 3335),
+    'rune-light-replacement': (3318, 3319, 3320, 3321, 3322, 3323, 3324, 3305,
+                               3345, 3346, 3500, 3505, 3510, 1200, 1282, 1281, 3585,
+                               3588, 1299, 1295, 1949, 3510),
+}
+
+
+def rune_light_configuration(route):
+    _, prior, zero = oil_rune_configuration('rune-passage')
+    # Original3345 afternoon door requires known1570 and2158 clear.
+    prior |= {1570}
+    zero |= {2158}
+    if route == 'rune-light-wait':
+        states = [(3050, 0), (3021, 0), (3022, 0), (3023, 0), (3024, 0), (3025, 0),
+                  (3067, 0), (3048, 0), (3311, 0), (3312, 0), (3313, 0), (3314, 0),
+                  (3315, 0), (3316, 0), (3317, 0), (3334, 0)] + [(3335, 0)] * 6
+        return states, prior - {2042, 1514}, zero | {2042, 1514}
+    if route == 'rune-light-replacement':
+        states = [(3335, 0), (3318, 0), (3319, 0), (3320, 0), (3321, 0), (3322, 0),
+                  (3323, 0), (3324, 0), (3305, 0), (3345, 0), (3346, 0), (3505, 0),
+                  (3510, 4), (1200, 0), (1200, 0), (1200, 0), (3585, 0),
+                  (3588, 0), (1295, 0), (1949, 0), (3510, 4), (3510, 4), (3510, 4)]
+        return states, prior - {1809, 2042, 1514}, zero | {1809, 2042, 1514}
+    raise ValueError('unknown rune-light route')
+
+
+def verify_rune_light_observations(route, log, observations, selected, clocks, positive, negative):
+    # Original3312 row7 clears1514 on this night traversal, before the wait;
+    # its daytime row8 cannot restore it while the player remains at3335.
+    down = {2042: 8, 1514: 9} if route == 'rune-light-wait' else {1809: 19}
+    changing = down.keys() | ({1418} if route == 'rune-light-replacement' else set())
+    previous = {f: 1 for f in down}
+    pending_seen = pending_closed = False
+    for state, scope, flags in observations:
+        if not (positive | negative) <= scope:
+            raise ValueError('RC_FLAGS did not observe every required rune-light event')
+        if any(flags.get(f, 0) != 1 for f in positive - changing):
+            raise ValueError('rune-light retained prerequisite differs')
+        if any(flags.get(f, 0) != 0 for f in negative - changing):
+            raise ValueError('unexpected rune-light future, failure or timer event')
+        if state[1] != state[0] or state[3] not in (-1, 4, 5):
+            raise ValueError('rune-light art or real item differs')
+        for f in previous:
+            value = flags.get(f, 0)
+            if value not in (0, 1) or value > previous[f]:
+                raise ValueError('rune-light original clear phase is not binary/monotone')
+            previous[f] = value
+        if route == 'rune-light-replacement':
+            value = flags.get(1418, 0)
+            if value not in (0, 1) or (pending_closed and value):
+                raise ValueError('rune-light request/pickup pending cycle differs')
+            if pending_seen and not value:
+                pending_closed = True
+            pending_seen |= value == 1
+    for i, (state, _, flags) in enumerate(selected):
+        held = (4 if i < 8 else 5 if i >= 18 else -1) if route == 'rune-light-wait' else (5 if i < 13 else 4 if i == 20 else -1)
+        if state[3] != held:
+            raise ValueError('rune-light used5, actual fresh4 or final safe frame differs')
+        if any(flags.get(f, 0) != int(i < phase) for f, phase in down.items()):
+            raise ValueError('rune-light source and authored clear phases differ')
+        if route == 'rune-light-replacement' and flags.get(1418, 0) != int(16 <= i < 19):
+            raise ValueError('rune-light actual paid request then reward was not observed')
+    verify_clock_diagnostics(clocks)
+    gated = clocks[-2:] if route == 'rune-light-wait' else [clocks[0], clocks[observations.index(selected[9])]]
+    if any(clock['day'] != 3 or not 14 <= clock['hour'] < 21 for _, clock in gated):
+        raise ValueError('rune-light original afternoon door window differs')
+    opened = [int(m[1]) for m in re.finditer(r'FILE open .*\\S(\d+)\.CIF\s+\[virtual \d+ ms\]', log)]
+    cursor = 0
+    for scene in RUNE_LIGHT_SCENES[route]:
+        while cursor < len(opened) and opened[cursor] != scene:
+            cursor += 1
+        if cursor == len(opened):
+            raise ValueError('missing ordered rune-light authored opens or fresh1299 win')
+        cursor += 1
+    return clocks[-1][1]
+
+
 def verify(log, save, route='telescope-prep'):
     if route == 'telescope-prep':
         expected = [(2010, 0), (2014, 0), (2026, 0), (2010, 2)]
@@ -927,6 +1007,8 @@ def verify(log, save, route='telescope-prep'):
         expected, positive, negative = typing_crest_configuration(route)
     elif route in OIL_RUNE_ROUTES:
         expected, positive, negative = oil_rune_configuration(route)
+    elif route in RUNE_LIGHT_ROUTES:
+        expected, positive, negative = rune_light_configuration(route)
     else:
         raise ValueError('unknown story route')
     observations = []
@@ -963,6 +1045,8 @@ def verify(log, save, route='telescope-prep'):
     if route in CREST_PREREQUISITE_ROUTES:
         held_steps = {'right-fire-panel': {i: 4 for i in range(1, 12)},
                       'ethel-interrogation': {0: 4, 1: 4, 2: 4}}.get(route, {})
+    if route == 'rune-light-replacement':
+        held_steps = {20: 4}
     selected = []
     for observation in observations:
         state, scope, flags = observation
@@ -993,7 +1077,7 @@ def verify(log, save, route='telescope-prep'):
             selected.append(observation)
     if len(selected) != len(expected):
         raise ValueError('missing ordered route observations')
-    if route in ('jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES + CREST_PREREQUISITE_ROUTES + TYPING_CREST_ROUTES + OIL_RUNE_ROUTES:
+    if route in ('jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES + CREST_PREREQUISITE_ROUTES + TYPING_CREST_ROUTES + OIL_RUNE_ROUTES + RUNE_LIGHT_ROUTES:
         # Earlier inventory shots can share scene/view/held cells. Check the
         # final two observations, rather than treating those as checkpoints.
         if any((state[0], state[2]) != expected[-1] for state, _, _ in observations[-2:]):
@@ -1112,6 +1196,8 @@ def verify(log, save, route='telescope-prep'):
         clock_diagnostics = verify_typing_crest_observations(route, log, observations, selected, clocks, positive, negative)
     if route in OIL_RUNE_ROUTES:
         clock_diagnostics = verify_oil_rune_observations(route, log, observations, selected, clocks, positive, negative)
+    if route in RUNE_LIGHT_ROUTES:
+        clock_diagnostics = verify_rune_light_observations(route, log, observations, selected, clocks, positive, negative)
     for _, scope, flags in selected[-2:]:
         if not (positive | negative) <= scope:
             raise ValueError('RC_FLAGS did not observe every required event')
@@ -1130,13 +1216,15 @@ def verify(log, save, route='telescope-prep'):
         raise ValueError('checkpoint save is missing or has an unexpected length')
     result = {'route': route, 'scene': expected[-1][0], 'view': expected[-1][1],
             'flags_one': sorted(positive), 'flags_zero': sorted(negative),
-            'save': save.name, 'telescope_complete': route in ('telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES + CREST_PREREQUISITE_ROUTES + TYPING_CREST_ROUTES + OIL_RUNE_ROUTES}
+            'save': save.name, 'telescope_complete': route in ('telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES + CREST_PREREQUISITE_ROUTES + TYPING_CREST_ROUTES + OIL_RUNE_ROUTES + RUNE_LIGHT_ROUTES}
     if route in WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES:
         result['word_lock_won'] = route == 'word-lock'
     if route in TYPING_CREST_ROUTES:
         result['typing_won'] = route == 'typing-crest'
     if route in OIL_RUNE_ROUTES:
         result['rune_won'] = route == 'rune-passage'
+    if route in RUNE_LIGHT_ROUTES:
+        result['fresh_light_earned'] = route == 'rune-light-replacement'
     if route == 'glyph-request':
         result['glyph_pending'] = True
     if route == 'glyph-win':
@@ -1151,7 +1239,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('run_log', type=Path)
     parser.add_argument('save_file', type=Path)
-    parser.add_argument('--route', choices=('telescope-prep', 'jane-jigsaw', 'telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES + CREST_PREREQUISITE_ROUTES + TYPING_CREST_ROUTES + OIL_RUNE_ROUTES,
+    parser.add_argument('--route', choices=('telescope-prep', 'jane-jigsaw', 'telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES + CREST_PREREQUISITE_ROUTES + TYPING_CREST_ROUTES + OIL_RUNE_ROUTES + RUNE_LIGHT_ROUTES,
                         default='telescope-prep')
     args = parser.parse_args()
     try:
