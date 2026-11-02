@@ -291,3 +291,7 @@ Root fresh m10→m11→m12 replay passes32.00/76.59s with each leg in a separate
 Mac `--input-file FILE` uses the shared headless route driver. Quiet runs need explicit `--background --mute --stop-after-ms 300000`; the background default remains5s. Actual fresh New Game/Junior/intro reaches2010/view5/held-1, all5steps complete, own stop and exit0. Logical frame shows the bedroom. Actual load/keyboard/save writes app12 with32steps complete; fresh app12-only reload also passes with retained flags. Pass `--save-dir` a prefix above Documents5. See RECOMP-08 for native/source pins and limits.
 
 New headless66028983… passes all12 fresh New Game→m12 runs with complete delivery and save-chain identity (`scripted-fresh-chain/verified-chain.json`). Strict invalid-input refusal is intentional; valid public routes pass. Native opening captures156.05s PCM during210.31s process runtime: muted-clock timing is a separate unresolved defect, not a sync pass.
+
+## Muted native clock correction, 2026-11-02, 02:33 Pacific
+
+Fixed deadlines replace render-then-10ms-sleep. Same15s probes improve active rate32928.319→44098.620frames/s against44100, PCM11.21→15.01s. Full actual native intro repeats to2010/view5/held-1 at44098.884fps with0rebases,5steps complete and identical bedroom frame. No historical catch-up or guest clock change. RECOMP-09 records pins/limits/review. The earlier large process/PCM gap is resolved for these observed active periods; general media synchronization and long stalls remain unverified.
