@@ -15,12 +15,25 @@
 #include "rc.h"
 #include "rc_internal.h"
 #include "rc_input_script.h"
+#include "rc_input_control.h"
+#include "diagnostic_result.h"
 
 static FILE *logf;
 static char out_dir[512];
 static int frames_dumped;
+static int control_mode, control_log_failed;
 
-static void plat_log(void *u, const char *line) { (void)u; if (logf) { fputs(line, logf); fputc('\n', logf); } }
+static void plat_log(void *u, const char *line)
+{
+    (void)u;
+    if (logf) {
+        int bad = fputs(line, logf) == EOF;
+        if (fputc('\n', logf) == EOF) bad = 1;
+        /* ACKs and captures must be observable while this process is running.
+         * Preserve the old buffering policy when control mode is unset. */
+        if (control_mode && (fflush(logf) || bad)) control_log_failed = 1;
+    }
+}
 
 /* ---- Bink through the ffmpeg tool, as the Python spike did ---- */
 typedef struct Movie { uint32_t w, h, frames; uint8_t *raw; uint32_t decoded; char path[1536]; } Movie;
@@ -110,6 +123,7 @@ static void frame_hook(int is_flip, uint64_t blits)
 
 /* ---- shared scripted input ---- */
 static RcInputScript *input_script;
+static RcInputControl *input_control;
 static int script_shot(void *user, unsigned number, uint32_t now)
 {
     (void)user;
@@ -118,7 +132,50 @@ static int script_shot(void *user, unsigned number, uint32_t now)
     rc_input_script_log_observation();
     return 1; /* Existing headless frame I/O policy is unchanged. */
 }
-static void poll_hook(void) { rc_input_script_poll(input_script); }
+/* Strict capture is opt-in only; static INPUT keeps its prior frame-I/O policy.
+ * Exclusive creation prevents an old frame or another batch being overwritten. */
+static int control_shot_checked(void *user, unsigned number, uint32_t now)
+{
+    (void)user;
+    const uint16_t *pixels = NULL;
+    uint32_t w = 0, h = 0, pitch = 0;
+    if (!rc_get_primary(&pixels, &w, &h, &pitch) || !pixels || !w || !h ||
+        w > 8192u || h > 8192u || (uint64_t)w * 2u > pitch ||
+        (uint64_t)pitch * h > SIZE_MAX) return 0;
+    char path[700];
+    int length = snprintf(path, sizeof path, "%s/frames/shot%03u.ppm", out_dir, number);
+    if (length < 0 || (size_t)length >= sizeof path) return 0;
+    uint8_t *rgb = malloc((size_t)w * 3u);
+    if (!rgb) return 0;
+    FILE *file = fopen(path, "wbx");
+    if (!file) { free(rgb); return 0; }
+    int ok = fprintf(file, "P6 %u %u 255\n", w, h) > 0;
+    for (uint32_t y = 0; ok && y < h; ++y) {
+        const uint16_t *row = (const uint16_t *)((const uint8_t *)pixels + (size_t)y * pitch);
+        for (uint32_t x = 0; x < w; ++x) {
+            rgb[3u*x] = (uint8_t)((row[x] >> 11) << 3);
+            rgb[3u*x+1u] = (uint8_t)(((row[x] >> 5) & 0x3f) << 2);
+            rgb[3u*x+2u] = (uint8_t)((row[x] & 0x1f) << 3);
+        }
+        if (fwrite(rgb, 1, (size_t)w * 3u, file) != (size_t)w * 3u) ok = 0;
+    }
+    free(rgb);
+    if (fclose(file)) ok = 0;
+    if (!ok) return 0;
+    rc_log("  SHOTFILE %u dumped (%ux%u)", number, w, h);
+    rc_log("  SHOT %u at virtual %u ms", number, now);
+    rc_input_script_log_observation(); /* guest MAIN token; read-only */
+    return !control_log_failed;
+}
+static void poll_hook(void)
+{
+    if (input_control) {
+        if (!rc_thread_is_main()) return;
+        if (control_log_failed) rc_input_control_fail(input_control, "control log write/flush failed");
+        rc_input_control_poll(input_control);
+        if (control_log_failed) rc_input_control_fail(input_control, "control log write/flush failed");
+    } else rc_input_script_poll(input_script);
+}
 
 /* ---- real time (RC_REAL=1) ---- */
 static uint64_t real_now(void *u) { (void)u; struct timespec t; clock_gettime(CLOCK_MONOTONIC, &t); return (uint64_t)t.tv_sec * 1000u + (uint64_t)t.tv_nsec / 1000000u; }
@@ -129,13 +186,19 @@ int main(void)
     const char *exe = getenv("GAME_EXE");
     const char *gamedir = getenv("RC_GAMEDIR");
     const char *out = getenv("RC_OUT");
-    snprintf(out_dir, sizeof out_dir, "%s", out ? out : "out");
+    const char *fifo = getenv("RC_CONTROL_FIFO");
+    control_mode = fifo && *fifo;
+    int out_length = snprintf(out_dir, sizeof out_dir, "%s", out ? out : "out");
+    if (control_mode && (out_length < 0 || (size_t)out_length >= sizeof out_dir)) {
+        fprintf(stderr, "RC_OUT path too long\n"); return 2;
+    }
     char path[700];
     mkdir(out_dir, 0755);
     snprintf(path, sizeof path, "%s/frames", out_dir);
     mkdir(path, 0755);
     snprintf(path, sizeof path, "%s/run.log", out_dir);
     logf = fopen(path, "w");
+    if (control_mode && !logf) { fprintf(stderr, "cannot open control run.log\n"); return 2; }
     RcPlatform pl;
     memset(&pl, 0, sizeof pl);
     pl.game_dir = gamedir ? gamedir : "gamedir";
@@ -145,7 +208,11 @@ int main(void)
     rc_set_platform(&pl);
     char error[512];
     const char *input = getenv("INPUT");
-    if (input && *input) {
+    if (control_mode) {
+        input_control = rc_input_control_open(fifo, input, control_shot_checked, NULL, error, sizeof error);
+        if (!input_control) { fprintf(stderr, "RC_CONTROL_FIFO: %s\n", error); fclose(logf); return 2; }
+        rc_set_poll_hook(poll_hook);
+    } else if (input && *input) {
         input_script = rc_input_script_parse(input, script_shot, NULL, error, sizeof error);
         if (!input_script) { fprintf(stderr, "INPUT: %s\n", error); if (logf) fclose(logf); return 2; }
         rc_set_poll_hook(poll_hook);
@@ -153,11 +220,19 @@ int main(void)
     rc_set_frame_hook(frame_hook);
     if (getenv("MAX_IMPORTS")) rc_set_import_budget(strtoull(getenv("MAX_IMPORTS"), NULL, 10));
     if (getenv("MAX_IDLE_POLLS")) rc_set_max_idle_polls((uint32_t)strtoul(getenv("MAX_IDLE_POLLS"), NULL, 10));   /* idle polls of the message loop in all (5 virtual ms each) before the run is stopped */
-    if (rc_start(exe ? exe : "../../work/original/GAME.EXE", error, sizeof error)) { fprintf(stderr, "rc_start: %s\n", error); return 2; }
+    if (rc_start(exe ? exe : "../../work/original/GAME.EXE", error, sizeof error)) {
+        fprintf(stderr, "rc_start: %s\n", error);
+        if (input_control) {
+            rc_input_control_fail(input_control, "rc_start failed");
+            rc_input_control_end(input_control); rc_input_control_destroy(input_control);
+            if (logf) fclose(logf);
+        }
+        return 2;
+    }
     struct timespec t0, t1;
     clock_gettime(CLOCK_MONOTONIC, &t0);
     char why[600];
-    rc_main(why, sizeof why);
+    int guest_result = rc_main(why, sizeof why);
     clock_gettime(CLOCK_MONOTONIC, &t1);
     double secs = (double)(t1.tv_sec - t0.tv_sec) + (double)(t1.tv_nsec - t0.tv_nsec) / 1e9;
     frames_dumped = 0;
@@ -176,8 +251,15 @@ int main(void)
                rc_input_script_completed(input_script));
         rc_input_script_destroy(input_script);
     }
+    int control_complete = 1;
+    if (input_control) {
+        if (!rc_diagnostic_guest_succeeded(guest_result, why)) rc_input_control_fail(input_control, why);
+        if (control_log_failed) rc_input_control_fail(input_control, "control log write/flush failed");
+        control_complete = rc_input_control_end(input_control);
+        rc_input_control_destroy(input_control);
+    }
     rc_log("\nRESULT %s", result);
     puts(result);
-    if (logf) fclose(logf);
-    return 0;
+    if (logf && fclose(logf) && control_mode) control_log_failed = 1;
+    return control_mode && (!control_complete || control_log_failed) ? 6 : 0;
 }
