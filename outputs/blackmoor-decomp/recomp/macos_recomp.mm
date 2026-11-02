@@ -27,6 +27,7 @@
 #include <string>
 #include <vector>
 #include "audio_capture.h"
+#include "muted_audio_pacer.h"
 #include "diagnostic_result.h"
 
 extern "C" {
@@ -44,6 +45,24 @@ namespace {
 constexpr uint32_t kLogicalWidth = 640, kLogicalHeight = 480;
 constexpr uint32_t kAudioRate = 44100;
 constexpr uint32_t kDefaultBackgroundStopMs = 5000, kMaxStopAfterMs = 600000;
+
+using MixerClock = std::chrono::steady_clock;
+constexpr const char *kSilentPacing = "deadline";
+
+// Written only by the silent producer, copied once at exit, read after join.
+struct SilentMixerTiming {
+    uint64_t thread_start_ns = 0, thread_end_ns = 0;
+    uint64_t active_start_ns = 0, active_end_ns = 0, last_render_start_ns = 0;
+    uint64_t calls = 0, requested_frames = 0;
+    uint64_t render_total_ns = 0, render_max_ns = 0;
+    uint64_t wakes = 0, wake_late_total_ns = 0, wake_late_max_ns = 0;
+    uint64_t rebases = 0;
+};
+
+uint64_t mixer_time_ns(MixerClock::time_point time)
+{
+    return (uint64_t)std::chrono::duration_cast<std::chrono::nanoseconds>(time.time_since_epoch()).count();
+}
 
 struct Recomp {
     BlackmoorMacPlatform *platform = nullptr;
@@ -72,6 +91,10 @@ struct Recomp {
     std::atomic<bool> capture_failed{false};
     bool capture_enabled = false, capture_reported = false;
     std::thread silent_thread;
+    bool silent_diagnostics = false, silent_timing_reported = false;
+    SilentMixerTiming silent_timing;
+    uint64_t capture_setup_start_ns = 0, capture_setup_end_ns = 0;
+    uint64_t capture_finish_start_ns = 0, capture_finish_end_ns = 0;
     AudioCapture capture;
 };
 
@@ -334,11 +357,40 @@ void await_audio_callbacks()
 void start_silent_clock()
 {
     g.silent_thread = std::thread([] {
+        const bool measure = g.silent_diagnostics; // immutable before thread creation
+        SilentMixerTiming timing;
+        if (measure) timing.thread_start_ns = mixer_time_ns(MixerClock::now());
         std::vector<int16_t> scratch(2 * (size_t)(kAudioRate / 100));
+        blackmoor_recomp::MutedAudioPacer pacer(MixerClock::now());
         while (!g.audio_stopping.load(std::memory_order_acquire)) {
+            const auto render_start = measure ? MixerClock::now() : MixerClock::time_point{};
             render_audio(scratch.data(), (uint32_t)(kAudioRate / 100));
-            // Preserve the prior cadence instead of bursting after a stall.
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            if (measure) {
+                const uint64_t start = mixer_time_ns(render_start);
+                const uint64_t end = mixer_time_ns(MixerClock::now());
+                const uint64_t elapsed = end - start;
+                if (!timing.calls) timing.active_start_ns = start;
+                timing.active_end_ns = end;
+                timing.last_render_start_ns = start;
+                ++timing.calls;
+                timing.requested_frames += kAudioRate / 100;
+                timing.render_total_ns += elapsed;
+                if (elapsed > timing.render_max_ns) timing.render_max_ns = elapsed;
+            }
+            const auto wake_due = pacer.next_after_render(MixerClock::now());
+            std::this_thread::sleep_until(wake_due);
+            if (measure) {
+                const auto woke = MixerClock::now();
+                const uint64_t late = woke > wake_due ? mixer_time_ns(woke) - mixer_time_ns(wake_due) : 0;
+                ++timing.wakes;
+                timing.wake_late_total_ns += late;
+                if (late > timing.wake_late_max_ns) timing.wake_late_max_ns = late;
+            }
+        }
+        if (measure) {
+            timing.thread_end_ns = mixer_time_ns(MixerClock::now());
+            timing.rebases = pacer.rebases();
+            g.silent_timing = timing; // publication is the subsequent thread join
         }
     });
 }
@@ -376,6 +428,40 @@ void start_audio()
     }
 }
 
+// Called only after silent-thread/callback joins and capture finalization.
+void report_silent_timing(bool capture_ok)
+{
+    if (!g.silent_diagnostics || g.silent_timing_reported || g.silent_thread.joinable()) return;
+    const SilentMixerTiming &t = g.silent_timing;
+    if (!t.thread_start_ns) return; // AVAudioEngine path has no silent producer
+    g.silent_timing_reported = true;
+    // Exclude the immediate first block from the start-to-start frame rate.
+    const uint64_t interval_ns = t.last_render_start_ns - t.active_start_ns;
+    const uint64_t interval_frames = t.calls ? t.requested_frames - kAudioRate / 100 : 0;
+    const double requested_fps = interval_ns ? (double)interval_frames * 1.0e9 / (double)interval_ns : 0.0;
+    char line[1400];
+    snprintf(line, sizeof line,
+             "MIXER_TIMING pacing=%s rate=%u quantum=%u "
+             "thread_start_ns=%llu thread_end_ns=%llu active_start_ns=%llu active_end_ns=%llu "
+             "last_render_start_ns=%llu calls=%llu requested_frames=%llu requested_fps=%.3f "
+             "render_total_ns=%llu render_max_ns=%llu wakes=%llu wake_late_total_ns=%llu wake_late_max_ns=%llu "
+             "rebases=%llu frames_written=%llu capture_enabled=%d capture_ok=%d capture_failed=%d "
+             "capture_setup_start_ns=%llu capture_setup_end_ns=%llu capture_finish_start_ns=%llu capture_finish_end_ns=%llu",
+             kSilentPacing, kAudioRate, kAudioRate / 100,
+             (unsigned long long)t.thread_start_ns, (unsigned long long)t.thread_end_ns,
+             (unsigned long long)t.active_start_ns, (unsigned long long)t.active_end_ns,
+             (unsigned long long)t.last_render_start_ns, (unsigned long long)t.calls,
+             (unsigned long long)t.requested_frames, requested_fps,
+             (unsigned long long)t.render_total_ns, (unsigned long long)t.render_max_ns,
+             (unsigned long long)t.wakes, (unsigned long long)t.wake_late_total_ns,
+             (unsigned long long)t.wake_late_max_ns, (unsigned long long)t.rebases,
+             (unsigned long long)g.capture.frames_written(), (int)g.capture_enabled, (int)capture_ok,
+             (int)g.capture_failed.load(std::memory_order_acquire),
+             (unsigned long long)g.capture_setup_start_ns, (unsigned long long)g.capture_setup_end_ns,
+             (unsigned long long)g.capture_finish_start_ns, (unsigned long long)g.capture_finish_end_ns);
+    frontend_message(line);
+}
+
 bool stop_audio()
 {
     g.audio_stopping.store(true);
@@ -385,7 +471,13 @@ bool stop_audio()
     // Later callbacks see audio_stopping and produce silence without touching it.
     await_audio_callbacks();
     std::string error;
-    if (!g.capture.finish(error)) {
+    if (g.silent_diagnostics && g.capture_enabled)
+        g.capture_finish_start_ns = mixer_time_ns(MixerClock::now());
+    const bool capture_ok = g.capture.finish(error);
+    if (g.silent_diagnostics && g.capture_enabled)
+        g.capture_finish_end_ns = mixer_time_ns(MixerClock::now());
+    report_silent_timing(capture_ok);
+    if (!capture_ok) {
         fprintf(stderr, "audio capture: %s\n", error.c_str());
         if (g.log) fprintf(g.log, "audio capture: %s\n", error.c_str());
         return false;
@@ -531,6 +623,7 @@ int main(int argc, char **argv)
         make_directories(g.save_dir);
         if (!file_exists(g.exe)) { fprintf(stderr, "GAME.EXE not found at %s (use --exe)\n", g.exe.c_str()); return 2; }
         if (!log_path.empty()) g.log = fopen(log_path.c_str(), "w");
+        g.silent_diagnostics = capture_requested || !log_path.empty();
 
         RcPlatform plat;
         memset(&plat, 0, sizeof plat);
@@ -572,7 +665,10 @@ int main(int argc, char **argv)
 
         if (capture_requested) {
             std::string capture_error;
-            if (!g.capture.start(capture_path.c_str(), kAudioRate, capture_error)) {
+            g.capture_setup_start_ns = mixer_time_ns(MixerClock::now());
+            const bool capture_started = g.capture.start(capture_path.c_str(), kAudioRate, capture_error);
+            g.capture_setup_end_ns = mixer_time_ns(MixerClock::now());
+            if (!capture_started) {
                 fprintf(stderr, "cannot start audio capture: %s\n", capture_error.c_str());
                 blackmoor_macos_close(g.platform);
                 g.platform = nullptr;

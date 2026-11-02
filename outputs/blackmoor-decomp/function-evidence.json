@@ -1736,6 +1736,7 @@
   {"path":"outputs/blackmoor-decomp/tests/test_live_audio_restart.py","role":"test","sha256":"ea6b9c40418d5c4d76b9a4352e9df3ba1de3f6d8c64c5b5231a2a164ff5a0afd"},
   {"path":"outputs/blackmoor-decomp/tests/test_live_audio_restart_oracle.py","role":"test","sha256":"cec5ac302a3c61ec6873ee9af83aa3e71944423008283a68c09801663a4ec1eb"},
   {"path":"outputs/blackmoor-decomp/tests/test_macos_audio.py","role":"test","sha256":"a9860973898981cb4d48d0ab08a2aac391bfa4a88dfeed386035ba43b25ef442"},
+  {"path":"outputs/blackmoor-decomp/tests/test_muted_audio_pacer.py","role":"test","sha256":"e38edf685b18d4654e6b0f4e46c7175f0410ff2a93085dc162ff3adab94ba830"},
   {"path":"outputs/blackmoor-decomp/tests/test_native_alarm_clock_input.py","role":"test","sha256":"4566c027910bb63648061fff6a967fbad66abb646700c0045caa86197730bfec"},
   {"path":"outputs/blackmoor-decomp/tests/test_native_app.py","role":"test","sha256":"4bfb3b314bb8070566de4e62d61d6b5e30521fc04b281a9681031508d3f4f195"},
   {"path":"outputs/blackmoor-decomp/tests/test_native_audio_cursor.py","role":"test","sha256":"7cd3b2b8e6b005fddfa2f502e38500557713624280c38b5e9112e43775c33c1b"},
