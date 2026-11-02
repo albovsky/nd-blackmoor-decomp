@@ -117,3 +117,5 @@ Original game files and reserved ledger/evidence outputs are unchanged. Neither 
 - Ghost-route review follow-up: Sonnet high acceptse9cd1812 with no P1/blocking P2; both static freshness checks pass. Nonblocking raw-clock/nonselected-frame test gaps and within-run-only clock interpretation are explicit in RECOMP-14. No post-review code changes.
 
 - 2026-11-02 06:37 Pacific: proportional and stretched production-view rendering pass8 cached-pixel checks each at960x480 logical/1920x960 backing, alongside10 direct-view pointer callbacks,4ticks/5presentations and quiet-window guards per mode. The initial color failure was traced to the fixture's profile interpretation; the corrected oracle keeps fixed expectations and2/255 tolerance. RECOMP-15 records evidence and pending review. No production change or displayed-window/physical-input claim.
+
+- Widescreen review: Sonnet high acceptsd01450ef, no P1/blocking P2. Root records interior-only geometry, shared alpha tolerance and separate profile-probe limits in RECOMP-15; no post-review code changes.
