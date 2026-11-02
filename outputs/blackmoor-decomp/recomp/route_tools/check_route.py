@@ -783,6 +783,76 @@ def verify_typing_crest_observations(route, log, observations, selected, clocks,
     return clocks[-1][1]
 
 
+OIL_RUNE_ROUTES = ('oil-gargoyle', 'rune-passage')
+OIL_RUNE_SCENES = {
+    'oil-gargoyle': (4106, 4398, 1900, 1902, 1903, 1904, 2619, 3366,
+                     3401, 3402, 3403, 3404, 3405, 3367, 3406, 3415, 3416),
+    'rune-passage': (3499, 2900, 2965, 2966, 2967, 2968, 3175, 3176, 2968,
+                     3063, 3171, 3063, 3170, 3194, 3195, 3050),
+}
+
+
+def oil_rune_configuration(route):
+    _, prior, zero = typing_crest_configuration('typing-crest')
+    # 2062 already belongs to the actual m47 source; oil does not newly earn it.
+    prior |= {2062}
+    if route == 'oil-gargoyle':
+        states = [(4114, 0), (4112, 0), (4108, 0), (4109, 0), (4106, 0), (1900, 0),
+                  (2619, 0), (2616, 0), (2605, 19), (2606, 0), (2607, 0), (2608, 0),
+                  (2609, 0), (3321, 0), (3322, 0), (3323, 0), (3324, 0), (3366, 0),
+                  (3401, 0), (3402, 0), (3403, 0), (3404, 0), (3405, 0), (3367, 0),
+                  (3416, 0), (3416, 0), (3416, 0)]
+        return states, prior | {1944, 1974, 1877}, (zero - {1974}) | {1864, 2003, 2081}
+    if route == 'rune-passage':
+        states = [(3416, 0), (3171, 0)] + [(3170, 0)] * 6 + [(3195, 0), (3050, 0), (3050, 0)]
+        return states, (prior - {2041}) | {1944, 1974, 1877, 1864, 2003, 2081, 2042, 1809}, (zero - {1974, 2042, 1809}) | {2041}
+    raise ValueError('unknown oil/rune route')
+
+
+def verify_oil_rune_observations(route, log, observations, selected, clocks, positive, negative):
+    # Original3175 a1 sound row4 (1357=1) writes1809=1 at0x432e35;
+    # required3175->3176 opens precede its first held-light3171 observation.
+    up = ({1944: 6, 1974: 24, 1877: 24} if route == 'oil-gargoyle' else
+          {1809: 1, 1864: 1, 2042: 1, 2081: 2, 2003: 8})
+    down = {2041: 1} if route == 'rune-passage' else {}
+    changing = up.keys() | down.keys()
+    previous = {**{f: 0 for f in up}, **{f: 1 for f in down}}
+    for state, scope, flags in observations:
+        if not (positive | negative) <= scope:
+            raise ValueError('RC_FLAGS did not observe every required oil/rune event')
+        if any(flags.get(f, 0) != 1 for f in positive - changing):
+            raise ValueError('oil/rune retained prerequisite differs')
+        if any(flags.get(f, 0) != 0 for f in negative - changing):
+            raise ValueError('unexpected oil/rune unmet gate, failure or repeat event')
+        if state[1] != state[0] or state[3] not in ((-1,) if route == 'oil-gargoyle' else (-1, 4)):
+            raise ValueError('oil/rune art or actual item differs; crest2 is not held2')
+        for f in previous:
+            value = flags.get(f, 0)
+            backwards = value < previous[f] if f in up else value > previous[f]
+            if value not in (0, 1) or backwards:
+                raise ValueError('oil/rune phase is not binary/monotone')
+            previous[f] = value
+    for i, (state, _, flags) in enumerate(selected):
+        held = 4 if route == 'rune-passage' and i > 0 else -1
+        if state[3] != held:
+            raise ValueError('oil/rune actual held light or final safe state differs')
+        if any(flags.get(f, 0) != int(i >= phase) for f, phase in up.items()) or any(
+                flags.get(f, 0) != int(i < phase) for f, phase in down.items()):
+            raise ValueError('oil/rune source and authored progression phases differ')
+    # No fixed hour/day is required here. The original post-typing reset has
+    # already happened; only complete, valid, monotone clock diagnostics apply.
+    verify_clock_diagnostics(clocks)
+    opened = [int(m[1]) for m in re.finditer(r'FILE open .*\\S(\d+)\.CIF\s+\[virtual \d+ ms\]', log)]
+    cursor = 0
+    for scene in OIL_RUNE_SCENES[route]:
+        while cursor < len(opened) and opened[cursor] != scene:
+            cursor += 1
+        if cursor == len(opened):
+            raise ValueError('missing ordered oil/rune authored scene opens')
+        cursor += 1
+    return clocks[-1][1]
+
+
 def verify(log, save, route='telescope-prep'):
     if route == 'telescope-prep':
         expected = [(2010, 0), (2014, 0), (2026, 0), (2010, 2)]
@@ -855,6 +925,8 @@ def verify(log, save, route='telescope-prep'):
         expected, positive, negative = crest_prerequisite_configuration(route)
     elif route in TYPING_CREST_ROUTES:
         expected, positive, negative = typing_crest_configuration(route)
+    elif route in OIL_RUNE_ROUTES:
+        expected, positive, negative = oil_rune_configuration(route)
     else:
         raise ValueError('unknown story route')
     observations = []
@@ -921,7 +993,7 @@ def verify(log, save, route='telescope-prep'):
             selected.append(observation)
     if len(selected) != len(expected):
         raise ValueError('missing ordered route observations')
-    if route in ('jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES + CREST_PREREQUISITE_ROUTES + TYPING_CREST_ROUTES:
+    if route in ('jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES + CREST_PREREQUISITE_ROUTES + TYPING_CREST_ROUTES + OIL_RUNE_ROUTES:
         # Earlier inventory shots can share scene/view/held cells. Check the
         # final two observations, rather than treating those as checkpoints.
         if any((state[0], state[2]) != expected[-1] for state, _, _ in observations[-2:]):
@@ -1038,6 +1110,8 @@ def verify(log, save, route='telescope-prep'):
         clock_diagnostics = verify_crest_prerequisite_observations(route, log, observations, selected, clocks, positive, negative)
     if route in TYPING_CREST_ROUTES:
         clock_diagnostics = verify_typing_crest_observations(route, log, observations, selected, clocks, positive, negative)
+    if route in OIL_RUNE_ROUTES:
+        clock_diagnostics = verify_oil_rune_observations(route, log, observations, selected, clocks, positive, negative)
     for _, scope, flags in selected[-2:]:
         if not (positive | negative) <= scope:
             raise ValueError('RC_FLAGS did not observe every required event')
@@ -1056,11 +1130,13 @@ def verify(log, save, route='telescope-prep'):
         raise ValueError('checkpoint save is missing or has an unexpected length')
     result = {'route': route, 'scene': expected[-1][0], 'view': expected[-1][1],
             'flags_one': sorted(positive), 'flags_zero': sorted(negative),
-            'save': save.name, 'telescope_complete': route in ('telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES + CREST_PREREQUISITE_ROUTES + TYPING_CREST_ROUTES}
+            'save': save.name, 'telescope_complete': route in ('telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES + CREST_PREREQUISITE_ROUTES + TYPING_CREST_ROUTES + OIL_RUNE_ROUTES}
     if route in WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES:
         result['word_lock_won'] = route == 'word-lock'
     if route in TYPING_CREST_ROUTES:
         result['typing_won'] = route == 'typing-crest'
+    if route in OIL_RUNE_ROUTES:
+        result['rune_won'] = route == 'rune-passage'
     if route == 'glyph-request':
         result['glyph_pending'] = True
     if route == 'glyph-win':
@@ -1075,7 +1151,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('run_log', type=Path)
     parser.add_argument('save_file', type=Path)
-    parser.add_argument('--route', choices=('telescope-prep', 'jane-jigsaw', 'telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES + CREST_PREREQUISITE_ROUTES + TYPING_CREST_ROUTES,
+    parser.add_argument('--route', choices=('telescope-prep', 'jane-jigsaw', 'telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES + CREST_PREREQUISITE_ROUTES + TYPING_CREST_ROUTES + OIL_RUNE_ROUTES,
                         default='telescope-prep')
     args = parser.parse_args()
     try:

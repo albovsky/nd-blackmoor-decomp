@@ -1838,5 +1838,125 @@ class TypingCrestRouteTests(unittest.TestCase):
             self.assertEqual(hashlib.sha256(getattr(story, name)().encode()).hexdigest(), digest)
 
 
+class OilRuneRouteTests(unittest.TestCase):
+    prior = TypingCrestRouteTests.prior | {1863, 2014, 2088, 2062}
+    opens = {
+        'oil-gargoyle': (4106, 4398, 1900, 1902, 1903, 1904, 2619, 3366,
+                         3401, 3402, 3403, 3404, 3405, 3367, 3406, 3415, 3416),
+        'rune-passage': (3499, 2900, 2965, 2966, 2967, 2968, 3175, 3176, 2968,
+                         3063, 3171, 3063, 3170, 3194, 3195, 3050),
+    }
+    setUp = PostKeyRouteTests.setUp
+    observed_log = PostKeyRouteTests.observed_log
+
+    def frames(self, route):
+        if route == 'oil-gargoyle':
+            states = ((4114, 0), (4112, 0), (4108, 0), (4109, 0), (4106, 0), (1900, 0),
+                      (2619, 0), (2616, 0), (2605, 19), (2606, 0), (2607, 0), (2608, 0),
+                      (2609, 0), (3321, 0), (3322, 0), (3323, 0), (3324, 0), (3366, 0),
+                      (3401, 0), (3402, 0), (3403, 0), (3404, 0), (3405, 0), (3367, 0),
+                      (3416, 0), (3416, 0), (3416, 0))
+            phases, number = {1944: 6, 1974: 24, 1877: 24}, 48
+        else:
+            states = ((3416, 0), (3171, 0), (3170, 0), (3170, 0), (3170, 0), (3170, 0),
+                      (3170, 0), (3170, 0), (3195, 0), (3050, 0), (3050, 0))
+            phases, number = {1864: 1, 2042: 1, 2081: 2, 2003: 8}, 49
+        save = Path(self.folder.name) / ('m%d.SAV' % number)
+        save.write_bytes(bytes(170770))
+        frames = []
+        for i, (scene, view) in enumerate(states):
+            flags = {f: 1 for f in self.prior}
+            flags.update({f: int(i >= phase) for f, phase in phases.items()})
+            if route == 'rune-passage':
+                # Literal observed3175 flicker sound raises1809 before3171;
+                # keep this independent of the checker's phase configuration.
+                flags.update({1944: 1, 1974: 1, 1877: 1, 2041: int(i == 0), 1809: int(i > 0)})
+            minutes = 3*60 + 17 + i
+            frames.append({'scene': scene, 'art': scene, 'view': view,
+                           'held': 4 if route == 'rune-passage' and i else -1,
+                           'flags': flags, 'scope': '338-341,1000-2250',
+                           'clock': (3, minutes//60, minutes%60)})
+        return save, frames
+
+    def test_accepts_actual_oil_open_and_rune_win_with_retained_firsttime_state(self):
+        for route, scene in (('oil-gargoyle', 3416), ('rune-passage', 3050)):
+            save, frames = self.frames(route)
+            result = checker.verify(self.observed_log(route, save, frames), save, route)
+            self.assertEqual((result['scene'], result['view']), (scene, 0))
+            self.assertEqual(result['rune_won'], route == 'rune-passage')
+            self.assertTrue({1944, 1974, 1877, 2062, 2014, 2088} <= set(result['flags_one']))
+            self.assertTrue({1672, 1687, 1972} <= set(result['flags_zero']))
+            self.assertIn(1809, result['flags_one'] if route == 'rune-passage' else result['flags_zero'])
+            self.assertFalse(set(range(338, 342)) & (set(result['flags_one']) | set(result['flags_zero'])))
+            # No unexercised clock window is imposed on these two puzzle legs.
+            for i, frame in enumerate(frames):
+                frame['clock'] = (5, 4, i)
+            checker.verify(self.observed_log(route, save, frames), save, route)
+
+    def test_refuses_preexisting_or_reordered_oil_gargoyle_light_and_rune_phases(self):
+        for route, index, flag, value in (
+                ('oil-gargoyle', 0, 1944, 1), ('oil-gargoyle', 23, 1974, 1),
+                ('oil-gargoyle', 24, 1877, 0), ('oil-gargoyle', 6, 2062, 0),
+                ('rune-passage', 0, 1864, 1), ('rune-passage', 0, 1809, 1),
+                ('rune-passage', 1, 1809, 0), ('rune-passage', 4, 1809, 0),
+                ('rune-passage', 1, 2041, 1),
+                ('rune-passage', 1, 2042, 0), ('rune-passage', 1, 2081, 1),
+                ('rune-passage', 7, 2003, 1), ('rune-passage', 8, 2003, 0)):
+            save, frames = self.frames(route)
+            frames[index]['flags'][flag] = value
+            with self.subTest(route=route, flag=flag, index=index), self.assertRaises(ValueError):
+                checker.verify(self.observed_log(route, save, frames), save, route)
+
+    def test_refuses_false_held_crest_missing_win_bad_extra_scope_or_clock_and_unsafe_end(self):
+        for failure in ('held2', 'missing_light', 'art', 'view', 'win_open', 'flicker_open', 'safe_pair',
+                        'extra_failure', 'extra_scope', 'clock_backwards', 'clock_scope', 'stop'):
+            route = 'oil-gargoyle' if failure == 'held2' else 'rune-passage'
+            save, frames = self.frames(route)
+            opened = self.opens[route]
+            if failure == 'held2':
+                frames[18]['held'] = 2
+            elif failure == 'missing_light':
+                frames[1]['held'] = -1
+            elif failure == 'art':
+                frames[1]['art'] = 3416
+            elif failure == 'view':
+                frames[1]['view'] = 1
+            elif failure == 'win_open':
+                opened = tuple(s for s in opened if s != 3194)
+            elif failure == 'flicker_open':
+                opened = tuple(s for s in opened if s != 3175)
+            elif failure == 'safe_pair':
+                frames[-1]['held'] = -1
+            elif failure in ('extra_failure', 'extra_scope'):
+                extra = dict(frames[1], scene=9998, art=9998, flags=dict(frames[1]['flags']))
+                if failure == 'extra_failure':
+                    extra['flags'][1687] = 1
+                else:
+                    extra['scope'] = '338-341,1000-1973,1975-2250'
+                frames.insert(2, extra)
+            elif failure == 'clock_backwards':
+                frames[-1]['clock'] = (3, 3, 15)
+            elif failure == 'clock_scope':
+                frames[1]['scope'] = '338-340,1000-2250'
+            log = self.observed_log(route, save, frames, opened)
+            if failure == 'stop':
+                log = log.replace('stop requested', 'message loop idle')
+            with self.subTest(failure=failure), self.assertRaises(ValueError):
+                checker.verify(log, save, route)
+
+    def test_exact_exercised_oil_and_six_rune_inputs_with_parameterized_ui_save(self):
+        import hashlib
+        spec = importlib.util.spec_from_file_location('oil_rune_story', MODULE.with_name('story_route.py'))
+        story = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(story)
+        for function, name, size, digest, anchor, menu, tail in (
+                (story.leg_oil_gargoyle, 'm48', 95, 'dd7910c200ad249c6ff3dabbb7490fee7ab1d33bef60a8378ea5edd026c3446b', 'S4114.CIF', 378000, 396000),
+                (story.leg_rune_passage, 'm49', 59, '9793115d8a8c59f4d603b886d394da3b2b4c20cf2057f38ab01b0110e0fd7dd8', 'S3416.CIF', 154000, 172000)):
+            body = function(name)
+            self.assertEqual(hashlib.sha256(body.encode()).hexdigest(), digest)
+            self.assertEqual(len(body.split(';')), size)
+            self.assertEqual(function('x9'), ';'.join((function(), story.menu_to_save_screen(anchor, menu), story.save_tail(anchor, tail, 'x9'))))
+
+
 if __name__ == '__main__':
     unittest.main()

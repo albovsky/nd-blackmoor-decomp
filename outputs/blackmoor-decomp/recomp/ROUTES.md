@@ -445,3 +445,10 @@ export RC_FLAGS='338-341,1148-1160,1162-1174,1192,1259,1349,1357,1361,1388,1404-
 ```
 
 The typing client computes its complete scoped union automatically. Geometry/OCR training assets are caller-owned local inputs and are never bundled.
+
+
+## Oil, real crest gargoyle and rune passage, 2026-11-02 Pacific
+
+`story_route.py oil-gargoyle --save m48` preserves the actual95event body from the first-time typing source, with1944earned only through1900/1902/1903/1904 and actual crest2 allowing R,R,L,R,L,L,R gargoyle turns. Final3416/held-1 has1974/1877;2062already belonged to source. Original UI m48/freshreload pass102/9steps. No held2 or PUT is invented.
+
+`story_route.py rune-passage --save m49` preserves the59event body, actualheld4, six ordinary rune clicks and3194/3195win→3050. Source1809=0 rises on original3175raw-a1 flicker before3176changes2041/2042;1864/2081then2003are observed. The corrected checker retains this strict phase rather than removing the flag. Actual m49/freshreload pass66/9steps, safe3050/held4,day3/03:42. No replacement/Alchemy/fire win is claimed. Both full scopes, actual source/output hashes and clock/held-item readback are in RECOMP27.
