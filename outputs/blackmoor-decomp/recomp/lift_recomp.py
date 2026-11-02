@@ -68,6 +68,18 @@ for e in entries:
             continue
         nxt = parts[k + 1] if k + 1 < len(parts) else end
         try:
+            if pva == 0x515d1e:
+                # The CRT filter cleanup is 13 code bytes followed by five
+                # padding bytes, not an 18-byte body. Its committed extent is
+                # asm/FUN_00515d1e.s (also function-xrefs derived_parts.size).
+                # Keep this exception local; an int3 inside code stays refused.
+                if c != 0x515cc7 or nxt != 0x515d30:
+                    raise L.Unsupported('CRT filter cleanup span changed')
+                img = L.od.load_image()
+                padding = img.image[0x515d2b - img.image_base:nxt - img.image_base]
+                if padding != b'\xcc' * 5:
+                    raise L.Unsupported('CRT filter cleanup padding changed')
+                nxt = 0x515d2b
             text, callees, imports, fs, inline = L.lift(pva, nxt - pva)
             ok[pva] = text
             part_size[pva] = nxt - pva
