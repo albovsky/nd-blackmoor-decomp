@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The story routes of ROUTES.md as INPUT strings for rc_headless.
 
-  python3 story_route.py LEG [--save NAME]      LEG is one of: stairs, lock, slider, moon, telescope-prep, linda, jane-intro, jane-jigsaw, telescope-use, seedlings, crank-repair, betty-key, venus-column, jupiter-column, moon-key, moon-column, nigel-computer, night-wait, goggles, ghost-hunt, afternoon-door, linda-passage, bul-start, slide-ball, saturn-column, dragon-passage, glyph-request, lit-word-clue, loulou-barber, loulou-morning, drake-magic, loulou-answer, light-depletion, paid-light-request, word-lock, right-fire-panel, ethel-start, linda-curse, gargoyle-inspect, corbin-portrait, typing-start, oil-gargoyle, rune-passage, rune-light-wait, rune-light-start, slider-verify
+  python3 story_route.py LEG [--save NAME]      LEG is one of: stairs, lock, slider, moon, telescope-prep, linda, jane-intro, jane-jigsaw, telescope-use, seedlings, crank-repair, betty-key, venus-column, jupiter-column, moon-key, moon-column, nigel-computer, night-wait, goggles, ghost-hunt, afternoon-door, linda-passage, bul-start, slide-ball, saturn-column, dragon-passage, glyph-request, lit-word-clue, loulou-barber, loulou-morning, drake-magic, loulou-answer, light-depletion, paid-light-request, word-lock, right-fire-panel, ethel-start, linda-curse, gargoyle-inspect, corbin-portrait, typing-start, oil-gargoyle, rune-passage, rune-light-wait, rune-light-start, fire-phosphorus, moving-room-entry, alchemy-snake-clue, nigel-library, nigel-snake, alchemy-return, slider-verify
   python3 story_route.py slider-verify          replays the recorded 105 slider moves on the puzzle rules and prints whether they solve it
 
 Each leg starts from a save made in the game's own Load & Save screen and (with --save NAME) ends by saving the next one, so the legs chain:
@@ -1579,6 +1579,141 @@ def leg_rune_light_start(save=None):
     return r.text()
 
 
+def leg_fire_phosphorus(save=None):
+    """m51 -> other fire panel/all12, original phosphorus and real held13."""
+    a = 'S3510.CIF'
+    r = R().at(a, 12000).turns('left', 6)
+    r.at(a, 31000).clicks('310,195 312,163 234,171 318,163', 10000)
+    r.at(a, 68000).clicks('213,190', 0)
+    _observed_walk(r, 75000, '376,202 376,202 236,202 376,202 236,202 236,202 376,202', 7000, 4500)
+    r.at(a, 130000).clicks('302,190', 0)
+    r.at(a, 138000).clicks('284,165 293,176 315,164 109,168 298,165 299,164 '
+                             '315,164 315,164 315,164 315,164 315,164 315,164 '
+                             '138,167 238,167 310,165 310,165 310,165 310,165 '
+                             '310,165 310,165 310,165 357,166 310,165 310,165 '
+                             '345,166 310,165 137,167 310,165 310,165 310,165 '
+                             '211,167 229,168 413,127', 3000)
+    r.at(a, 241000).clicks('shot', 0)
+    r.at(a, 245000).clicks('330,178', 0)
+    r.at(a, 261000).clicks('shot', 0)
+    _observed_walk(r, 268000, '395,100 545,100 545,188 395,276', 9000, 5500)
+    r.at(a, 312000).clicks('361,185 291,168 341,172 311,187', 6000)
+    r.at(a, 360000).clicks('shot', 0)
+    r.at(a, 366000).clicks('315,276', 0)
+    r.at(a, 372000).clicks('shot', 0)
+    r.at(a, 378000).clicks('311,355', 0)
+    r.at(a, 394000).clicks('shot', 0)
+    out = [r.text()]
+    if save:
+        out += [menu_to_save_screen(a, 400000), save_tail(a, 418000, save)]
+    return ';'.join(out)
+
+
+def _moving_room_entry(save=None, menu_at=165000):
+    a = 'S3037.CIF'
+    r = R().at(a, 0)
+    _observed_walk(r, 12000, '306,166 304,165 313,173', 12000, 7000)
+    r.at(a, 68000).clicks('shot', 0)
+    for t, point in ((75000, '320,173'), (87000, '66,174'), (111000, '320,173'), (123000, '66,174')):
+        _observed_walk(r, t, point, 0, 7000)
+    r.at(a, 135000).clicks('311,355 313,173 320,173 307,179', 6000)
+    r.at(a, 159000).clicks('shot', 0)
+    out = [r.text()]
+    if save:
+        out += [menu_to_save_screen(a, menu_at), save_tail(a, menu_at + 18000, save)]
+    return ';'.join(out)
+
+
+def leg_moving_room_entry(save=None):
+    """m52 -> two normal Mars rotations, Mercury exit and safe3046/held13."""
+    return _moving_room_entry(save)
+
+
+def leg_alchemy_snake_clue(save=None):
+    """m53 -> actual closed panel/snake1922, back to3046; test still locked."""
+    a = 'S3046.CIF'
+    r = R().at(a, 12000).clicks('328,99', 0)
+    r.at(a, 19000).clicks('340,97', 0)
+    r.at(a, 46000).clicks('shot', 0)
+    r.at(a, 53000).clicks('311,370', 0)
+    r.at(a, 60000).clicks('shot', 0)
+    out = [r.text()]
+    if save:
+        out += [menu_to_save_screen(a, 67000), save_tail(a, 85000, save)]
+    return ';'.join(out)
+
+
+def leg_nigel_library(save=None):
+    """m54 -> daytime library via normal inverse rotations, safe4112/held13.
+
+    Current afternoon source needs no historical11M night wait. Every other
+    navigation token and its cadence is unchanged by that explicit delta.
+    """
+    a = 'S3046.CIF'
+    r = R().at(a, 12000).clicks('311,355 307,167 307,167 313,173 320,173 66,174', 6500)
+    r.at(a, 51000).clicks('shot', 0)
+    r.at(a, 57500).clicks('320,173 66,174', 6500)
+    r.at(a, 70500).clicks('shot', 0)
+    r.at(a, 77000).clicks('311,355 313,173 320,173 307,179', 6500)
+    r.at(a, 103000).clicks('shot', 0)
+    r.at(a, 109500).clicks('311,175 438,178 304,165 304,165 304,165 377,165 '
+                              '303,165 303,165 303,165 303,165 239,165 '
+                              '312,166 312,166 312,166 312,166 312,166 312,166 312,166 '
+                              '315,167 474,166 310,166 310,166 310,166 310,166 310,166 '
+                              '310,166 320,165 320,165 310,166 320,168 310,166 310,166 '
+                              '308,166 307,164 126,165', 5000)
+    r.at(a, 289500).clicks('328,163 318,163 533,162 329,163 329,163 563,162 '
+                              '124,161 386,163 308,161 308,161', 5000)
+    r.at(a, 344500).clicks('61,161', 0)
+    r.at(a, 359500).clicks('shot', 0)
+    out = [r.text()]
+    if save:
+        out += [menu_to_save_screen(a, 372500), save_tail(a, 390500, save)]
+    return ';'.join(out)
+
+
+def leg_nigel_snake(save=None):
+    """m55 -> original1371/1694 using the source-matched visible question.
+
+    Preserve the exercised response-list/scroll/Bye cadence. Source1704/1698
+    are0, so the snake question is third; the original caption scroll exposes
+    the work Bye. The checker requires that bounded source profile.
+    """
+    a = 'S4112.CIF'
+    r = R().at(a, 24000).clicks('shot', 0)
+    r.at(a, 30000).clicks('463,232', 0)
+    r.at(a, 69000).clicks('shot', 0)
+    r.at(a, 80000).clicks('150,459', 0)
+    r.at(a, 164000).clicks('shot', 0)
+    r.at(a, 180000).clicks('22,405,6000', 0)
+    r.o += ['%s+%d:move:22,%d' % (a, 181500 + 400*i, y)
+            for i, y in enumerate((410, 415, 420, 425, 430, 435, 440, 445, 450, 455, 456))]
+    r.at(a, 189000).clicks('shot', 0)
+    r.at(a, 200000).clicks('150,438', 0)
+    r.at(a, 221000).clicks('shot', 0)
+    out = [r.text()]
+    if save:
+        out += [menu_to_save_screen(a, 245000), save_tail(a, 263000, save)]
+    return ';'.join(out)
+
+
+def leg_alchemy_return(save=None):
+    """m56 -> earned passage/real13 and two original room turns, safe3046."""
+    a = 'S4112.CIF'
+    r = R().at(a, 12000).clicks('40,162 307,175 319,171 319,171', 5000)
+    r.at(a, 37000).clicks('310,161 68,161 161,161 311,164 329,163 329,163 '
+                             '126,163 326,162 326,162 326,162 464,199', 5000)
+    _observed_walk(r, 92000, '376,202 376,202 236,202 376,202 236,202 236,202 376,202', 7000, 4500)
+    r.at(a, 147000).clicks('302,190', 0)
+    r.at(a, 155000).clicks('284,165 293,176 315,164 109,168 298,165 299,164 '
+                             '315,164 315,164 315,164 315,164 315,164 315,164 '
+                             '138,167 238,167 310,165 310,165 310,165 310,165 '
+                             '310,165 310,165 310,165 357,166 310,165 310,165 '
+                             '345,166 310,165 137,167 310,165 310,165 310,165 '
+                             '211,167 229,168 361,185 291,168', 3500)
+    return r.text() + ';' + _moving_room_entry(save, menu_at=166000)
+
+
 def verify_slider():
     """The puzzle rules of the body of S3450 (action_family_d3_runtime.c): five rows by six columns; types 0x10..0x13 are one-way edge arrows, 0x14 walls,
     1..10 the cell a piece of that number must rest on. A piece slides until a barrier or another piece stops it."""
@@ -1636,7 +1771,10 @@ if __name__ == '__main__':
             'linda-curse': leg_linda_curse, 'gargoyle-inspect': leg_gargoyle_inspect,
             'corbin-portrait': leg_corbin_portrait, 'typing-start': leg_typing_start,
             'oil-gargoyle': leg_oil_gargoyle, 'rune-passage': leg_rune_passage,
-            'rune-light-wait': leg_rune_light_wait, 'rune-light-start': leg_rune_light_start}
+            'rune-light-wait': leg_rune_light_wait, 'rune-light-start': leg_rune_light_start,
+            'fire-phosphorus': leg_fire_phosphorus, 'moving-room-entry': leg_moving_room_entry,
+            'alchemy-snake-clue': leg_alchemy_snake_clue, 'nigel-library': leg_nigel_library,
+            'nigel-snake': leg_nigel_snake, 'alchemy-return': leg_alchemy_return}
     if leg not in legs:
         sys.exit(__doc__)
     print(legs[leg](save))
