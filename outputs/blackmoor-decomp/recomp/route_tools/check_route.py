@@ -2,8 +2,10 @@
 """Check an observed headless story leg, not merely its process exit.
 
 python3 check_route.py RUN_LOG SAVE_FILE [--route telescope-prep|jane-jigsaw]
-The save must come from this run's normal Load & Save UI. No game state is read
-or changed; the checker reads only the recorded observations and save size.
+The caller supplies a checkpoint produced by this run's normal Load & Save UI.
+This checks recorded observations, a matching file-open line and save size;
+fresh-folder/write provenance and saved contents require separate replay evidence.
+No game state is read or changed.
 """
 import argparse
 import json

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The story routes of ROUTES.md as INPUT strings for rc_headless.
 
-  python3 story_route.py LEG [--save NAME]      LEG is one of: stairs, lock, slider, moon, telescope-prep, linda, jane-intro, slider-verify
+  python3 story_route.py LEG [--save NAME]      LEG is one of: stairs, lock, slider, moon, telescope-prep, linda, jane-intro, jane-jigsaw, slider-verify
   python3 story_route.py slider-verify          replays the recorded 105 slider moves on the puzzle rules and prints whether they solve it
 
 Each leg starts from a save made in the game's own Load & Save screen and (with --save NAME) ends by saving the next one, so the legs chain:
@@ -12,7 +12,8 @@ Each leg starts from a save made in the game's own Load & Save screen and (with 
   m5  --moon-->   m6 (S2076, the moon box open, the telescope lens)
   m6  --telescope-prep--> m7 (lens collected, star chart read, bedroom view 2)
   m7  --linda--> m8 (Linda introduction complete, S4408)
-  m8  --jane-intro--> S1206 (Memory ready; complete it before the next save)
+  m8  --jane-intro--> S1206 (optional Memory branch, no save tail)
+  m8  --jane-jigsaw--> m9 (Junior jigsaw won, telescope loan earned, S3510 view 4)
 
 Steps are `anchor+ms:kind:args` (rc_headless.c). `click x,y,hold` is a move 1 s before the click; `mv:x,y` a bare move; `key:VK` a key press.
 A bare click on a hotspot needs a move onto it first or the game ignores it (the cursor must have been seen there), so every click has its move.
