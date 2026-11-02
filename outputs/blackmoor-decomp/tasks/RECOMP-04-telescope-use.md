@@ -27,11 +27,13 @@ Private evidence: `telescope-use-receipt.json`, `telescope-d9-before/`, `telesco
 
 ## Explicit limits
 
-The focused arithmetic claim is finite nonnegative inputs with CW0x27f, the domain used by this mask. The lifter still does not propagate EFLAGS across the__fload call; finite classification has ZF0 as the generated frame does, but NaN/Inf classification, domain errors, errno/matherr, other control words and general CRT parity remain unverified. Other call-ending fragments are not changed. Senior/alternate story branches, real-clock app rendering/input/audio and the full campaign remain unverified. Next: background app verification and Betty's missing-crank/seedlings branch. Independent frozen review pending.
+The focused arithmetic claim is finite nonnegative inputs with CW0x27f, the domain used by this mask. The lifter still does not propagate EFLAGS across the__fload call; finite classification has ZF0 as the generated frame does, but NaN/Inf classification, domain errors, errno/matherr, other control words and general CRT parity remain unverified. Other call-ending fragments are not changed. Senior/alternate story branches, real-clock app rendering/input/audio and the full campaign remain unverified. Next: background app verification and Betty's missing-crank/seedlings branch. Independent Sonnet static review accepts frozen634bc528 with no P1 or blocking P2.
 
 recomp/lift_recomp.py SHA-256 `548e8d0869e151462f55cfcf26ba00644bff880f810a659cc4ba3cf6a2ae1264`.
 recomp/route_tools/story_route.py SHA-256 `dfeea649f7232e7f384dab80a6d7cae2a07711d86f7399a8d6b0c40910c6cc8d`.
 recomp/route_tools/check_route.py SHA-256 `febfea533941801f7946ca32f52af5c343593cd31c97f89488a54812adbe544c`.
-tests/recomp_sqrt_fixture.c SHA-256 `c4c63de4392b7481b31436ec8a03c77e77c9522f3bd6e2c5394c5f6d0de48af1`.
+tests/recomp_sqrt_fixture.c SHA-256 `5dbfd366239a6afd428aa7b5ba866b736b98cf2b63156cffc95a39a7453efde1`.
 tests/test_recomp_sqrt.py SHA-256 `773d9993c858309a7b7906a1a1f039a1033e2bc87653a548d3ef64a988f3b75a`.
 tests/test_recomp_route_check.py SHA-256 `68dd7fb3d0e4c6d2f731ddbc6a8071991a5e7b09ab36f73013521dfd58ecd5f7`.
+
+Review follow-up: the finite fixture now requires exact equality to sqrt, as requested; all14 focused checks pass again (`telescope-reviewed-tests.log`). Its receipt pins the fixture-linked generated objects by build directory; the fixture executable is distinct from the production headless binary. Earlier game legs and the other sqrt callers0x44bed5/0x490598/0x4f7207/0x4f95a4/0x4f9d18 were not individually re-verified by the targeted telescope run. A fresh opening-to-m10 replay is running separately; no passing claim is made before its receipt finishes. General CRT/positional-audio parity remains unclaimed.

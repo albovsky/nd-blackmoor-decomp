@@ -1,7 +1,6 @@
 /* Exercise generated 0x50df94 with finite nonnegative doubles and CW=0x27f.
  * No game entry, original x86 execution or output device. Exceptional inputs,
  * EFLAGS across calls, errno/matherr and other control words are outside scope. */
-#include <float.h>
 #include <math.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -40,10 +39,9 @@ int main(int argc, char **argv)
         for (unsigned k = 0; k < 8; ++k) valid += fp->valid[k] != 0;
         double got = fp->valid[top] ? (double)FL41_FST(fp, 0) : NAN;
         double want = sqrt(input[i]);
-        double tolerance = 4.0 * DBL_EPSILON * fmax(1.0, want);
         int pass = !stopped && valid == 1 && fp->valid[top] &&
                    fp->cw == FL41_FCW_WIN32 && isfinite(got) &&
-                   fabs(got - want) <= tolerance;
+                   got == want;
         printf("RECOMP_SQRT input=%.17g got=%.17g expected=%.17g valid=%u cw=0x%x stopped=%d pass=%d\n",
                input[i], got, want, valid, fp->cw, stopped, pass);
         if (stopped) fprintf(stderr, "guest stop: %s\n", rc_abort_reason());
