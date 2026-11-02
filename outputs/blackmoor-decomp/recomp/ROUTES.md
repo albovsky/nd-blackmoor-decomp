@@ -263,3 +263,11 @@ Final native f8b34e6d… public route passes in11.28s; exact m10 reload passes i
 Telescope review accepts634bc528 with no P1 or blocking P2. The targeted f8b34e6d run does not individually re-verify earlier legs or the other sqrt callers44bed5/490598/4f7207/4f95a4/4f9d18. The completed broader replay now passes all10 New Game-to-m10 runs on f8b34e6d, with every source-save hash matching its preceding output (`sqrt-fresh-chain/verified-chain.json`); those other callers are not individually instrumented. the native finite-math fixture now uses exact equality.
 
 Final Sonnet follow-up accepts1bb45b8d. The fresh chain includes the optional Jane-to-Memory entry but does not solve Memory or finish the campaign.
+
+## App audio diagnostics, 2026-11-01, 23:29 Pacific
+
+The recompiled frontend now builds with `--capture-audio FILE.wav`, tapping PCM16 before playback suppression so a future `--mute` background run can be inspected offline. The queue's writer drains/finalizes WAV at shutdown; overflow is an explicit capture failure. Six device-free synthetic tests pass, including the reproduced/fixed last-frame drain race. The signed app builds, but actual app capture has not run because its foreground activation must first be removed for background checks. See RECOMP-05; gameplay checkpoint remains m10, with full campaign/app verification incomplete.
+
+Audio review follow-up: normal Cmd-Q is now routed back through main's producer/capture cleanup, and a5-second watchdog ends stuck shutdown with exit status5. Capture-start failure is3, capture-finalization failure4. Actual app/Cmd-Q checks still await background mode; the unverified filesystem/streaming branches are listed in RECOMP-05.
+
+Audio follow-up review accepts17d2fdda with no P1 or blocking P2. Runtime Cmd-Q/background acceptance, filesystem failures, continuous streaming and system-logout coordination remain unverified; see RECOMP-05.
