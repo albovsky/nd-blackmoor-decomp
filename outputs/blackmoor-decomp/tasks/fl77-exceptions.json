@@ -9,7 +9,6 @@
   "impossible_direction_unproved": "Every instruction runs on the original bytes and the translation agrees on all scenarios; the one jump direction left is impossible by construction, and the prover (run with the scenarios) did not discharge it.",
   "needs_alias_model_in_prover": "A direction needs a pointer into the stack or an overlap between two pointers. Glib kept the no-alias assumption, but the prover has no alias model yet (a lea address reaches only cells at or above it, calls havoc those).",
   "needs_callee_footprint_model": "One direction is infeasible by reading the code, but the proof needed a callee-footprint model that was removed after review found gaps.",
-  "needs_frame_assumption_in_prover": "Coverage is full except a direction that is impossible in the original, but a frame object is handed to a library call, so the prover's frame assumption is off; it would clear with a stated assumption that such a call writes only inside the object.",
   "needs_multi_cell_or_aliased_state": "The search reached everything except a few jump directions that need three or more cells to line up (a pointer aliasing the function's own pushes, wrapped address arithmetic, tail jumps with moved stacks), and the prover answers reachable.",
   "original_faults_on_every_scenario": "The original faults on every generated scenario, so there is nothing to compare against.",
   "partial_coverage_gate_not_built": "Scenarios cover part of the function; the remaining code sits behind a gate whose state was not built (see the note for the coverage reached).",
@@ -17,14 +16,6 @@
   "translation_mismatch_open": "New scenarios disagree between the translation and the original; the translation has a defect that has not been fixed."
  },
  "rows": {
-  "0x418e52": {
-   "reason": "needs_frame_assumption_in_prover",
-   "note": "Left: the je at 0x419886 taken. Eight lea of frame objects are passed to member calls. Coverage reached: 545 of 716 instructions, 47 of 68 jump directions."
-  },
-  "0x425b8b": {
-   "reason": "impossible_direction_unproved",
-   "note": "Every instruction (246/246) and 15 of 16 directions covered; the jump at 0x425cf0 taken leads to a loop with no exit (jmp 0x425ee1, jmp 0x425c17, same test again), so every such run hits the instruction limit and the prover must discharge it. Coverage reached: 246 of 246 instructions, 15 of 16 jump directions."
-  },
   "0x456516": {
    "reason": "needs_alias_model_in_prover",
    "note": "Left: the jns at 0x456a0b fall-through. Needs a pointer into the stack (19 lea of frame addresses). Coverage reached: 459 of 462 instructions, 65 of 66 jump directions."
@@ -65,49 +56,33 @@
    "reason": "translation_mismatch_open",
    "note": "A scenario found by the search disagrees with the translation."
   },
-  "0x50d0bc": {
-   "reason": "needs_multi_cell_or_aliased_state",
-   "note": "Partial coverage; the remaining directions need several cells aligned. Coverage reached: 115 of 119 instructions, 29 of 32 jump directions."
-  },
-  "0x50d1f0": {
-   "reason": "needs_multi_cell_or_aliased_state",
-   "note": "Partial coverage; the remaining directions need several cells aligned. Coverage reached: 133 of 135 instructions, 43 of 46 jump directions."
-  },
   "0x50df9d": {
    "reason": "needs_multi_cell_or_aliased_state",
-   "note": "Partial coverage; the remaining directions need several cells aligned. Coverage reached: 32 of 41 instructions, 12 of 22 jump directions."
+   "note": "x87 sqrt wrapper: the missing directions depend on the zero flag left by the caller before fnstcw, the control word from fnstcw, x87 status flags after the operation, and jumps to 0x513cbe and 0x513ccb outside the row span, whose edges the world does not record."
   },
   "0x50e05d": {
    "reason": "needs_multi_cell_or_aliased_state",
-   "note": "Partial coverage; the remaining directions need several cells aligned. Coverage reached: 16 of 43 instructions, 4 of 16 jump directions."
+   "note": "x87 cos wrapper: the missing directions depend on the zero flag left by the caller before fnstcw, the control word from fnstcw, x87 status flags after the operation, and jumps to 0x513cbe and 0x513ccb outside the row span, whose edges the world does not record."
   },
   "0x50e10d": {
    "reason": "needs_multi_cell_or_aliased_state",
-   "note": "Partial coverage; the remaining directions need several cells aligned. Coverage reached: 16 of 43 instructions, 4 of 16 jump directions."
+   "note": "x87 sin wrapper: the missing directions depend on the zero flag left by the caller before fnstcw, the control word from fnstcw, x87 status flags after the operation, and jumps to 0x513cbe and 0x513ccb outside the row span, whose edges the world does not record."
   },
   "0x50e28d": {
    "reason": "needs_multi_cell_or_aliased_state",
-   "note": "Partial coverage; the remaining directions need several cells aligned. Coverage reached: 13 of 34 instructions, 3 of 14 jump directions."
-  },
-  "0x50e3de": {
-   "reason": "needs_multi_cell_or_aliased_state",
-   "note": "Partial coverage; the remaining directions need several cells aligned. Coverage reached: 75 of 82 instructions, 7 of 8 jump directions."
+   "note": "x87 atan2 wrapper: the missing directions depend on the zero flag left by the caller before fnstcw, the control word from fnstcw, x87 status flags after the operation, and jumps to 0x513cbe and 0x513ccb outside the row span, whose edges the world does not record."
   },
   "0x50eb20": {
-   "reason": "needs_multi_cell_or_aliased_state",
-   "note": "Partial coverage; the remaining directions need several cells aligned. Coverage reached: 70 of 70 instructions, 16 of 18 jump directions."
+   "reason": "impossible_direction_unproved",
+   "note": "Qword divide helper: the 50eba5 jb direction (carry from add edx, ecx) cannot happen because the estimate times the divisor stays below 2^64; the prover lacks that arithmetic fact. Coverage 70 of 70 instructions, 17 of 18 directions."
   },
   "0x50ebca": {
-   "reason": "needs_multi_cell_or_aliased_state",
-   "note": "Partial coverage; the remaining directions need several cells aligned. Coverage reached: 121 of 125 instructions, 29 of 32 jump directions."
+   "reason": "impossible_direction_unproved",
+   "note": "realloc: the fall-throughs at 50ec67, 50ec6b and 50ecbd are impossible because edi comes from a nonzero value and esi was tested nonzero and not changed since; the prover has not discharged them. Coverage 121 of 125 instructions, 29 of 32 directions."
   },
   "0x50ed50": {
    "reason": "census_unsplit_floor",
    "note": "memmove: the census span is a floor and the lifter refuses its jump tables."
-  },
-  "0x50f085": {
-   "reason": "needs_multi_cell_or_aliased_state",
-   "note": "Partial coverage; the remaining directions need several cells aligned. Coverage reached: 130 of 132 instructions, 27 of 28 jump directions."
   },
   "0x50f462": {
    "reason": "needs_multi_cell_or_aliased_state",
@@ -128,10 +103,6 @@
   "0x5105b1": {
    "reason": "needs_multi_cell_or_aliased_state",
    "note": "Partial coverage; the remaining directions need several cells aligned. Coverage reached: 120 of 149 instructions, 38 of 50 jump directions."
-  },
-  "0x510764": {
-   "reason": "needs_multi_cell_or_aliased_state",
-   "note": "Partial coverage; the remaining directions need several cells aligned. Coverage reached: 38 of 68 instructions, 5 of 14 jump directions."
   },
   "0x510909": {
    "reason": "needs_multi_cell_or_aliased_state",

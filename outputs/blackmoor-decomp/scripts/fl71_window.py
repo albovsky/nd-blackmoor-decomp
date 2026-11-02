@@ -220,14 +220,14 @@ def window(an, dom, S, T):
     return order
 
 
-def run_window(an, order, S, T, query, frame=False, want_state=False):
+def run_window(an, order, S, T, query, frame=False, want_state=False, start=None):
     """execute the window; `query` is ('dir', 'taken'|'fall') or ('ins', None); returns the formula to refute"""
     M = an.M
     saved = M.split
     M.split = frame and an.split_ok     # FL-73/75: `frame` adds the frame assumption; the caller has checked that no frame address can have been formed on the way (Analysis.frame_safe)
     try:
         incoming = {n: [] for n in order}
-        incoming[S].append((z3.BoolVal(True), P.State.start()))
+        incoming[S].append(start if start else (z3.BoolVal(True), P.State.start()))      # FL-78: `start` (condition, state) for a window that begins in a given state (prove_closed_loop)
         edge = {}
         ic = {}
         escapes, esc_seen = [], set()
@@ -520,6 +520,94 @@ def prove_faults(an, dom, mark, timeout_ms=STEP_MS):
                 return 'unsat', h
             last = (r, h)
     return last
+
+
+CLOSED_LOOP_OPS = frozenset(('mov', 'movzx', 'movsx', 'lea', 'cmp', 'test', 'add', 'sub', 'and', 'or', 'xor', 'inc', 'dec', 'neg', 'not', 'nop', 'push', 'pop', 'jmp'))      # FL-78: the instructions whose semantics in Machine.step are exact and make no fresh symbol
+
+
+def exact_block(insns):
+    """FL-78: True when every instruction of the block has exact semantics in the model: plain moves, arithmetic, compares, pushes and pops and direct jumps; no call (which makes fresh symbols for its effects), no string instruction or prefix, no fs access,
+    no memory operand at an absolute address"""
+    for i in insns:
+        m = i.mnemonic
+        if not (m in CLOSED_LOOP_OPS or m.startswith('j') and i.operands and i.operands[0].type == P.X.X86_OP_IMM):
+            return False
+        if i.prefix[0] or i.prefix[1] or any(o.type == P.X.X86_OP_MEM and o.mem.segment for o in i.operands):
+            return False
+        if m == 'jmp' and i.operands[0].type != P.X.X86_OP_IMM:
+            return False
+        if any(o.type == P.X.X86_OP_MEM and not o.mem.base and not o.mem.index for o in i.operands):
+            return False                                                   # review: a lint, not a proof: no operand at an absolute (global) address (which another thread or a device could change while the loop spins); a register or a shared pointer can still hold one
+    return True
+
+
+def prove_closed_loop(an, dom, mark, timeout_ms=STEP_MS):
+    """FL-78: ('unsat', hash) when every run that takes the marked direction ('dir', jcc, 'taken'|'fall') goes round a cycle for ever, else ('unknown'|'sat'|'unsupported', '').
+
+    The marked edge leads, through blocks with one successor each, back to a block D that dominates the jump (the header of a loop); D, the blocks between D and the jump, and the blocks of that chain contain only instructions with exact semantics (`exact_block`:
+    no call, no inner loop, no string instruction), so a state at D decides EXACTLY whether the run goes from D to the jump and takes the direction. C(s) is that condition, s'(s) the state at D after one more round (the jump block and the chain, executed
+    symbolically). The prover shows  C(s) and tie(s) and not C(s'(s))  unsat: whenever a round starts at D in some state and takes the direction, the next round starts in a state that takes it again.
+    SOUND: take a run that takes the direction. Its last visit of D before the jump (D dominates it) has some state s0 and goes through blocks of the window, so C(s0) holds, and the claim gives C(s1) for the state s1 after the round, and so on: the run
+    goes round the same cycle for ever (or faults in it) and never reaches a ret. The scenarios kept for a row are runs that return, so none takes the direction.
+    Assumption (RULE_TEXT2): the memory the cycle reads is changed only by the cycle itself (no other thread, interrupt, APC or device writes it while the loop spins). No operand of the cycle is at an absolute (global) address; this is a syntactic lint only (a register can hold a global or shared address, [ecx+4] can be shared), the proof relies on the shared-memory assumption above alone.
+    The direction is 'closed-loop-proved': the C translation is not compared on it (no terminating run takes it), and prove_row records it in the `plan` of the proof record."""
+    jcc, kind = mark[1], mark[2]
+    T = block_of(an, jcc, True)
+    if T is None or T not in an.reach:
+        return 'unsupported', ''
+    last = an.blocks[T]['insns'][-1]
+    if not (last.mnemonic.startswith('j') and last.mnemonic != 'jmp') or last.operands[0].type != P.X.X86_OP_IMM:
+        return 'unsupported', ''
+    t = dict(an.blocks[T]['succ']).get(kind)
+    if t is None:
+        return 'unsupported', ''
+    chain, cur = [], t
+    while cur not in dom[T]:                                              # blocks with one successor each, up to a block that dominates the jump
+        succ = an.blocks[cur]['succ'] if cur in an.blocks else None
+        if not succ or len(succ) != 1 or cur in chain or len(chain) > 8 or cur in an.loops or not exact_block(an.blocks[cur]['insns']):
+            return 'unsupported', ''
+        if an.blocks[cur]['insns'][-1].mnemonic.startswith('j') and an.blocks[cur]['insns'][-1].mnemonic != 'jmp':
+            return 'unsupported', ''
+        chain.append(cur)
+        cur = succ[0][1]
+    D = cur
+    orderA = window(an, dom, D, T)
+    if orderA is None or any(n != D and n in an.loops for n in orderA) or not all(exact_block(an.blocks[n]['insns']) for n in orderA):
+        return 'unsupported', ''
+    M = an.M
+    kept = len(M.facts), set(M.fact_keys), len(M.inv_facts)
+    saved = M.split
+    try:
+        ic, st = run_window(an, orderA, D, T, ('ins', None), False, want_state=True)
+        M.split = False
+        st2 = st.copy()
+        st2.pc = z3.BoolVal(True)
+        br = None
+        for i in an.blocks[T]['insns']:
+            res = M.step(st2, i)
+            if res:
+                br = res[1]
+        here = z3.And(ic, st2.pc)
+        c = z3.And(here, br) if kind == 'taken' else z3.And(here, z3.Not(br))
+        st2.pc = z3.BoolVal(True)
+        for b in chain:
+            for i in an.blocks[b]['insns']:
+                M.step(st2, i)
+        chain_ok = st2.pc
+        st2.pc = z3.BoolVal(True)
+        M.split = saved
+        again = run_window(an, orderA, D, T, ('dir', kind), False, start=(z3.BoolVal(True), st2))
+        f = z3.And(c, chain_ok, relate(an, D, P.State.start()), z3.Not(again))
+        r, h = an.check(f, timeout_ms)
+    except P.Unsupported:
+        discard_facts(an, kept)
+        return 'unsupported', ''
+    finally:
+        M.split = saved
+    discard_facts(an, kept)
+    if VERBOSE:
+        print('   closed loop D=%#x T=%#x chain %d blocks %d -> %s' % (D, T, len(chain), len(orderA), r), flush=True)
+    return r, h
 
 
 def prove_target(an, dom, T, query, timeout_ms=STEP_MS):
