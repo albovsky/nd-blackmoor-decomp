@@ -26,3 +26,5 @@ Registered test inputs are regenerated in a clean checkout, excluding parked fil
 - `recomp/muted_audio_pacer.h`: `cbcd00eb1d1e5b5e0b34b066f9f26ab890fd3de0a6aa7235c03efe37891c25fd`
 - `tests/muted_audio_pacer_fixture.cpp`: `9ab9add96aa0140e8c7ac73d0ac72f25563236d08af238c7ba99f61e91f9297b`
 - `tests/test_muted_audio_pacer.py`: `e38edf685b18d4654e6b0f4e46c7175f0410ff2a93085dc162ff3adab94ba830`
+
+Independent Sonnet high review accepts frozen684dee5b with no P1 or blocking P2 (`muted-clock-review.txt`). Static evidence and ledger freshness checks pass. The measured99.997% ratio is an endpoint-jitter measurement with0rebases, not evidence of residual long-term drift or guaranteed headroom. Future long runs must record rebases; actual overruns remain outside this runtime proof. `muted-clock-shared-object-pins.json` pins the current24shared lifted objects, all predating the baseline link; no headless/core rebuild was claimed. Post-review changes clarify evidence only.
