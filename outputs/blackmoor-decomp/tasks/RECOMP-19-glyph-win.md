@@ -34,4 +34,22 @@ Actual root full-scope run from final public m28f4ed256197c4a93d2816a2eda4358b31
 
 Native74229ec82fe4b60508a665e3f95363c0de44d5374e7f84c8ee0712cf9ac09124 is the now-reviewed PR308host in unchanged default virtual mode. All24 guest object hashes equal earlier reviewedcc7. This replaces the planned cc7 run explicitly; no Mac app or guest/host code changes in this slice. Atlas remains private SHA71dcbc74917c41535c459122e1a9c6ce3ea3bdc3d4f05ac58bab872cbfe56415. Exact evidence is `work/recomp-playability-20261101/glyph-public-root-fullscope-v1/receipt.json`, producer/reload raw logs/captures/requests and inner receipts0f3321ce9e5539894da4c707096d6dc08ce0f5cc19d1058df366e586a6f39026 /92368f0027bf9da7f8ee5d4aa0b75afa4e52b6a922d0255aafa3aef10c993414. Inner receipts deliberately remain accepted=false until the outer combined audit accepts. Budget48plans/64requests is a maximum, not the observed17plans/27producer requests.
 
-Only this first-time Junior source, observed board and UI layout are established. Repeat/Senior preflight refusal, unknown crops, bounds and malformed synthetic inputs have finite checks; natural loss, all board deals, child/I/O/error/shutdown failure branches and real-time glyph timing remain unverified. No all-game, function-port or atlas-distribution claim. Root publishes and squash-merges in the original authorizing chat under pasted HOW TO WORK step5. Generated metadata refresh and independent frozen Sonnet review remain pending.
+Only this first-time Junior source, observed board and UI layout are established. Repeat/Senior preflight refusal, unknown crops, bounds and malformed synthetic inputs have finite checks; natural loss, all board deals, child/I/O/error/shutdown failure branches and real-time glyph timing remain unverified. No all-game, function-port or atlas-distribution claim. Root publishes and squash-merges in the original authorizing chat under pasted HOW TO WORK step5. Independent Sonnet high accepts frozenb822f228 with no P1 or blocking P2 (static-only review). Root accepts the bounded shuffle/freshness/transition/open-order limitations below. Required generated metadata preserves all status/class/native/oracle fields, all counts and1793peer claims; final freshness checks are recorded below.
+
+
+## Review limits accepted by root
+
+The actual run exercised17plans and3 rejected-capture settles. Shuffle fallback remains unexercised. A sample during the win transition may safely refuse a winning run before2001 is observed. The inherited Session returns the last parsed observation without a separate per-batch observation-generation guard; ACK shot totals/capture checks and final independent full-log verification bound this observed successful run. Ordered original opens are verified over the log, without timestamp-joining1299 to the precise sampled flag rise. These are bounded-client coverage limits, not native game fixes or all-board guarantees.
+
+Inner Session source_state retains its Bul-oriented diagnostic flags; the outer glyph receipt pins/checks the complete actual source. Receipt48/64 values are budgets, not observed counts. A refused late copy/hash failure may leave an unaccepted file in its retained evidence directory; only the accepted=true outer receipt identifies a collected checkpoint. Caption scroll is checked indirectly by subsequent original dialogue/state gates. Child/I/O and injected faults remain untested. No further test project or game replay was run for these documented nonblocking findings.
+
+Final extractor/ledger `--check` both pass at frozen2769b7a2; neither executes proofs or private receipts. Root refresh guard and actual audit are `glyph-win-refresh-receipt.json` and `glyph-win-root-acceptance.json` under the private playability directory.
+
+## Collected source pins
+
+- `recomp/route_tools/glyph_live.py`: `63d9d031f0a9d5b28e78d22f899e4da44a896b70e910277c5cc9155b02a9db2b`
+- `recomp/route_tools/glyph_pixels.py`: `169d2b0227652f753f214bdf44b120cb0f80c7b2a3517c2ee18d72c647c24925`
+- `recomp/route_tools/bul_live.py`: `3a52e04b8bf642d90c3f00382fdc7b00c62791ad9f5a77fdf1cf6d81f933591d`
+- `recomp/route_tools/check_route.py`: `71d6c3e632bdca2f3d176d81d0b0bdddac97d57dd79b31091faed6237b94fd94`
+- `tests/test_recomp_glyph_live.py`: `2599d95115264a54865ea088b8cc18a7659977a63288c07b1ac2b71b3c7f803a`
+- `tests/test_recomp_route_check.py`: `89c286555166c1bec550dd4684f87e4ab1fc7af8d608b3bb0f4a1698991e7d23`

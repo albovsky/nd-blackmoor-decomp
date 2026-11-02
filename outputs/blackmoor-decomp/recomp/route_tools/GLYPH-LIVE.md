@@ -37,7 +37,8 @@ retained with an explicit center73000/shot76000 two-token final-pair delta.
 Source/copied/output/native/tool/atlas/request/capture/log hashes and complete
 FIFO finish/normal exit are required. Engine-generated continue-save files
 may remain as evidence, but the tool never chooses them as canonical input.
-Only the combined outer receipt sets accepted=true and copies an output.
+Only the combined outer receipt sets accepted=true. A late copy/hash failure
+may leave a file in refused evidence; it remains an unaccepted checkpoint.
 
 Limits: one game,48attempts,64requests including finish,180seconds/session,
 512steps/64KiB per batch,90M imports/1.8M idle polls. Natural loss, unknown
