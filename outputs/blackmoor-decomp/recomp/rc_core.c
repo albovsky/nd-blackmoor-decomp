@@ -598,6 +598,13 @@ int rc_handle_kind(uint32_t h) { Handle *e = handle_at(h); return e ? e->kind : 
 
 void rc_handle_close(uint32_t h) { Handle *e = handle_at(h); if (e) { e->kind = RC_H_NONE; e->obj = NULL; } }
 
+void rc_handle_forget(int kind, void *object)
+{
+    for (uint32_t i = 0; i < handle_count; i++)
+        if (handles[i].kind == kind && handles[i].obj == object)
+            handles[i] = (Handle){RC_H_NONE, NULL};
+}
+
 uint32_t rc_guest_string(const char *s)
 {
     uint32_t p = rc_alloc((uint32_t)strlen(s) + 1u);

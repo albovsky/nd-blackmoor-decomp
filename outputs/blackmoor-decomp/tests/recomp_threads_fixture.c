@@ -1,9 +1,12 @@
 /* Guest-thread integration fixtures. These are small lifted-style callbacks,
  * not translated game code; all imports and scheduling use the actual host. */
 #include <stdint.h>
+#include <pthread.h>
+#include <stdatomic.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include "rc_internal.h"
 
 #define CHECK(expression) do { \
@@ -26,7 +29,8 @@ enum Import {
     CREATE_THREAD, RESUME_THREAD, SUSPEND_THREAD, THREAD_ID, EXIT_CODE,
     EXIT_THREAD, CLOSE_HANDLE, CREATE_EVENT, SET_EVENT, WAIT_ONE, WAIT_MANY,
     SLEEP, TLS_ALLOC, TLS_SET, TLS_GET, TLS_FREE, SET_ERROR, GET_ERROR,
-    INIT_CS, ENTER_CS, LEAVE_CS, DELETE_CS, IMPORT_COUNT
+    INIT_CS, ENTER_CS, LEAVE_CS, DELETE_CS, GET_MESSAGE, POST_MESSAGE,
+    IMPORT_COUNT
 };
 
 static struct {
@@ -42,7 +46,8 @@ static struct {
     {"TlsAlloc", 0, 0}, {"TlsSetValue", 2, 0}, {"TlsGetValue", 1, 0},
     {"TlsFree", 1, 0}, {"SetLastError", 1, 0}, {"GetLastError", 0, 0},
     {"InitializeCriticalSection", 1, 0}, {"EnterCriticalSection", 1, 0},
-    {"LeaveCriticalSection", 1, 0}, {"DeleteCriticalSection", 1, 0}
+    {"LeaveCriticalSection", 1, 0}, {"DeleteCriticalSection", 1, 0},
+    {"GetMessageA", 4, 0}, {"PostMessageA", 4, 0}
 };
 
 static uint32_t api(Fl41Regs *r, enum Import which, const uint32_t *args)
@@ -408,9 +413,162 @@ static void completion_parent(Fl41Regs *r, const Fl41Host *h)
     finish(r, entry_sp, 0, 0);
 }
 
+/* One blocking message import must yield independently of the periodic import
+ * budget; nonblocking imports must also preempt a guest that never waits. */
+static uint32_t message_posted, import_worker_ran;
+
+static void message_worker(Fl41Regs *r, const Fl41Host *h)
+{
+    (void)h;
+    uint32_t entry_sp = r->esp, kind = rc_u32(entry_sp + 4u);
+    r->esp -= 0x200u;
+    if (kind == 0) {
+        message_posted++;
+        CHECK(API(r, POST_MESSAGE, 0, 0x8001u, 0x123u, 0x456u) == 1);
+    } else import_worker_ran++;
+    finish(r, entry_sp, 0, 1);
+}
+
+static void message_parent(Fl41Regs *r, const Fl41Host *h)
+{
+    (void)h;
+    uint32_t entry_sp = r->esp;
+    r->esp -= 0x200u;
+    uint32_t worker = thread(r, WORKER_VA, 0, 0, r->esp + 0x80u);
+    CHECK(message_posted == 0);
+    uint32_t message = r->esp + 0xa0u;
+    CHECK(API(r, GET_MESSAGE, message, 0, 0, 0) == 1);
+    CHECK(message_posted == 1);
+    CHECK(rc_u32(message) == 0 && rc_u32(message + 4u) == 0x8001u);
+    CHECK(rc_u32(message + 8u) == 0x123u && rc_u32(message + 12u) == 0x456u);
+    uint64_t stats[4];
+    rc_stats(stats);
+    CHECK(stats[2] < 256u);           /* no periodic import yield could help */
+    close_handle(r, worker);
+
+    worker = thread(r, WORKER_VA, 1, 0, r->esp + 0x80u);
+    CHECK(import_worker_ran == 0);
+    for (unsigned i = 0; i < 300; i++) (void)API0(r, GET_ERROR);
+    CHECK(import_worker_ran == 1);    /* check before an explicit wait/yield */
+    CHECK(API(r, WAIT_ONE, worker, 0) == 0);
+    close_handle(r, worker);
+    finish(r, entry_sp, 0, 0);
+}
+
+/* The fake platform sleep blocks only its native caller. The guest worker
+ * must acquire the execution token before that callback is allowed to return. */
+static pthread_mutex_t sleep_lock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t sleep_changed = PTHREAD_COND_INITIALIZER;
+static atomic_uint_fast64_t fake_now = 100000u;
+static atomic_uint sleep_entered;
+static unsigned sleep_worker_progress, sleep_callbacks;
+
+static uint64_t fake_clock(void *user)
+{
+    (void)user;
+    return atomic_load(&fake_now);
+}
+
+static void fake_sleep(void *user, uint32_t milliseconds)
+{
+    (void)user;
+    CHECK(milliseconds > 0);
+    CHECK(pthread_mutex_lock(&sleep_lock) == 0);
+    sleep_callbacks++;
+    atomic_store(&sleep_entered, 1);
+    struct timespec deadline;
+    CHECK(timespec_get(&deadline, TIME_UTC) == TIME_UTC);
+    deadline.tv_sec += 5;
+    while (!sleep_worker_progress)
+        CHECK(pthread_cond_timedwait(&sleep_changed, &sleep_lock, &deadline) == 0);
+    atomic_fetch_add(&fake_now, milliseconds);
+    CHECK(pthread_mutex_unlock(&sleep_lock) == 0);
+}
+
+static void real_sleep_worker(Fl41Regs *r, const Fl41Host *h)
+{
+    uint32_t entry_sp = r->esp;
+    r->esp -= 0x200u;
+    while (!atomic_load(&sleep_entered)) API(r, SLEEP, 0);
+    h->fpu->cw = 0x0a7fu;
+    rc_w32(RC_TIB + 0x100u, 0x2222u);
+    API(r, SET_ERROR, 0x2222u);
+    CHECK(pthread_mutex_lock(&sleep_lock) == 0);
+    sleep_worker_progress = 1;
+    CHECK(pthread_cond_signal(&sleep_changed) == 0);
+    CHECK(pthread_mutex_unlock(&sleep_lock) == 0);
+    finish(r, entry_sp, 0, 1);
+}
+
+static void real_sleep_parent(Fl41Regs *r, const Fl41Host *h)
+{
+    uint32_t entry_sp = r->esp;
+    r->esp -= 0x200u;
+    CHECK(!rc_clock_is_virtual());
+    uint32_t worker = thread(r, WORKER_VA, 0, 0, r->esp + 0x80u);
+    h->fpu->cw = 0x067fu;
+    rc_w32(RC_TIB + 0x100u, 0x1111u);
+    API(r, SET_ERROR, 0x1111u);
+    uint32_t before = rc_clock();
+    API(r, SLEEP, 1);
+    CHECK(sleep_callbacks >= 1 && sleep_worker_progress == 1);
+    CHECK(rc_clock() - before >= 1u);
+    CHECK(h->fpu->cw == 0x067fu);
+    CHECK(rc_u32(RC_TIB + 0x100u) == 0x1111u);
+    CHECK(API0(r, GET_ERROR) == 0x1111u);
+    CHECK(API(r, WAIT_ONE, worker, 0) == 0);
+    close_handle(r, worker);
+    finish(r, entry_sp, 0, 0);
+}
+
+/* Host shutdown must unwind live continuations before freeing their contexts,
+ * including an event waiter and a worker that has never been resumed. */
+static uint32_t shutdown_handles[2], shutdown_ready, shutdown_release;
+static uint32_t shutdown_blocked_started, shutdown_blocked_returned;
+static uint32_t shutdown_suspended_started;
+
+static void shutdown_worker(Fl41Regs *r, const Fl41Host *h)
+{
+    (void)h;
+    uint32_t entry_sp = r->esp, kind = rc_u32(entry_sp + 4u);
+    r->esp -= 0x200u;
+    if (kind == 0) {
+        shutdown_blocked_started++;
+        CHECK(API(r, SET_EVENT, shutdown_ready) == 1);
+        CHECK(API(r, WAIT_ONE, shutdown_release, INFINITE) == 0);
+        shutdown_blocked_returned++;
+    } else shutdown_suspended_started++;
+    finish(r, entry_sp, 0, 1);
+}
+
+static void shutdown_parent(Fl41Regs *r, const Fl41Host *h)
+{
+    (void)h;
+    uint32_t entry_sp = r->esp;
+    r->esp -= 0x200u;
+    shutdown_ready = event(r, 1);
+    shutdown_release = event(r, 1);
+    shutdown_handles[0] = thread(r, WORKER_VA, 0, 0, r->esp + 0x80u);
+    CHECK(API(r, WAIT_ONE, shutdown_ready, INFINITE) == 0);
+    shutdown_handles[1] = thread(r, WORKER_VA, 1, CREATE_SUSPENDED, r->esp + 0x80u);
+    API(r, SLEEP, 0);
+    CHECK(shutdown_blocked_started == 1 && shutdown_blocked_returned == 0);
+    CHECK(shutdown_suspended_started == 0);
+    CHECK(exit_code(r, shutdown_handles[0]) == STILL_ACTIVE);
+    CHECK(exit_code(r, shutdown_handles[1]) == STILL_ACTIVE);
+    close_handle(r, shutdown_ready);
+    finish(r, entry_sp, 0, 0);
+}
+
 int main(int argc, char **argv)
 {
     CHECK(argc == 2);
+    if (!strcmp(argv[1], "real-sleep")) {
+        RcPlatform platform = {0};
+        platform.now_ms = fake_clock;
+        platform.sleep_ms = fake_sleep;
+        rc_set_platform(&platform);
+    }
     rc_core_init();
     CHECK(rc_map_new(RC_IMAGE_BASE, RC_PAGE) != NULL); /* empty synthetic PE header */
     rc_win32_init();
@@ -438,6 +596,15 @@ int main(int argc, char **argv)
         rc_register(WORKER_VA, completion_worker);
         rc_register(OTHER_VA, detached_worker);
         rc_register(LEAF_VA, exit_leaf);
+    } else if (!strcmp(argv[1], "messages")) {
+        rc_register(PARENT_VA, message_parent);
+        rc_register(WORKER_VA, message_worker);
+    } else if (!strcmp(argv[1], "real-sleep")) {
+        rc_register(PARENT_VA, real_sleep_parent);
+        rc_register(WORKER_VA, real_sleep_worker);
+    } else if (!strcmp(argv[1], "shutdown")) {
+        rc_register(PARENT_VA, shutdown_parent);
+        rc_register(WORKER_VA, shutdown_worker);
     } else {
         fprintf(stderr, "unknown fixture: %s\n", argv[1]);
         return 1;
@@ -448,6 +615,15 @@ int main(int argc, char **argv)
     if (aborted) fprintf(stderr, "guest aborted: %s\n", rc_abort_reason());
     CHECK(aborted == 0 && result == 0);
     rc_threads_leave();
+    if (!strcmp(argv[1], "shutdown")) {
+        CHECK(shutdown_blocked_started == 1 && shutdown_blocked_returned == 0);
+        CHECK(shutdown_suspended_started == 0);
+        CHECK(rc_thread_current() == NULL);
+        for (unsigned i = 0; i < 2; i++) {
+            CHECK(rc_handle_kind(shutdown_handles[i]) == RC_H_NONE);
+            CHECK(rc_handle_obj(shutdown_handles[i], RC_H_THREAD) == NULL);
+        }
+    }
     printf("RECOMP_THREADS %s ok\n", argv[1]);
     return 0;
 }

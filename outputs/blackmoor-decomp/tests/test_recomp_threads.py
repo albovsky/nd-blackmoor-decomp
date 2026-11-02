@@ -1,4 +1,4 @@
-"""Four silent integration checks of the actual guest-thread host, without GAME.EXE."""
+"""Focused silent checks of the actual guest-thread host, without GAME.EXE."""
 import hashlib
 import os
 from pathlib import Path
@@ -48,6 +48,15 @@ class RecompThreadTests(unittest.TestCase):
 
     def test_completion_exit_thread_and_close_running_handle(self):
         self.run_fixture('completion')
+
+    def test_idle_message_wait_and_nonblocking_imports_schedule_workers(self):
+        self.run_fixture('messages')
+
+    def test_real_clock_sleep_callback_releases_guest_execution_token(self):
+        self.run_fixture('real-sleep')
+
+    def test_shutdown_unwinds_blocked_and_suspended_workers_and_clears_handles(self):
+        self.run_fixture('shutdown')
 
 
 if __name__ == '__main__':

@@ -54,7 +54,7 @@ static void vus_add(uint32_t us) { if (rc_clock_is_virtual()) vus += us; }
 
 static void do_sleep(uint32_t ms)
 {
-    if (!rc_clock_is_virtual() && rc_plat.sleep_ms) rc_plat.sleep_ms(rc_plat.user, ms);
+    if (!rc_clock_is_virtual()) rc_threads_sleep(ms);
 }
 
 static void check_stop(void)
@@ -360,6 +360,7 @@ static int next_message(Msg *m)
     check_stop();
     if (poll_hook) poll_hook();
     if (mq_pop(m)) return 1;
+    rc_threads_yield();
     if (rc_clock_is_virtual()) vus += 5000u;
     else do_sleep(1);
     idle_polls++;

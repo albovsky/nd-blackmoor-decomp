@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
+#include <time.h>
 #include "rc_internal.h"
 
 struct RcGuestThread {
@@ -13,7 +15,7 @@ struct RcGuestThread {
     pthread_t native;
     void *context;
     uint32_t id, entry, parameter, suspends, code;
-    int finished, closed, main;
+    int finished, closed, main, sleeping;
     jmp_buf exit_env;
 };
 
@@ -33,7 +35,7 @@ static RcGuestThread *next_runnable(RcGuestThread *after)
 {
     RcGuestThread *p = after->next ? after->next : threads;
     do {
-        if (!p->finished && (!p->suspends || stopping)) return p;
+        if (!p->finished && ((!p->suspends && !p->sleeping) || stopping)) return p;
         p = p->next ? p->next : threads;
     } while (p != (after->next ? after->next : threads));
     return NULL;
@@ -47,10 +49,39 @@ static void reap(void)
         if (t != current && !t->main && t->closed && t->finished) {
             *p = t->next;
             pthread_join(t->native, NULL);
+            rc_handle_forget(RC_H_THREAD, t);
             rc_context_destroy(t->context);
             free(t);
         } else p = &t->next;
     }
+}
+
+static void platform_sleep(uint32_t ms)
+{
+    if (rc_plat.sleep_ms) rc_plat.sleep_ms(rc_plat.user, ms);
+    else {
+        struct timespec delay = {ms / 1000u, (long)(ms % 1000u) * 1000000L};
+        while (nanosleep(&delay, &delay) && errno == EINTR) {}
+    }
+}
+
+void rc_threads_sleep(uint32_t ms)
+{
+    if (!current || !active) { platform_sleep(ms); return; }
+    rc_context_save(current->context);
+    current->sleeping = 1;
+    owner = next_runnable(current);
+    pthread_cond_broadcast(&changed);
+    pthread_mutex_unlock(&token);
+    platform_sleep(ms);
+    pthread_mutex_lock(&token);
+    current->sleeping = 0;
+    if (!owner) owner = current;
+    pthread_cond_broadcast(&changed);
+    while (owner != current) pthread_cond_wait(&changed, &token);
+    rc_context_restore(current->context);
+    if (stopping && !current->main) rc_thread_exit(0);
+    if (!stopping && current->main && worker_error[0]) rc_abort("guest worker: %s", worker_error);
 }
 
 void rc_threads_yield(void)

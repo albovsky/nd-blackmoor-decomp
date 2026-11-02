@@ -37,6 +37,7 @@ typedef struct RcGuestThread RcGuestThread;
 void rc_threads_enter(void);
 void rc_threads_leave(void);
 void rc_threads_yield(void);
+void rc_threads_sleep(uint32_t ms);
 uint32_t rc_thread_id(void);
 int rc_thread_is_main(void);
 RcGuestThread *rc_thread_create(uint32_t entry, uint32_t parameter, uint32_t stack_size, uint32_t flags, uint32_t *id);
@@ -54,6 +55,7 @@ void *rc_context_create(uint32_t stack_size, uint32_t id);
 void rc_context_save(void *context);
 void rc_context_restore(void *context);
 void rc_context_destroy(void *context);
+void rc_handle_forget(int kind, void *object);
 
 #ifdef __cplusplus
 }
