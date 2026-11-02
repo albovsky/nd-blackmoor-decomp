@@ -18,7 +18,7 @@ RECOMP-10 wires right AppKit callbacks and explicit script `pointer:x,y,mask` to
 
 ## State
 
-RECOMP-13 adds opt-in headless `RC_CONTROL_FIFO` ordinary-input batches, preserving static INPUT and the guest clock/state. Nativecc7ce16f passes25finite protocol cases, capture checks and selected default gameplay regressions. Actual same-process glyph input wins2001, grants/selects real4 and writes original UI m29 in safe3510/view4; fresh reload is pending. Use private m28 and the pixels-only controller evidence, not a fixed board from another launch. Independent review/required hash refresh are pending; app behavior is unchanged.
+RECOMP-13 adds opt-in headless `RC_CONTROL_FIFO` ordinary-input batches, preserving static INPUT and the guest clock/state. Nativecc7ce16f passes25finite protocol cases, capture checks and selected default gameplay regressions. Actual same-process glyph input wins2001, grants/selects real4 and writes original UI m29 in safe3510/view4; fresh m29-only reload selects4 again and root raw-log/hash audit passes. Use private m28 and the pixels-only controller evidence, not a fixed board from another launch. Required hash refresh preserves all function claims; independent review/final checks are pending. App behavior is unchanged.
 
 Jupiter/Moon public continuation now reachesm17/safe2626 using actual6, lens12 and key11. Root replays/reloads all three new legs on0c5fc594; combined17-run/16-save New Game lineage is retained privately. See RECOMP-12 for accepted Sonnet reviewf0ee6a90, static freshness checks and exact flags/hashes. Next known automation blocker is live observation/input for the unstable glyph board at the separate private story frontier; the guest puzzle itself executes.
 

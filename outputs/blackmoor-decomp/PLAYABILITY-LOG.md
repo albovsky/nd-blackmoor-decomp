@@ -105,3 +105,5 @@ Original game files and reserved ledger/evidence outputs are unchanged. Neither 
 - 2026-11-02 Pacific: new headless live-input channel observes changing glyph boards and queues normal same-process clicks.25finite protocol cases/capture checks pass; fresh default New Game and Moon-column also pass. Actual attempt01 scores300 then loses honestly; a corrected-timing attempt reaches original1299/2001 and glowstick handoff1945/1357. Reward/save persistence remains in progress, with no m29 claim. Nativecc7ce16f/source pins and pending review are in RECOMP-13. Full campaigns remain incomplete.
 
 - Live attempt04: actual glyph win, caption-scroll Bye, real held4 selection and safe original UI m29 all pass;240steps/33captures, finish26/25ACKs, exit0. Fresh save-only reload is pending. Earlier three failed checkpoint attempts remain retained; no clock/story/RNG state was written.
+
+- Glyph persistence follow-up: fresh m29-only reload selects actual4 and returns safe3510/view4 with earned2001/1357 and cleared1418. Root independently verifies both raw logs, scoped unmet zeros and identical source/copied/save hashes. Host review/final static checks remain pending.
