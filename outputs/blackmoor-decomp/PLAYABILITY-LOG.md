@@ -127,3 +127,5 @@ Original game files and reserved ledger/evidence outputs are unchanged. Neither 
 - 2026-11-02 Pacific: public post-key routes now pass Ethel/real7 door, first slide/ball3, timed bullseye/key16 and Saturn use. Four full-scope fresh runs pass166/22/150/22steps, actual3/16 and two final safe observations.61finite route fixtures pass; RECOMP-17 records pending review. No host/game patch. Supplementary private evidence shows both separate difficulty campaigns have solved/reloaded the five-stage word lock and continue to the two-sided fire lock.
 
 - Post-key review: Sonnet accepts634c1963 with no P1/blocker; both static freshness checks pass. Required metadata preserves1781peer claims. Exact reload hashes and accepted nonblocking fixture limits are in RECOMP-17. No code changed after review.
+
+- 2026-11-02 Pacific: public dragon win/passage retreat and Jane light-request/rules exit pass four full-scope fresh runs,128/10/113/15steps, own stops/exit0 and safe reload pairs.68finite route fixtures pass. RECOMP-18 pins exact sources/saves/reloads and pending review. Glyph remains unsolved in this public slice; compiled game/host/app unchanged.

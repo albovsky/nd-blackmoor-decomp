@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The story routes of ROUTES.md as INPUT strings for rc_headless.
 
-  python3 story_route.py LEG [--save NAME]      LEG is one of: stairs, lock, slider, moon, telescope-prep, linda, jane-intro, jane-jigsaw, telescope-use, seedlings, crank-repair, betty-key, venus-column, jupiter-column, moon-key, moon-column, nigel-computer, night-wait, goggles, ghost-hunt, afternoon-door, linda-passage, bul-start, slide-ball, saturn-column, slider-verify
+  python3 story_route.py LEG [--save NAME]      LEG is one of: stairs, lock, slider, moon, telescope-prep, linda, jane-intro, jane-jigsaw, telescope-use, seedlings, crank-repair, betty-key, venus-column, jupiter-column, moon-key, moon-column, nigel-computer, night-wait, goggles, ghost-hunt, afternoon-door, linda-passage, bul-start, slide-ball, saturn-column, dragon-passage, glyph-request, slider-verify
   python3 story_route.py slider-verify          replays the recorded 105 slider moves on the puzzle rules and prints whether they solve it
 
 Each leg starts from a save made in the game's own Load & Save screen and (with --save NAME) ends by saving the next one, so the legs chain:
@@ -32,6 +32,8 @@ Each leg starts from a save made in the game's own Load & Save screen and (with 
   bul_live.py may earn and verify m24 through ordinary play; loss/incomplete runs are refused.
   m24 --slide-ball--> m25 (first Ethel greeting, real7 door, first slide and actual ball3, safe S3215)
   m25 --saturn-column--> m26 (movie-timed bullseye, real16 and Saturn use, safe S2620)
+  m26 --dragon-passage--> m27 (dragon levers, dark passage entry and retreat, safe S3326)
+  m27 --glyph-request--> m28 (request a light, read glyph rules and exit unsolved, safe S3510 view 4)
 
 Steps are `anchor+ms:kind:args` (rc_headless.c). `click x,y,hold` is a move 1 s before the click; `mv:x,y` a bare move; `key:VK` a key press.
 A bare click on a hotspot needs a move onto it first or the game ignores it (the cursor must have been seen there), so every click has its move.
@@ -1006,6 +1008,68 @@ def leg_saturn_column(save=None):
     return ';'.join(out)
 
 
+def leg_dragon_passage(save=None):
+    """Observed Junior m26 -> original dragon win, darkness and safe retreat.
+
+    Eleven ordinary lever clicks leave states3,0,2,1,2,3 through the game's
+    rules. This earns passage entry, not a light, word or armor completion.
+    """
+    a = 'S2620.CIF'
+    r = R().at(a, 0)
+    _observed_walk(r, 12000, '525,163 310,353 68,161 161,161 311,164 329,163 '
+                   '329,163 495,163 318,163 318,163 318,163 469,164 316,166 '
+                   '315,168 315,168 321,162 214,163')
+    r.at(a, 97000).clicks('shot', 0)
+    _observed_walk(r, 102000, '289,99 289,99 289,99 211,149 211,149 431,193 '
+                   '216,246 216,246 406,306 406,306 406,306')
+    r.at(a, 172000).clicks('shot', 0)
+    r.at(a, 185000).clicks('334,198', 0)
+    r.at(a, 190000).clicks('shot', 0)
+    r.at(a, 195000).clicks('282,166', 0)
+    r.at(a, 222000).clicks('shot', 0)
+    r.at(a, 228000).clicks('310,354', 0)
+    r.at(a, 234000).clicks('shot', 0)
+    r.at(a, 240000).clicks('359,163', 0)
+    r.at(a, 246000).clicks('shot', 0)
+    r.at(a, 257000).clicks('shot', 0)
+    out = [r.text()]
+    if save:
+        out += [menu_to_save_screen(a, 262000), save_tail(a, 280000, save)]
+    return ';'.join(out)
+
+
+def leg_glyph_request(save=None):
+    """Observed Junior m27 -> light request and glyph rules, saved unsolved.
+
+    The scrolled reply asks for a light. No glyph moves, win or item4 reward
+    are claimed: the original rules screen is exited normally before saving.
+    """
+    a = 'S3326.CIF'
+    r = R().at(a, 0)
+    _observed_walk(r, 12000, '315,162 326,162 315,168 315,168 153,162 326,162 '
+                   '326,162 326,162 326,162 326,162 326,162 220,164 482,220')
+    _observed_walk(r, 77000, '308,193 292,162 306,173', 14000, 8000)
+    r.at(a, 119000).turns('left', 4).clicks('shot', 0)
+    r.at(a, 135000).clicks('312,233', 0)
+    r.at(a, 171000).clicks('shot', 0)
+    r.at(a, 185000).clicks('22,405,6000', 0)
+    r.o += ['%s+%d:move:22,%d' % (a, 186500 + 400 * i, y)
+            for i, y in enumerate((410, 415, 420, 425, 430, 435, 440, 445, 450, 455, 456))]
+    r.at(a, 193500).clicks('shot', 0)
+    r.at(a, 205000).clicks('150,418', 0)
+    r.at(a, 245000).clicks('shot', 0)
+    rules = 'S3585.CIF'
+    r.at(rules, 25000).clicks('310,355,300', 0)
+    r.at(rules, 33000).clicks('shot', 0)
+    r.at(rules, 44000).clicks('shot', 0)
+    r.at(rules, 48000).clicks('310,355', 0)
+    r.at(rules, 55000).clicks('shot', 0)
+    out = [r.text()]
+    if save:
+        out += [menu_to_save_screen(rules, 62000), save_tail(rules, 80000, save)]
+    return ';'.join(out)
+
+
 def leg_slider(save=None, gap=5000):
     """m4 -> m5. S3447 stairs hotspot, the slider puzzle S3450 (105 moves), the compartment S3452/S3453 item, the cancel strip at S3455, S3457, S3303."""
     r = R().at('S3447.CIF', 8000).clicks('mv:230,150 mv:241,166 241,166,300', 3000)
@@ -1072,7 +1136,8 @@ if __name__ == '__main__':
             'night-wait': leg_night_wait, 'goggles': leg_goggles,
             'ghost-hunt': leg_ghost_hunt, 'afternoon-door': leg_afternoon_door,
             'linda-passage': leg_linda_passage, 'bul-start': leg_bul_start,
-            'slide-ball': leg_slide_ball, 'saturn-column': leg_saturn_column}
+            'slide-ball': leg_slide_ball, 'saturn-column': leg_saturn_column,
+            'dragon-passage': leg_dragon_passage, 'glyph-request': leg_glyph_request}
     if leg not in legs:
         sys.exit(__doc__)
     print(legs[leg](save))

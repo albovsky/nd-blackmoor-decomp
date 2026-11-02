@@ -351,3 +351,9 @@ The exact public client wins observed Junior and Senior games, original3635→12
 Both public fragments exactly match accepted prior UI inputs, including all waits/holds and save tails. Root's final four full-scope producer/reload runs pass from genuine public m24, checking actual3/16 and two final safe frames. Reloads preserve the original prefix plus a documented center move/settled second shot. Use complete compact scopes in `root-fullscope-slide-saturn/scopes.json`, not a broad flag range that can truncate logging.61finite route tests pass; RECOMP-17 records source/save pins, review status and bounded Junior timing/start assumptions. No host/game logic change.
 
 Post-key collection review: Sonnet accepts634c1963, both static freshness checks pass. Ball3 uses60,100 in its producer and60,243 in reload; returned16 uses the reverse recorded slots. RECOMP-17 records exact reload input hashes and nonblocking fixture/subsequence limits; no post-review code change.
+
+## Dragon passage and pending glyph request, 2026-11-02 Pacific
+
+`dragon-passage --save m27` uses the recorded11lever clicks, distinct early2078 then1997 win,3343/1925/1865 entry, darkness3417 and ordinary retreat to3326. `glyph-request --save m28` asks Jane via the scrolled150,418 reply, enters original3585 rules and exits unsolved to3510/view4.1408 starts0 and rises at rules;2001/1357/1804 remain0. This is a request, not a glyph solve/light reward.
+
+Both exact public fragments plus separate fresh save-only reloads pass with complete compact scopes from final public m26;68finite route fixtures pass. Packet RECOMP-18 and private `root-fullscope-dragon-light/verified-public-chain.json` pin sources, checkpoints and reload deltas. Every route uses normal original UI/saves; no host/game change. Alternate starts/Senior variants/full campaigns remain unverified by this slice.
