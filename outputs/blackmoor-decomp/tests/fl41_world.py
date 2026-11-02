@@ -398,6 +398,7 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None, watch=Non
             entered.append(1)
             return
         if jump_out.get(prev[0]) == address:        # FL-68: reached by a jump, not a call: the target returns to the function's own caller (it pops the words the function pushed itself)
+            trace.edges.add((prev[0], address))       # FL-78: the jump out of the body is an edge of the run (the code hook only sees addresses inside the body); the translation takes the same jump as a tail call and the two call records are compared in the digest
             play(address, *stubs[address], entry=sp)
             return
         play(address, *stubs[address])

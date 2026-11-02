@@ -97,6 +97,31 @@ class Replay(unittest.TestCase):
             return
         self.fail('no held row with a frame push found')
 
+    def test_a_jump_out_of_the_body_is_an_edge_and_both_sides_must_take_the_same_one(self):
+        """FL-78: `jne 0x51aaf7` of 0x51aa23 leaves the body for a callee the world plays as a stub (a tail call). The original side records the edge; the translation must make the same tail call, else the call records differ."""
+        key = '0x51aa23'
+        pool = T.pool_of(key)
+        p = T.POOLS[pool]
+        W, _ = T.world(p['world'])
+        row = T.row_info(pool, key)
+        taken = W.run_original(row, 1, [])
+        self.assertIn((0x51aabc, 0x51aaf7), taken.edges)                       # esi != 0x110: the jump is taken
+        self.assertNotIn((0x51aabc, 0x51aaf7), W.run_original(row, 1, [(2004318087, 4, 272)]).edges)       # esi == 0x110: the call and the `jmp` at the end, no edge from the jne
+        text = T.row_text(p['source'], key)
+
+        def lib_of(t):
+            with tempfile.TemporaryDirectory() as tmp:
+                src = Path(tmp) / 'row.c'
+                src.write_text('#include "original_methods_fl41.h"\n' + t)
+                return W.build_library(tmp, [src])
+        res = T.check_row(key, scenarios=[(1, [])], lib=lib_of(text))
+        self.assertNotEqual(res['status'], 'mismatch')
+        self.assertNotIn(['0x51aabc', 'taken'], res['untaken'])                 # the direction is covered now
+        jump = '{ FL41_CALL(0x51aaf7u); esp = esp0_ + 24u; goto done; }  /* 0x51aabc'
+        self.assertIn(jump, text)
+        bad = text.replace(jump, jump.replace('0x51aaf7u', '0x51a8d3u'))          # the translation jumps to another callee
+        self.assertEqual(T.check_row(key, scenarios=[(1, [])], lib=lib_of(bad))['status'], 'mismatch')
+
 
 if __name__ == '__main__':
     unittest.main()

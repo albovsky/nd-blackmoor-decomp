@@ -1423,6 +1423,39 @@
    "source": "translated/original_methods_fl41_translated.c",
    "translation_sha256": "459c84fee127a15ca141e6d92afab2b9d4c292c1b8846efc49a26ed117e67c88"
   },
+  "0x4ba56a": {
+   "body": 3231,
+   "directions": [
+    88,
+    98
+   ],
+   "instructions": [
+    761,
+    761
+   ],
+   "pool": "upper",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x4ba77c:taken": "95f1c7633426e891a53ec0d8c231f6f3f2c6ff18d4ba8dba7d051f79b04594ff",
+     "0x4ba790:fall-through": "4d44377f5a2550c93c3dc797684cab659b19b1bb768acb61b443cad205577dd4",
+     "0x4ba902:taken": "9dd54398a770f2fa997dafc44ca616f6dcabb0c6f82be54e9985f2ebbb033380",
+     "0x4ba916:fall-through": "6fc077231bb834cf558bd3d78c3ae8ac3ca686163b35f2055536aeba29bdf834",
+     "0x4baa54:taken": "3817e11f9b1b54eba8289eecff1defebbd4ab7ebab7d28e263de560e52aa1db9",
+     "0x4baa68:taken": "bd9214bb2a184f0d9d0baea48e41b3f047c159364f51f07ca065bf991f0190f9",
+     "0x4bac6d:taken": "af64af6a78d7094ade47ba6006472bc3ca1f2c92465ea083f9f065a2fcb15260",
+     "0x4bac81:taken": "121a8f3f504c72b293ddddb9989730333a359aa230db913b0255a14036783204",
+     "0x4baee7:taken": "66b12941b8f6da8f97101fdf94ffad15825048ebd5491d6c6dfc218f9d1ac8d6",
+     "0x4baefb:taken": "7ad81d0682d8558f1c42964f09fc9b0be70836b72086fa54d4195021694fab9f"
+    },
+    "instructions": {},
+    "plan": {}
+   },
+   "scenarios_kept": 39,
+   "scenarios_run": 39,
+   "source": "translated/original_methods_fl41_translated.c",
+   "translation_sha256": "3bce815b075e8c24618b8ae904b49ed3ebb9c8d16f203722195977ecdf901cf2"
+  },
   "0x4bb336": {
    "body": 168,
    "directions": [
@@ -2910,6 +2943,63 @@
    "source": "translated/original_methods_fl57_translated.c",
    "translation_sha256": "e87e76ba3279c4fea815916b0c861699718c2a490bfb2ebd2a1dc78fa1966e27"
   },
+  "0x50eb20": {
+   "body": 170,
+   "directions": [
+    17,
+    18
+   ],
+   "instructions": [
+    70,
+    70
+   ],
+   "pool": "upper57",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x50eba5:taken": "3ed54efe3ad947973dd4506c3e3f51a86fa20098038394b98e1c9e83fbb61aa4"
+    },
+    "instructions": {},
+    "plan": {
+     "0x50eb87": 33
+    }
+   },
+   "scenarios_kept": 7,
+   "scenarios_run": 7,
+   "source": "translated/original_methods_fl57_translated.c",
+   "translation_sha256": "defbae5b7b1de6813e499693afe60cf5703a45e2169632a2a43c686ae30d4669"
+  },
+  "0x50ebca": {
+   "body": 312,
+   "directions": [
+    29,
+    32
+   ],
+   "instructions": [
+    121,
+    125
+   ],
+   "pool": "upper",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x50ec67:fall-through": "8faa83de92ef708155856da210ff97d099cc4164d97d5b5ce3274953d66ba8f3",
+     "0x50ec6b:fall-through": "0ee8aeede45f4e5069c1349e2dbb011d1bf9b149923589435ea372a8d5169cdb",
+     "0x50ecbd:fall-through": "916e18a448fa696c10cb0e1aa0fb4c25a517090425dc6183c2d7e90c2886589e"
+    },
+    "instructions": {
+     "0x50ec6d": "adede1b1b53acbfcf8935af8d1a43ead464550303bec21bdfc47391e0f74a340",
+     "0x50ec6f": "adede1b1b53acbfcf8935af8d1a43ead464550303bec21bdfc47391e0f74a340",
+     "0x50ecbf": "ed383a023e4fbcf6a15bd771c9e50de7ae2d3dcc63216f0f4fe7fc1c09f4b7bc",
+     "0x50ecc1": "ed383a023e4fbcf6a15bd771c9e50de7ae2d3dcc63216f0f4fe7fc1c09f4b7bc"
+    },
+    "plan": {}
+   },
+   "scenarios_kept": 14,
+   "scenarios_run": 14,
+   "source": "translated/original_methods_fl41_translated.c",
+   "translation_sha256": "c68db12f0c939511bf95ba7671b2f05a2d49610960f1edbe2ff5cacedf9de44e"
+  },
   "0x50f253": {
    "body": 486,
    "directions": [
@@ -3155,6 +3245,54 @@
    "source": "translated/original_methods_fl41_translated.c",
    "translation_sha256": "44b54b5703fd5a793d36de08648c954ab7dd6e85779344f36a7663018022c929"
   },
+  "0x5145fe": {
+   "body": 193,
+   "directions": [
+    15,
+    16
+   ],
+   "instructions": [
+    72,
+    72
+   ],
+   "pool": "upper57",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x514634:taken": "63effbc4d48de3c4214917a4a1c631cda463ac80e42edea554c4dcd1ff4d718c"
+    },
+    "instructions": {},
+    "plan": {}
+   },
+   "scenarios_kept": 5,
+   "scenarios_run": 5,
+   "source": "translated/original_methods_fl57_translated.c",
+   "translation_sha256": "7cf2b01229aa7ed70ecdb178c55a063208bc79186a3eec1f2e3b2a1721ea04b2"
+  },
+  "0x514893": {
+   "body": 58,
+   "directions": [
+    9,
+    10
+   ],
+   "instructions": [
+    25,
+    25
+   ],
+   "pool": "upper",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x5148c6:fall-through": "7da22b6e4da684f5c9188859428074ba106338aa2a63146cd2091102a3d5beac"
+    },
+    "instructions": {},
+    "plan": {}
+   },
+   "scenarios_kept": 3,
+   "scenarios_run": 3,
+   "source": "translated/original_methods_fl41_translated.c",
+   "translation_sha256": "b7eeda4c278ab11f9ac5e594ffaa147e039624aa376e5d3862f0f5a21f5130fa"
+  },
   "0x5168d0": {
    "body": 146,
    "directions": [
@@ -3202,6 +3340,30 @@
    "scenarios_run": 7,
    "source": "translated/original_methods_fl41_translated.c",
    "translation_sha256": "317ce3602fba9d46b9ede2b9e3b61395ede5310e36a3bc1f0fc26cc4881a320e"
+  },
+  "0x518b98": {
+   "body": 61,
+   "directions": [
+    9,
+    10
+   ],
+   "instructions": [
+    25,
+    25
+   ],
+   "pool": "upper",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x518bce:fall-through": "877cc684e34276d4d739e87e5697810b22af6690618f1ba45002b5191f9362b5"
+    },
+    "instructions": {},
+    "plan": {}
+   },
+   "scenarios_kept": 3,
+   "scenarios_run": 3,
+   "source": "translated/original_methods_fl41_translated.c",
+   "translation_sha256": "7cdd3c69511eb269bf44457e6892f50bb62f38c6ed2090369ee5f7e8fa550497"
   },
   "0x518bd5": {
    "body": 33,
@@ -3477,7 +3639,7 @@
  },
  "rule": {
   "id": "T-EQ-INFEASIBLE",
-  "text": "A pending function is tested equivalent by proof when its committed translation equals the original on every scenario kept for it, and every instruction and conditional-jump direction those scenarios do not reach is PROVED unreachable: scripts/fl67_infeasible.py symbolically executes the original bytes (all paths at once, z3) and shows that no start state of the function reaches it in a run that does not fault. Modelling assumptions: ebx/esi/edi/ebp survive a call and esp returns by the bytes the callee pops; the direction flag is clear; an access at or above 0xfff00000, a division by zero and a quotient overflow fault; a call to a callee that never returns (tests/fl72_noreturn.json, AfxEndThread) ends the run; the image below .data is constant; a function that never forms the address of its own frame keeps its frame slots out of reach of stores through other pointers and of callees (except the argument slots pushed for the call), and the exception-chain registration `mov fs:[0], esp` of a prologue does not count as forming such an address when the function reads fs:[0] only before it (the chain is read by exception dispatch, which is treated like a fault). a direct callee whose own straight-line bytes end `and eax, K; ret` returns at most K; a frame address formed by `lea` does not switch the frame assumption off when it is followed to its end (scripts/fl67_infeasible.py library_arg_lea; decisions taken as the recommended defaults under the 2-hour rule, FL-78): (1) it is pushed as a SOURCE argument of a call to a library function on a short allow list (LIBRARY_WRITERS; the CRT sprintf 0x50ca3e and fopen 0x50d0a9), on the assumption that such a function writes only through its destination argument, reads through its other pointer arguments and keeps no copy of them, and (for sprintf) only when its format argument is a pushed address of a non-empty printable string in the image whose every conversion is on an allow list that only reads its arguments (flags, width and precision without `*`, length h l L I64, conversions d i o x X u c s f e E g G and the percent sign itself; so no `n` in any form, no `$`, no `*`) and the image refers to that string nowhere else than as argument 1 of a sprintf call (`push address; push destination; call sprintf`: no absolute write, no other call, no pointer stored; the residual assumption is that nothing writes the string through an address computed from another base); (2) it is the destination of an inline `rep movs/stos` copy into a local buffer (the model lets the copy write any byte of the frame and of memory, so the length need not be bounded); (3) it is pushed to a direct call whose callee, read from its own bytes, only stores floats through that stack argument (the call is modelled as writing exactly those bytes; the pointer is read by nothing else, so no copy is kept, and the callee overwrites the register that still holds the address before reading it); (3b) it is the destination argument of a listed function that has a write model: the CRT fread 0x50cf61 (the buffer argument only, never the stream: it writes at most size*count bytes, both pushed as immediates, else the call is refused) and _makepath 0x50cd72 (it writes only through its first argument; the call is modelled as writing any byte of the frame), on the assumption that the function writes nowhere else through the pointer; (3c) it is pushed to a direct call whose callee, read from its own bytes, only loads the pointer from its argument slot into eax, ecx or edx and pushes it as a source argument of a listed function, then overwrites it (nothing stored through it, no copy kept); (3d) it is held in esi by the first instruction that touches it, a (repe/repne) `cmps`, which only reads, and esi is dead afterwards. Arithmetic between the pushes (mov, add, sub, lea from anything but the frame base or esp) is followed. A call of a direct callee that the prover reads from its bytes to be memory-pure does not make memory unknown (scripts/fl67_infeasible.py pure_callee; a scan of the call targets of the image finds four: the CRT _ftol 0x50ce04, 0x514569, 0x51457b, 0x515a7f): straight-line, starts `push ebp; mov ebp, esp`, the stack depth is followed and the only esp writes are push, pop, sub esp K, add esp K (never above the entry stack pointer), mov esp ebp, leave and ret, every other store is through [ebp+d] with d + size <= 0 (its own locals, below the stack pointer of the caller), no call, jump, string or segment operand, no esp-based memory operand, ebp written only by the prologue and leave, no other push of ebp or esp; the assumption is that nothing else reads that dead stack. The callee analyses (out-parameter, read-only, pure) refuse a callee that pushes ebp or esp other than as its first instruction. In a function that is analysed and in these callees, an instruction that reads or writes esp, ebp or a part of them (sp, bp, spl, bpl) other than as the address register of a memory operand, explicit or implicit (popad, enter, xchg, lea esp, bswap ebp, a 16 bit leave, pushfd, add sp ...), is refused unless it is the prologue push ebp or mov ebp, esp, a push or pop of another 32 bit register, immediate or memory operand, a call, ret, leave, mov esp, ebp or add / sub esp, immediate. The copy and cmps rules and the liveness scan assume that no callee reads or changes esi, edi or ebp (callee-saved registers survive every call). In every case the register that held the address is dead afterwards (a call ends the life of the register only if it is a Win32 import, which by the ABI clobbers eax, ecx and edx, or a direct callee, recursive ones included, whose bytes overwrite the register before reading it; a callee that only keeps it leaves it there), the argument slots are overwritten by the call, and nothing else uses the address (the frame base is not pushed as another argument); a frame address in a destination position of a listed call that has no write model, or passed to any other call, still switches the assumption off; a loop invariant (tests/fl73_invariants.json, and for a forward window tests/fl78_forward_invariants.json) is used only after the prover has shown it holds on every entry edge and survives every back edge; a direction may also be ruled out because every run that takes it goes round a loop for ever (recommended default, FL-78): the direction leads through blocks with one successor each back to a block D that dominates the jump, the blocks between D and the jump and those of the chain hold only plain moves, arithmetic, compares, pushes, pops and direct jumps (no call, no inner loop), so a state at D decides exactly whether a round goes through the jump and takes the direction, and the prover shows that a round that does leaves a state in which the next round does so too; the scenarios are runs that return, so none takes it; no operand of the cycle is at an absolute (global) address, which is only a syntactic lint (a register or a shared pointer can hold a global address), the proof relies on the shared-memory assumption alone; such a direction is only CLOSED-LOOP-PROVED: no run that returns takes it, so the C translation is NOT checked on it, and this assumes the wait semantics, that the memory the cycle reads changes only through the cycle itself (no other thread, interrupt, APC or device writes it while the loop spins); the proof record notes it in `plan`; a jump table is cut at the range check in front of the jump and the prover shows no run indexes past the cut. A path may also be ruled out because every run that takes it faults later: a window in front of it and a forward window from it to the returns are solved together (with esp tied to ebp by the pushes, pops and calls of the bytes), and no run reaches a ret without one of the fault assumptions failing. Not a verified port: never added to the verified count."
+  "text": "A pending function is tested equivalent by proof when its committed translation equals the original on every scenario kept for it, and every instruction and conditional-jump direction those scenarios do not reach is PROVED unreachable: scripts/fl67_infeasible.py symbolically executes the original bytes (all paths at once, z3) and shows that no start state of the function reaches it in a run that does not fault. Modelling assumptions: ebx/esi/edi/ebp survive a call and esp returns by the bytes the callee pops; the direction flag is clear; an access at or above 0xfff00000, a division by zero and a quotient overflow fault; a call to a callee that never returns (tests/fl72_noreturn.json, AfxEndThread) ends the run; the image below .data is constant; a function that never forms the address of its own frame keeps its frame slots out of reach of stores through other pointers and of callees (except the argument slots pushed for the call), and the exception-chain registration `mov fs:[0], esp` of a prologue does not count as forming such an address when the function reads fs:[0] only before it (the chain is read by exception dispatch, which is treated like a fault). a direct callee whose own straight-line bytes end `and eax, K; ret` returns at most K; a frame address formed by `lea` does not switch the frame assumption off when it is followed to its end (scripts/fl67_infeasible.py library_arg_lea; decisions taken as the recommended defaults under the 2-hour rule, FL-78): (1) it is pushed as a SOURCE argument of a call to a library function on a short allow list (LIBRARY_WRITERS; the CRT sprintf 0x50ca3e and fopen 0x50d0a9), on the assumption that such a function writes only through its destination argument, reads through its other pointer arguments and keeps no copy of them, and (for sprintf) only when its format argument is a pushed address of a non-empty printable string in the image whose every conversion is on an allow list that only reads its arguments (flags, width and precision without `*`, length h l L I64, conversions d i o x X u c s f e E g G and the percent sign itself; so no `n` in any form, no `$`, no `*`) and the image refers to that string nowhere else than as argument 1 of a sprintf call (`push address; push destination; call sprintf`: no absolute write, no other call, no pointer stored; the residual assumption is that nothing writes the string through an address computed from another base); (2) it is the destination of an inline `rep movs/stos` copy into a local buffer (the model lets the copy write any byte of the frame and of memory, so the length need not be bounded); (3) it is pushed to a direct call whose callee, read from its own bytes, only stores floats through that stack argument (the call is modelled as writing exactly those bytes; the pointer is read by nothing else, so no copy is kept, and the callee overwrites the register that still holds the address before reading it); (3b) it is the destination argument of a listed function that has a write model: the CRT fread 0x50cf61 (the buffer argument only, never the stream: it writes at most size*count bytes, both pushed as immediates, else the call is refused) and _makepath 0x50cd72 (it writes only through its first argument; the call is modelled as writing any byte of the frame), on the assumption that the function writes nowhere else through the pointer; (3c) it is pushed to a direct call whose callee, read from its own bytes, only loads the pointer from its argument slot into eax, ecx or edx and pushes it as a source argument of a listed function, then overwrites it (nothing stored through it, no copy kept); (3d) it is held in esi by the first instruction that touches it, a (repe/repne) `cmps`, which only reads, and esi is dead afterwards. Arithmetic between the pushes (mov, add, sub, lea from anything but the frame base or esp) is followed. A call of a direct callee that the prover reads from its bytes to be memory-pure does not make memory unknown (scripts/fl67_infeasible.py pure_callee; a scan of the call targets of the image finds four: the CRT _ftol 0x50ce04, 0x514569, 0x51457b, 0x515a7f): straight-line, starts `push ebp; mov ebp, esp`, the stack depth is followed and the only esp writes are push, pop, sub esp K, add esp K (never above the entry stack pointer), mov esp ebp, leave and ret, every other store is through [ebp+d] with d + size <= 0 (its own locals, below the stack pointer of the caller), no call, jump, string or segment operand, no esp-based memory operand, ebp written only by the prologue and leave, no other push of ebp or esp; the assumption is that nothing else reads that dead stack. The callee analyses (out-parameter, read-only, pure) refuse a callee that pushes ebp or esp other than as its first instruction. In a function that is analysed and in these callees, an instruction that reads or writes esp, ebp or a part of them (sp, bp, spl, bpl) other than as the address register of a memory operand, explicit or implicit (popad, enter, xchg, lea esp, bswap ebp, a 16 bit leave, pushfd, add sp ...), is refused unless it is the prologue push ebp or mov ebp, esp, a push or pop of another 32 bit register, immediate or memory operand, a call, ret, leave, mov esp, ebp or add / sub esp, immediate. The copy and cmps rules and the liveness scan assume that no callee reads or changes esi, edi or ebp (callee-saved registers survive every call). x87: a `fld qword` or `fldz` followed by `fcom` / `fcomp qword` and `fnstsw ax` is an exact IEEE compare (unordered sets C0, C2 and C3) that `sahf` and a jump then see, on the assumption that the x87 stack does not overflow or underflow there and that floating-point exceptions are masked; every other x87 instruction stays unconstrained and forgets what is known. In every case the register that held the address is dead afterwards (a call ends the life of the register only if it is a Win32 import, which by the ABI clobbers eax, ecx and edx, or a direct callee, recursive ones included, whose bytes overwrite the register before reading it; a callee that only keeps it leaves it there), the argument slots are overwritten by the call, and nothing else uses the address (the frame base is not pushed as another argument); a frame address in a destination position of a listed call that has no write model, or passed to any other call, still switches the assumption off; a loop invariant (tests/fl73_invariants.json, and for a forward window tests/fl78_forward_invariants.json) is used only after the prover has shown it holds on every entry edge and survives every back edge; a direction may also be ruled out because every run that takes it goes round a loop for ever (recommended default, FL-78): the direction leads through blocks with one successor each back to a block D that dominates the jump, the blocks between D and the jump and those of the chain hold only plain moves, arithmetic, compares, pushes, pops and direct jumps (no call, no inner loop), so a state at D decides exactly whether a round goes through the jump and takes the direction, and the prover shows that a round that does leaves a state in which the next round does so too; the scenarios are runs that return, so none takes it; no operand of the cycle is at an absolute (global) address, which is only a syntactic lint (a register or a shared pointer can hold a global address), the proof relies on the shared-memory assumption alone; such a direction is only CLOSED-LOOP-PROVED: no run that returns takes it, so the C translation is NOT checked on it, and this assumes the wait semantics, that the memory the cycle reads changes only through the cycle itself (no other thread, interrupt, APC or device writes it while the loop spins); the proof record notes it in `plan`; a jump table is cut at the range check in front of the jump and the prover shows no run indexes past the cut. A path may also be ruled out because every run that takes it faults later: a window in front of it and a forward window from it to the returns are solved together (with esp tied to ebp by the pushes, pops and calls of the bytes), and no run reaches a ret without one of the fault assumptions failing. Not a verified port: never added to the verified count."
  },
  "schema": "blackmoor-tested-equivalent-infeasible/1"
 }

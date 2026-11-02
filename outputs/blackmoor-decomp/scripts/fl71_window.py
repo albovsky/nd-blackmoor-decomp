@@ -250,6 +250,7 @@ def run_window(an, order, S, T, query, frame=False, want_state=False, start=None
                     M.facts.append(z3.Implies(ic[node], st.R['esp'] == st.R['ebp'] + P.bv(stack_delta(an)[node], 32)))       # FL-75: the pushes and pops of the body balance, the tie of esp to ebp at the header holds in every iteration
                 for f in P.FLAGS:
                     st.F[f] = P.fresh_bool()
+                st.fp = (None, None)                                                     # FL-78 (round 7): the loop may use the x87 unit, what the header state knew of st(0) and the status word is gone
                 if mem:
                     st.mem = P.fresh_array()
                     st.frm = P.fresh_array('fr')
@@ -424,6 +425,7 @@ def run_forward(an, order, S, mark, frame=False, start=None, inv=None, tie=None)
                     M.facts.append(z3.Implies(ic, st.R['esp'] == st.R['ebp'] + P.bv(stack_delta(an)[node], 32)))         # as in run_window: the body balances the stack
                 for f in P.FLAGS:
                     st.F[f] = P.fresh_bool()
+                st.fp = (None, None)                                                     # FL-78 (round 7): the loop may use the x87 unit, what the header state knew of st(0) and the status word is gone
                 if mem:
                     st.mem = P.fresh_array()
                     st.frm = P.fresh_array('fr')

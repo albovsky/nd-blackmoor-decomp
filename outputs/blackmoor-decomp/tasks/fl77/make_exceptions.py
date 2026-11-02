@@ -34,10 +34,8 @@ REASONS = {
 MAC_ROWS = {
     "0x456516": ("needs_alias_model_in_prover", "Left: the jns at 0x456a0b fall-through. Needs a pointer into the stack (19 lea of frame addresses)."),
     "0x471722": ("needs_alias_model_in_prover", "One direction needs the `this` pointer aliased onto the record table (the only wild store is at 0x472063); a large dispatcher, and the solver ran out of memory."),
-    "0x47c0f0": ("needs_alias_model_in_prover", "758 of 758 instructions; one direction needs pointer overlap (3 KB function)."),
     "0x48f181": ("impossible_direction_unproved", "1,076 of 1,076 instructions and 145 of 146 directions; the jump at 0x48f3a2 taken is impossible by construction. check --prove ran for 722 s with the committed scenarios and did not discharge it."),
     "0x4a14c6": ("needs_callee_footprint_model", "One direction left; a copy is compared against its own source."),
-    "0x4ba56a": ("prover_window_times_out", "71 of 98 directions from feasible gates; the function copies this+0x1bc..0x1c8 to this+0x1cc..0x1d8 and compares them. check --prove times out at 1,500 s (scenarios in tasks/fl76/out/0x4ba56a.json)."),
     "0x4e812f": ("prover_window_times_out", "10 directions and 39 instructions left, behind loops at 0x4e8212 and 0x4e851f; every window times out."),
     "0x496410": ("partial_coverage_gate_not_built", "24 KB rasterizer; generic fuzz hits the instruction limit (about 15,700 passes of the loop at 0x4966ee). The loop exits only when [this+0x50e1] or [this+0x50e5] has bit 0x1000000 set and bits 0x10000000 and 0x20000000 clear, derived from the polygon and edge tables, so it needs a model of those tables. Baseline 366 of 4,985 instructions and 10 of 534 directions."),
 }
@@ -46,14 +44,13 @@ CRT_RULES = {
     "0x50ed50": ("census_unsplit_floor", "memmove: the census span is a floor and the lifter refuses its jump tables."),
     "0x50fa90": ("census_unsplit_floor", "memcpy: the census span is a floor and the lifter refuses its jump tables."),
     "0x511a1a": ("impossible_direction_unproved", "FDIV-bug probe: the fall-through at 0x511a4d needs x - (x/y)*y above a threshold, which cannot happen with fixed .rdata constants on a correct FPU. Scenarios reach 20 of 24 instructions and 1 of 2 directions; overriding the constants reaches 24 of 24 but the translation embeds them and then differs."),
-    "0x52178e": ("census_unsplit_floor", "Both missing directions (5217a4, 5217a7) jump to code outside the 48-byte row body (0x5217c6, 0x5217cb); the world records no edge to an address outside the span, so no scenario can mark them. Coverage 21 of 21 instructions, 2 of 4 directions."),
     "0x50f462": ("needs_multi_cell_or_aliased_state", "The 50f46f fall-through needs the FPU control word at entry to differ from 0x27f, which fnstcw supplies and no override can set; the 50f491 and 50f4a9 directions depend on flags left by the call to 0x513c65. Coverage 17 of 18 instructions, 4 of 10 directions."),
     "0x50df9d": ("needs_multi_cell_or_aliased_state", "x87 sqrt wrapper: the missing directions depend on the zero flag left by the caller before fnstcw, the control word from fnstcw, x87 status flags after the operation, and jumps to 0x513cbe and 0x513ccb outside the row span, whose edges the world does not record."),
     "0x50e05d": ("needs_multi_cell_or_aliased_state", "x87 cos wrapper: the missing directions depend on the zero flag left by the caller before fnstcw, the control word from fnstcw, x87 status flags after the operation, and jumps to 0x513cbe and 0x513ccb outside the row span, whose edges the world does not record."),
     "0x50e10d": ("needs_multi_cell_or_aliased_state", "x87 sin wrapper: the missing directions depend on the zero flag left by the caller before fnstcw, the control word from fnstcw, x87 status flags after the operation, and jumps to 0x513cbe and 0x513ccb outside the row span, whose edges the world does not record."),
     "0x50e28d": ("needs_multi_cell_or_aliased_state", "x87 atan2 wrapper: the missing directions depend on the zero flag left by the caller before fnstcw, the control word from fnstcw, x87 status flags after the operation, and jumps to 0x513cbe and 0x513ccb outside the row span, whose edges the world does not record."),
-    "0x50eb20": ("impossible_direction_unproved", "Qword divide helper: the 50eba5 jb direction (carry from add edx, ecx) cannot happen because the estimate times the divisor stays below 2^64; the prover lacks that arithmetic fact. Coverage 70 of 70 instructions, 17 of 18 directions."),
-    "0x50ebca": ("impossible_direction_unproved", "realloc: the fall-throughs at 50ec67, 50ec6b and 50ecbd are impossible because edi comes from a nonzero value and esi was tested nonzero and not changed since; the prover has not discharged them. Coverage 121 of 125 instructions, 29 of 32 directions."),
+    "0x513cbe": ("needs_multi_cell_or_aliased_state", "Reads the control word the caller pushed at [esp]; in the test world the entry stack holds the return address there, so neither direction of the compare with 0x27f can be run."),
+    "0x513ccb": ("needs_multi_cell_or_aliased_state", "Reads the control word the caller pushed at [esp]; in the test world the entry stack holds the return address there, so neither direction of the compare with 0x27f can be run."),
     "0x510eda": ("original_faults_on_every_scenario", "The original faults on every scenario."),
     "0x510f3b": ("original_faults_on_every_scenario", "The original faults on every scenario."),
 }

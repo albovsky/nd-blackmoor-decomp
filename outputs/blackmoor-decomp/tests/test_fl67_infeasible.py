@@ -431,7 +431,7 @@ class Fl75(unittest.TestCase):
         data = json.loads(P.PLANS.read_text())
         for va, plan in data.items():
             for h, v in plan.items():
-                self.assertTrue(v == 'gen' or v in P.UNROLL, (va, h, v))
+                self.assertTrue(v == 'gen' or v in P.UNROLL or v == P.HINT_ONLY, (va, h, v))
         self.assertEqual(P.load_plan_hints(0x401000), {})
 
     def test_a_path_that_may_leave_by_a_tail_jump_is_not_one_that_faults_later(self):
@@ -889,6 +889,18 @@ LIB4 = {
     'out_bp': (47, '5589e583ec20c745fc000000008d55ec526a05e81700000083c408837dfc007507b801000000c9c3b809000000c9c35589e58b450cd94508d918d9eedd58046683c540c745e4010000006683ed405dc3', {'never': 40, 'cal': 47}),
     'caller_sp': (41, '5589e583ec20c745fc000000006683c4046683ec04837dfc007507b801000000c9c3b809000000c9c390', {'never': 34}),
     'caller_esp': (39, '5589e583ec20c745fc0000000083c40483ec04837dfc007507b801000000c9c3b809000000c9c390', {'never': 32}),
+    'fp_loop': (46, '5589e5f6450f807517d9eeb902000000dc5508dfe09e770fddd8dd45104975f0b8010000005dc3b8020000005dc390', {'hdr': 16, 'exit': 32, 'target': 39}),
+    'fp_inside': (49, '5589e5b902000000dd4508dc5d10dfe09e741a8b45083345108b550c33551409d07507b8010000005dc34975db31c05dc390', {'hdr': 8, 'fine': 42, 'same': 45}),
+    'rcr_one': (49, '5589e5b80300000083f805d1d8731b3d0100008075148b4508d1e8d1d0720431c05dc3b8020000005dc3b8010000005dc390', {'odd': 35, 'never': 42}),
+    'rcr_two': (13, '5589e5b803000000c1d8025dc390', {}),
+    'reg_inv': (47, '5589e5568b750885f674178b4d0cba0400000049740883ce0183c204ebf585f6740531c05e5dc3b8010000005e5dc390', {'hdr': 19, 'after': 30, 'out': 34, 'dead': 39}),
+    'sahf_z': (24, '5589e531c0b4409e7407b8010000005dc3b8020000005dc390', {'l1': 17}),
+    'sahf_c': (24, '5589e531c0b4019e7207b8010000005dc3b8020000005dc390', {'l1': 17}),
+    'sahf_nz': (24, '5589e531c0b4809e7407b8010000005dc3b8020000005dc390', {'l1': 17}),
+    'sahf_p': (24, '5589e531c0b4049e7a07b8010000005dc3b8020000005dc390', {'l1': 17}),
+    'x87_eq': (48, '5589e5dd4508dc5d10dfe09e741e8b45083345108b550c33551409d07507b8010000005dc3b8020000005dc331c05dc390', {'fine': 37, 'same': 44}),
+    'x87_chs': (52, '5589e5dd4508d9e0d9e0dc5d10dfe09e741e8b45083345108b550c33551409d07507b8010000005dc3b8020000005dc331c05dc390', {'fine': 41, 'same': 48}),
+    'x87_wait': (49, '5589e5dd45089bdc5d10dfe09e741e8b45083345108b550c33551409d07507b8010000005dc3b8020000005dc331c05dc390', {'fine': 38, 'same': 45}),
     'out_popad': (47, '5589e583ec20c745fc000000008d55ec526a05e81700000083c408837dfc007507b801000000c9c3b809000000c9c35589e58b450cd94508d918d9eedd580461c745e4010000005dc3', {'never': 40, 'cal': 47}),
     'out_popaw': (47, '5589e583ec20c745fc000000008d55ec526a05e81700000083c408837dfc007507b801000000c9c3b809000000c9c35589e58b450cd94508d918d9eedd58046661c745e4010000005dc3', {'never': 40, 'cal': 47}),
     'out_leavew': (47, '5589e583ec20c745fc000000008d55ec526a05e81700000083c408837dfc007507b801000000c9c3b809000000c9c35589e58b450cd94508d918d9eedd580466c9c745e4010000005dc3', {'never': 40, 'cal': 47}),
@@ -1077,6 +1089,132 @@ class Fl78Review4(unittest.TestCase):
                 self.assertEqual(an.esc_addrs, [], name)
             an, img, L = an4('out_popad')
             self.assertEqual(jne_taken(an), 'unsat')
+
+    def test_the_condition_of_an_if_does_not_make_a_pointer_a_frame_address(self):                    # round 7
+        from unittest import mock
+        import z3
+        esp, x = z3.BitVec('s_esp', 32), z3.BitVec('s_x', 32)
+        cond = z3.ULE(esp + 8, 100)                                         # the path condition of a merged state mentions s_esp
+        self.assertFalse(P.has_frame_term(z3.If(cond, x, x + 12)))          # a merged pointer whose branches are not frame addresses: not a frame address
+        self.assertTrue(P.has_frame_term(z3.If(cond, esp + 8, x)))          # a branch that is a frame address still makes it one
+        self.assertTrue(P.has_frame_term(z3.If(z3.ULE(x, 5), x, esp - 4)))
+        self.assertTrue(P.has_frame_term(esp + 8))
+
+        def old(e):                                                         # the rule before round 7: every child, the condition too
+            todo, seen, found = [e], set(), False
+            while todo and not found:
+                y = todo.pop()
+                if y.get_id() in seen:
+                    continue
+                seen.add(y.get_id())
+                if z3.is_const(y) and y.decl().kind() == z3.Z3_OP_UNINTERPRETED:
+                    found = y.decl().name() in ('s_esp', 's_ebp')
+                elif y.decl().kind() not in (z3.Z3_OP_SELECT, z3.Z3_OP_STORE):
+                    todo.extend(y.children())
+            return found
+        self.assertTrue(old(z3.If(cond, x, x + 12)))
+        targets = {'missing': [], 'untaken': [['0x5148c6', 'fall-through']]}            # a search loop over 12 byte records: its exits are merged, and the merged pointer was read from the frame memory
+        self.assertEqual(P.prove_row('0x514893', targets, timeout_ms=20000)['status'], 'proved')
+        targets = {'missing': [], 'untaken': [['0x518bce', 'fall-through']]}
+        self.assertEqual(P.prove_row('0x518b98', targets, timeout_ms=20000)['status'], 'proved')
+        with mock.patch.object(P, 'has_frame_term', old):
+            self.assertNotEqual(P.prove_row('0x514893', {'missing': [], 'untaken': [['0x5148c6', 'fall-through']]}, timeout_ms=20000)['status'], 'proved')
+
+    def test_sahf_loads_the_flags_from_ah(self):                                                        # round 7
+        for name, jcc, taken in (('sahf_z', 'je', 'unsat'), ('sahf_c', 'jb', 'unsat'), ('sahf_nz', 'je', 'sat'), ('sahf_p', 'jp', 'unsat')):
+            an, img, L = an4(name)
+            j = [i for i in an.insns if i.mnemonic == jcc][0].address
+            fall = an.direction(j, 'fall')[0]                                    # ah = 0x40 sets ZF, 0x01 CF, 0x04 PF: the jump is always taken; ah = 0x80 leaves ZF clear: the jump is never taken
+            self.assertEqual(fall, 'unsat' if taken == 'unsat' else 'sat', name)
+            self.assertEqual(an.direction(j, 'taken')[0], 'sat' if taken == 'unsat' else 'unsat', name)
+
+    def test_an_x87_compare_of_two_known_values_is_exact(self):                                       # round 7
+        def verdicts(name):
+            an, img, L = an4(name)
+            jne = [i for i in an.insns if i.mnemonic == 'jne'][0].address
+            je = [i for i in an.insns if i.mnemonic == 'je'][0].address
+            return an.direction(jne, 'fall')[0], an.direction(jne, 'taken')[0], an.direction(je, 'taken')[0], an
+        fall, taken, same, an = verdicts('x87_eq')                               # fld / fcomp / fnstsw / sahf: x != y (ordered) cannot have the same 64 bits
+        self.assertEqual((fall, taken, same), ('unsat', 'sat', 'sat'))            # the equal and unordered runs and the runs with different bits are still feasible
+        self.assertIn('x87-compare-model', an.assumptions())
+        for name in ('x87_chs', 'x87_wait'):                                     # any other x87 instruction between forgets what is known: the same query is feasible again
+            self.assertEqual(verdicts(name)[0], 'sat', name)
+        from unittest import mock
+        with mock.patch.object(P.Machine, 'x87_compare', return_value=False):    # without the model fnstsw ax is unconstrained
+            self.assertEqual(verdicts('x87_eq')[0], 'sat')
+        out = P.prove_row('0x5145fe', {'missing': [], 'untaken': [['0x514634', 'taken']]}, timeout_ms=20000)       # x == +0 or -0 was compared with 0.0 a few instructions before
+        self.assertEqual(out['status'], 'proved')
+        self.assertIn('x87-compare-model', out['assumptions_used'])
+
+    def test_a_register_atom_is_a_checked_loop_invariant(self):                                         # round 7
+        from unittest import mock
+        body, hexcode, labels = LIB4['reg_inv']
+        img = bytes(image_of(bytes.fromhex(hexcode))) + bytes(64)
+        row = {'va': BASE, 'body': body, 'callees': {}, 'imports': {}, 'sites': None}
+
+        def dead(invariants):
+            with mock.patch.object(P, 'load_invariants', return_value=invariants):
+                an = P.Analysis(row, img, 20000)
+                an.run()
+                j = [i for i in an.insns if i.mnemonic == 'je'][2].address                  # the `je dead` after the loop
+                return an.direction(j, 'taken')[0]
+        hdr = BASE + labels['hdr']
+        self.assertEqual(dead({}), 'sat')                                                            # the loop havocs esi: nothing is known after it
+        self.assertEqual(dead({hdr: [{'reg': 'esi', 'op': 'ne', 'val': 0}]}), 'unsat')              # esi != 0 on entry (the `je out` before) and kept by `or esi, 1`
+        with self.assertRaises(P.Unsupported):                                                       # a register fact that is false on the entry edge is refused, not trusted
+            dead({hdr: [{'reg': 'esi', 'op': 'eq', 'val': 1}]})
+        with self.assertRaises(P.Unsupported):                                                       # one that the entry edge gives (edx = 4) but the loop body breaks (edx + 4 may wrap to 0)
+            dead({hdr: [{'reg': 'edx', 'op': 'ne', 'val': 0}]})
+        out = P.prove_row('0x50ebca', {'missing': ['0x50ec6d', '0x50ec6f', '0x50ecbf', '0x50ecc1'], 'untaken': [['0x50ec67', 'fall-through'], ['0x50ec6b', 'fall-through'], ['0x50ecbd', 'fall-through']]}, timeout_ms=40000)
+        self.assertEqual(out['status'], 'proved')
+        for name in ('register-loop-invariant-checked', 'callee-saved-registers-unread-and-kept-by-callees', 'import-reads-no-register-and-clobbers-eax-ecx-edx'):         # esi survives the calls and imports of the loop
+            self.assertIn(name, out['assumptions_used'])
+        with mock.patch.object(P, 'load_invariants', return_value={}):
+            out = P.prove_row('0x50ebca', {'missing': ['0x50ec6d', '0x50ec6f', '0x50ecbf', '0x50ecc1'], 'untaken': [['0x50ec67', 'fall-through'], ['0x50ec6b', 'fall-through'], ['0x50ecbd', 'fall-through']]}, timeout_ms=40000)
+            self.assertNotEqual(out['status'], 'proved')
+
+    def test_rcr_and_rcl_by_one_rotate_through_the_carry(self):                                          # round 7
+        an, img, L = an4('rcr_one')
+        jnb = [i for i in an.insns if i.mnemonic == 'jae'][0].address
+        jne = [i for i in an.insns if i.mnemonic == 'jne'][0].address
+        jb = [i for i in an.insns if i.mnemonic == 'jb'][0].address
+        self.assertEqual(an.direction(jnb, 'taken')[0], 'unsat')               # cmp 3, 5 sets cf; rcr 3 -> 0x80000001 with cf = 1 (the bit that left)
+        self.assertEqual(an.direction(jne, 'taken')[0], 'unsat')
+        self.assertEqual(an.direction(jb, 'taken')[0], 'unsat')                # shr x leaves bit 31 clear and rcl shifts it out: cf = 0
+        self.assertEqual(an.direction(jb, 'fall')[0], 'sat')
+        with self.assertRaises(P.Unsupported):                                  # only the count 1 is modelled
+            an4('rcr_two')
+
+    def test_the_aulldiv_carry_needs_the_exact_shift_loop(self):                                         # round 7
+        from unittest import mock
+        targets = {'missing': [], 'untaken': [['0x50eba5', 'taken']]}
+        self.assertEqual(P.HINT_ONLY, 33)
+        self.assertNotIn(33, P.UNROLL)                                           # the search never tries it
+        out = P.prove_row('0x50eb20', targets, timeout_ms=120000)                # the 64 bit shift loop runs at most 32 times: unrolled exactly, the estimate times the divisor stays below 2^64
+        self.assertEqual(out['status'], 'proved')
+        self.assertEqual(out['plan'], {'0x50eb87': 33})
+        with mock.patch.object(P, 'load_plan_hints', return_value={}):           # without the hint the loop is generalised and the carry is feasible
+            self.assertNotEqual(P.prove_row('0x50eb20', targets, timeout_ms=20000)['status'], 'proved')
+
+    def test_a_window_forgets_the_x87_state_at_a_generalised_loop_header(self):                         # round 7 review
+        import fl71_window as Wn
+
+        def window(name, jcc, kind):
+            body, hexcode, labels = LIB4[name]
+            img = bytes(image_of(bytes.fromhex(hexcode))) + bytes(64)
+            an = P.Analysis({'va': BASE, 'body': body, 'callees': {}, 'imports': {}, 'sites': None}, img, 20000)
+            an, dom = Wn.from_analysis(an)
+            j = [i for i in an.insns if i.mnemonic == jcc][0].address
+            T = Wn.block_of(an, j, True)
+            whole = P.Analysis({'va': BASE, 'body': body, 'callees': {}, 'imports': {}, 'sites': None}, img, 20000)
+            whole.run()
+            return Wn.prove_target(an, dom, T, ('dir', kind))[0], whole.direction(j, kind)[0]
+        # fldz before the loop; each round compares st(0) with [ebp+8], then replaces st(0) by [ebp+0x10]: after the first round st(0) is not the fldz value
+        win, whole = window('fp_loop', 'ja', 'taken')
+        self.assertEqual((win, whole), ('sat', 'sat'))                           # (before the fix the window said unsat, the whole function sat)
+        # the compare is entirely inside one round: still exact in the window and in the whole function
+        win, whole = window('fp_inside', 'jne', 'fall')
+        self.assertEqual((win, whole), ('unsat', 'unsat'))
 
     def test_the_proof_record_names_the_assumptions(self):                                              # MINOR e
         img = P.load_image()
