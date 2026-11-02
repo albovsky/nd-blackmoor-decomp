@@ -1,5 +1,9 @@
 # Handoff: recompiled GAME.EXE, state and next steps
 
+## Latest post-rune light replacement, 2026-11-02 Pacific
+
+RECOMP-28 adds a genuine used5/afternoon wait checkpoint then bounded later paid glyph context with unchanged policy/IO. Actual m49→m50(3335/held5/14:36)→m51(3510/view4/held-1/14:57,fresh4) passes both producer/fresh-reload pairs onb49. The later11item bag needs its actual empty134,310PUT; sourcebagguard and rune-only input fix preserve first-paid defaults.118finite checks pass. Initialcontroller refusal is retained; finalv3matchespre-playfreeze. Sonnet accepts frozen2ebc3ccc without blockers; guarded metadatada1925c2 preserves1824peer claims. Packet records effective loose-resource/clock evidence, original-authored auxiliary saves and accepted outer-proof/coverage limits. Both complete difficulty campaigns have ignited the well; Junior has the corrected forge15 and is exercising the final encounter. Ending remains unverified.
+
 ## Latest oil and rune passage, 2026-11-02 Pacific
 
 RECOMP-27 continues actual public m47 through1944oil, realcrest2 gargoyle1974/1877 and rune1864/2081/2003 to safe3050/held4. Two producer/fresh-save-only reload pairs pass on reviewedb49; UI m48/m49 saved03:35/03:42. Original3175flicker legitimately sets1809: a strict source-backed checker phase fixes the inheritedzero assumption, and revalidates the retained run without replay.112finite checks pass, affected92rerun after checker delta. Sonnet accepts frozen3c4fde42 with no blockers; guarded metadatad34674ba preserves1824peer claims. Packet pins exact outputs, raw inputs/logs, accepted outer-proof limits and next gates. Both full campaigns have won Bell organ and earned actualMercury9; their separatecc7 proof is pinned in RECOMP27. Ending remains incomplete.
