@@ -2,7 +2,7 @@
 
 ## Latest Cake verification, 2026-11-02 Pacific
 
-RECOMP-32 adds the ordinary Cake client and six finite checks. Both new public-client runs pass on reviewed b49 from their separate genuine sources:91-step producers/24 captures and14-step/four-capture fresh reloads, all complete/exit0. Original ingredient selection, finish and baking produce actual cake1. UI saves return3520/view0/unheld; fresh inventory selection yields held1. Only inventory cell1 changes0→1. Historical private runs and the initial wrong-panorama refusal remain separate. Packet32 records exact pins and recipe/build limits. Independent review is pending; no whole-game completion is claimed.
+RECOMP-32 adds the ordinary Cake client and six finite checks. Both new public-client runs pass on reviewed b49 from their separate genuine sources:91-step producers/24 captures and14-step/four-capture fresh reloads, all complete/exit0. Original ingredient selection, finish and baking produce actual cake1. UI saves return3520/view0/unheld; fresh inventory selection yields held1. Only inventory cell1 changes0→1. Historical private runs and the initial wrong-panorama refusal remain separate. Packet32 records exact pins and recipe/build limits. Sonnet accepts frozen57584cee with no blocking finding; no whole-game completion is claimed.
 
 ## Latest Memory verification, 2026-11-02 Pacific
 

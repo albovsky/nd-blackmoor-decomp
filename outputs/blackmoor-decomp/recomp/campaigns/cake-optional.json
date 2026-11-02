@@ -131,5 +131,50 @@
   "historical_private_v3_proof_sha256": "aebc931cee5def48d1ee304b66e22d1d506fdb7af9f1666d20adca4580cb7368",
   "earlier_Senior01_refusal_preserved": true,
   "whole_game_complete": false,
-  "final_Mac_acceptance": false
+  "final_Mac_acceptance": false,
+  "external_root_inventory_check": {
+    "scope": "External root read-only inventory comparison, separate from client enforcement of cells0/1",
+    "script_path": "work/recomp-playability-20261101/root-public-cake-v1/audit_inventory.py",
+    "script_sha256": "fa4f3b444508aa6300a5e63ecbe6a06c80bdae1f1305f4d5889ed81a1701cde5",
+    "report_path": "work/recomp-playability-20261101/root-public-cake-v1/inventory-audit.json",
+    "report_sha256": "6f5be35537e5ce3a013880a625d3386ebaca89872fbfbf3e0d7541b1b58e1dee",
+    "runs": [
+      {
+        "profile": "junior",
+        "source_sha256": "ca0793b073a6358da3e3d58b3cda6ed3ce99875a50988cdeca77c6b7db6a5678",
+        "output_sha256": "2422bc63e59d2c44d26eeddfe46316ff36bf503a895767d343d275e96183ce06",
+        "changed_cells": [
+          {
+            "id": 1,
+            "before": 0,
+            "after": 1
+          }
+        ],
+        "all40_cells_compared": true
+      },
+      {
+        "profile": "senior",
+        "source_sha256": "b0b49b4ca3692367e8da83c5a5b54957fed33a56e1aaaed68e3b26c01b0f9bb6",
+        "output_sha256": "e7a4d6f5729da0f6576a097d3012134450255554b0c8e569998d885fed4cb25e",
+        "changed_cells": [
+          {
+            "id": 1,
+            "before": 0,
+            "after": 1
+          }
+        ],
+        "all40_cells_compared": true
+      }
+    ]
+  },
+  "shared_helper_sha256": {
+    "bul_live.py": "3a52e04b8bf642d90c3f00382fdc7b00c62791ad9f5a77fdf1cf6d81f933591d",
+    "story_route.py": "cead9635b3718a2950e57b50c20562afa737b9a7c080f469954d3c3ec6257627",
+    "check_route.py": "0181d12a27a6a49003ecc075d3fce0258db15f3e173343613072aefb62ed96d3"
+  },
+  "core_asset_sha256": {
+    "GAME.EXE": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+    "Game.ini": "f8f892e828eca6086f5a25720e5e8e0c2ebbb7d81f1bb90bb8b73ea244419c79",
+    "Ciftree/CIFTREE.DAT": "1e865b13a4c0cf13568fc312f48de6c5e2acb0278b933b2a972b6c1dce456161"
+  }
 }

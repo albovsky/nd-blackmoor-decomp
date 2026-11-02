@@ -2,7 +2,7 @@
 
 `cake_live.py` attempts the original CakeMixing3600 branch once, then requires baking, physical good-cake item1, an original UI save, and a fresh output-only Load that selects actual held1. It imports `bul_live.Session`, PPM validation and FIFO delivery, plus `story_route.R` and the existing Load/Save helpers. It contains no puzzle implementation, guest handler calls, hidden ingredient/board/RNG reads, clock edits, resource templates or save serialization.
 
-This candidate's gameplay body and producer/reload checks come from frozen private v3 SHA `54a13e4102ef4ffdb371e59b39dc122472a8a5458c5202720c39ff428d52e63b`. That controller produced separate accepted Senior and Junior optional branches on b49. Two new full public-client runs also pass on reviewed b49, one Junior and one Senior: original baking, physical item1, UI Save and fresh output-only actualheld1. Public evidence and the older private boundary are separate in `../campaigns/cake-optional.json` and RECOMP-32. Independent review is pending.
+This candidate's gameplay body and producer/reload checks come from frozen private v3 SHA `54a13e4102ef4ffdb371e59b39dc122472a8a5458c5202720c39ff428d52e63b`. That controller produced separate accepted Senior and Junior optional branches on b49. Two new full public-client runs also pass on reviewed b49, one Junior and one Senior: original baking, physical item1, UI Save and fresh output-only actualheld1. Public evidence and the older private boundary are separate in `../campaigns/cake-optional.json` and RECOMP-32. Sonnet accepts frozen57584cee with no blocking finding.
 
 ## Supported inputs
 
@@ -66,3 +66,5 @@ Finite checks (no game/assets/process) after applying the candidate:
 ```sh
 python3 -B outputs/blackmoor-decomp/tests/test_recomp_cake_live.py
 ```
+
+The client enforces inventory0/1 itself. The statement that all other39 cells are unchanged is an external root read-only comparison of each genuine source/output pair, with script/report hashes in cake-optional.json; it is not a new general client guarantee. Only an error-free receipt with accepted:true grants checkpoint acceptance. A copied file beside a failed/partial receipt is retained diagnostic output and must not be consumed as a canonical checkpoint.
