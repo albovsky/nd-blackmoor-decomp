@@ -9,6 +9,7 @@ the prover must never call an instruction or a jump direction of a fully covered
 import json
 import os
 from pathlib import Path
+import struct
 import sys
 import unittest
 
@@ -464,6 +465,421 @@ class Fl75(unittest.TestCase):
         an = P.Analysis({'va': BASE, 'body': 0x13, 'callees': {BASE + 0x13: 0}, 'imports': {}, 'sites': None}, image_of(code), 20000)
         self.assertIsNone(an.M.ret_bound(BASE + 0x13))
 
+# FL-78 programs (nasm, org 0x401000, the listed library function `lib` is a bare `ret` behind the body):
+#   push ebp; mov ebp,esp; sub esp,8; mov [ebp-4],0; <the lea / pushes / call below>; add esp,12; mov eax,[ebp+8]; mov [eax],7; cmp [ebp-4],0; jne never; mov eax,1; leave; ret; never: mov eax,9; leave; ret; lib: ret
+#   (a store through the argument pointer between the call and the compare: the frame assumption keeps [ebp-4] out of its reach)
+LIB78 = {
+    'ok_source': (64, '5589e583ec08c745fc000000008d55f85268002040006800304000e82000000083c40c8b4508c70007000000837dfc007507b801000000c9c3b809000000c9c3c3'),     # lea edx,[ebp-8]; push edx; push 0x402000; push 0x403000; call lib
+    'dest_arg': (64, '5589e583ec08c745fc000000008d55f86800204000680030400052e82000000083c40c8b4508c70007000000837dfc007507b801000000c9c3b809000000c9c3c3'),      # push edx last: the destination position
+    'read_after': (66, '5589e583ec08c745fc000000008d55f85268002040006800304000e82200000083c40c89d68b4508c70007000000837dfc007507b801000000c9c3b809000000c9c3c3'),   # mov esi,edx after the add esp
+    'no_add': (62, '5589e583ec08c745fc000000008d55f85268002040006800304000e81e000000908b4508c70007000000837dfc007507b801000000c9c3b809000000c9c3c3'),          # a nop where the add esp should be
+    'ecx_then_call': (69, '5589e583ec08c745fc000000008d4df85168002040006800304000e82500000083c40ce81e0000008b4508c70007000000837dfc007507b801000000c9c3b809000000c9c3c38b01c3'),   # lea ecx: a second call whose callee reads ecx (mov eax,[ecx]; ret)
+    'ecx_then_call_free': (69, '5589e583ec08c745fc000000008d4df85168002040006800304000e82500000083c40ce81e0000008b4508c70007000000837dfc007507b801000000c9c3b809000000c9c3c3b900000000c3'),   # the same, the second callee overwrites ecx (mov ecx,0; ret) before anything reads it
+    'ecx_call_keeps': (69, '5589e583ec08c745fc000000008d4df85168002040006800304000e82500000083c40ce81e0000008b4508c70007000000837dfc007507b801000000c9c3b809000000c9c3c3c3'),   # the second callee is a bare ret: it neither reads nor overwrites ecx, which keeps the frame address
+    'ecx_import': (70, '5589e583ec08c745fc000000008d4df85168002040006800304000e82600000083c40cff15000140008b4508c70007000000837dfc007507b801000000c9c3b809000000c9c3c3'),   # the second call is call [0x400100]: a Win32 import when the row lists the slot
+    'fmt_reg': (60, '5589e583ec08c745fc000000008d55f852566800304000e82000000083c40c8b4508c70007000000837dfc007507b801000000c9c3b809000000c9c3c3'),   # the format is whatever is in esi
+    'fmt_is_frame': (59, '5589e583ec08c745fc000000008d55f8526800304000e82000000083c4088b4508c70007000000837dfc007507b801000000c9c3b809000000c9c3c3'),   # the frame address is argument 1, the format
+    'push_ebp': (65, '5589e583ec08c745fc000000008d55f8525568002040006800304000e82000000083c4108b4508c70007000000837dfc007507b801000000c9c3b809000000c9c3c3'),   # push ebp (the frame base) as a further argument
+    'call_keeps_edx': (69, '5589e583ec08c745fc000000008d55f85268002040006800304000e82500000083c40ce81e0000008b4508c70007000000837dfc007507b801000000c9c3b809000000c9c3c3c3'),   # call g after the call; g is a bare ret and keeps edx
+    'call_kills_edx': (69, '5589e583ec08c745fc000000008d55f85268002040006800304000e82500000083c40ce81e0000008b4508c70007000000837dfc007507b801000000c9c3b809000000c9c3c3ba01000000c3'),   # the same, g is mov edx,1; ret
+    'cmov_after': (73, '5589e583ec08c745fc000000008d55f85268002040006800304000e82900000083c40c0f44d0c702050000008b4508c70007000000837dfc007507b801000000c9c3b809000000c9c3c3'),   # cmovz edx,eax; mov [edx],5 after the call: the cmov may keep the frame address
+    'branch_between': (68, '5589e583ec08c745fc000000008d55f885c074005268002040006800304000e82000000083c40c8b4508c70007000000837dfc007507b801000000c9c3b809000000c9c3c3'),   # test eax,eax; je skip; skip: between lea and push
+    'copy_kept': (66, '5589e583ec08c745fc000000008d55f85289d668002040006800304000e82000000083c40c8b4508c70007000000837dfc007507b801000000c9c3b809000000c9c3c3'),      # mov esi,edx between the pushes
+    'killed_by_write': (69, '5589e583ec08c745fc000000008d55f85268002040006800304000e82500000083c40cba050000008b4508c70007000000837dfc007507b801000000c9c3b809000000c9c3c3'),    # mov edx,5 after the add esp
+    'stored_elsewhere': (67, '5589e583ec08c745fc000000008d55f8528955fc68002040006800304000e82000000083c40c8b4508c70007000000837dfc007507b801000000c9c3b809000000c9c3c3'),   # mov [ebp-4],edx between the pushes
+}
+
+
+def lib78_image(code, fmt=b'hi\0', extra=b''):
+    """the image of a LIB78 program with a format string at 0x402000 and a buffer behind 0x403000"""
+    img = bytearray(image_of(code))
+    img.extend(bytes(0x403100 - P.IMAGE_BASE - len(img)))
+    off = 0x402000 - P.IMAGE_BASE
+    img[off:off + len(fmt)] = fmt
+    img[0x1800:0x1800 + len(extra)] = extra                                  # other code of the image, at BASE + 0x800
+    return bytes(img)
+
+
+def lib78(name, listed=True, tight=True, fmt=b'hi\0', imports=None, extra=b''):
+    """(analysis, the address of the library function) for a LIB78 program; `listed` puts the function on LIBRARY_WRITERS for the analysis"""
+    from unittest import mock
+    body, hexcode = LIB78[name]
+    code = bytes.fromhex(hexcode)
+    lib = BASE + body
+    ctx = mock.patch.dict(P.LIBRARY_WRITERS, {lib: ('sprintf', (0,))} if listed else {}, clear=True)
+    ctx.start()
+    try:
+        callees = {lib: 0, lib + 1: 0} if name.startswith(('ecx_', 'call_')) else {lib: 0}             # the second call of those programs is `g`, right behind the one-byte library function
+        an = P.Analysis({'va': BASE, 'body': body, 'callees': callees, 'imports': imports or {}, 'sites': None}, lib78_image(code, fmt, extra), 20000)
+        if tight:
+            an.run()
+    finally:
+        ctx.stop()
+    return an, lib
+
+
+@unittest.skipUnless(HAVE_Z3, 'needs z3-solver, capstone')
+class Fl78(unittest.TestCase):
+    """FL-78: a frame address that is a source argument of a listed library call keeps the frame assumption (decision taken as the recommended default under the 2-hour rule)."""
+
+    def jne_never(self, an):
+        jne = [i.address for i in an.insns if i.mnemonic == 'jne'][0]
+        return an.direction(jne, 'taken')[0]
+
+    def test_a_source_argument_of_a_listed_call_keeps_the_frame_assumption(self):
+        an, lib = lib78('ok_source')
+        self.assertEqual(an.esc_addrs, [])
+        self.assertTrue(an.M.split)
+        self.assertEqual(self.jne_never(an), 'unsat')                    # [ebp-4] = 0; a store through the argument pointer; [ebp-4] != 0 ?
+
+    def test_the_same_call_not_on_the_list_still_switches_the_assumption_off(self):
+        an, lib = lib78('ok_source', listed=False)
+        self.assertEqual(len(an.esc_addrs), 1)
+        self.assertFalse(an.M.split)
+        self.assertEqual(self.jne_never(an), 'sat')
+
+    def test_without_the_rule_the_listed_call_would_not_help(self):
+        from unittest import mock
+        with mock.patch.object(P, 'library_arg_lea', return_value=False):
+            an, lib = lib78('ok_source')
+        self.assertFalse(an.M.split)
+        self.assertEqual(self.jne_never(an), 'sat')
+
+    def test_an_address_that_goes_anywhere_else_switches_it_off(self):
+        for name in ('dest_arg', 'read_after', 'no_add', 'ecx_then_call', 'ecx_call_keeps', 'branch_between', 'copy_kept', 'stored_elsewhere', 'fmt_reg', 'fmt_is_frame', 'push_ebp', 'call_keeps_edx'):
+            an, lib = lib78(name)
+            self.assertEqual(len(an.esc_addrs), 1, name)
+            self.assertFalse(an.M.split, name)
+            self.assertEqual(self.jne_never(an), 'sat', name)
+
+    def test_ecx_is_dead_across_a_call_whose_callee_overwrites_it_first(self):
+        an, lib = lib78('ecx_then_call_free')
+        self.assertEqual(an.esc_addrs, [])
+        self.assertEqual(self.jne_never(an), 'unsat')
+
+    def test_a_call_kills_a_register_only_when_the_callee_is_shown_to_overwrite_it(self):          # FL-78 review (major 3): the callee that keeps edx / ecx leaves the frame address in it
+        for name in ('call_kills_edx',):
+            an, lib = lib78(name)
+            self.assertEqual(an.esc_addrs, [], name)
+        for name in ('call_keeps_edx', 'ecx_call_keeps'):
+            an, lib = lib78(name)
+            self.assertEqual(len(an.esc_addrs), 1, name)
+
+    def test_an_import_kills_a_register_only_when_it_is_in_the_import_table(self):                  # FL-78 review: any absolute call into the image used to count
+        an, lib = lib78('ecx_import', imports={0x400100: 0})
+        self.assertEqual(an.esc_addrs, [])
+        an, lib = lib78('ecx_import')
+        self.assertEqual(len(an.esc_addrs), 1)
+
+    def test_a_conditional_move_does_not_kill_its_destination(self):                                # FL-78 review (minor a)
+        from unittest import mock
+        an, lib = lib78('cmov_after', tight=False)                                                  # (the semantics have no cmov: only the frame-address analysis of __init__ is looked at)
+        self.assertEqual(len(an.esc_addrs), 1)
+
+        def old_rw(i):                                                                              # the register accesses as they were before: the destination of a cmov counted as written only
+            rd, wr = i.regs_access()
+            return P._full(i.reg_name(r) for r in rd), {i.reg_name(r) for r in wr}
+        with mock.patch.object(P, '_rw', old_rw):
+            an, lib = lib78('cmov_after', tight=False)
+        self.assertEqual(an.esc_addrs, [])                                                          # without the change the program was accepted
+
+    def test_the_format_must_be_a_constant_without_percent_n(self):                               # FL-78 review (minor b)
+        an, lib = lib78('ok_source', fmt=b'%n\0')
+        self.assertEqual(len(an.esc_addrs), 1)
+        an, lib = lib78('ok_source', fmt=b'a%d%n\0')
+        self.assertEqual(len(an.esc_addrs), 1)
+        an, lib = lib78('ok_source', fmt=b'a%d\0')
+        self.assertEqual(an.esc_addrs, [])
+
+    def test_a_format_that_only_reads_its_arguments_is_accepted(self):                            # FL-78 second review: the allow list of conversions
+        for fmt in (b'x=%s, chan %d, pos %4.2f %-8.3f %+5d %#x %hd %ld %Lf %I64d %% %c %u %o %e %E %g %G %X %i\0', b'plain\0'):
+            an, lib = lib78('ok_source', fmt=fmt)
+            self.assertEqual(an.esc_addrs, [], fmt)
+
+    def test_every_form_of_n_and_every_unknown_conversion_is_refused(self):                       # FL-78 second review (major): %hn %ln %5n %1$n
+        for fmt in (b'%hn\0', b'%ln\0', b'%5n\0', b'%1$n\0', b'%hhn\0', b'%I64n\0', b'%.2n\0', b'%*d\0', b'%.*s\0', b'%p\0', b'%S\0', b'%a\0', b'%\0', b'a%\0', b'%d%5n\0', b'%1$s\0'):
+            an, lib = lib78('ok_source', fmt=fmt)
+            self.assertEqual(len(an.esc_addrs), 1, fmt)
+
+    def test_an_empty_or_unprintable_format_is_refused(self):                                      # FL-78 second review: an empty string (a zero-initialised buffer built at run time) and non-text
+        for fmt in (b'\0', b'a\x01b\0', b'a\xffb\0', b'a' * 300 + b'\0'):
+            an, lib = lib78('ok_source', fmt=fmt)
+            self.assertEqual(len(an.esc_addrs), 1, fmt)
+
+    def test_a_format_that_the_image_writes_or_hands_on_is_refused(self):                          # FL-78 second review: references to the string elsewhere in the image
+        rel = lambda at: struct.pack('<i', (BASE + 64) - (at + 5))
+        at = BASE + 0x800
+        fine = bytes.fromhex('6800204000') + bytes.fromhex('6800304000') + b'\xe8' + rel(at + 10)                  # push fmt; push dest; call sprintf: another sprintf with the same literal
+        an, lib = lib78('ok_source', extra=fine)
+        self.assertEqual(an.esc_addrs, [])
+        cases = {
+            'absolute byte write': bytes.fromhex('c6050120400000'),                                         # mov byte [0x402001], 0
+            'absolute store of eax': bytes.fromhex('a300204000'),                                           # mov [0x402000], eax
+            'address in a register': bytes.fromhex('b800204000'),                                           # mov eax, 0x402000 (a pointer that may go anywhere)
+            'pointer to the middle': bytes.fromhex('6801204000'),                                           # push 0x402001
+            'format as destination': bytes.fromhex('6800204000') + b'\xe8' + rel(at + 5),                    # push fmt; call sprintf: the string is argument 0
+            'handed to another call': bytes.fromhex('6800204000') + bytes.fromhex('6800304000') + b'\xe8' + struct.pack('<i', 0x1000),     # push fmt; push x; call elsewhere
+            'in a table of pointers': bytes.fromhex('00204000'),                                            # the address as data
+        }
+        for name, extra in cases.items():
+            an, lib = lib78('ok_source', extra=extra)
+            self.assertEqual(len(an.esc_addrs), 1, name)
+
+    def test_the_format_that_is_not_a_literal_switches_it_off(self):
+        for name in ('fmt_reg', 'fmt_is_frame'):
+            an, lib = lib78(name)
+            self.assertEqual(len(an.esc_addrs), 1, name)
+
+    def test_pushing_the_frame_base_between_switches_it_off(self):                                 # FL-78 review (minor c)
+        an, lib = lib78('push_ebp')
+        self.assertEqual(len(an.esc_addrs), 1)
+
+    def test_a_register_that_is_overwritten_after_the_call_is_dead(self):
+        an, lib = lib78('killed_by_write')
+        self.assertEqual(an.esc_addrs, [])
+        self.assertEqual(self.jne_never(an), 'unsat')
+
+    def test_a_window_after_the_call_gets_the_frame_assumption(self):
+        import fl71_window as Wn
+        for listed, want in ((True, 'unsat'), (False, 'sat')):
+            an, lib = lib78('ok_source', listed=listed, tight=False)
+            an, dom = Wn.from_analysis(an)
+            jne = [i for i in an.insns if i.mnemonic == 'jne'][0].address
+            got = Wn.prove_target(an, dom, Wn.block_of(an, jne, True), ('dir', 'taken'))[0]
+            self.assertEqual(got == 'unsat', want == 'unsat', (listed, got))
+
+    def test_the_committed_list_names_the_crt_sprintf(self):
+        self.assertEqual(P.LIBRARY_WRITERS[0x50ca3e], ('sprintf', (0,)))
+
+
+# FL-78 programs for the two other cases of library_arg_lea (nasm, org 0x401000). Common tail: mov eax,[ebp+8]; mov [eax],7; cmp [ebp-CELL],0; jne never; ... (a store through the argument pointer between the setup and the compare).
+#   copy_*: push ebp; mov ebp,esp; sub esp,0x20; push edi; push esi; lea edx,[ebp-0x1c]; mov esi,[ebp+0xc]; mov ecx,[ebp+0x10]; mov edi,edx; rep movsb  (an inline copy into a local buffer); epilogue pop esi; pop edi; leave; ret
+#   out_*:  the call is `lea edx,[ebp-0x14]; push edx; push 5; call cal`, cal sits behind the body and pops 8
+P78 = {
+    'copy_ok': (59, '5589e583ec2057568d55e48b750c8b4d1089d7f3a4c745fc000000008b4508c70007000000837dfc007507b801000000eb05b8090000005e5fc9c3'),    # lea edx,[ebp-0x1c]; mov edi,edx; rep movsb; then [ebp-4] = 0 (set after the copy)
+    'copy_cell_lost': (59, '5589e583ec205756c745fc000000008d55e48b750c8b4d1089d7f3a48b4508c70007000000837dfc007507b801000000eb05b8090000005e5fc9c3'),    # [ebp-4] = 0 is set BEFORE the copy: the copy may write any byte of the frame
+    'copy_edx_used': (65, '5589e583ec2057568d55e48b750c8b4d1089d7f3a4c745fc00000000c702050000008b4508c70007000000837dfc007507b801000000eb05b8090000005e5fc9c3'),    # mov [edx],5 after the copy: the frame address is used again
+    'copy_edi_used': (65, '5589e583ec2057568d55e48b750c8b4d1089d7f3a4c745fc00000000c707050000008b4508c70007000000837dfc007507b801000000eb05b8090000005e5fc9c3'),    # mov [edi],5 after the copy
+    'copy_no_restore': (58, '5589e583ec2057568d55e48b750c8b4d1089d7f3a4c745fc000000008b4508c70007000000837dfc007507b801000000eb05b8090000005ec9c3'),    # no pop edi: edi (a frame address after the copy) goes back to the caller
+    'out_ok': (53, '5589e583ec20c745fc000000008d55ec526a05e81d0000008b4508c70007000000837dfc007507b801000000c9c3b809000000c9c35589e58b450cd94508d918d9eed958085dc20800'),    # lea edx,[ebp-0x14]; push edx; push 5; call cal (stdcall, ret 8; cal: mov eax,[ebp+0xc]; fld [ebp+8]; fstp [eax]; fldz; fstp [eax+8]): 12 bytes at ebp-0x14..ebp-9; [ebp-4] = 0 before
+    'out_cell_inside': (53, '5589e583ec20c745f0000000008d55ec526a05e81d0000008b4508c70007000000837df0007507b801000000c9c3b809000000c9c35589e58b450cd94508d918d9eed958085dc20800'),    # [ebp-0x10] = 0 before the call, compared after: inside the 12 bytes
+    'out_cell_above': (53, '5589e583ec20c745f8000000008d55ec526a05e81d0000008b4508c70007000000837df8007507b801000000c9c3b809000000c9c35589e58b450cd94508d918d9eed958085dc20800'),    # [ebp-8] = 0 before the call, compared after: the first byte behind the 12 bytes
+    'out_ptr_stored': (53, '5589e583ec20c745fc000000008d55ec526a05e81d0000008b4508c70007000000837dfc007507b801000000c9c3b809000000c9c35589e58b450ca3003140005dc20800'),    # cal stores the pointer to a global
+    'out_ptr_pushed': (53, '5589e583ec20c745fc000000008d55ec526a05e81d0000008b4508c70007000000837dfc007507b801000000c9c3b809000000c9c35589e58b450c50585dc20800'),    # cal pushes the pointer
+    'out_ptr_loaded_twice': (53, '5589e583ec20c745fc000000008d55ec526a05e81d0000008b4508c70007000000837dfc007507b801000000c9c3b809000000c9c35589e58b450c8b4d0cd91883c1045dc20800'),    # cal loads the slot twice and adds to the second copy
+    'out_eax_used_after': (55, '5589e583ec20c745fc000000008d55ec526a05e81f00000089c68b4508c70007000000837dfc007507b801000000c9c3b809000000c9c35589e58b450cd94508d918d9eed958085dc20800'),    # mov esi,eax after the call
+    'out_wrong_slot': (55, '5589e583ec20c745fc000000008d55ec526a056a06e81d0000008b4508c70007000000837dfc007507b801000000c9c3b809000000c9c35589e58b450cd94508d918d9eed958085dc20800'),    # the pointer is pushed first of three: the callee writes through the second argument
+    'out_reg_used': (53, '5589e583ec20c745fc000000008d4dec516a05e81d0000008b4508c70007000000837dfc007507b801000000c9c3b809000000c9c35589e58b450cd94508d918d9eedd5804c74110010000005dc20800'),    # FL-78 review: lea ecx; the callee stores through ecx (mov dword [ecx+0x10],1) as well: the register still holds the frame address at the call
+    'copy_call_reads_edx': (66, '5589e583ec2057568d55e48b750c8b4d1089d7f3a4c745fc00000000e8210000008b4508c70007000000837dfc007509b8010000005e5fc9c3b8090000005e5fc9c3c7421801000000c3'),    # FL-78 review: after the copy a call whose callee stores through edx (mov dword [edx+0x18],1)
+    'out_dest_form': (53, '5589e583ec20c745fc000000008d55ec526a05e81d0000008b4508c70007000000837dfc007507b801000000c9c3b809000000c9c35589e58b450cc70001000000d945085dc20800'),    # cal stores an integer through the pointer
+}
+
+
+def prog78(name):
+    """analysis of a P78 program; the callee `cal` (behind the body of the out_* programs) pops 8"""
+    body, hexcode = P78[name]
+    code = bytes.fromhex(hexcode)
+    callees = {BASE + body: 8} if name.startswith('out_') else {BASE + body: 0} if name == 'copy_call_reads_edx' else {}
+    return P.Analysis({'va': BASE, 'body': body, 'callees': callees, 'imports': {}, 'sites': None}, image_of(code), 20000)
+
+
+@unittest.skipUnless(HAVE_Z3, 'needs z3-solver, capstone')
+class Fl78Copy(unittest.TestCase):
+    """FL-78 (decision taken as the recommended default under the 2-hour rule): an inline `rep movs/stos` copy into a frame buffer formed by lea keeps the frame assumption; the model lets the copy write any byte of the frame."""
+
+    def verdict(self, name):
+        an = prog78(name)
+        had = list(an.esc_addrs)
+        an.run()
+        jne = [i.address for i in an.insns if i.mnemonic == 'jne'][0]
+        return had, an.direction(jne, 'taken')[0], an
+
+    def test_a_copy_into_a_local_buffer_keeps_the_assumption(self):
+        had, v, an = self.verdict('copy_ok')
+        self.assertEqual(had, [])
+        self.assertTrue(an.M.split)
+        self.assertEqual(v, 'unsat')                                   # [ebp-4] = 0 after the copy; a store through the argument pointer; [ebp-4] != 0 ?
+
+    def test_without_the_rule_the_copy_would_not_help(self):
+        from unittest import mock
+        with mock.patch.object(P, 'library_arg_lea', return_value=None):
+            had, v, an = self.verdict('copy_ok')
+        self.assertEqual(len(had), 1)
+        self.assertFalse(an.M.split)
+        self.assertEqual(v, 'sat')
+
+    def test_the_copy_may_write_any_byte_of_the_frame(self):
+        had, v, an = self.verdict('copy_cell_lost')
+        self.assertEqual(had, [])
+        self.assertEqual(v, 'sat')                                     # a cell set before the copy is unknown after it
+
+    def test_a_frame_address_that_is_used_again_switches_the_assumption_off(self):
+        for name in ('copy_edx_used', 'copy_edi_used', 'copy_no_restore', 'copy_call_reads_edx'):
+            had, v, an = self.verdict(name)
+            self.assertEqual(len(had), 1, name)
+            self.assertFalse(an.M.split, name)
+            self.assertEqual(v, 'sat', name)
+
+
+@unittest.skipUnless(HAVE_Z3, 'needs z3-solver, capstone')
+class Fl78Out(unittest.TestCase):
+    """FL-78 (decision taken as the recommended default under the 2-hour rule): a frame pointer passed to a function whose bytes show that it only stores floats through it keeps the frame assumption; the call writes exactly those bytes."""
+
+    def verdict(self, name):
+        an = prog78(name)
+        had = list(an.esc_addrs)
+        an.run()
+        jne = [i.address for i in an.insns if i.mnemonic == 'jne'][0]
+        return had, an.direction(jne, 'taken')[0], an
+
+    def test_the_extent_is_read_from_the_callee(self):
+        body, hexcode = P78['out_ok']
+        image = image_of(bytes.fromhex(hexcode))
+        self.assertEqual(P.out_param_extent(image, BASE + body, 0xc), 12)
+        self.assertEqual(P.out_param_extent(image, BASE + body, 0x10), 0)          # that slot is never read: no store through it
+        self.assertIsNone(P.out_param_extent(image, BASE + body, 0x8))             # the slot is the number, loaded by fld, not by mov
+
+    def test_a_callee_that_only_stores_through_the_pointer_keeps_the_assumption(self):
+        had, v, an = self.verdict('out_ok')
+        self.assertEqual(had, [])
+        self.assertTrue(an.M.split)
+        self.assertEqual(list(an.M.out_writes.values()), [[(4, 12)]])
+        self.assertEqual(v, 'unsat')
+
+    def test_without_the_rule_the_call_would_not_help(self):
+        from unittest import mock
+        with mock.patch.object(P, 'library_arg_lea', return_value=None):
+            had, v, an = self.verdict('out_ok')
+        self.assertEqual(len(had), 1)
+        self.assertFalse(an.M.split)
+        self.assertEqual(v, 'sat')
+
+    def test_the_call_writes_exactly_the_bytes_the_callee_writes(self):
+        self.assertEqual(self.verdict('out_cell_inside')[1], 'sat')          # inside the 12 bytes: unknown after the call
+        self.assertEqual(self.verdict('out_cell_above')[1], 'unsat')         # the first byte behind them is untouched
+
+    def test_a_callee_that_does_anything_else_with_the_pointer_switches_the_assumption_off(self):
+        for name in ('out_ptr_stored', 'out_ptr_pushed', 'out_ptr_loaded_twice', 'out_dest_form', 'out_wrong_slot', 'out_eax_used_after', 'out_reg_used'):
+            had, v, an = self.verdict(name)
+            self.assertEqual(len(had), 1, name)
+            self.assertFalse(an.M.split, name)
+            self.assertEqual(v, 'sat', name)
+
+    def test_the_member_call_of_the_game_function_is_read_from_its_bytes(self):
+        import original_differential as od
+        if not od.available():
+            self.skipTest('needs the pinned private work/original/GAME.EXE')
+        self.assertEqual(P.out_param_extent(P.load_image(), 0x4fa127, 0xc), 12)       # three floats through [ebp+0xc]
+        an = P.Analysis(P.row_of('0x4f7207'), P.load_image())
+        self.assertEqual(an.esc_addrs, [])
+        self.assertEqual(an.M.out_writes, {0x4f757d: [(4, 12)]})
+
+
+# FL-78: forward-window loop invariants. push ebp; mov ebp,esp; sub esp,8; mov [ebp-4],0; mov eax,[ebp+8]; cmp eax,5; jne bad (BASE+0x13); mov eax,1; leave; ret;
+# bad: mov [ebp-8],0; hdr (BASE+0x23): cmp [ebp-8],3; jge done; mov eax,[ebp+12]; mov [eax],7; mov ecx,[ebp-8]; add ecx,1; mov [ebp-8],ecx; jmp hdr; done: mov eax,100; cdq; idiv dword [ebp-4]; leave; ret
+# every run that takes the jne divides by [ebp-4] == 0 behind a loop whose generalised header loses the frame cell unless an invariant keeps it.
+FWD_LOOP = bytes.fromhex('5589e583ec08c745fc000000008b450883f8057507b801000000c9c3c745f800000000837df8037d148b450cc700070000008b4df883c101894df8ebe6b86400000099f77dfcc9c3')
+FWD_JNE, FWD_HDR = BASE + 0x13, BASE + 0x23
+KEEP_ZERO = {'mem': ['ebp', -4, 4], 'op': 'eq', 'val': 0}
+# FL-78 review: push ebp; mov ebp,esp; sub esp,8; mov edx,[ebp+12]; mov [ebp-4],edx; mov eax,[ebp+8]; cmp eax,5; jne bad (BASE+0x12); mov eax,1; leave; ret; bad: mov ecx,0; hdr (BASE+0x20): cmp ecx,3; jge done; add ecx,1; jmp hdr;
+# done: mov eax,100; cdq; idiv dword [ebp-4]; leave; ret.   [ebp-4] is the second argument, so "every run that takes the jne faults" is false; the loop writes no memory
+CIRC = bytes.fromhex('5589e583ec088b550c8955fc8b450883f8057507b801000000c9c3b90000000083f9037d0583c101ebf6b86400000099f77dfcc9c3')
+CIRC_JNE, CIRC_HDR = BASE + 0x12, BASE + 0x20
+
+
+@unittest.skipUnless(HAVE_Z3, 'needs z3-solver, capstone')
+class Fl78Forward(unittest.TestCase):
+    """FL-78: loop invariants for the generalised headers of a forward (\"every run that takes it faults later\") window, per target, proved by the prover before they are used."""
+
+    def faults(self, invariants):
+        from unittest import mock
+        import fl71_window as Wn
+        an = P.Analysis({'va': BASE, 'body': len(FWD_LOOP), 'callees': {}, 'imports': {}, 'sites': None}, image_of(FWD_LOOP), 20000)
+        an, dom = Wn.from_analysis(an)
+        before = len(an.M.facts)
+        with mock.patch.object(Wn, 'load_forward_invariants', return_value=invariants):
+            verdict = Wn.prove_faults(an, dom, ('dir', FWD_JNE, 'taken'))[0]
+        return verdict, an, before
+
+    def test_without_an_invariant_the_loop_loses_the_zero(self):
+        self.assertNotEqual(self.faults({})[0], 'unsat')
+
+    def test_an_inductive_invariant_keeps_the_zero_through_the_loop(self):
+        self.assertEqual(self.faults({FWD_HDR: [KEEP_ZERO]})[0], 'unsat')
+
+    def test_the_other_direction_still_returns_without_a_fault(self):
+        from unittest import mock
+        import fl71_window as Wn
+        an = P.Analysis({'va': BASE, 'body': len(FWD_LOOP), 'callees': {}, 'imports': {}, 'sites': None}, image_of(FWD_LOOP), 20000)
+        an, dom = Wn.from_analysis(an)
+        with mock.patch.object(Wn, 'load_forward_invariants', return_value={FWD_HDR: [KEEP_ZERO]}):
+            self.assertNotEqual(Wn.prove_faults(an, dom, ('dir', FWD_JNE, 'fall'))[0], 'unsat')
+
+    def test_an_invariant_that_is_false_on_entry_is_refused_and_leaves_no_fact_behind(self):
+        verdict, an, before = self.faults({FWD_HDR: [{'mem': ['ebp', -4, 4], 'op': 'eq', 'val': 1}]})
+        self.assertNotEqual(verdict, 'unsat')
+        self.assertEqual(len(an.M.facts), before)
+
+    def test_an_invariant_that_the_body_breaks_is_refused(self):
+        verdict, an, before = self.faults({FWD_HDR: [KEEP_ZERO, {'mem': ['ebp', -8, 4], 'op': 'eq', 'val': 0}]})        # i is 0 on entry, the body adds one
+        self.assertNotEqual(verdict, 'unsat')
+        self.assertEqual(len(an.M.facts), before)
+
+    def test_an_invariant_at_a_block_that_is_no_loop_header_is_refused(self):
+        import fl71_window as Wn
+        an = P.Analysis({'va': BASE, 'body': len(FWD_LOOP), 'callees': {}, 'imports': {}, 'sites': None}, image_of(FWD_LOOP), 20000)
+        an, dom = Wn.from_analysis(an)
+        T = Wn.block_of(an, FWD_JNE, True)
+        order = Wn.forward_region(an, T)
+        with self.assertRaisesRegex(P.Unsupported, 'not a generalised loop header'):               # FL-78 review (minor e): the specific refusal, not just "not proved"
+            Wn.run_forward(an, order, T, ('dir', FWD_JNE, 'taken'), inv={BASE + 0x29: [KEEP_ZERO]})
+        self.assertNotEqual(self.faults({BASE + 0x29: [KEEP_ZERO]})[0], 'unsat')
+
+    def circular(self, invariants):
+        from unittest import mock
+        import fl71_window as Wn
+        an = P.Analysis({'va': BASE, 'body': len(CIRC), 'callees': {}, 'imports': {}, 'sites': None}, image_of(CIRC), 20000)
+        an, dom = Wn.from_analysis(an)
+        with mock.patch.object(Wn, 'load_forward_invariants', return_value=invariants):
+            return Wn.prove_faults(an, dom, ('dir', CIRC_JNE, 'taken'))[0], an
+
+    def test_a_false_atom_on_a_cell_a_memory_free_loop_never_writes_is_refused(self):               # FL-78 review (blocker 1)
+        # [ebp-4] is the second argument (unknown), the loop at CIRC_HDR touches only ecx: its generalised header shares the entry state, so "holds on entry" used to be proved from the assumption itself
+        self.assertNotEqual(self.circular({})[0], 'unsat')
+        verdict, an = self.circular({CIRC_HDR: [KEEP_ZERO]})
+        self.assertNotEqual(verdict, 'unsat')
+        self.assertEqual(an.M.inv_facts, [])                                                            # nothing of a window stays behind
+
+    def test_the_old_check_with_the_own_fact_in_the_facts_would_have_proved_it(self):               # the regression is real: with the fact conjoined to the initiation check the false atom passes
+        from unittest import mock
+        import fl71_window as Wn
+        real = P.Analysis.check
+        def leaky(self_, formula, timeout_ms=None, only=None):
+            return real(self_, formula, timeout_ms, None)                                           # every invariant fact, the header's own included
+        with mock.patch.object(P.Analysis, 'check', leaky):
+            verdict, an = self.circular({CIRC_HDR: [KEEP_ZERO]})
+        self.assertEqual(verdict, 'unsat')
+
+    def test_the_target_names(self):
+        import fl71_window as Wn
+        self.assertEqual(Wn.forward_key(('dir', 0x49da7c, 'fall'), 0x49da75), '0x49da7c:fall')
+        self.assertEqual(Wn.forward_key(('ins', 0x49da82), 0x49da7e), '0x49da7e:ins')
+
+    def test_the_committed_forward_invariants_are_well_formed(self):
+        import fl71_window as Wn
+        data = json.loads(Wn.FWD_INVARIANTS.read_text())
+        for va, targets in data.items():
+            self.assertTrue(va.startswith('0x'))
+            for name, headers in targets.items():
+                self.assertRegex(name, r'^0x[0-9a-f]+:(taken|fall|ins)$')
+                for header, atoms in headers.items():
+                    self.assertTrue(header.startswith('0x'))
+                    for at in atoms:
+                        for a in at.get('or', [at]):
+                            self.assertIn(a['op'], P._INV_OPS)
+                            self.assertTrue(('val' in a) != ('mem2' in a))
+
+
 def manifest():
     path = PROJECT / 'tasks/fl67-infeasible.json'
     return json.loads(path.read_text()) if path.exists() else None
@@ -543,6 +959,45 @@ class Replay(unittest.TestCase):
                 self.assertNotIn('unsat', verdicts, k)
                 checked += verdicts != ['out of memory']
         self.assertGreaterEqual(checked, 10)                                    # the sample must really have been proved, not all swallowed
+
+
+@unittest.skipUnless(HAVE_Z3, 'needs z3-solver, capstone')
+class Fl78Circular(unittest.TestCase):
+    """FL-78 review (blocker 1): the proof of an invariant at a generalised header must not rest on the assumption of that same invariant. A loop that writes no memory keeps the entry state at its generalised header, so the assumed fact
+    would make "it holds on entry" trivially true; the checks leave out the fact of the header they prove (Analysis.check `only`). Two older paths with the same shape: the whole-function analysis and the backward window."""
+
+    def analysis(self, atoms):
+        an = P.Analysis({'va': BASE, 'body': len(CIRC), 'callees': {}, 'imports': {}, 'sites': None}, image_of(CIRC), 20000)
+        an.inv = {CIRC_HDR: atoms}
+        return an
+
+    def leaky(self):
+        from unittest import mock
+        real = P.Analysis.check
+        return mock.patch.object(P.Analysis, 'check', lambda self_, formula, timeout_ms=None, only=None: real(self_, formula, timeout_ms, None))      # every invariant fact in every check, the header's own included
+
+    def test_the_whole_function_analysis_refuses_a_false_atom(self):
+        from unittest import mock
+        an = self.analysis([KEEP_ZERO])
+        with mock.patch.object(P, 'load_plan_hints', return_value={CIRC_HDR: 'gen'}):
+            with self.assertRaisesRegex(P.Unsupported, 'entry edge'):
+                an.run()
+
+    def test_the_whole_function_analysis_used_to_accept_it(self):
+        from unittest import mock
+        an = self.analysis([KEEP_ZERO])
+        with mock.patch.object(P, 'load_plan_hints', return_value={CIRC_HDR: 'gen'}), self.leaky():
+            an.run()                                                                                  # accepted: the regression is real
+
+    def test_the_backward_window_refuses_a_false_atom(self):
+        import fl71_window as Wn
+        an, dom = Wn.from_analysis(self.analysis([KEEP_ZERO]))
+        T = Wn.block_of(an, BASE + 0x2a)
+        with self.assertRaisesRegex(P.Unsupported, 'entry edge'):
+            Wn.run_window(an, Wn.window(an, dom, BASE, T), BASE, T, ('ins', None), False)
+        an, dom = Wn.from_analysis(self.analysis([KEEP_ZERO]))
+        with self.leaky():
+            Wn.run_window(an, Wn.window(an, dom, BASE, T), BASE, T, ('ins', None), False)            # accepted without the change
 
 
 if __name__ == '__main__':
