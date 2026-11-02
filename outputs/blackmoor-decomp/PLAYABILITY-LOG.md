@@ -129,3 +129,5 @@ Original game files and reserved ledger/evidence outputs are unchanged. Neither 
 - Post-key review: Sonnet accepts634c1963 with no P1/blocker; both static freshness checks pass. Required metadata preserves1781peer claims. Exact reload hashes and accepted nonblocking fixture limits are in RECOMP-17. No code changed after review.
 
 - 2026-11-02 Pacific: public dragon win/passage retreat and Jane light-request/rules exit pass four full-scope fresh runs,128/10/113/15steps, own stops/exit0 and safe reload pairs.68finite route fixtures pass. RECOMP-18 pins exact sources/saves/reloads and pending review. Glyph remains unsolved in this public slice; compiled game/host/app unchanged.
+
+- Dragon/light-request review: Sonnet acceptse5491478 with no P1/blocker; both static freshness checks pass. Required metadata preserves1793peer records. RECOMP-18 records source-derived lever versus actual win evidence and accepted nonblocking limits. No code changed after review.

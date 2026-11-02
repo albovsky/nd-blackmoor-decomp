@@ -2,7 +2,7 @@
 
 ## Latest dragon/light-request routes, 2026-11-02 Pacific
 
-RECOMP-18 adds exact `dragon-passage --save m27` and `glyph-request --save m28`. Four full-scope fresh producer/reload runs pass from final PR305 m26, with original dragon win/darkness/retreat and pending-only light request/rules exit.68finite route fixtures pass. No light or glyph win is claimed;2001/1357/1804 remain0. See packet for exact saves/source/reload hashes and pending metadata/review. Compiled host/game/app are unchanged; full campaigns remain incomplete.
+RECOMP-18 adds exact `dragon-passage --save m27` and `glyph-request --save m28`. Four full-scope fresh producer/reload runs pass from final PR305 m26, with original dragon win/darkness/retreat and pending-only light request/rules exit.68finite route fixtures pass. No light or glyph win is claimed;2001/1357/1804 remain0. Sonnet accepts frozene5491478 and both static freshness checks pass. See packet for exact saves/source/reload hashes and accepted evidence limits. Compiled host/game/app are unchanged; full campaigns remain incomplete.
 
 ## Latest post-key routes, 2026-11-02 Pacific
 

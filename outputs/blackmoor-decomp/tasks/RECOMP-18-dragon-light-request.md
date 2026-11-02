@@ -26,7 +26,7 @@ Both exact public fragments match retained121/106-step inputs byte for byte. All
 
 Final m27 `b9f307431aaa989afe43393fd0a344a655063af739236f961c4f49e81ace22a4`; m28 `f4ed256197c4a93d2816a2eda4358b31ca2229186cd14de58f832166ce348982`, each170770bytes. Exact scopes/inputs/source copies/native/log/receipt hashes and independent audit are in private `work/recomp-playability-20261101/root-fullscope-dragon-light/verified-public-chain.json`; raw runs are under `columns-continuation/root-fullscope-*`.2001/1357/1804 remain0, hand stays clear and the glyph is explicitly pending. No synthetic phase or reward is introduced.
 
-Compiled game/host/app inputs are unchanged; native remainscc7ce16f33aee31714b8d8586adeffcc6e2036e58f6522394626ed6f2e0eed56, original GAME.EXE remainsafd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45. This is observed Junior timing/start evidence; alternate starts/clocks, Senior variants, full campaigns and final native credits are not claimed. No function-port acceptance. Required metadata refresh and frozen independent review remain pending.
+Compiled game/host/app inputs are unchanged; native remainscc7ce16f33aee31714b8d8586adeffcc6e2036e58f6522394626ed6f2e0eed56, original GAME.EXE remainsafd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45. This is observed Junior timing/start evidence; alternate starts/clocks, Senior variants, full campaigns and final native credits are not claimed. No function-port acceptance. Required metadata is regenerated fromb661a960; all function statuses/classes/counts/native fields and1793peer records remain unchanged (`dragon-light-refresh-receipt.json`). Both frozen static freshness checks pass; private xrefs/receipts are not rehashed. Sonnet high accepts frozene5491478 with no P1 or blockers (`dragon-light-review.txt`).
 
 ## Source and reload pins
 
@@ -35,3 +35,8 @@ Compiled game/host/app inputs are unchanged; native remainscc7ce16f33aee31714b8d
 - `tests/test_recomp_route_check.py`: `5e22dae2c6e4f71a6ff0a5aa6db8228ac0f8e15fe34ed9b32cfc6b28561f10fb`
 - `root-fullscope-reload-m27` full INPUT: `1b594c9059e726ebbb61716f57ebc7026ef751302a10edad1ae1bbbddc2958c4`
 - `root-fullscope-reload-m28` full INPUT: `5ea6470dac4fa1c443a151013b1a5de3a1d8e3fd3a4f106f970766529de2fde9`
+
+Root accepts nonblocking evidence limits: the3,0,2,1,2,3 list is the source-derived expected solution, not a direct runtime lever-state measurement; runtime win is proven by1997/3342 and ordered original opens. Opens are a global subsequence, not independently time-bound to observations. Clock gates bound this observed start, not every legitimate original clock. Extra binary/monotone/request-zero variants lack isolated fixtures; no additional test project is needed for this bounded collection. Code is unchanged after review.
+
+- `root-fullscope-dragon-m27` full INPUT: `125d1b466213e6f8eec0965eabda9137584968ee0cc7108bb006becc331f7974`
+- `root-fullscope-glyph-request-m28` full INPUT: `065a9dbb7bc86e678b33a6fa9b627a0410b537815dee3895a626ab84fca81551`
