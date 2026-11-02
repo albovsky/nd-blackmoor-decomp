@@ -95,3 +95,5 @@ Original game files and reserved ledger/evidence outputs are unchanged. Neither 
 - Right-pointer follow-up: all12 fresh New Game→m12 runs pass with script completion and checkpoint identity. Independent Sonnet review accepts e8b6aac6 with no P1/blocking P2; both static freshness checks pass. Reviewed code is unchanged by current-main integration. Remaining nonblocking coverage limits are explicit in RECOMP-10.
 
 - 2026-11-02, 03:54 Pacific: root's fresh0c5fc594 chain continues m12→m13→m14. Betty's observed card-game win grants actual19/1963; Venus use sets1892/2000/2015 and ends safe2633.52.69/5.38s, complete scripts, matching source/copy hashes and both independent save-only reloads pass. Public routes/checkers and29finite tests are ready; RECOMP-11 records pins and pending review. Other columns/armor and full campaigns remain incomplete.
+
+- Venus follow-up: Sonnet high accepts frozen38937184 with no P1/P2; both static evidence/ledger checks pass. Input hashes explicitly include fragment trailing newlines, excluding the load prefix. Optional test gaps and shared save-name limits remain documented in RECOMP-11.

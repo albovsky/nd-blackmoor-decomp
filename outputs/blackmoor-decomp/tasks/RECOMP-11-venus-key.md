@@ -22,9 +22,11 @@ All29 finite Python cases pass, including seven new generation/transition/held-k
 
 ## Review and limits
 
-Required registered-test evidence was refreshed in clean db4db435; `venus-refresh-receipt.json` verifies every function status/class/count/native lift field and all1763 peer tested-equivalent claims unchanged. Public CLI bytes also equal the actual0c exercised inputs. Independent Sonnet review and final freshness checks are pending. No function-port acceptance or match claim is added. Other deals, alternate difficulty, other columns/armor, a real-clock Mac replay of these long virtual waits, full campaigns and final background credits remain incomplete. Private story continuation throughm27 and the separate Senior campaign are outside this slice's reviewed claim.
+Required registered-test evidence was refreshed in clean db4db435; `venus-refresh-receipt.json` verifies every function status/class/count/native lift field and all1763 peer tested-equivalent claims unchanged. Public CLI bytes also equal the actual0c exercised inputs. Both frozen38937184 static freshness checks pass. Independent Sonnet high review accepts38937184 with no P1, blocking P2 or other P2 (`venus-review.txt`). Root accepts the optional prerequisite/art-state/byte-bound test gaps; existing code checks those prerequisites/art states, and the exercised m13/m14 inputs are below both bounds. Arbitrary save-name length/character validation remains the shared helper's existing limit. No function-port acceptance or match claim is added. Other deals, alternate difficulty, other columns/armor, a real-clock Mac replay of these long virtual waits, full campaigns and final background credits remain incomplete. Private story continuation throughm27 and the separate Senior campaign are outside this slice's reviewed claim.
 
 ## Source and input pins
+
+CLI/input hashes below include the trailing newline and cover the fragment only; `route_load.sh` adds the separate seven-step load prefix. The checker samples the first ordered pre-win2704 observation, not every frame during the game. Saved inventory/write provenance continues to rely on the separate reload receipts.
 
 - `recomp/route_tools/story_route.py`: `5f2a0f5380eee4cfc74ed7c59e02c03862bde276f25357dafc151bae68ca9043`
 - `recomp/route_tools/check_route.py`: `1c807d12d673c782d7f05341328b0094fb56502807d82c38f2ccaebf73bba31b`
