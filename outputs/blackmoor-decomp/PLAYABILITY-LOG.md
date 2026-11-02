@@ -121,3 +121,5 @@ Original game files and reserved ledger/evidence outputs are unchanged. Neither 
 - Widescreen review: Sonnet high acceptsd01450ef, no P1/blocking P2. Root records interior-only geometry, shared alpha tolerance and separate profile-probe limits in RECOMP-15; no post-review code changes.
 
 - 2026-11-02 Pacific: public passage/Linda routes reach genuine m23, and the exact bounded live Bul client wins key7/save/fresh reload in separate observed Junior/Senior attempts.25/49decisions,239/335producer steps; all four sessions exit0 with clean FIFO finish.61finite fixtures pass. Initial PPM-parser refusal is retained, corrected by a strict native-header regression. RECOMP-16 records pins and pending review; no host/guest state patch or all-deal claim.
+
+- Key-wager review: Sonnet accepts58a97c22, no P1; root accepts nonblocking orchestration/refusal, extra-observation and prefix-fixture gaps recorded in RECOMP-16. Both static freshness checks pass, preserving1781peer claims; no code changed after review.
