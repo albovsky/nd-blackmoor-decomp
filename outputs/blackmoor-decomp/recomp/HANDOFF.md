@@ -1,5 +1,9 @@
 # Handoff: recompiled GAME.EXE, state and next steps
 
+## Latest oil and rune passage, 2026-11-02 Pacific
+
+RECOMP-27 continues actual public m47 through1944oil, realcrest2 gargoyle1974/1877 and rune1864/2081/2003 to safe3050/held4. Two producer/fresh-save-only reload pairs pass on reviewedb49; UI m48/m49 saved03:35/03:42. Original3175flicker legitimately sets1809: a strict source-backed checker phase fixes the inheritedzero assumption, and revalidates the retained run without replay.112finite checks pass, affected92rerun after checker delta. Sonnet accepts frozen3c4fde42 with no blockers; guarded metadatad34674ba preserves1824peer claims. Packet pins exact outputs, raw inputs/logs, accepted outer-proof limits and next gates. Both full campaigns have won Bell organ and earned actualMercury9; their separatecc7 proof is pinned in RECOMP27. Ending remains incomplete.
+
 ## Latest typing crest and native build, 2026-11-02 Pacific
 
 RECOMP-25 adds the direct Corbin portrait route and first-time Junior typing client. The actual first attempt wins2014 without an abandoned m46, preserves1687=0, accepts only the original post-win03:15 clock reset, picks/examines real crest2 and passes original UI save/fresh reload.108 finite checks pass. Portrait uses reviewed742; typing uses the new b49 native build after peer314's two call-next fixes. All4604other generated function bodies and registration/census are identical; both new ARM64 headless/Mac builds pass, Mac signature verified without launch. Sonnet accepts frozen8878b641 without blockers; guarded metadata83b9931f preserves1824peer claims. New native acceptance remains menu/load and this one typing/crest/reload; Mac acceptance is build/signature only. Exact hashes, OCR inputs, source boundary and unverified error/App paths are in RECOMP25/26; no full game or ending claim.

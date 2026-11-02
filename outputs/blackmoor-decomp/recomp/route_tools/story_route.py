@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The story routes of ROUTES.md as INPUT strings for rc_headless.
 
-  python3 story_route.py LEG [--save NAME]      LEG is one of: stairs, lock, slider, moon, telescope-prep, linda, jane-intro, jane-jigsaw, telescope-use, seedlings, crank-repair, betty-key, venus-column, jupiter-column, moon-key, moon-column, nigel-computer, night-wait, goggles, ghost-hunt, afternoon-door, linda-passage, bul-start, slide-ball, saturn-column, dragon-passage, glyph-request, lit-word-clue, loulou-barber, loulou-morning, drake-magic, loulou-answer, light-depletion, paid-light-request, word-lock, right-fire-panel, ethel-start, linda-curse, gargoyle-inspect, corbin-portrait, typing-start, slider-verify
+  python3 story_route.py LEG [--save NAME]      LEG is one of: stairs, lock, slider, moon, telescope-prep, linda, jane-intro, jane-jigsaw, telescope-use, seedlings, crank-repair, betty-key, venus-column, jupiter-column, moon-key, moon-column, nigel-computer, night-wait, goggles, ghost-hunt, afternoon-door, linda-passage, bul-start, slide-ball, saturn-column, dragon-passage, glyph-request, lit-word-clue, loulou-barber, loulou-morning, drake-magic, loulou-answer, light-depletion, paid-light-request, word-lock, right-fire-panel, ethel-start, linda-curse, gargoyle-inspect, corbin-portrait, typing-start, oil-gargoyle, rune-passage, slider-verify
   python3 story_route.py slider-verify          replays the recorded 105 slider moves on the puzzle rules and prints whether they solve it
 
 Each leg starts from a save made in the game's own Load & Save screen and (with --save NAME) ends by saving the next one, so the legs chain:
@@ -1489,6 +1489,47 @@ def typing_reload_payload():
     return r.text()
 
 
+
+def leg_oil_gargoyle(save=None):
+    """m47 -> authored oil1944 and actual crest2 gargoyle opening, safe3416.
+
+    Preserve the recorded oil-story pause and R,R,L,R,L,L,R turns. Crest2
+    remains an owned examination item; no inventory selection/PUT is added.
+    """
+    a = 'S4114.CIF'
+    r = R().at(a, 0)
+    _observed_walk(r, 12000, '310,353 40,162 307,175 319,171 319,171', 10000, 6000)
+    r.at(a, 62000).clicks('311,180', 0)
+    r.at(a, 212000).clicks('shot', 0)
+    _observed_walk(r, 225000, '310,161 68,161 161,161 311,164 329,163 329,163 '
+                   '126,163 326,162 326,162 326,162 464,199', 7000, 4500)
+    _observed_walk(r, 310000, '376,202 376,202 236,202 376,202 236,202 236,202 376,202', 7000, 4500)
+    r.at(a, 375000).clicks('shot', 0)
+    out = [r.text()]
+    if save:
+        out += [menu_to_save_screen(a, 378000), save_tail(a, 396000, save)]
+    return ';'.join(out)
+
+
+def leg_rune_passage(save=None):
+    """m48 -> nearby curse and six original rune clicks, actual win and held4.
+
+    Original passage entry changes2041/2042. Preserve every recorded click
+    and observation; this route ends at3050 without replacement/alchemy.
+    """
+    a = 'S3416.CIF'
+    r = R().at(a, 12000).clicks('302,190 284,165 293,176 315,164 312,178 311,70', 4000)
+    r.at(a, 56000).clicks('shot', 0)
+    r.at(a, 60000).clicks('311,355 311,193', 4000)
+    r.at(a, 68000).clicks('shot', 0)
+    _observed_walk(r, 72000, '274,318 183,158 456,78 274,238 456,158 456,318', 5000, 3500)
+    r.at(a, 118000).clicks('shot', 0)
+    out = [r.text()]
+    if save:
+        out += [menu_to_save_screen(a, 154000), save_tail(a, 172000, save)]
+    return ';'.join(out)
+
+
 def verify_slider():
     """The puzzle rules of the body of S3450 (action_family_d3_runtime.c): five rows by six columns; types 0x10..0x13 are one-way edge arrows, 0x14 walls,
     1..10 the cell a piece of that number must rest on. A piece slides until a barrier or another piece stops it."""
@@ -1544,7 +1585,8 @@ if __name__ == '__main__':
             'paid-light-request': leg_paid_light_request, 'word-lock': leg_word_lock,
             'right-fire-panel': leg_right_fire_panel, 'ethel-start': leg_ethel_start,
             'linda-curse': leg_linda_curse, 'gargoyle-inspect': leg_gargoyle_inspect,
-            'corbin-portrait': leg_corbin_portrait, 'typing-start': leg_typing_start}
+            'corbin-portrait': leg_corbin_portrait, 'typing-start': leg_typing_start,
+            'oil-gargoyle': leg_oil_gargoyle, 'rune-passage': leg_rune_passage}
     if leg not in legs:
         sys.exit(__doc__)
     print(legs[leg](save))
