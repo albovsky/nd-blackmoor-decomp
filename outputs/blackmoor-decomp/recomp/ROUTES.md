@@ -337,3 +337,9 @@ Supplementary actual Mac app check from genuine private m29 reaches2910/held4 wi
 ## Widescreen cached rendering, 2026-11-02 Pacific
 
 RECOMP-15 adds8 fixed production-view cache pixel checks in each960x480 fit/stretch mode, preserving10 direct-view pointer checks and quiet-window guards. Both modes pass on measured2x backing. The profile-aware oracle compares independent literal sRGB colors in the actual cache ICC profile, retaining2/255 tolerance; initial GenericRGB interpretation failures and the diagnosis remain recorded. No renderer or game logic changes. See RECOMP-15 for exact pins/evidence and physical-display/other-profile limits. This fixture advances desktop verification, not the story frontier.
+
+## Passage wager and key7, 2026-11-02 Pacific
+
+`afternoon-door --save m22` and `linda-passage --save m23` continue the public ghost chain through2058 and Linda1494/1496/1498/2156, with fresh producer/reload proof. `bul-start` reaches the original wagered1261 board and rejects saving; the fixed100-roll candidate lost naturally. Use `route_tools/bul_live.py` with the supplied reviewed-native/source pins and a new output directory for one bounded pixels-only attempt. See BUL-LIVE.md for exact arguments. `check_route.py --route bul-key` validates an earned result, not a solve promise.
+
+The exact public client wins observed Junior and Senior games, original3635→1258→1259/1405, actual7, safe3510/view4 UI save and fresh-only actual7 reload. Junior239steps/25decisions; Senior335steps/49decisions;61finite fixtures pass. RECOMP-16 pins both independent lineages and retains the initial normal PPM-parser refusal. Every move is ordinary UI; the original game owns the puzzle. Other deals/starting states remain unverified; no optimal/all-deal guarantee or full-campaign claim.

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The story routes of ROUTES.md as INPUT strings for rc_headless.
 
-  python3 story_route.py LEG [--save NAME]      LEG is one of: stairs, lock, slider, moon, telescope-prep, linda, jane-intro, jane-jigsaw, telescope-use, seedlings, crank-repair, betty-key, venus-column, jupiter-column, moon-key, moon-column, nigel-computer, night-wait, goggles, ghost-hunt, slider-verify
+  python3 story_route.py LEG [--save NAME]      LEG is one of: stairs, lock, slider, moon, telescope-prep, linda, jane-intro, jane-jigsaw, telescope-use, seedlings, crank-repair, betty-key, venus-column, jupiter-column, moon-key, moon-column, nigel-computer, night-wait, goggles, ghost-hunt, afternoon-door, linda-passage, bul-start, slider-verify
   python3 story_route.py slider-verify          replays the recorded 105 slider moves on the puzzle rules and prints whether they solve it
 
 Each leg starts from a save made in the game's own Load & Save screen and (with --save NAME) ends by saving the next one, so the legs chain:
@@ -26,6 +26,10 @@ Each leg starts from a save made in the game's own Load & Save screen and (with 
   m18 --night-wait--> m19 (ordinary original-clock wait into the night window; safe S4111)
   m19 --goggles--> m20 (authored night interruption and real goggles 21; safe S4111)
   m20 --ghost-hunt--> m21 (all thirteen original ghosts, win and reward; safe S4111)
+  m21 --afternoon-door--> m22 (real locked-door attempt and original afternoon wait, safe S3360)
+  m22 --linda-passage--> m23 (Linda passage conversation, safe S4408)
+  m23 --bul-start--> S1261 (wagered Bul; live play required, no save tail)
+  bul_live.py may earn and verify m24 through ordinary play; loss/incomplete runs are refused.
 
 Steps are `anchor+ms:kind:args` (rc_headless.c). `click x,y,hold` is a move 1 s before the click; `mv:x,y` a bare move; `key:VK` a key press.
 A bare click on a hotspot needs a move onto it first or the game ignores it (the cursor must have been seen there), so every click has its move.
@@ -105,6 +109,19 @@ def menu_to_save_screen(anchor, t):
     """Taskbar MENU, then Load & Save; the screen is up 6 s after the second click."""
     return ';'.join(['%s+%d:move:75,448' % (anchor, t), '%s+%d:click:75,448,1000' % (anchor, t + 1000),
                      '%s+%d:move:275,95' % (anchor, t + 5000), '%s+%d:click:275,95,1000' % (anchor, t + 6000)])
+
+
+def load_save_prefix(slot_y=105):
+    """The same seven ordinary main-menu load steps used by route_load.sh."""
+    if type(slot_y) is not int or not 0 <= slot_y < 480:
+        raise ValueError('invalid load row')
+    r = R().at('MAIN.CIF', 1400).clicks('mv:275,95', 0)
+    r.o.append('MAIN.CIF+2400:click:275,95,800')
+    r.at('MAIN.CIF', 9000).clicks('mv:300,%d' % slot_y, 0)
+    r.o.append('MAIN.CIF+10000:click:300,%d,800' % slot_y)
+    r.at('MAIN.CIF', 14000).clicks('mv:553,248', 0)
+    r.o += ['MAIN.CIF+15000:click:553,248,800', 'MAIN.CIF+20000:shot:0,0']
+    return r.text()
 
 
 def leg_stairs(save=None):
@@ -810,6 +827,122 @@ def leg_ghost_hunt(save=None):
     return ';'.join(out)
 
 
+def _observed_walk(r, start, points, gap=5000, shot_after=3500):
+    """Keep each exercised move/click and its separate observation slot."""
+    anchor = r.a
+    for i, point in enumerate(points.split()):
+        t = start + gap * i
+        r.at(anchor, t).clicks(point, 0)
+        r.o.append('%s+%d:shot:0,0' % (anchor, t + shot_after))
+    return r
+
+
+def leg_afternoon_door(save=None):
+    """m21 -> original locked-door attempt and afternoon wait, safe m22.
+
+    Ordinary idle time advances the original clock. Preserve the exercised
+    center click after waiting, followed by the original UI save.
+    """
+    a = 'S4111.CIF'
+    r = R().at(a, 0)
+    _observed_walk(r, 12000, '310,353 274,188 307,175 307,175 319,171 319,171')
+    _observed_walk(r, 43000, '310,161 68,161 161,161 311,164 329,163 329,163 '
+                   '495,163 318,163 318,163 318,163 469,164 316,166')
+    r.at(a, 103000).clicks('316,168', 0)
+    r.at(a, 109000).clicks('shot', 0)
+    r.at(a, 127000).clicks('shot', 0)
+    r.at(a, 15730000).clicks('320,60', 0)
+    r.at(a, 15733000).clicks('shot', 0)
+    out = [r.text()]
+    if save:
+        out += [menu_to_save_screen(a, 15736000), save_tail(a, 15754000, save)]
+    return ';'.join(out)
+
+
+def leg_linda_passage(save=None):
+    """m22 -> Linda, Great Hall return and passage conversation, safe m23.
+
+    Retain the actual conversation waits and caption choices. These dialogue
+    scenes keep the room artwork while the original requested scene changes.
+    """
+    a = 'S3360.CIF'
+    r = R().at(a, 0)
+    _observed_walk(r, 12000, '310,353 310,353 153,162 326,162 326,162 326,162 326,162 563,161')
+    _observed_walk(r, 52000, '292,189 292,162 72,165 316,180 391,170', 14000, 8000)
+    r.at(a, 122000).clicks('276,166', 0)
+    r.at(a, 159000).clicks('shot', 0)
+    r.at(a, 175000).clicks('150,440', 0)
+    r.at(a, 205000).clicks('shot', 0)
+    r.at(a, 215000).clicks('310,354 shot 310,354 shot', 5000)
+    r.at(a, 235000).turns('left', 8).clicks('shot', 0)
+    _observed_walk(r, 260000, '290,195 312,163 415,163', 10000, 6000)
+    _observed_walk(r, 290000, '310,353 533,162 329,163 329,163 563,162')
+    r.at(a, 315000).turns('right', 1)
+    _observed_walk(r, 317500, '563,164 543,81 311,164 329,163 329,163 126,163 326,162 563,161')
+    _observed_walk(r, 357500, '292,189 292,162 72,165 316,180 391,170', 14000, 8000)
+    r.at(a, 427500).clicks('276,166', 0)
+    r.at(a, 464500).clicks('shot', 0)
+    for t, y, shot in ((480000, 440, 516000), (535000, 440, 631000),
+                       (640000, 440, 666000), (680000, 440, 716000),
+                       (725000, 453, 751000)):
+        r.at(a, t).clicks('150,%d' % y, 0)
+        r.at(a, shot - 1000).clicks('shot', 0)
+    out = [r.text()]
+    if save:
+        out += [menu_to_save_screen(a, 755000), save_tail(a, 773000, save)]
+    return ';'.join(out)
+
+
+def leg_bul_start(save=None):
+    """m23 -> original passage wager and Bul board; no win or save claim.
+
+    The historical fixed100-roll policy lost on the root chain. Adaptive
+    ordinary roll/pass input is required after this start, in either mode.
+    """
+    if save is not None:
+        raise ValueError('bul-start ends inside Bul; use bul_live.py for an observed win/save')
+    a = 'S4408.CIF'
+    r = R().at(a, 0)
+    _observed_walk(r, 12000, '310,354 310,354', 10000, 6000)
+    r.at(a, 32000).turns('left', 8).clicks('shot', 0)
+    _observed_walk(r, 57000, '290,195 312,163 415,163', 10000, 6000)
+    _observed_walk(r, 87000, '326,162 326,162 220,164 482,220')
+    _observed_walk(r, 107000, '308,193 292,162 306,173', 14000, 8000)
+    r.at(a, 149000).turns('left', 4).clicks('shot', 0)
+    for t, point, shot in ((165000, '312,233', 190000),
+                           (205000, '150,440', 246000),
+                           (255000, '150,440', 326000)):
+        r.at(a, t).clicks(point, 0)
+        r.at(a, shot - 1000).clicks('shot', 0)
+    return r.text()
+
+
+def bul_win_tail(save):
+    """Original pickup/bag/save UI, for a caller that has observed S1259 +1405.
+
+    This helper never establishes a win. The live player checks the real
+    authored win before sending it, then checks actual7 and the resulting save.
+    """
+    r = R()
+    won = 'S1259.CIF'
+    r.at(won, 10000).clicks('150,453', 0)
+    r.at(won, 33000).clicks('shot', 0)
+    r.at(won, 38000).clicks('312,178', 0)
+    r.at(won, 58000).clicks('shot', 0)
+    r.at(won, 63000).clicks('22,405,6000', 0)
+    r.o += ['%s+%d:move:22,%d' % (won, 64500 + 400 * i, y)
+            for i, y in enumerate((410, 415, 420, 425, 430, 435, 440, 445, 450, 455, 456))]
+    r.at(won, 71500).clicks('shot', 0)
+    r.at(won, 82000).clicks('150,438', 0)
+    r.at(won, 102000).clicks('shot', 0)
+    r.at(won, 107000).clicks('212,448 60,100', 5000).clicks('shot', 0)
+    r.at(won, 122000).clicks('212,448 62,100 360,20 shot', 5000)
+    out = [r.text()]
+    if save:
+        out += [menu_to_save_screen(won, 142000), save_tail(won, 160000, save)]
+    return ';'.join(out)
+
+
 def leg_slider(save=None, gap=5000):
     """m4 -> m5. S3447 stairs hotspot, the slider puzzle S3450 (105 moves), the compartment S3452/S3453 item, the cancel strip at S3455, S3457, S3303."""
     r = R().at('S3447.CIF', 8000).clicks('mv:230,150 mv:241,166 241,166,300', 3000)
@@ -874,7 +1007,8 @@ if __name__ == '__main__':
             'jupiter-column': leg_jupiter_column, 'moon-key': leg_moon_key,
             'moon-column': leg_moon_column, 'nigel-computer': leg_nigel_computer,
             'night-wait': leg_night_wait, 'goggles': leg_goggles,
-            'ghost-hunt': leg_ghost_hunt}
+            'ghost-hunt': leg_ghost_hunt, 'afternoon-door': leg_afternoon_door,
+            'linda-passage': leg_linda_passage, 'bul-start': leg_bul_start}
     if leg not in legs:
         sys.exit(__doc__)
     print(legs[leg](save))
