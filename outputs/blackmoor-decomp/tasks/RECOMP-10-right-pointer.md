@@ -18,7 +18,7 @@ Native headless SHA `0c5fc594069a23886c9357a9556c2715d1e3758a17aff04bc962211d15d
 
 ## Remaining checks and limits
 
-The twelve-leg fresh New Game-to-m12 navigation regression is running against the new host. Independent Sonnet review and required generated-record freshness checks follow its completion. The broad suite is intentionally not run under the owner's restriction on crash-producing tests; no existing test is weakened or removed.
+All twelve fresh New Game-to-m12 navigation runs pass on the new host, including the optional Memory entry. Every script completes through its own stop; preceding output/source/copied-save hashes match. Stable saves and verification are in `right-pointer-fresh-chain/verified-chain.json`. The final seedlings/repair runs take32.01/77.39s. Required generated records were refreshed in a clean5aa08ff3 checkout: all statuses/classes/counts/native lift fields equal current main5abba5b3, including its1763 tested-equivalent peer claims. Peer integration changes no compiled source. Receipt: `right-pointer-refresh-receipt.json`. Independent Sonnet review and final freshness checks are pending. The broad suite is intentionally not run under the owner's restriction on crash-producing tests; no existing test is weakened or removed.
 
 Physical mouse events through the complete app bridge, multiple rotations/packing victory, simultaneous-button ordering against Windows, focus-loss releases, recent-press latches, displayed widescreen rendering, both full campaigns and final native credits remain unverified. This is a host-input slice; private story continuation has separately earned the ghost-hunt reward, Jane's key and the East Hall slide ball through m25, awaiting reviewed route promotion.
 
