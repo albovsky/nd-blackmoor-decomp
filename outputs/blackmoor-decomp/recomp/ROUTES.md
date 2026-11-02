@@ -1,5 +1,13 @@
 # Scripted routes on the native recompiled build
 
+## Earned ending
+
+`python3 recomp/route_tools/earned_ending_route.py > work/ending-input.txt` emits the exact45 ordinary events from the only genuine pre-ending save in the Load list. Use `--without-load` for its38-event body or `--slot-y Y` for another observed save row. There is no save tail. Start at3844/view0/held15 with2004=1, using the game's own pre-ending UI save; the helper neither creates nor edits one. It preserves the S3909+200ms short escape and observed post-win Aeolus N1,N2,W2,W2 walk. Award continuation anchors6517 rather than assuming one difficulty's award.
+
+Both Junior m77 and Senior s85 fresh-source replays pass on reviewed b49:45/45 steps, normal stop/exit0, actual story→closing→award6527/6529→teaser→6562/CREDITBK/CRED01. Two closed captures per run show different scrolling-credit positions. Native times are58.04/58.14s, virtual times338029/338031ms. Use MAX_IMPORTS=90000000, MAX_IDLE_POLLS=300000, SCRIPT_TAIL_MS=5000 and RC_FLAGS=1039-1040,1959,1973,1999,2004,2017. See RECOMP-30 and campaigns/ for exact save/build/input/log/frame metadata. These are ending-only b49 runs; historical complete campaigns retain their own build boundaries. The final Mac app run is separate and pending.
+
+## Input format
+
 Headless runs of `rc_headless` (see `rc_headless.c`) with the deterministic virtual clock. A route is the `INPUT` string:
 `time:kind:args` steps separated by `;`, `kind` = `move`, `click` (args `x,y[,hold_ms]`), `key` (args: virtual-key code) or `shot` (a picture of the
 primary surface, `frames/shotNNN.ppm`). `time` is virtual ms, or `FILE.EXT+ms`: that long after the game first opened that file. Steps that share an anchor

@@ -1,0 +1,296 @@
+{
+  "accepted": true,
+  "scope": "Two current-b49 headless earned-ending replays from genuine Junior/Senior pre-ending UI saves; not a whole-current-build campaign or final Mac app acceptance.",
+  "native_checks": {
+    "path": "work/recomp-playability-20261101/root-current-earned-ending-v1/verified-native-checks.json",
+    "sha256": "ae69dadc5830a880734620bf988f4291558559a9584150528bf0018534f6e791"
+  },
+  "native_sha256": "b49eaa71885a02e9e096b9766f020576ef0a0381837cd036f0875bab49351e24",
+  "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+  "input_sha256": "e5b53faca002963e8b541563077b0a2194625d2206ab9c6437158ed65cb075f0",
+  "visual_review": [
+    {
+      "profile": "junior",
+      "observed": "Original scrolling credits; shot010 contains 3D Artists and 2D Artists above Lead Developer, while shot011 has advanced to Production Assistant and President & CEO. Static Nancy silhouette/background remains stable.",
+      "closed_png_pins": {
+        "shot010.png": "eb4c216b97c5aa3a51f7d4d09ac5efdf9c128cba305b6dabcb92545e41546a19",
+        "shot011.png": "291ab3892d1e1921a16489964cb6b6fee5f71fdc1512844ed2c602f8f7fcf08a"
+      }
+    },
+    {
+      "profile": "senior",
+      "observed": "Original scrolling credits; shot010 contains 3D Artists and 2D Artists above Lead Developer, while shot011 has advanced to Production Assistant and President & CEO. Static Nancy silhouette/background remains stable.",
+      "closed_png_pins": {
+        "shot010.png": "eb4c216b97c5aa3a51f7d4d09ac5efdf9c128cba305b6dabcb92545e41546a19",
+        "shot011.png": "291ab3892d1e1921a16489964cb6b6fee5f71fdc1512844ed2c602f8f7fcf08a"
+      }
+    }
+  ],
+  "runs": [
+    {
+      "profile": "junior",
+      "difficulty": 0,
+      "award_scene": 6527,
+      "receipt_sha256": "b24c90fb6b4377be5fe91e26cc108fef85ef2b2605bbb57cd34891c058f479fb",
+      "log_sha256": "116f8bbd183e4aba2da8249514d422d55170a5616325744de363f47b9f536880",
+      "native_returncode": 0,
+      "all_45_steps_complete": true,
+      "ordinary_self_stop": true,
+      "wall_seconds": 58.067,
+      "shot_count": 11,
+      "required_scene_subsequence": [
+        3884,
+        3885,
+        3900,
+        3901,
+        3902,
+        3903,
+        3904,
+        3905,
+        3909,
+        3906,
+        3907,
+        3908,
+        1940,
+        1942,
+        3912,
+        3812,
+        3813,
+        3999,
+        3940,
+        3975,
+        4000,
+        4001,
+        4002,
+        4004,
+        4003,
+        6500,
+        6517,
+        6527,
+        6560,
+        6561,
+        6562
+      ],
+      "observations": [
+        [
+          3844,
+          3844,
+          0,
+          15
+        ],
+        [
+          3908,
+          3908,
+          0,
+          -1
+        ],
+        [
+          1940,
+          1940,
+          0,
+          -1
+        ],
+        [
+          3912,
+          3912,
+          0,
+          -1
+        ],
+        [
+          3940,
+          3940,
+          0,
+          -1
+        ],
+        [
+          3940,
+          3940,
+          0,
+          -1
+        ],
+        [
+          3940,
+          3940,
+          0,
+          -1
+        ],
+        [
+          6501,
+          6501,
+          0,
+          -1
+        ],
+        [
+          6527,
+          6527,
+          0,
+          -1
+        ],
+        [
+          6562,
+          6562,
+          0,
+          -1
+        ],
+        [
+          6562,
+          6562,
+          0,
+          -1
+        ]
+      ],
+      "frame_pins": {
+        "shot001.ppm": "3a0144dc4a8049885f89f23f414cccbb77a98976f46b50cfd21a4b2e25d01679",
+        "shot002.ppm": "2ae009a8e74753af2b8611bf5a24717c8d111a7f305e0b77c1dfa739540ce846",
+        "shot003.ppm": "fc69410f6f1151cb3b6dbdf7838e558e4907fc7ed9dd1dcbff71032b7d724aa4",
+        "shot004.ppm": "473b1016ab96bfdbecc5916b917adc66316f86d641fea045c0574bdb96aad0db",
+        "shot005.ppm": "c0c27f6ba8599dc9d12900053b56775580f7d52163a1932a48bbab07af74286a",
+        "shot006.ppm": "fc8cc3e024898216dc1279436871e376dd84e85ce3647767b1600a6c623f8d0c",
+        "shot007.ppm": "b2c456fee24111ff00bf83e3c0fb643b626968edf7d97c51794b4f780f2b8b09",
+        "shot008.ppm": "4b95160739f5fa185ded167030950f8112597749051bed35b5859ee85266cd2f",
+        "shot009.ppm": "0bcda3f7558a813f287d7adb7bb1b37aa6714945e4dcf6c64a99d5bb50f99b6f",
+        "shot010.ppm": "a94dbc108cdfd5ebd37e2b49f522a4d4caf446fc8663da8c7f4adee5c9c775a0",
+        "shot011.ppm": "4d63edd33891612acb808c367ff134d53476dadbacb392697aaa4694dd9a54c6"
+      },
+      "final_saves": {
+        "m77.SAV": "3ee8126eede376f246f24075d5351cd5e973e148d175befecb53019d89a79aaa",
+        "HICONTINUECHEAT.SAV": "5735e0e9e505e039d1f030abb717dc5f0b0879da9d7cb01af3b8acfc9921fbaf"
+      },
+      "inputs_unchanged": true
+    },
+    {
+      "profile": "senior",
+      "difficulty": 2,
+      "award_scene": 6529,
+      "receipt_sha256": "19a39d63d66e9e5b203ee4895c81a88a3f09ba69ac1f8072eeae4c7e4ab71bc7",
+      "log_sha256": "1f6dd34210e5c01b6be1ec4eceae474191b289642f93f08a37c59e03347918c3",
+      "native_returncode": 0,
+      "all_45_steps_complete": true,
+      "ordinary_self_stop": true,
+      "wall_seconds": 58.213,
+      "shot_count": 11,
+      "required_scene_subsequence": [
+        3884,
+        3885,
+        3900,
+        3901,
+        3902,
+        3903,
+        3904,
+        3905,
+        3909,
+        3906,
+        3907,
+        3908,
+        1940,
+        1942,
+        3912,
+        3812,
+        3813,
+        3999,
+        3940,
+        3975,
+        4000,
+        4001,
+        4002,
+        4004,
+        4003,
+        6500,
+        6517,
+        6529,
+        6560,
+        6561,
+        6562
+      ],
+      "observations": [
+        [
+          3844,
+          3844,
+          0,
+          15
+        ],
+        [
+          3908,
+          3908,
+          0,
+          -1
+        ],
+        [
+          1940,
+          1940,
+          0,
+          -1
+        ],
+        [
+          3912,
+          3912,
+          0,
+          -1
+        ],
+        [
+          3940,
+          3940,
+          0,
+          -1
+        ],
+        [
+          3940,
+          3940,
+          0,
+          -1
+        ],
+        [
+          3940,
+          3940,
+          0,
+          -1
+        ],
+        [
+          6501,
+          6501,
+          0,
+          -1
+        ],
+        [
+          6529,
+          6529,
+          0,
+          -1
+        ],
+        [
+          6562,
+          6562,
+          0,
+          -1
+        ],
+        [
+          6562,
+          6562,
+          0,
+          -1
+        ]
+      ],
+      "frame_pins": {
+        "shot001.ppm": "3a0144dc4a8049885f89f23f414cccbb77a98976f46b50cfd21a4b2e25d01679",
+        "shot002.ppm": "2ae009a8e74753af2b8611bf5a24717c8d111a7f305e0b77c1dfa739540ce846",
+        "shot003.ppm": "fc69410f6f1151cb3b6dbdf7838e558e4907fc7ed9dd1dcbff71032b7d724aa4",
+        "shot004.ppm": "473b1016ab96bfdbecc5916b917adc66316f86d641fea045c0574bdb96aad0db",
+        "shot005.ppm": "c0c27f6ba8599dc9d12900053b56775580f7d52163a1932a48bbab07af74286a",
+        "shot006.ppm": "fc8cc3e024898216dc1279436871e376dd84e85ce3647767b1600a6c623f8d0c",
+        "shot007.ppm": "b2c456fee24111ff00bf83e3c0fb643b626968edf7d97c51794b4f780f2b8b09",
+        "shot008.ppm": "4b95160739f5fa185ded167030950f8112597749051bed35b5859ee85266cd2f",
+        "shot009.ppm": "a826eccd9afb1a963b9193c48a9663f5e9fb91669030581f99e9ab2904784c60",
+        "shot010.ppm": "a94dbc108cdfd5ebd37e2b49f522a4d4caf446fc8663da8c7f4adee5c9c775a0",
+        "shot011.ppm": "4d63edd33891612acb808c367ff134d53476dadbacb392697aaa4694dd9a54c6"
+      },
+      "final_saves": {
+        "s85.SAV": "c5ea21060b73805960c54a78715b3572c2f0e121cdeff18469841b334d685980",
+        "HICONTINUECHEAT.SAV": "fb50e20474bf235468b9228f89780cc5063bcc55b7c00e8a15c4d167382aae1a"
+      },
+      "inputs_unchanged": true
+    }
+  ],
+  "preserved_postcheck_refusal": "Original frozen runner expected12 observations instead of the11 actual shot requests; native runs both exited0 after all45steps. Original runner/receipts remain unchanged. This additive audit derives the exact shot count from the frozen input and uses the actual bytes-returning ppm API; no gameplay was repeated.",
+  "final_Mac_app_acceptance": false,
+  "whole_goal_complete": false
+}
