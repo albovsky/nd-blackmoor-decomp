@@ -14,8 +14,9 @@ typedef struct RcInputScriptStatus {
     unsigned total, consumed, delivered, shots;
     int requested_stop, failed;
 } RcInputScriptStatus;
-/* Parsing/loading happens before starting guest execution. Maximum 512 steps,
- * 65536 bytes, 63-byte time/anchor field and 7-byte kind; refusal is atomic. */
+/* Legacy frontends parse/load before guest execution. Live-control batches may
+ * parse synchronously under the MAIN guest token; never parse concurrently.
+ * Maximum512 steps,65536 bytes,63-byte time/anchor and7-byte kind; atomic refusal. */
 RcInputScript *rc_input_script_parse(const char *text, RcInputScriptShot shot,
                                     void *user, char *error, size_t capacity);
 RcInputScript *rc_input_script_load_file(const char *path, RcInputScriptShot shot,
