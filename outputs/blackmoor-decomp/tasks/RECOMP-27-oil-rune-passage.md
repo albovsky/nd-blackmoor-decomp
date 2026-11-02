@@ -41,3 +41,36 @@ Complete rune-passage scope:
 ```sh
 export RC_FLAGS='338,339,340,341,1148,1149,1150,1151,1152,1153,1154,1155,1156,1157,1158,1159,1160,1162,1163,1164,1165,1166,1167,1168,1169,1170,1171,1172,1173,1174,1192,1259,1349,1357,1361,1388,1404,1405,1408,1418,1435,1436,1465,1467,1476,1492,1494,1496,1498,1514,1525,1526,1541,1562,1569,1573,1575,1597,1672,1677,1682,1687,1692,1701,1774,1782,1783,1786,1788,1791,1804,1808,1809,1818,1820,1823,1836,1844,1863,1864,1865,1877,1892,1893,1906,1922,1925,1944,1947,1958,1960,1961,1963,1966,1967,1969,1970,1971,1972,1974,1977,1979,1980,1981,1984,1985,1993,1994,1996,1997,1999,2000,2001,2002,2003,2005,2014,2015,2018,2019,2036,2037,2039,2040,2041,2042,2050,2058,2059,2060,2062,2063,2069,2070,2077,2078,2081,2088,2092,2154,2156,2232'
 ```
+
+## Independent review and collection
+
+Sonnet high accepts frozen3c4fde42 with no P1/blockers; root accepts the nonblocking limits. It read JSON with one isolated Python call in addition to static files/hashes, without importing or executing project/native/game code. The review is retained at work/recomp-playability-20261101/oil-rune-review.txt, SHA89b981eba1ebfe84004a6c48327f3fc327d55620ee82ef6311769ba7052c89ca. No post-review code change.
+
+Root resolves reproducibility feedback with the exact input/raw-log pins below and retained reload-check-v2.py SHA8099768fa7eba0ad1a94fa9657403d580c061a5107f385bbad560ce70fc4c35e. Root outer evidence separately verifies fresh source-only/output-only clones and saved contents; a stale same-name170770byte file could satisfy standalone checker open/size checks, so those alone never grant acceptance. New tests remain proportional: phase/scope/clock/error cases already exercised; extra late1864/2081 and oil unchanged-flag negatives are unverified fixture branches, although generic phase/retained guards cover them. The rune_won result label appears only after full actual2003/open/held4 validation and cannot bypass it.
+
+The cause comment uses the observed3175→3176 sequence; its mechanical open check is a global subsequence, not an anchor to the flag observation index. Root accepts that inherited global-open limitation explicitly. The rune docstring nearbycurse is descriptive, not a reconstructed source-name claim. Original1809write and actual win are pinned separately. No additional transport/test framework or native replay was added for these nits.
+
+Mechanical --write derivations from3c4fde42 and guarded collectiond34674ba pass, preserving all1824peer tested-equivalence records, counts/status/class/originalrange/native/oracle evidence. Only the two generated JSON outputs are collected. No private-receipt/prover suite or redundant derivation. Root remains sole publisher under original HOW TO WORK5.
+
+Retained actual input and raw-log SHA-256 pins:
+
+- `root-oil-rune-v1/oil-gargoyle-m48/input.txt`: `0b58c75ca10c928cd993b73fdea9050a03bb2b3599aa235255f3da2a3b320127`
+- `root-oil-rune-v1/oil-gargoyle-m48/full-input.txt`: `9c1e7c13f795607fba32b4709d1704a4462c297fb6cd29f45033074f1c7d2575`
+- `root-oil-rune-v1/oil-gargoyle-m48/run.log`: `0e343a150402585d56c6b83858a3ef1e6818bd270ccdf178066a52557058d44c`
+- `root-oil-rune-v1/oil-gargoyle-m48/receipt.json`: `9bfe88c04aa077d95ad417436e4ee65d395d12b228a54a1f05ebda617b1d261d`
+- `root-oil-rune-v1/reload-m48/input.txt`: `f3ffa8055f45ab976762eadeae1c2681ea73fd5dad80a15f79b9d84370c68dea`
+- `root-oil-rune-v1/reload-m48/full-input.txt`: `c1ecafa1cf9156972951a67a91b3a4a69949721cbb42b4b76b4115749b7c338c`
+- `root-oil-rune-v1/reload-m48/run.log`: `f79f66b5f06f204a41bb2d99c1cca83698922b3e5db1010e616979829dd56f1b`
+- `root-oil-rune-v1/reload-m48/receipt.json`: `cb175f604337f5e0513254cf1ea5729931989e516b2973327cd5a845de21033a`
+- `root-oil-rune-v1/rune-passage-m49/input.txt`: `3f6e1f1a218e6f88775ba7c03028fc6c35aeef63f775ea58519057af6c3aea2f`
+- `root-oil-rune-v1/rune-passage-m49/full-input.txt`: `4cd52248febc76098cdc950304d1bcb098384ea6616b22a983df38cabd1ac78f`
+- `root-oil-rune-v1/rune-passage-m49/run.log`: `d5ff0cd0a9ec32132128ca1e6db5a3fe4be8d055206e1e3e05459bea2b6107c3`
+- `root-oil-rune-v1/rune-passage-m49/receipt.json`: `8540262d36cb8a850f9b5f2a8f82ffece2b2de47ad199e4701cc07c1c3e56913`
+- `root-oil-rune-v1/reload-m49/input.txt`: `0693e6f4fdab3c234431045042800b0f21245353827d5d79b9a61dfdf054bfe3`
+- `root-oil-rune-v1/reload-m49/full-input.txt`: `cba1b05ab658499e8e8a4ebffa881663738e57a72e9f03f4dc59c7d81d3da48a`
+- `root-oil-rune-v1/reload-m49/run.log`: `994105987ed7f3de30b60792959599338e1c6f495471445c5611eb074255b34b`
+- `root-oil-rune-v1/reload-m49/receipt.json`: `ec0a87ac1fc056dad070ec7662071f278e2270619f80e1d8af893e6d3c6801dc`
+
+Supplementary separate continuous-campaign progress, outside the public two-leg acceptance: Junior Bell verified-m70-native.json SHA453f2ffc24d78e3f913383a0cebb76262ce56833527b6fb04fcee6592986bae2; Senior verified-senior-bell.json SHA49fd95237f4b05ec074dc2863b78d47218d4abe0b8790f4ee504999b699b7600. Both physicalMercury9 pickup/freshheld9 proofs are columns-continuation/verified-m71-native.json SHA6fea52e931b3653e8935fe1868ac8813ee5d6188958e6cb303fb46736f709d68 and senior-chain/verified-senior-Mercury9.json SHA2fccf5872da40f83d00d9d06554d91ecf13f7a062d231f138c9410a6fa08f49a. These retain nativecc7 lineage; they are not silently relabeled b49 or collected as ending evidence.
+
+One local reporting-path mistake overwrote the private reload-m49 receipt during review-note generation. Root restored its exact original bytes only after matching the independently retained pre-error SHAec0a87ac1fc056dad070ec7662071f278e2270619f80e1d8af893e6d3c6801dc; native logs, inputs and saves were unchanged. root-oil-rune-v1/reporting-path-error-recovery.json retains the deterministic restoration evidence. No native replay or changed receipt hash is used.
