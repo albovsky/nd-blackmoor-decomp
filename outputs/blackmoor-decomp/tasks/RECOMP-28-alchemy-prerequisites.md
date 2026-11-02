@@ -43,3 +43,28 @@ Complete rune-light-replacement scope:
 ```sh
 export RC_FLAGS='338-341,1148-1160,1162-1174,1192,1259,1349,1357,1361,1388,1404-1405,1408,1418,1435-1436,1465,1467,1476,1492,1494,1496,1498,1514,1525-1526,1541,1562,1569-1570,1573,1575,1597,1672,1677,1682,1687,1692,1701,1774,1782-1783,1786,1788,1791,1804,1808-1809,1818,1820,1823,1836,1844,1863-1865,1877,1892-1893,1906,1922,1925,1944,1947,1958,1960-1961,1963,1966-1967,1969-1972,1974,1977,1979-1981,1984-1985,1993-1994,1996-1997,1999-2003,2005,2014-2015,2018-2019,2036-2037,2039-2042,2050,2058-2060,2062-2063,2069-2070,2077-2078,2081,2088,2092,2154,2156,2158,2232'
 ```
+
+## Independent review and collection
+
+Sonnet high accepts frozen2ebc3ccc with no P1/blockers; static code review only, not an independent native/original rerun. Root accepts its bounded collection recommendation. Review SHA52b124d78efd60dd37342396142cae7499513dc69e3d2cea812b38ffc1425195 is retained at work/recomp-playability-20261101/passage-light-review.txt. No later code change. All five source/test SHA pins above are rechecked by root, and final blobs remain identical to the reviewed freeze.
+
+Root resolves long-wait reproducibility by committing MAX_IDLE_POLLS=4000000/MAX_IMPORTS=90000000 and both route-check names in ROUTES.md. Root also verifies the entire actual output bag across40binary cells, exactly {2,4,6,7,11,12,16,17,19,20,21}, in retained verified-public-chain-v2.json/audit-public-chain-v2.py. The fresh reload copy is byte-identical. The client itself checks a subset after play; its broader-retention guarantee is therefore this observed outer proof, not a universal future-source claim. The initial v1failure staysrefused.
+
+Root accepts missing fake-Session orchestration coverage: actual frozen CLI producer/freshreload covers3585→3588 sequencing, context/route selection and retained2 in this real observed source; adding a mirrored observation script would duplicate it. Other context/error/I/O paths remain unverified. Low-risk extra negative cases, stale top-level route-list docstring and strict held-step comments are accepted fixture/docs limits; argparse choices are correct. The selectedclock lookup can match an earlier equal tuple; the actual admission clocks are within the sourced afternoon gate, without a general cross-window guarantee. No source-x86 behavioral equality claim follows from native route checks.
+
+Mechanical --write derivations from2ebc3ccc pass; guarded collectionda1925c2 preserves all1824peer tested-equivalence records, counts/status/class/originalrange/native/oracle evidence. Only the two generated JSON outputs are collected. No private-receipt/prover/fault suite or redundant derivation. Root remains sole publisher under original HOW TO WORK5.
+
+Actual raw input/receipt/log evidence pins:
+
+- `root-passage-light-v1/used5-wait-m50/input.txt`: `80cc9c24c48595e80d9fb936cc8940c83bb638338dbf3f4f7316ae9ce1ff6f11`
+- `root-passage-light-v1/used5-wait-m50/full-input.txt`: `e57d7f74a2bf68db9b0388716b530b5a1f2e1c4289f524394ecb1e6e7be5aef1`
+- `root-passage-light-v1/used5-wait-m50/receipt.json`: `863bba9cb8cbb369c76f1301f6f67c268c604c19f392416120ad0dc308da3449`
+- `root-passage-light-v1/used5-wait-m50/run.log`: `e4c9e3a05c8fdfbac3c3b5eb5141fa7652d995ae2d9c98868b460690467fd7c9`
+- `root-passage-light-v1/reload-m50/input.txt`: `37cc71627be1564010c76e1ad3ec5ce7c926f367c276d40c63cc5ecde6e228bf`
+- `root-passage-light-v1/reload-m50/receipt.json`: `8c723b4f7d2a86402a4f4c685d5629e9f5c8ec97d65c9b08cf6cd0ca5e370129`
+- `root-passage-light-v1/reload-m50/run.log`: `273de8e0d2420357fd37c9e11119d47bb5e7bbe096b3d7706a342f1b989ec8f9`
+- `root-passage-light-v1/repeat-light-m51-v3/receipt.json`: `8de223cc65ce6767f4d2120a8ee4dccf99222c922fca5f5f0c4d5975fa8f832c`
+- `root-passage-light-v1/repeat-light-m51-v3/producer/requests.txt`: `adbe7d21f184275703ccca9b19ffcc64c8c5bab5010f937683d44c8aaba48b7e`
+- `root-passage-light-v1/repeat-light-m51-v3/producer/run.log`: `1ad774037077bf7cf081f4aa80d8730b329abd2ab62bfd9e3ea2039e64e296ef`
+- `root-passage-light-v1/repeat-light-m51-v3/reload/requests.txt`: `2073ac799b84259b3ff765724b2a270b62aeef800b365ef9c496d12d70148b1c`
+- `root-passage-light-v1/repeat-light-m51-v3/reload/run.log`: `c27c0adb54c1ed07a238654866321cd13a84d24b7389e70e4bc05e015ff42749`
