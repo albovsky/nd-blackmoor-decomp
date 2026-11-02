@@ -26,7 +26,9 @@ Reviewed appcbb2ef85b3953d8d41b9796c290426b4ea5b1a250e5d65833ca1ddd81511d51c sep
 
 ## Review and limits
 
-Required registered-test hashes are refreshed from clean22842de4; `ghost-refresh-receipt.json` verifies unchanged function statuses/classes/counts/native lift fields and1763peer claims, plus exact public CLI/exercised fragment bytes. Independent Sonnet review and final static freshness checks are pending. No function-port acceptance is added. Alternate starts/inventories, Senior cadence, other story branches/columns/armor, full campaigns and final native credits remain incomplete. The broad crash-producing suite remains excluded; no existing test is weakened.
+Required registered-test hashes are refreshed from clean22842de4; `ghost-refresh-receipt.json` verifies unchanged function statuses/classes/counts/native lift fields and1763peer claims, plus exact public CLI/exercised fragment bytes. Both frozene9cd1812 static freshness checks pass. Independent Sonnet high review acceptse9cd1812 with no P1 or blocking P2 (`ghost-review.txt`). Root accepts nonblocking test gaps in independent raw-clock examples and extra nonselected failure/prerequisite frames; the production checker enforces those latter conditions. Timer/capture progression is checked at selected snapshots, not every intermediate frame.
+
+Clock layout here is an interpretation of retained raw diagnostic values, not a newly recovered original struct or function claim. Monotonicity applies within each run; retained reload clocks can precede the final post-save observation by one minute, so no cross-reload monotonic claim is made. Earlier packets' source hashes describe their frozen historical snapshots. No function-port acceptance is added. Alternate starts/inventories, Senior cadence, other story branches/columns/armor, full campaigns and final native credits remain incomplete. The broad crash-producing suite remains excluded; no existing test is weakened. Post-review edits clarify limits only.
 
 ## Source pins
 
