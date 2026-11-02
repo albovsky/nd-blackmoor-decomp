@@ -298,6 +298,8 @@ Fixed deadlines replace render-then-10ms-sleep. Same15s probes improve active ra
 
 ## Right-release puzzle rotation, 2026-11-02, 03:41 Pacific
 
-The Mac frontend now forwards right-button state to the guest queue. Scripts accept `pointer:x,y,mask`, complete left/right mask0..3, with explicit0 release; this is ordinary input, not puzzle-state injection. Do not mix it with an unexpired legacy click hold when testing rotation. Existing left-only/timed inputs keep their behavior.
+The Mac frontend now forwards right-button state to the guest queue. Scripts accept `pointer:x,y,mask`, complete left/right mask0..3; right-only release uses0 and nothing auto-releases. This is ordinary input, not puzzle-state injection. Do not mix script-held state with physical input or an unexpired legacy click hold when testing rotation. Existing timed inputs keep their behavior; real left input additionally carries modifiers and preserves held right state.
 
 Fresh genuine m10→Betty/Drake→2348 probe picks type10 at331,286, moves150,180, presses mask2 and releases mask0 one second later. Actual native captures show40x100→100x40 clockwise,2321 cursor-excluded pixels match exactly, two settled frames agree. All158steps complete; no drop/save/win is claimed. Native0c5fc594… and evidence `right-pointer-rotation-run/`; see RECOMP-10. Four finite input checks and ten hidden AppKit callbacks in each960x480 fit/stretch mode pass. Physical mouse/full-app rotation and full campaigns remain unverified.
+
+All12 fresh New Game→m12 runs pass on0c5fc594 with complete scripts and checkpoint hash identity (`right-pointer-fresh-chain/verified-chain.json`). Sonnet review accepts e8b6aac6 with no P1/blocking P2; both static generated-record checks pass. Nonblocking mixed-live-HWND/frontend-bridge/concurrency coverage limits remain in RECOMP-10.
