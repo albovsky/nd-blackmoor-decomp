@@ -1739,5 +1739,104 @@ class CrestPrerequisiteTests(unittest.TestCase):
                 ethel.verify_reload(SimpleNamespace(observations=frames))
 
 
+class TypingCrestRouteTests(unittest.TestCase):
+    prior = CrestPrerequisiteTests.prior | CrestPrerequisiteTests.partial | {1492, 1783, 1786}
+    opens = {
+        'corbin-portrait': (3410, 4112, 4108, 4109, 4110, 2619, 2616, 2605, 2627, 2629, 2741),
+        'typing-crest': (1300, 1340, 1343, 4134, 4135, 4136, 4137, 4138, 4120, 4114, 4115, 4116, 4114, 6200),
+    }
+    setUp = PostKeyRouteTests.setUp
+    observed_log = PostKeyRouteTests.observed_log
+
+    def frames(self, route):
+        if route == 'corbin-portrait':
+            states = ((3410, 0), (3311, 0), (3312, 0), (3313, 0), (2610, 0), (2611, 0), (2612, 0),
+                      (2605, 5), (2615, 0), (2617, 0), (2618, 0), (4101, 0), (4112, 0),
+                      (4108, 0), (4109, 0), (4110, 0), (2619, 0), (2616, 0), (2605, 12),
+                      (2627, 0), (2629, 0), (2741, 0), (2741, 0))
+            phases = {1863: 20}
+            number = 45
+        else:
+            states = ((2741, 0), (2629, 0), (2605, 4), (4112, 0), (1300, 0), (1340, 0),
+                      (1343, 0), (4138, 0), (4120, 0), (4114, 0), (4115, 0), (4116, 0),
+                      (4114, 0), (6200, 0), (4114, 0), (4114, 0))
+            phases = {2088: 5, 2014: 6}
+            number = 47
+        save = Path(self.folder.name) / ('m%d.SAV' % number)
+        save.write_bytes(bytes(170770))
+        frames = []
+        for i, (scene, view) in enumerate(states):
+            flags = {f: 1 for f in self.prior}
+            flags.update({f: int(i >= phase) for f, phase in phases.items()})
+            if route == 'typing-crest':
+                flags.update({1863: 1, 1672: int(i < 7)})
+            minutes = (16*60 + 14 + i) if route == 'corbin-portrait' or i < 7 else (3*60 + 15 + i-7)
+            frames.append({'scene': scene, 'art': scene, 'view': view, 'held': -1, 'flags': flags,
+                           'scope': '338-341,1000-2250', 'clock': (3, minutes//60, minutes%60)})
+        return save, frames
+
+    def test_accepts_portrait_and_firsttime_win_only_with_authored_reset_and_real_examination(self):
+        for route in self.opens:
+            save, frames = self.frames(route)
+            result = checker.verify(self.observed_log(route, save, frames), save, route)
+            self.assertEqual(result['typing_won'], route == 'typing-crest')
+            self.assertIn(1687, result['flags_zero'])
+            self.assertIn(1974, result['flags_zero'])
+        self.assertIn(1672, result['flags_zero'])
+        self.assertTrue({2014, 2088, 1863} <= set(result['flags_one']))
+
+    def test_refuses_abandon_false_win_held2_wrong_reset_and_nonselected_bad_observation(self):
+        for failure in ('abandon', 'early_win', 'held2', 'wrong_reset', 'early_reset', 'second_reset',
+                        'no_reset', 'missing_examine', 'extra_failure', 'scope', 'stop'):
+            save, frames = self.frames('typing-crest')
+            opened = self.opens['typing-crest']
+            if failure == 'abandon':
+                frames[5]['flags'][1687] = 1
+            elif failure == 'early_win':
+                frames[0]['flags'][2014] = 1
+            elif failure == 'held2':
+                frames[13]['held'] = 2
+            elif failure == 'wrong_reset':
+                frames[7]['clock'] = (3, 3, 14)
+            elif failure == 'early_reset':
+                frames[5]['clock'] = (3, 3, 15)
+            elif failure == 'second_reset':
+                frames[-1]['clock'] = (3, 3, 15)
+            elif failure == 'no_reset':
+                for i, frame in enumerate(frames[7:]):
+                    frame['clock'] = (3, 16, 21+i)
+            elif failure == 'missing_examine':
+                opened = tuple(n for n in opened if n != 6200)
+            elif failure in ('extra_failure', 'scope'):
+                extra = dict(frames[1], scene=9998, art=9998, flags=dict(frames[1]['flags']))
+                if failure == 'extra_failure':
+                    extra['flags'][1974] = 1
+                else:
+                    extra['scope'] = '338-341,1000-1973,1975-2250'
+                frames.insert(2, extra)
+            log = self.observed_log('typing-crest', save, frames, opened)
+            if failure == 'stop':
+                log = log.replace('stop requested', 'message loop idle')
+            with self.subTest(failure=failure), self.assertRaises(ValueError):
+                checker.verify(log, save, 'typing-crest')
+
+    def test_exact_shortcut_firstentry_and_proven_reward_payloads_without_abandoned_setup(self):
+        import hashlib
+        spec = importlib.util.spec_from_file_location('typing_story', MODULE.with_name('story_route.py'))
+        story = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(story)
+        self.assertEqual(hashlib.sha256(story.leg_corbin_portrait('m45').encode()).hexdigest(), '3026b7fefff5623f9a602273ca7cd8dd9703a7ec6691038bc02447ddd75ac976')
+        start = story.leg_typing_start()
+        self.assertEqual(hashlib.sha256(start.encode()).hexdigest(), '49bc3112b416e2d56db84e6f1c3961ecc12a230dff42fb6821c065586d234775')
+        self.assertEqual(len(start.split(';')), 48)
+        self.assertNotIn(':click:605,32', start)
+        with self.assertRaisesRegex(ValueError, 'live prefix'):
+            story.leg_typing_start('m46')
+        for name, digest in (('typing_continue_payload', 'd411c8b396438d35305bb2c8895fb65c8fa86e62713d206214f5cffb4c7560fe'), ('typing_pickup_payload', '0cbce1aa9f167836ef4f9f16bf9a285d39b613963536f2fe660c85a61a9eac43'),
+                             ('typing_flip_bag_payload', '031c1290805da9a70d352c8731693e21cfc5bc42b11c042086e89e7bc07a5490'), ('typing_examine_payload', 'c1c1e66349cece940ca006db8958d074ce532f625a99b4ca5825bde8a0a51f75'),
+                             ('typing_close_payload', 'ae7549a8bedf88f99ad0a4788f515ab8b8c6a44950cfc8b97ae2f22dcc6a27f4'), ('typing_reload_payload', '2b77a602391f281de1ae2dc46e5283eaf5114b89e9c387b31da9ae567cd48b6b')):
+            self.assertEqual(hashlib.sha256(getattr(story, name)().encode()).hexdigest(), digest)
+
+
 if __name__ == '__main__':
     unittest.main()

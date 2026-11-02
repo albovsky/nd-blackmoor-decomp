@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The story routes of ROUTES.md as INPUT strings for rc_headless.
 
-  python3 story_route.py LEG [--save NAME]      LEG is one of: stairs, lock, slider, moon, telescope-prep, linda, jane-intro, jane-jigsaw, telescope-use, seedlings, crank-repair, betty-key, venus-column, jupiter-column, moon-key, moon-column, nigel-computer, night-wait, goggles, ghost-hunt, afternoon-door, linda-passage, bul-start, slide-ball, saturn-column, dragon-passage, glyph-request, lit-word-clue, loulou-barber, loulou-morning, drake-magic, loulou-answer, light-depletion, paid-light-request, word-lock, right-fire-panel, ethel-start, linda-curse, gargoyle-inspect, slider-verify
+  python3 story_route.py LEG [--save NAME]      LEG is one of: stairs, lock, slider, moon, telescope-prep, linda, jane-intro, jane-jigsaw, telescope-use, seedlings, crank-repair, betty-key, venus-column, jupiter-column, moon-key, moon-column, nigel-computer, night-wait, goggles, ghost-hunt, afternoon-door, linda-passage, bul-start, slide-ball, saturn-column, dragon-passage, glyph-request, lit-word-clue, loulou-barber, loulou-morning, drake-magic, loulou-answer, light-depletion, paid-light-request, word-lock, right-fire-panel, ethel-start, linda-curse, gargoyle-inspect, corbin-portrait, typing-start, slider-verify
   python3 story_route.py slider-verify          replays the recorded 105 slider moves on the puzzle rules and prints whether they solve it
 
 Each leg starts from a save made in the game's own Load & Save screen and (with --save NAME) ends by saving the next one, so the legs chain:
@@ -1410,6 +1410,85 @@ def leg_gargoyle_inspect(save=None):
     return ';'.join(out)
 
 
+def leg_corbin_portrait(save=None):
+    """m43 -> library walk and actual Corbin portrait1863, safe2741/m45.
+
+    The family/paintings topics are already known. Preserve the exercised
+    walk-only prefix and portrait body without an intermediate m44 save.
+    """
+    walk = R().at('S3410.CIF', 0)
+    _observed_walk(walk, 12000, '566,188 328,163 318,163 533,162 329,163 329,163 '
+                   '563,162 124,161 386,163 308,161 308,161', 7000, 4500)
+    _observed_walk(walk, 92000, '61,161', 7000, 4500)
+    a = 'S4112.CIF'
+    r = R().at(a, 0)
+    _observed_walk(r, 12000, '40,162 307,175 319,171 319,171', 7000, 4500)
+    _observed_walk(r, 43000, '310,161 554,162 81,162 233,163', 7000, 4500)
+    r.at(a, 71000).clicks('480,111', 0)
+    r.at(a, 93000).clicks('shot', 0)
+    out = [walk.text(), r.text()]
+    if save:
+        out += [menu_to_save_screen(a, 96000), save_tail(a, 114000, save)]
+    return ';'.join(out)
+
+
+def leg_typing_start(save=None):
+    """m45 -> original first-time Junior typing entry; no abandoned attempt.
+
+    Preserve the exercised prefix through the first1340capture, omitting the
+    old probe's later X. Use typing_live.py for actual play and verified save.
+    """
+    if save is not None:
+        raise ValueError('typing-start is a live prefix; use typing_live.py for win/reward/save')
+    a = 'S2741.CIF'
+    r = R().at(a, 0)
+    _observed_walk(r, 12000, '310,353 310,357 311,162 297,153 41,163 386,163 308,161 308,161', 7000, 4500)
+    _observed_walk(r, 71000, '61,161', 7000, 4500)
+    r.at(a, 78000).clicks('463,232', 0)
+    r.at(a, 118000).clicks('shot', 0)
+    r.at(a, 121000).clicks('22,405,6000', 0)
+    r.o += ['%s+%d:move:22,%d' % (a, 122500 + 400*i, y)
+            for i, y in enumerate((410, 415, 420, 425, 430, 435, 440, 445, 450, 455, 456))]
+    r.at(a, 129000).clicks('shot', 0)
+    r.at(a, 145000).clicks('150,399', 0)
+    r.o += ['S1340.CIF+500:move:635,385', 'S1340.CIF+1000:shot:0,0']
+    return r.text()
+
+
+def typing_continue_payload():
+    return '1:move:635,385;20000:shot:0,0'
+
+
+def typing_pickup_payload():
+    return ('1:move:605,32;101:click:605,32,300;5001:shot:0,0;'
+            '6001:move:311,355;6101:click:311,355,600;10001:shot:0,0;'
+            '11001:move:179,303;11101:click:179,303,600;16001:shot:0,0')
+
+
+def typing_flip_bag_payload():
+    return ('1:move:505,217;101:click:505,217,600;4001:shot:0,0;'
+            '5001:move:310,180;5101:click:310,180,600;9001:shot:0,0;'
+            '10001:move:311,355;10101:click:311,355,600;14001:shot:0,0;'
+            '15001:move:212,448;15101:click:212,448,600;19001:shot:0,0')
+
+
+def typing_examine_payload():
+    return '1:move:60,100;101:click:60,100,600;3501:shot:0,0'
+
+
+def typing_close_payload():
+    return ('1:move:310,180;101:click:310,180,600;4001:shot:0,0;'
+            '5001:move:360,20;5101:click:360,20,600;9001:shot:0,0')
+
+
+def typing_reload_payload():
+    r = R().at('S4114.CIF', 0)
+    _observed_walk(r, 12000, '212,448 60,100 310,180', 6000, 4000)
+    r.at('S4114.CIF', 30000).clicks('360,20', 0)
+    r.at('S4114.CIF', 34000).clicks('shot', 0)
+    return r.text()
+
+
 def verify_slider():
     """The puzzle rules of the body of S3450 (action_family_d3_runtime.c): five rows by six columns; types 0x10..0x13 are one-way edge arrows, 0x14 walls,
     1..10 the cell a piece of that number must rest on. A piece slides until a barrier or another piece stops it."""
@@ -1464,7 +1543,8 @@ if __name__ == '__main__':
             'loulou-answer': leg_loulou_answer, 'light-depletion': leg_light_depletion,
             'paid-light-request': leg_paid_light_request, 'word-lock': leg_word_lock,
             'right-fire-panel': leg_right_fire_panel, 'ethel-start': leg_ethel_start,
-            'linda-curse': leg_linda_curse, 'gargoyle-inspect': leg_gargoyle_inspect}
+            'linda-curse': leg_linda_curse, 'gargoyle-inspect': leg_gargoyle_inspect,
+            'corbin-portrait': leg_corbin_portrait, 'typing-start': leg_typing_start}
     if leg not in legs:
         sys.exit(__doc__)
     print(legs[leg](save))

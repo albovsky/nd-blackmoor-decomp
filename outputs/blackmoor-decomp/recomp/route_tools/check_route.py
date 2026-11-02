@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Check an observed headless story leg, not merely its process exit.
 
-python3 check_route.py RUN_LOG SAVE_FILE [--route telescope-prep|jane-jigsaw|telescope-use|seedlings|crank-repair|betty-key|venus-column|jupiter-column|moon-key|moon-column|nigel-computer|night-wait|goggles|ghost-hunt|afternoon-door|linda-passage|bul-key|slide-ball|saturn-column|dragon-passage|glyph-request|glyph-win|lit-word-clue|loulou-barber|loulou-morning|drake-magic|loulou-answer|light-depletion|paid-light-request|repeat-glyph-win|word-lock|right-fire-panel|ethel-interrogation|linda-curse|gargoyle-inspect]
+python3 check_route.py RUN_LOG SAVE_FILE [--route telescope-prep|jane-jigsaw|telescope-use|seedlings|crank-repair|betty-key|venus-column|jupiter-column|moon-key|moon-column|nigel-computer|night-wait|goggles|ghost-hunt|afternoon-door|linda-passage|bul-key|slide-ball|saturn-column|dragon-passage|glyph-request|glyph-win|lit-word-clue|loulou-barber|loulou-morning|drake-magic|loulou-answer|light-depletion|paid-light-request|repeat-glyph-win|word-lock|right-fire-panel|ethel-interrogation|linda-curse|gargoyle-inspect|corbin-portrait|typing-crest]
 The caller supplies a checkpoint produced by this run's normal Load & Save UI.
 This checks recorded observations, a matching file-open line and save size;
 fresh-folder/write provenance and saved contents require separate replay evidence.
@@ -699,6 +699,90 @@ def verify_crest_prerequisite_observations(route, log, observations, selected, c
     return clocks[-1][1]
 
 
+TYPING_CREST_ROUTES = ('corbin-portrait', 'typing-crest')
+
+
+def typing_crest_configuration(route):
+    _, prior, zero = crest_prerequisite_configuration('gargoyle-inspect')
+    zero = zero | {1687, 2088}
+    if route == 'corbin-portrait':
+        states = [(3410, 0), (3311, 0), (3312, 0), (3313, 0), (2610, 0), (2611, 0), (2612, 0),
+                  (2605, 5), (2615, 0), (2617, 0), (2618, 0), (4101, 0), (4112, 0),
+                  (4108, 0), (4109, 0), (4110, 0), (2619, 0), (2616, 0), (2605, 12),
+                  (2627, 0), (2629, 0), (2741, 0), (2741, 0)]
+        return states, prior | {1863}, zero
+    if route == 'typing-crest':
+        states = [(2741, 0), (2629, 0), (2605, 4), (4112, 0), (1300, 0), (1340, 0),
+                  (1343, 0), (4138, 0), (4120, 0), (4114, 0), (4115, 0), (4116, 0),
+                  (4114, 0), (6200, 0), (4114, 0), (4114, 0)]
+        return states, prior | {1863, 2088, 2014}, (zero - {2088, 2014}) | {1672}
+    raise ValueError('unknown portrait/typing-crest route')
+
+
+def verify_typing_crest_observations(route, log, observations, selected, clocks, positive, negative):
+    up = {1863: 20} if route == 'corbin-portrait' else {2088: 5, 2014: 6}
+    down = {1672: 7} if route == 'typing-crest' else {}
+    changing = up.keys() | down.keys()
+    previous = {**{f: 0 for f in up}, **{f: 1 for f in down}}
+    for state, scope, flags in observations:
+        if not (positive | negative) <= scope:
+            raise ValueError('RC_FLAGS did not observe every required portrait/typing event')
+        if any(flags.get(f, 0) != 1 for f in positive - changing):
+            raise ValueError('portrait/typing retained prerequisite differs')
+        if any(flags.get(f, 0) != 0 for f in negative - changing):
+            raise ValueError('unexpected portrait/typing failure, repeat or next gate event')
+        if state[1] != state[0] or state[3] != -1:
+            raise ValueError('portrait/typing art or held item differs; crest2 is examined, not held')
+        for f in previous:
+            value = flags.get(f, 0)
+            backwards = value < previous[f] if f in up else value > previous[f]
+            if value not in (0, 1) or backwards:
+                raise ValueError('portrait/typing phase is not binary/monotone')
+            previous[f] = value
+    for i, (_, _, flags) in enumerate(selected):
+        if any(flags.get(f, 0) != int(i >= phase) for f, phase in up.items()) or any(
+                flags.get(f, 0) != int(i < phase) for f, phase in down.items()):
+            raise ValueError('portrait/typing source and original progression phases differ')
+    source = clocks[0][1]
+    if source['day'] != 3 or source['hour'] != 16:
+        raise ValueError('portrait/typing observed source clock gate differs')
+    if route == 'corbin-portrait':
+        verify_clock_diagnostics(clocks)
+    else:
+        # S4138 raw64 mode1 is an original same-day03:15 clock assignment.
+        # Permit exactly that observed post-win boundary; all other segments
+        # retain normal complete/valid/monotone diagnostics.
+        previous_clock = None
+        reset_seen = False
+        win_seen = False
+        for (state, _, flags), item in zip(observations, clocks):
+            verify_clock_diagnostics([item])
+            clock = item[1]
+            current = (clock['day']-1)*1440 + clock['total_minutes']
+            if previous_clock is not None and current < previous_clock[0]:
+                allowed = (not reset_seen and win_seen and state[:3] == (4138, 4138, 0)
+                           and flags.get(2014) == 1 and flags.get(1672, 0) == 0
+                           and clock['day'] == previous_clock[1] and (clock['hour'], clock['minute']) == (3, 15))
+                if not allowed:
+                    raise ValueError('clock moved backwards outside the original4138 post-win reset')
+                reset_seen = True
+            win_seen |= flags.get(2014, 0) == 1
+            previous_clock = (current, clock['day'])
+        if not reset_seen:
+            raise ValueError('original4138 post-win03:15 reset was not observed')
+    opened = [int(m[1]) for m in re.finditer(r'FILE open .*\\S(\d+)\.CIF\s+\[virtual \d+ ms\]', log)]
+    required = ((3410, 4112, 4108, 4109, 4110, 2619, 2616, 2605, 2627, 2629, 2741) if route == 'corbin-portrait' else
+                (1300, 1340, 1343, 4134, 4135, 4136, 4137, 4138, 4120, 4114, 4115, 4116, 4114, 6200))
+    cursor = 0
+    for scene in required:
+        while cursor < len(opened) and opened[cursor] != scene:
+            cursor += 1
+        if cursor == len(opened):
+            raise ValueError('missing ordered portrait/typing win or actual crest examination opens')
+        cursor += 1
+    return clocks[-1][1]
+
+
 def verify(log, save, route='telescope-prep'):
     if route == 'telescope-prep':
         expected = [(2010, 0), (2014, 0), (2026, 0), (2010, 2)]
@@ -769,6 +853,8 @@ def verify(log, save, route='telescope-prep'):
         expected, positive, negative = word_lock_configuration(route)
     elif route in CREST_PREREQUISITE_ROUTES:
         expected, positive, negative = crest_prerequisite_configuration(route)
+    elif route in TYPING_CREST_ROUTES:
+        expected, positive, negative = typing_crest_configuration(route)
     else:
         raise ValueError('unknown story route')
     observations = []
@@ -813,6 +899,8 @@ def verify(log, save, route='telescope-prep'):
             pair = (1294, 0)
         if route == 'linda-curse' and len(selected) == 7 and state[0] in (1128, 1129, 1130, 1131, 1132, 1146, 1133) and state[2] == 0:
             pair = (1146, 0)
+        if route == 'typing-crest' and len(selected) == 6 and pair == (1340, 0) and flags.get(2014, 0) == 1:
+            pair = (1343, 0)
         if len(selected) < len(expected) and pair == expected[len(selected)]:
             # The accepted route observes the panel before opening inventory,
             # inside inventory, and finally with the real crank held.
@@ -833,7 +921,7 @@ def verify(log, save, route='telescope-prep'):
             selected.append(observation)
     if len(selected) != len(expected):
         raise ValueError('missing ordered route observations')
-    if route in ('jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES + CREST_PREREQUISITE_ROUTES:
+    if route in ('jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES + CREST_PREREQUISITE_ROUTES + TYPING_CREST_ROUTES:
         # Earlier inventory shots can share scene/view/held cells. Check the
         # final two observations, rather than treating those as checkpoints.
         if any((state[0], state[2]) != expected[-1] for state, _, _ in observations[-2:]):
@@ -948,6 +1036,8 @@ def verify(log, save, route='telescope-prep'):
         clock_diagnostics = verify_word_lock_observations(route, log, observations, selected, clocks, positive, negative)
     if route in CREST_PREREQUISITE_ROUTES:
         clock_diagnostics = verify_crest_prerequisite_observations(route, log, observations, selected, clocks, positive, negative)
+    if route in TYPING_CREST_ROUTES:
+        clock_diagnostics = verify_typing_crest_observations(route, log, observations, selected, clocks, positive, negative)
     for _, scope, flags in selected[-2:]:
         if not (positive | negative) <= scope:
             raise ValueError('RC_FLAGS did not observe every required event')
@@ -966,9 +1056,11 @@ def verify(log, save, route='telescope-prep'):
         raise ValueError('checkpoint save is missing or has an unexpected length')
     result = {'route': route, 'scene': expected[-1][0], 'view': expected[-1][1],
             'flags_one': sorted(positive), 'flags_zero': sorted(negative),
-            'save': save.name, 'telescope_complete': route in ('telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES + CREST_PREREQUISITE_ROUTES}
+            'save': save.name, 'telescope_complete': route in ('telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES + CREST_PREREQUISITE_ROUTES + TYPING_CREST_ROUTES}
     if route in WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES:
         result['word_lock_won'] = route == 'word-lock'
+    if route in TYPING_CREST_ROUTES:
+        result['typing_won'] = route == 'typing-crest'
     if route == 'glyph-request':
         result['glyph_pending'] = True
     if route == 'glyph-win':
@@ -983,7 +1075,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('run_log', type=Path)
     parser.add_argument('save_file', type=Path)
-    parser.add_argument('--route', choices=('telescope-prep', 'jane-jigsaw', 'telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES + CREST_PREREQUISITE_ROUTES,
+    parser.add_argument('--route', choices=('telescope-prep', 'jane-jigsaw', 'telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES + CREST_PREREQUISITE_ROUTES + TYPING_CREST_ROUTES,
                         default='telescope-prep')
     args = parser.parse_args()
     try:
