@@ -2052,5 +2052,95 @@ class Fl78Review6(unittest.TestCase):
         self.assertTrue(P._addr_only(ins('8a1488'), 'eax'))                     # mov dl, [eax+ecx*4]
 
 
+# FL-78 (round 10): a direction after which every run is caught in a loop that it never leaves (prove_trap_loop). Programs (nasm, org 0x401000): the three words at [ebx] are zeroed, a count at [ebp+0xc]: `jbe L` is taken for a count of 0 and enters the loop L
+# (cmp [ebx+8],edx; jne out; the words are shifted by 16 and the frame counter [ebp-4] is changed), which never leaves when the words are zero.
+TRAP = {
+    'tl_ok': (74, '5589e583ec10538b5d0831d289138953048953088b4d0c39d17608b8010000005bc9c3395308751a8b4b048b03c1e010c1e9108145fcf0ff0000894b08894304ebe1b8020000005bc9c390', {'start': 0, 'L': 35, 'out': 66}),
+    'tl_unzero': (71, '5589e583ec10538b5d0831d289138953088b4d0c39d17608b8010000005bc9c3395308751a8b4b048b03c1e010c1e9108145fcf0ff0000894b08894304ebe1b8020000005bc9c390', {'start': 0, 'L': 32, 'out': 63}),
+    'tl_wild': (76, '5589e583ec10538b5d0831d289138953048953088b4d0c8b751039d17608b8010000005bc9c339530875198b4b048b03c1e010c1e910c70605000000894b08894304ebe2b8020000005bc9c390', {'start': 0, 'L': 38, 'out': 68}),
+    'tl_escape': (80, '5589e583ec10538b5d0831d289138953048953088b4d0c8d75f889751439d17608b8010000005bc9c3395308751a8b4b048b03c1e010c1e9108145fcf0ff0000894b08894304ebe1b8020000005bc9c390', {'start': 0, 'L': 41, 'out': 72}),
+    'tl_call': (72, '5589e583ec10538b5d0831d289138953048953088b4d0c39d17608b8010000005bc9c339530875188b4b048b03c1e010c1e910e808000000894b08894304ebe3b8020000005bc9c390', {'start': 0, 'L': 35, 'out': 64}),
+    'tl_abs': (72, '5589e583ec10538b5d0831d289138953048953088b4d0c39d17608b8010000005bc9c339530875188b4b048b03c1e010c1e910a300005400894b08894304ebe3b8020000005bc9c390', {'start': 0, 'L': 35, 'out': 64}),
+    # FL-78 (round 10 review): programs whose trap-direction is feasible (a run takes the jump and leaves the loop); tl_cell: a frame address in a cell [ebp-4] reaches ecx, the store through ecx writes the word the loop tests; tl_flag: the loop exit is a jne on the flags of the cmp in front of the jump; tl_fp: it is a jne after fcom / fnstsw / sahf; tl_push: the loop pushes and pops a word it reads from the arguments
+    'tl_cell': (56, '5589e583ec208d45f08945fcc745f0050000008b4dfc837d08007507b801000000c9c3837df0057508c70107000000ebf2b803000000c9c3', {}),
+    'tl_flag': (32, '5589e5837d08007507b8010000005dc37507b901000000ebf7b8030000005dc3', {}),
+    'tl_fp': (33, '5589e5837d0c007507b8010000005dc3dc5508dfe09e7502ebf6b8030000005dc3', {}),
+    'tl_push': (36, '5589e56a05837d08007507b801000000c9c3ff750c5983f9057502ebf5b803000000c9c3', {}),
+    'tl_count': (88, '5589e583ec10538b5d0831d28913895304895308c745fc030000008b4d0c39d17608b8010000005bc9c339530875218b4b048b03c1e010c1e910ff4dfc837dfc007505b901000000894b08894304ebdab8020000005bc9c390', {'start': 0, 'L': 42, 'cont': 72, 'out': 80}),
+}
+
+
+@unittest.skipUnless(HAVE_Z3, 'needs z3-solver, capstone')
+class Fl78Trap(unittest.TestCase):
+    """FL-78 round 10 (0x518caf): the loop that a run enters at a jump and never leaves is proved by an inductive invariant found from the state at the jump (prove_trap_loop)."""
+
+    def setup(self, name, jcc='jbe'):
+        import fl71_window as Wn
+        body, hexcode, labels = TRAP[name]
+        img = bytes(image_of(bytes.fromhex(hexcode))) + bytes(64)
+        an, dom = Wn.from_analysis(P.Analysis({'va': BASE, 'body': body, 'callees': {BASE + labels['out']: 0}, 'imports': {}, 'sites': None}, img, 20000))
+        return Wn, an, dom, [i for i in an.insns if i.mnemonic == jcc][0].address
+
+    def setup_free(self, name):
+        import fl71_window as Wn
+        body, hexcode, labels = TRAP[name]
+        img = bytes(image_of(bytes.fromhex(hexcode))) + bytes(64)
+        an, dom = Wn.from_analysis(P.Analysis({'va': BASE, 'body': body, 'callees': {}, 'imports': {}, 'sites': None}, img, 20000))
+        return Wn, an, dom, [i for i in an.insns if i.mnemonic == 'jne'][0].address
+
+    def test_a_pointer_cell_register_that_the_loop_stores_through_is_not_a_frame_term(self):
+        """Review of round 10: `lea eax,[ebp-0x10]; mov [ebp-4],eax; ...; mov ecx,[ebp-4]` then `jne trap` to a loop `cmp [ebp-0x10],5; jne out; mov [ecx],7; jmp lp`: round 1 writes 7 through ecx over the word, round 2 leaves. The frame pass takes the arbitrary round for fresh registers, so the store through ecx was classed as memory and the word looked unchanged."""
+        Wn, an, dom, j = self.setup_free('tl_cell')
+        self.assertTrue(an.M.cell_ops)
+        self.assertNotEqual(Wn.prove_trap_loop(an, dom, ('dir', j, 'taken'))[0], 'unsat')
+        self.assertFalse(getattr(an, 'trap_loop_frame', False))
+        Wn, an, dom, j = self.setup_free('tl_cell')                             # without the cell guard the proof is wrongly found
+        an.M.cell_ops, an.cell_users, an.frame_formers = set(), set(), []
+        self.assertEqual(Wn.prove_trap_loop(an, dom, ('dir', j, 'taken'))[0], 'unsat')
+
+    def test_a_loop_whose_exit_the_state_before_the_jump_decides_is_not_proved(self):
+        for name in ('tl_flag', 'tl_fp', 'tl_push'):       # the exit tests flags set in front of the jump, the x87 status of an unknown st(0), a word read from the arguments through the stack
+            Wn, an, dom, j = self.setup_free(name)
+            self.assertNotEqual(Wn.prove_trap_loop(an, dom, ('dir', j, 'taken'))[0], 'unsat', name)
+
+    def test_a_loop_that_never_leaves_is_proved(self):
+        Wn, an, dom, j = self.setup('tl_ok')
+        self.assertEqual(Wn.prove_trap_loop(an, dom, ('dir', j, 'taken'))[0], 'unsat')
+        self.assertTrue(an.trap_loop_frame)                                     # (the store to [ebp-4] must not reach the words: the frame assumption)
+        # the other windows and the closed-loop rule do not prove it, nor does the other direction
+        self.assertNotEqual(Wn.prove_target(an, dom, Wn.block_of(an, j, True), ('dir', 'taken'))[0], 'unsat')
+        self.assertNotEqual(Wn.prove_closed_loop(an, dom, ('dir', j, 'taken'))[0], 'unsat')
+        self.assertEqual(Wn.prove_trap_loop(an, dom, ('dir', j, 'fall'))[0], 'unsupported')
+
+    def test_a_loop_that_a_run_can_leave_is_not_proved(self):
+        for name in ('tl_unzero', 'tl_wild', 'tl_count'):          # a word that is not zeroed, a store through an unknown pointer, a counter that sets the word
+            Wn, an, dom, j = self.setup(name)
+            self.assertNotEqual(Wn.prove_trap_loop(an, dom, ('dir', j, 'taken'))[0], 'unsat', name)
+
+    def test_the_frame_assumption_is_needed_and_is_not_made_after_a_frame_address(self):
+        Wn, an, dom, j = self.setup('tl_ok')
+        with mock.patch.object(P.Analysis, 'frame_safe', return_value=False):
+            self.assertEqual(Wn.prove_trap_loop(an, dom, ('dir', j, 'taken'))[0], 'sat')
+        Wn, an, dom, j = self.setup('tl_escape')                                # a frame address is formed in front of the jump: the store to [ebp-4] may reach the words
+        self.assertNotEqual(Wn.prove_trap_loop(an, dom, ('dir', j, 'taken'))[0], 'unsat')
+        self.assertFalse(getattr(an, 'trap_loop_frame', False))
+
+    def test_a_loop_with_a_call_or_an_absolute_address_is_not_handled(self):
+        for name in ('tl_call', 'tl_abs'):
+            Wn, an, dom, j = self.setup(name)
+            self.assertEqual(Wn.prove_trap_loop(an, dom, ('dir', j, 'taken'))[0], 'unsupported', name)
+
+    def test_prove_row_records_the_assumptions(self):
+        import fl71_window as Wn
+        body, hexcode, labels = TRAP['tl_ok']
+        img = bytes(image_of(bytes.fromhex(hexcode))) + bytes(64)
+        j = [i for i in P.disassemble(img, BASE, body)[1] if i.mnemonic == 'jbe'][0].address
+        with mock.patch.object(P, 'row_of', return_value={'va': BASE, 'body': body, 'callees': {BASE + labels['out']: 0}, 'imports': {}, 'sites': None}):
+            out = P.prove_row('tl_ok', {'missing': [], 'untaken': [[j, 'taken']]}, image=img, timeout_ms=20000)
+        self.assertEqual(out['status'], 'proved')
+        self.assertIn('closed-loop-wait-semantics', out['assumptions_used'])
+        self.assertIn('frame-assumption', out['assumptions_used'])
+
+
 if __name__ == '__main__':
     unittest.main()

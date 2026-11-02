@@ -2429,12 +2429,16 @@ def prove_row(key, targets, timeout_ms=30000, image=None, fail_fast=False):
                     todo['untaken'].remove([a, n])
         for a, n in list(todo['untaken']):          # FL-78: a direction after which every run goes round a loop for ever (the scenarios are runs that return)
             v = Wn.prove_closed_loop(an0, dom, ('dir', a, 'taken' if n == 'taken' else 'fall'))
+            if v[0] != 'unsat':
+                v = Wn.prove_trap_loop(an0, dom, ('dir', a, 'taken' if n == 'taken' else 'fall'))          # FL-78 (round 10): a loop that the run enters there and never leaves
             if v[0] == 'unsat':
                 out['directions']['%s:%s' % (hex(a), n)] = [v[0], v[1]]
                 todo['untaken'].remove([a, n])
                 closed.append('%s:%s' % (hex(a), n))
         if getattr(an0, 'stack_discipline_used', False):                 # the same for a proof by the fault windows
             out['assumptions_used'] = sorted(set(out['assumptions_used']) | {'stack-discipline-assumption'})
+        if getattr(an0, 'trap_loop_frame', False):
+            out['assumptions_used'] = sorted(set(out['assumptions_used']) | {'frame-assumption'})                # (a trap loop proof that rests on the frame assumption)
         if not todo['missing'] and not todo['untaken']:
             if closed:
                 out['assumptions_used'] = sorted(set(out['assumptions_used']) | {'closed-loop-wait-semantics'})

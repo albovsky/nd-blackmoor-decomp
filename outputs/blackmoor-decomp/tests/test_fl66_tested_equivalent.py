@@ -6,6 +6,7 @@ that the committed scenarios replay (sample, needs Unicorn and the private GAME.
 """
 import json
 from pathlib import Path
+import struct
 import sys
 import tempfile
 import unittest
@@ -150,6 +151,124 @@ class Replay(unittest.TestCase):
                 self.assertIsNotNone(W.run_original(T.row_info(pool, key), 0, []).fault, key)
             finally:
                 T.pool_table = was_table
+
+
+    def test_a_jump_to_the_instruction_after_it_lands_in_the_function(self):
+        """FL-78 (round 10): `jmp eax` at 0x50c660 (0x50c82b: `jmp [ebx+0x18]` at 0x50c895) jumps to the address of the next instruction when the caller passes that address (an unwinder's resume jump): the original runs the code there
+        (tests/fl41_world.py site_hook), the translation has a label and compares the target (lift_fl41.indirect_tail_jump); a translation that plays the target as a stub differs."""
+        P_, NEWSP, A, STOP = 0x20000100, 0x20000400, 0x20000800, 0x7ff00000
+        cases = (('0x50c635', 0x50c662, [(1, [(0x100fee0, 4, 0x50c662), (0x100fee4, 4, P_), (P_ - 4, 4, NEWSP), (P_ + 0x10, 4, STOP)])]),
+                 ('0x50c82b', 0x50c898, [(1, [(0x100fee0, 4, A), (A + 4, 4, 0), (0x100fee4, 4, P_), (P_ + 0x24, 4, 1), (P_ + 0x18, 4, 0x50c898), (P_ + 0x1c, 4, NEWSP), (P_ + 0x20, 4, 0x20000900), (NEWSP + 16, 4, STOP)])]))
+        for key, nxt, scen in cases:
+            pool = T.pool_of(key)
+            p = T.POOLS[pool]
+            W, _ = T.world(p['world'])
+            row = T.row_info(pool, key)
+            self.assertIn(nxt, W.run_original(row, scen[0][0], scen[0][1]).executed, key)           # the original runs the code at the target
+            text = T.row_text(p['source'], key)
+            dispatch = 'if (t_ == 0x%xu) goto L_%x;' % (nxt, nxt)
+            self.assertIn(dispatch, text, key)
+            self.assertIn('L_%x:' % nxt, text, key)
+
+            def lib_of(t):
+                with tempfile.TemporaryDirectory() as tmp:
+                    src = Path(tmp) / 'row.c'
+                    src.write_text('#include "original_methods_fl41.h"\n' + t)
+                    return W.build_library(tmp, [src])
+            res = T.check_row(key, scenarios=scen, lib=lib_of(text))
+            self.assertNotEqual(res['status'], 'mismatch', key)
+            self.assertNotIn(hex(nxt), res.get('missing', []), key)                                       # the landing is covered
+            self.assertEqual(T.check_row(key, scenarios=scen, lib=lib_of(text.replace(dispatch + ' ', '')))['status'], 'mismatch', key)
+
+
+@unittest.skipUnless(od.available(), 'needs Unicorn and the pinned private work/original/GAME.EXE')
+class StartStateOverrides(unittest.TestCase):
+    """FL-78 (round 10): a scenario can set the entry EFLAGS, the entry FPCW, the entry x87 stack and the st(0) a stubbed callee returns (tests/fl41_world.py EFLAGS_OVERRIDE, FCW_OVERRIDE, ST_OVERRIDE, FPRET_OVERRIDE)."""
+    KEY = '0x50df9d'
+
+    @classmethod
+    def setUpClass(cls):
+        cls.pool = T.pool_of(cls.KEY)
+        cls.W, _ = T.world(T.POOLS[cls.pool]['world'])
+        cls.row = T.row_info(cls.pool, cls.KEY)
+        cls.lib = T.library(cls.pool)
+
+    def both(self, scen, row=None, lib=None):
+        W = self.W
+        o = W.run_original(row or self.row, 1, scen)
+        n = W.run_native(lib or self.lib, row or self.row, 1, scen)
+        self.assertIsNone(o.fault)
+        self.assertIsNone(n.fault)
+        self.assertEqual(o.digest(), n.digest())
+        return o, n
+
+    def test_the_entry_flags_open_the_taken_direction_of_the_je_after_fnstcw(self):
+        W = self.W
+        base, _ = self.both([])
+        zf, _ = self.both([(W.EFLAGS_OVERRIDE, 4, 0x40)])
+        self.assertNotIn(0x50dff9, base.executed)
+        self.assertIn(0x50dff9, zf.executed)
+        self.assertIn((0x50dfa6, 0x50dff9), zf.edges)
+        self.assertNotIn((0x50dfa6, 0x50dff9), base.edges)
+        r = T.check_row(self.KEY, scenarios=[(1, []), (1, [(W.EFLAGS_OVERRIDE, 4, 0x40)])])
+        self.assertNotEqual(r['status'], 'mismatch')
+        self.assertNotIn(['0x50dfa6', 'taken'], r['untaken'])
+        self.assertIn(['0x50dfa6', 'taken'], T.check_row(self.KEY, scenarios=[(1, [])])['untaken'])
+        # a native side that does not get the flags disagrees: the override is seen by both sides, not just by the original
+        n_without = W.run_native(self.lib, self.row, 1, [])
+        self.assertNotEqual(n_without.digest(), zf.digest())
+
+    def test_the_entry_flags_other_than_the_status_bits_are_ignored(self):
+        W = self.W
+        a, _ = self.both([(W.EFLAGS_OVERRIDE, 4, 0x40)])
+        b, _ = self.both([(W.EFLAGS_OVERRIDE, 4, 0x40 | 0x200 | 0x400 | 0x10000)])            # IF, DF, RF are not start state
+        self.assertEqual(a.digest(), b.digest())
+
+    def test_the_entry_fpcw_opens_the_fall_through_of_the_compare_with_0x27f(self):
+        W = self.W
+        base, _ = self.both([])
+        cw, _ = self.both([(W.FCW_OVERRIDE, 4, 0x37f)])
+        self.assertNotIn(0x50dfb0, base.executed)
+        self.assertIn(0x50dfb0, cw.executed)
+        self.assertEqual(cw.regs['fpu'][1], 0x37f)                                                  # the control word the row finishes with is the one it started with
+        r = T.check_row(self.KEY, scenarios=[(1, []), (1, [(W.FCW_OVERRIDE, 4, 0x37f)])])
+        self.assertNotIn(['0x50dfae', 'fall-through'], r['untaken'])
+        self.assertIn(['0x50dfae', 'fall-through'], T.check_row(self.KEY, scenarios=[(1, [])])['untaken'])
+        self.assertNotEqual(W.run_native(self.lib, self.row, 1, []).digest(), cw.digest())
+
+    def test_the_entry_x87_stack_is_set_and_both_sides_hold_the_same_values(self):
+        W = self.W
+        bits = lambda d: struct.unpack('<Q', struct.pack('<d', d))[0]
+        base, _ = self.both([])
+        self.assertEqual(base.regs['fpu'][2], ())                                                   # empty stack by default
+        o, n = self.both([(W.ST_OVERRIDE, 8, bits(4.0))])
+        self.assertEqual(len(o.regs['fpu'][2]), 1)                                                  # the pushed st(0) is still there at the end
+        self.assertEqual(o.regs['fpu'][2], n.regs['fpu'][2])
+        self.assertNotEqual(o.digest(), base.digest())
+        o2, n2 = self.both([(W.ST_OVERRIDE, 8, bits(4.0)), (W.ST_OVERRIDE + 16, 8, bits(-3.5))])
+        self.assertEqual(len(o2.regs['fpu'][2]), 2)
+        self.assertNotEqual(o2.regs['fpu'][2], o.regs['fpu'][2])
+        with self.assertRaises(ValueError):                                                         # st(1) without st(0)
+            W.run_original(self.row, 1, [(W.ST_OVERRIDE + 16, 8, bits(1.0))])
+
+    def test_a_stubbed_callee_can_return_a_chosen_st0(self):
+        key = '0x4f9d18'                                                                            # calls 0x50df94 (an x87 wrapper the world stubs)
+        pool = T.pool_of(key)
+        W2, _ = T.world(T.POOLS[pool]['world'])
+        row = T.row_info(pool, key)
+        lib = T.library(pool)
+        i = sorted(row['callees']).index(0x50df94)
+        bits = lambda d: struct.unpack('<Q', struct.pack('<d', d))[0]
+        recorded = {}
+        for v in (25.0, 0.0):
+            o, n = self.both([(W2.FPRET_OVERRIDE + 16 * i, 8, bits(v))], row=row, lib=lib)
+            calls = [c for c in o.calls if c[0] == 0x50df94]
+            self.assertTrue(calls)
+            recorded[v] = calls[0][-1]
+        self.assertNotEqual(recorded[25.0], recorded[0.0])                                          # the value shows in the call record
+        self.assertNotEqual(self.W.run_original(row, 1, [(W2.FPRET_OVERRIDE + 16 * i, 8, bits(25.0))]).digest(), self.W.run_original(row, 1, [(W2.FPRET_OVERRIDE + 16 * i, 8, bits(0.0))]).digest())
+        with self.assertRaises(ValueError):                                                         # the row has fewer callees than that
+            W2.run_original(row, 1, [(W2.FPRET_OVERRIDE + 16 * len(row['callees']), 8, bits(1.0))])
 
 
 if __name__ == '__main__':
