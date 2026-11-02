@@ -5,7 +5,7 @@
 // the bink_player/bink_audio FFmpeg adapters, and an AVAudioEngine source node that pulls the DirectSound mix. It replaces none of the
 // host: GAME.EXE is read at start-up (read only) and never written.
 //
-//   BlackmoorRecompiled [--game-dir DIR] [--exe GAME.EXE] [--save-dir DIR] [--mute] [--capture-audio FILE.wav] [--log FILE] [--background] [--stop-after-ms N] [--snapshot FILE.ppm]
+//   BlackmoorRecompiled [--game-dir DIR] [--exe GAME.EXE] [--save-dir DIR] [--mute] [--capture-audio FILE.wav] [--log FILE] [--background] [--stop-after-ms N] [--snapshot FILE.ppm] [--input-file FILE]
 //
 // DIR is the game folder (Ciftree, CDSound, CDVideo, Game.ini ...); GAME.EXE defaults to DIR/GAME.EXE.
 #import <AppKit/AppKit.h>
@@ -35,6 +35,8 @@ extern "C" {
 #include "macos_platform.h"
 #include "macos_platform_background.h"
 #include "rc_platform.h"
+#include "rc_internal.h"
+#include "rc_input_script.h"
 }
 
 namespace {
@@ -57,6 +59,7 @@ struct Recomp {
     uint32_t stop_after_ms = 0;
     uint64_t stop_deadline_ms = 0;
     std::string snapshot_path;
+    std::unique_ptr<RcInputScript, decltype(&rc_input_script_destroy)> input_script{nullptr, rc_input_script_destroy};
     std::atomic<bool> background_failed{false};
     std::atomic<bool> diagnostic_guest_failed{false};
     std::atomic<unsigned> background_activations{0};
@@ -155,6 +158,15 @@ void record_background_status(const char *stage)
              stage, (int)active, (int)key, (int)visible, activations);
     frontend_message(line);
 }
+
+// Runs only from the guest main-thread poll under its execution token.
+int script_shot(void *, unsigned number, uint32_t now)
+{
+    rc_log("  SHOT %u at virtual %u ms", number, now);
+    rc_input_script_log_observation();
+    return 1; // Optional per-shot primary dumping belongs in this callback.
+}
+void script_poll() { rc_input_script_poll(g.input_script.get()); }
 
 // ---- Bink movies through the app's FFmpeg adapters --------------------------------------------------------------------------------
 struct Movie {
@@ -475,7 +487,7 @@ int main(int argc, char **argv)
         g.game_dir = getenv("BLACKMOOR_GAME_DIR") ? getenv("BLACKMOOR_GAME_DIR")
             : "/Applications/Nancy Drew - Curse of Blackmoor Manor.app/Contents/Resources/game/"
               "Nancy Drew Curse of the Blackmoor Manor.app/Contents/Resources/drive_c/GOG Games/Nancy Drew - Curse of Blackmoor Manor";
-        std::string log_path, capture_path;
+        std::string log_path, capture_path, input_path;
         bool capture_requested = false;
         for (int i = 1; i < argc; i++) {
             std::string a = argv[i];
@@ -486,6 +498,10 @@ int main(int argc, char **argv)
             else if (a == "--capture-audio" && i + 1 < argc) { capture_path = argv[++i]; capture_requested = true; }
             else if (a == "--mute") g.muted = true;
             else if (a == "--background") g.background = true;
+            else if (a == "--input-file" && i + 1 < argc) {
+                input_path = argv[++i];
+                if (input_path.empty()) { fputs("--input-file requires a nonempty path\n", stderr); return 2; }
+            }
             else if (a == "--stop-after-ms" && i + 1 < argc) {
                 if (!parse_stop_after_ms(argv[++i], &g.stop_after_ms)) {
                     fprintf(stderr, "--stop-after-ms requires decimal milliseconds in 1..%u\n", kMaxStopAfterMs);
@@ -496,11 +512,17 @@ int main(int argc, char **argv)
                 g.snapshot_path = argv[++i];
                 if (g.snapshot_path.empty()) { fputs("--snapshot requires a nonempty path\n", stderr); return 2; }
             }
-            else { fprintf(stderr, "usage: %s [--game-dir DIR] [--exe GAME.EXE] [--save-dir DIR] [--mute] [--capture-audio FILE.wav] [--log FILE] [--background] [--stop-after-ms N] [--snapshot FILE.ppm]\n", argv[0]); return 2; }
+            else { fprintf(stderr, "usage: %s [--game-dir DIR] [--exe GAME.EXE] [--save-dir DIR] [--mute] [--capture-audio FILE.wav] [--log FILE] [--background] [--stop-after-ms N] [--snapshot FILE.ppm] [--input-file FILE]\n", argv[0]); return 2; }
         }
         if ([[NSUserDefaults standardUserDefaults] boolForKey:@"BlackmoorAudioMuted"]) g.muted = true;
         if (g.background && !g.muted) { fputs("--background requires effective --mute\n", stderr); return 2; }
         if (g.background && !g.stop_after_ms) g.stop_after_ms = kDefaultBackgroundStopMs;
+        if (!input_path.empty()) {
+            char script_error[256];
+            g.input_script.reset(rc_input_script_load_file(input_path.c_str(), script_shot, nullptr,
+                                                           script_error, sizeof script_error));
+            if (!g.input_script) { fprintf(stderr, "INPUT: %s\n", script_error); return 2; }
+        }
         if (g.exe.empty()) g.exe = getenv("GAME_EXE") ? getenv("GAME_EXE") : g.game_dir + "/GAME.EXE";
         if (g.save_dir.empty()) {
             NSArray *support = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES);
@@ -522,6 +544,7 @@ int main(int argc, char **argv)
 
         char error[512] = {};
         if (rc_start(g.exe.c_str(), error, sizeof error) != 0) { fprintf(stderr, "cannot start the game: %s\n", error); return 3; }
+        if (g.input_script) rc_set_poll_hook(script_poll);
 
         BlackmoorPlatformCallbacks callbacks{};
         callbacks.tick = on_tick; callbacks.pointer = on_pointer; callbacks.key = on_key; callbacks.closed = on_closed;
@@ -608,14 +631,26 @@ int main(int argc, char **argv)
         }
         const int join_error = g.game_thread_started ? pthread_join(g.game_thread, nullptr) : 0;
         bool diagnostics_ok = true;
-        if ((g.background || !g.snapshot_path.empty()) &&
+        if ((g.background || !g.snapshot_path.empty() || g.input_script) &&
             g.diagnostic_guest_failed.load(std::memory_order_acquire)) {
             frontend_message("diagnostic cleanup: guest ended abnormally; inspect game stopped reason");
             diagnostics_ok = false;
         }
-        if (join_error && (g.background || !g.snapshot_path.empty())) {
+        if (join_error && (g.background || !g.snapshot_path.empty() || g.input_script)) {
             frontend_message("diagnostic cleanup: game-thread join failed");
             diagnostics_ok = false;
+        }
+        if (g.input_script && !join_error) {
+            RcInputScriptStatus status = rc_input_script_status(g.input_script.get());
+            const bool complete = rc_input_script_completed(g.input_script.get());
+            char line[256];
+            snprintf(line, sizeof line,
+                     "SCRIPT delivered=%u total=%u consumed=%u requested_stop=%d failed=%d complete=%d",
+                     status.delivered, status.total, status.consumed, status.requested_stop, status.failed, (int)complete);
+            frontend_message(line);
+            if (!complete) { frontend_message("SCRIPT result=incomplete"); diagnostics_ok = false; }
+            rc_set_poll_hook(nullptr);
+            g.input_script.reset();
         }
         // Snapshot reads begin only after the game and all workers are joined.
         if (!g.snapshot_path.empty() && diagnostics_ok)
