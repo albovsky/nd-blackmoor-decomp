@@ -19,7 +19,7 @@ All35 finite Python cases pass. New cases require actual held keys/lens, ordered
 
 ## Review and limits
 
-Independent Sonnet review and required registered-test hash refresh are pending. No function-port acceptance is added. Checkers establish logged observations, save-open evidence and length; saved contents/fresh-write provenance are supported separately by the retained hash/reload chain, not proved by those checks alone. Alternative inventory layouts, retries, difficulty branches, other columns/armor, full campaigns and final native credits remain incomplete. No native app check or rebuild is claimed because compiled inputs are unchanged.
+Required registered-test hashes are refreshed from clean cbf9fa23; `columns-refresh-receipt.json` verifies unchanged function statuses/classes/counts/native lift fields and1763peer claims, plus exact CLI/exercised bytes. Independent Sonnet review and final static freshness checks are pending. No function-port acceptance is added. Checkers establish logged observations, save-open evidence and length; saved contents/fresh-write provenance are supported separately by the retained hash/reload chain, not proved by those checks alone. Alternative inventory layouts, retries, difficulty branches, other columns/armor, full campaigns and final native credits remain incomplete. No native app check or rebuild is claimed because compiled inputs are unchanged.
 
 The private Junior story has separately reached the glyph puzzle, whose unstable board/save reset needs live same-process input; that host-driver slice is being prepared independently. It is an automation limitation, not an unimplemented original puzzle. Senior playthrough evidence remains separate.
 
