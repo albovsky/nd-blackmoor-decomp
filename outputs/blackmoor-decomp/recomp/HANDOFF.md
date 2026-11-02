@@ -1,5 +1,9 @@
 # Handoff: recompiled GAME.EXE, state and next steps
 
+## Latest word prerequisites, 2026-11-02 Pacific
+
+RECOMP-21 adds five exact ordinary-input legs from public glowstick m29: lit word clue, corrected daytime Loulou/Barber dialogue, source-specific18M morning wait, Drake magic-word knowledge and Loulou's LEECH answer. Five actual producer/save-only reload pairs pass through m35; the word lock itself remains unsolved in this public chain. Final-source Drake Bye1092 corrects an earlier1090 checker expectation. Root finite checks, full scoped audit and private hashes are in the packet; frozen review/metadata pending. Continuous Junior/Senior campaigns remain further ahead toward alchemy/endgame.
+
 ## Latest glyph progression, 2026-11-02 Pacific
 
 RECOMP-19 adds the first-time Junior `glyph_live.py` client, using ordinary FIFO events selected from captured tiles and a caller-pinned private atlas. Actual final public m28 now produces a real glyph win, earned glowstick4, UI m29 and fresh save-only reload. Producer234steps/26ACK and reload22steps pass with normal exits,17 pixel plans;83 finite route/input checks pass. Source/atlas/data remain unchanged. Host74229ec8 uses default virtual mode; no game/host rules change. Sonnet accepts frozenb822f228 with no blocking findings; root accepts the documented bounded-client coverage limits. Both metadata freshness checks pass at2769b7a2, preserving1793peer claims. See packet for exact pins and first-time/Junior limits. Continuous campaigns are further ahead: Junior phosphorus/moving rooms, Senior gargoyle/runes; neither has reached ending credits.

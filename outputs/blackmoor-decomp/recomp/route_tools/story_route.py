@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The story routes of ROUTES.md as INPUT strings for rc_headless.
 
-  python3 story_route.py LEG [--save NAME]      LEG is one of: stairs, lock, slider, moon, telescope-prep, linda, jane-intro, jane-jigsaw, telescope-use, seedlings, crank-repair, betty-key, venus-column, jupiter-column, moon-key, moon-column, nigel-computer, night-wait, goggles, ghost-hunt, afternoon-door, linda-passage, bul-start, slide-ball, saturn-column, dragon-passage, glyph-request, slider-verify
+  python3 story_route.py LEG [--save NAME]      LEG is one of: stairs, lock, slider, moon, telescope-prep, linda, jane-intro, jane-jigsaw, telescope-use, seedlings, crank-repair, betty-key, venus-column, jupiter-column, moon-key, moon-column, nigel-computer, night-wait, goggles, ghost-hunt, afternoon-door, linda-passage, bul-start, slide-ball, saturn-column, dragon-passage, glyph-request, lit-word-clue, loulou-barber, loulou-morning, drake-magic, loulou-answer, slider-verify
   python3 story_route.py slider-verify          replays the recorded 105 slider moves on the puzzle rules and prints whether they solve it
 
 Each leg starts from a save made in the game's own Load & Save screen and (with --save NAME) ends by saving the next one, so the legs chain:
@@ -34,6 +34,12 @@ Each leg starts from a save made in the game's own Load & Save screen and (with 
   m25 --saturn-column--> m26 (movie-timed bullseye, real16 and Saturn use, safe S2620)
   m26 --dragon-passage--> m27 (dragon levers, dark passage entry and retreat, safe S3326)
   m27 --glyph-request--> m28 (request a light, read glyph rules and exit unsolved, safe S3510 view 4)
+   glyph_live.py may earn and verify m29 through first-time Junior play.
+   m29 --lit-word-clue--> m30 (earned light4 and original lit word clue, safe S4389 with authored held4)
+   m30 --loulou-barber--> m31 (daytime introduction and Barber clue, safe S3335)
+   m31 --loulou-morning--> m32 (source-specific ordinary morning wait, safe S3335)
+   m32 --drake-magic--> m34 (Drake magic-word knowledge, safe S2332; Barber already earned)
+   m34 --loulou-answer--> m35 (original LEECH clue, safe S3335; word lock remains unsolved)
 
 Steps are `anchor+ms:kind:args` (rc_headless.c). `click x,y,hold` is a move 1 s before the click; `mv:x,y` a bare move; `key:VK` a key press.
 A bare click on a hotspot needs a move onto it first or the game ignores it (the cursor must have been seen there), so every click has its move.
@@ -1089,6 +1095,126 @@ def leg_slider(save=None, gap=5000):
     return ';'.join(out)
 
 
+def leg_lit_word_clue(save=None):
+    """m29 -> use earned light4, inspect the lit clue; word lock stays unsolved."""
+    a = 'S3510.CIF'
+    r = R().at(a, 12000).turns('left', 6).clicks('shot', 0)
+    _observed_walk(r, 32000, '310,195 312,163 234,171', 10000, 6000)
+    _observed_walk(r, 62000, '318,163 474,162 328,163 318,163 303,163 '
+                   '318,163 318,163 318,163 469,164 316,166 315,168 '
+                   '315,168 321,162 214,163', 7000, 4500)
+    r.at(a, 168000).clicks('shot', 0)
+    r.at(a, 176000).clicks('289,99 289,99 289,99 211,149 211,149 431,193 '
+                             '216,246 216,246 406,306 406,306 406,306', 3500)
+    r.at(a, 222500).clicks('shot', 0)
+    r.at(a, 227500).clicks('334,198', 0)
+    r.at(a, 232500).clicks('shot', 0)
+    r.at(a, 237500).clicks('282,166', 0)
+    r.at(a, 249500).clicks('mv:310,180 shot', 0)
+    _observed_walk(r, 255500, '271,165 240,164 235,164 295,169 298,167 309,168 '
+                   '291,167 332,164 302,169 311,168 213,166 207,167 228,165 '
+                   '306,168 308,166 329,165 306,164 339,167 306,165 310,164 341,166 310,166')
+    for t, shot in ((365500, 383500), (387500, 405500)):
+        r.at(a, t).clicks('347,107', 0)
+        r.at(a, shot - 1000).clicks('shot', 0)
+    out = [r.text()]
+    if save:
+        out += [menu_to_save_screen(a, 410500), save_tail(a, 428500, save)]
+    return ';'.join(out)
+
+
+def leg_loulou_barber(save=None):
+    """m30 -> original daytime introduction and Barber clue, safe m31.
+
+    The night-list attempt had no save. Preserve the successful four replies;
+    this already earns Barber, so a separate magic-word request is unnecessary.
+    """
+    a = 'S4389.CIF'
+    r = R().at(a, 0)
+    _observed_walk(r, 12000, '311,358 201,355 228,165 237,166 314,165 305,165 '
+                   '377,165 316,164 302,167 320,164 315,164 399,164 401,165 '
+                   '345,166 345,166 310,164 377,165 358,166 304,167 309,166 '
+                   '307,164 322,167 315,169 391,167 359,163 359,163')
+    _observed_walk(r, 145000, '315,162 326,162 315,168 315,168 439,162')
+    r.at(a, 170000).clicks('324,196', 0)
+    r.at(a, 195000).clicks('shot', 0)
+    for t, shot in ((202000, 240000), (247000, 286000),
+                    (292000, 330000), (337000, 375000)):
+        r.at(a, t).clicks('150,421', 0)
+        r.at(a, shot - 1000).clicks('shot', 0)
+    r.at(a, 394000).clicks('shot', 0)
+    out = [r.text()]
+    if save:
+        out += [menu_to_save_screen(a, 400000), save_tail(a, 418000, save)]
+    return ';'.join(out)
+
+
+def leg_loulou_morning(save=None):
+    """m31 -> ordinary morning wait, safe m32; no clock/state writes.
+
+    This exact 18-million-ms wait from the day-two 17:23 source is specific. The checker requires the
+    actual morning arrival; a different source time may need another route.
+    """
+    a = 'S3335.CIF'
+    r = R().at(a, 12000).clicks('mv:320,60 shot', 0)
+    r.at(a, 18000000).clicks('mv:320,60 shot', 0)
+    out = [r.text()]
+    if save:
+        out += [menu_to_save_screen(a, 18008000), save_tail(a, 18026000, save)]
+    return ';'.join(out)
+
+
+def leg_drake_magic(save=None):
+    """m32 -> Drake's actual Loulou and magic-word replies, safe m34."""
+    a = 'S3335.CIF'
+    r = R().at(a, 0)
+    _observed_walk(r, 12000, '58,189 326,162 326,162 86,161 329,163 329,163 '
+                   '58,161 116,161 381,164 310,193 313,169 308,161')
+    r.at(a, 75000).clicks('shot', 0)
+    for t in (77000, 81000, 85000, 89000):
+        r.at(a, t).turns('right', 1)
+        r.at(a, t + 2500).clicks('shot', 0)
+    _observed_walk(r, 93000, '484,220 211,185 235,184 218,205 316,192 316,192 '
+                   '316,192 316,192 316,192 316,192 316,192 48,158 82,180 353,184 490,170')
+    r.at(a, 168000).clicks('327,234', 0)
+    r.at(a, 208000).clicks('shot', 0)
+    # Keep the exercised six-second thumb drags and actual scrolled replies.
+    for t, reply_y, shot in ((216000, 399, 266000), (270000, 399, 320000),
+                             (324000, 438, 364000)):
+        r.at(a, t).clicks('22,405,6000', 0)
+        r.o += ['%s+%d:move:22,%d' % (a, t + 1500 + 400 * i, y)
+                for i, y in enumerate((410, 415, 420, 425, 430, 435, 440, 445, 450, 455, 456))]
+        r.at(a, t + 8000).clicks('shot', 0)
+        r.at(a, t + 14000).clicks('150,%d' % reply_y, 0)
+        r.at(a, shot - 1000).clicks('shot', 0)
+    out = [r.text()]
+    if save:
+        out += [menu_to_save_screen(a, 368000), save_tail(a, 386000, save)]
+    return ';'.join(out)
+
+
+def leg_loulou_answer(save=None):
+    """m34 -> actual LEECH answer and word clue, safe m35; no word-lock win."""
+    a = 'S2332.CIF'
+    r = R().at(a, 0)
+    _observed_walk(r, 12000, '310,353 92,181 313,183 572,158 382,200 427,189 '
+                   '319,159 319,159 319,159 319,159 319,159 319,159 319,159 319,159 '
+                   '404,198 420,192 292,185 106,161 311,165 296,157')
+    r.at(a, 115000).clicks('shot', 0)
+    _observed_walk(r, 117000, '313,164 581,164 534,163 311,164 329,163 329,163 '
+                   '495,163 318,163 318,163 318,163 163,162 324,196')
+    r.at(a, 177000).clicks('317,197', 0)
+    r.at(a, 182000).clicks('shot', 0)
+    for t, point, shot in ((187000, '310,176', 223000),
+                            (228000, '150,421', 264000), (269000, '150,421', 295000)):
+        r.at(a, t).clicks(point, 0)
+        r.at(a, shot - 1000).clicks('shot', 0)
+    out = [r.text()]
+    if save:
+        out += [menu_to_save_screen(a, 299000), save_tail(a, 317000, save)]
+    return ';'.join(out)
+
+
 def verify_slider():
     """The puzzle rules of the body of S3450 (action_family_d3_runtime.c): five rows by six columns; types 0x10..0x13 are one-way edge arrows, 0x14 walls,
     1..10 the cell a piece of that number must rest on. A piece slides until a barrier or another piece stops it."""
@@ -1137,7 +1263,10 @@ if __name__ == '__main__':
             'ghost-hunt': leg_ghost_hunt, 'afternoon-door': leg_afternoon_door,
             'linda-passage': leg_linda_passage, 'bul-start': leg_bul_start,
             'slide-ball': leg_slide_ball, 'saturn-column': leg_saturn_column,
-            'dragon-passage': leg_dragon_passage, 'glyph-request': leg_glyph_request}
+            'dragon-passage': leg_dragon_passage, 'glyph-request': leg_glyph_request,
+            'lit-word-clue': leg_lit_word_clue, 'loulou-barber': leg_loulou_barber,
+            'loulou-morning': leg_loulou_morning, 'drake-magic': leg_drake_magic,
+            'loulou-answer': leg_loulou_answer}
     if leg not in legs:
         sys.exit(__doc__)
     print(legs[leg](save))

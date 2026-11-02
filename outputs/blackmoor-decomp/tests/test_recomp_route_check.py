@@ -1289,5 +1289,176 @@ class GlyphWinRouteTests(unittest.TestCase):
                     checker.verify(log, save, 'glyph-win')
 
 
+class WordPrerequisiteRouteTests(unittest.TestCase):
+    prior = GlyphWinRouteTests.prior | {2001, 1357}
+    opens = {
+        'lit-word-clue': (3332, 3338, 3339, 3342, 3343, 3498, 2902, 2910, 2942, 2964, 4375, 4389),
+        'loulou-barber': (3058, 2903, 3326, 3334, 3335, 3440, 1502, 1503, 1506, 1552, 3335),
+        'loulou-morning': (3335,),
+        'drake-magic': (2332, 1000, 1067, 1068, 1071, 1092, 2332),
+        'loulou-answer': (3334, 3335, 3336, 1500, 1556, 1557, 1558, 3335),
+    }
+    setUp = PostKeyRouteTests.setUp
+    observed_log = PostKeyRouteTests.observed_log
+
+    def frames(self, route):
+        stages = {
+            'lit-word-clue': (30, ((3510, 4), (3332, 0), (3342, 0), (3343, 0), (2910, 0),
+                                   (2942, 0), (2942, 0), (4389, 0), (4389, 0)),
+                              {2041: 4, 2232: 6, 1818: 7, 1836: 7}),
+            'loulou-barber': (31, ((4389, 0), (3058, 0), (3326, 0), (3334, 0), (1502, 0),
+                                  (1503, 0), (1506, 0), (1552, 0), (3335, 0), (3335, 0)),
+                              {1569: 4, 1467: 7}),
+            'loulou-morning': (32, ((3335, 0), (3335, 0), (3335, 0)), {}),
+            'drake-magic': (34, ((3335, 0), (2300, 3), (2300, 19), (2332, 0), (1000, 0),
+                                (1067, 0), (1071, 0), (2332, 0), (2332, 0)), {1525: 5, 1526: 6}),
+            'loulou-answer': (35, ((2332, 0), (3334, 0), (3336, 0), (1500, 0), (1558, 0),
+                                  (3335, 0), (3335, 0)), {1465: 4, 1476: 4, 1774: 4}),
+        }
+        number, states, phases = stages[route]
+        save = Path(self.folder.name) / ('m%d.SAV' % number)
+        save.write_bytes(bytes(170770))
+        retained = set(self.prior)
+        if route in ('drake-magic', 'loulou-answer'):
+            retained.add(1514)
+        for name, (_, _, earlier) in stages.items():
+            if name == route:
+                break
+            retained |= earlier.keys()
+        frames = []
+        for i, (scene, view) in enumerate(states):
+            flags = {f: 1 for f in retained}
+            flags.update({f: 1 for f, phase in phases.items() if i >= phase})
+            art = 3440 if route == 'loulou-barber' and scene in (1502, 1503, 1506, 1552) else scene
+            if route == 'loulou-answer' and scene in (1500, 1558):
+                art = 3336
+            held = 4 if ((route == 'lit-word-clue' and i >= 4) or
+                         (route == 'loulou-barber' and i < 4)) else -1
+            clock = {'lit-word-clue': (2, 16, 43 + i), 'loulou-barber': (2, 17, 3 + i),
+                     'loulou-morning': (2, 17, 23) if i == 0 else (3, 8, 23 + i),
+                     'drake-magic': (3, 8, 23 + i), 'loulou-answer': (3, 8, 41 + i)}[route]
+            frames.append({'scene': scene, 'art': art, 'view': view, 'held': held,
+                           'flags': flags, 'scope': '338-341,1000-2250', 'clock': clock})
+        return save, frames
+
+    def test_accepts_observed_prerequisite_phases_without_word_lock_win(self):
+        for route in self.opens:
+            with self.subTest(route=route):
+                save, frames = self.frames(route)
+                result = checker.verify(self.observed_log(route, save, frames), save, route)
+                self.assertFalse(result['word_lock_won'])
+                self.assertTrue({1984, 2018, 1804, 2042} <= set(result['flags_zero']))
+                self.assertEqual(1514 in result['flags_one'], route in ('drake-magic', 'loulou-answer'))
+        self.assertNotIn(1475, result['flags_one'])
+        self.assertNotIn(1479, result['flags_one'])
+
+    def test_refuses_premature_or_missing_authored_progression(self):
+        cases = (('lit-word-clue', 0, 1818, 1), ('lit-word-clue', 4, 2041, 0),
+                 ('loulou-barber', 6, 1467, 1), ('loulou-barber', 4, 1569, 0),
+                 ('drake-magic', 4, 1525, 1), ('drake-magic', 6, 1526, 0),
+                 ('loulou-answer', 3, 1465, 1), ('loulou-answer', 4, 1476, 0))
+        for route, index, flag, value in cases:
+            with self.subTest(route=route, flag=flag, value=value):
+                save, frames = self.frames(route)
+                frames[index]['flags'][flag] = value
+                with self.assertRaises(ValueError):
+                    checker.verify(self.observed_log(route, save, frames), save, route)
+
+    def test_refuses_wrong_light_dialogue_art_or_final_item(self):
+        for route, index, field, value in (('lit-word-clue', -1, 'held', -1),
+                ('loulou-barber', 0, 'held', -1), ('loulou-barber', 4, 'art', 1502),
+                ('loulou-answer', 4, 'art', 1558), ('drake-magic', -1, 'held', 4)):
+            with self.subTest(route=route, index=index, field=field):
+                save, frames = self.frames(route)
+                frames[index][field] = value
+                with self.assertRaisesRegex(ValueError, 'held|light|art'):
+                    checker.verify(self.observed_log(route, save, frames), save, route)
+
+    def test_rejects_nonselected_bad_observation_not_hidden_by_final_pair(self):
+        for failure in ('scope', 'retained', 'word_win', 'timer', 'phase_backwards'):
+            with self.subTest(failure=failure):
+                route = 'loulou-answer'
+                save, frames = self.frames(route)
+                extra = dict(frames[4], scene=9998, art=9998, flags=dict(frames[4]['flags']))
+                if failure == 'scope':
+                    extra['scope'] = '338-341,1000-1513,1515-2250'
+                elif failure == 'retained':
+                    extra['flags'][2005] = 0
+                elif failure == 'word_win':
+                    extra['flags'][2018] = 1
+                elif failure == 'timer':
+                    extra['flags'][1192] = 1
+                else:
+                    extra['flags'][1465] = 0
+                frames.insert(5, extra)
+                with self.assertRaisesRegex(ValueError, 'required|retained|progression|monotone'):
+                    checker.verify(self.observed_log(route, save, frames), save, route)
+
+    def test_requires_source_gate_morning_arrival_and_monotone_clock(self):
+        for failure in ('source', 'night_arrival', 'backwards', 'clock_scope'):
+            with self.subTest(failure=failure):
+                route = 'loulou-morning'
+                save, frames = self.frames(route)
+                if failure == 'source':
+                    frames[0]['clock'] = (2, 21, 23)
+                elif failure == 'night_arrival':
+                    for frame in frames[1:]:
+                        frame['clock'] = (3, 3, 30)
+                elif failure == 'backwards':
+                    frames[-1]['clock'] = (3, 8, 0)
+                else:
+                    frames[0]['scope'] = '338-340,1000-2250'
+                with self.assertRaisesRegex(ValueError, 'clock|morning'):
+                    checker.verify(self.observed_log(route, save, frames), save, route)
+
+    def test_requires_real_dialogue_opens_order_safe_pair_and_own_stop(self):
+        for failure in ('drake_open', 'loulou_open', 'missing_answer', 'reordered', 'final_pair', 'stop'):
+            with self.subTest(failure=failure):
+                route = 'drake-magic' if failure == 'drake_open' else 'loulou-answer'
+                save, frames = self.frames(route)
+                opened = self.opens[route]
+                if failure in ('drake_open', 'loulou_open'):
+                    missing = 1068 if failure == 'drake_open' else 1556
+                    opened = tuple(n for n in opened if n != missing)
+                elif failure == 'missing_answer':
+                    del frames[4]
+                elif failure == 'reordered':
+                    frames[3], frames[4] = frames[4], frames[3]
+                elif failure == 'final_pair':
+                    frames[-1]['scene'] = 3336
+                log = self.observed_log(route, save, frames, opened)
+                if failure == 'stop':
+                    log = log.replace('stop requested', 'message loop idle')
+                with self.assertRaisesRegex(ValueError, 'ordered|authored|safe|requested stop'):
+                    checker.verify(log, save, route)
+
+
+class WordPrerequisiteInputTests(unittest.TestCase):
+    def test_retained_event_bodies_and_save_name_only_parameterization(self):
+        import hashlib
+        spec = importlib.util.spec_from_file_location('word_story', MODULE.with_name('story_route.py'))
+        story = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(story)
+        expected = (
+            ('lit_word_clue', 'm30', 189, 'ae4fdb574da6d1bdaeaa665db42cf581599f6bb57430958ce3e9a57c440b7d53'),
+            ('loulou_barber', 'm31', 131, '8d3c38940e9c119ad08badfa403032099fbe1f23a35b80c21cebf97a7a53ef8d'),
+            ('loulou_morning', 'm32', 26, '31fb45cf4e0053b0d3c09a1b1950c877de92482ce6504d8d33280573e9863830'),
+            ('drake_magic', 'm34', 170, '4af23a6bde2483ffaf7961715f244e023948f01be238276803acd1a746fa3e33'),
+            ('loulou_answer', 'm35', 131, '843e2597868c8fa1175ec041c30528125f1348b604439c2d54105ef83231103c'))
+        for name, save, count, digest in expected:
+            with self.subTest(leg=name):
+                leg = getattr(story, 'leg_' + name)
+                payload = leg(save)
+                self.assertEqual(hashlib.sha256(payload.encode()).hexdigest(), digest)
+                self.assertEqual(len(payload.split(';')), count)
+                self.assertLessEqual(count, 512)
+                self.assertTrue(payload.startswith(leg() + ';'))
+                typed = leg(save + 'x')
+                name_start = payload.index(':key:77')
+                self.assertEqual(payload[:name_start], typed[:name_start])
+                self.assertNotIn('key:88', payload)
+                self.assertIn('key:88', typed)
+
+
 if __name__ == '__main__':
     unittest.main()
