@@ -107,3 +107,5 @@ Original game files and reserved ledger/evidence outputs are unchanged. Neither 
 - Live attempt04: actual glyph win, caption-scroll Bye, real held4 selection and safe original UI m29 all pass;240steps/33captures, finish26/25ACKs, exit0. Fresh save-only reload is pending. Earlier three failed checkpoint attempts remain retained; no clock/story/RNG state was written.
 
 - Glyph persistence follow-up: fresh m29-only reload selects actual4 and returns safe3510/view4 with earned2001/1357 and cleared1418. Root independently verifies both raw logs, scoped unmet zeros and identical source/copied/save hashes. Host review/final static checks remain pending.
+
+- Live-input review follow-up: Sonnet high accepts3a44a658 with no P1/blocking P2; both static freshness checks pass. Nonblocking failure-wiring/unterminated-line coverage and inherited automatic-frame/stdout I/O limits are explicit in RECOMP-13. No post-review code change.
