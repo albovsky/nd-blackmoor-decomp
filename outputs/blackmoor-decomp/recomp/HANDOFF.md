@@ -2,7 +2,7 @@
 
 ## Latest oil and rune passage, 2026-11-02 Pacific
 
-RECOMP-27 continues actual public m47 through1944oil, realcrest2 gargoyle1974/1877 and rune1864/2081/2003 to safe3050/held4. Two producer/fresh-save-only reload pairs pass on reviewedb49; UI m48/m49 saved03:35/03:42. Original3175flicker legitimately sets1809: a strict source-backed checker phase fixes the inheritedzero assumption, and revalidates the retained run without replay.112finite checks pass, affected92rerun after checker delta. Review/metadata pending; packet pins exact outputs, scopes and unverified next gates. Both full campaigns have solved Bell organ and are earning Mercury9; ending remains incomplete.
+RECOMP-27 continues actual public m47 through1944oil, realcrest2 gargoyle1974/1877 and rune1864/2081/2003 to safe3050/held4. Two producer/fresh-save-only reload pairs pass on reviewedb49; UI m48/m49 saved03:35/03:42. Original3175flicker legitimately sets1809: a strict source-backed checker phase fixes the inheritedzero assumption, and revalidates the retained run without replay.112finite checks pass, affected92rerun after checker delta. Sonnet accepts frozen3c4fde42 with no blockers; guarded metadatad34674ba preserves1824peer claims. Packet pins exact outputs, raw inputs/logs, accepted outer-proof limits and next gates. Both full campaigns have won Bell organ and earned actualMercury9; their separatecc7 proof is pinned in RECOMP27. Ending remains incomplete.
 
 ## Latest typing crest and native build, 2026-11-02 Pacific
 
