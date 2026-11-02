@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Check an observed headless story leg, not merely its process exit.
 
-python3 check_route.py RUN_LOG SAVE_FILE [--route telescope-prep|jane-jigsaw|telescope-use|seedlings|crank-repair|betty-key|venus-column|jupiter-column|moon-key|moon-column|nigel-computer|night-wait|goggles|ghost-hunt|afternoon-door|linda-passage|bul-key|slide-ball|saturn-column|dragon-passage|glyph-request|glyph-win|lit-word-clue|loulou-barber|loulou-morning|drake-magic|loulou-answer]
+python3 check_route.py RUN_LOG SAVE_FILE [--route telescope-prep|jane-jigsaw|telescope-use|seedlings|crank-repair|betty-key|venus-column|jupiter-column|moon-key|moon-column|nigel-computer|night-wait|goggles|ghost-hunt|afternoon-door|linda-passage|bul-key|slide-ball|saturn-column|dragon-passage|glyph-request|glyph-win|lit-word-clue|loulou-barber|loulou-morning|drake-magic|loulou-answer|light-depletion|paid-light-request|repeat-glyph-win|word-lock]
 The caller supplies a checkpoint produced by this run's normal Load & Save UI.
 This checks recorded observations, a matching file-open line and save size;
 fresh-folder/write provenance and saved contents require separate replay evidence.
@@ -495,6 +495,108 @@ def verify_word_prerequisite_observations(route, log, observations, selected, cl
     return clocks[-1][1]
 
 
+WORD_LOCK_ROUTES = ('light-depletion', 'paid-light-request', 'repeat-glyph-win', 'word-lock')
+WORD_LOCK_STAGES = {1984: 7, 1967: 8, 1966: 9, 1977: 10, 2018: 11, 1979: 11}
+WORD_LOCK_SCENES = {
+    'light-depletion': (2910, 3175, 3180, 3181, 2942, 3058, 2903, 3326, 3334, 3335),
+    'paid-light-request': (3345, 3346, 3500, 3505, 3510, 1200, 1282, 1281, 3585, 3513, 3522, 3510),
+    'repeat-glyph-win': (3588, 1299, 1295, 1949, 3510),
+    'word-lock': (2910, 2942, 4375, 4389, 4376, 4377, 4378, 4379, 4380, 4387),
+}
+
+
+def word_lock_configuration(route):
+    _, earned, zero = word_prerequisite_configuration('loulou-answer')
+    retained, zero = earned - {2041}, zero - {1418, 2042}
+    if route == 'light-depletion':
+        states = [(3335, 0), (3332, 0), (3342, 0), (3343, 0), (2910, 0), (3175, 0),
+                  (2912, 0), (2933, 0), (2933, 0), (2942, 0), (3058, 0), (3326, 0),
+                  (3335, 0), (3335, 0)]
+        return states, retained | {1809}, zero | {1418, 2041, 2042}
+    if route == 'paid-light-request':
+        states = [(3335, 0), (3335, 0), (3335, 0), (3345, 0), (3346, 0), (3505, 0),
+                  (3510, 4), (1200, 0), (3585, 0), (3513, 0), (3510, 4), (3510, 4)]
+        return states, retained | {1809, 1418}, zero | {2041, 2042}
+    if route == 'repeat-glyph-win':
+        states = [(3510, 4), (3588, 0), (1295, 0), (1949, 0), (3510, 4), (3510, 4), (3510, 4)]
+        return states, retained, zero | {1809, 1418, 2041, 2042}
+    if route == 'word-lock':
+        states = [(3510, 4), (3332, 0), (3342, 0), (3343, 0), (2910, 0), (2942, 0),
+                  (4376, 0), (4377, 0), (4378, 0), (4379, 0), (4380, 0), (4387, 0), (4387, 0)]
+        return states, retained | {2041} | WORD_LOCK_STAGES.keys(), (zero - WORD_LOCK_STAGES.keys()) | {1809, 1418, 2042, 1972}
+    raise ValueError('unknown replacement-light/word-lock route')
+
+
+def verify_word_lock_observations(route, log, observations, selected, clocks, positive, negative):
+    up = {'light-depletion': {1809: 5}, 'paid-light-request': {1418: 8},
+          'repeat-glyph-win': {}, 'word-lock': {2041: 4, **WORD_LOCK_STAGES}}[route]
+    down = {'light-depletion': {2041: 6}, 'paid-light-request': {},
+            'repeat-glyph-win': {1418: 3, 1809: 3}, 'word-lock': {}}[route]
+    changing = up.keys() | down.keys() | ({2042} if route == 'light-depletion' else set())
+    previous = {**{f: 0 for f in up}, **{f: 1 for f in down}}
+    expired = False
+    transient_previous = 0
+    for state, scope, flags in observations:
+        if not (positive | negative) <= scope:
+            raise ValueError('RC_FLAGS did not observe every required replacement-light/word-lock event')
+        if any(flags.get(f, 0) != 1 for f in positive - changing):
+            raise ValueError('replacement-light/word-lock retained prerequisite differs')
+        if any(flags.get(f, 0) != 0 for f in negative - changing):
+            raise ValueError('unexpected replacement-light/word-lock later, failure or timer event')
+        for f in previous:
+            value = flags.get(f, 0)
+            backwards = value < previous[f] if f in up else value > previous[f]
+            if value not in (0, 1) or backwards:
+                raise ValueError('replacement-light/word-lock phase is not binary/monotone')
+            previous[f] = value
+        if route == 'light-depletion':
+            value = flags.get(2042, 0)
+            if transient_previous == 1 and value == 0:
+                expired = True
+            if value not in (0, 1) or (expired and value) or (value and (flags.get(2041, 0) or not flags.get(1809, 0))):
+                raise ValueError('original light timer did not follow its authored depletion phases')
+            transient_previous = value
+        if route == 'word-lock':
+            stages = [flags.get(f, 0) for f in (1984, 1967, 1966, 1977, 2018, 1979)]
+            if any(a < b for a, b in zip(stages, stages[1:])):
+                raise ValueError('later word-lock stage preceded an earlier original win')
+        allowed = (-1, 5) if route == 'paid-light-request' else (-1, 4)
+        if state[3] not in allowed:
+            raise ValueError('replacement-light/word-lock unexpected held item')
+        if state[3] == 5 and (state[:3] != (3335, 3335, 0) or flags.get(1418, 0)):
+            raise ValueError('used5 was not observed before the paid request')
+        if state[3] == 4:
+            valid = ((flags.get(2041, 0) or flags.get(2042, 0)) if route == 'light-depletion' else
+                     (state[:3] == (3510, 3510, 4) and not flags.get(1418, 0) and not flags.get(1809, 0)) if route == 'repeat-glyph-win' else
+                     (flags.get(2041, 0) and not 4376 <= state[0] <= 4389))
+            if not valid:
+                raise ValueError('real light4 does not match the original route phase')
+    held = {'light-depletion': {4: 4, 5: 4, 6: 4, 7: 4}, 'paid-light-request': {1: 5},
+            'repeat-glyph-win': {4: 4}, 'word-lock': {4: 4, 5: 4}}[route]
+    for i, (state, _, flags) in enumerate(selected):
+        if state[1] != state[0] or state[3] != held.get(i, -1):
+            raise ValueError('replacement-light/word-lock art, actual item or final safe frame differs')
+        if any(flags.get(f, 0) != int(i >= phase) for f, phase in up.items()) or any(
+                flags.get(f, 0) != int(i < phase) for f, phase in down.items()):
+            raise ValueError('replacement-light/word-lock source and original progression phases differ')
+        if route == 'light-depletion' and flags.get(2042, 0) != int(6 <= i < 8):
+            raise ValueError('original light timer start/expiry was not observed')
+    verify_clock_diagnostics(clocks)
+    source = clocks[0][1]
+    source_hour = {'light-depletion': 8, 'paid-light-request': 9, 'repeat-glyph-win': 14, 'word-lock': 14}[route]
+    if source['day'] != 3 or source['hour'] != source_hour:
+        raise ValueError('replacement-light/word-lock observed source clock gate differs')
+    opened = [int(m[1]) for m in re.finditer(r'FILE open .*\\S(\d+)\.CIF\s+\[virtual \d+ ms\]', log)]
+    cursor = 0
+    for scene in WORD_LOCK_SCENES[route]:
+        while cursor < len(opened) and opened[cursor] != scene:
+            cursor += 1
+        if cursor == len(opened):
+            raise ValueError('missing ordered replacement-light/word-lock authored scene opens')
+        cursor += 1
+    return clocks[-1][1]
+
+
 def verify(log, save, route='telescope-prep'):
     if route == 'telescope-prep':
         expected = [(2010, 0), (2014, 0), (2026, 0), (2010, 2)]
@@ -561,6 +663,8 @@ def verify(log, save, route='telescope-prep'):
         expected, positive, negative = glyph_win_configuration()
     elif route in WORD_PREREQUISITE_ROUTES:
         expected, positive, negative = word_prerequisite_configuration(route)
+    elif route in WORD_LOCK_ROUTES:
+        expected, positive, negative = word_lock_configuration(route)
     else:
         raise ValueError('unknown story route')
     observations = []
@@ -590,6 +694,10 @@ def verify(log, save, route='telescope-prep'):
     held_steps = {'jupiter-column': {4: 6}, 'moon-key': {7: 12, 13: 11},
                   'moon-column': {4: 11}, 'goggles': {11: 21}, 'bul-key': {13: 7},
                   'slide-ball': {4: 7, 12: 3}, 'saturn-column': {4: 16, 5: 16}, 'glyph-win': {4: 4}}.get(route, {})
+    if route in WORD_LOCK_ROUTES:
+        held_steps = {'light-depletion': {4: 4, 5: 4, 6: 4, 7: 4, 8: -1},
+                      'paid-light-request': {1: 5, 2: -1}, 'repeat-glyph-win': {4: 4},
+                      'word-lock': {4: 4, 5: 4}}[route]
     selected = []
     for observation in observations:
         state, scope, flags = observation
@@ -616,7 +724,7 @@ def verify(log, save, route='telescope-prep'):
             selected.append(observation)
     if len(selected) != len(expected):
         raise ValueError('missing ordered route observations')
-    if route in ('jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES:
+    if route in ('jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES:
         # Earlier inventory shots can share scene/view/held cells. Check the
         # final two observations, rather than treating those as checkpoints.
         if any((state[0], state[2]) != expected[-1] for state, _, _ in observations[-2:]):
@@ -727,6 +835,8 @@ def verify(log, save, route='telescope-prep'):
         clock_diagnostics = verify_glyph_win_observations(log, observations, selected, clocks, positive, negative)
     if route in WORD_PREREQUISITE_ROUTES:
         clock_diagnostics = verify_word_prerequisite_observations(route, log, observations, selected, clocks, positive, negative)
+    if route in WORD_LOCK_ROUTES:
+        clock_diagnostics = verify_word_lock_observations(route, log, observations, selected, clocks, positive, negative)
     for _, scope, flags in selected[-2:]:
         if not (positive | negative) <= scope:
             raise ValueError('RC_FLAGS did not observe every required event')
@@ -745,9 +855,9 @@ def verify(log, save, route='telescope-prep'):
         raise ValueError('checkpoint save is missing or has an unexpected length')
     result = {'route': route, 'scene': expected[-1][0], 'view': expected[-1][1],
             'flags_one': sorted(positive), 'flags_zero': sorted(negative),
-            'save': save.name, 'telescope_complete': route in ('telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES}
-    if route in WORD_PREREQUISITE_ROUTES:
-        result['word_lock_won'] = False
+            'save': save.name, 'telescope_complete': route in ('telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES}
+    if route in WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES:
+        result['word_lock_won'] = route == 'word-lock'
     if route == 'glyph-request':
         result['glyph_pending'] = True
     if route == 'glyph-win':
@@ -762,7 +872,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('run_log', type=Path)
     parser.add_argument('save_file', type=Path)
-    parser.add_argument('--route', choices=('telescope-prep', 'jane-jigsaw', 'telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES,
+    parser.add_argument('--route', choices=('telescope-prep', 'jane-jigsaw', 'telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES,
                         default='telescope-prep')
     args = parser.parse_args()
     try:
