@@ -295,3 +295,9 @@ New headless66028983… passes all12 fresh New Game→m12 runs with complete del
 ## Muted native clock correction, 2026-11-02, 02:33 Pacific
 
 Fixed deadlines replace render-then-10ms-sleep. Same15s probes improve active rate32928.319→44098.620frames/s against44100, PCM11.21→15.01s. Full actual native intro repeats to2010/view5/held-1 at44098.884fps with0rebases,5steps complete and identical bedroom frame. No historical catch-up or guest clock change. RECOMP-09 records pins/limits/review. The earlier large process/PCM gap is resolved for these observed active periods; general media synchronization and long stalls remain unverified.
+
+## Right-release puzzle rotation, 2026-11-02, 03:41 Pacific
+
+The Mac frontend now forwards right-button state to the guest queue. Scripts accept `pointer:x,y,mask`, complete left/right mask0..3, with explicit0 release; this is ordinary input, not puzzle-state injection. Do not mix it with an unexpired legacy click hold when testing rotation. Existing left-only/timed inputs keep their behavior.
+
+Fresh genuine m10→Betty/Drake→2348 probe picks type10 at331,286, moves150,180, presses mask2 and releases mask0 one second later. Actual native captures show40x100→100x40 clockwise,2321 cursor-excluded pixels match exactly, two settled frames agree. All158steps complete; no drop/save/win is claimed. Native0c5fc594… and evidence `right-pointer-rotation-run/`; see RECOMP-10. Four finite input checks and ten hidden AppKit callbacks in each960x480 fit/stretch mode pass. Physical mouse/full-app rotation and full campaigns remain unverified.

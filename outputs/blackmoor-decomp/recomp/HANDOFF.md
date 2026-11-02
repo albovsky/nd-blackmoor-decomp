@@ -12,6 +12,10 @@ Nine earlier thread tests passed; current13 route-checker cases and one generate
 
 The original handoff below describes the earlier baseline. Its telescope-first step is superseded by the loan prerequisite and verified m7 preparation above. The macOS app and final full playthrough remain incomplete.
 
+## Right-pointer continuation, 2026-11-02
+
+RECOMP-10 wires right AppKit callbacks and explicit script `pointer:x,y,mask` to the normal guest queue. A fresh m10 seedlings probe observes a clockwise40x100→100x40 turn and complete158-step delivery. Four finite input cases and hidden960x480 fit/stretch platform checks pass; native pins and remaining checks are in the packet. Existing public story remainsm12; private accepted saves extend throughm25/slide ball, with Venus route promotion queued next. Full campaigns and final native credits remain incomplete.
+
 ## State
 
 * The game is lifted from the owner's GAME.EXE to C (`lift_recomp.py`: 4,605 functions lifted, 165 refused, see below) and runs on the native host (`rc_core.c`, `rc_win32.c`, `rc_ddraw.c`, `rc_dsound.c`, `rc_bink.c`, `rc_main.c`). Lifted C is a build output, never committed.

@@ -2,7 +2,10 @@
 
 Run only after root applies/reviews the API patch and the owner authorizes an
 unlocked desktop: BLACKMOOR_BACKGROUND_UI_TEST=1 python3 this-file.py -v
-This uses synthetic RGBA and no game, owner assets, audio or OS input.
+This uses synthetic RGBA and direct hidden-view NSEvents in a separate process
+for each fit/stretch mode. It uses no game, owner assets, audio or OS input and
+makes no physical-input or displayed-pixel claim. Display preferences are only
+set in the fixture process's volatile NSArgumentDomain.
 Pure geometry remains covered separately by test_native_display_geometry.py.
 """
 import hashlib
@@ -30,7 +33,7 @@ def sha(path):
 
 
 class BackgroundPlatformTests(unittest.TestCase):
-    def test_background_platform_stays_hidden_through_four_ticks(self):
+    def test_background_pointer_modes_stay_hidden_through_four_ticks(self):
         if os.environ.get('BLACKMOOR_BACKGROUND_UI_TEST') != '1':
             self.skipTest('Opt in only with unlocked-desktop authorization: BLACKMOOR_BACKGROUND_UI_TEST=1')
         if sys.platform != 'darwin':
@@ -68,6 +71,9 @@ class BackgroundPlatformTests(unittest.TestCase):
                    'build_exit_codes': [], 'fixture_launch_attempted': False, 'fixture_executed': False,
                    'foreground_opener_called': False, 'game_executed': False,
                    'audio_executed': False, 'os_input_injected': False,
+                   'input_delivery': 'direct hidden content-view methods',
+                   'physical_input_verified': False, 'display_modes': ['fit', 'stretch'],
+                   'fixture_runs': [],
                    'opt_in': 'BLACKMOOR_BACKGROUND_UI_TEST=1'}
         try:
             for index, command in enumerate(commands):
@@ -76,19 +82,32 @@ class BackgroundPlatformTests(unittest.TestCase):
                 receipt['build_exit_codes'].append(built.returncode)
                 self.assertEqual(built.returncode, 0, built.stdout + built.stderr)
             receipt['native_sha256'] = sha(executable)
-            receipt['fixture_launch_attempted'] = True
-            result = subprocess.run([str(executable)], capture_output=True, text=True, timeout=10)
-            receipt['fixture_executed'] = True
-            receipt['fixture_exit_code'] = result.returncode
-            (output / 'run.log').write_text(result.stdout + result.stderr)
-            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-            self.assertIn('BACKGROUND_PLATFORM ticks=4 presentations=5 activations=0 failures=0 closed=1', result.stdout)
+            for mode in ('fit', 'stretch'):
+                with self.subTest(display_mode=mode):
+                    command = [str(executable), '--display', mode]
+                    run = {'display_mode': mode, 'command': command,
+                           'launch_attempted': True, 'executed': False}
+                    receipt['fixture_runs'].append(run)
+                    receipt['fixture_launch_attempted'] = True
+                    try:
+                        result = subprocess.run(command, capture_output=True, text=True, timeout=10)
+                    except subprocess.TimeoutExpired as timeout:
+                        receipt['fixture_executed'] = run['executed'] = True
+                        run['timeout_seconds'] = timeout.timeout
+                        (output / ('run-' + mode + '.log')).write_text(str(timeout))
+                        self.fail('Background ' + mode + ' fixture timed out; see ' + str(output))
+                    receipt['fixture_executed'] = run['executed'] = True
+                    run['exit_code'] = result.returncode
+                    (output / ('run-' + mode + '.log')).write_text(result.stdout + result.stderr)
+                    self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                    self.assertIn('BACKGROUND_PLATFORM ticks=4 presentations=5 activations=0 failures=0 closed=1',
+                                  result.stdout)
+                    self.assertIn('BACKGROUND_POINTER mode=' + mode + ' content=960x480 events=10 checked=10',
+                                  result.stdout)
         except subprocess.TimeoutExpired as timeout:
-            receipt['timeout_seconds'] = timeout.timeout
-            if timeout.cmd == [str(executable)]:
-                receipt['fixture_executed'] = True
+            receipt['build_timeout_seconds'] = timeout.timeout
             (output / 'timeout.log').write_text(str(timeout))
-            self.fail('Background platform fixture/build timed out; see ' + str(output))
+            self.fail('Background platform fixture build timed out; see ' + str(output))
         finally:
             receipt['inputs_unchanged'] = all(sha(Path(p)) == digest for p, digest in pins.items())
             (output / 'receipt.json').write_text(json.dumps(receipt, indent=2) + '\n')
