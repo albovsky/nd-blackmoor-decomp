@@ -114,7 +114,7 @@ of 800 ms (the default of the other steps) bounces straight back to the menu. Us
 
 ## Story routes: the stair lock to the moon box (2026-10-31)
 
-`route_tools/story_route.py` writes the `INPUT` strings of four legs that chain through the game's own saves. Run a leg from the save it starts at (the Load & Save list
+`route_tools/story_route.py` writes the `INPUT` strings of five legs that chain through the game's own saves. Run a leg from the save it starts at (the Load & Save list
 is ordered by the game, not by name, and a new save reshuffles it: `route_load.sh` takes the row's y, so look at the list, rows are 42.5 px apart from y = 105):
 
 | Leg | From | Does | Ends (with `--save NAME`) |
@@ -122,7 +122,8 @@ is ordered by the game, not by name, and a new save reshuffles it: `route_load.s
 | `stairs` | `m0` (bedroom right after the suitcase) | up to S3395 (see "Bedroom to the stair lock"), the piano, S3396/S3397, key 17 from S3398 | S3397, key 17 owned |
 | `lock` | S3397 | down the hall to S3448, the key shows the lock is stuck, back to the bedroom, the intercom order, S3350/S4400 (delivery), the tray, butter 25, back to the lock | S3447 |
 | `slider` | S3447 | the slider puzzle S3450 (105 moves), the compartment S3452/S3453 (item 6), S3455 cancel strip, S3457 | S3303 |
-| `moon` | S3303 | the library nook S2011, the moon box S2038, its five dials, the lens | S2076 |
+| `moon` | S3303 | the library nook S2011, the moon box S2038, its five dials, the lens diagram | S2076 |
+| `telescope-prep` | m6 / S2076 | collect lens 12, inspect tripod, read all chart pages | m7 / S2010 view 2 |
 
 ```
 python3 route_tools/story_route.py stairs --save m1        > leg1.txt     # then:  route_load.sh OUT ROW_Y_OF_m0 "$(cat leg1.txt)"
@@ -183,12 +184,9 @@ waxing gibbous, full, waning gibbous, last quarter, waning crescent, new, waxing
 quarter (LEPUS), green waning gibbous (PISCES). The scene script flags 1025 to 1029 show which dials are right (`RC_FLAGS`, below). Inside: a telescope lens (S2075, S2076:
 "This lens is supposed to go into a telescope that sits on a tripod").
 
-### After the moon box (S2074 to S2014), looked at on the native build only
+### Earlier moon-box continuation (superseded by the verified route below)
 
-From S2076 the lens is taken in S2074 (click its hotspot `326,177`; the S2075 scene around it takes bottom-strip clicks `310,352` to leave), then S2040, S2011, S2010.
-Six right turns (`630,200`, hold 150) from the nook exit face the telescope table; `528,272` in the view with the tripod opens S2014 (the tripod, "Hmmm. A tripod.").
-With the lens (toolbox slot 0, `62,100`) picked up, a click at `310,190` on the tripod head left a small cap on its left arm that the view did not show before
-(pictures only; the scene's own flag was not read, so this is not claimed as the solved step). Not yet tried: the star chart S2015 and the telescope S2078.
+The earlier continuation was picture-only and did not prove a telescope solve. Use `telescope-prep` below; the old six-click panorama recipe has been replaced by measured single-frame turns.
 
 ## Debug switches of rc_headless
 
@@ -197,3 +195,59 @@ With the lens (toolbox slot 0, `62,100`) picked up, a click at `310,190` on the 
 * `RC_FLAGS="1000-1030,1716"`: at every shot, log the non-zero event flags in those ranges (the game's table at 0x585801 + 4 * n).
 * `RC_TRACE_MS=from-to`: log every import call (name, arguments, result) in that range of virtual milliseconds.
 * Long routes need `MAX_IDLE_POLLS` and `MAX_IMPORTS` raised (the 105-move slider run uses 900000 and 90000000).
+
+## Telescope preparation, verified 2026-11-01, 19:38 PST
+
+Generate the next leg, then pass its steps to `route_load.sh` with the row of m6. Verify the resulting log and game-generated save:
+
+```sh
+python3 route_tools/story_route.py telescope-prep --save m7 > leg5.txt
+```
+
+The loader invocation uses the documented `RC_HEADLESS`, `GAME_EXE` and scratch `RC_GAMEDIR` environment. For a folder containing only m6, its row is 105. Set `RC_FLAGS="1309,1834,1843,1905-1906,1949,1953,1980,1993,2036-2037"` before the run. Afterward:
+
+```sh
+python3 route_tools/check_route.py OUT/run.log "SCRATCH/Documents5/The Curse of Blackmoor Manor/m7.SAV"
+```
+
+The leg leaves S2076, collects lens 12 in S2074, backs out through S2075/S2040/S2011, inspects S2014 and reads S2015→S2022→S2023→S2024→S2025→S2026. It returns to S2010, view 2, and saves m7. The checker requires the ordered pre-turn/tripod/chart/return observations, the complete flag observation range, expected flag values, a clean requested stop and the checkpoint file. It rejects a process that merely exits successfully after missing the route.
+
+The original chart flags 1953, 1949, 1834 and 1843 are all 1 at S2026 and after the return. Lens-knowledge 1905 and moon-solved 1993 are also 1. The final log records that it observes 1980, 2037, 2036, 1309 and 1906; all remain 0. This is telescope **preparation**, not completion. Jane must lend the telescope after her timed jigsaw, followed by delivery scenes. Installing the lens then sets 1309; looking through it sets 1906. Those later interactions are statically mapped, not verified here.
+
+New virtual-clock routes use `R.turns('right', n)` / `R.turns('left', n)` with the default AutoMove=1. A 100 ms edge hover followed by a move inside is shorter than the 400 ms repeat gate. The old click helper spends a second hovering before its click and advances multiple frames. Actual m6 return enters view 8; eight short right turns reach view 0, checked before clicking the tripod. The tripod's return selects view 19, where the chart hotspot is 48,157; the chart's return selects view 2. These timings are not validated under `RC_REAL` or the macOS app.
+
+Every `shot` logs original `STATE requested_scene=... art_scene=... view=... held_item=...` cells and the exact `RC_FLAGS` range used. The requested scene can be a pending transition; the art scene remains the background owner in retained-art scenes. These observations never write game state.
+
+Private evidence under `work/recomp-playability-20261101/` records a fresh opening and save chain through stairs, lock, slider and moon. Each leg used a fresh data copy and only its preceding game-generated save. `telescope-prep-final/` records the initial candidate, `telescope-prep-reviewed/` the checked review follow-up (7.89 seconds). Its native headless SHA-256 is `7f95700f202b7b2d1518545bc8a83dd8193c61d917ec1d20281053ef143e8d91`. Four small checker tests also pass. `lens-owned-reviewed/run.log` proves item 12 through normal inventory selection after loading the exact reviewed m7 with that same binary. Earlier `pan-short/` and `lens-owned/` observations used binary `72e3ba3c…`, before the extra flag-scope log line. The checker verifies navigation, chart flags and save presence; fresh-folder setup and the separate inventory check establish save provenance and lens ownership. Both frozen Sonnet reviews accept the slice with no P1 or blocking P2. Complete story, telescope completion and the final background app playthrough remain unverified.
+
+
+## Linda and Jane, verified 2026-11-01, 20:13 PST
+
+The thread-enabled host passes a fresh New Game chain through m6, then `telescope-prep --save m7`, `linda --save m8` and `jane-intro`. Each run starts with an independent data copy and only the prior game-generated save. The earlier piano/lock/slider/moon legs remain green after the TLS, Sleep and wait changes.
+
+`linda` starts in bedroom S2010 view 2. Six short left turns reach the door view; the route follows S2006/S2007, the upstairs hall and S4405 to Linda. Original dialogue completes S1137→S1101…S1136→S1106→S1107→S4408, with flag 1570=1, then saves m8. The fresh final run takes 10.10 seconds.
+
+`jane-intro` starts at S4408, leaves via S4412/S4410, turns from view 2 to view 10, and follows S4406/S4407/S3322…S3305/S3345/S3346/S3500/S3505 to S3510. The original secondary-video worker now starts instead of raising the CThread constructor error. Jane's S1200 animation and dialogue play; reply at 150,446 selects playing a game and reaches S1202→S1203→S1204→S1205→S1206. It ends at Memory ready for input, not solved, and has no save tail. The fresh final run takes 5.24 seconds, with three original CRT/MFC workers ending naturally with code 0. UI response positions depend on wrapping:150,446 selects the first response here; an earlier driver incorrectly called it the second.
+
+The native host uses a separate pthread continuation and guest stack/TIB/TLS/x87/abort state per guest thread, while a single execution token serializes lifted code. Event waits and Sleep yield to real producers; recursive critical sections, suspended startup, exit codes and handle lifetime are covered by nine device-free tests. No successful dummy handle or substitute decoded-frame path is used. A separate live-worker stop test ends cleanly; two S1200 snapshots show 14,721 changing character pixels, not oracle/full-frame parity. Real-clock/app-thread behavior and other original worker families remain unverified.
+
+Evidence: `work/recomp-playability-20261101/thread-regressions/`, `thread-final-chain.log`, `thread-fresh-{prep,linda,jane}/`, `jane-animation-final/`, `thread-animation-evidence.json` and `thread-focused-tests.log`. Native headless SHA-256: `c5ffc6d8549776b1ff3eb081faefe95e01e8b1d5e1c813dfd36e407b2b82ba1c`. Next: finish Memory and Jane's telescope-loan/jigsaw path, then install the lens and verify 1309/1906. Full gameplay and the final background app campaign are incomplete.
+
+
+Thread review follow-up: idle message waits now schedule workers, real-clock sleeps release the guest token, and seven thread tests plus four route-checker tests pass. The final Jane continuation still reaches S1206 with clean worker completion; follow-up native SHA-256 `f7caabaf18f4bc4100279e8d4534e981846145f27953e3dfda72332321d3b136`. Earlier c5ffc6… logs remain labeled as the initial candidate. Normal Exit Game is at275,425 on the menu (330 is Help,379 is More Nancy Drew); it reaches teardown but stops at unlifted CRT0x515d1e. That is a real next host blocker, not a completed Quit check. The original fixed-pair Memory replay did not prove a win; different deals or input interpretation require further observation before recording a solve.
+
+Final scheduler correction (2026-11-01, 20:58 PST): yield-only polling releases the mutex for a sleeping worker to wake, and suspended sleepers cannot acquire an empty token before ResumeThread. Sleeping guests are ineligible until they wake, except during shutdown; shutdown waits for a platform sleep callback to return. Two regressions reproduce the rejected predecessor's defects with ordinary CHECK failures. Final narrow suite: 9 thread + 4 route checks pass. Native `e576b924f49dad2ef4b69e17322408cc5260cab01fe80fd595f978c7af2f6c5c` reaches S1206 again (virtual clock, 5.63 seconds) and separately stops an active Jane worker cleanly (4.51 seconds); see `jane-race-verified/` and `jane-race-live-stop/`. ARM64 app build/signing passes without launch. Actual real-clock application timing remains unverified; only the deterministic real-clock callback regressions cover the two specific scheduler races. Final Sonnet review accepts frozen 9a1a8a83 with no P1 or blocking P2; the possible 1 ms per-yield real-clock performance cost remains unmeasured.
+
+## Normal Quit, verified 2026-11-01, 21:05 PST
+
+From loaded m8/S4408, use MENU75,448 → Exit Game275,425 → confirmation217,271, with move before click. The recompiled native now executes CRT cleanup callback0x515d1e and reaches ExitProcess(0), rather than an unresolved-function stop. The wrapper trims only the five proven padding bytes after its13-byte body, with local guards; global interior-int3 refusal stays intact. Native c483fc474778f6f603c2f63b4f2de759a7866a92150df17fc64310b815ba8de6; private evidence `quit-cleanup-candidate/` and `quit-final-tests.log` (2 static tests pass). This is a virtual-clock headless check from a fresh data clone and the genuine m8 save. Real-clock app Quit with active media and exceptional cleanup remain unverified; general exception-filter chaining is unchanged. See `tasks/RECOMP-02-quit-cleanup.md`.
+
+## Jane's telescope-loan jigsaw, verified 2026-11-01, 22:21 Pacific
+
+`story_route.py jane-jigsaw --save m9` follows m8 through the normal alternative greeting replies1200→1222→1225→1228→1289, re-talks to Jane and chooses her telescope request.1424=1 opens Junior1273→3575. The20 recorded pick/drop pairs solve the original timed jigsaw and reach3578→1234 with1980=1. Drop coordinates include the10,10 viewport origin; omitting it moved all pieces but failed the6-pixel snap tolerance. This is the first Junior layout, with no rotations; Senior and retry layouts are unverified.
+
+After the win, the list includes another story topic and Bye is below the visible text. Drag the original left thumb (22,405, hold6000ms;5px moves down to456) before choosing150,430. The public route performs that drag, finishes Bye, returns to3510 view4 and saves m9. Final native run `jane-jigsaw-save-scroll/` takes18.33s; generated public INPUT is byte-identical to that exercised script. Fresh m9-only reload verifies the earned loan and original3507 delivery progress2037. Memory is a separate optional branch and remains unsolved.
+
+Check the leg with `check_route.py OUT/run.log PATH/m9.SAV --route jane-jigsaw`. It requires observed3575 before the win,1234 with1980=1,3510 view4, correct prerequisites, explicit zero telescope/delivery flags, clean stop, a matching checkpoint-open line and save size. Fresh-copy and reload evidence separately establishes checkpoint provenance. Eight checker tests pass. Native c483fc474778f6f603c2f63b4f2de759a7866a92150df17fc64310b815ba8de6; private input/save hashes in `jane-jigsaw-public-receipt.json`. See RECOMP-03 for failed proposals, original-coordinate evidence and validation limits. Next: finish delivery2036, the incoming Petrov call and lens use through1906. Telescope completion and whole-game playability are not yet claimed.
+
+Independent Sonnet review accepts frozen001555fd with no P1 or blocking P2. The checker infers the win from observed1980 changing0→1 at1234; it does not require a separate3578 shot. The public-generator/header and handoff wording corrections leave all exercised inputs unchanged.

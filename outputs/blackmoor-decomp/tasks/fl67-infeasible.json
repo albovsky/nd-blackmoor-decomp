@@ -76,6 +76,32 @@
    "source": "src/original_methods_fl56_unverified.c",
    "translation_sha256": "3f5aab549af61e508ba375f159ad822e3bf9097f2cc0b63ad2019fcf90389574"
   },
+  "0x413187": {
+   "body": 4743,
+   "directions": [
+    95,
+    98
+   ],
+   "instructions": [
+    1123,
+    1123
+   ],
+   "pool": "lower",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x4133de:taken": "7793ce2485d096d7caf0e4ee967fc35b5c59f374ad2bd03bb810c6aef561ba23",
+     "0x413f8e:taken": "e34e4e5e71a24856d8275f6e1fb5532d3691bdabdfd414d27ffdf2b56e388fbe",
+     "0x414184:taken": "da935eb7c39f014994f7ce1e8e73be4327ec8f4f051d2549a289aed5d3ca5417"
+    },
+    "instructions": {},
+    "plan": {}
+   },
+   "scenarios_kept": 25,
+   "scenarios_run": 25,
+   "source": "src/original_methods_fl56_unverified.c",
+   "translation_sha256": "047923c81425f3343f80f2c7a1cd347f810c9bdcd5d87fd463f3894cf69859c2"
+  },
   "0x416fb6": {
    "body": 2894,
    "directions": [
@@ -511,6 +537,30 @@
    "scenarios_run": 15,
    "source": "src/original_methods_fl56_unverified.c",
    "translation_sha256": "0bd90374d1fef543e57885bb74e5ceed12f647b9b1ae5383fe2cb04578a37bf5"
+  },
+  "0x448d11": {
+   "body": 2593,
+   "directions": [
+    49,
+    50
+   ],
+   "instructions": [
+    647,
+    647
+   ],
+   "pool": "lower",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x4495f9:taken": "a53b0478cf2027ec002c378f25b08ed1420ec507f43fdefb2c465ca0fb910849"
+    },
+    "instructions": {},
+    "plan": {}
+   },
+   "scenarios_kept": 10,
+   "scenarios_run": 10,
+   "source": "src/original_methods_fl56_unverified.c",
+   "translation_sha256": "67ffd5033c321a809784d43c7f075259da2583ce670ed6e83e869892e4aa37d0"
   },
   "0x44b641": {
    "body": 1943,
@@ -1916,6 +1966,30 @@
    "scenarios_run": 5,
    "source": "translated/original_methods_fl41_translated.c",
    "translation_sha256": "66c7536005bb96bc9b69c97bbbaf5b8cc1c60092dd0e72299110a8501f94acf2"
+  },
+  "0x4e5fdb": {
+   "body": 1361,
+   "directions": [
+    31,
+    32
+   ],
+   "instructions": [
+    365,
+    365
+   ],
+   "pool": "upper",
+   "proofs": {
+    "checker": 2,
+    "directions": {
+     "0x4e6303:taken": "0796eb34297525a319d2ab775535b5581a77f701ec8fe84d145de0cbcf004687"
+    },
+    "instructions": {},
+    "plan": {}
+   },
+   "scenarios_kept": 17,
+   "scenarios_run": 21,
+   "source": "translated/original_methods_fl41_translated.c",
+   "translation_sha256": "0e1401cd6b0c97f913930fd906218387b8431dc7e3a7795b42d2226f1dbf0c20"
   },
   "0x4e8bb4": {
    "body": 446,

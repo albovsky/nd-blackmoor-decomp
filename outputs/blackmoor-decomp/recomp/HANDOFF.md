@@ -2,6 +2,16 @@
 
 For the Codex agent that finishes the native port. Written 2026-11-02. Main is at PR 278 (`deb83f82`); this note is the only change of its PR.
 
+## Current continuation (2026-11-01, Pacific)
+
+The resumed recompiled-host run rebuilt current main and replayed the opening and all four story legs from fresh scratch folders, chained through the game's own saves. New `story_route.py telescope-prep --save m7` collects lens 12, inspects the empty tripod, reads all chart pages through S2026 and returns to S2010 view 2. Run it through `route_load.sh`, then use `route_tools/check_route.py` on its log and m7 save. See the current ROUTES.md section and private `work/recomp-playability-20261101/` evidence. Telescope flags 1309/1906 remain 0; Jane's loan is a prerequisite, not a host defect to bypass.
+
+Guest worker threads now execute the original CRT/MFC startup, real CAL/CEL work and cleanup under a serialized native scheduler. The new `linda --save m8` leg sets flag 1570 and saves in S4408; `jane-intro` follows from m8 through Jane's conversation to S1206 Memory. Both pass in a fresh current-build chain from New Game through all earlier saves. `jane-intro` ends inside the puzzle and rejects `--save`; complete Memory before saving its continuation. The new jane-jigsaw leg now follows the authored alternative greeting, wins Junior3575, sets1980 and saves m9 in3510 view4. Fresh m9 reload passes; Memory remains a separate optional unsolved branch. Next story work is delivery2036, the incoming Petrov call and telescope use through1906. The verified alternative greeting earns the loan through the jigsaw; delivery and use are the next leg. Do not confuse a driver miss with a runtime blocker.
+
+Nine focused thread tests, eight route-checker cases and the ARM64 headless/macOS builds pass. Actual Jane animation, natural worker exit 0 and process-stop cleanup are checked headlessly. Real-clock/app callback behavior and other worker families remain unverified. Initial review accepted the implementation; a later review found two real-clock sleep races. Both are fixed and regression-tested; final Sonnet review accepts frozen 9a1a8a83 with no P1 or blocking P2. Jane replay uses the virtual clock; only the real-clock fixtures exercise those sleep branches. The separate Quit extent correction now lifts CRT0x515d1e: ordinary menu Exit from m8 reaches ExitProcess(0) headlessly. See RECOMP-02 and ROUTES; app Quit with active media remains unverified. See `tasks/RECOMP-01-guest-threads.md`, ROUTES.md and private `thread-contract.md`.
+
+The original handoff below describes the earlier baseline. Its telescope-first step is superseded by the loan prerequisite and verified m7 preparation above. The macOS app and final full playthrough remain incomplete.
+
 ## State
 
 * The game is lifted from the owner's GAME.EXE to C (`lift_recomp.py`: 4,605 functions lifted, 165 refused, see below) and runs on the native host (`rc_core.c`, `rc_win32.c`, `rc_ddraw.c`, `rc_dsound.c`, `rc_bink.c`, `rc_main.c`). Lifted C is a build output, never committed.

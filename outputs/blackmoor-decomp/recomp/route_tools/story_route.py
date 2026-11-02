@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The story routes of ROUTES.md as INPUT strings for rc_headless.
 
-  python3 story_route.py LEG [--save NAME]      LEG is one of: stairs, lock, slider, moon, slider-verify
+  python3 story_route.py LEG [--save NAME]      LEG is one of: stairs, lock, slider, moon, telescope-prep, linda, jane-intro, jane-jigsaw, slider-verify
   python3 story_route.py slider-verify          replays the recorded 105 slider moves on the puzzle rules and prints whether they solve it
 
 Each leg starts from a save made in the game's own Load & Save screen and (with --save NAME) ends by saving the next one, so the legs chain:
@@ -10,6 +10,10 @@ Each leg starts from a save made in the game's own Load & Save screen and (with 
   m1  --lock-->   m4 (S3447, behind the S3448 lock: key, order, delivery, butter, grease, unlock)
   m4  --slider--> m5 (S3303, the slider puzzle solved and the item taken)
   m5  --moon-->   m6 (S2076, the moon box open, the telescope lens)
+  m6  --telescope-prep--> m7 (lens collected, star chart read, bedroom view 2)
+  m7  --linda--> m8 (Linda introduction complete, S4408)
+  m8  --jane-intro--> S1206 (optional Memory branch, no save tail)
+  m8  --jane-jigsaw--> m9 (Junior jigsaw won, telescope loan earned, S3510 view 4)
 
 Steps are `anchor+ms:kind:args` (rc_headless.c). `click x,y,hold` is a move 1 s before the click; `mv:x,y` a bare move; `key:VK` a key press.
 A bare click on a hotspot needs a move onto it first or the game ignores it (the cursor must have been seen there), so every click has its move.
@@ -56,6 +60,19 @@ class R:
 
     def text(self):
         return ';'.join(self.o)
+
+    def turns(self, direction, count):
+        """One panorama frame per short edge hover, with AutoMove enabled.
+
+        A normal click's one-second pre-hover pans several frames. Moving back
+        inside after 100 ms keeps each turn below the game's 400 ms repeat.
+        """
+        x = {'left': 10, 'right': 620}[direction]
+        for _ in range(count):
+            self.o.append('%s+%d:move:%d,200' % (self.a, self.t, x))
+            self.o.append('%s+%d:move:320,60' % (self.a, self.t + 100))
+            self.t += 2500
+        return self
 
 
 def save_tail(anchor, t, name):
@@ -167,6 +184,27 @@ def leg_moon(save=None):
     return ';'.join(out)
 
 
+def leg_telescope_prep(save=None):
+    """m6 -> m7: collect the lens, inspect the empty tripod and read the chart.
+
+    This does not install the telescope: Jane must lend it first (1980),
+    followed by delivery flags 2037/2036. Telescope completion is flag 1906.
+    """
+    r = R().at('S2076.CIF', 8000)
+    r.clicks('310,352 326,177 310,352 310,352 310,352', 8000)
+    # The moon-box return enters bedroom frame 8. Eight single right turns
+    # reach frame 0; the tripod's return explicitly selects frame 19.
+    r.turns('right', 8).clicks('shot 528,272 shot 310,352 48,157', 8000)
+    r.clicks('303,182 337,164 559,188 559,188 559,188 shot', 8000)
+    # The last chart page pops straight to S2015, then back to bedroom frame 2.
+    r.clicks('310,352 310,352 shot', 8000)
+    out = [r.text()]
+    if save:
+        out.append(menu_to_save_screen(r.a, r.t + 5000))
+        out.append(save_tail(r.a, r.t + 18000, save))
+    return ';'.join(out)
+
+
 def slider_moves():
     """The recorded 105 moves: (piece, direction 16 left, 17 up, 18 down, 19 right, x, y). x, y are the zone centres of the native port's frame, whose
     view origin is (10, 10); the game itself takes (x - 10, y - 10)."""
@@ -176,6 +214,87 @@ def slider_moves():
             k, piece, d, x, y = ln.split()
             out.append((int(piece), int(d), int(x), int(y)))
     return out
+
+
+def leg_linda(save=None):
+    """m7 bedroom view2 -> Linda's introduction, flag1570, S4408 / m8."""
+    r = R().at('S2010.CIF', 8000).turns('left', 6)
+    r.clicks('64,171 317,167 277,175 317,162 336,162 317,162 473,161 128,162', 6000)
+    r.gap(10000).clicks('292,189 292,162', 8000)
+    r2 = R().at('S4405.CIF', 8000).clicks('72,165 316,180 391,170 276,166', 8000)
+    r3 = R().at('S1137.CIF', 50000).clicks('150,433,300', 6000)
+    r4 = R().at('S1136.CIF', 40000).clicks('150,433,300', 6000)
+    out = [r.text(), r2.text(), r3.text(), r4.text(), 'S1107.CIF+50000:shot:0,0']
+    if save:
+        out.append(menu_to_save_screen('S1107.CIF', 60000))
+        out.append(save_tail('S1107.CIF', 75000, save))
+    return ';'.join(out)
+
+
+def walk_to_jane():
+    """m8/S4408 -> Jane's first greeting, using the verified hall views."""
+    r = R().at('S4408.CIF', 8000).clicks('310,354 310,354', 8000).turns('left', 8)
+    r.clicks('290,195 312,163 415,163 325,161 325,161 219,163 481,219 308,193 292,162 306,173', 8000)
+    return r.text()
+
+
+def leg_jane_intro(save=None):
+    """m8 -> Jane's first conversation and S1206 Memory; no puzzle solve yet."""
+    if save:
+        raise ValueError('jane-intro ends inside Memory; save after completing the puzzle')
+    r2 = R().at('S1200.CIF', 50000).clicks('150,446,300', 6000)
+    return ';'.join([walk_to_jane(), r2.text(), 'S1206.CIF+8000:shot:0,0'])
+
+
+def leg_jane_jigsaw(save=None):
+    """Junior m8 -> Jane's authored story replies, timed jigsaw win, room/m9.
+
+    Memory remains a separate optional branch. These picks apply to the first
+    S3575 layout, with the normal 10,10 viewport and unrotated Junior pieces.
+    """
+    out = [walk_to_jane()]
+    for scene, y in ((1200, 466), (1222, 446), (1225, 446), (1228, 433)):
+        out.append(R().at('S%d.CIF' % scene, 40000).clicks('150,%d,100' % y, 6000).text())
+    out += ['S1289.CIF+40000:shot:0,0',
+            R().at('S1289.CIF', 42000).clicks('312,233,100', 6000).text(),
+            'S1289.CIF+60000:shot:0,0',
+            R().at('S1289.CIF', 62000).clicks('150,452,100', 6000).text(),
+            'S1273.CIF+30000:shot:0,0',
+            R().at('S1273.CIF', 32000).clicks('322,154,100', 6000).text(),
+            'S3575.CIF+1500:shot:0,0']
+    # Pick ties favor the lowest remaining layer-0 index. Successful snaps
+    # remove each piece from the unplaced candidates. Drops include the
+    # viewport translation and the genuine cursor rectangle's centre offset.
+    picks_drops = [
+        ((404, 73), (170, 53)), ((308, 64), (246, 55)),
+        ((224, 113), (321, 52)), ((260, 128), (396, 55)),
+        ((353, 99), (460, 50)), ((179, 94), (464, 103)),
+        ((351, 235), (393, 103)), ((373, 164), (320, 104)),
+        ((357, 175), (247, 104)), ((262, 194), (166, 105)),
+        ((318, 61), (171, 163)), ((304, 147), (244, 161)),
+        ((217, 228), (320, 161)), ((191, 128), (392, 159)),
+        ((526, 157), (459, 158)), ((339, 135), (462, 207)),
+        ((289, 210), (396, 214)), ((269, 103), (317, 211)),
+        ((237, 190), (243, 217)), ((238, 105), (165, 211)),
+    ]
+    puzzle = R().at('S3575.CIF', 8000)
+    for pick, drop in picks_drops:
+        for x, y in (pick, drop):
+            puzzle.clicks('%d,%d,100' % (x, y), 2500)
+    out += [puzzle.text(), 'S3575.CIF+118000:shot:0,0',
+            'S1234.CIF+40000:shot:0,0']
+    # The post-win Bye is below the text viewport. Drag the original UICO
+    # thumb gradually while held, then release before choosing the last reply.
+    out.append(R().at('S1234.CIF', 42000).clicks('22,405,6000', 6000).text())
+    out += ['S1234.CIF+%d:move:22,%d' % (43300 + i * 300, y)
+            for i, y in enumerate((410, 415, 420, 425, 430, 435, 440, 445, 450, 455, 456))]
+    out += ['S1234.CIF+51000:shot:0,0',
+            R().at('S1234.CIF', 53000).clicks('150,430,100', 6000).text(),
+            'S1234.CIF+70000:shot:0,0']
+    if save:
+        out += [menu_to_save_screen('S1234.CIF', 80000),
+                save_tail('S1234.CIF', 95000, save)]
+    return ';'.join(out)
 
 
 def leg_slider(save=None, gap=5000):
@@ -233,7 +352,10 @@ if __name__ == '__main__':
         ok = verify_slider()
         print('the recorded 105 slider moves %s the puzzle' % ('solve' if ok else 'do NOT solve'))
         sys.exit(0 if ok else 1)
-    legs = {'stairs': leg_stairs, 'lock': leg_lock, 'slider': leg_slider, 'moon': leg_moon}
+    legs = {'stairs': leg_stairs, 'lock': leg_lock, 'slider': leg_slider,
+            'moon': leg_moon, 'telescope-prep': leg_telescope_prep,
+            'linda': leg_linda, 'jane-intro': leg_jane_intro,
+            'jane-jigsaw': leg_jane_jigsaw}
     if leg not in legs:
         sys.exit(__doc__)
     print(legs[leg](save))
