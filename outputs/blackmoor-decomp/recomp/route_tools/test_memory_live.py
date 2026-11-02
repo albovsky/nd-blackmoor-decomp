@@ -60,6 +60,12 @@ mem.reveal(frame({1:0}),1)
 expect_refused(lambda:mem.reveal(frame({2:0}),2))
 checks.append('hidden, unstable and third-identical-face captures refused')
 
+mismatch = px.FaceMemory(base)
+still_exposed = frame({0:0,1:1})
+assert not mismatch.pair(0,1,still_exposed)
+expect_refused(lambda:mismatch.settled(still_exposed,0,1,False))
+mismatch.settled(base,0,1,False)
+
 #3 worst-case discovery12mismatches + recall12matches uses24 attempts.
 mem = px.FaceMemory(base)
 deck = list(range(12))*2
