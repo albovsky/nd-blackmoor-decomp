@@ -30,3 +30,7 @@ New registered fixture hashes are regenerated in a clean frozen checkout, exclud
 - `recomp/build_macos.sh`: `42480f0075864cd80836edb5f2cb14d6bf5a85361539d64dd94b50f36edbbd11`
 - `tests/recomp_input_script_fixture.c`: `8706c635956416e7ce9f9070b3bf6060871b628d61c4bba7b9dec21811f622fe`
 - `tests/test_recomp_input_script.py`: `73e0786701c8f2a4b580462a3a0f9ed84ef5ac4c45d51a1d3a7d77486417f5b9`
+
+Independent Sonnet high review accepts frozen bafb6b3d with no P1 or blocking P2 (`scripted-app-review.txt`). Both static freshness checks finish successfully. `scripted-reviewed-pins.json` confirms that final committed evidence hashes match the clean455097c8 derivation receipt;455097c8 identifies the code snapshot, while bafb6b3d adds those records and reports. No broad mutation or intentional guest-fault runs were added; remaining missing-path/null-shot/differential cases are nonblocking coverage gaps.
+
+Whitespace compatibility: leading/trailing whole-text/file whitespace is accepted; whitespace-only INPUT, whitespace-only segments or trailing spaces inside fields reject rather than silently stall/skip. Only unset/empty headless INPUT means no script. Legacy huge/malformed tail handling and the unreachable-at-boot zero-time sentinel remain unchanged. Final post-review changes clarify documentation only.
