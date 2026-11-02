@@ -10,8 +10,7 @@
   "needs_callee_footprint_model": "One direction is infeasible by reading the code, but the proof needed a callee-footprint model that was removed after review found gaps.",
   "needs_multi_cell_or_aliased_state": "The search reached everything except a few jump directions that need three or more cells to line up (a pointer aliasing the function's own pushes, wrapped address arithmetic, tail jumps with moved stacks), and the prover answers reachable.",
   "partial_coverage_gate_not_built": "Scenarios cover part of the function; the remaining code sits behind a gate whose state was not built (see the note for the coverage reached).",
-  "prover_window_times_out": "Scenarios cover everything that can run; the remaining directions are provably impossible in principle (loops and copies of equal data) but every prover window times out.",
-  "translation_mismatch_open": "New scenarios disagree between the translation and the original; the translation has a defect that has not been fixed."
+  "prover_window_times_out": "Scenarios cover everything that can run; the remaining directions are provably impossible in principle (loops and copies of equal data) but every prover window times out."
  },
  "rows": {
   "0x471722": {
@@ -29,14 +28,6 @@
   "0x4e812f": {
    "reason": "prover_window_times_out",
    "note": "10 directions and 39 instructions left, behind loops at 0x4e8212 and 0x4e851f; every window times out."
-  },
-  "0x50c635": {
-   "reason": "translation_mismatch_open",
-   "note": "A scenario found by the search disagrees with the translation."
-  },
-  "0x50c82b": {
-   "reason": "translation_mismatch_open",
-   "note": "A scenario found by the search disagrees with the translation."
   },
   "0x50df9d": {
    "reason": "needs_multi_cell_or_aliased_state",
@@ -101,10 +92,6 @@
   "0x516f69": {
    "reason": "needs_multi_cell_or_aliased_state",
    "note": "Partial coverage; the remaining directions need several cells aligned. Coverage reached: 395 of 417 instructions, 128 of 140 jump directions."
-  },
-  "0x518caf": {
-   "reason": "needs_multi_cell_or_aliased_state",
-   "note": "Partial coverage; the remaining directions need several cells aligned. Coverage reached: 0 of 76 instructions, 0 of 8 jump directions."
   },
   "0x518d76": {
    "reason": "needs_multi_cell_or_aliased_state",

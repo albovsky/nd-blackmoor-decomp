@@ -29,11 +29,14 @@ typedef struct Fl41Host {
     /* FL-52 (translations that use the x87 unit): the FPU registers, and the value (the bits of a double) that the callee played by `call` left in st(0) */
     uint64_t (*fret)(void *ctx);
     Fl41Fpu *fpu;
+    /* FL-78 (round 10): the arithmetic flags (EFLAGS bits CF 0x1, PF 0x4, ZF 0x40, SF 0x80, OF 0x800) that the function finds at entry, for a function that tests what its caller left; zero in the game (a host that is initialised
+     * with the fields above leaves it zero). The tests set it (tests/fl41_world.py EFLAGS_OVERRIDE). */
+    uint32_t eflags;
 } Fl41Host;
 
 #define FL41_PROLOGUE                                                                                                                          \
     uint32_t eax = r->eax, ecx = r->ecx, edx = r->edx, ebx = r->ebx, esp = r->esp, ebp = r->ebp, esi = r->esi, edi = r->edi;                    \
-    uint32_t cf = 0u, zf = 0u, sf = 0u, of = 0u, pf = 0u;                                                                                      \
+    uint32_t cf = h->eflags & 1u, zf = (h->eflags >> 6) & 1u, sf = (h->eflags >> 7) & 1u, of = (h->eflags >> 11) & 1u, pf = (h->eflags >> 2) & 1u;       \
     (void)cf; (void)zf; (void)sf; (void)of; (void)pf; (void)ebx; (void)ebp; (void)esi; (void)edi;
 #define FL41_EPILOGUE                                                                                                                          \
     r->eax = eax; r->ecx = ecx; r->edx = edx; r->ebx = ebx; r->esp = esp; r->ebp = ebp; r->esi = esi; r->edi = edi;

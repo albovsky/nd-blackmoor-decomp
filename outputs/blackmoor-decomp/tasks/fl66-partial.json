@@ -7,27 +7,7 @@
   "0x49173f": "timeout after 1500s",
   "0x4eaca8": "timeout after 900s"
  },
- "mismatch": {
-  "0x50c635": [
-   1,
-   []
-  ],
-  "0x50c82b": [
-   1,
-   [
-    [
-     16842468,
-     4,
-     284
-    ],
-    [
-     16842464,
-     4,
-     65300
-    ]
-   ]
-  ]
- },
+ "mismatch": {},
  "partial": {
   "0x496410": {
    "body": 24652,
@@ -230,18 +210,6 @@
    "instructions": [
     395,
     417
-   ],
-   "pool": "upper"
-  },
-  "0x518caf": {
-   "body": 199,
-   "directions": [
-    0,
-    8
-   ],
-   "instructions": [
-    0,
-    76
    ],
    "pool": "upper"
   },

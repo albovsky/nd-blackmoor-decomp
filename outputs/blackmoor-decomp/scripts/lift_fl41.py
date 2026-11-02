@@ -611,10 +611,14 @@ INDIRECT_SITES = {}   # FL-58: {row va: {address of a call through a register or
 def indirect_tail_jump(c, i, op):
     """FL-57 bulk: `jmp reg` / `jmp [mem]` out of a jump-table-free function is a tail call; the target pops what this function's own `ret N` pops (the arguments it was given)"""
     own = next((x.operands[0].imm if x.operands else 0 for x in c.ins if x.mnemonic == "ret"), 0)
+    nxt = i.address + i.size                                     # FL-78 (round 10): the instruction after the jump is a landing place when the target is its address: the function is its own jump target (an unwinder's resume jump)
+    here = ("if (t_ == 0x%xu) goto %s; " % (nxt, label(nxt))) if c.va <= nxt < c.end and any(x.address == nxt for x in c.ins) else ""
+    if here:
+        c.targets.add(nxt)
     if TAIL_ESP0:
-        c.emit("{ uint32_t t_ = %s; FL41_CALL(t_); esp = esp0_ + %du; goto done; }" % (get(i, op, 32), 4 + own))
+        c.emit("{ uint32_t t_ = %s; %sFL41_CALL(t_); esp = esp0_ + %du; goto done; }" % (get(i, op, 32), here, 4 + own))
         return
-    c.emit("{ uint32_t t_ = %s; FL41_CALL(t_); esp += %du; goto done; }" % (get(i, op, 32), 4 + own))
+    c.emit("{ uint32_t t_ = %s; %sFL41_CALL(t_); esp += %du; goto done; }" % (get(i, op, 32), here, 4 + own))
 
 
 def indirect_call(c, i, op):

@@ -640,6 +640,145 @@ def prove_closed_loop(an, dom, mark, timeout_ms=STEP_MS):
     return r, h
 
 
+def loop_chain(an, H):
+    """FL-78 (round 10): the blocks of the loop of header H in order H -> ... -> latch -> H when the loop is a single cycle (every block has one successor inside the loop; a conditional jump may have the other one outside it) with no call, string
+    instruction, prefix, segment operand or operand at an absolute address; else None"""
+    L = an.loops.get(H)
+    if not L:
+        return None
+    chain, cur = [H], H
+    while True:
+        inside = [t for k, t in an.blocks[cur]['succ'] if t in L]
+        if len(inside) != 1:
+            return None
+        nxt = inside[0]
+        if nxt == H:
+            break
+        if nxt in chain:
+            return None
+        chain.append(nxt)
+        cur = nxt
+    if set(chain) != set(L):
+        return None
+    for b in chain:
+        last = an.blocks[b]['insns'][-1]
+        if [t for k, t in an.blocks[b]['succ'] if t not in L] and not (last.mnemonic.startswith('j') and last.mnemonic != 'jmp' and len(an.blocks[b]['succ']) == 2):
+            return None
+        for i in an.blocks[b]['insns']:
+            m = i.mnemonic
+            if m == 'call' or m.startswith(('int', 'rep', 'lock')) or m.split()[-1] in P.ALL_STRING_OPS or i.prefix[0] or i.prefix[1]:
+                return None
+            if any(o.type == P.X.X86_OP_MEM and (o.mem.segment or (not o.mem.base and not o.mem.index)) for o in i.operands):
+                return None
+    return chain
+
+
+def prove_trap_loop(an, dom, mark, timeout_ms=STEP_MS):
+    """FL-78 (round 10): ('unsat', hash) when no run that takes the marked direction ('dir', jcc, 'taken'|'fall') ever leaves the loop it enters there, else ('unknown'|'sat'|'unsupported', '').
+
+    The marked edge leads to the header H of a loop that is one cycle of blocks (`loop_chain`), whose only ways out are conditional jumps. The state s0 at that edge is the state of the window from the entry of the function to the jump (acyclic, no loop in it).
+    CANDIDATES: each register, and each memory cell that an operand of the loop names (the address taken with the registers of s0), keeps the value it has in s0. Houdini: starting from all of them, a candidate that one round of the loop from an arbitrary state
+    satisfying the others (fresh registers, flags and memories) does not preserve is dropped, until none is. What is left, I, is inductive and holds at s0 (it says: equal to s0). The proof is  I and (some exit jump is taken in this round)  unsat.
+    SOUND: a run that takes the edge arrives at H in a state satisfying I; by induction every round starts in a state satisfying I and takes no exit, so the run goes round the loop for ever (or faults in it) and never reaches a ret. The scenarios kept for a row are runs that return, so none takes the direction.
+    Assumptions (RULE_TEXT2): as for the closed-loop rule, the memory the loop reads is changed only by the loop itself (no other thread, interrupt, APC or device writes it while it spins; a lint refuses operands at absolute addresses); and the frame assumption when the
+    window from the entry to the loop and the loop form no address of the frame (`frame_safe`), which the proof may rest on (`an.trap_loop_frame`). The direction is 'closed-loop-proved': the C translation is not compared on it."""
+    jcc, kind = mark[1], mark[2]
+    T = block_of(an, jcc, True)
+    if T is None or T not in an.reach:
+        return 'unsupported', ''
+    last = an.blocks[T]['insns'][-1]
+    if not (last.mnemonic.startswith('j') and last.mnemonic != 'jmp') or last.operands[0].type != P.X.X86_OP_IMM:
+        return 'unsupported', ''
+    H = dict(an.blocks[T]['succ']).get(kind)
+    chain = loop_chain(an, H) if H is not None else None
+    if chain is None or T in chain:
+        return 'unsupported', ''
+    D = min(dom[T], key=lambda n: len(dom[n]))
+    orderA = window(an, dom, D, T)
+    if orderA is None or any(n != D and n in an.loops for n in orderA):
+        return 'unsupported', ''
+    M = an.M
+    kept = len(M.facts), set(M.fact_keys), len(M.inv_facts)
+    saved, saved_t = M.split, M.temps
+    try:
+        frame = bool(an.split_ok and an.frame_safe(D, list(orderA) + chain))
+        if frame and (M.cell_ops or an.cell_users or set(an.frame_formers) - set(an.esc_addrs)):      # (the leas that the cell rule cleared from esc_addrs)
+            frame = False                                                # a function with a pointer cell: the registers of the arbitrary round (fresh) may hold the frame address the cell keeps, and a store through one is classed as memory, not frame
+        _, st = run_window(an, orderA, D, T, ('ins', None), frame, want_state=True)
+        M.split, M.temps = frame, None
+        s0 = st.copy()
+        s0.pc = z3.BoolVal(True)
+        for i in an.blocks[T]['insns']:
+            M.step(s0, i)
+        s = P.State.start()                                           # the state of an arbitrary round: nothing known (names of the frame symbols as run_window gives them)
+        s.R = {r: P.fresh(32, 'sp' if r in ('esp', 'ebp') else 'lp') for r in P.FULL}
+        s.F = {f: P.fresh_bool() for f in P.FLAGS}
+        s.mem, s.frm, s.fs = P.fresh_array(), P.fresh_array('fr'), P.fresh_array('fa')
+        s.fp = (None, None)
+        cands, seen = [], set()
+        for r in P.FULL:
+            cands.append((lambda x, r=r: x.R[r], s0.R[r]))
+        for b in chain:
+            for i in an.blocks[b]['insns']:
+                for o in i.operands:
+                    if o.type != P.X.X86_OP_MEM:
+                        continue
+                    key = (o.mem.base, o.mem.index, o.mem.scale, o.mem.disp, o.size)
+                    if key in seen:
+                        continue
+                    seen.add(key)
+
+                    def cell(x, i=i, o=o):
+                        ref = x.copy()
+                        ref.R = dict(s0.R)                                # the cell the operand names at s0
+                        before, M.ins = M.ins, i
+                        try:
+                            return M.mem_read(ref, o, o.size)
+                        finally:
+                            M.ins = before
+                    try:
+                        cands.append((cell, cell(s0)))
+                    except P.Unsupported:
+                        continue
+        s1 = s.copy()                                                    # one round from s: the condition of staying in the loop, and of leaving it
+        s1.pc = z3.BoolVal(True)
+        stay, leave = z3.BoolVal(True), z3.BoolVal(False)
+        for b in chain:
+            br = None
+            for i in an.blocks[b]['insns']:
+                res = M.step(s1, i)
+                if res:
+                    br = res[1]
+            stay = z3.And(stay, s1.pc)
+            s1.pc = z3.BoolVal(True)
+            outs = [k for k, t in an.blocks[b]['succ'] if t not in an.loops[H]]
+            if outs:
+                cond = br if outs[0] == 'taken' else z3.Not(br)
+                leave = z3.Or(leave, z3.And(stay, cond))
+                stay = z3.And(stay, z3.Not(cond))
+        tie = relate(an, H, s)
+        now = [f(s) == v0 for f, v0 in cands]
+        nxt = [f(s1) == v0 for f, v0 in cands]
+        active = list(range(len(cands)))
+        while True:
+            inv = z3.And(tie, *[now[k] for k in active])
+            drop = [k for k in active if an.check(z3.And(inv, stay, z3.Not(nxt[k])), timeout_ms)[0] != 'unsat']
+            if not drop:
+                break
+            active = [k for k in active if k not in drop]
+        r, h = an.check(z3.And(tie, *[now[k] for k in active], leave), timeout_ms)
+        if r != 'unsat':
+            return r, ''
+        if frame:
+            an.trap_loop_frame = True
+        return 'unsat', h
+    except P.Unsupported:
+        return 'unsupported', ''
+    finally:
+        M.split, M.temps = saved, saved_t
+        discard_facts(an, kept)
+
+
 def prove_target(an, dom, T, query, timeout_ms=STEP_MS):
     """('unsat', hash, S) when some dominator window refutes the target, else ('unknown'|'sat', hash, S)"""
     chain = sorted(dom[T], key=lambda n: -len(dom[n]))        # nearest dominator first (T itself, then its immediate dominator, ...)
