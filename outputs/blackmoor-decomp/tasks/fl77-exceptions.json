@@ -10,7 +10,6 @@
   "needs_alias_model_in_prover": "A direction needs a pointer into the stack or an overlap between two pointers. Glib kept the no-alias assumption, but the prover has no alias model yet (a lea address reaches only cells at or above it, calls havoc those).",
   "needs_callee_footprint_model": "One direction is infeasible by reading the code, but the proof needed a callee-footprint model that was removed after review found gaps.",
   "needs_frame_assumption_in_prover": "Coverage is full except a direction that is impossible in the original, but a frame object is handed to a library call, so the prover's frame assumption is off; it would clear with a stated assumption that such a call writes only inside the object.",
-  "needs_loop_invariants": "Only a crash path is left; the forward window loses a frame cell at counting-loop headers, so it needs loop invariant entries (tests/fl73_invariants.json).",
   "needs_multi_cell_or_aliased_state": "The search reached everything except a few jump directions that need three or more cells to line up (a pointer aliasing the function's own pushes, wrapped address arithmetic, tail jumps with moved stacks), and the prover answers reachable.",
   "no_scenarios_yet": "No scenario run reached more than the entry of this large function (or every run timed out); coverage is zero or negligible.",
   "original_faults_on_every_scenario": "The original faults on every generated scenario, so there is nothing to compare against.",
@@ -55,10 +54,6 @@
    "reason": "partial_coverage_gate_not_built",
    "note": "24 KB function; baseline 366 of 4,985 instructions and 10 of 534 directions."
   },
-  "0x49d945": {
-   "reason": "needs_loop_invariants",
-   "note": "Crash path (idiv [ebp-0x70] at 0x49e06b), paired with 0x4a0ec3; the forward window loses the frame cell at three counting-loop headers. Coverage reached: 563 of 599 instructions, 73 of 76 jump directions."
-  },
   "0x4a14c6": {
    "reason": "needs_callee_footprint_model",
    "note": "One direction left; a copy is compared against its own source. Coverage reached: 437 of 437 instructions, 45 of 46 jump directions."
@@ -78,10 +73,6 @@
   "0x4f0059": {
    "reason": "partial_coverage_gate_not_built",
    "note": "Baseline 165 of 2,237 instructions and 31 of 510 directions; searches timed out."
-  },
-  "0x4f7207": {
-   "reason": "needs_frame_assumption_in_prover",
-   "note": "Left: the jne at 0x4f74da fall-through (0x4f74e0). A frame buffer is handed to sprintf. Coverage reached: 568 of 569 instructions, 57 of 58 jump directions."
   },
   "0x50c635": {
    "reason": "translation_mismatch_open",

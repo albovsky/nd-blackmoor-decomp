@@ -33,6 +33,8 @@ import json
 import os
 from pathlib import Path
 import random
+import re
+import struct
 import sys
 import time
 
@@ -59,6 +61,10 @@ IMAGE_BASE = 0x400000
 FLAGS = ('cf', 'zf', 'sf', 'of', 'pf', 'af')
 PLANS = PROJECT / 'tests' / 'fl75_plans.json'                     # FL-75: starting loop plan per function (a choice of abstraction, never trusted: a numeric bound is still checked by sink_unsat and bumped when it is too small)
 INVARIANTS = PROJECT / 'tests' / 'fl73_invariants.json'          # FL-73: loop invariants for generalised headers (CHECKED by the prover itself, never trusted)
+# FL-78 (decision taken as the recommended default under the 2-hour rule): a frame address that is handed to one of these library functions as a SOURCE argument does not switch the frame assumption off. Address -> (name, destination argument
+# positions, counted from the last pushed). The assumption (RULE_TEXT2): the function writes only through its destination argument, reads through its other pointer arguments and keeps no copy of any of them. A frame address in a destination position is
+# not covered (that needs a model of how far the write reaches). 0x50ca3e is the MSVC CRT sprintf (a FILE on the stack with _ptr = the buffer, _cnt = 0x7fffffff, then _output).
+LIBRARY_WRITERS = {0x50ca3e: ('sprintf', (0,))}
 _INV_OPS = {'eq': lambda v, c: v == c, 'ne': lambda v, c: v != c, 'sge': lambda v, c: v >= c, 'sgt': lambda v, c: v > c, 'sle': lambda v, c: v <= c,
             'slt': lambda v, c: v < c, 'uge': z3.UGE, 'ugt': z3.UGT, 'ule': z3.ULE, 'ult': z3.ULT}
 FULL = ('eax', 'ecx', 'edx', 'ebx', 'esp', 'ebp', 'esi', 'edi')
@@ -140,6 +146,18 @@ def inv_parts(M, st, atoms):
 def inv_formula(M, st, atoms):
     out = inv_parts(M, st, atoms)
     return z3.And(*out) if len(out) > 1 else out[0]
+
+
+def reach_back(preds, node):
+    """the blocks (graph nodes) that a run passes on its way to `node`: the predecessors, transitively, over the edges that are not back edges"""
+    seen, work = set(), [node]
+    while work:
+        n = work.pop()
+        for p in preds.get(n, ()):
+            if p not in seen:
+                seen.add(p)
+                work.append(p)
+    return seen
 
 
 def inv_failures(check, M, assumed, c_entry, st_in, atoms, prefix=None):
@@ -268,6 +286,382 @@ def seh_registration(insns, ins, targets=()):
     return True
 
 
+def _full(names):
+    return {REGS[n][0] for n in names if n in REGS}
+
+
+def _rw(i):
+    """(registers read as full names, registers written as the names capstone gives) of one instruction"""
+    rd, wr = i.regs_access()
+    rd = _full(i.reg_name(r) for r in rd)
+    if i.mnemonic.startswith('cmov'):
+        rd |= _full(i.reg_name(r) for r in wr)                                   # FL-78 review: a conditional move keeps the old value when the condition fails, so it reads its destination and does not kill it
+    return rd, {i.reg_name(r) for r in wr}
+
+
+CALLEE_SAVED = ('ebx', 'esi', 'edi', 'ebp')
+X87_STORES = ('fst', 'fist', 'fnst', 'fsave', 'fnsave', 'fbst', 'fxsave')         # capstone reports the memory operand of an x87 store as read
+
+
+_IAT = None
+
+
+def import_slots():
+    """the addresses of the import address table slots of the original image (image/imports.json, the committed import description): a call through one of them is a Win32 import"""
+    global _IAT
+    if _IAT is None:
+        data = json.loads((PROJECT / 'image' / 'imports.json').read_text(encoding='utf-8'))
+        _IAT = frozenset(IMAGE_BASE + int(d['iat_rva'], 16) + 4 * k for d in data['dlls'] for k in range(len(d['symbols'])))
+    return _IAT
+
+
+def call_kills(image, call, R, depth=0, imports=None):
+    """FL-78 (review): True when the call instruction cannot read the register R (eax, ecx or edx) and leaves nothing of the old value in it: a Win32 import (a call through a slot of the import table, `imports`; the APIs take their arguments on the stack
+    and return in eax, ecx and edx are volatile by the Windows ABI), or a direct call of a function whose bytes overwrite R in full on every path before reading it (`dead_from` with must_write, three levels of calls). Anything else (an indirect
+    call, a callee that may leave R as it was, one that cannot be followed) may read R or keep its value, so it does not kill R."""
+    if image is None or R not in ('eax', 'ecx', 'edx'):
+        return False
+    op = call.operands[0]
+    if op.type == X.X86_OP_MEM:
+        slots = import_slots() if imports is None else imports
+        return not op.mem.base and not op.mem.index and not op.mem.segment and (op.mem.disp & 0xffffffff) in slots
+    if op.type != X.X86_OP_IMM or depth >= 3:
+        return False
+    tgt = function_insns(image, op.imm & 0xffffffff)
+    return tgt is not None and dead_from(tgt[1], tgt[0][0].address, R, image, depth + 1, imports, must_write=True)
+
+
+def dead_from(by_addr, start, R, image=None, depth=0, imports=None, must_write=False):
+    """FL-78: True when register R is dead from the instruction at `start` on every path: it is written in full before it is read. A call kills eax, ecx or edx only if `call_kills` shows it; it neither reads nor kills a callee-saved register;
+    a ret reads eax and the callee-saved registers (they go back to the caller); a jump with an unknown target, or a path that leaves the body, counts as live. `must_write` (the body of a callee): R must also be overwritten on every path to a ret."""
+    seen, work = set(), [start]
+    while work:
+        a = work.pop()
+        while True:
+            if a not in by_addr:
+                return False                                                     # the path runs out of the body
+            if a in seen:
+                break
+            seen.add(a)
+            i = by_addr[a]
+            rd, wr = _rw(i)
+            if R in rd:
+                return False
+            if R in wr:                                                          # a write of the 32-bit register kills it; a partial write (dl) does not
+                break
+            if i.mnemonic == 'call':
+                if R in ('eax', 'ecx', 'edx'):
+                    if not call_kills(image, i, R, depth, imports):
+                        return False
+                    break
+            elif i.mnemonic in ('ret', 'retn'):
+                if R == 'eax' or R in CALLEE_SAVED or must_write:
+                    return False
+                break
+            elif i.mnemonic == 'jmp' or i.mnemonic.startswith('j') or i.mnemonic.startswith('loop'):
+                if i.operands[0].type != X.X86_OP_IMM:
+                    return False
+                work.append(i.operands[0].imm & 0xffffffff)
+                if i.mnemonic == 'jmp':
+                    break
+            a += i.size
+    return True
+
+
+def function_insns(image, addr):
+    """FL-78: ([instructions], {address: instruction}) of the function at `addr`: linear disassembly up to the first ret or jmp that no jump of the function goes beyond; None when a jump has an unknown target or leaves the instructions."""
+    if not (IMAGE_BASE <= addr < DATA_START):
+        return None
+    md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
+    md.detail = True
+    off = addr - IMAGE_BASE
+    insns, far = [], addr
+    for i in md.disasm(image[off:off + 4096], addr):
+        insns.append(i)
+        m = i.mnemonic
+        if m == 'jmp' or m.startswith('j') or m.startswith('loop'):
+            if i.operands[0].type != X.X86_OP_IMM:
+                return None
+            far = max(far, i.operands[0].imm & 0xffffffff)
+        if (m in ('ret', 'retn') or m == 'jmp') and i.address >= far:
+            break
+    else:
+        return None
+    by_addr = {i.address: i for i in insns}
+    for i in insns:
+        m = i.mnemonic
+        if (m == 'jmp' or m.startswith('j') or m.startswith('loop')) and (i.operands[0].imm & 0xffffffff) not in by_addr:
+            return None
+    return insns, by_addr
+
+
+def out_param_extent(image, addr, argoff, imports=None):
+    """FL-78: read from the bytes of the function at `addr` (a frame-based one: `push ebp; mov ebp, esp`) how far it writes through the pointer in its stack argument [ebp+argoff]; None when it cannot be shown that this is all it does with it.
+    Shown: the slot is read only by `mov r32, [ebp+argoff]` into eax, ecx or edx; on every path from such a load the register is used only as the base of an x87 store `fst/fstp [r+d]` (d >= 0), nothing else reads it (not a push, a copy, a compare, an index),
+    until it is overwritten or a call kills it (`call_kills`: an import, or a direct callee whose bytes overwrite it before reading it); a path may return with the pointer still in a register (the caller must treat eax, ecx, edx as dead). The function forms no frame address
+    (`frame_escapes`), has no access through esp and no ebp-indexed access, writes through ebp only below it (its own locals), and every jump has a known target inside the body. The extent is the largest d + size of those stores."""
+    got = function_insns(image, addr)
+    if got is None:
+        return None
+    insns, by_addr = got
+    if len(insns) < 3 or not (insns[0].mnemonic == 'push' and insns[0].op_str == 'ebp' and insns[1].mnemonic == 'mov' and insns[1].op_str == 'ebp, esp'):
+        return None
+    if frame_escapes(insns):
+        return None
+    loads, extent = [], 0
+    for i in insns:
+        m = i.mnemonic
+        if (m.startswith('j') or m.startswith('loop')) and m != 'jmp' or m == 'jmp':
+            if (i.operands[0].imm & 0xffffffff) not in by_addr:
+                return None
+        for o in i.operands:
+            if o.type != X.X86_OP_MEM:
+                continue
+            base = i.reg_name(o.mem.base) if o.mem.base else None
+            if base == 'esp' or (o.mem.index and i.reg_name(o.mem.index) == 'esp'):
+                return None
+            if base != 'ebp':
+                continue
+            if o.mem.index or o.mem.segment:
+                return None
+            lo, hi = o.mem.disp, o.mem.disp + o.size
+            if lo < argoff + 4 and argoff < hi:
+                if not (m == 'mov' and o is i.operands[1] and o.size == 4 and lo == argoff and i.operands[0].type == X.X86_OP_REG and i.reg_name(i.operands[0].reg) in ('eax', 'ecx', 'edx')):
+                    return None
+                loads.append(i)
+            elif (o.access & capstone.CS_AC_WRITE or m.startswith(X87_STORES)) and hi > 0:
+                return None                                                      # a write at or above the saved ebp: the caller's side
+    seen = set()
+    for load in loads:
+        r = load.reg_name(load.operands[0].reg)
+        work = [load.address + load.size]
+        while work:
+            a = work.pop()
+            while True:
+                if a not in by_addr:
+                    return None
+                if (a, r) in seen:
+                    break
+                seen.add((a, r))
+                i = by_addr[a]
+                if i.mnemonic in ('ret', 'retn'):                                # the pointer may stay in the register; the caller treats eax, ecx, edx as dead
+                    break
+                rd, wr = _rw(i)
+                if r in rd:
+                    mem = [o for o in i.operands if o.type == X.X86_OP_MEM]
+                    if not (i.mnemonic in ('fst', 'fstp') and len(i.operands) == 1 and len(mem) == 1 and mem[0].mem.base and i.reg_name(mem[0].mem.base) == r):
+                        return None
+                    o = mem[0]
+                    if o.mem.index or o.mem.segment or o.mem.disp < 0 or o.size not in (4, 8):
+                        return None
+                    extent = max(extent, o.mem.disp + o.size)
+                elif r in wr:
+                    break
+                if i.mnemonic == 'call':
+                    if not call_kills(image, i, r, 0, imports):                         # a call that may read the register, or leave the pointer in it for a later store, is not followed
+                        return None
+                    break
+                if i.mnemonic in ('ret', 'retn'):
+                    break
+                if i.mnemonic == 'jmp' or i.mnemonic.startswith('j') or i.mnemonic.startswith('loop'):
+                    work.append(i.operands[0].imm & 0xffffffff)
+                    if i.mnemonic == 'jmp':
+                        break
+                a += i.size
+    return extent
+
+
+def library_arg_lea(insns, ins, targets, by_addr, writers=None, image=None, callees=None, imports=None):
+    """FL-78: a description (a dict) when `lea R, [ebp+disp]` forms a frame address that stays in R and goes only where it can be followed, else None. R is eax, ecx or edx and the straight line from the lea to the use has no jump, call or branch target. Three cases:
+      * 'source': the first thing that touches R is `push R`, then only 4-byte pushes and register loads (no esp, none reads R) up to a direct `call` of a function of LIBRARY_WRITERS, in a position that is not a destination position. The assumption
+        (RULE_TEXT2): such a function writes only through its destination argument, reads through its other pointer arguments and keeps no copy of them.
+      * 'out': the same shape, but the callee is not on the list; `out_param_extent` reads its bytes and shows that it only stores floats through the pointer, at most `extent` bytes. The call is then modelled as writing exactly [pointer, pointer+extent) of the frame.
+        For both, the pops of the callee plus the `add esp, K` after the call cover the pushed arguments (the model overwrites those slots after a call, so no copy of the address stays in the frame), and eax, ecx, edx (for 'source' only R) are dead after the call (`dead_from`).
+      * 'copy': the first thing that touches R is `mov edi, R`; the destination of the `rep movs/stos` instructions that follow. The model (`Machine.string`) lets such a store write any byte of the frame (and of mem), and edi and R must be dead where the straight line ends;
+        so the address goes nowhere else. No assumption beyond the frame assumption itself.
+    The callee's or the instruction's own behaviour is the assumption of LIBRARY_WRITERS only for 'source'."""
+    try:
+        return _library_arg_lea(insns, ins, targets, by_addr, LIBRARY_WRITERS if writers is None else writers, image, callees or {}, imports)
+    except capstone.CsError:                                                     # an instruction whose register accesses are not known
+        return None
+
+
+FORMAT_SPEC = re.compile(rb'%[-+ #0]*[0-9]*(?:\.[0-9]*)?(?:h|l|L|I64)?[dioxXucsfeEgG%]')       # flags, width, precision (no `*`, no `$`), length h l L I64, the conversions that only read their arguments (no n, p, a, S, C, Z)
+_FORMAT_REFS = {}
+
+
+def format_text_ok(text):
+    """FL-78 review: True when `text` (the bytes of a format string, without the NUL) is non-empty printable ASCII and every `%` starts a conversion specification of FORMAT_SPEC: so no `n` (also `%hn`, `%ln`, `%5n`), no `%1$n`, no `*` width that would take
+    an argument the format does not name, no unknown conversion"""
+    if not text or any(not (0x20 <= b < 0x7f or b in (9, 10, 13)) for b in text):
+        return False
+    k = text.find(b'%')
+    while k >= 0:
+        m = FORMAT_SPEC.match(text, k)
+        if not m:
+            return False
+        k = text.find(b'%', m.end())
+    return True
+
+
+def format_references_ok(image, a, end, writers):
+    """FL-78 review: the string at [a, end] (end is the NUL) is referenced in the whole image (code and data, any alignment) only by `push imm32` of its start `a`, directly in front of the destination push of a call of a function of `writers`
+    named sprintf: `push a; push <dest>; call sprintf`, the string being argument 1. So no instruction writes it by an absolute address, no pointer to it is stored or passed to anything else (strcpy, memset, a table of pointers). Not shown: that nothing
+    writes the bytes through an address computed from another base (the residual assumption of the sprintf rule)."""
+    key = (id(image), a, end)
+    if key in _FORMAT_REFS and _FORMAT_REFS[key][0] is image:                  # (the image object is kept, so that a recycled id cannot return the answer for another image)
+        return _FORMAT_REFS[key][1]
+    md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
+    md.detail = True
+    ok = True
+    for x in range(a, end + 1):
+        pat, k = struct.pack('<I', x), image.find(struct.pack('<I', x))
+        while k >= 0 and ok:
+            if x != a or k == 0 or image[k - 1] != 0x68:
+                ok = False
+                break
+            pushes, call = 0, None
+            for i in md.disasm(image[k - 1:k - 1 + 40], IMAGE_BASE + k - 1):
+                if i.address == IMAGE_BASE + k - 1:
+                    continue                                                     # the push of the format itself
+                if i.mnemonic == 'push':
+                    pushes += 1
+                elif i.mnemonic == 'call':
+                    call = i
+                    break
+                else:
+                    break
+            if call is None or pushes != 1 or call.operands[0].type != X.X86_OP_IMM or writers.get(call.operands[0].imm & 0xffffffff, ('',))[0] != 'sprintf':
+                ok = False
+                break
+            k = image.find(pat, k + 1)
+        if not ok:
+            break
+    _FORMAT_REFS[key] = (image, ok)
+    return ok
+
+
+def constant_format(image, pushes, n, writers=None):
+    """FL-78 review: for the sprintf rule, the format (argument 1) is a `push imm` of the address of a string literal inside the image, the string is non-empty printable ASCII ended by a NUL within 256 bytes and every conversion of it only reads
+    (`format_text_ok`), the string is referenced in the image only as the format of sprintf calls (`format_references_ok`), and the frame address is not itself the format (n == 1) -- `pushes` are the pushes behind the one of the frame address, the last of them argument 0.
+    The residual assumption (RULE_TEXT2) is that nothing writes the bytes of the literal through an address computed from another base."""
+    if image is None or n < 2 or len(pushes) < n - 1:
+        return False
+    fmt = pushes[n - 2]
+    if fmt.operands[0].type != X.X86_OP_IMM:
+        return False
+    a = fmt.operands[0].imm & 0xffffffff
+    if not (IMAGE_BASE <= a < IMAGE_BASE + len(image)):
+        return False
+    off = a - IMAGE_BASE
+    end = image.find(b'\0', off, off + 256)
+    return end > off and format_text_ok(bytes(image[off:end])) and format_references_ok(image, a, IMAGE_BASE + end, LIBRARY_WRITERS if writers is None else writers)
+
+
+def _library_arg_lea(insns, ins, targets, by_addr, writers, image, callees, imports=None):
+    ops = ins.operands
+    if ins.mnemonic != 'lea' or ops[0].type != X.X86_OP_REG or ops[0].size != 4:
+        return None
+    R = ins.reg_name(ops[0].reg)
+    mem = ops[1].mem
+    if R not in ('eax', 'ecx', 'edx') or not mem.base or ins.reg_name(mem.base) != 'ebp' or mem.index or mem.segment:
+        return None
+    pos = {i.address: k for k, i in enumerate(insns)}
+    seq = insns[pos[ins.address] + 1:]
+
+    def straight(i):
+        return not (i.mnemonic == 'call' or i.mnemonic in ('ret', 'retn', 'jmp') or i.mnemonic.startswith('j') or i.mnemonic.startswith('loop') or i.address in targets)
+
+    j = 0
+    while True:                                                                  # up to the first instruction that touches R
+        if j >= len(seq):
+            return None
+        i = seq[j]
+        rd, wr = _rw(i)
+        if R in rd or R in _full(wr):
+            break
+        if not straight(i):
+            return None
+        j += 1
+    first = seq[j]
+    if first.address in targets:
+        return None
+    if first.mnemonic == 'mov' and first.op_str == 'edi, ' + R:                    # the destination of an inline copy
+        k = j + 1
+        while k < len(seq):
+            i = seq[k]
+            parts = i.mnemonic.split()
+            if len(parts) == 2 and parts[0] == 'rep' and parts[1][:-1] in ('movs', 'stos') and i.address not in targets:
+                k += 1
+                continue
+            rd, wr = _rw(i)
+            if i.address in targets or not straight(i) or 'edi' in rd or 'edi' in _full(wr):
+                break
+            k += 1
+        if k >= len(seq):
+            return None
+        if not dead_from(by_addr, seq[j + 1].address, R, image, imports=imports) or not dead_from(by_addr, seq[k].address, 'edi', image, imports=imports):
+            return None
+        return {'kind': 'copy'}
+    if not (first.mnemonic == 'push' and first.operands[0].type == X.X86_OP_REG and first.reg_name(first.operands[0].reg) == R and first.operands[0].size == 4):
+        return None
+    n, pushes = 0, []
+    j += 1
+    while True:                                                                  # the pushes and register loads behind it, then the call
+        if j >= len(seq):
+            return None
+        i = seq[j]
+        if i.address in targets:
+            return None
+        if i.mnemonic == 'call':
+            break
+        rd, wr = _rw(i)
+        if R in rd or R in _full(wr) or 'esp' in rd and i.mnemonic != 'push':
+            return None
+        if i.mnemonic == 'push':
+            o = i.operands[0]
+            if o.size != 4 or o.type == X.X86_OP_MEM and (o.mem.segment or (o.mem.base and i.reg_name(o.mem.base) == 'esp') or (o.mem.index and i.reg_name(o.mem.index) == 'esp')):
+                return None
+            if o.type == X.X86_OP_REG and i.reg_name(o.reg) in ('esp', 'ebp'):          # FL-78 review: pushing the frame base would pass another frame address to the call
+                return None
+            pushes.append(i)
+            n += 1
+        elif i.mnemonic == 'mov' and i.operands[0].type == X.X86_OP_REG and i.operands[0].size == 4 and i.reg_name(i.operands[0].reg) not in ('esp', 'ebp') \
+                and not (i.operands[1].type == X.X86_OP_REG and i.reg_name(i.operands[1].reg) in ('esp', 'ebp')):
+            pass
+        else:
+            return None
+        j += 1
+    call = i
+    if call.operands[0].type != X.X86_OP_IMM:
+        return None
+    callee = call.operands[0].imm & 0xffffffff
+    nxt = seq[j + 1] if j + 1 < len(seq) else None
+    add = nxt.operands[1].imm if nxt is not None and nxt.mnemonic == 'add' and nxt.op_str.split(',')[0].strip() == 'esp' and nxt.operands[1].type == X.X86_OP_IMM and nxt.address not in targets else 0
+    pops = callees.get(callee)
+    if pops is None and add == 0 or (pops or 0) + add < 4 * (n + 1):
+        return None
+    entry = writers.get(callee)
+    if entry is not None:
+        if n in entry[1] or add < 4 * (n + 1):
+            return None
+        if entry[0] == 'sprintf' and not constant_format(image, pushes, n, writers):
+            return None
+        regs, info = (R,), {'kind': 'source'}
+    else:
+        ext = out_param_extent(image, callee, 8 + 4 * n, imports) if image is not None else None
+        if not ext:
+            return None
+        got = function_insns(image, callee)                                      # FL-78 review: R still holds the frame address at the call; the callee must not read it (it could store through it, or keep it): its bytes overwrite R before reading it (the caller's own check below says R is dead after the call)
+        if got is None or not dead_from(got[1], got[0][0].address, R, image, 1, imports):
+            return None
+        regs, info = ('eax', 'ecx', 'edx'), {'kind': 'out', 'call': call.address, 'off': 4 * n, 'extent': ext}
+    after = call.address + call.size
+    if any(not dead_from(by_addr, after, r, image, imports=imports) for r in regs):
+        return None
+    return info
+
+
 def merge(items):
     """items: [(edge condition, State)] with mutually exclusive conditions. The merged state selects the value of the edge taken."""
     if len(items) == 1:
@@ -298,8 +692,10 @@ class Machine:
         self.bounds = {}        # FL-75: callee address -> the bound on eax that its bytes prove (ret_bound)
         self.split = False      # the frame assumption holds for this function (set by Analysis)
         self.after_call = {}    # call address -> bytes the next instruction `add esp, k` removes
+        self.out_writes = {}    # FL-78: call address -> [(offset of the pushed frame pointer from esp at the call, bytes the callee writes through it)] (library_arg_lea kind 'out')
         self.facts = []         # facts about the START memory (constant bytes of the image), valid in every query
         self.fact_keys = set()
+        self.inv_facts = []     # FL-78: the loop invariants assumed at generalised headers, [(key, guarded formula)]; kept apart from `facts` so that the check of an invariant can leave out the facts it must not use (Analysis.check `only`)
         self.ins = None
 
     # ---- registers -------------------------------------------------------------------------------------------------------------------------
@@ -676,6 +1072,7 @@ class Machine:
         if op.type != X.X86_OP_IMM:
             self.read(st, op, 4)                     # the pointer is read (and must not fault)
         sp = st.R['esp']
+        ptrs = [(z3.simplify(self.load(st.frm, sp + off, 4)), ext) for off, ext in self.out_writes.get(ins.address, ())] if self.split else []         # FL-78: frame pointers the callee writes through (read before the argument slots are overwritten)
         for r in ('eax', 'ecx', 'edx'):
             st.R[r] = fresh(32, 'c')
         if op.type == X.X86_OP_IMM:
@@ -689,6 +1086,9 @@ class Machine:
             arr = st.frm
             for k in range(max(span, 0)):
                 arr = z3.Store(arr, sp + k, fresh(8, 'x'))
+            for ptr, ext in ptrs:                    # FL-78: exactly the bytes that out_param_extent read from the callee's code
+                for k in range(ext):
+                    arr = z3.Store(arr, ptr + k, fresh(8, 'x'))
             st.frm = arr
         st.R['esp'] = sp + pops if pops is not None else fresh(32, 'sp')
         self.unknown_flags(st)
@@ -700,6 +1100,16 @@ class Machine:
         size = {'b': 1, 'w': 2, 'd': 4}[base[-1]]
         kind = base[:-1]
         edi, esi = st.R['edi'], st.R['esi']
+        frame_dest = self.split and kind in ('movs', 'stos') and has_frame_term(edi)             # FL-78: the destination is a frame address that library_arg_lea followed (a copy into a local buffer)
+        if rep and frame_dest:
+            self.assume_ok(st, edi, 1)
+            st.mem = fresh_array()                                                                  # a store of unknown length through a frame address may write any byte of the frame (and, if the length
+            st.frm = fresh_array('fr')                                                              # overruns, anything else): both memories are unknown, and edi stays a frame address
+            st.R['edi'] = edi + fresh(32, 'rn')
+            if kind == 'movs':
+                st.R['esi'] = fresh(32, 'rs')
+            st.R['ecx'] = bv(0, 32)
+            return
         if rep:
             ecx = z3.simplify(st.R['ecx'])
             if kind in ('movs', 'stos') and z3.is_bv_value(ecx) and ecx.as_long() <= REP_EXACT:         # FL-70: a repeated store with a constant count is exact (the count is a known constant, the direction flag is clear)
@@ -731,16 +1141,17 @@ class Machine:
                     st.R['esi'] = fresh(32, 'rs')
                 self.unknown_flags(st)
             return
+        dst = 'frm' if frame_dest else 'mem'
         if kind == 'stos':
             v = z3.Extract(8 * size - 1, 0, st.R['eax'])
             self.assume_ok(st, edi, size)
-            st.mem = self.store(st.mem, edi, v, size)
+            setattr(st, dst, self.store(getattr(st, dst), edi, v, size))
             st.R['edi'] = edi + size
         elif kind == 'movs':
             self.assume_ok(st, esi, size)
             self.assume_ok(st, edi, size)
-            v = self.load(st.mem, esi, size)
-            st.mem = self.store(st.mem, edi, v, size)
+            v = self.load(getattr(st, self.space(st, esi)), esi, size)
+            setattr(st, dst, self.store(getattr(st, dst), edi, v, size))
             st.R['esi'], st.R['edi'] = esi + size, edi + size
         else:
             raise Unsupported(base)
@@ -789,7 +1200,15 @@ class Analysis:
         self.by_addr = {i.address: i for i in self.insns}
         self.M = Machine(row, image)
         self.split_ok = SPLIT and not row.get('frame')                                       # a `frame` row starts with ebp = the entry frame address
-        self.esc_addrs = [i.address for i in self.insns if frame_escapes([i]) and not seh_registration(self.insns, i, self.branch_targets())] if self.split_ok else []      # FL-75: where the function forms an address of its frame
+        targets = self.branch_targets()
+        self.esc_addrs = []                                                                   # FL-75: where the function forms an address of its frame
+        for i in (self.insns if self.split_ok else ()):
+            if frame_escapes([i]) and not seh_registration(self.insns, i, targets):
+                info = library_arg_lea(self.insns, i, targets, self.by_addr, image=image, callees=self.M.callees, imports=import_slots() | set(self.M.imports))       # FL-78: a frame address that is followed to its end (library_arg_lea) is not one
+                if info and info['kind'] == 'out':
+                    self.M.out_writes.setdefault(info['call'], []).append((info['off'], info['extent']))
+                if not info:
+                    self.esc_addrs.append(i.address)
         self.M.split = self.split_ok and not self.esc_addrs
         for k, i in enumerate(self.insns[:-1]):
             nxt = self.insns[k + 1]
@@ -1086,6 +1505,8 @@ class Analysis:
         self.nodes, self.nsucc, self.nreach = rpo, succ, seen
         self.ic, self.edge, self.sink_cond = {}, {}, {}
         self.gen_state, self.hdr_in, self.hdr_back = {}, {}, {}
+        self.preds = {}
+        self.M.inv_facts = [kf for kf in self.M.inv_facts if kf[0][0] != 'exec']
         incoming = {n: [] for n in succ}
         incoming[entry].append((z3.BoolVal(True), State.start()))
         for node in rpo:
@@ -1109,7 +1530,7 @@ class Analysis:
                     st.fs = fresh_array('fa')
                 if a in self.inv:                                                          # FL-73: assumed here, proved in verify_invariants
                     self.gen_state[node], self.hdr_in[node] = st.copy(), list(items)
-                    self.M.facts.append(z3.Implies(self.ic[node], inv_formula(self.M, st, self.inv[a])))        # only runs that arrive at the header satisfy it
+                    self.M.inv_facts.append((('exec', node), z3.Implies(self.ic[node], inv_formula(self.M, st, self.inv[a]))))        # only runs that arrive at the header satisfy it; used by the queries, and by the proof of other headers' invariants only for the headers before them
             st.pc = z3.BoolVal(True)
             ins = self.blocks[a]['insns']
             br = None
@@ -1142,9 +1563,10 @@ class Analysis:
                     self.sink_cond.setdefault(t[1], []).append(c)
                     continue
                 if (node, t) in back:
-                    self.hdr_back.setdefault(t, []).append((c, st))
+                    self.hdr_back.setdefault(t, []).append((c, st, node))
                     continue
                 incoming[t].append((c, st))
+                self.preds.setdefault(t, set()).add(node)
 
     def table_escape(self, st, here, last):
         """the condition under which the (cut) table jump `last` reads a cell outside the kept ones"""
@@ -1164,16 +1586,18 @@ class Analysis:
         for node, gs in self.gen_state.items():
             atoms = self.inv[node[0]]
             assumed = inv_formula(self.M, gs, atoms)
-            r, _ = self.check(assumed)
+            before = {('exec', n) for n in reach_back(self.preds, node) if n in self.gen_state}      # FL-78 review: the headers the run passes before this one; the header's own fact is the thing to prove (a loop without memory effects shares its entry state)
+            r, _ = self.check(assumed, only=before)
             if r != 'sat':
                 raise Unsupported('invariant at 0x%x is not satisfiable (%s)' % (node[0], r))
-            chk = lambda f: self.check(f)[0]
+            chk = lambda f: self.check(f, only=before)[0]
             for c, st_in in self.hdr_in[node]:
                 bad = inv_failures(chk, self.M, None, c, st_in, atoms)
                 if bad:
                     raise Unsupported('invariant at 0x%x does not hold on an entry edge (atoms %s)' % (node[0], bad))
-            for c, st_b in self.hdr_back.get(node, []):
-                bad = inv_failures(chk, self.M, assumed, c, st_b, atoms)
+            for c, st_b, src in self.hdr_back.get(node, []):
+                upto = {('exec', n) for n in reach_back(self.preds, src) | {src} if n in self.gen_state}       # the headers passed on the way round the loop, this one included (its assumption is the induction hypothesis)
+                bad = inv_failures(lambda f: self.check(f, only=upto)[0], self.M, assumed, c, st_b, atoms)
                 if bad:
                     raise Unsupported('invariant at 0x%x is not preserved by a back edge (atoms %s)' % (node[0], bad))
 
@@ -1206,10 +1630,13 @@ class Analysis:
 
     # ---- queries ---------------------------------------------------------------------------------------------------------------------------
 
-    def check(self, formula, timeout_ms=None):
+    def check(self, formula, timeout_ms=None, only=None):
+        """`only`: None conjoins every assumed loop invariant (the queries that use them); a set of keys conjoins just those (the checks that prove an invariant: initiation of a header may rest only on the invariants of the headers the run passed before it,
+        and never on its own, which is the thing being proved; FL-78 review)"""
         s = z3.Solver()
         s.set('timeout', timeout_ms or self.timeout_ms)
         s.add(*self.M.facts)
+        s.add(*[f for k, f in self.M.inv_facts if only is None or k in only])
         s.add(formula)
         r = s.check()
         return str(r), hashlib.sha256(s.to_smt2().encode()).hexdigest()

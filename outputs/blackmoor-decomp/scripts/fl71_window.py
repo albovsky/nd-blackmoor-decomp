@@ -36,6 +36,24 @@ MAX_WINDOW = 300            # blocks in a window
 MAX_STARTS = 14             # dominators tried per target
 STEP_MS = 8000
 VERBOSE = bool(__import__('os').environ.get('FL71_VERBOSE'))
+FWD_INVARIANTS = PROJECT / 'tests' / 'fl78_forward_invariants.json'       # FL-78: loop invariants for the generalised headers of a FORWARD window, per target (checked by the prover, never trusted)
+
+
+def forward_key(mark, T):
+    """the name of a forward window's target in tests/fl78_forward_invariants.json: 'JCC:taken|fall' for a jump direction, 'BLOCK:ins' (the start of the block T of the instruction) for an instruction"""
+    return '%#x:%s' % (mark[1], mark[2]) if mark[0] == 'dir' else '%#x:ins' % T
+
+
+def load_forward_invariants(va, mark, T):
+    """FL-78: {header block address: [atom, ...]} declared for the forward window of the target `mark` ('dir', jcc, 'taken'|'fall' or 'ins', address; T is its block) of the function at `va` in tests/fl78_forward_invariants.json,
+    {function: {"0x49da7c:fall": {header: [atom, ...]}, "0x49da7e:ins": {...}}}. The atoms are those of tests/fl73_invariants.json. They are kept at a header only if `check_forward_invariants` proves them for this window.
+    They are separate from the whole-function and backward-window invariants because they need not hold for the runs that do not go through the target."""
+    import json
+    try:
+        data = json.loads(FWD_INVARIANTS.read_text())
+    except (OSError, ValueError):
+        return {}
+    return {int(h, 16): atoms for h, atoms in data.get(hex(va), {}).get(forward_key(mark, T), {}).items()}
 
 
 def dominators(an):
@@ -215,6 +233,7 @@ def run_window(an, order, S, T, query, frame=False, want_state=False):
         escapes, esc_seen = [], set()
         arrival = None
         gen_state, hdr_in, hdr_back, done = {}, {}, {}, set()           # FL-73: loop invariants (tests/fl73_invariants.json) assumed at a generalised header, proved below
+        preds, tag = {}, object()                                       # FL-78 review: the predecessors of each block (for the headers a run passed before a header), and the key of this window's invariant facts
         for node in order:
             items = incoming[node]
             if not items:
@@ -238,7 +257,7 @@ def run_window(an, order, S, T, query, frame=False, want_state=False):
                     st.fs = P.fresh_array('fa')
                 if node in an.inv:
                     gen_state[node], hdr_in[node] = st.copy(), list(items)
-                    M.facts.append(z3.Implies(ic[node], P.inv_formula(M, st, an.inv[node])))        # only runs that arrive at the header satisfy it
+                    M.inv_facts.append(((tag, node), z3.Implies(ic[node], P.inv_formula(M, st, an.inv[node]))))        # only runs that arrive at the header satisfy it (kept apart from M.facts: the proof of a header leaves its own fact out)
             if node == T and query[0] == 'ins':
                 if want_state:                                      # FL-75: the merged state and condition on arrival at T, for a forward window that continues from there (returned only after the invariant and table checks below)
                     arrival = (ic[node], st.copy())
@@ -274,25 +293,28 @@ def run_window(an, order, S, T, query, frame=False, want_state=False):
             for (kind, t), c in conds.items():
                 edge[(node, kind, t)] = c
                 if (node, t) in an.back and t in gen_state:
-                    hdr_back.setdefault(t, []).append((c, st))
+                    hdr_back.setdefault(t, []).append((c, st, node))
                 if node == T and not gen_state:
                     continue
                 if t in incoming and t != S and (node, t) not in an.back:
                     incoming[t].append((c, st))
+                    preds.setdefault(t, set()).add(node)
         for h, gs in gen_state.items():                                  # FL-73: the assumed invariants are inductive, over every back edge of the loop (all their sources were executed)
             atoms = an.inv[h]
             if any(u not in done for u, hh in an.back if hh == h and u in incoming):
                 raise P.Unsupported('invariant at 0x%x: a back edge was not executed' % h)
             assumed = P.inv_formula(M, gs, atoms)
-            if an.check(assumed)[0] != 'sat':
+            before = {(tag, n) for n in P.reach_back(preds, h) if n in gen_state}      # FL-78 review: only the headers the run passes before this one; its own fact is what is being proved
+            if an.check(assumed, only=before)[0] != 'sat':
                 raise P.Unsupported('invariant at 0x%x is not satisfiable' % h)
-            chk = lambda f: an.check(f)[0]
+            chk = lambda f: an.check(f, only=before)[0]
             for c, st_in in hdr_in[h]:
                 bad = P.inv_failures(chk, M, None, c, st_in, atoms)
                 if bad:
                     raise P.Unsupported('invariant at 0x%x does not hold on an entry edge (atoms %s)' % (h, bad))
-            for c, st_b in hdr_back.get(h, []):
-                bad = P.inv_failures(chk, M, assumed, c, st_b, atoms)
+            for c, st_b, src in hdr_back.get(h, []):
+                upto = {(tag, n) for n in P.reach_back(preds, src) | {src} if n in gen_state}
+                bad = P.inv_failures(lambda f: an.check(f, only=upto)[0], M, assumed, c, st_b, atoms)
                 if bad:
                     raise P.Unsupported('invariant at 0x%x is not preserved by a back edge (atoms %s)' % (h, bad))
         for esc in escapes:
@@ -338,7 +360,39 @@ def forward_region(an, S):
     return order if len(order) == len(seen) else None
 
 
-def run_forward(an, order, S, mark, frame=False, start=None):
+def discard_facts(an, kept):
+    """FL-78: a window that is refused (an invariant it assumed was not proved, a table cut that does not hold) leaves the facts it assumed in `M.facts`, where every later query of the analysis would conjoin them; they are guarded by the
+    window's own arrival conditions, which are formulas over the shared start symbols, so an invariant that was never proved must not stay. Drop what the window added, and the image bytes whose constant facts went with it are read again later."""
+    n, keys, m = kept
+    del an.M.facts[n:]
+    del an.M.inv_facts[m:]
+    an.M.fact_keys = keys
+
+
+def check_forward_invariants(an, inv, gen_state, hdr_in, hdr_back, tie=None, preds=None, tag=None):
+    """FL-78: every invariant that run_forward assumed at a generalised header holds on each entry edge from the window (initiation) and, assumed at the header, on each back edge (consecution), and is satisfiable. `tie` is the esp-to-ebp relation of the window's start (relate), which every real run has there."""
+    M = an.M
+    tie = z3.BoolVal(True) if tie is None else tie
+    preds = preds or {}
+    for h, gs in gen_state.items():
+        atoms = inv[h]
+        assumed = P.inv_formula(M, gs, atoms)
+        before = {(tag, n) for n in P.reach_back(preds, h) if n in gen_state}       # FL-78 review: the invariants of the headers the run passes before this one, never its own (a loop without memory effects shares its entry state, so its own fact would make "holds on entry" trivially true)
+        chk = lambda f, only=before: an.check(z3.And(tie, f), only=only)[0]
+        if chk(assumed) != 'sat':
+            raise P.Unsupported('forward invariant at 0x%x is not satisfiable' % h)
+        for c, st_in in hdr_in[h]:
+            bad = P.inv_failures(chk, M, None, c, st_in, atoms)
+            if bad:
+                raise P.Unsupported('forward invariant at 0x%x does not hold on an entry edge (atoms %s)' % (h, bad))
+        for c, st_b, src in hdr_back.get(h, []):
+            upto = {(tag, n) for n in P.reach_back(preds, src) | {src} if n in gen_state}
+            bad = P.inv_failures(lambda f: chk(f, upto), M, assumed, c, st_b, atoms)
+            if bad:
+                raise P.Unsupported('forward invariant at 0x%x is not preserved by a back edge (atoms %s)' % (h, bad))
+
+
+def run_forward(an, order, S, mark, frame=False, start=None, inv=None, tie=None):
     """FL-75: the formula "a run that starts at S in ANY state, takes the marked edge (or executes the marked block), does not fault, and reaches a ret". Unsat means every run through the target faults later."""
     M = an.M
     saved = M.split
@@ -348,6 +402,9 @@ def run_forward(an, order, S, mark, frame=False, start=None):
         incoming[S].append(start if start else (z3.BoolVal(True), P.State.start()))
         completions = []
         escapes, esc_seen = [], set()
+        inv = inv or {}
+        gen_state, hdr_in, hdr_back = {}, {}, {}                        # FL-78: invariants assumed at a generalised header of the window, proved after the walk
+        preds, tag = {}, object()                                       # FL-78 review: predecessors of each block, and the key of this window's invariant facts
         for node in order:
             items = incoming[node]
             if not items:
@@ -356,6 +413,10 @@ def run_forward(an, order, S, mark, frame=False, start=None):
             ic = z3.Or(*[c for c, _ in items]) if len(items) > 1 else items[0][0]
             if node in an.loops and node != S and any(h == node and u in incoming for u, h in an.back):
                 regs, mem, fs = an.loop_effects(node)
+                if node in inv:                                                          # FL-78: the arrival at this header is a fresh Boolean `arr` that every real arrival implies. The long path condition then stays out of the
+                    arr = P.fresh_bool('arr')                                            # consecution queries of the invariant (a run that arrives satisfies `arr`, so the facts guarded by it hold for it; a model with `arr` but no real arrival
+                    M.facts.append(z3.Implies(ic, arr))                                  # only has more freedom, which can only make a refutation harder, never wrong)
+                    ic = arr
                 for r in P.FULL:
                     if r in regs:
                         st.R[r] = P.fresh(32, 'sp' if r in ('esp', 'ebp') else 'lp')
@@ -368,6 +429,9 @@ def run_forward(an, order, S, mark, frame=False, start=None):
                     st.frm = P.fresh_array('fr')
                 if fs:
                     st.fs = P.fresh_array('fa')
+                if node in inv:                                                          # FL-78: assumed here (only for the runs that arrive), proved in check_forward_invariants
+                    gen_state[node], hdr_in[node] = st.copy(), list(items)
+                    M.inv_facts.append(((tag, node), z3.Implies(ic, P.inv_formula(M, st, inv[node]))))
             st.pc = z3.BoolVal(True)
             ins = an.blocks[node]['insns']
             br = None
@@ -396,12 +460,18 @@ def run_forward(an, order, S, mark, frame=False, start=None):
                         escapes.append(an.table_escape(st, here, last))
                 else:
                     c = here
+                if (node, t) in an.back and t in gen_state:
+                    hdr_back.setdefault(t, []).append((c, st, node))
                 if (node, t) in an.back or t not in incoming or t == S:
                     continue                                   # a back edge: the header's state was generalised, the run continues from there
                 incoming[t].append((c, st))
+                preds.setdefault(t, set()).add(node)
         for esc in escapes:
             if an.check(esc, STEP_MS)[0] != 'unsat':
                 raise P.Unsupported('table escape in a forward window')
+        if set(inv) - set(gen_state):
+            raise P.Unsupported('a forward invariant names a header that is not a generalised loop header of the window')
+        check_forward_invariants(an, inv, gen_state, hdr_in, hdr_back, tie, preds, tag)
         if not completions:
             return z3.BoolVal(False)
         return z3.Or(*completions) if len(completions) > 1 else completions[0]
@@ -431,13 +501,19 @@ def prove_faults(an, dom, mark, timeout_ms=STEP_MS):
                 continue
             if frame and not an.frame_safe(D, list(orderA) + orderB):
                 continue
+            kept = len(an.M.facts), set(an.M.fact_keys), len(an.M.inv_facts)
             try:
                 start = run_window(an, orderA, D, T, ('ins', None), frame, want_state=True)
-                f = run_forward(an, orderB, T, mark, frame, start=start)
-            except P.Unsupported:
+                tie = relate(an, D, P.State.start())
+                f = run_forward(an, orderB, T, mark, frame, start=start, inv=load_forward_invariants(an.va, mark, T), tie=tie)
+            except P.Unsupported as ex:
+                discard_facts(an, kept)
+                if VERBOSE:
+                    print('   forward D=%#x T=%#x frame=%s unsupported: %s' % (D, T, frame, ex), flush=True)
                 continue
-            f = z3.And(f, relate(an, D, P.State.start()))
+            f = z3.And(f, tie)
             r, h = an.check(f, timeout_ms)
+            discard_facts(an, kept)                                      # FL-78 review: the facts of an accepted window concern its own symbols and must not stay in the queries that follow
             if VERBOSE:
                 print('   forward D=%#x T=%#x blocks %d+%d frame=%s -> %s' % (D, T, len(orderA), len(orderB), frame, r), flush=True)
             if r == 'unsat':
@@ -457,12 +533,15 @@ def prove_target(an, dom, T, query, timeout_ms=STEP_MS):
                 continue
             if frame and not an.frame_safe(S, order):             # FL-75: a function that forms a frame address somewhere still has frame-safe windows in front of that point
                 continue
+            kept = len(an.M.facts), set(an.M.fact_keys), len(an.M.inv_facts)
             try:
                 f = run_window(an, order, S, T, query, frame)
             except P.Unsupported:
+                discard_facts(an, kept)
                 continue
             f = z3.And(f, relate(an, S, P.State.start()))               # FL-75: esp and ebp are not independent at S
             r, h = an.check(f, timeout_ms)
+            discard_facts(an, kept)                                      # FL-78 review: as in prove_faults
             if VERBOSE:
                 print('   window S=%#x blocks %d frame=%s -> %s' % (S, len(order), frame, r), flush=True)
             if r == 'unsat':
@@ -500,10 +579,9 @@ def from_analysis(an):
     an.graph()
     dom = dominators(an)
     if an.cut:
-        n, keys = len(an.M.facts), set(an.M.fact_keys)
+        kept = len(an.M.facts), set(an.M.fact_keys), len(an.M.inv_facts)
         ok = validate_cuts(an, dom)
-        del an.M.facts[n:]                                               # facts the validation windows assumed concern their own fresh symbols only
-        an.M.fact_keys = keys                                            # and the image bytes whose constant facts went with them are read again later
+        discard_facts(an, kept)                                          # facts the validation windows assumed concern their own fresh symbols only, and the image bytes whose constant facts went with them are read again later
         if not ok:
             an.tight_tables, an.cut = False, {}
             an._stack_delta = None                                       # computed on the cut graph
