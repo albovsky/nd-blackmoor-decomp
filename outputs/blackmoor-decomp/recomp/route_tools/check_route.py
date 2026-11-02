@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Check an observed headless story leg, not merely its process exit.
 
-python3 check_route.py RUN_LOG SAVE_FILE [--route telescope-prep|jane-jigsaw|telescope-use|seedlings|crank-repair|betty-key|venus-column|jupiter-column|moon-key|moon-column|nigel-computer|night-wait|goggles|ghost-hunt|afternoon-door|linda-passage|bul-key|slide-ball|saturn-column|dragon-passage|glyph-request|glyph-win|lit-word-clue|loulou-barber|loulou-morning|drake-magic|loulou-answer|light-depletion|paid-light-request|repeat-glyph-win|word-lock]
+python3 check_route.py RUN_LOG SAVE_FILE [--route telescope-prep|jane-jigsaw|telescope-use|seedlings|crank-repair|betty-key|venus-column|jupiter-column|moon-key|moon-column|nigel-computer|night-wait|goggles|ghost-hunt|afternoon-door|linda-passage|bul-key|slide-ball|saturn-column|dragon-passage|glyph-request|glyph-win|lit-word-clue|loulou-barber|loulou-morning|drake-magic|loulou-answer|light-depletion|paid-light-request|repeat-glyph-win|word-lock|right-fire-panel|ethel-interrogation|linda-curse|gargoyle-inspect]
 The caller supplies a checkpoint produced by this run's normal Load & Save UI.
 This checks recorded observations, a matching file-open line and save size;
 fresh-folder/write provenance and saved contents require separate replay evidence.
@@ -597,6 +597,108 @@ def verify_word_lock_observations(route, log, observations, selected, clocks, po
     return clocks[-1][1]
 
 
+CREST_PREREQUISITE_ROUTES = ('right-fire-panel', 'ethel-interrogation', 'linda-curse', 'gargoyle-inspect')
+RIGHT_FIRE_BITS = {1150, 1154, 1156, 1157, 1158}
+# Original builder0x4455b8 chooses rand()%3; all three resources return4408.
+LINDA_CURSE_BYE_SCENES = (1190, 1191, 1192)
+CREST_SCENES = {
+    'right-fire-panel': (4366, 2942, 3053, 2943, 2944, 2945, 3060, 3199, 3140, 3141, 3143, 3155, 3126, 3158),
+    'ethel-interrogation': (3199, 3060, 2903, 3326, 3364, 1404, 1425, 1405, 1426, 1406, 1427, 1407, 1490, 1491, 3428),
+    'linda-curse': (3350, 3351, 4400, 4405, 4410, 1100, 1128, 1129, 1130, 1131, 1132, 1146, 1133,
+                    LINDA_CURSE_BYE_SCENES, 4408),
+    'gargoyle-inspect': (4412, 4410, 4406, 4407, 3312, 3323, 3324, 3366, 3410),
+}
+
+
+def crest_prerequisite_configuration(route):
+    _, retained, zero = word_lock_configuration('word-lock')
+    retained, zero = retained - {2154}, zero - {2154}
+    partial = RIGHT_FIRE_BITS | {1808, 2060}
+    remaining = set(range(1148, 1160)) - RIGHT_FIRE_BITS
+    unmet = {1492, 1783, 1786, 1974, 2059}
+    if route == 'right-fire-panel':
+        states = [(4387, 0), (2942, 0), (2943, 0), (2944, 0), (2945, 0),
+                  (3060, 0), (3199, 0)] + [(3141, 0)] * 5
+        return states, retained | partial, zero | remaining | unmet | {2154}
+    retained |= partial
+    zero |= remaining
+    if route == 'ethel-interrogation':
+        states = [(3141, 0), (3060, 0), (3326, 0), (1405, 0), (1406, 0), (1407, 0), (3428, 0), (3428, 0)]
+        return states, retained | {2154}, zero | unmet
+    if route == 'linda-curse':
+        states = [(3428, 0), (3318, 0), (3350, 0), (3351, 0), (4410, 3), (4412, 0),
+                  (4408, 0), (1146, 0), (1133, 0), (4408, 0), (4408, 0)]
+        return states, retained | {1492}, zero | (unmet - {1492}) | {2154}
+    if route == 'gargoyle-inspect':
+        states = [(4408, 0), (4412, 0), (4410, 2), (4406, 0), (4407, 0), (3312, 0), (3323, 0),
+                  (3324, 0), (3366, 0), (3366, 0), (3410, 0), (3410, 0), (3410, 0)]
+        return states, retained | {1492, 1786, 1783}, zero | {1974, 2059, 2014, 2154}
+    raise ValueError('unknown crest-prerequisite route')
+
+
+def verify_crest_prerequisite_observations(route, log, observations, selected, clocks, positive, negative):
+    up = {'right-fire-panel': {1808: 7, 2060: 8, 1154: 8, 1150: 9, 1157: 9, 1156: 10, 1158: 10},
+          'ethel-interrogation': {2154: 4}, 'linda-curse': {1492: 7},
+          'gargoyle-inspect': {1786: 8, 1783: 10}}[route]
+    down = {2154: 1} if route == 'linda-curse' else {}
+    transient = {1155, 1159} if route == 'right-fire-panel' else set()
+    changing = up.keys() | down.keys() | transient
+    previous = {**{f: 0 for f in up}, **{f: 1 for f in down}}
+    transient_previous = {f: 0 for f in transient}
+    cleared = set()
+    for state, scope, flags in observations:
+        if not (positive | negative) <= scope:
+            raise ValueError('RC_FLAGS did not observe every required crest-prerequisite event')
+        if any(flags.get(f, 0) != 1 for f in positive - changing):
+            raise ValueError('crest-prerequisite retained event differs')
+        if any(flags.get(f, 0) != 0 for f in negative - changing):
+            raise ValueError('unexpected crest-prerequisite next gate, failure or timer event')
+        for f in previous:
+            value = flags.get(f, 0)
+            backwards = value < previous[f] if f in up else value > previous[f]
+            if value not in (0, 1) or backwards:
+                raise ValueError('crest-prerequisite phase is not binary/monotone')
+            previous[f] = value
+        for f in transient:
+            value = flags.get(f, 0)
+            if transient_previous[f] == 1 and value == 0:
+                cleared.add(f)
+            if value not in (0, 1) or (f in cleared and value):
+                raise ValueError('right-fire initialized bits did not follow the original partial changes')
+            transient_previous[f] = value
+        if state[3] not in (-1, 4) or (route in ('linda-curse', 'gargoyle-inspect') and state[3] != -1):
+            raise ValueError('crest-prerequisite unexpected held item')
+        if route == 'ethel-interrogation' and flags.get(2154, 0) == 1 and state[3] != -1:
+            raise ValueError('Ethel conversation did not put the original held light away')
+    for i, (state, _, flags) in enumerate(selected):
+        art = 4408 if route == 'linda-curse' and state[0] in (1128, 1129, 1130, 1131, 1132, 1146, 1133) else state[0]
+        held = 4 if ((route == 'right-fire-panel' and i > 0) or
+                     (route == 'ethel-interrogation' and i < 3)) else -1
+        if state[1] != art or state[3] != held:
+            raise ValueError('crest-prerequisite art, actual item or final safe frame differs')
+        if any(flags.get(f, 0) != int(i >= phase) for f, phase in up.items()) or any(
+                flags.get(f, 0) != int(i < phase) for f, phase in down.items()):
+            raise ValueError('crest-prerequisite source and authored progression phases differ')
+        if route == 'right-fire-panel' and (flags.get(1155, 0), flags.get(1159, 0)) != (int(i == 7), int(7 <= i < 9)):
+            raise ValueError('right-fire initializer/partial panel bit observations differ')
+    verify_clock_diagnostics(clocks)
+    source = clocks[0][1]
+    # Source-only pins for this current chain; no whole-dialogue/day window.
+    hour = {'right-fire-panel': 15, 'ethel-interrogation': 15, 'linda-curse': 15, 'gargoyle-inspect': 15}[route]
+    if source['day'] != 3 or source['hour'] != hour:
+        raise ValueError('crest-prerequisite observed source clock gate differs')
+    opened = [int(m[1]) for m in re.finditer(r'FILE open .*\\S(\d+)\.CIF\s+\[virtual \d+ ms\]', log)]
+    cursor = 0
+    for stage in CREST_SCENES[route]:
+        alternatives = stage if isinstance(stage, tuple) else (stage,)
+        while cursor < len(opened) and opened[cursor] not in alternatives:
+            cursor += 1
+        if cursor == len(opened):
+            raise ValueError('missing ordered crest-prerequisite authored scene opens')
+        cursor += 1
+    return clocks[-1][1]
+
+
 def verify(log, save, route='telescope-prep'):
     if route == 'telescope-prep':
         expected = [(2010, 0), (2014, 0), (2026, 0), (2010, 2)]
@@ -665,6 +767,8 @@ def verify(log, save, route='telescope-prep'):
         expected, positive, negative = word_prerequisite_configuration(route)
     elif route in WORD_LOCK_ROUTES:
         expected, positive, negative = word_lock_configuration(route)
+    elif route in CREST_PREREQUISITE_ROUTES:
+        expected, positive, negative = crest_prerequisite_configuration(route)
     else:
         raise ValueError('unknown story route')
     observations = []
@@ -698,12 +802,17 @@ def verify(log, save, route='telescope-prep'):
         held_steps = {'light-depletion': {4: 4, 5: 4, 6: 4, 7: 4, 8: -1},
                       'paid-light-request': {1: 5, 2: -1}, 'repeat-glyph-win': {4: 4},
                       'word-lock': {4: 4, 5: 4}}[route]
+    if route in CREST_PREREQUISITE_ROUTES:
+        held_steps = {'right-fire-panel': {i: 4 for i in range(1, 12)},
+                      'ethel-interrogation': {0: 4, 1: 4, 2: 4}}.get(route, {})
     selected = []
     for observation in observations:
         state, scope, flags = observation
         pair = (state[0], state[2])
         if route == 'glyph-win' and len(selected) == 2 and pair == (1295, 0):
             pair = (1294, 0)
+        if route == 'linda-curse' and len(selected) == 7 and state[0] in (1128, 1129, 1130, 1131, 1132, 1146, 1133) and state[2] == 0:
+            pair = (1146, 0)
         if len(selected) < len(expected) and pair == expected[len(selected)]:
             # The accepted route observes the panel before opening inventory,
             # inside inventory, and finally with the real crank held.
@@ -724,7 +833,7 @@ def verify(log, save, route='telescope-prep'):
             selected.append(observation)
     if len(selected) != len(expected):
         raise ValueError('missing ordered route observations')
-    if route in ('jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES:
+    if route in ('jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES + CREST_PREREQUISITE_ROUTES:
         # Earlier inventory shots can share scene/view/held cells. Check the
         # final two observations, rather than treating those as checkpoints.
         if any((state[0], state[2]) != expected[-1] for state, _, _ in observations[-2:]):
@@ -837,6 +946,8 @@ def verify(log, save, route='telescope-prep'):
         clock_diagnostics = verify_word_prerequisite_observations(route, log, observations, selected, clocks, positive, negative)
     if route in WORD_LOCK_ROUTES:
         clock_diagnostics = verify_word_lock_observations(route, log, observations, selected, clocks, positive, negative)
+    if route in CREST_PREREQUISITE_ROUTES:
+        clock_diagnostics = verify_crest_prerequisite_observations(route, log, observations, selected, clocks, positive, negative)
     for _, scope, flags in selected[-2:]:
         if not (positive | negative) <= scope:
             raise ValueError('RC_FLAGS did not observe every required event')
@@ -855,7 +966,7 @@ def verify(log, save, route='telescope-prep'):
         raise ValueError('checkpoint save is missing or has an unexpected length')
     result = {'route': route, 'scene': expected[-1][0], 'view': expected[-1][1],
             'flags_one': sorted(positive), 'flags_zero': sorted(negative),
-            'save': save.name, 'telescope_complete': route in ('telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES}
+            'save': save.name, 'telescope_complete': route in ('telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES + CREST_PREREQUISITE_ROUTES}
     if route in WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES:
         result['word_lock_won'] = route == 'word-lock'
     if route == 'glyph-request':
@@ -872,7 +983,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('run_log', type=Path)
     parser.add_argument('save_file', type=Path)
-    parser.add_argument('--route', choices=('telescope-prep', 'jane-jigsaw', 'telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES,
+    parser.add_argument('--route', choices=('telescope-prep', 'jane-jigsaw', 'telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES + CREST_PREREQUISITE_ROUTES,
                         default='telescope-prep')
     args = parser.parse_args()
     try:

@@ -399,3 +399,30 @@ export RC_FLAGS='338-341,1160,1162-1174,1192,1259,1349,1357,1361,1388,1404-1405,
 ```
 
 The6M wait is pinned to the observed09:22 save. Other09:xx sources can arrive in hour15 and be refused by the repeat client's hour14 gate; derive another ordinary wait for such sources.
+
+
+## Right fire partial and crest prerequisites, 2026-11-02 Pacific
+
+From public m39, run `story_route.py right-fire-panel --save m40`. This opens the right cover and uses the exercised three clicks; original3155→3126 additionally sets1150. Final1150/1154/1156/1157/1158 are1, remaining fire bits are0. It is a partial result, not1972/fullfire.
+
+`ethel_live.py` takes the same native/game/source path and SHA arguments as the other input clients, no atlas, default save m41 and300second session bound. `ethel-start` exposes the111-event anchored body and rejects `--save`; the client sends the exact118-event load/prefix, curiosity150,421, visibleBye150,459 and originalUI save as four separate relative batches. Expected1406→1407→3428 is checked before collection. Actual automatic save is15:42; manual inspection had advanced a separate diagnostic fork into day4. No guessed absolute joining or clock setter is used. The client also runs a fresh save-only reload.
+
+Then `story_route.py linda-curse --save m42` and `gargoyle-inspect --save m43`. Linda's1190/1191/1192 Bye set is original rand()%3, all returning4408.1492 is new,1925 retained,2154 clears legitimately. Gargoyle inspection earns1786/1783, returns3410 and leaves2014/1974 unearned. These source gates are day3/hour15 (actual source15:58 for gargoyle), not universal NPC schedules. The three static bodies match native runs exactly; each UI output passes an independent fresh reload. No key grant, unlock or ending claim.
+
+Complete `right-fire-panel` scope:
+
+```sh
+export RC_FLAGS='338-341,1148-1160,1162-1174,1192,1259,1349,1357,1361,1388,1404-1405,1408,1418,1435-1436,1465,1467,1476,1492,1494,1496,1498,1514,1525-1526,1541,1562,1569,1573,1575,1597,1677,1682,1692,1701,1774,1782-1783,1786,1788,1791,1804,1808-1809,1818,1820,1823,1836,1844,1865,1892-1893,1906,1922,1925,1947,1958,1960-1961,1963,1966-1967,1969-1972,1974,1977,1979-1981,1984-1985,1993-1994,1996-1997,1999-2002,2005,2015,2018-2019,2036-2037,2039-2042,2050,2058-2060,2063,2069-2070,2077-2078,2092,2154,2156,2232'
+```
+
+Complete `linda-curse` scope:
+
+```sh
+export RC_FLAGS='338-341,1148-1160,1162-1174,1192,1259,1349,1357,1361,1388,1404-1405,1408,1418,1435-1436,1465,1467,1476,1492,1494,1496,1498,1514,1525-1526,1541,1562,1569,1573,1575,1597,1677,1682,1692,1701,1774,1782-1783,1786,1788,1791,1804,1808-1809,1818,1820,1823,1836,1844,1865,1892-1893,1906,1922,1925,1947,1958,1960-1961,1963,1966-1967,1969-1972,1974,1977,1979-1981,1984-1985,1993-1994,1996-1997,1999-2002,2005,2015,2018-2019,2036-2037,2039-2042,2050,2058-2060,2063,2069-2070,2077-2078,2092,2154,2156,2232'
+```
+
+Complete `gargoyle-inspect` scope:
+
+```sh
+export RC_FLAGS='338-341,1148-1160,1162-1174,1192,1259,1349,1357,1361,1388,1404-1405,1408,1418,1435-1436,1465,1467,1476,1492,1494,1496,1498,1514,1525-1526,1541,1562,1569,1573,1575,1597,1677,1682,1692,1701,1774,1782-1783,1786,1788,1791,1804,1808-1809,1818,1820,1823,1836,1844,1865,1892-1893,1906,1922,1925,1947,1958,1960-1961,1963,1966-1967,1969-1972,1974,1977,1979-1981,1984-1985,1993-1994,1996-1997,1999-2002,2005,2014-2015,2018-2019,2036-2037,2039-2042,2050,2058-2060,2063,2069-2070,2077-2078,2092,2154,2156,2232'
+```

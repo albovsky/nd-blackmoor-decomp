@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The story routes of ROUTES.md as INPUT strings for rc_headless.
 
-  python3 story_route.py LEG [--save NAME]      LEG is one of: stairs, lock, slider, moon, telescope-prep, linda, jane-intro, jane-jigsaw, telescope-use, seedlings, crank-repair, betty-key, venus-column, jupiter-column, moon-key, moon-column, nigel-computer, night-wait, goggles, ghost-hunt, afternoon-door, linda-passage, bul-start, slide-ball, saturn-column, dragon-passage, glyph-request, lit-word-clue, loulou-barber, loulou-morning, drake-magic, loulou-answer, light-depletion, paid-light-request, word-lock, slider-verify
+  python3 story_route.py LEG [--save NAME]      LEG is one of: stairs, lock, slider, moon, telescope-prep, linda, jane-intro, jane-jigsaw, telescope-use, seedlings, crank-repair, betty-key, venus-column, jupiter-column, moon-key, moon-column, nigel-computer, night-wait, goggles, ghost-hunt, afternoon-door, linda-passage, bul-start, slide-ball, saturn-column, dragon-passage, glyph-request, lit-word-clue, loulou-barber, loulou-morning, drake-magic, loulou-answer, light-depletion, paid-light-request, word-lock, right-fire-panel, ethel-start, linda-curse, gargoyle-inspect, slider-verify
   python3 story_route.py slider-verify          replays the recorded 105 slider moves on the puzzle rules and prints whether they solve it
 
 Each leg starts from a save made in the game's own Load & Save screen and (with --save NAME) ends by saving the next one, so the legs chain:
@@ -1316,6 +1316,100 @@ def leg_word_lock(save=None):
     return ';'.join(out)
 
 
+def leg_right_fire_panel(save=None):
+    """m39 -> observed right fire subset only, safe3141/held4/m40."""
+    a = 'S4387.CIF'
+    r = R().at(a, 0)
+    _observed_walk(r, 12000, '311,355 338,169 306,165 302,166 309,167 311,168 198,144')
+    r.at(a, 47000).clicks('330,178', 0)
+    r.at(a, 65000).clicks('shot', 0)
+    _observed_walk(r, 110000, '75,100 225,188 75,276', 16000, 9000)
+    out = [r.text()]
+    if save:
+        out += [menu_to_save_screen(a, 158000), save_tail(a, 176000, save)]
+    return ';'.join(out)
+
+
+def leg_ethel_start(save=None):
+    """m40 -> original Ethel interruption and truthful first reply.
+
+    The retained continuation was live. Use ethel_live.py for curiosity,
+    actual Bye and a verified UI save; this prefix has no save guarantee.
+    """
+    if save is not None:
+        raise ValueError('ethel-start is a live prefix; use ethel_live.py for the complete save/reload leg')
+    a = 'S3141.CIF'
+    r = R().at(a, 0)
+    _observed_walk(r, 12000, '311,355 311,355', 8000, 5000)
+    _observed_walk(r, 28000, '311,355 311,355 316,163 319,166 246,165 246,165 '
+                   '228,165 237,166 314,165 305,165 377,165 316,164 302,167 '
+                   '320,164 315,164 399,164 401,165 345,166 345,166 310,164 '
+                   '377,165 358,166 304,167 309,166 307,164 322,167 315,169 '
+                   '391,167 359,163 359,163', 6000, 4000)
+    _observed_walk(r, 211000, '315,162 326,162 315,168 315,168', 6000, 4000)
+    r.at(a, 243000).clicks('150,421', 0)
+    r.at(a, 271000).clicks('shot', 0)
+    return r.text()
+
+
+def ethel_curiosity_payload():
+    return '1:move:150,421;101:click:150,421,600;30001:shot:0,0'
+
+
+def ethel_bye_payload():
+    return '1:move:150,459;101:click:150,459,600;30001:shot:0,0'
+
+
+def ethel_save_payload(name):
+    """Keep the retained relative UI timing; parameterize only the save name."""
+    import re
+    if re.fullmatch('[a-z0-9]{1,10}', name) is None or name == 'continue':
+        raise ValueError('invalid UI save name')
+    payload = menu_to_save_screen('unused', 1000) + ';' + save_tail('unused', 19000, name)
+    return re.sub(r'unused\+(\d+)', r'\1', payload)
+
+
+def ethel_reload_payload():
+    return 'S3428.CIF+12000:move:315,180;S3428.CIF+14000:shot:0,0'
+
+
+def leg_linda_curse(save=None):
+    """m41 -> original Linda curse/gargoyle clue, safe4408/m42."""
+    a = 'S3428.CIF'
+    r = R().at(a, 0)
+    _observed_walk(r, 12000, '163,162 326,162 326,162 326,162 326,162 563,161', 7000, 4500)
+    _observed_walk(r, 54000, '292,189 292,162 72,165 316,180 391,170', 16000, 9000)
+    r.at(a, 134000).clicks('276,166', 0)
+    r.at(a, 174000).clicks('shot', 0)
+    r.at(a, 279000).clicks('shot', 0)
+    r.at(a, 310000).clicks('150,453', 0)
+    r.at(a, 334000).clicks('shot', 0)
+    out = [r.text()]
+    if save:
+        out += [menu_to_save_screen(a, 337000), save_tail(a, 355000, save)]
+    return ';'.join(out)
+
+
+def leg_gargoyle_inspect(save=None):
+    """m42 -> inspect the actual gargoyle without a crest; safe3410/m43."""
+    a = 'S4408.CIF'
+    r = R().at(a, 12000).clicks('311,355', 0)
+    r.at(a, 17000).clicks('shot', 0)
+    r.at(a, 22000).clicks('311,355', 0)
+    r.at(a, 25500).clicks('shot', 0)
+    r.at(a, 29000).turns('left', 6)
+    _observed_walk(r, 44000, '66,189 313,164 253,164 310,353 326,162 464,199', 7000, 4500)
+    r.at(a, 106000).clicks('shot', 0)
+    r.at(a, 109000).clicks('376,202', 0)
+    r.at(a, 131000).clicks('shot', 0)
+    r.at(a, 134000).clicks('376,202', 0)
+    r.at(a, 142000).clicks('shot', 0)
+    out = [r.text()]
+    if save:
+        out += [menu_to_save_screen(a, 150000), save_tail(a, 168000, save)]
+    return ';'.join(out)
+
+
 def verify_slider():
     """The puzzle rules of the body of S3450 (action_family_d3_runtime.c): five rows by six columns; types 0x10..0x13 are one-way edge arrows, 0x14 walls,
     1..10 the cell a piece of that number must rest on. A piece slides until a barrier or another piece stops it."""
@@ -1368,7 +1462,9 @@ if __name__ == '__main__':
             'lit-word-clue': leg_lit_word_clue, 'loulou-barber': leg_loulou_barber,
             'loulou-morning': leg_loulou_morning, 'drake-magic': leg_drake_magic,
             'loulou-answer': leg_loulou_answer, 'light-depletion': leg_light_depletion,
-            'paid-light-request': leg_paid_light_request, 'word-lock': leg_word_lock}
+            'paid-light-request': leg_paid_light_request, 'word-lock': leg_word_lock,
+            'right-fire-panel': leg_right_fire_panel, 'ethel-start': leg_ethel_start,
+            'linda-curse': leg_linda_curse, 'gargoyle-inspect': leg_gargoyle_inspect}
     if leg not in legs:
         sys.exit(__doc__)
     print(legs[leg](save))

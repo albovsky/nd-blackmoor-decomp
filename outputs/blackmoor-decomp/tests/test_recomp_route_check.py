@@ -1574,5 +1574,170 @@ class ReplacementWordLockTests(unittest.TestCase):
         self.assertEqual(len(wheels), 87)
 
 
+class CrestPrerequisiteTests(unittest.TestCase):
+    prior = ReplacementWordLockTests.prior | {2041, 1984, 1967, 1966, 1977, 2018, 1979}
+    partial = {1150, 1154, 1156, 1157, 1158, 1808, 2060}
+    opens = {
+        'right-fire-panel': (4366, 2942, 3053, 2943, 2944, 2945, 3060, 3199, 3140, 3141, 3143, 3155, 3126, 3158),
+        'ethel-interrogation': (3199, 3060, 2903, 3326, 3364, 1404, 1425, 1405, 1426, 1406, 1427, 1407, 1490, 1491, 3428),
+        'linda-curse': (3350, 3351, 4400, 4405, 4410, 1100, 1128, 1129, 1130, 1131, 1132, 1146, 1133, 1191, 4408),
+        'gargoyle-inspect': (4412, 4410, 4406, 4407, 3312, 3323, 3324, 3366, 3410),
+    }
+    setUp = PostKeyRouteTests.setUp
+    observed_log = PostKeyRouteTests.observed_log
+
+    def frames(self, route):
+        states = {
+            'right-fire-panel': ((4387, 0), (2942, 0), (2943, 0), (2944, 0), (2945, 0), (3060, 0),
+                                 (3199, 0), (3141, 0), (3141, 0), (3141, 0), (3141, 0), (3141, 0)),
+            'ethel-interrogation': ((3141, 0), (3060, 0), (3326, 0), (1405, 0), (1406, 0), (1407, 0), (3428, 0), (3428, 0)),
+            'linda-curse': ((3428, 0), (3318, 0), (3350, 0), (3351, 0), (4410, 3), (4412, 0), (4408, 0),
+                            (1146, 0), (1133, 0), (4408, 0), (4408, 0)),
+            'gargoyle-inspect': ((4408, 0), (4412, 0), (4410, 2), (4406, 0), (4407, 0), (3312, 0), (3323, 0),
+                                 (3324, 0), (3366, 0), (3366, 0), (3410, 0), (3410, 0), (3410, 0)),
+        }[route]
+        number = {'right-fire-panel': 40, 'ethel-interrogation': 41, 'linda-curse': 42, 'gargoyle-inspect': 43}[route]
+        save = Path(self.folder.name) / ('m%d.SAV' % number)
+        save.write_bytes(bytes(170770))
+        up = {'right-fire-panel': {1808: 7, 2060: 8, 1154: 8, 1150: 9, 1157: 9, 1156: 10, 1158: 10},
+              'ethel-interrogation': {2154: 4}, 'linda-curse': {1492: 7}, 'gargoyle-inspect': {1786: 8, 1783: 10}}[route]
+        frames = []
+        for i, (scene, view) in enumerate(states):
+            flags = {f: 1 for f in self.prior}
+            if route != 'right-fire-panel':
+                flags.update({f: 1 for f in self.partial})
+            if route == 'linda-curse':
+                flags[2154] = int(i == 0)
+            if route == 'gargoyle-inspect':
+                flags[1492] = 1
+            flags.update({f: int(i >= phase) for f, phase in up.items()})
+            if route == 'right-fire-panel':
+                flags.update({1155: int(i == 7), 1159: int(7 <= i < 9)})
+            held = 4 if ((route == 'right-fire-panel' and i > 0) or (route == 'ethel-interrogation' and i < 3)) else -1
+            art = 4408 if route == 'linda-curse' and scene in (1146, 1133) else scene
+            minutes = {'right-fire-panel': 15*60+19, 'ethel-interrogation': 15*60+26,
+                       'linda-curse': 15*60+42, 'gargoyle-inspect': 15*60+58}[route] + i
+            frames.append({'scene': scene, 'art': art, 'view': view, 'held': held, 'flags': flags,
+                           'scope': '338-341,1000-2250', 'clock': (3, minutes//60, minutes%60)})
+        return save, frames
+
+    def test_accepts_four_observed_chains_and_all_resource_authored_linda_byes(self):
+        for route in self.opens:
+            save, frames = self.frames(route)
+            choices = (1190, 1191, 1192) if route == 'linda-curse' else (None,)
+            for choice in choices:
+                opened = tuple(choice if n == 1191 else n for n in self.opens[route]) if choice else self.opens[route]
+                with self.subTest(route=route, bye=choice):
+                    result = checker.verify(self.observed_log(route, save, frames, opened), save, route)
+                    self.assertIn(2018, result['flags_one'])
+                    self.assertIn(1972, result['flags_zero'])
+                    self.assertIn(2059, result['flags_zero'])
+                    self.assertNotIn(1491, result['flags_one'])
+        # The3053 transition is required as a resource, not as a sampled frame.
+        save, frames = self.frames('right-fire-panel')
+        frames.insert(2, dict(frames[1], scene=3053, art=3053))
+        checker.verify(self.observed_log('right-fire-panel', save, frames), save, 'right-fire-panel')
+
+    def test_refuses_wrong_original_phase_false_unlock_bad_extra_scope_art_and_bye(self):
+        for route, i, field, value in (('right-fire-panel', 9, 1150, 0), ('right-fire-panel', 8, 1155, 1),
+                ('right-fire-panel', 10, 1972, 1), ('ethel-interrogation', 3, 2154, 1),
+                ('linda-curse', 1, 2154, 1), ('linda-curse', 0, 1925, 0), ('linda-curse', 7, 1492, 0),
+                ('gargoyle-inspect', 10, 1783, 0), ('gargoyle-inspect', 10, 1974, 1), ('gargoyle-inspect', 0, 2014, 1)):
+            with self.subTest(route=route, index=i, flag=field):
+                save, frames = self.frames(route)
+                frames[i]['flags'][field] = value
+                with self.assertRaises(ValueError):
+                    checker.verify(self.observed_log(route, save, frames), save, route)
+        for failure in ('extra_failure', 'scope', 'art', 'bad_bye', 'missing_door_resource', 'finish'):
+            route = 'linda-curse'
+            save, frames = self.frames(route)
+            opened = self.opens[route]
+            if failure in ('extra_failure', 'scope'):
+                extra = dict(frames[1], scene=9998, art=9998, flags=dict(frames[1]['flags']))
+                if failure == 'extra_failure':
+                    extra['flags'][2059] = 1
+                else:
+                    extra['scope'] = '338-341,1000-2058,2060-2250'
+                frames.insert(2, extra)
+            elif failure == 'art':
+                frames[7]['art'] = 1146
+            elif failure == 'bad_bye':
+                opened = tuple(1193 if n == 1191 else n for n in opened)
+            elif failure == 'missing_door_resource':
+                opened = tuple(n for n in opened if n != 1100)
+            log = self.observed_log(route, save, frames, opened)
+            if failure == 'finish':
+                log = log.replace('stop requested', 'message loop idle')
+            with self.subTest(failure=failure), self.assertRaises(ValueError):
+                checker.verify(log, save, route)
+
+    def test_exact_static_inputs_and_retained_four_live_batches_without_manual_gap_joining(self):
+        import hashlib
+        spec = importlib.util.spec_from_file_location('crest_story', MODULE.with_name('story_route.py'))
+        story = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(story)
+        for name, save, count, digest in (('right_fire_panel', 'm40', 55, 'd040ede193f3c9ce54910b57f8f7d51b433f150e4a77bef501ae21a03f24ea00'),
+                ('linda_curse', 'm42', 62, '82ee1e88a22cea6fabc3762ce285d9cfbf4025bba77b69b42749fc71189255e8'), ('gargoyle_inspect', 'm43', 65, '635123b5f1b24b07689479c0495daa161a56cbfba9ff2d6566730420be264ed5')):
+            payload = getattr(story, 'leg_' + name)(save)
+            self.assertEqual(hashlib.sha256(payload.encode()).hexdigest(), digest)
+            self.assertEqual(len(payload.split(';')), count)
+            self.assertTrue(payload.startswith(getattr(story, 'leg_' + name)() + ';'))
+        payloads = (story.load_save_prefix() + ';' + story.leg_ethel_start(), story.ethel_curiosity_payload(),
+                    story.ethel_bye_payload(), story.ethel_save_payload('m41'))
+        self.assertEqual([len(payload.split(';')) for payload in payloads], [118, 3, 3, 22])
+        for payload, digest in zip(payloads, ('34e4afcf69b99850aa21ad5c9461b1b4c8d4f46f839123f2552cb0edb7537a2f', '30110135be52304ce8ec01a42ec97971acadf4426811a81f3aa8073089a61ec9', 'bd5bdd22602916de35d53dcfc3b446fb89a9692552d97489784163a45ad0c262', '84d9ef531b4c568cbdd45fd84b7abb1b63f53fd1daf94bdc2160728f84dc10fa')):
+            self.assertEqual(hashlib.sha256(payload.encode()).hexdigest(), digest)
+        self.assertEqual(story.ethel_reload_payload(), 'S3428.CIF+12000:move:315,180;S3428.CIF+14000:shot:0,0')
+        with self.assertRaisesRegex(ValueError, 'live prefix'):
+            story.leg_ethel_start('m41')
+
+    def test_ethel_readonly_preflight_and_reload_refuse_incomplete_wrong_item_or_flag(self):
+        import struct
+        from types import SimpleNamespace
+        import sys
+        tools = str(MODULE.parent)
+        sys.path.insert(0, tools)
+        try:
+            import ethel_live as ethel
+        finally:
+            sys.path.remove(tools)
+        _, one, zero = checker.crest_prerequisite_configuration('right-fire-panel')
+        data = bytearray(170770)
+        for value, offset in ((0, 0x9034), (4, 0x10e), (3141, 0x21642), (3141, 0x21646), (0, 0x215d2)):
+            struct.pack_into('<h', data, offset, value)
+        for flag in one:
+            struct.pack_into('<I', data, 0x1ee6 + 4*flag, 1)
+        for fmt, offset, value in (('<I', 0x2430, 926), ('<H', 0x2434, 26), ('<H', 0x2436, 15), ('<H', 0x2438, 3)):
+            struct.pack_into(fmt, data, offset, value)
+        source = Path(self.folder.name) / 'synthetic.SAV'
+        source.write_bytes(data)
+        self.assertEqual(ethel.source_state(source)['held'], 4)
+        for fmt, offset, value in (('<h', 0x9034, 2), ('<h', 0x10e, -1), ('<I', 0x1ee6 + 4*1150, 0),
+                ('<I', 0x1ee6 + 4*2154, 1), ('<I', 0x1ee6 + 4*1972, 1)):
+            changed = bytearray(data)
+            struct.pack_into(fmt, changed, offset, value)
+            source.write_bytes(changed)
+            with self.assertRaises(ValueError):
+                ethel.source_state(source)
+        _, one, zero = checker.crest_prerequisite_configuration('ethel-interrogation')
+        def observations():
+            flags = {f: 1 for f in one}
+            flags.update({338: 944 << 16, 339: 44 << 16, 340: (3 << 16) | 15, 341: 0})
+            return [{'state': [3428, 3428, 0, -1], 'scope': ethel.rc_flags(), 'flags': dict(flags)} for _ in range(2)]
+        ethel.verify_reload(SimpleNamespace(observations=observations()))
+        for failure in ('incomplete', 'item', 'flag', 'scope'):
+            frames = observations()
+            if failure == 'incomplete':
+                frames.pop()
+            elif failure == 'item':
+                frames[-1]['state'][3] = 4
+            elif failure == 'flag':
+                frames[0]['flags'][2154] = 0
+            else:
+                frames[0]['scope'] = '338-341,1000-2153,2155-2250'
+            with self.subTest(failure=failure), self.assertRaises(ValueError):
+                ethel.verify_reload(SimpleNamespace(observations=frames))
+
+
 if __name__ == '__main__':
     unittest.main()
