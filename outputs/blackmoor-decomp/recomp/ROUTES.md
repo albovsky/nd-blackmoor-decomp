@@ -267,3 +267,5 @@ Final Sonnet follow-up accepts1bb45b8d. The fresh chain includes the optional Ja
 ## App audio diagnostics, 2026-11-01, 23:29 Pacific
 
 The recompiled frontend now builds with `--capture-audio FILE.wav`, tapping PCM16 before playback suppression so a future `--mute` background run can be inspected offline. The queue's writer drains/finalizes WAV at shutdown; overflow is an explicit capture failure. Six device-free synthetic tests pass, including the reproduced/fixed last-frame drain race. The signed app builds, but actual app capture has not run because its foreground activation must first be removed for background checks. See RECOMP-05; gameplay checkpoint remains m10, with full campaign/app verification incomplete.
+
+Audio review follow-up: normal Cmd-Q is now routed back through main's producer/capture cleanup, and a5-second watchdog reports stuck shutdown as failure5. Capture-start failure is3, capture-finalization failure4. Actual app/Cmd-Q checks still await background mode; the unverified filesystem/streaming branches are listed in RECOMP-05.

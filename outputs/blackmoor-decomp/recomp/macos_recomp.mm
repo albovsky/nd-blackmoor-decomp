@@ -54,6 +54,8 @@ struct Recomp {
     AVAudioEngine *engine = nil;
     std::atomic<bool> audio_stopping{false};
     std::atomic<unsigned> audio_callbacks{0};
+    std::atomic<bool> capture_failed{false};
+    bool capture_enabled = false, capture_reported = false;
     std::thread silent_thread;
     AudioCapture capture;
 };
@@ -176,7 +178,16 @@ void present_primary()
     blackmoor_macos_present(g.platform, g.rgba.data(), g.rgba.size(), (size_t)w * 4);
 }
 
-void on_tick(void *, uint32_t) { present_primary(); }
+void on_tick(void *, uint32_t)
+{
+    if (g.capture_failed.load(std::memory_order_acquire) && !g.capture_reported) {
+        g.capture_reported = true;
+        const char *message = "audio capture stopped accepting samples; details at shutdown\n";
+        fputs(message, stderr);
+        if (g.log) fputs(message, g.log);
+    }
+    present_primary();
+}
 
 int32_t clamp_coordinate(int32_t v, int32_t limit) { return v < 0 ? 0 : (v >= limit ? limit - 1 : v); }
 
@@ -212,7 +223,8 @@ void render_audio(int16_t *stereo, uint32_t frames, const std::atomic<bool> *sou
     if (g.audio_stopping.load() || (source_enabled && !source_enabled->load())) memset(stereo, 0, (size_t)frames * 4);
     else {
         rc_audio_render(stereo, frames, kAudioRate);
-        g.capture.append(stereo, frames);
+        if (g.capture_enabled && !g.capture.append(stereo, frames))
+            g.capture_failed.store(true, std::memory_order_release);
     }
     g.audio_callbacks.fetch_sub(1);
 }
@@ -228,11 +240,10 @@ void start_silent_clock()
 {
     g.silent_thread = std::thread([] {
         std::vector<int16_t> scratch(2 * (size_t)(kAudioRate / 100));
-        auto next = std::chrono::steady_clock::now();
         while (!g.audio_stopping.load(std::memory_order_acquire)) {
             render_audio(scratch.data(), (uint32_t)(kAudioRate / 100));
-            next += std::chrono::milliseconds(10);
-            std::this_thread::sleep_until(next);
+            // Preserve the prior cadence instead of bursting after a stall.
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
     });
 }
@@ -302,6 +313,29 @@ void make_directories(const std::string &path)
 
 }  // namespace
 
+@interface BlackmoorRecompApplicationDelegate : NSObject <NSApplicationDelegate>
+@end
+
+@implementation BlackmoorRecompApplicationDelegate
+- (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender
+{
+    (void)sender;
+    if (!g.platform) return NSTerminateNow;
+    rc_request_stop();
+    // Return from AppKit's termination event before stopping its main loop.
+    // Main then joins producers and finalizes capture instead of exit() running
+    // global destructors while a mixer thread is still joinable.
+    BlackmoorMacPlatform *platform = g.platform;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if (g.platform == platform) blackmoor_macos_stop(platform);
+    });
+    return NSTerminateCancel;
+}
+@end
+
+// NSApplication's delegate is not retained. Keep it alive through the run loop.
+static BlackmoorRecompApplicationDelegate *application_delegate;
+
 int main(int argc, char **argv)
 {
     @autoreleasepool {
@@ -345,6 +379,9 @@ int main(int argc, char **argv)
 
         BlackmoorPlatformCallbacks callbacks{};
         callbacks.tick = on_tick; callbacks.pointer = on_pointer; callbacks.key = on_key; callbacks.closed = on_closed;
+        [NSApplication sharedApplication];
+        application_delegate = [[BlackmoorRecompApplicationDelegate alloc] init];
+        NSApp.delegate = application_delegate;
         g.platform = blackmoor_macos_open("Nancy Drew: Curse of Blackmoor Manor", kLogicalWidth, kLogicalHeight, &callbacks, nullptr, error, sizeof error);
         if (!g.platform) { fprintf(stderr, "cannot open the window: %s\n", error); return 3; }
 
@@ -357,6 +394,7 @@ int main(int argc, char **argv)
                 if (g.log) fclose(g.log);
                 return 3;
             }
+            g.capture_enabled = true;
         }
         try { start_audio(); }
         catch (const std::exception &e) {
@@ -386,19 +424,27 @@ int main(int argc, char **argv)
 
         blackmoor_macos_run(g.platform);
 
+        // Keep shutdown bounded even if a producer is blocked on a host lock
+        // or filesystem I/O. A timeout is an explicit failure, never success.
+        auto shutdown_finished = std::make_shared<std::atomic<bool>>(false);
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 5 * NSEC_PER_SEC),
+                       dispatch_get_global_queue(QOS_CLASS_UTILITY, 0), ^{
+            if (!shutdown_finished->load(std::memory_order_acquire)) _exit(5);
+        });
         rc_request_stop();
         for (int waited = 0; g.game_thread_started && !g.game_done.load(std::memory_order_acquire) && waited < 300; waited++) sleep_ms(nullptr, 10);
         bool capture_ok = stop_audio();
         if (g.game_thread_started && !g.game_done.load(std::memory_order_acquire)) {
             // The game is inside a long loop that does not poll for the stop request.
-            // Its capture has been drained and finalized before this forced exit.
+            // Its capture has been finalized, but this is not a clean game exit.
             if (g.log) fflush(g.log);
-            _exit(capture_ok ? 0 : 4);
+            _exit(5);
         }
         if (g.game_thread_started) pthread_join(g.game_thread, nullptr);
         blackmoor_macos_close(g.platform);
         g.platform = nullptr;
         if (g.log) fclose(g.log);
+        shutdown_finished->store(true, std::memory_order_release);
         if (!capture_ok) return 4;
     }
     return 0;
