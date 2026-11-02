@@ -1,5 +1,9 @@
 # Handoff: recompiled GAME.EXE, state and next steps
 
+## Latest navigation, 2026-11-02 Pacific
+
+RECOMP-16 extends the public route chain through afternoon/Linda m23 and provides `bul-start` plus the bounded `bul_live.py` ordinary-input client. Exact client wins actual key7 and passes original UI save/fresh reload in observed Junior and Senior runs. The earlier fixed policy loss and initial PPM-parser refusal remain historical failures. No host/game implementation change. Sonnet accepts58a97c22; both freshness checks pass. See RECOMP-16/BUL-LIVE.md for commands, pins, bounds and accepted nonblocking test gaps; other deals/full campaigns are incomplete. Private campaigns continue through the word clue and paid replacement-light glyph game.
+
 ## Latest desktop verification, 2026-11-02 Pacific
 
 RECOMP-15 extends the hidden production AppKit-view fixture with8 independent cache pixel checks for each proportional/stretched mode. Both pass at measured2x backing with existing10 pointer callbacks and quiet guards intact. Source/cache ICC profiles are preserved; test-oracle diagnosis and exact pins are in the packet. No production renderer change. Sonnet accepts frozend01450ef; required metadata preserves1781peer claims. Physical display/input, other profiles and full campaigns remain incomplete. Private Junior/Senior gameplay continues through Loulou's word clue and authored replacement-light prerequisites.

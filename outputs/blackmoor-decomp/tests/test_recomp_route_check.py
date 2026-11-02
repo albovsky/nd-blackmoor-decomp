@@ -753,5 +753,199 @@ class GhostRouteInputTests(unittest.TestCase):
                 self.assertLess(len(actual.split(';')) + 7, 512)
 
 
+class PassageRouteResultTests(unittest.TestCase):
+    prior = GhostRouteResultTests.prior | GhostRouteResultTests.nigel | set(range(1162, 1175)) | {1788, 1893, 1947, 1958, 2063}
+    routes = ('afternoon-door', 'linda-passage', 'bul-key')
+
+    def setUp(self):
+        self.folder = tempfile.TemporaryDirectory()
+        self.addCleanup(self.folder.cleanup)
+
+    def frames(self, route):
+        save = Path(self.folder.name) / ('m%d.SAV' % (22 + self.routes.index(route)))
+        save.write_bytes(bytes(170770))
+        prior = set(self.prior)
+        if route == 'afternoon-door':
+            states = ((4111, 0), (2605, 19), (3329, 0), (3360, 0),
+                      (3360, 0), (3360, 0), (3360, 0))
+            phases = {2058: 4}
+        elif route == 'linda-passage':
+            states = ((3360, 0), (4408, 0), (1114, 0), (4408, 0),
+                      (4410, 2), (4410, 10), (2605, 5), (4408, 0),
+                      (1139, 0), (1120, 0), (1142, 0), (1124, 0),
+                      (1127, 0), (4408, 0), (4408, 0))
+            prior.add(2058)
+            phases = {1496: 2, 2156: 6, 1494: 8, 1498: 12}
+        else:
+            states = ((4408, 0), (4410, 2), (4410, 10), (3510, 0),
+                      (3510, 4), (1200, 0), (1252, 0), (1261, 0),
+                      (1258, 0), (1259, 0), (1264, 0), (1218, 0),
+                      (3510, 4), (3510, 4), (3510, 4), (3510, 4))
+            prior |= {2058, 1496, 2156, 1494, 1498}
+            phases = {1404: 6, 1435: 7, 1405: 9}
+        frames = []
+        for index, (scene, view) in enumerate(states):
+            flags = {f: 1 for f in prior}
+            flags.update({f: 1 for f, first in phases.items() if index >= first})
+            if route == 'bul-key' and index == 8:
+                flags[1969] = 1
+            art = 4408 if route == 'linda-passage' and scene in (1114, 1139, 1120, 1142, 1124, 1127) else scene
+            clock = (2, 14, 30) if route == 'linda-passage' else (2, 16, 0)
+            if route == 'afternoon-door':
+                clock = (2, 1, 9) if index < len(states) - 2 else (2, 14, 10 + index - (len(states) - 2))
+            frames.append({'scene': scene, 'art': art, 'view': view,
+                           'held': 7 if route == 'bul-key' and index == 13 else -1,
+                           'flags': flags, 'scope': '338-341,1000-2230', 'clock': clock})
+        return save, frames
+
+    def observed_log(self, save, frames, opened=None):
+        log = ''
+        if opened is None:
+            opened = (3610, 3635, 1258, 1259, 1264, 1218)
+        for index, frame in enumerate(frames):
+            if save.name == 'm24.SAV':
+                for slot, scene in zip((8, 8, 8, 9, 10, 11), opened):
+                    if slot == index:
+                        log += '  FILE open C:\\GAME\\Ciftree\\S%d.CIF  [virtual %d ms]\n' % (scene, 1000 + index)
+            day, hour, minute = frame['clock']
+            total = hour * 60 + minute
+            raw = dict(frame['flags'])
+            raw.update({338: (total & 65535) << 16, 339: (total >> 16) | (minute << 16),
+                        340: (day << 16) | hour, 341: 123456 + index * 20})
+            log += ('  STATE requested_scene=%d art_scene=%d view=%d held_item=%d\n'
+                    '  RC_FLAGS %s\n  FLAGS %s\n' %
+                    (frame['scene'], frame['art'], frame['view'], frame['held'], frame['scope'],
+                     ' '.join('%d=%d' % pair for pair in sorted(raw.items()) if pair[1])))
+        return log + ('  FILE open C:\\GAME\\Documents5\\The Curse of Blackmoor Manor\\%s  [virtual 16000000 ms]\n'
+                      'RESULT {"stopped":"stop requested <52a4c0"}\n' % save.name)
+
+    def test_accepts_observed_passage_and_actual_bul_results(self):
+        for route, final in (('afternoon-door', (3360, 0)), ('linda-passage', (4408, 0)),
+                             ('bul-key', (3510, 4))):
+            with self.subTest(route=route):
+                save, frames = self.frames(route)
+                result = checker.verify(self.observed_log(save, frames), save, route)
+                self.assertEqual((result['scene'], result['view']), final)
+                self.assertTrue(result['telescope_complete'])
+                self.assertEqual(result['clock_diagnostics']['day'], 2)
+                self.assertFalse(set(range(338, 342)) & (set(result['flags_one']) | set(result['flags_zero'])))
+
+    def test_requires_original_door_linda_wager_and_reward_transitions(self):
+        for route, index, flag, value in (
+                ('afternoon-door', 0, 2058, 1), ('afternoon-door', 4, 2058, 0),
+                ('linda-passage', 0, 1494, 1), ('linda-passage', 12, 1498, 0),
+                ('bul-key', 0, 1405, 1), ('bul-key', 7, 1435, 0),
+                ('bul-key', 9, 1405, 0)):
+            with self.subTest(route=route, flag=flag, value=value):
+                save, frames = self.frames(route)
+                frames[index]['flags'][flag] = value
+                with self.assertRaisesRegex(ValueError, 'pre/post'):
+                    checker.verify(self.observed_log(save, frames), save, route)
+
+    def test_requires_real_key7_and_original_pickup_scene(self):
+        for failure in ('held', 'pickup'):
+            with self.subTest(failure=failure):
+                save, frames = self.frames('bul-key')
+                if failure == 'held':
+                    frames[13]['held'] = 17
+                else:
+                    frames[10]['scene'] = frames[10]['art'] = 1259
+                with self.assertRaisesRegex(ValueError, 'ordered'):
+                    checker.verify(self.observed_log(save, frames), save, 'bul-key')
+
+    def test_transient_1969_can_clear_while_durable_reward_remains(self):
+        save, frames = self.frames('bul-key')
+        frames[8]['flags'].pop(1969)
+        result = checker.verify(self.observed_log(save, frames), save, 'bul-key')
+        self.assertIn(1405, result['flags_one'])
+        self.assertNotIn(1969, result['flags_one'])
+        self.assertIn(1969, result['flags_zero'])
+        frames[-1]['flags'][1969] = 1
+        with self.assertRaisesRegex(ValueError, 'transient Bul win'):
+            checker.verify(self.observed_log(save, frames), save, 'bul-key')
+
+    def test_requires_ordered_authored_bul_win_and_reward_scene_opens(self):
+        save, frames = self.frames('bul-key')
+        for opened in ((3610, 1258, 1259, 1264, 1218), (3635, 3610, 1258, 1259, 1264, 1218)):
+            with self.subTest(opened=opened):
+                with self.assertRaisesRegex(ValueError, 'authored Bul win'):
+                    checker.verify(self.observed_log(save, frames, opened), save, 'bul-key')
+
+    def test_requires_unmet_scope_retained_ghost_reward_and_final_safe_state(self):
+        for route in self.routes:
+            for failure in ('scope', 'retained', 'safe'):
+                with self.subTest(route=route, failure=failure):
+                    save, frames = self.frames(route)
+                    if failure == 'scope':
+                        frames[-1]['scope'] = '338-341,1000-1970,1972-2230'
+                        reason = 'every required event'
+                    elif failure == 'retained':
+                        frames[0]['flags'][1958] = 0
+                        reason = 'prerequisite flag'
+                    else:
+                        frames.insert(-2, dict(frames[-2]))
+                        frames[-1]['held'] = 7
+                        reason = 'safe state'
+                    with self.assertRaisesRegex(ValueError, reason):
+                        checker.verify(self.observed_log(save, frames), save, route)
+
+    def test_linda_caption_requires_its_recorded_retained_room_art(self):
+        save, frames = self.frames('linda-passage')
+        frames[2]['art'] = 1114
+        with self.assertRaisesRegex(ValueError, 'art scene'):
+            checker.verify(self.observed_log(save, frames), save, 'linda-passage')
+
+    def test_requires_actual_afternoon_clock_diagnostics_and_wait(self):
+        for route in self.routes:
+            for failure in ('scope', 'gate'):
+                with self.subTest(route=route, failure=failure):
+                    save, frames = self.frames(route)
+                    if failure == 'scope':
+                        frames[-1]['scope'] = '1000-2230'
+                        reason = 'clock diagnostics'
+                    else:
+                        frames[-1]['clock'] = (2, 21, 0)
+                        reason = 'afternoon gate'
+                    with self.assertRaisesRegex(ValueError, reason):
+                        checker.verify(self.observed_log(save, frames), save, route)
+        save, frames = self.frames('afternoon-door')
+        for frame in frames:
+            frame['clock'] = (2, 14, 0)
+        with self.assertRaisesRegex(ValueError, 'observed night window'):
+            checker.verify(self.observed_log(save, frames), save, 'afternoon-door')
+
+
+class PassageRouteInputTests(unittest.TestCase):
+    def test_public_legs_preserve_exact_junior_input_and_parameterize_save(self):
+        import hashlib
+        spec = importlib.util.spec_from_file_location('passage_story', MODULE.with_name('story_route.py'))
+        story = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(story)
+        for leg, name, digest, anchor, menu_at, save_at in (
+                (story.leg_afternoon_door, 'm22', '8dc20964d71c5a598ce31f2f983ac1019b36ca63806f9366174060575c45e37f',
+                 'S4111.CIF', 15736000, 15754000),
+                (story.leg_linda_passage, 'm23', '58017eb5804483c30c7dbe3ad7e2c9bf05e1fac6c7f93315d57f8c5bb97cf730',
+                 'S3360.CIF', 755000, 773000)):
+            with self.subTest(save=name):
+                actual = leg(save=name)
+                self.assertEqual(hashlib.sha256((actual + '\n').encode()).hexdigest(), digest)
+                expected = ';'.join([leg(), story.menu_to_save_screen(anchor, menu_at),
+                                      story.save_tail(anchor, save_at, 'passage')])
+                self.assertEqual(leg(save='passage'), expected)
+                self.assertLess(len(actual.split(';')) + 7, 512)
+
+    def test_bul_start_is_only_the_exercised_wager_prefix_and_refuses_save(self):
+        spec = importlib.util.spec_from_file_location('bul_start_story', MODULE.with_name('story_route.py'))
+        story = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(story)
+        actual = story.leg_bul_start()
+        self.assertEqual(len(actual.split(';')), 71)
+        self.assertTrue(actual.endswith('S4408.CIF+326000:shot:0,0'))
+        self.assertNotIn('319,123', actual)
+        self.assertNotIn('S1259.CIF', actual)
+        with self.assertRaisesRegex(ValueError, 'ends inside Bul'):
+            story.leg_bul_start(save='m24')
+
+
 if __name__ == '__main__':
     unittest.main()
