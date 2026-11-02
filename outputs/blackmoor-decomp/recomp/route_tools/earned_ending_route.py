@@ -13,10 +13,10 @@ def leg_earned_ending(save=None):
     """Return the exact observed38-step ending body, without a Load prefix.
 
     No save tail: preserve the original pre-ending UI checkpoint separately.
-    Original award alternatives6520..6531 all use the same continuation hotspot
-    and target6560. The second award click is anchored to6517, so it does not
-    assume the observed Junior award6527. This preserves the same ordinary input across the observed Junior/Senior
-    awards. It does not force an award or a transition. The original game owns every transition and timer.
+    Source indicates award alternatives6520..6531 share a continuation hotspot
+    and target6560; gameplay exercised6527 and6529. The second award click
+    anchors6517 rather than a particular award. The original game owns every
+    transition and timer.
     """
     if save is not None:
         raise ValueError("earned-ending has no save tail; use the genuine pre-ending save")

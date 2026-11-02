@@ -156,7 +156,9 @@
         "m77.SAV": "3ee8126eede376f246f24075d5351cd5e973e148d175befecb53019d89a79aaa",
         "HICONTINUECHEAT.SAV": "5735e0e9e505e039d1f030abb717dc5f0b0879da9d7cb01af3b8acfc9921fbaf"
       },
-      "inputs_unchanged": true
+      "inputs_unchanged": true,
+      "native_seconds": 58.04,
+      "virtual_ms": 338029
     },
     {
       "profile": "senior",
@@ -287,10 +289,19 @@
         "s85.SAV": "c5ea21060b73805960c54a78715b3572c2f0e121cdeff18469841b334d685980",
         "HICONTINUECHEAT.SAV": "fb50e20474bf235468b9228f89780cc5063bcc55b7c00e8a15c4d167382aae1a"
       },
-      "inputs_unchanged": true
+      "inputs_unchanged": true,
+      "native_seconds": 58.14,
+      "virtual_ms": 338031
     }
   ],
   "preserved_postcheck_refusal": "Original frozen runner expected12 observations instead of the11 actual shot requests; native runs both exited0 after all45steps. Original runner/receipts remain unchanged. This additive audit derives the exact shot count from the frozen input and uses the actual bytes-returning ppm API; no gameplay was repeated.",
   "final_Mac_app_acceptance": false,
-  "whole_goal_complete": false
+  "whole_goal_complete": false,
+  "source_acceptance": {
+    "path": "work/recomp-playability-20261101/root-current-earned-ending-v1/verified-current-earned-ending.json",
+    "sha256": "bb1e07472e495f4c1cdd4f991acb3c6a0e51c7e77a720b5ab8c09961489c4014"
+  },
+  "frozen_runtime_route_commit": "4634568659a4caffdd48c89b7933d53492d8ac8a",
+  "post_review_delta": "Route docstring now distinguishes source-indicated awards from the two exercised awards; test adds a recorded-transcript SHA assertion. Emitted game input is unchanged; frozen runtime source/test bytes remain archived.",
+  "visual_frame_identity_note": "Each native process independently produced the same deterministic two-frame credit pair; four captures were inspected, representing two distinct scroll positions."
 }

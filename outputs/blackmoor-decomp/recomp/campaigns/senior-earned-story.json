@@ -14988,5 +14988,10 @@
     "path": "work/recomp-playability-20261101/earned-ending-public-candidate/senior/complete-senior-lineage.json",
     "sha256": "a20cb095366787385ef040606178b2dae1190f0caf003e2b5439167b2a698620"
   },
-  "summary_note": "Read-only projection of the pinned full Senior audit; no new historical runtime fields or acceptance are invented. Current ending-only proof is separate."
+  "summary_note": "Read-only projection of the pinned full Senior audit; no new historical runtime fields or acceptance are invented. Current ending-only proof is separate.",
+  "superseded_by": {
+    "ending_only_current_build": "current-earned-endings.json",
+    "latest_optional_and_project_state": "../HANDOFF.md",
+    "historical_scope_retained": true
+  }
 }

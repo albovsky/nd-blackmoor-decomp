@@ -1,5 +1,6 @@
 """Finite input checks; no native process, original data or GUI is opened."""
 import importlib.util
+import hashlib
 from pathlib import Path
 import sys
 import unittest
@@ -37,6 +38,8 @@ class EarnedEndingInputTests(unittest.TestCase):
 
     def test_load_prefix_is_optional_and_uses_the_selected_save_row(self):
         body = ending.leg_earned_ending()
+        self.assertEqual(hashlib.sha256((ending.earned_ending_input() + '\n').encode()).hexdigest(),
+                         'e5b53faca002963e8b541563077b0a2194625d2206ab9c6437158ed65cb075f0')
         self.assertEqual(ending.earned_ending_input(False), body)
         loaded = ending.earned_ending_input(slot_y=148)
         self.assertEqual(len(loaded.split(';')), 45)
