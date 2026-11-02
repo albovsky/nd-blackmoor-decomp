@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The story routes of ROUTES.md as INPUT strings for rc_headless.
 
-  python3 story_route.py LEG [--save NAME]      LEG is one of: stairs, lock, slider, moon, telescope-prep, linda, jane-intro, jane-jigsaw, telescope-use, seedlings, crank-repair, betty-key, venus-column, slider-verify
+  python3 story_route.py LEG [--save NAME]      LEG is one of: stairs, lock, slider, moon, telescope-prep, linda, jane-intro, jane-jigsaw, telescope-use, seedlings, crank-repair, betty-key, venus-column, jupiter-column, moon-key, moon-column, slider-verify
   python3 story_route.py slider-verify          replays the recorded 105 slider moves on the puzzle rules and prints whether they solve it
 
 Each leg starts from a save made in the game's own Load & Save screen and (with --save NAME) ends by saving the next one, so the legs chain:
@@ -19,6 +19,9 @@ Each leg starts from a save made in the game's own Load & Save screen and (with 
   m11 --crank-repair--> m12 (Drake's crank reward, Betty repaired, keypad visited, safe S2701)
   m12 --betty-key--> m13 (observed prize-game win, Venus key earned, safe S2700)
   m13 --venus-column--> m14 (key purpose found, safe S2633; other columns remain)
+  m14 --jupiter-column--> m15 (real Jupiter key used and returned, safe S2631)
+  m15 --moon-key--> m16 (authored hallway interruption, zodiac win, Moon key and lens retained, safe S2010 view 3)
+  m16 --moon-column--> m17 (real Moon key used and returned, safe S2626; columns and armor remain incomplete)
 
 Steps are `anchor+ms:kind:args` (rc_headless.c). `click x,y,hold` is a move 1 s before the click; `mv:x,y` a bare move; `key:VK` a key press.
 A bare click on a hotspot needs a move onto it first or the game ignores it (the cursor must have been seen there), so every click has its move.
@@ -495,6 +498,77 @@ def leg_venus_column(save=None):
     return ';'.join(out)
 
 
+def leg_jupiter_column(save=None):
+    """m14 -> use the earned Jupiter key 6 and return safely to S2631/m15.
+
+    Keep the accepted inventory slot and both interior observations. This does
+    not turn the armor or complete the remaining columns.
+    """
+    r = R().at('S2633.CIF', 12000).clicks('shot', 0)
+    r.at('S2633.CIF', 20000).clicks('310,354 310,354 298,162 shot', 8000)
+    r.turns('right', 3).clicks('shot 310,161 shot 212,448 shot 274,100 shot 273,111 shot', 8000)
+    r.at('S2633.CIF', 143500).clicks('shot 310,354 shot', 8000)
+    out = [r.text()]
+    if save:
+        out += [menu_to_save_screen('S2633.CIF', 175000),
+                save_tail('S2633.CIF', 193000, save)]
+    return ';'.join(out)
+
+
+def leg_moon_key(save=None):
+    """m15 -> authored lens/zodiac gate, real Moon key 11 and safe m16.
+
+    The accepted route waits through the hallway interruption, installs the
+    actual lens, solves the visible ordering puzzle, takes the key and returns
+    the lens through the normal exit. The Moon column is a separate leg.
+    """
+    r = R().at('S2631.CIF', 12000).clicks('shot', 0)
+    r.at('S2631.CIF', 20000).clicks('310,354 shot', 8000)
+    r.turns('right', 5).clicks('shot', 8000)
+    r.clicks('310,160 328,162 328,162 328,162 494,162 '
+             '310,354 325,161 325,161 325,161 219,163', 8000)
+    # Keep the exercised wait and the normal S3345 left exit. Earlier clicks
+    # after this authored interruption ran before its caption/voice finished.
+    r.at('S2631.CIF', 189500).clicks('shot', 7000)
+    r.clicks('45,188 294,162 304,162 532,161 292,189 292,162 353,173 shot', 8000)
+    r.turns('left', 2).clicks('shot', 8000)
+    r.clicks('254,189 505,204 304,291 shot 212,448 274,100 shot '
+             '169,262 shot 169,262 shot 366,170 shot', 8000)
+    # Ordinary Aries-through-Pisces clicks on the original zodiac panel.
+    r.at('S2631.CIF', 400000).clicks(
+        '255,106 367,322 140,215 367,106 255,215 482,322 '
+        '367,215 255,322 140,322 482,106 140,106 482,215', 8000)
+    r.at('S2631.CIF', 520000).clicks(
+        'shot 358,204 shot 343,196 shot 212,448 shot 62,100 shot '
+        '212,448 62,100 360,20 shot '
+        '310,354 shot 310,354 shot 310,354 310,354 shot', 8000)
+    r.at('S2631.CIF', 685000).clicks('212,448 shot 360,20 shot', 8000)
+    out = [r.text()]
+    if save:
+        out += [menu_to_save_screen('S2631.CIF', 725000),
+                save_tail('S2631.CIF', 743000, save)]
+    return ';'.join(out)
+
+
+def leg_moon_column(save=None):
+    """m16 -> use the actual Moon key 11, then return to safe S2626/m17.
+
+    Uses the accepted six-item inventory layout. Other column keys and armor
+    progression remain unmet; no orientation hotspot is clicked.
+    """
+    r = R().at('S2010.CIF', 12000).clicks('shot', 0)
+    r.at('S2010.CIF', 20000).turns('left', 5)
+    r.clicks('64,171 317,167 277,175 317,162 336,162 317,162 473,161 '
+             '327,162 317,162 532,161 328,162 328,162 562,161 shot', 8000)
+    r.turns('left', 10).clicks('shot 310,161 shot 212,448 shot 134,170 shot 311,171 shot', 8000)
+    r.at('S2010.CIF', 253500).clicks('shot 310,354 shot', 8000)
+    out = [r.text()]
+    if save:
+        out += [menu_to_save_screen('S2010.CIF', 289500),
+                save_tail('S2010.CIF', 307500, save)]
+    return ';'.join(out)
+
+
 def leg_slider(save=None, gap=5000):
     """m4 -> m5. S3447 stairs hotspot, the slider puzzle S3450 (105 moves), the compartment S3452/S3453 item, the cancel strip at S3455, S3457, S3303."""
     r = R().at('S3447.CIF', 8000).clicks('mv:230,150 mv:241,166 241,166,300', 3000)
@@ -555,7 +629,9 @@ if __name__ == '__main__':
             'linda': leg_linda, 'jane-intro': leg_jane_intro,
             'jane-jigsaw': leg_jane_jigsaw, 'telescope-use': leg_telescope_use,
             'seedlings': leg_seedlings, 'crank-repair': leg_crank_repair,
-            'betty-key': leg_betty_key, 'venus-column': leg_venus_column}
+            'betty-key': leg_betty_key, 'venus-column': leg_venus_column,
+            'jupiter-column': leg_jupiter_column, 'moon-key': leg_moon_key,
+            'moon-column': leg_moon_column}
     if leg not in legs:
         sys.exit(__doc__)
     print(legs[leg](save))
