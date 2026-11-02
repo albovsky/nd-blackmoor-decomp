@@ -4,6 +4,7 @@
 #import <AppKit/AppKit.h>
 #import <CoreGraphics/CoreGraphics.h>
 #include "macos_platform_background.h"
+#include <cmath>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
@@ -42,13 +43,31 @@ static const PointerCase pointer_cases[] = {
 };
 static const size_t pointer_case_count = sizeof pointer_cases / sizeof pointer_cases[0];
 
+struct PixelCase {
+    CGFloat view_x, view_y;
+    uint8_t fit[3], stretch[3];
+};
+/* Fixed interior samples of red/green/blue/white source quadrants. The outer
+ * samples are black bars only in fit. No renderer/layout helper computes these. */
+static const PixelCase pixel_cases[] = {
+    { 80, 120, {  0,   0,   0}, {255,   0,   0}},
+    {240, 120, {255,   0,   0}, {255,   0,   0}},
+    {720, 120, {  0, 255,   0}, {  0, 255,   0}},
+    {880, 120, {  0,   0,   0}, {  0, 255,   0}},
+    { 80, 360, {  0,   0,   0}, {  0,   0, 255}},
+    {240, 360, {  0,   0, 255}, {  0,   0, 255}},
+    {720, 360, {255, 255, 255}, {255, 255, 255}},
+    {880, 360, {  0,   0,   0}, {255, 255, 255}},
+};
+static const size_t pixel_case_count = sizeof pixel_cases / sizeof pixel_cases[0];
+
 struct Fixture {
     BlackmoorMacPlatform *platform = nullptr;
     std::vector<uint8_t> rgba;
     std::vector<PointerRecord> pointers;
     pid_t pid = 0;
     unsigned ticks = 0, presentations = 0, activations = 0, failures = 0;
-    unsigned pointer_checks = 0;
+    unsigned pointer_checks = 0, render_caches = 0, render_checks = 0;
     bool closed = false, stretch = false, pointer_exercised = false;
 };
 
@@ -128,6 +147,116 @@ static void resize_hidden_view(Fixture &f)
         fail(f, "resize", "hidden content bounds are not 960x480 at origin zero");
     if (![window.contentView isFlipped]) fail(f, "resize", "content origin is not top left");
     check_background(f, "after_resize", true);
+}
+
+/* Read one tagged CGImage pixel into RGBA8 in the selected output profile.
+ * Actual samples use their existing cache profile unchanged; expected samples
+ * come independently from the fixed named-sRGB source colors below. */
+static bool pixel_in_profile(CGImageRef image, size_t x, size_t y,
+                              CGColorSpaceRef profile, uint8_t rgba[4])
+{
+    if (!image || x >= CGImageGetWidth(image) || y >= CGImageGetHeight(image)) return false;
+    CGImageRef pixel = CGImageCreateWithImageInRect(image, CGRectMake(x, y, 1, 1));
+    CGContextRef context = CGBitmapContextCreate(rgba, 1, 1, 8, 4, profile,
+        kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
+    if (!pixel || !context) {
+        if (context) CGContextRelease(context);
+        if (pixel) CGImageRelease(pixel);
+        return false;
+    }
+    CGContextSetBlendMode(context, kCGBlendModeCopy);
+    CGContextSetInterpolationQuality(context, kCGInterpolationNone);
+    CGContextDrawImage(context, CGRectMake(0, 0, 1, 1), pixel);
+    CGContextFlush(context);
+    CGContextRelease(context); CGImageRelease(pixel);
+    return true;
+}
+static bool reference_in_profile(const uint8_t rgb[3], CGColorSpaceRef profile,
+                                  uint8_t rgba[4])
+{
+    const uint8_t source[4] = {rgb[0], rgb[1], rgb[2], 255};
+    CGColorSpaceRef srgb = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
+    CGDataProviderRef provider = CGDataProviderCreateWithData(nullptr, source, sizeof source, nullptr);
+    CGImageRef image = srgb && provider ? CGImageCreate(1, 1, 8, 32, 4, srgb,
+        kCGImageAlphaLast, provider, nullptr, false, kCGRenderingIntentDefault) : nullptr;
+    bool ok = image && pixel_in_profile(image, 0, 0, profile, rgba);
+    if (image) CGImageRelease(image);
+    if (provider) CGDataProviderRelease(provider);
+    if (srgb) CGColorSpaceRelease(srgb);
+    return ok;
+}
+
+/* Exercise the real hidden view's drawRect: through its own offscreen cache.
+ * This does not read the WindowServer or establish displayed-window pixels. */
+static void exercise_render(Fixture &f)
+{
+    check_background(f, "before_cache", true);
+    NSWindow *window = fixture_window(f);
+    NSView *view = window.contentView;
+    if (!window || !view) return;
+    const NSRect bounds = view.bounds;
+    if (!NSEqualRects(bounds, NSMakeRect(0, 0, 960, 480)) || !view.isFlipped) {
+        fail(f, "cache", "expected flipped 960x480 hidden content bounds"); return;
+    }
+    const NSRect backing = [view convertRectToBacking:bounds];
+    NSBitmapImageRep *bitmap = [view bitmapImageRepForCachingDisplayInRect:bounds];
+    if (!bitmap || !std::isfinite(backing.size.width) || !std::isfinite(backing.size.height) ||
+        backing.size.width <= 0 || backing.size.height <= 0 ||
+        backing.size.width > 8192 || backing.size.height > 8192 ||
+        bitmap.pixelsWide <= 0 || bitmap.pixelsHigh <= 0 ||
+        bitmap.pixelsWide > 8192 || bitmap.pixelsHigh > 8192 ||
+        bitmap.pixelsWide != std::llround(backing.size.width) ||
+        bitmap.pixelsHigh != std::llround(backing.size.height)) {
+        fail(f, "cache", "bitmap dimensions do not match the actual view backing"); return;
+    }
+    [view cacheDisplayInRect:bounds toBitmapImageRep:bitmap];
+    ++f.render_caches;
+    /* Keep the cache's actual ICC tag. colorAtX:y: returned GenericRGB for
+     * ColorLCD samples in the root RED, so it is not this oracle's decoder.
+     * Compare once-quantized RGBA8 in the cache profile, avoiding a lossy
+     * cache-profile -> sRGB round trip and retaining the same 2/255 tolerance. */
+    CGImageRef cached_image = bitmap.CGImage;
+    CGColorSpaceRef profile = cached_image ? CGImageGetColorSpace(cached_image) : nullptr;
+    if (!profile || CGColorSpaceGetModel(profile) != kCGColorSpaceModelRGB ||
+        CGColorSpaceGetNumberOfComponents(profile) != 3 ||
+        CGImageGetBitsPerComponent(cached_image) != 8 ||
+        CGImageGetWidth(cached_image) != (size_t)bitmap.pixelsWide ||
+        CGImageGetHeight(cached_image) != (size_t)bitmap.pixelsHigh) {
+        fail(f, "cache", "expected an ICC-tagged RGB8 cached image"); return;
+    }
+    const double sx = (double)bitmap.pixelsWide / bounds.size.width;
+    const double sy = (double)bitmap.pixelsHigh / bounds.size.height;
+    std::printf("BACKGROUND_CACHE mode=%s content=960x480 pixels=%ldx%ld scale=%.3f,%.3f window_scale=%.3f\n",
+                f.stretch ? "stretch" : "fit", (long)bitmap.pixelsWide,
+                (long)bitmap.pixelsHigh, sx, sy, (double)window.backingScaleFactor);
+    for (size_t i = 0; i < pixel_case_count; ++i) {
+        const PixelCase &c = pixel_cases[i];
+        /* NSBitmapImageRep pixel coordinates and this flipped view both start
+         * at top left. Sample the actual bitmap scale, never an assumed 1x/2x. */
+        const NSInteger x = (NSInteger)std::floor((c.view_x - bounds.origin.x) * sx);
+        const NSInteger y = (NSInteger)std::floor((c.view_y - bounds.origin.y) * sy);
+        if (x < 0 || y < 0 || x >= bitmap.pixelsWide || y >= bitmap.pixelsHigh) {
+            fail(f, "cache pixel", "sample outside bitmap"); continue;
+        }
+        const uint8_t *expected = f.stretch ? c.stretch : c.fit;
+        uint8_t actual[4] = {}, reference[4] = {};
+        if (!pixel_in_profile(cached_image, (size_t)x, (size_t)y, profile, actual) ||
+            !reference_in_profile(expected, profile, reference)) {
+            fail(f, "cache pixel", "same-profile RGBA8 sampling/reference failed"); continue;
+        }
+        bool match = reference[3] == 255;
+        for (unsigned channel = 0; channel < 4; ++channel)
+            if (std::abs((int)actual[channel] - (int)reference[channel]) > 2) match = false;
+        std::printf("BACKGROUND_PIXEL mode=%s sample=%lu view=%.0f,%.0f pixel=%ld,%ld rgba8=%u,%u,%u,%u reference8=%u,%u,%u,%u source_srgb=%u,%u,%u,255 tolerance=2\n",
+                    f.stretch ? "stretch" : "fit", (unsigned long)i,
+                    (double)c.view_x, (double)c.view_y, (long)x, (long)y,
+                    (unsigned)actual[0], (unsigned)actual[1], (unsigned)actual[2], (unsigned)actual[3],
+                    (unsigned)reference[0], (unsigned)reference[1], (unsigned)reference[2], (unsigned)reference[3],
+                    (unsigned)expected[0], (unsigned)expected[1], (unsigned)expected[2]);
+        if (!match) fail(f, "cache pixel", "fixed opaque interior/background pixel mismatch");
+        else ++f.render_checks;
+    }
+    check_background(f, "after_cache", true);
 }
 
 static void on_pointer(void *context, BlackmoorPointerKind kind,
@@ -226,6 +355,7 @@ static void on_tick(void *context, uint32_t monotonic_ms) noexcept
         check_background(f, "tick", true);
         present_frame(f);
         if (f.ticks == 1) exercise_pointer(f);
+        if (f.ticks == 4) exercise_render(f);
     });
     if (f.ticks >= 4 || f.failures) stop_safely(f);
 }
@@ -274,9 +404,13 @@ static int run_fixture(bool stretch)
         f.rgba.resize(640u * 480u * 4u);
         for (unsigned y = 0; y < 480; ++y) for (unsigned x = 0; x < 640; ++x) {
             size_t offset = ((size_t)y * 640u + x) * 4u;
-            f.rgba[offset] = (uint8_t)x;
-            f.rgba[offset + 1] = (uint8_t)y;
-            f.rgba[offset + 2] = (uint8_t)(x + y);
+            /* Large flat regions keep samples clear of scaling boundaries. */
+            const uint8_t quadrants[4][3] = {{255, 0, 0}, {0, 255, 0},
+                                            {0, 0, 255}, {255, 255, 255}};
+            const unsigned quadrant = (y >= 240 ? 2u : 0u) + (x >= 320 ? 1u : 0u);
+            f.rgba[offset] = quadrants[quadrant][0];
+            f.rgba[offset + 1] = quadrants[quadrant][1];
+            f.rgba[offset + 2] = quadrants[quadrant][2];
             f.rgba[offset + 3] = 255;
         }
         BlackmoorPlatformCallbacks callbacks{};
@@ -321,10 +455,15 @@ static int run_fixture(bool stretch)
     if (!f.pointer_exercised || f.pointer_checks != pointer_case_count ||
         f.pointers.size() != pointer_case_count)
         fail(f, "result", "expected ten checked direct-view pointer callbacks");
+    if (f.render_caches != 1 || f.render_checks != pixel_case_count)
+        fail(f, "result", "expected one cached view with eight checked pixels");
     std::printf("BACKGROUND_PLATFORM ticks=%u presentations=%u activations=%u failures=%u closed=%d\n",
                 f.ticks, f.presentations, f.activations, f.failures, (int)f.closed);
     std::printf("BACKGROUND_POINTER mode=%s content=960x480 events=%lu checked=%u\n",
                 f.stretch ? "stretch" : "fit", (unsigned long)f.pointers.size(), f.pointer_checks);
+    std::printf("BACKGROUND_RENDER mode=%s content=960x480 caches=%u samples=%lu checked=%u\n",
+                f.stretch ? "stretch" : "fit", f.render_caches,
+                (unsigned long)pixel_case_count, f.render_checks);
     return f.failures ? 1 : 0;
 }
 

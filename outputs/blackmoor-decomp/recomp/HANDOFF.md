@@ -1,5 +1,9 @@
 # Handoff: recompiled GAME.EXE, state and next steps
 
+## Latest desktop verification, 2026-11-02 Pacific
+
+RECOMP-15 extends the hidden production AppKit-view fixture with8 independent cache pixel checks for each proportional/stretched mode. Both pass at measured2x backing with existing10 pointer callbacks and quiet guards intact. Source/cache ICC profiles are preserved; test-oracle diagnosis and exact pins are in the packet. No production renderer change. Physical display/input, other profiles and full campaigns remain incomplete. Root is collecting frozen review and required metadata for this slice while private Junior/Senior gameplay continues through Loulou's word clue and authored replacement-light prerequisites.
+
 For the Codex agent that finishes the native port. Written 2026-11-02. Main is at PR 278 (`deb83f82`); this note is the only change of its PR.
 
 ## Current continuation (2026-11-01, Pacific)

@@ -4,7 +4,8 @@ Run only after root applies/reviews the API patch and the owner authorizes an
 unlocked desktop: BLACKMOOR_BACKGROUND_UI_TEST=1 python3 this-file.py -v
 This uses synthetic RGBA and direct hidden-view NSEvents in a separate process
 for each fit/stretch mode. It uses no game, owner assets, audio or OS input and
-makes no physical-input or displayed-pixel claim. Display preferences are only
+checks cached own-view renderer pixels; it makes no physical-input or
+composited displayed-window pixel claim. Display preferences are only
 set in the fixture process's volatile NSArgumentDomain.
 Pure geometry remains covered separately by test_native_display_geometry.py.
 """
@@ -73,6 +74,11 @@ class BackgroundPlatformTests(unittest.TestCase):
                    'audio_executed': False, 'os_input_injected': False,
                    'input_delivery': 'direct hidden content-view methods',
                    'physical_input_verified': False, 'display_modes': ['fit', 'stretch'],
+                   'rendering_scope': 'own hidden NSView cacheDisplay into NSBitmapImageRep',
+                   'displayed_window_capture': False, 'expected_cache_renders_per_mode': 1,
+                   'expected_cached_pixel_checks_per_mode': 8,
+                   'color_oracle': 'independent fixed sRGB -> actual cache ICC profile, RGBA8',
+                   'color_tolerance_8bit': 2,
                    'fixture_runs': [],
                    'opt_in': 'BLACKMOOR_BACKGROUND_UI_TEST=1'}
         try:
@@ -103,6 +109,8 @@ class BackgroundPlatformTests(unittest.TestCase):
                     self.assertIn('BACKGROUND_PLATFORM ticks=4 presentations=5 activations=0 failures=0 closed=1',
                                   result.stdout)
                     self.assertIn('BACKGROUND_POINTER mode=' + mode + ' content=960x480 events=10 checked=10',
+                                  result.stdout)
+                    self.assertIn('BACKGROUND_RENDER mode=' + mode + ' content=960x480 caches=1 samples=8 checked=8',
                                   result.stdout)
         except subprocess.TimeoutExpired as timeout:
             receipt['build_timeout_seconds'] = timeout.timeout
