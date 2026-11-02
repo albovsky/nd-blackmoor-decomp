@@ -32,7 +32,6 @@ REASONS = {
 
 # Mac-port (Game + Vorbis) rows: va -> (reason code, note). Filled from the FL-75 and FL-77 handoffs.
 MAC_ROWS = {
-    "0x40b34a": ("partial_coverage_gate_not_built", "Large loader with two switches (0x40b4ff, 0x40bab7); baseline 1,568 of 5,261 instructions and 87 of 362 directions, the hand-built switch state was not finished."),
     "0x418e52": ("needs_frame_assumption_in_prover", "Left: the je at 0x419886 taken. Eight lea of frame objects are passed to member calls."),
     "0x425b8b": ("impossible_direction_unproved", "Every instruction (246/246) and 15 of 16 directions covered; the jump at 0x425cf0 taken leads to a loop with no exit (jmp 0x425ee1, jmp 0x425c17, same test again), so every such run hits the instruction limit and the prover must discharge it."),
     "0x456516": ("needs_alias_model_in_prover", "Left: the jns at 0x456a0b fall-through. Needs a pointer into the stack (19 lea of frame addresses)."),
@@ -42,12 +41,15 @@ MAC_ROWS = {
     "0x4a14c6": ("needs_callee_footprint_model", "One direction left; a copy is compared against its own source."),
     "0x4ba56a": ("prover_window_times_out", "71 of 98 directions from feasible gates; the function copies this+0x1bc..0x1c8 to this+0x1cc..0x1d8 and compares them. check --prove times out at 1,500 s (scenarios in tasks/fl76/out/0x4ba56a.json)."),
     "0x4e812f": ("prover_window_times_out", "10 directions and 39 instructions left, behind loops at 0x4e8212 and 0x4e851f; every window times out."),
-    "0x496410": ("partial_coverage_gate_not_built", "24 KB function; baseline 366 of 4,985 instructions and 10 of 534 directions."),
+    "0x496410": ("partial_coverage_gate_not_built", "24 KB rasterizer; generic fuzz hits the instruction limit (about 15,700 passes of the loop at 0x4966ee). The loop exits only when [this+0x50e1] or [this+0x50e5] has bit 0x1000000 set and bits 0x10000000 and 0x20000000 clear, derived from the polygon and edge tables, so it needs a model of those tables. Baseline 366 of 4,985 instructions and 10 of 534 directions."),
 }
 
 CRT_RULES = {
     "0x50ed50": ("census_unsplit_floor", "memmove: the census span is a floor and the lifter refuses its jump tables."),
     "0x50fa90": ("census_unsplit_floor", "memcpy: the census span is a floor and the lifter refuses its jump tables."),
+    "0x511a1a": ("impossible_direction_unproved", "FDIV-bug probe: the fall-through at 0x511a4d needs x - (x/y)*y above a threshold, which cannot happen with fixed .rdata constants on a correct FPU. Scenarios reach 20 of 24 instructions and 1 of 2 directions; overriding the constants reaches 24 of 24 but the translation embeds them and then differs."),
+    "0x52178e": ("census_unsplit_floor", "Both missing directions (5217a4, 5217a7) jump to code outside the 48-byte row body (0x5217c6, 0x5217cb); the world records no edge to an address outside the span, so no scenario can mark them. Coverage 21 of 21 instructions, 2 of 4 directions."),
+    "0x50f462": ("needs_multi_cell_or_aliased_state", "The 50f46f fall-through needs the FPU control word at entry to differ from 0x27f, which fnstcw supplies and no override can set; the 50f491 and 50f4a9 directions depend on flags left by the call to 0x513c65. Coverage 17 of 18 instructions, 4 of 10 directions."),
     "0x510eda": ("original_faults_on_every_scenario", "The original faults on every scenario."),
     "0x510f3b": ("original_faults_on_every_scenario", "The original faults on every scenario."),
 }
