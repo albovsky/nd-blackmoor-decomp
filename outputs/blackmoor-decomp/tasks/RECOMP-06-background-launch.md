@@ -18,7 +18,7 @@ This is title startup and normal Quit-selector coverage, not physical Cmd-Q or r
 
 Next: share ordinary game-local scripted input with the Mac frontend, verify first scenes and media without OS input/focus, and promote the genuine headless seedlings/crank saves m11/m12. Full campaigns and final background credits remain incomplete.
 
-Independent Sonnet review is pending against the frozen candidate. No completion claim is made before review/merge.
+Initial independent Sonnet review of573784df found noP1 but required stale evidence pins to be corrected. It also found diagnostic guest-abort success reporting. Both corrections below are prepared for follow-up review; no completion claim precedes that review/merge.
 
 ## Source pins
 
@@ -28,3 +28,24 @@ Independent Sonnet review is pending against the frozen candidate. No completion
 - `src/macos_platform_background.h`: `49304442c0687784f196d00bba414ff0b0741c4e0c1d71f22aaf536a6bce1aab`
 - `tests/recomp_background_platform_fixture.mm`: `8064c3b8a62f9f79b22d7c0b51a7a5ed175ea610926a10b77e2db112c40352b1`
 - `tests/test_recomp_background_platform.py`: `54dd79a23072b61c06b8bf142ae3d924078ce281d3671250f0649a4d79adea88`
+
+## Review corrections and final candidate
+
+The latest owner pasted request expressly requires extractor and ledger `--write` in the same PR when a hashed source changes. The platform is such a source. Both generated records were refreshed from clean frozen b16cd7a1 in an isolated detached checkout, excluding the parked/untracked telephone files. Coverage counts, every function status and all lifter input fields remain identical. Neither generator nor protected original methods/tests/acceptances were changed. Private `background-refresh-receipt-20261102.json` and static refresh/check logs record provenance. This is a hash refresh, not new function-port credit.
+
+Diagnostic runs now classify the game result after join. An ordinary return, an exact `stop requested` reason or `ExitProcess(0)` (optionally followed by a space/native trace) is accepted; another nonzero guest result produces status6. A device-free C matrix checks14 normal/abnormal/boundary strings without executing or faulting game code. Existing foreground exit behavior is retained. Background/title acceptance still checks the actual STOP_AFTER and stop-reason lines, rather than trusting exit0 alone.
+
+The corrected signed executable is `8ab5e6cc80c95a071b2a8cd25314639bf34b89eb7e34f546f9c2cb45669145fa`. Fresh-clone repeat returned0 in5.47s, reported the one Quit-selector request and controlled game stop, and again remained inactive/key0/visible0/activation0. Title frame hash is identical to the first run. Its finalized WAV is176841frames/4.01s, peak4980 and340736nonzero samples. See `background-reviewfix-app-20261102/receipt.json`; the duration variation reinforces that this slice makes no synchronization claim. Empty snapshot CLI input also returns2 before opening a platform. Total focused test evidence is16 cases and6 early CLI rejection checks.
+
+For quiet verification, exec the bundle's `Contents/MacOS/BlackmoorRecompiled` directly with explicit `--background --mute`. LaunchServices/open activation behavior is untested and must not be used for these checks. The deadline includes setup; a slow start may stop before a usable primary and correctly fail6. Use a new private output directory for each run; a failed run can leave an old or partial snapshot, including on the shutdown watchdog. Never trust its outputs without both successful status and expected log observations. The watchdog covers snapshot writing too. Build targets must end in `.app`; normal bundle defaults are unchanged.
+
+Final source pins supersede earlier pins where the path repeats:
+
+- `recomp/macos_recomp.mm`: `26d71b1e044b441c98d9088c173637c10afe530a3d6a5dfbb85e3f819326a1df`
+- `recomp/build_macos.sh`: `69c7d2aa457b3bb4c28c2821a3326c0fa3bb5e3a682af8df37d0806cb5f23505`
+- `recomp/diagnostic_result.h`: `0d9bcf7ebd2ecc9af0949f19f279be4e39b3160288ef76012e02a77d6c9d4c8f`
+- `src/macos_platform.mm`: `8d0d38127bb460f6ffb4a65461f5f0d6a1c989d85db25f8e670229c986422caf`
+- `src/macos_platform_background.h`: `49304442c0687784f196d00bba414ff0b0741c4e0c1d71f22aaf536a6bce1aab`
+- `tests/recomp_background_platform_fixture.mm`: `8064c3b8a62f9f79b22d7c0b51a7a5ed175ea610926a10b77e2db112c40352b1`
+- `tests/test_recomp_background_platform.py`: `54dd79a23072b61c06b8bf142ae3d924078ce281d3671250f0649a4d79adea88`
+- `tests/test_recomp_diagnostic_result.py`: `7168d9430f5d60a71977af5ebe36c4e787155524ca183afe3a090ca8484fdc35`
