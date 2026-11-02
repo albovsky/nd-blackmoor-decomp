@@ -43,7 +43,7 @@ def write_json(path, value):
     path.write_text(json.dumps(value, indent=2) + '\n')
 
 
-def save_state(path):
+def save_state(path, progression_flags=(1404, 1435, 1405)):
     """Read-only fields of the original save layout; never serialize a save."""
     data = path.read_bytes()
     require(len(data) == 170770, 'unexpected save length')
@@ -51,7 +51,7 @@ def save_state(path):
         ('difficulty', 0x9034), ('held', 0x10e), ('scene', 0x21642),
         ('art', 0x21646), ('view', 0x215d2))}
     result['progression'] = {flag: struct.unpack_from('<I', data, 0x1ee6 + 4 * flag)[0]
-                             for flag in (1404, 1435, 1405)}
+                             for flag in progression_flags}
     return result
 
 
@@ -149,15 +149,19 @@ def completed(log, finish_id, previous):
     return lines[0].strip()
 
 
-def flag_scope():
+def flag_scope(rc_flags=None):
+    if rc_flags is not None:
+        require(isinstance(rc_flags, str) and bool(rc_flags), 'invalid explicit RC_FLAGS')
+        return rc_flags
     _, one, zero = check_route.passage_configuration('bul-key')
     return ','.join(map(str, sorted(one | zero | set(range(338, 342)))))
 
 
 class Session:
     """One fresh clone, one native child, sequential ordinary FIFO batches."""
-    def __init__(self, args, out, source):
+    def __init__(self, args, out, source, *, rc_flags=None):
         self.out, self.source, self.args = out, source, args
+        selected_flags = flag_scope(rc_flags)
         out.mkdir(exist_ok=False)
         self.source_hash = digest(source)
         self.game = out / 'game'
@@ -178,7 +182,7 @@ class Session:
         self.receipt = {'accepted': False, 'acceptance_owner': 'combined outer receipt after verified save-only reload',
                         'source_sha256': self.source_hash,
                         'copied_source_sha256': digest(self.copy), 'native_sha256': args.native_sha256,
-                        'game_dir': str(self.game), 'source_save': str(source), 'RC_FLAGS': flag_scope(),
+                        'game_dir': str(self.game), 'source_save': str(source), 'RC_FLAGS': selected_flags,
                         'source_state': save_state(source), 'fifo_mode': '0o600',
                         'max_imports': 90000000, 'max_idle_polls': 1800000,
                         'timeout_seconds': args.timeout, 'max_batches': MAX_BATCHES}
@@ -187,7 +191,7 @@ class Session:
         for key in ('INPUT', 'RC_REAL', 'RC_TRACE_MS', 'RC_CONTROL_FIFO'):
             env.pop(key, None)
         env.update(GAME_EXE=str(args.game_exe), RC_GAMEDIR=str(self.game), RC_OUT=str(out),
-                   RC_CONTROL_FIFO=str(self.fifo), RC_FLAGS=flag_scope(),
+                   RC_CONTROL_FIFO=str(self.fifo), RC_FLAGS=self.receipt['RC_FLAGS'],
                    MAX_IMPORTS='90000000', MAX_IDLE_POLLS='1800000')
         self.stdout = (out / 'stdout.txt').open('w')
         self.proc = subprocess.Popen([str(args.native)], cwd=self.game, env=env,

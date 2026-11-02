@@ -1214,5 +1214,80 @@ class DragonLightRouteInputTests(unittest.TestCase):
                 self.assertLess(count + 7, 512)
 
 
+class GlyphWinRouteTests(unittest.TestCase):
+    prior = DragonLightRouteTests.prior | {1997, 2078, 1925, 1865, 1349, 1408, 1791, 1361, 1388}
+    opens = {'glyph-win': (3588, 1299, 1294, 1945, 3510)}
+    setUp = PostKeyRouteTests.setUp
+    observed_log = PostKeyRouteTests.observed_log
+
+    def frames(self, win_scene=1294):
+        save = Path(self.folder.name) / 'm29.SAV'
+        save.write_bytes(bytes(170770))
+        states = ((3510, 4), (3588, 0), (win_scene, 0), (1945, 0),
+                  (3510, 4), (3510, 4), (3510, 4))
+        times = ((16, 32), (17, 0), (20, 30), (20, 32), (20, 33), (21, 0), (21, 1))
+        frames = []
+        for index, ((scene, view), (hour, minute)) in enumerate(zip(states, times)):
+            flags = {f: 1 for f in self.prior}
+            if index < 3:
+                flags[1418] = 1
+            if index >= 2:
+                flags[2001] = 1
+            if index >= 3:
+                flags[1357] = 1
+            frames.append({'scene': scene, 'art': scene, 'view': view, 'held': 4 if index == 4 else -1,
+                           'flags': flags, 'scope': '338-341,1000-2230', 'clock': (2, hour, minute)})
+        return save, frames
+
+    def test_accepts_real_win_pickup4_and_late_clock_without_1299_state(self):
+        for scene in (1294, 1295):
+            with self.subTest(win_scene=scene):
+                save, frames = self.frames(scene)
+                log = self.observed_log('glyph-win', save, frames, (3588, 1299, scene, 1945, 3510))
+                result = checker.verify(log, save, 'glyph-win')
+                self.assertTrue(result['glyph_win'] and result['light_reward_earned'])
+                self.assertIn(1418, result['flags_zero'])
+                self.assertNotIn(1945, result['flags_one'])
+                self.assertEqual(result['clock_diagnostics']['hour'], 21)
+
+    def test_refuses_repeat_early_clear_false_reward_wrong_item_and_art(self):
+        for index, field, value in ((0, 2001, 1), (0, 1357, 1), (1, 1418, 0),
+                                   (2, 1357, 1), (3, 1357, 0), (4, 'held', 21), (2, 'art', 3588)):
+            with self.subTest(index=index, field=field):
+                save, frames = self.frames()
+                if isinstance(field, int):
+                    frames[index]['flags'][field] = value
+                else:
+                    frames[index][field] = value
+                with self.assertRaisesRegex(ValueError, 'phase|reward|ordered|item|art'):
+                    checker.verify(self.observed_log('glyph-win', save, frames), save, 'glyph-win')
+
+    def test_requires_every_observation_scope_retained_zero_source_gate_opens_and_finish(self):
+        for failure in ('scope', 'retained', 'later', 'source_clock', 'stop', 'win_resource', 'final_safe'):
+            with self.subTest(failure=failure):
+                save, frames = self.frames()
+                opened = self.opens['glyph-win']
+                if failure in ('scope', 'retained', 'later'):
+                    extra = dict(frames[0], scene=9998, art=9998, flags=dict(frames[0]['flags']))
+                    if failure == 'scope':
+                        extra['scope'] = '338-341,1000-1803,1805-2230'
+                    elif failure == 'retained':
+                        extra['flags'][2005] = 0
+                    else:
+                        extra['flags'][1804] = 1
+                    frames.insert(1, extra)
+                elif failure == 'source_clock':
+                    frames[0]['clock'] = (2, 15, 32)
+                elif failure == 'win_resource':
+                    opened = (3588, 1294, 1945, 3510)
+                elif failure == 'final_safe':
+                    frames[-1]['held'] = 4
+                log = self.observed_log('glyph-win', save, frames, opened)
+                if failure == 'stop':
+                    log = log.replace('stop requested', 'message loop idle')
+                with self.assertRaisesRegex(ValueError, 'required|prerequisite|unexpected|clock|authored|safe|requested stop'):
+                    checker.verify(log, save, 'glyph-win')
+
+
 if __name__ == '__main__':
     unittest.main()

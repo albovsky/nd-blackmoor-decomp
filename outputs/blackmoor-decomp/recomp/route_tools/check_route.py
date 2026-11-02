@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Check an observed headless story leg, not merely its process exit.
 
-python3 check_route.py RUN_LOG SAVE_FILE [--route telescope-prep|jane-jigsaw|telescope-use|seedlings|crank-repair|betty-key|venus-column|jupiter-column|moon-key|moon-column|nigel-computer|night-wait|goggles|ghost-hunt|afternoon-door|linda-passage|bul-key|slide-ball|saturn-column|dragon-passage|glyph-request]
+python3 check_route.py RUN_LOG SAVE_FILE [--route telescope-prep|jane-jigsaw|telescope-use|seedlings|crank-repair|betty-key|venus-column|jupiter-column|moon-key|moon-column|nigel-computer|night-wait|goggles|ghost-hunt|afternoon-door|linda-passage|bul-key|slide-ball|saturn-column|dragon-passage|glyph-request|glyph-win]
 The caller supplies a checkpoint produced by this run's normal Load & Save UI.
 This checks recorded observations, a matching file-open line and save size;
 fresh-folder/write provenance and saved contents require separate replay evidence.
@@ -343,6 +343,61 @@ def verify_dragon_light_observations(route, log, observations, selected, clocks,
     return clocks[-1][1]
 
 
+GLYPH_WIN_ROUTES = ('glyph-win',)
+
+
+def glyph_win_configuration():
+    _, pending, unmet = dragon_light_configuration('glyph-request')
+    expected = [(3510, 4), (3588, 0), (1294, 0), (1945, 0),
+                (3510, 4), (3510, 4), (3510, 4)]
+    return expected, (pending - {1418}) | {2001, 1357}, (unmet - {2001, 1357}) | {1418}
+
+
+def verify_glyph_win_observations(log, observations, selected, clocks, positive, negative):
+    retained, unmet = positive - {2001, 1357}, negative - {1418}
+    previous = {1418: 1, 2001: 0, 1357: 0}
+    for state, scope, flags in observations:
+        if not (positive | negative) <= scope:
+            raise ValueError('RC_FLAGS did not observe every required glyph-win event')
+        if any(flags.get(f, 0) != 1 for f in retained):
+            raise ValueError('glyph-win retained prerequisite flag is not 1')
+        if any(flags.get(f, 0) != 0 for f in unmet):
+            raise ValueError('unexpected glyph-win later, failure or timer flag')
+        for f in previous:
+            value = flags.get(f, 0)
+            backwards = value > previous[f] if f == 1418 else value < previous[f]
+            if value not in (0, 1) or backwards:
+                raise ValueError('glyph-win phase flag is not binary/monotone')
+            previous[f] = value
+        if flags.get(1357, 0) > flags.get(2001, 0):
+            raise ValueError('glyph reward preceded the actual win')
+        if state[3] not in (-1, 4) or (state[3] == 4 and
+                (state[:3] != (3510, 3510, 4) or flags.get(1357, 0) != 1 or flags.get(1418, 0) != 0)):
+            raise ValueError('glyph-win unexpectedly holds an item')
+    for index, (state, _, flags) in enumerate(selected):
+        if state[1] != state[0]:
+            raise ValueError('glyph-win art scene differs from requested frame')
+        if state[3] != (4 if index == 4 else -1):
+            raise ValueError('glyph-win real4 or final safe state differs')
+        phase = (1 if index < 3 else 0, 1 if index >= 2 else 0, 1 if index >= 3 else 0)
+        if tuple(flags.get(f, 0) for f in (1418, 2001, 1357)) != phase:
+            raise ValueError('glyph-win flags do not match source/win/pickup phases')
+    verify_clock_diagnostics(clocks)
+    source_clock = clocks[0][1]
+    if source_clock['day'] != 2 or not 16 <= source_clock['hour'] <= 19:
+        raise ValueError('glyph-win observed source clock gate differs')
+    # Live solving can legitimately advance past the static request's gate.
+    opened = [int(m[1]) for m in re.finditer(r'FILE open .*\\S(\d+)\.CIF\s+\[virtual \d+ ms\]', log)]
+    cursor = 0
+    for alternatives in ((3588,), (1299,), (1294, 1295), (1945,), (3510,)):
+        while cursor < len(opened) and opened[cursor] not in alternatives:
+            cursor += 1
+        if cursor == len(opened):
+            raise ValueError('missing ordered glyph-win authored scene opens')
+        cursor += 1
+    return clocks[-1][1]
+
+
 def verify(log, save, route='telescope-prep'):
     if route == 'telescope-prep':
         expected = [(2010, 0), (2014, 0), (2026, 0), (2010, 2)]
@@ -405,6 +460,8 @@ def verify(log, save, route='telescope-prep'):
         expected, positive, negative = post_key_configuration(route)
     elif route in DRAGON_LIGHT_ROUTES:
         expected, positive, negative = dragon_light_configuration(route)
+    elif route == 'glyph-win':
+        expected, positive, negative = glyph_win_configuration()
     else:
         raise ValueError('unknown story route')
     observations = []
@@ -433,11 +490,14 @@ def verify(log, save, route='telescope-prep'):
     # conversation and normal room return for Jane's loan.
     held_steps = {'jupiter-column': {4: 6}, 'moon-key': {7: 12, 13: 11},
                   'moon-column': {4: 11}, 'goggles': {11: 21}, 'bul-key': {13: 7},
-                  'slide-ball': {4: 7, 12: 3}, 'saturn-column': {4: 16, 5: 16}}.get(route, {})
+                  'slide-ball': {4: 7, 12: 3}, 'saturn-column': {4: 16, 5: 16}, 'glyph-win': {4: 4}}.get(route, {})
     selected = []
     for observation in observations:
         state, scope, flags = observation
-        if len(selected) < len(expected) and (state[0], state[2]) == expected[len(selected)]:
+        pair = (state[0], state[2])
+        if route == 'glyph-win' and len(selected) == 2 and pair == (1295, 0):
+            pair = (1294, 0)
+        if len(selected) < len(expected) and pair == expected[len(selected)]:
             # The accepted route observes the panel before opening inventory,
             # inside inventory, and finally with the real crank held.
             if route == 'crank-repair' and len(selected) == 3 and state[3] != 20:
@@ -454,7 +514,7 @@ def verify(log, save, route='telescope-prep'):
             selected.append(observation)
     if len(selected) != len(expected):
         raise ValueError('missing ordered route observations')
-    if route in ('jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES:
+    if route in ('jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES:
         # Earlier inventory shots can share scene/view/held cells. Check the
         # final two observations, rather than treating those as checkpoints.
         if any((state[0], state[2]) != expected[-1] for state, _, _ in observations[-2:]):
@@ -561,6 +621,8 @@ def verify(log, save, route='telescope-prep'):
         clock_diagnostics = verify_post_key_observations(route, log, observations, selected, clocks, positive, negative)
     if route in DRAGON_LIGHT_ROUTES:
         clock_diagnostics = verify_dragon_light_observations(route, log, observations, selected, clocks, positive, negative)
+    if route == 'glyph-win':
+        clock_diagnostics = verify_glyph_win_observations(log, observations, selected, clocks, positive, negative)
     for _, scope, flags in selected[-2:]:
         if not (positive | negative) <= scope:
             raise ValueError('RC_FLAGS did not observe every required event')
@@ -579,9 +641,12 @@ def verify(log, save, route='telescope-prep'):
         raise ValueError('checkpoint save is missing or has an unexpected length')
     result = {'route': route, 'scene': expected[-1][0], 'view': expected[-1][1],
             'flags_one': sorted(positive), 'flags_zero': sorted(negative),
-            'save': save.name, 'telescope_complete': route in ('telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES}
+            'save': save.name, 'telescope_complete': route in ('telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES}
     if route == 'glyph-request':
         result['glyph_pending'] = True
+    if route == 'glyph-win':
+        result['glyph_win'] = True
+        result['light_reward_earned'] = True
     if clock_diagnostics is not None:
         result['clock_diagnostics'] = clock_diagnostics
     return result
@@ -591,7 +656,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('run_log', type=Path)
     parser.add_argument('save_file', type=Path)
-    parser.add_argument('--route', choices=('telescope-prep', 'jane-jigsaw', 'telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES,
+    parser.add_argument('--route', choices=('telescope-prep', 'jane-jigsaw', 'telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES,
                         default='telescope-prep')
     args = parser.parse_args()
     try:
