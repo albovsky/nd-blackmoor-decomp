@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """One first-paid Junior replacement glyph attempt through ordinary input.
 
-Requires the observed pending source with used5; no atlas/asset payload ships.
+Default: observed first-paid pending source. Optional rune-passage context
+starts from the genuine afternoon3335/held5 wait checkpoint; no abandoned
+pending game is needed. No atlas/asset payload ships.
 The original game owns every swap, timer, reward and save. Preexisting2001
 is never this round's win proof. Other replacement/list variants are unverified.
 """
@@ -33,7 +35,39 @@ def inventory(path):
     return {i: struct.unpack_from('<I', data, 0x2ba + 4*i)[0] for i in (4, 5, 13)}
 
 
-def source_state(path):
+def configuration(context='first-paid'):
+    if context == 'first-paid':
+        return check_route.word_lock_configuration('repeat-glyph-win')
+    io.require(context == 'rune-passage', 'unknown repeat context')
+    return check_route.rune_light_configuration('rune-light-replacement')
+
+
+def rune_source_state(path):
+    _, one, zero = check_route.rune_light_configuration('rune-light-wait')
+    state = io.save_state(path, progression_flags=one | zero)
+    items = inventory(path)
+    data = path.read_bytes()
+    bag = {i: struct.unpack_from('<I', data, 0x2ba + 4*i)[0] for i in range(40)}
+    expected_bag = {2, 6, 7, 11, 12, 16, 17, 19, 20, 21}
+    io.require(all(value == int(i in expected_bag) for i, value in bag.items()),
+               'post-rune source bag differs from the observed ten-item inventory layout')
+    io.require(state['difficulty'] == 0 and [state[k] for k in ('scene', 'art', 'view', 'held')] == [3335, 3335, 0, 5]
+               and all(state['progression'][f] == 1 for f in one)
+               and all(state['progression'][f] == 0 for f in zero)
+               and items == {4: 0, 5: 0, 13: 0} and struct.unpack_from('<I', data, 0x2ba + 4*2)[0] == 1,
+               'source must be the observed post-rune Junior afternoon wait checkpoint with real held5 and owned2')
+    clock = {name: struct.unpack_from(fmt, data, offset)[0] for name, fmt, offset in (
+        ('total_minutes', '<I', 0x2430), ('minute', '<H', 0x2434), ('hour', '<H', 0x2436), ('day', '<H', 0x2438))}
+    io.require(clock['day'] == 3 and 14 <= clock['hour'] < 21 and 0 <= clock['minute'] < 60
+               and clock['total_minutes'] == clock['hour'] * 60 + clock['minute'], 'source afternoon door clock gate differs')
+    state.update(clock_diagnostics=clock, inventory=items, bag_item_ids=sorted(expected_bag))
+    return state
+
+
+def source_state(path, context='first-paid'):
+    if context == 'rune-passage':
+        return rune_source_state(path)
+    io.require(context == 'first-paid', 'unknown repeat context')
     _, one, zero = check_route.word_lock_configuration('paid-light-request')
     state = io.save_state(path, progression_flags=one | zero)
     pending = (state['difficulty'] == 0 and [state[k] for k in ('scene', 'art', 'view', 'held')] == [3510, 3510, 4, -1]
@@ -50,8 +84,8 @@ def source_state(path):
     return state
 
 
-def rc_flags():
-    _, one, zero = check_route.word_lock_configuration('repeat-glyph-win')
+def rc_flags(context='first-paid'):
+    _, one, zero = configuration(context)
     runs = []
     for value in sorted(one | zero | set(range(338, 342))):
         if runs and value == runs[-1][1] + 1:
@@ -84,6 +118,29 @@ def inventory_payload():
             '9001:move:360,20;9101:click:360,20,300;12001:shot:0,0')
 
 
+def rune_inventory_payload():
+    # Exact successful private m51 request25: actual fresh4, then reopen bag.
+    return ('1:move:60,100;1001:click:60,100,600;5001:shot:0,0;'
+            '7001:move:212,448;8001:click:212,448,600;12001:shot:0,0')
+
+
+def rune_put_payload():
+    # Exact request26:134,310 is empty after4 leaves this ten-item bag.
+    return ('1:move:134,310;1001:click:134,310,600;5001:shot:0,0;'
+            '7001:move:360,20;8001:click:360,20,600;12001:shot:0,0')
+
+
+def rune_reload_payload():
+    # Accepted m51 reload with owned2: actual4 at206,243, empty134,310.
+    r = story_route.R().at('S3510.CIF', 12000).clicks('212,448', 0)
+    r.at('S3510.CIF', 17000).clicks('shot', 0)
+    r.at('S3510.CIF', 22000).clicks('206,243', 0)
+    r.at('S3510.CIF', 27000).clicks('shot', 0)
+    r.at('S3510.CIF', 32000).clicks('212,448 134,310 360,20', 5000)
+    r.at('S3510.CIF', 47000).clicks('shot', 0)
+    return r.text() + ';S3510.CIF+73000:move:320,60;S3510.CIF+76000:shot:0,0'
+
+
 def save_payload(name):
     io.require(re.fullmatch('[a-z0-9]{1,10}', name) is not None and name != 'continue', 'invalid UI save name')
     payload = story_route.menu_to_save_screen('unused', 1000) + ';' + story_route.save_tail('unused', 19000, name)
@@ -101,8 +158,23 @@ def reload_payload():
     return r.text() + ';S3510.CIF+73000:move:320,60;S3510.CIF+76000:shot:0,0'
 
 
-def play(session, known_hashes, name):
-    observation, image = send(session, story_route.load_save_prefix() + ';' + first.board_prefix())
+def rune_board_payload():
+    # Same exercised play-button move/click gap and hold as board_prefix();
+    # numeric offsets are relative to the already-observed3585 request shot.
+    return ('1:move:480,152;1001:click:480,152,300;'
+            'S3588.CIF+500:move:635,385;S3588.CIF+1000:shot:0,0')
+
+
+def play(session, known_hashes, name, context='first-paid'):
+    if context == 'rune-passage':
+        observation, image = send(session, story_route.load_save_prefix() + ';' + story_route.leg_rune_light_start())
+        io.require(observation['state'] == [3585, 3585, 0, -1]
+                   and all(observation['flags'].get(f) == 1 for f in (2001, 1357, 1418, 1809)),
+                   'ordinary later paid request did not reach3585')
+        observation, image = send(session, rune_board_payload())
+    else:
+        io.require(context == 'first-paid', 'unknown repeat context')
+        observation, image = send(session, story_route.load_save_prefix() + ';' + first.board_prefix())
     io.require(observation['state'] == [3588, 3588, 0, -1]
                and all(observation['flags'].get(f) == 1 for f in (2001, 1357, 1418, 1809)),
                'ordinary prefix did not reach the paid repeat board')
@@ -134,14 +206,19 @@ def play(session, known_hashes, name):
     send(session, caption_payload())
     observation, image = send(session, bye_payload())
     io.require(observation['state'] == [3510, 3510, 4, -1], 'repeat Bye/bag continuation differs')
-    observation, image = send(session, inventory_payload())
+    if context == 'rune-passage':
+        observation, image = send(session, rune_inventory_payload())
+        io.require(observation['state'] == [3510, 3510, 4, 4], 'rune inventory did not select actual fresh4')
+        observation, image = send(session, rune_put_payload())
+    else:
+        observation, image = send(session, inventory_payload())
     io.require(observation['state'] == [3510, 3510, 4, -1], 'actual light inventory/PUT/X continuation differs')
     observation, image = send(session, save_payload(name))
     io.require(observation['state'] == [3510, 3510, 4, -1], 'original UI save did not return safely')
 
 
-def verify_reload(session):
-    _, one, zero = check_route.word_lock_configuration('repeat-glyph-win')
+def verify_reload(session, context='first-paid'):
+    _, one, zero = configuration(context)
     observations, clocks = session.observations, []
     io.require(len(observations) >= 5, 'repeat reload observations incomplete')
     for observation in observations:
@@ -166,6 +243,8 @@ def main(argv=None):
         parser.add_argument('--' + name, type=Path, required=True)
     for name in ('native-sha256', 'save-sha256', 'atlas-sha256'):
         parser.add_argument('--' + name, required=True)
+    parser.add_argument('--context', choices=('first-paid', 'rune-passage'), default='first-paid',
+                        help='existing pending first-paid source, or genuine post-rune3335/held5 afternoon checkpoint')
     parser.add_argument('--save-name', default='m38')
     parser.add_argument('--output', type=Path, help='new retained evidence directory; default new scratch directory')
     parser.add_argument('--timeout', type=int, default=300, help='1-300 seconds per session')
@@ -183,7 +262,7 @@ def main(argv=None):
                    'original data image pin differs')
         io.require(not (args.game_data / 'Documents5').exists()
                    and not any(path.is_symlink() for path in args.game_data.rglob('*')), 'seed contains saves or symlinks')
-        initial = source_state(args.source_save)
+        initial = source_state(args.source_save, args.context)
         known_hashes = glyph_pixels.load_atlas(args.atlas, args.atlas_sha256)
         target = args.output.resolve() if args.output else Path(tempfile.mkdtemp(prefix='blackmoor-repeat-glyph-'))
         io.require(not (target == args.game_data or args.game_data in target.parents or target == args.source_save.parent
@@ -195,37 +274,41 @@ def main(argv=None):
                      args.game_data / 'GAME.EXE', args.game_data / 'Game.ini', args.game_data / 'Ciftree' / 'CIFTREE.DAT',
                      Path(__file__), Path(glyph_pixels.__file__), Path(first.__file__), Path(io.__file__), Path(check_route.__file__), Path(story_route.__file__))}
         receipt.update(native_sha256=args.native_sha256, source_sha256=args.save_sha256, atlas_sha256=args.atlas_sha256,
-                       protected_inputs=protected, source_state=initial, RC_FLAGS=rc_flags(), glyph_attempts=48,
+                       protected_inputs=protected, source_state=initial, RC_FLAGS=rc_flags(args.context), glyph_attempts=48, context=args.context,
                        glyph_requests_including_finish=64, timeout_seconds=args.timeout,
-                       scope='one first-paid Junior replacement; no Senior/later-repeat or all-board guarantee')
+                       scope=('one first-paid Junior replacement; no Senior/later-repeat or all-board guarantee' if args.context == 'first-paid' else
+                              'one observed post-rune Junior paid replacement; no Senior/further-repeat or all-board guarantee'))
         io.write_json(out / 'receipt.json', receipt)
-        producer = io.Session(args, out / 'producer', args.source_save, rc_flags=rc_flags())
+        producer = io.Session(args, out / 'producer', args.source_save, rc_flags=rc_flags(args.context))
         error = None
         try:
-            play(producer, known_hashes, args.save_name)
+            play(producer, known_hashes, args.save_name, args.context)
         except (Exception, KeyboardInterrupt) as failure:
             error = str(failure) or type(failure).__name__
         finally:
             producer.close(error)
         io.require(producer.receipt['wall_seconds'] <= args.timeout, 'producer exceeded glyph deadline')
         saved = producer.saves / (args.save_name + '.SAV')
-        checked = check_route.verify((producer.out / 'run.log').read_text(), saved, 'repeat-glyph-win')
-        _, one, zero = check_route.word_lock_configuration('repeat-glyph-win')
+        route = 'repeat-glyph-win' if args.context == 'first-paid' else 'rune-light-replacement'
+        checked = check_route.verify((producer.out / 'run.log').read_text(), saved, route)
+        _, one, zero = configuration(args.context)
         saved_state = io.save_state(saved, progression_flags=one | zero)
         io.require(saved_state['difficulty'] == 0 and [saved_state[k] for k in ('scene', 'art', 'view', 'held')] == [3510, 3510, 4, -1]
                    and all(saved_state['progression'][f] == 1 for f in one)
                    and all(saved_state['progression'][f] == 0 for f in zero), 'actual UI save state/reward differs')
         io.require(inventory(saved) == {4: 1, 5: 0, 13: 0}, 'UI save did not replace used5 with actual fresh4')
-        reload = io.Session(args, out / 'reload', saved, rc_flags=rc_flags())
+        if args.context == 'rune-passage':
+            io.require(struct.unpack_from('<I', saved.read_bytes(), 0x2ba + 4*2)[0] == 1, 'UI save lost retained crest2')
+        reload = io.Session(args, out / 'reload', saved, rc_flags=rc_flags(args.context))
         error = None
         try:
-            send(reload, story_route.load_save_prefix() + ';' + reload_payload())
+            send(reload, story_route.load_save_prefix() + ';' + (rune_reload_payload() if args.context == 'rune-passage' else reload_payload()))
         except (Exception, KeyboardInterrupt) as failure:
             error = str(failure) or type(failure).__name__
         finally:
             reload.close(error)
         io.require(reload.receipt['wall_seconds'] <= args.timeout, 'reload exceeded glyph deadline')
-        verify_reload(reload)
+        verify_reload(reload, args.context)
         io.require(all(io.digest(Path(path)) == pin for path, pin in protected.items()), 'protected source/native/tool/atlas input changed')
         accepted = out / saved.name
         io.require(not accepted.exists(), 'refuse accepted checkpoint overwrite')

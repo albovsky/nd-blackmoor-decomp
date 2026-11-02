@@ -452,3 +452,10 @@ The typing client computes its complete scoped union automatically. Geometry/OCR
 `story_route.py oil-gargoyle --save m48` preserves the actual95event body from the first-time typing source, with1944earned only through1900/1902/1903/1904 and actual crest2 allowing R,R,L,R,L,L,R gargoyle turns. Final3416/held-1 has1974/1877;2062already belonged to source. Original UI m48/freshreload pass102/9steps. No held2 or PUT is invented.
 
 `story_route.py rune-passage --save m49` preserves the59event body, actualheld4, six ordinary rune clicks and3194/3195win→3050. Source1809=0 rises on original3175raw-a1 flicker before3176changes2041/2042;1864/2081then2003are observed. The corrected checker retains this strict phase rather than removing the flag. Actual m49/freshreload pass66/9steps, safe3050/held4,day3/03:42. No replacement/Alchemy/fire win is claimed. Both full scopes, actual source/output hashes and clock/held-item readback are in RECOMP27.
+
+
+## Post-rune used light and paid replacement, 2026-11-02 Pacific
+
+`story_route.py rune-light-wait --save m50` preserves the old61event passage-exit/used5 prefix, then adds the source-correct12.9M ordinary wait and safe originalUI save. Current03:42 source reaches day3/14:36 at3335/held5. S3312 clears1514 during the earlier night traversal;3335waiting leaves it0. EffectiveBOOTBSUM+365still20,000ms despite its loose full-payload difference; Jane's effective3345gate is unchanged.91producer/9reloadsteps pass.
+
+`repeat_glyph_live.py --context rune-passage --save-name m51` starts from genuine m50 and enters the paid board directly, with no abandoned pending game. Glyph/IO policy and default first-paid mode remain unchanged. Its exact sourcebagguard supports the later11item inventory: selectfresh4, reopenbag, empty134,310PUT/X. Reload uses206,243selection then134,310PUT. Actual17plans/new1299/1949/fresh4 win,287producer/22reloadsteps pass. UI m51safe3510/view4/held-1/day3/14:57,4owned1 and5/13zero. Source/input/output/atlas/scopes and accepted limits are in RECOMP28.

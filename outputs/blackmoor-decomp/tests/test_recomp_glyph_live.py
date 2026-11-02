@@ -188,5 +188,61 @@ class RepeatGlyphInputTests(unittest.TestCase):
                 repeat.verify_reload(SimpleNamespace(observations=frames))
 
 
+class RuneRepeatGlyphInputTests(unittest.TestCase):
+    def test_post_rune_preflight_requires_actual_wait_save_items_and_cleared1514(self):
+        _, one, zero = check_route.rune_light_configuration('rune-light-wait')
+        data = bytearray(170770)
+        for value, offset in ((0, 0x9034), (5, 0x10e), (3335, 0x21642), (3335, 0x21646), (0, 0x215d2)):
+            struct.pack_into('<h', data, offset, value)
+        for flag in one:
+            struct.pack_into('<I', data, 0x1ee6 + 4*flag, 1)
+        for item in (2, 6, 7, 11, 12, 16, 17, 19, 20, 21):
+            struct.pack_into('<I', data, 0x2ba + 4*item, 1)
+        for fmt, offset, value in (('<I', 0x2430, 876), ('<H', 0x2434, 36), ('<H', 0x2436, 14), ('<H', 0x2438, 3)):
+            struct.pack_into(fmt, data, offset, value)
+        with tempfile.TemporaryDirectory() as folder:
+            source = Path(folder) / 'synthetic.SAV'
+            source.write_bytes(data)
+            self.assertEqual(repeat.source_state(source, 'rune-passage')['inventory'], {4: 0, 5: 0, 13: 0})
+            with self.assertRaises(ValueError):
+                repeat.source_state(source)  # Existing first-paid default refuses this later source.
+            for fmt, offset, value in (('<h', 0x10e, -1), ('<h', 0x9034, 2), ('<I', 0x2ba + 4*2, 0),
+                    ('<I', 0x2ba + 4*5, 1), ('<I', 0x2ba + 4*8, 1), ('<I', 0x1ee6 + 4*1514, 1), ('<I', 0x1ee6 + 4*2003, 0),
+                    ('<I', 0x1ee6 + 4*1972, 1), ('<I', 0x1ee6 + 4*1687, 1), ('<H', 0x2436, 13)):
+                changed = bytearray(data)
+                struct.pack_into(fmt, changed, offset, value)
+                source.write_bytes(changed)
+                with self.subTest(offset=offset), self.assertRaises(ValueError):
+                    repeat.source_state(source, 'rune-passage')
+
+    def test_rune_full_bag_put_and_reload_match_successful_owned_crest_context(self):
+        for payload, digest in ((repeat.rune_inventory_payload(), 'd0551dbd2b789b5416cd004d4223fc9ff516e98647c8908594d743fab4f31cb3'),
+                (repeat.rune_put_payload(), '130ad37481acd1a7e10777390d27556e6c6f872411f570095d80fa0b21edca79'),
+                (repeat.rune_reload_payload(), 'ace0afdd0c02d8eea0b73ca27f72b42da74630068901e3cb87775a0d2563ef8a')):
+            self.assertEqual(hashlib.sha256(payload.encode()).hexdigest(), digest)
+        self.assertIn('1001:click:134,310,600', repeat.rune_put_payload())
+        self.assertIn('S3510.CIF+23000:click:206,243,600', repeat.rune_reload_payload())
+        self.assertIn('S3510.CIF+38000:click:134,310,600', repeat.rune_reload_payload())
+        # The original first-paid source has a different bag context.
+        self.assertIn('6601:click:62,100,300', repeat.inventory_payload())
+        self.assertIn('S3510.CIF+20000:click:134,243,600', repeat.reload_payload())
+
+    def test_rune_context_reload_and_play_button_preserve_existing_policy_and_io(self):
+        from types import SimpleNamespace
+        _, one, zero = check_route.rune_light_configuration('rune-light-replacement')
+        raw = {f: 1 for f in one}
+        raw.update({338: 900 << 16, 339: 0, 340: (3 << 16) | 15, 341: 0})
+        frames = [{'state': [3510, 3510, 4, held], 'scope': repeat.rc_flags('rune-passage'), 'flags': dict(raw)}
+                  for held in (-1, -1, 4, -1, -1)]
+        repeat.verify_reload(SimpleNamespace(observations=frames), 'rune-passage')
+        frames[0]['flags'][1514] = 1
+        with self.assertRaises(ValueError):
+            repeat.verify_reload(SimpleNamespace(observations=frames), 'rune-passage')
+        self.assertEqual(check_route.flag_scope(repeat.rc_flags('rune-passage')), one | zero)
+        self.assertEqual(repeat.rune_board_payload(), '1:move:480,152;1001:click:480,152,300;S3588.CIF+500:move:635,385;S3588.CIF+1000:shot:0,0')
+        self.assertIs(repeat.send, glyph.send)
+        self.assertIs(repeat.glyph_pixels, pixels)
+
+
 if __name__ == '__main__':
     unittest.main()
