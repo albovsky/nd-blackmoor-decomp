@@ -23,3 +23,5 @@ This proves normal headless Quit from m8, not exceptional abort paths, active mo
 Review coverage limits: the exact census delta was observed in retained outputs, not asserted as a permanent total by the test. Parent/span/padding guards have no negative fixture; they are independently checked against immutable original bytes and audited extents. Keeping this one-entry correction local avoids a general boundary refactor. The final test path also honors BLACKMOOR_ORIGINAL_WORK for original input, as the reviewer suggested. Generalizing size extraction from xrefs is deferred; the existing explicit extent and padding guards suffice for this fixed executable.
 
 The reviewed test-path follow-up passes both checks again in23.366 seconds; retained log `quit-reviewed-tests.log`.
+
+Final Sonnet follow-up accepts frozen900d33fe with no P1 or blocking P2 (`quit-followup-review.txt`); production code is unchanged from the accepted initial review.
