@@ -22,7 +22,7 @@ All29 finite Python cases pass, including seven new generation/transition/held-k
 
 ## Review and limits
 
-Independent Sonnet review and required registered-test evidence refresh are pending. No function-port acceptance or match claim is added. Other deals, alternate difficulty, other columns/armor, a real-clock Mac replay of these long virtual waits, full campaigns and final background credits remain incomplete. Private story continuation throughm27 and the separate Senior campaign are outside this slice's reviewed claim.
+Required registered-test evidence was refreshed in clean db4db435; `venus-refresh-receipt.json` verifies every function status/class/count/native lift field and all1763 peer tested-equivalent claims unchanged. Public CLI bytes also equal the actual0c exercised inputs. Independent Sonnet review and final freshness checks are pending. No function-port acceptance or match claim is added. Other deals, alternate difficulty, other columns/armor, a real-clock Mac replay of these long virtual waits, full campaigns and final background credits remain incomplete. Private story continuation throughm27 and the separate Senior campaign are outside this slice's reviewed claim.
 
 ## Source and input pins
 
