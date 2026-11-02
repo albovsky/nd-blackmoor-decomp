@@ -31,3 +31,12 @@ Applied-path finite checks initially pass78route+7Bul+5glyph=90 in0.288/0.204/0.
 - `recomp/route_tools/story_route.py`: `7a457912caf6433f3207d556a6434769385194a844333de84ba30010c91e234f`
 - `recomp/route_tools/check_route.py`: `2d94c984ba481f995fe47c73a9e0b9dfb85e5e94aaafda1fcc7c04be242f0dd6`
 - `tests/test_recomp_route_check.py`: `e7f178f3eb88d2b7dd1291242f4ef15f9782c70afbfaca31e5b0679d7b644903`
+
+
+## Independent review and limits
+
+Sonnet high accepts frozen5a859da0 with no P1 or blocking P2 (static-only). Root accepts global ordered-open scope, narrow source-clock/Junior coverage and recorded unverified variants. Flag1514 is already1 in the genuine source m29 by read-only saved-field inspection; its original earning transition is not claimed here. It is logged/required in Drake/answer; earlier three leg scopes do not observe it. Morning arrival is established by actual clock progression; reopening3335 alone proves no wait. Hardcoded result metadata word_lock_won=false is descriptive;1984/2018 zero checks enforce the claim.
+
+Source save clocks17:23 and08:23 differ from nearby logged frames17:24 and08:22..08:24; all are retained as observed. Source m29 is specifically day2/hour16 for this chain. Other legitimate later glyph outputs may need a different clock gate and ordinary wait. Check count90 combines the initial78route+7Bul+5glyph passes; after the two-literal1092 correction only the affected78route checks were rerun (PASS0.288s), unchanged Bul/glyph checks were not repeated. The independent literal1092 case fails the predecessor normally. No native run was repeated for checker/docs changes. Generated-only refresh preserves all counts, statuses/classes, native/oracle evidence and1793peer claims; both final extractor/ledger freshness checks pass at767ab774.
+
+Private final review/check/refresh logs share `word-prerequisites-` prefix. Review uses frozen source5a859da0; final mechanically generated metadata767ab774 changes no source/test body or existing claim. Root publication stays in the original authorizing chat.

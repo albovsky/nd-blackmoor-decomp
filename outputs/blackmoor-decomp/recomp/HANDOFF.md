@@ -2,7 +2,7 @@
 
 ## Latest word prerequisites, 2026-11-02 Pacific
 
-RECOMP-21 adds five exact ordinary-input legs from public glowstick m29: lit word clue, corrected daytime Loulou/Barber dialogue, source-specific18M morning wait, Drake magic-word knowledge and Loulou's LEECH answer. Five actual producer/save-only reload pairs pass through m35; the word lock itself remains unsolved in this public chain. Final-source Drake Bye1092 corrects an earlier1090 checker expectation. Root finite checks, full scoped audit and private hashes are in the packet; frozen review/metadata pending. Continuous Junior/Senior campaigns remain further ahead toward alchemy/endgame.
+RECOMP-21 adds five exact ordinary-input legs from public glowstick m29: lit word clue, corrected daytime Loulou/Barber dialogue, source-specific18M morning wait, Drake magic-word knowledge and Loulou's LEECH answer. Five actual producer/save-only reload pairs pass through m35; the word lock itself remains unsolved in this public chain. Final-source Drake Bye1092 corrects an earlier1090 checker expectation. Root finite checks, full scoped audit and private hashes are in the packet. Sonnet accepts frozen5a859da0 without blockers; generated refresh preserves all claims/1793peer records, and both final freshness checks pass at767ab774. Continuous Junior/Senior campaigns remain further ahead toward alchemy/endgame.
 
 ## Latest glyph progression, 2026-11-02 Pacific
 
