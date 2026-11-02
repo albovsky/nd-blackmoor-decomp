@@ -33,6 +33,7 @@
 extern "C" {
 #include "bink_audio.h"
 #include "bink_player.h"
+#include "rc_pointer_input.h"
 #include "macos_platform.h"
 #include "macos_platform_background.h"
 #include "rc_platform.h"
@@ -71,7 +72,7 @@ struct Recomp {
     std::atomic<bool> game_done{false};
     std::vector<uint8_t> rgba;
     uint64_t last_serial = ~0ull;
-    int left_down = 0;
+    uint32_t pointer_buttons = 0;
     int32_t pointer_x = 0, pointer_y = 0;
     bool muted = false;
     bool background = false, terminate_requested = false;
@@ -311,12 +312,13 @@ int32_t clamp_coordinate(int32_t v, int32_t limit) { return v < 0 ? 0 : (v >= li
 
 void on_pointer(void *, BlackmoorPointerKind kind, int32_t x, int32_t y, unsigned button)
 {
-    if (button != 0) return;
+    if (button > 1) return;
     g.pointer_x = clamp_coordinate(x, (int32_t)kLogicalWidth);
     g.pointer_y = clamp_coordinate(y, (int32_t)kLogicalHeight);
-    if (kind == BLACKMOOR_POINTER_DOWN) g.left_down = 1;
-    if (kind == BLACKMOOR_POINTER_UP) g.left_down = 0;
-    rc_input_mouse(g.pointer_x, g.pointer_y, g.left_down);
+    const uint32_t bit = button == 0 ? RC_POINTER_LEFT : RC_POINTER_RIGHT;
+    if (kind == BLACKMOOR_POINTER_DOWN) g.pointer_buttons |= bit;
+    if (kind == BLACKMOOR_POINTER_UP) g.pointer_buttons &= ~bit;
+    rc_input_pointer_mask(g.pointer_x, g.pointer_y, g.pointer_buttons);
 }
 
 void on_key(void *, unsigned virtual_key, int down, int repeat)

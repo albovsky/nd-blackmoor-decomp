@@ -15,6 +15,7 @@
 #include <time.h>
 #include <unistd.h>
 #include "rc_internal.h"
+#include "rc_pointer_input.h"
 
 #define API(name) static int api_##name(Fl41Regs *r, const uint32_t *a, uint32_t *ret)
 #define UNUSED (void)r; (void)a; (void)ret
@@ -220,7 +221,10 @@ static uint32_t hooks[16];
 
 static uint32_t vk_down_until[256];
 static uint32_t btn_until;
-static int btn_flag;                 /* real input: the left button is held */
+/* Lock order: input_state_lock then mq_lock; neither calls guest code while
+ * held. All real button/key/cursor/timed-hold state uses this lock. */
+static pthread_mutex_t input_state_lock = PTHREAD_MUTEX_INITIALIZER;
+static uint32_t real_buttons;
 static int key_flag[256];
 static int32_t cursor_x = 320, cursor_y = 240;
 static uint32_t focus;
@@ -280,10 +284,38 @@ static uint32_t send_msg(uint32_t hwnd, uint32_t msg, uint32_t wp, uint32_t lp)
     return rc_call(proc, 4, args, 0);
 }
 
+static uint32_t pointer_modifiers_locked(void)
+{
+    uint32_t flags = 0;
+    if (key_flag[0x10] || key_flag[0xa0] || key_flag[0xa1]) flags |= RC_POINTER_SHIFT;
+    if (key_flag[0x11] || key_flag[0xa2] || key_flag[0xa3]) flags |= RC_POINTER_CONTROL;
+    return flags;
+}
+
+static void input_pointer_locked(int32_t x, int32_t y, uint32_t buttons)
+{
+    RcPointerMessage messages[3];
+    uint32_t before = real_buttons;
+    real_buttons = buttons & (RC_POINTER_LEFT | RC_POINTER_RIGHT);
+    cursor_x = x; cursor_y = y;
+    unsigned count = rc_pointer_plan(before, real_buttons, pointer_modifiers_locked(), x, y, messages);
+    uint32_t hwnd = rc_main_hwnd;
+    if (hwnd) for (unsigned i = 0; i < count; ++i)
+        rc_msg_post(hwnd, messages[i].message, messages[i].wparam, messages[i].lparam);
+}
+
+void rc_input_pointer_mask(int32_t x, int32_t y, uint32_t buttons)
+{
+    pthread_mutex_lock(&input_state_lock);
+    input_pointer_locked(x, y, buttons);
+    pthread_mutex_unlock(&input_state_lock);
+}
+
 /* Input from the platform. kind: 0 move, 1 click (press and release; buttons = hold ms), 2 key (key = virtual key; buttons = hold ms),
  * 3 mouse state (real input: x, y and buttons bit 0), 4 key state (key, buttons = down). */
 void rc_input_event(uint32_t kind, int32_t x, int32_t y, uint32_t buttons, uint32_t key)
 {
+    pthread_mutex_lock(&input_state_lock);
     uint32_t hwnd = rc_main_hwnd;
     uint32_t lp = ((uint32_t)y << 16) | ((uint32_t)x & 0xffffu);
     switch (kind) {
@@ -299,23 +331,16 @@ void rc_input_event(uint32_t kind, int32_t x, int32_t y, uint32_t buttons, uint3
         if (hwnd) { rc_msg_post(hwnd, 0x0100, key, 0); rc_msg_post(hwnd, 0x0101, key, 0xc0000000u); }
         if (key < 256) vk_down_until[key] = rc_clock() + buttons;
         break;
-    case 3: {
-        int was = btn_flag;
-        int now = (int)(buttons & 1u);
-        cursor_x = x; cursor_y = y;
-        btn_flag = now;
-        if (hwnd) {
-            if (!was && now) { rc_msg_post(hwnd, 0x0200, 0, lp); rc_msg_post(hwnd, 0x0201, 1, lp); }
-            else if (was && !now) rc_msg_post(hwnd, 0x0202, 0, lp);
-            else rc_msg_post(hwnd, 0x0200, now ? 1u : 0u, lp);
-        }
-        break; }
+    case 3:
+        input_pointer_locked(x, y, (real_buttons & RC_POINTER_RIGHT) | (buttons & RC_POINTER_LEFT));
+        break;
     case 4:
         if (key < 256) key_flag[key] = (int)buttons;
         if (hwnd) rc_msg_post(hwnd, buttons ? 0x0100u : 0x0101u, key, buttons ? 0u : 0xc0000000u);
         break;
     default: break;
     }
+    pthread_mutex_unlock(&input_state_lock);
 }
 
 void rc_input_mouse(int32_t x, int32_t y, int left_down) { rc_input_event(3, x, y, (uint32_t)(left_down != 0), 0); }
@@ -345,15 +370,23 @@ void rc_input_key(uint32_t vk, int down)
 {
     rc_input_event(4, 0, 0, 0, 0);
     if (vk >= 256) return;
+    pthread_mutex_lock(&input_state_lock);
     key_flag[vk] = down;
-    if (!rc_main_hwnd) return;
+    if (!rc_main_hwnd) { pthread_mutex_unlock(&input_state_lock); return; }
     rc_msg_post(rc_main_hwnd, down ? 0x0100u : 0x0101u, vk, down ? 0u : 0xc0000000u);
     if (down) {          /* the shift state of this key press, not whatever it is when the game reads the message */
         uint32_t ch = vk_char(vk, key_flag[0x10] || key_flag[0xa0] || key_flag[0xa1]);
         if (ch) rc_msg_post(rc_main_hwnd, 0x0102u, ch, 0u);
     }
+    pthread_mutex_unlock(&input_state_lock);
 }
-void rc_set_input_state(int32_t x, int32_t y, uint32_t buttons) { cursor_x = x; cursor_y = y; btn_flag = (int)(buttons & 1u); }
+void rc_set_input_state(int32_t x, int32_t y, uint32_t buttons)
+{
+    pthread_mutex_lock(&input_state_lock);
+    cursor_x = x; cursor_y = y;
+    real_buttons = (real_buttons & RC_POINTER_RIGHT) | (buttons & RC_POINTER_LEFT);
+    pthread_mutex_unlock(&input_state_lock);
+}
 
 static int next_message(Msg *m)
 {
@@ -379,7 +412,10 @@ static int next_message(Msg *m)
 
 static void fill_msg(uint32_t p, Msg m)
 {
-    uint32_t v[7] = {m.hwnd, m.msg, m.wp, m.lp, rc_clock(), (uint32_t)cursor_x, (uint32_t)cursor_y};
+    pthread_mutex_lock(&input_state_lock);
+    int32_t x = cursor_x, y = cursor_y;
+    pthread_mutex_unlock(&input_state_lock);
+    uint32_t v[7] = {m.hwnd, m.msg, m.wp, m.lp, rc_clock(), (uint32_t)x, (uint32_t)y};
     rc_write(p, v, sizeof v);
 }
 
@@ -1645,13 +1681,23 @@ API(GetKeyState) { UNUSED; RET(0); }
 API(GetAsyncKeyState)
 {
     (void)r;
-    uint32_t vk = a[0], now = rc_clock();
-    if (vk == 1 && (btn_flag || now < btn_until)) RET(0x8001);
-    if (vk < 256 && (key_flag[vk] || now < vk_down_until[vk])) RET(0x8001);
-    RET(0);
+    uint32_t vk = a[0], now = rc_clock(), state = 0;
+    pthread_mutex_lock(&input_state_lock);
+    if (vk == 1 && ((real_buttons & RC_POINTER_LEFT) || now < btn_until)) state = 0x8001;
+    else if (vk < 256 && (key_flag[vk] || now < vk_down_until[vk])) state = 0x8001;
+    if (vk == 2 && (real_buttons & RC_POINTER_RIGHT)) state |= 0x8000u;
+    pthread_mutex_unlock(&input_state_lock);
+    RET(state);
 }
 API(SetCursorPos) { UNUSED; RET(1); }            /* the game re-centres the cursor every frame; the reported position stays */
-API(GetCursorPos) { (void)r; rc_w32(a[0], (uint32_t)cursor_x); rc_w32(a[0] + 4, (uint32_t)cursor_y); RET(1); }
+API(GetCursorPos)
+{
+    (void)r;
+    pthread_mutex_lock(&input_state_lock);
+    int32_t x = cursor_x, y = cursor_y;
+    pthread_mutex_unlock(&input_state_lock);
+    rc_w32(a[0], (uint32_t)x); rc_w32(a[0] + 4, (uint32_t)y); RET(1);
+}
 API(SetCursor) { UNUSED; RET(0); }
 API(ShowCursor) { (void)r; cursor_count += a[0] ? 1 : -1; RET((uint32_t)cursor_count); }
 

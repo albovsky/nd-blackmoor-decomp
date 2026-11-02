@@ -1,6 +1,7 @@
 /* Shared host-only INPUT driver. No game-resource payload or state writes. */
 #include "rc_input_script.h"
 #include "rc_internal.h"
+#include "rc_pointer_input.h"
 #include <ctype.h>
 #include <errno.h>
 #include <limits.h>
@@ -72,9 +73,10 @@ RcInputScript *rc_input_script_parse(const char *text, RcInputScriptShot shot,
         if (!valid_at(part) || strlen(c1 + 1) >= sizeof st->kind) goto invalid;
         strcpy(st->at, part); strcpy(st->kind, c1 + 1);
         int point = !strcmp(st->kind, "move") || !strcmp(st->kind, "click");
+        int pointer = !strcmp(st->kind, "pointer");
         int key = !strcmp(st->kind, "key") || !strcmp(st->kind, "keydown") ||
                   !strcmp(st->kind, "keyup") || !strcmp(st->kind, "keyhold");
-        if (!point && !key && strcmp(st->kind, "shot")) goto invalid;
+        if (!point && !pointer && !key && strcmp(st->kind, "shot")) goto invalid;
         char *arg = c2 + 1;
         if (*arg) for (;;) {
             if (st->nargs == 4 || !*arg) goto invalid;
@@ -87,6 +89,7 @@ RcInputScript *rc_input_script_parse(const char *text, RcInputScriptShot shot,
             arg = comma + 1;
         }
         if ((point && st->nargs < 2) || (key && (st->nargs < 1 || st->arg[0] < 0 || st->arg[0] > 255))) goto invalid;
+        if (pointer && (st->nargs != 3 || st->arg[2] < 0 || st->arg[2] > 3)) goto invalid;
         ++s->nsteps;
     }
     free(copy);
@@ -180,6 +183,10 @@ void rc_input_script_poll(RcInputScript *s)
     if (!strcmp(st->kind, "shot")) {
         s->shots++;
         if (!s->shot || !s->shot(s->user, s->shots, now)) s->failed = 1;
+    } else if (!strcmp(st->kind, "pointer")) {
+        rc_input_pointer_mask(st->arg[0], st->arg[1], (uint32_t)st->arg[2]);
+        rc_log("  INPUT pointer %d,%d mask=%u at virtual %u ms",
+               st->arg[0], st->arg[1], (unsigned)st->arg[2], now);
     } else if (!strcmp(st->kind, "move") || !strcmp(st->kind, "click")) {
         int click = !strcmp(st->kind, "click");
         rc_input_event(click ? 1 : 0, st->arg[0], st->arg[1], st->nargs > 2 ? (uint32_t)st->arg[2] : 300u, 0);
