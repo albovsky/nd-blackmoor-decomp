@@ -1,10 +1,34 @@
 {
   "Cake": {
-    "accepted": false,
+    "accepted": true,
     "existing_public_client_supports_mode2": true,
     "mode": 2,
     "quantity": 1,
-    "source_unbound": true
+    "source_unbound": false,
+    "source_sha256": "3dfcffe0bf39cc73442bde3dbbe865ef1a5178ddd32c16586e6a75c0bcdb0fc0",
+    "output_sha256": "f07248820b05404533480b066873e5b792ea28f9adca73d26f3d8be461528e4c",
+    "acceptance_receipt": "work/recomp-playability-20261101/release92bc-senior-cake-v1/receipt.json",
+    "acceptance_sha256": "286f3a35b43a351ddb3b792fb7dbdfee7749b25b3af8fdd172dafac272767d1d",
+    "only_durable_flag_change": 1338,
+    "only_item_cell_change": 1,
+    "ordered_bag_prepend": 1,
+    "producer_events": 94,
+    "reload_events": 14,
+    "normal_return": {
+      "output_sha256": "6461bec6118dd5330f8ffe704fd688a52410cf1bce6561ffdd8044946597c95c",
+      "acceptance_sha256": "89119947f304d00c292b59c58956fe0d2a6ae42fcf4b5f2bbee8f21742515e66",
+      "saved_clock": {
+        "total_minutes": 1399,
+        "minute": 19,
+        "hour": 23,
+        "day": 3
+      },
+      "full409_40_order_unchanged": true,
+      "producer_events": 56,
+      "reload_events": 10
+    },
+    "combined_template_review_pending_before_merge": false,
+    "combined_template_review": "72e0840d ACCEPTlogic/noP1; actualCake+return cover the unverified currentSenior panorama branch"
   },
   "Memory": {
     "acceptance_receipt": "work/recomp-playability-20261101/release92bc-senior-memory-solve02/accepted-audit/receipt.json",
