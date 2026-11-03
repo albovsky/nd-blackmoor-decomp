@@ -2,7 +2,7 @@
 
 ## Native generation cache, 2026-11-02 Pacific
 
-RECOMP-35 makes both builders check source/input/output fingerprints before reusing generated C. Five finite regression groups pass. Both actual patched pipelines reproduce the independently rebuilt current-main9ae binaries exactly: headlessfc2575 and Macd2f12. The latter completes45 ordinary earned-ending inputs and actual credits with normal exit0; its source is the historical genuine m77, separate from the unfinished new zero-save campaign. Independent frozen review is pending. Old b49/c2fee gameplay remains explicitly historical. Whole-game acceptance remains open.
+RECOMP-35 makes both builders check source/input/output fingerprints before reusing generated C. Five finite regression groups pass. Both actual patched pipelines reproduce the independently rebuilt current-main9ae binaries exactly: headlessfc2575 and Macd2f12. The latter completes45 ordinary earned-ending inputs and actual credits with normal exit0; its source is the historical genuine m77, separate from the unfinished new zero-save campaign. Sonnet accepts frozen db3adf23 without blockers; final hash-compatibility delta review follows. Guarded metadata refresh preserves all1832 peer claims. Old b49/c2fee gameplay remains explicitly historical. Whole-game acceptance remains open.
 
 ## Latest alchemy and mould chapter, 2026-11-02 Pacific
 
