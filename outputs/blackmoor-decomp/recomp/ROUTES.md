@@ -1,5 +1,11 @@
 # Scripted routes on the native recompiled build
 
+## Optional Cake Mixing
+
+`recomp/route_tools/cake_live.py` performs the original first-use Cake branch from pinned Junior m51 or Senior s57. Four normal right hovers verify3→2→1→0, then microwave/instruction/oven input enters3600. Original ingredient selection, phase2 finish, baking and pickup produce good-cake1. After normal room return/UI Save, a fresh output-only Load selects actualheld1. See `CAKE-LIVE.md` for guarded commands and original controls.
+
+Both new public-client runs on b49 pass91/91 producer and14/14 reload steps with normal finish/exit0. Final save3520/view0/unheld owns1 and no bad-cake0; other39 inventory cells stay unchanged. Authored3554 resets1502/1503. Six-character names differ from historical private outputs; no old save is substituted. See campaigns/cake-optional.json and RECOMP-32. These optional branches do not grant other recipes, repeat sources, new hosts, whole-game or final Mac acceptance.
+
 ## Optional Memory
 
 `recomp/route_tools/memory_live.py` reuses ordinary Session/PPM input and learns only exposed card faces. Explicit profiles under `memory_profiles/` verify the genuine save's hash, difficulty, clock and prerequisites without changing state. The included12-event body preserves the observed Jane game request and Memory selection; shared Load makes19 events. See `MEMORY.md` for probe/solve commands and bounded post-win Bye input.
