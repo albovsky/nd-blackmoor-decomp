@@ -1,0 +1,11 @@
+# RECOMP-56: Verify the original Senior optional games
+
+Current6041 Senior Memory, Skull and Cake now pass from the same genuine NewGame lineage, with full409 saved fields/all40 inventory cells/orderedbag/rawclock/assets and actual UI-save/fresh-reload checks. Native game logic and original resources remain unchanged. Private artifacts are hash-pinned in senior-optional-verification.json; no game assets, saves or captures are published.
+
+Memory: solve01 hits the idle-poll cap before saving and remains failed. One normal repeat wins24pairs, uses the actually observed whole exit label, saves/reloads038ea962… atday3 20:48. A separate read-only JSON-key normalization audit accepts56b5e1e7… without replay; only1335/1345rise.
+
+Skull: the pre-run review catches a mandatory auxiliary-save guard; conditional inclusion passes all5 retained real-clone checks and independent1c9e9016 delta review. Three normal no-win deals remain recorded. A tiny visible request-selector experiment then puts recent-denial avoidance before pair size inside the existing captured-request hint groups, preserving originalSeniorA0/policyinputs/postwin/bounds. Three finite metadata checks RED1/GREEN3 and independentc9d28b77 ACCEPT precede deal04's actual win/save/reload3dfcffe0… atday3 23:07; only2008/2084rise, receipt4e918f3d…. The retained old-v9 priority fixture is historical and not claimed passing under this changed heuristic. This is not an all-deal guarantee.
+
+Cake: unchanged publicmode2/quantity1 wins one bake, earns physical1, saves/reloads actualheld1; full409 only1338rises/all40 only1rises/bagprepends1. Canonicalf0724882… saves3520/unheld/day3 23:16 (receipt286f3a35…). The normal nook exit/four left turns save/reload6461bec6… at3510/view4/unheld/day3 23:19, all optionalwins/cake1/crest2/light retained (receipt89119947…). The four later route helpers receive frozen72e0840d independent review ACCEPTlogic/noP1; narrower live coverage and binding limits are recorded separately.
+
+Root original authorizing chat01a170c4-6fa4-7831-9a46-f076fbcfab37 alone executes, collects and publishes. Parked/protected files remain untouched. Wider boards/deals/transient branches and whole-game completion remain unverified.

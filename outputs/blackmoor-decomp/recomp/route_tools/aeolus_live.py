@@ -1,4 +1,4 @@
-"""One caller-pinned Junior Aeolus attempt using captured pixels and ordinary FIFO input.
+"""One caller-pinned Junior or Senior Aeolus attempt using captured pixels and ordinary FIFO input.
 Import is read-only. Native launch occurs only in main, after caller path/hash/profile guards.
 """
 import argparse
@@ -92,6 +92,8 @@ def play(session, planner, profile):
 
 def argument_parser():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--profile', choices=tuple(guard.PROFILE_DIFFICULTIES), default='junior',
+                        help='original difficulty profile (default: junior)')
     for name in ('native', 'game-exe', 'game-data', 'source-save', 'profile-manifest', 'atlas', 'output'):
         parser.add_argument('--'+name, type=Path, required=True)
     for name in ('native-sha256', 'game-exe-sha256', 'source-sha256', 'profile-manifest-sha256', 'atlas-sha256'):
@@ -108,8 +110,10 @@ def validate_manifest(manifest, args):
     guard.require(args.game_exe_sha256 == io.ORIGINAL_SHA256 and args.native_sha256 != io.ORIGINAL_SHA256,
                   'native must be a separate pinned host; original is data only')
     profile = manifest.get('profile', {})
-    guard.require(profile.get('source_sha256') == args.source_sha256 and profile.get('state') == [3803,3803,0,13]
-                  and profile.get('difficulty') == 0, 'profile must describe the earned Junior mould source/held13')
+    difficulty = guard.PROFILE_DIFFICULTIES.get(getattr(args, 'profile', 'junior'))
+    guard.require(difficulty is not None and type(profile.get('difficulty')) is int
+                  and profile.get('source_sha256') == args.source_sha256 and profile.get('state') == [3803,3803,0,13]
+                  and profile.get('difficulty') == difficulty, 'profile must describe the selected earned mould source/held13')
     _, inherited_one, inherited_zero = check_route.alchemy_win_configuration()
     _, one, zero = check_route.lab_mould_configuration('mould-shape')
     expected = {str(f): int(f in inherited_one|one) for f in inherited_one|inherited_zero|one|zero}

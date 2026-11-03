@@ -1,0 +1,195 @@
+{
+  "status": "SeniorMemorySkullCakeFireNigelAlchemyMouldAeolus actualpassed; latecampaign/ending still pending",
+  "whole_game_complete": false,
+  "native_sha256": "6041e31e9d486111f6a0b64a7ce9764d52c292f35339fa1a84f3be7c18d31de4",
+  "publisher_chat": "01a170c4-6fa4-7831-9a46-f076fbcfab37",
+  "future_sources_unbound": false,
+  "binding_rule": "Only bind actual accepted predecessor path/SHA/full409/40/order/rawclock/NewGame origins and metadata pins; no policy/bounds/guest state changes. Record exact deltas and actual receipts before merge.",
+  "templates": {
+    "Cake": {
+      "path": "work/recomp-playability-20261101/release92bc-senior-cake-envelope-template-v1",
+      "PINS_sha256": "e2494ef9987d378759c00426bc498eaa18cfd1ed12fbcb3f2010c74762abc0d7",
+      "source": "3dfcffe0bf39cc73442bde3dbbe865ef1a5178ddd32c16586e6a75c0bcdb0fc0",
+      "actual_run": "release92bc-senior-cake-v1",
+      "bound_packet": "work/recomp-playability-20261101/release92bc-senior-cake-envelope-prep-v1",
+      "bound_PINS_sha256": "2c2e04c6bd97159cf9214f42c5563a1dec06e842b436d87394b911e92d3d3cd7",
+      "accepted": true,
+      "acceptance_sha256": "286f3a35b43a351ddb3b792fb7dbdfee7749b25b3af8fdd172dafac272767d1d"
+    },
+    "Cake_return": {
+      "path": "work/recomp-playability-20261101/release92bc-senior-cake-template-v1",
+      "PINS_sha256": "afb7fad91eaaa396b151aa1e68e179013333bb833365abb64c19161dad3e4cf1",
+      "source": "f07248820b05404533480b066873e5b792ea28f9adca73d26f3d8be461528e4c",
+      "actual_run": "release92bc-senior-cake-return-v1",
+      "bound_packet": "work/recomp-playability-20261101/release92bc-senior-cake-return-prep-v1",
+      "bound_PINS_sha256": "5297866770d792c9451fcd7755fab227cda362e75e7bf72cb5e5d4ef63bf8b86",
+      "accepted": true,
+      "acceptance_sha256": "89119947f304d00c292b59c58956fe0d2a6ae42fcf4b5f2bbee8f21742515e66"
+    },
+    "Fire_Nigel52_57": {
+      "path": "work/recomp-playability-20261101/release92bc-senior-post-optional52-57-template-v2",
+      "PINS_sha256": "726ffb03754177b94766f78bd705740322f96b522d6fc1e739e2367ee5525ad2",
+      "source": "6461bec6118dd5330f8ffe704fd688a52410cf1bce6561ffdd8044946597c95c",
+      "actual_run": "release92bc-senior-post-optional52-57-v1",
+      "bound_manifest_sha256": "05d1fd04d656a940031e715241f7f615f0249879f08811e48a7a4e2926ebbffe",
+      "bound_PINS_sha256": "4c2f4e9016b369e91d664f96b6aca48b3e519638d169349807f81f047d6cbf08",
+      "accepted": true,
+      "status": "52\u2013n55w accepted prefix; m55 logger rawrefusal retained; read-onlyaudit/freshreload/56/57 recovery accepted",
+      "final_checkpoint": "release92bc-senior-m55-recovery-v1/checkpoints/m57.SAV",
+      "output_sha256": "98da17925157f1d5875cfe85d7d48c450e3a0f8bf1544928a31c8300e81c0be4"
+    },
+    "Alchemy_mould58_60": {
+      "path": "work/recomp-playability-20261101/release92bc-senior-alchemy-lab-mould-template-v1",
+      "PINS_sha256": "029dfe0b0254cd7a131d651366c74982570a2c0e35ddffdd678eb1bc05e81020",
+      "source": "98da17925157f1d5875cfe85d7d48c450e3a0f8bf1544928a31c8300e81c0be4",
+      "actual_run": "release92bc-senior-alchemy-lab-mould-v2",
+      "bound_packet": "work/recomp-playability-20261101/release92bc-senior-alchemy-lab-mould-prep-v2",
+      "bound_PINS_sha256": "c6531fd000cc206f5f28b79c35bb68c80f61bd24d741f34799e8ef1bf45606e9",
+      "manifest_sha256": "e622cc182081bde5f5048c5deeea461d640d14057ce050781f26d408d2e69bf4",
+      "accepted": true,
+      "status": "actual58/59/60 producer/freshreload pairs pass; compact111/114/114 IDs and full409SAV/40/bag",
+      "compact_live_maximum_bytes": [
+        816,
+        837,
+        837
+      ],
+      "full_standalone_ancestor_live_checker_claimed": false,
+      "all_no_event_negatives_included": true,
+      "independent_delta_review_pending": false,
+      "independent_review": "a3cf5755 ACCEPT/noP1; bounded live coverage and original baseline delta disclosed",
+      "acceptance_sha256": "7f194b906a0a0f0fbc36354b815adee4fdb38243b78b7daf71d98c0f2112d7d1",
+      "output_sha256": "b8256e0bbd8a210d29d80a641c0f504dc0fee12d93054df89225bfaf4a5b3af8",
+      "live_coverage_drops_against_public_configuration": {
+        "m58": {
+          "positive_count": 121,
+          "negative_ids": [
+            1670,
+            1673,
+            1674,
+            1675,
+            1680,
+            1683,
+            1684,
+            1698,
+            1704,
+            1705,
+            1747,
+            1748,
+            1749,
+            1750,
+            1874,
+            1901
+          ]
+        },
+        "m59_m60": {
+          "positive_ids": [
+            1148,
+            1149,
+            1150,
+            1151,
+            1152,
+            1153,
+            1154,
+            1155,
+            1156,
+            1157,
+            1158,
+            1159
+          ]
+        }
+      },
+      "delta_against_reviewed_template_v1": [
+        "compact_phases helper and named-phase calls",
+        "core73d00d8b to2c24ed2a: 1707 witness restriction, unused here because incidental false",
+        "compact stage metadata and bound SOURCE_SHA",
+        "postprotection failure requires nonzero exit"
+      ],
+      "negative_mutation_suites_run": false
+    }
+  },
+  "independent_review": {
+    "frozen_commit": "72e0840d",
+    "verdict": "ACCEPT for logic/noP1",
+    "review_sha256": "d338f2b3774e4248d092d13cb7c3952678b7a1624bdd58c0adee6ac8c078879e",
+    "scope": "all four unbound helpers; metadata-only genuine source binding permitted",
+    "P2_binding_actions": [
+      "full3560 alchemy seed, full runtime packet-file coverage",
+      "preproject fire/alchemy durable maps and source preconditions before native",
+      "immediate parent plus root-verified serial NewGame lineage; no recursive walker claim"
+    ],
+    "unverified": "other Senior boards/late-window waits; stage metadata remains unbound until actual earned source"
+  },
+  "m55_logging_recovery": {
+    "packet": "work/recomp-playability-20261101/release92bc-senior-m55-recovery-prep-v1",
+    "PINS_sha256": "632f990170df97da47b50998df2869d02cef4063fc21b3ae98c71ae5d6ef0bff",
+    "manifest_sha256": "cc7c356de1ff1649f72477017b867b330809eff6c8cccc6af6a44c50fac7e01d",
+    "runner_sha256": "38c03fa4de10ef54e58a38ae9521aec57b1b46f54434a569e6925e77c0891c3e",
+    "actual_m55_sha256": "19b2748948c7d5ee0574436eb1dc36dc63a2b5691425c4ab47276da4315c3ee6",
+    "issue": "1024-byte diagnostic logger omits requested2232; actual source/output both1; no game-state defect",
+    "retained_full409_deltas": [
+      1514,
+      1672
+    ],
+    "all40_order_unchanged": true,
+    "retained_raw_refusal": true,
+    "producer_replay": false,
+    "live_contract": "79 IDs/75 binary plus4 clock; conservative592 bytes; original named public dynamic phase verifier for56/57",
+    "durable_contract": "all409 source/UI output SAV/fresh copy/all40/bag remains exact",
+    "full_standalone_ancestor_live_checker_claimed": false,
+    "independent_delta_review_pending": false,
+    "actual_recovery_pending": false,
+    "independent_review": "2ed8f42b ACCEPT/noP1 with disclosedP2notes",
+    "accepted": true,
+    "acceptance_sha256": "1f0a1945578adbe7101037c622683133988da4424e5f8c39bf56675dbe4afd72",
+    "output_sha256": "98da17925157f1d5875cfe85d7d48c450e3a0f8bf1544928a31c8300e81c0be4",
+    "root_serial_edge_audit_sha256": "3c1a7940c564d0f44f8bc07ab9e2616cb7b564513977b8480728ed2ffb9d1152",
+    "coverage_limits": [
+      "139 positive inherited fields and 11 no-event negatives not all streamed live in this run; full409 durable checks exact",
+      "actualreceipt accepted/protectedtrue verified; frozenrunner stdout-exit failure-path P2 not exercised",
+      "no negative/fault/mutation suites run; dynamicphase API coveredactualaccepted path"
+    ]
+  },
+  "Aeolus": {
+    "accepted": true,
+    "mode": 2,
+    "code_reviewed_commit": "e712dfc7",
+    "profile_checks_passed": 11,
+    "bound_packet": "work/recomp-playability-20261101/release92bc-senior-aeolus-prep-v1",
+    "bound_PINS_sha256": "6b9c160eca9100460bb685ca8e04644b5823a321ed5d827edddfe6ff6d71e77d",
+    "source_sha256": "b8256e0bbd8a210d29d80a641c0f504dc0fee12d93054df89225bfaf4a5b3af8",
+    "output_sha256": "de51c391fb476778695682893df3f487021709216e26f5746f755a85d5311882",
+    "public_receipt_sha256": "adacd340e14271a79eccb2ef72c769d193470dbc92ad2569a3f9da87d7dc86ea",
+    "full409_audit_sha256": "3d7951036ee5acb51908d3e62be2805e51442bc6a586df95975d328dd21482ef",
+    "only_six_rises": [
+      1098,
+      1099,
+      1100,
+      1101,
+      1959,
+      2052
+    ],
+    "other403_all40_order_unchanged": true,
+    "source_and_output_mode2": true,
+    "state": [
+      3813,
+      3813,
+      0,
+      13
+    ],
+    "saved_clock": {
+      "day": 4,
+      "hour": 9,
+      "minute": 49,
+      "total_minutes": 589
+    },
+    "producer_events": 168,
+    "producer_captures": 51,
+    "reload_events": 8,
+    "reload_captures": 2,
+    "both_native_exit": 0,
+    "FLAGS_schema_ids": 104,
+    "conservative_FLAGS_body_bytes": 760,
+    "binder_v2_refusal_before_any_output": "metadata diff join received generators; v3 flattens diff generators only; no native/source/policy changes",
+    "binder_v3_sha256": "1985ba0956cd93ed452e2e8d45543747ab3f2a52a8944d461b2f3ee8e12401ad"
+  }
+}
