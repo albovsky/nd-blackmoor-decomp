@@ -1,6 +1,6 @@
 {
   "whole_game_complete": false,
-  "status": "actual66\u201370 passed;71\u201374 active;forge and Mac sources unbound",
+  "status": "actual Senior66\u201377 passed; headless ending active; Macv3 bound and review pending",
   "publisher_chat": "01a170c4-6fa4-7831-9a46-f076fbcfab37",
   "native_headless_sha256": "6041e31e9d486111f6a0b64a7ce9764d52c292f35339fa1a84f3be7c18d31de4",
   "native_Mac_sha256": "a48d24d63c9d6e9b1fb3cf21f86c9a56720677d37130c6423e3db63540223113",
@@ -28,20 +28,36 @@
       "actual_source_unbound": false,
       "source_sha256": "e468212497c051d3691daf3a61077e47fcdd8525fdc31d5e7937b5a1920a08a0",
       "actual_run": "release92bc-senior-mercury-well-v1",
-      "accepted": false,
-      "corrected_1672_guard": "actual corrected Junior73/74 retained1;73delta empty; frozen earlier map drop prose superseded"
+      "accepted": true,
+      "corrected_1672_guard": "actual corrected Junior73/74 retained1;73delta empty; frozen earlier map drop prose superseded",
+      "output_sha256": "0f6c1864d1a37881ca923a95504cab5b943192e8d4b66f4823a7011e9e0f88ab",
+      "acceptance_receipt_sha256": "0ca621fa4f4fc4a1be54011e2a73ebebf9b6231066478236966295eec4930864"
     },
     "forge75_77": {
-      "path": "work/recomp-playability-20261101/release92bc-senior-forge-tail-template-v1",
-      "pin_file": "PINS.json",
-      "sha256": "43ade73d909054f07b54778f16a80b58f5985fdfb8b78fbe10873a009f63a935",
-      "actual_source_unbound": true
+      "path": "work/recomp-playability-20261101/release92bc-senior-forge-tail-prep-v1",
+      "pin_file": "BOUND-PINS.json",
+      "sha256": "a491e368048bebb995f59bb398bb696968b7d3464ac15d49d5f31a0e5267c062",
+      "actual_source_unbound": false,
+      "accepted": true,
+      "source_sha256": "0f6c1864d1a37881ca923a95504cab5b943192e8d4b66f4823a7011e9e0f88ab",
+      "output_sha256": "1071068c30817f33d22578c03cd1e6fe87292da1e3976782abcb150338cff4ff",
+      "acceptance_receipt_sha256": "f271fee10c77b12be9c5e99bb2f72766990fd1645a81cd9bca7d9ce2724f0769"
     },
     "Mac_ending": {
-      "path": "work/recomp-playability-20261101/release92bc-senior-mac-ending-template-v2",
+      "path": "work/recomp-playability-20261101/release92bc-senior-mac-ending-bound-v3",
       "pin_file": "PINS.json",
-      "sha256": "6a87ed78822d526639af8d69bf0fdaa2471cf549186e9e38bb634fde14454797",
-      "actual_source_unbound": true
+      "sha256": "5a95ecf5a41435d85040859442806a2e249ee94bb8c91218218f78f656c0ddd4",
+      "actual_source_unbound": false,
+      "accepted": false,
+      "source_sha256": "1071068c30817f33d22578c03cd1e6fe87292da1e3976782abcb150338cff4ff",
+      "manifest_sha256": "8dba2d365028e06bfaae97ff09a1bd114223d4b7fe6347245ac9a96c0f93ed03",
+      "finite_guard_tests": {
+        "groups": 3,
+        "passed": 3,
+        "wall_seconds": 0.005,
+        "test_sha256": "f883dd8f86a48b756beda92f4cec145c760e91848336a7bb8d45f0ba53c8adb9"
+      },
+      "changes": "measure actual cache/save inventories before and after; passive unlocked checks before setup and launch; explicit missing6560 refusal"
     }
   },
   "independent_review_pending": true,
