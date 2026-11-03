@@ -1,0 +1,65 @@
+{
+  "scope": "Current6041 Senior thirteen-ghost win and fresh reload; campaign incomplete",
+  "code_freeze": "1f89ca26d6ebddb5ab500620ec5bb00482234b60",
+  "native_sha256": "6041e31e9d486111f6a0b64a7ce9764d52c292f35339fa1a84f3be7c18d31de4",
+  "source_sha256": "ed3b7db5f9caf994e1bb37d72caf51bdecf9ae315f7c22d2c877f701e2c33562",
+  "output_sha256": "9b2204a8e973063eca9d0c7fa35e249d03daba2053580a9922de35990d83e078",
+  "accepted_receipt_sha256": "9e5cba84c45c020304459a2e57878ace678ba024ef898f5799d6bd83241d6f9c",
+  "difficulty": 2,
+  "state": [
+    4111,
+    4111,
+    0,
+    -1
+  ],
+  "clock": {
+    "day": 2,
+    "hour": 1,
+    "minute": 0,
+    "total_minutes": 60
+  },
+  "bag": [
+    11,
+    12,
+    6,
+    19,
+    20,
+    17,
+    21
+  ],
+  "saved_fields": 409,
+  "item_presence_cells": 40,
+  "all13_captured": true,
+  "reward_ms_after_first4172": 162939,
+  "original_deadline_ms": 180000,
+  "flags_one": [
+    1947,
+    1958,
+    2063,
+    2133
+  ],
+  "flags_zero": [
+    1192,
+    2039,
+    2040
+  ],
+  "producer_events": 471,
+  "producer_captures": 48,
+  "reload_events": 8,
+  "reload_captures": 2,
+  "returncodes": [
+    0,
+    0
+  ],
+  "input_correction": {
+    "reason": "original random door sound made secondclick132ms early",
+    "added_normal_wait_ms": 1000,
+    "body_index_first_shifted": 174,
+    "coordinates_holds_order_unchanged": true,
+    "timer_unchanged": true
+  },
+  "failed_v1_preserved_never_resumed": true,
+  "all3560_assets_unchanged": true,
+  "independent_review": "ACCEPT/noP1/P2",
+  "whole_game_complete": false
+}
