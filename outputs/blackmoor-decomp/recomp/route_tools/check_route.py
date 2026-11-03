@@ -73,7 +73,11 @@ def ghost_configuration(route):
     return expected, positive, negative
 
 
-def verify_ghost_observations(route, observations, selected, clocks, positive, negative):
+def verify_ghost_observations(route, observations, selected, clocks, positive, negative, difficulty=0):
+    if type(difficulty) is not int or difficulty not in (0, 2):
+        raise ValueError('unsupported original ghost-route difficulty')
+    # S4172 starts original timer1/300s for0, timer2/180s for2.
+    active_timer = 2039 if difficulty == 0 else 2040
     first_one = {
         'nigel-computer': {1573: 6, 1701: 8, 1677: 9, 1682: 11,
                            1692: 13, 2069: 13, 1823: 14, 1985: 14},
@@ -81,7 +85,7 @@ def verify_ghost_observations(route, observations, selected, clocks, positive, n
         'ghost-hunt': {2063: 2, 1958: 28, 1947: 30,
                        **{flag: 4 + 2 * i for i, (_, _, flag) in enumerate(GHOST_HUNT_STAGES)}},
     }[route]
-    permanent_zero = negative - ({1192, 2039} if route == 'ghost-hunt' else set())
+    permanent_zero = negative - ({1192, active_timer} if route == 'ghost-hunt' else set())
     retained = positive - first_one.keys()
     # A failure outside the selected snapshots must not be hidden.
     for _, scope, flags in observations:
@@ -98,7 +102,7 @@ def verify_ghost_observations(route, observations, selected, clocks, positive, n
                for f, phase in first_one.items()):
             raise ValueError('ghost-route flags do not match pre/post-original-progression observations')
         if route == 'ghost-hunt' and any(flags.get(f, 0) != (1 if 2 <= index < 30 else 0)
-                                          for f in (1192, 2039)):
+                                          for f in (1192, active_timer)):
             raise ValueError('hunt timer did not follow original start/reward-clear observations')
         if state[3] != (21 if route == 'goggles' and index == 11 else -1):
             raise ValueError('ghost route has an unexpected held-item state')
@@ -1492,7 +1496,11 @@ def verify(log, save, route='telescope-prep', *, glyph_scene=3588):
             raise ValueError('Moon key was not put away before return')
     clock_diagnostics = None
     if route in GHOST_ROUTES:
-        clock_diagnostics = verify_ghost_observations(route, observations, selected, clocks, positive, negative)
+        if not save.is_file() or save.stat().st_size != 170770:
+            raise ValueError('checkpoint save is missing or has an unexpected length')
+        difficulty = int.from_bytes(save.read_bytes()[0x9034:0x9036], 'little', signed=True)
+        clock_diagnostics = verify_ghost_observations(
+            route, observations, selected, clocks, positive, negative, difficulty)
     if route in PASSAGE_ROUTES:
         clock_diagnostics = verify_passage_observations(route, log, observations, selected, clocks, positive, negative)
     if route in POST_KEY_ROUTES:
