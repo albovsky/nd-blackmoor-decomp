@@ -32,17 +32,24 @@
   "Skull": {
     "accepted": false,
     "scope": "one original Senior deal, visible own-hand/caption policy only",
-    "packet": "work/recomp-playability-20261101/release92bc-senior-skull-v9-prep-v1",
-    "packet_pins_sha256": "2e58eacfb1f04d99ac27675692cac2b5731067bfb83028c140122957ad278d8b",
-    "manifest_sha256": "8a4bcf5f85ab52466eeb06ea7107b3a4a025c8564cac69049bd72a77ffb79c00",
-    "entrypoint_sha256": "6cb9e99fc1481800c7efc6d5ddbc47deddfeeb112f4895b3a0cdcc8616618cab",
+    "packet": "work/recomp-playability-20261101/release92bc-senior-skull-v9-prep-v2",
+    "packet_pins_sha256": "3fcd07abfd9931a405e1e369e753bf14fa0a99616d3c7f47dd49f8980f51f767",
+    "manifest_sha256": "76f6d42040bf4860a62730a71bce2ba5a70310f62c91c839fd9ceccb1dc4ff7b",
+    "entrypoint_sha256": "f282f9405d9958d74b22b5fd6e5309aac595ee261fbb0b6767773f6e4bd1f742",
     "mode_patch_sha256": "24ade71d5360c544f6d428ff2f6dd6d241002082e3399b55d127b59c9fd9bdf0",
     "source_sha256": "038ea962bf01b2c75f149595f84e6d23e9b531f32fb47c3805c7793f0bd6e4ae",
     "mode": 2,
     "runtime_policy_changed": false,
     "only_functional_adapter_change": "add Senior CLI choice to existing v9; source/label/hash bindings also updated",
     "independent_review_pending": true,
-    "actual_deal_pending": true
+    "actual_deal_pending": true,
+    "outer_guard_correction": "HICONTINUECHEAT auxiliary permitted only if present; source/output mandatory and strict unknown/symlink/3560/INI checks unchanged",
+    "retained_inventory_dry_run": {
+      "v1_absent_aux_rejections": 4,
+      "v2_passes": 5,
+      "genuine_present_aux_passes": 1,
+      "native_game_replay": false
+    }
   },
   "Cake": {
     "accepted": false,
