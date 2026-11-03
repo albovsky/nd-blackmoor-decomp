@@ -325,5 +325,12 @@
     "A complete fresh campaign on this host",
     "Physical macOS display/input/audio and final whole-game acceptance"
   ],
-  "whole_game_complete": false
+  "whole_game_complete": false,
+  "post_run_preflight_change": {
+    "scope": "Output-directory protection only; gameplay, transport, planner, input and win/save/reload guards unchanged from executed controller hashes above",
+    "frozen_source": "febb61414a8eb13befe460ea1b5b80b4e3b7b172",
+    "independent_delta_review": "ACCEPT; no P1/blocking finding",
+    "validation": "Case-alias regression fails in all three protected directories before fix on APFS; all seven finite CLI tests pass with fix",
+    "runtime_repeat": false
+  }
 }
