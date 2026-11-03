@@ -40,7 +40,7 @@ stage="$(mktemp -d /private/tmp/blackmoor-recomp-build.XXXXXX)"
 mkdir -p "$stage/Blackmoor Recompiled.app/Contents/MacOS"
 xcrun --sdk macosx clang++ -arch arm64 "-mmacosx-version-min=$min_os" -std=c++17 -fobjc-arc -Wall -Wextra -O2 \
     -I"$src" -I"$here" \
-    "$here/macos_recomp.mm" "$here/audio_capture.cpp" "$src/macos_platform.mm" "${objects[@]}" \
+    "$here/macos_recomp.mm" "$here/macos_game_data.mm" "$here/audio_capture.cpp" "$src/macos_platform.mm" "${objects[@]}" \
     -framework AppKit -framework Foundation -framework CoreGraphics -framework AVFAudio -framework Carbon \
     -L"$ffmpeg_prefix/lib" -lavformat -lavcodec -lavutil -lswscale -lswresample -Wl,-rpath,"$ffmpeg_prefix/lib" \
     -o "$stage/Blackmoor Recompiled.app/Contents/MacOS/BlackmoorRecompiled"

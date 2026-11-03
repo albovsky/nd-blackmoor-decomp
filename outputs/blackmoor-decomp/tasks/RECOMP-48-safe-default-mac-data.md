@@ -1,0 +1,19 @@
+# RECOMP-48: Isolate default native Mac game data
+
+The Mac frontend defaults directly to the owner's GOG installation, while the original ending writes Award.BMP beneath its game directory. Replays already use independent data clones. Make normal default launches prepare/reuse a writable Application Support clone before starting the guest; the original installation is a read-only seed. Keep explicit scratch-directory/env precedence, save-root and read-only EXE overrides, while rejecting known-original overlap and unsafe aliases. Never fall back to the original after setup failure.
+
+## Implementation boundary
+
+Start after PR #341, mainba5a14a0f064a2c6a9749adf0b1b264821f2886f. Add only a Foundation startup helper, minimal frontend/build-link hooks, a small synthetic-files fixture and evidence/docs. The guest/core/path mapper, original files, function ledger/evidence and x86 reconstruction are unchanged. Existing c934 verified and d2 default bundles stay untouched until a new isolated signed bundle passes acceptance.
+
+The helper copies regular data independently into a unique sibling staging package, excludes Documents*/SAV imports, makes only copied files writable, writes a completion marker outside guest game/, and publishes with Darwin RENAME_EXCL. Reuse preserves Award/preferences; partial/wrong caches are refused. Trusted original EXE SHA is a parameter for tiny fixtures and the pinned original hash in production. Filesystem realpath plus inode ancestry handles existing/missing path components and APFS aliases before writes. Symlinks/shared hard links and known source/save overlaps are refused.
+
+## Acceptance
+
+Root first obtains an honest structural RED for the absent API without compiling/running anything. Private v1 then compiles but fails4 of6 finite modes, exposing canonical-path/alias errors and two fixture-output assumptions. It is never integrated or run with real game data. Corrective v2 resolves existing ancestors with POSIX realpath, checks inode ancestry, snapshots recursive source names/types/modes/SHA around every selection, and retains the prior selected path when testing a refused cache. All6 Foundation-only modes pass in1.939s, including real APFS case-alias and two competing publications. No game, GUI, audio device, fault/oracle/sanitizer/mutation suite is involved. Source/helper hashes are pinned in private safe-default-mac-data-candidate-v2/manifest.json.
+
+Pending: independent frozen Sonnet high review, isolated ARM64 build/signature verification, unchanged27 generated guest outputs/core inputs, then one earned current Junior m77→Mac credits run without --game-dir (scratch --save-dir). Require default clone selected, Award only in that clone, all original data/source unchanged,45 complete inputs/native0, closed credits frame and finalized offline audio. Check one explicit scratch-path startup remains in place. Follow the unlocked-desktop/background-mute rules; no foreground activation or listening. Promote the default bundle only after acceptance, preserving the prior bundle.
+
+The helper validates cache types/sizes and trusted EXE SHA, not the full hash of every mutable reused resource; runtime acceptance separately checks all3560 original assets. General competing/malicious filesystem mutation outside the bounded publication case, other OS versions and ordinary OS mouse/keyboard input remain unverified. The minOS27/external Homebrew FFmpeg boundary is unchanged. Junior's prior c934 credits proof stays separately labeled; Senior currently reaches glyph-request m28 and is incomplete. No whole-game completion claim.
+
+Publication remains with root in original authorizing chat01a170c4-6fa4-7831-9a46-f076fbcfab37 under the granted independent-review/squash-merge workflow. Delegates prepared private candidates only; root tests, builds, runs, reviews and publishes.
