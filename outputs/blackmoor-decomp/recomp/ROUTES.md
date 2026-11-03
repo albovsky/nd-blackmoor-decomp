@@ -516,3 +516,10 @@ The six named routes `fire-phosphorus`, `moving-room-entry`, `alchemy-snake-clue
 2026-11-02 Pacific — RECOMP-41 preserves Drake’s original random departure: 0x44512a selects1090/1091/1092 with rand()%3, each returning2332 without secondary story effects. Only that ordered departure slot accepts alternatives; required1067/1068/1071 dialogue,1525/1526phase,clock,hand/inventory and finalsafe checks remain. The new6041 retained1090producer is separately re-audited/fresh-reloaded, with no rawreceipt rewrite or native replay; m35 then passes and savesb415471f… at08:38.
 
 2026-11-03 Pacific — RECOMP-42: `fire-phosphorus` also requires saved1840=1 (original S3111/S3141 completion when both2059/2060 are1). This is a saved-only proof; no unlogged live phase or new flags_one claim is made. The new6041 fire save46e1d1f2… is accepted by a separate corrected-profile audit and fresh reload, retaining the prior refusal. Moving-room and snake-clue pairs then save m54 59bd31cd… at3046/held13/day4 05:00. Expanded historical before/after references confirm the per-leg deltas; runtime sources remain exclusively the new fresh campaign.
+
+
+### 2026-11-03: current-native Grenny crossing
+
+`route_tools/grenny_live.py` replaces the private cc7-bound controller. Supply explicit native/source hashes and a source profile through `--native`, `--native-sha256`, `--game-exe`, `--game-data`, `--source-save`, `--save-sha256`, `--profile`, `--output`; the ordinary UI output name defaults to m65. The profile records the actual source state/flags/full inventory/bag/clock, accepted source receipts and the complete immutable file inventory. Derive SELECT/PUT slots from that actual bag; do not reuse the old key slot.
+
+The fresh 6041 chain now earns m65 `f52c6f1e…` at S2460/unheld/day4 10:37 on its first crossing, preserving Cake and all earlier items. Actual held8 is checked before PUT and again after an independent output-only reload. See [RECOMP-43](../tasks/RECOMP-43-grenny-current-native.md) and `campaigns/grenny-earned.json` for hashes, verification and limits. Next are Mars/Jupiter and the remaining columns, then Bell.
