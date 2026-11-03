@@ -1,5 +1,9 @@
 # Handoff: recompiled GAME.EXE, state and next steps
 
+## Harder glyph goal, 2026-11-02 Pacific
+
+RECOMP-37 adds optional `--goal hard` without changing standard defaults or paid-repeat policy. Root's first-time Junior m28ccf→m29ecf on9ae/fc passes392/22events and normal exit0, originalS3589/1299→reward4, safe UI save and fresh-output-only held4 reload. The closed board shows target5000/time40. All three integrated source/test files match the actual-run candidate; root reports15finite glyph groups passing. See GLYPH-GOALS.md/campaigns/hard-glyph-earned.json for full pins and limits. Frozen ae05cf34 is independently accepted with no P1/P2;15glyph and113route checks pass, and guarded metadata preserves1838 peer claims. The same fresh campaign reachesm30/S4389/held4/day2 17:04 with its own save-only reload. Loulou progression is next; no Senior or whole-game claim.
+
 ## Public Aeolus continuation, 2026-11-02 Pacific
 
 RECOMP-36 has a new public Aeolus invocation from genuine corrected m60f8 on actual9ae/fc:156/8producer/reload events, native0, output206aba at3813/view0/held13/day3 17:23. Actual1098–1101/1959/2052 and236/40saved-state checks pass;2163 remains1,15/2004 remain0. See AEOLUS.md/campaigns/aeolus-earned.json for local caller inputs, hashes and limits. B49/A43 remains historical; separate1cf static equality grants no new binary proof. Independent review/metadata/publication and later campaign/forge/Mac acceptance remain separate.
@@ -159,3 +163,5 @@ Current headless continuation: public `seedlings --save m11` then `crank-repair 
 RECOMP-08: native Mac `--input-file` now shares the ordinary route driver. Actual New Game/intro reaches bedroom2010/view5/held-1; native load/keyboard/save writes app12. New headless66028983… passes all12 fresh runs throughm12. App12-only native reload passes; accepted independent review and timing limits are in RECOMP-08. Use a scratch `--save-dir` prefix above Documents5. The large process/PCM gap is queued for a separate muted-clock fix.
 
 RECOMP-09 addresses the prior muted-clock gap: actual fixed-deadline probes and full native intro sustain about44100frames/s, with no observed overruns and unchanged final bedroom pixels. No guest/movie clock changes. Overruns still rebase rather than reconstruct missed audio. See packet for exact counters/pins and accepted independent review. Next app gap is right-button input; private story routing is beyondm18.
+
+2026-11-02 Pacific — Cache follow-up after PR328: dynamic data-*.json manifest names/hashes now join the native build fingerprint, with the reader's exact -report.json exclusion. Six finite checks and actual cold/warm source generation pass;27 generated outputs equal the1cf reference. Frozen582f7401 has independent ACCEPT/no P1/P2. This adds no new build or campaign acceptance.
