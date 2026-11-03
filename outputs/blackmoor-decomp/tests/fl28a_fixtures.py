@@ -247,7 +247,7 @@ def conditional_edges(va, size):
     md.detail = True
     off = va - pe.image_base
     out = []
-    for i in md.disasm(pe.image[off:off + size], va):
+    for i in od.disasm_code(md, pe.image[off:off + size], va):
         if i.mnemonic.startswith('j') and i.mnemonic != 'jmp' or i.mnemonic.startswith('loop'):
             out.append((i.address, i.mnemonic, int(i.op_str, 16), i.address + i.size))
     return out

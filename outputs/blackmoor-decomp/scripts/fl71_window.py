@@ -313,6 +313,8 @@ def run_window(an, order, S, T, query, frame=False, want_state=False, start=None
                 else:
                     c = here
                 conds[(kind, t)] = z3.Or(conds[(kind, t)], c) if (kind, t) in conds else c
+            if an.blocks[node].get('tail_exit') is not None and br is not None:
+                edge[(node, 'taken', ('tail', an.blocks[node]['tail_exit']))] = z3.And(here, br)       # FL-78 (round 11 review): the conditional tail call is an edge of the query (not a successor)
             for (kind, t), c in conds.items():
                 edge[(node, kind, t)] = c
                 if (node, t) in an.back and t in gen_state:
@@ -470,6 +472,8 @@ def run_forward(an, order, S, mark, frame=False, start=None, inv=None, tie=None,
             last = ins[-1]
             if last.mnemonic in ('ret', 'retn') or not an.blocks[node]['succ']:
                 completions.append(here)                            # a ret, or a jmp / fall-through out of the body (a tail call): the run leaves the function without a fault
+            if an.blocks[node].get('tail_exit') is not None and br is not None and not (node == S and mark[0] == 'dir' and mark[2] != 'taken'):
+                completions.append(z3.And(here, br))                # FL-78 (round 11 review): `jcc callee`, taken: a conditional tail call, the run leaves the function without a fault
             for kind, t in an.blocks[node]['succ']:
                 if node == S and mark[0] == 'dir' and kind != ('taken' if mark[2] == 'taken' else 'fall') and last.mnemonic.startswith('j') and last.mnemonic != 'jmp':
                     continue
@@ -664,6 +668,8 @@ def loop_chain(an, H):
         last = an.blocks[b]['insns'][-1]
         if [t for k, t in an.blocks[b]['succ'] if t not in L] and not (last.mnemonic.startswith('j') and last.mnemonic != 'jmp' and len(an.blocks[b]['succ']) == 2):
             return None
+        if last.mnemonic.startswith('j') and last.mnemonic != 'jmp' and len(an.blocks[b]['succ']) != 2:
+            return None                                                    # (FL-78 round 11: a conditional tail call has its exit edge dropped: the loop may be left there)
         for i in an.blocks[b]['insns']:
             m = i.mnemonic
             if m == 'call' or m.startswith(('int', 'rep', 'lock')) or m.split()[-1] in P.ALL_STRING_OPS or i.prefix[0] or i.prefix[1]:

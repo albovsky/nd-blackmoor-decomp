@@ -898,6 +898,46 @@
   "stack_rule": "checked",
   "status": "agrees"
  },
+ "0x50ed50": {
+  "assumed_x87_math": {},
+  "body": 821,
+  "callees": {},
+  "directions": [
+   7,
+   16
+  ],
+  "fs": false,
+  "guessed_callee_pops": [],
+  "imports": {},
+  "instructions": [
+   65,
+   251
+  ],
+  "seeds": [
+   [
+    1,
+    []
+   ],
+   [
+    2,
+    []
+   ],
+   [
+    3,
+    []
+   ],
+   [
+    4,
+    []
+   ],
+   [
+    5,
+    []
+   ]
+  ],
+  "stack_rule": "checked",
+  "status": "agrees"
+ },
  "0x50f253": {
   "assumed_x87_math": {},
   "body": 486,
@@ -1043,6 +1083,30 @@
   "seeds": [
    [
     0,
+    []
+   ]
+  ],
+  "stack_rule": "checked",
+  "status": "agrees"
+ },
+ "0x50fa90": {
+  "assumed_x87_math": {},
+  "body": 821,
+  "callees": {},
+  "directions": [
+   4,
+   28
+  ],
+  "fs": false,
+  "guessed_callee_pops": [],
+  "imports": {},
+  "instructions": [
+   26,
+   251
+  ],
+  "seeds": [
+   [
+    1,
     []
    ]
   ],
