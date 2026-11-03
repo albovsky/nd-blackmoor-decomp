@@ -1,5 +1,11 @@
 # Scripted routes on the native recompiled build
 
+## Aeolus prizes
+
+`route_tools/aeolus_live.py` continues genuine corrected Junior m60 through original Aeolus, UI m61 and independent fresh-save-only reload. Caller-pinned local data/source/atlas/profile are required; movement is selected from captured pixels while original code handles wind, retries and rewards. See `AEOLUS.md` and `campaigns/aeolus-earned.json`.
+
+The new public invocation on9ae/fc passes156producer events/47captures and8reload events/two captures, native0/normal stop;31moves and one ordinary original retry. Actual1098–1101/1959/2052 rise, output206aba is safe3813/view0/held13/day3 17:23;236saved predicates/40inventory cells match,2163 stays1 and no forged15/2004 is granted. Historical privateb49/A43 and the9ae→1cf static-source comparison remain distinct. Other boards/Senior/full campaign/final Mac are outside this slice.
+
 ## Alchemy, laboratory and mould
 
 From genuine m57, `alchemy-win --save m58` wins the original five-round trial and returns3054/held13 with1960=1. `lab-entry --save m59` reaches3804. `mould-shape --save m60` performs the original bar controls, including the missing legal2163 toggle at325,76, and collects actual10 while retaining held13. The saved24-positive/12-zero shape matches the installed loose3876 forge gate. Do not apply the older campaigns' later2163 correction to this already-correct shape.

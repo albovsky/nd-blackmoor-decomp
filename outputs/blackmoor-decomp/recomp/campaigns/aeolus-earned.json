@@ -1,0 +1,336 @@
+{
+  "scope": "One new complete public Aeolus CLI invocation from earned Junior m60, original win/UI save/fresh-output-only reload. Source-specific result, not a whole campaign or all-board guarantee.",
+  "accepted": true,
+  "native_sha256": "fc2575b1939e53ce9900a7bd7fb6a49b799e88727585358ae37c47af5a26f0dd",
+  "native_project_source_freeze": "9ae04c664e5d8518a0605fb15289917f82f36312",
+  "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+  "source_sha256": "f8aa72d41922ce213e4a5a49e4b97b0912422f09c6d5e7404cdd6039169808ae",
+  "source_copy_sha256": "f8aa72d41922ce213e4a5a49e4b97b0912422f09c6d5e7404cdd6039169808ae",
+  "output_sha256": "206aba189238f7d7248d430003229a0b62305f59283eceb2869c38f2e08670ed",
+  "outer_receipt_sha256": "e8bf3429a9e3f552adc45d60a65723d68f79873a29e10310f240d52cba3e8fc2",
+  "producer_receipt_sha256": "d734afd03b898005967ec3601a076ec61ff1ddbaee6cfd555e499b65f4f0626c",
+  "reload_receipt_sha256": "0a1d0660c8f16959ce7ca49ebae035338df3d81eb19100e2d2b33c1c3834fb24",
+  "controller_sha256": {
+    "aeolus_live.py": "256548bca0f2ec069c50b584e4d6aa8f9a95e9e759fa746e2f85e9f981310b12",
+    "aeolus_guard.py": "650ebebc6ed40b1b737ec6a712ac3b29fe4bdab1e9ea25f6d0291fc07f97a274",
+    "aeolus_session.py": "5ff46066ad61874af106098915a75bb5eba12e8fcff74c74abd0961dc6de3233",
+    "aeolus_pixels.py": "7e38dda641742c1ceb60b13d9238a14ff84305e813566ffa5985e3771504218f",
+    "aeolus_ppm.py": "f4f0dc37ffe5d477ebbd5a5422f8e96cc91630b95eef79853a64ed3f5da36cc0"
+  },
+  "shared_helper_sha256": {
+    "bul_live.py": "3a52e04b8bf642d90c3f00382fdc7b00c62791ad9f5a77fdf1cf6d81f933591d",
+    "check_route.py": "3ecc03745b6d0c6c60d1cef50f95e627d07ae918696487063f1d5a1a306bee9d",
+    "story_route.py": "15e578a2c877e2f811c5051b583acd559a09fe2e4fcf56482c280577af619cc1"
+  },
+  "caller_local_profile_manifest_sha256": "96f1396c10bebbb911f0b682daae992cf6f2486d7484e62f63126d8ade44cda5",
+  "caller_local_atlas_sha256": "307340ba826137ea0dcc58df73b7074bdc71411adaa023630bd5af93c4b9516c",
+  "ordinary_input_fragment_sha256": {
+    "aeolus-navigation.txt": "49023fc57db3d6f8f66e616e88bd719fa59e3529e29b780c06e38482f02ec5f6",
+    "aeolus-start.txt": "f374187c7930eb31c0f6f30bf090b679f52907c34ab32c6ad5a2891363aa1c76",
+    "aeolus-reload.txt": "09c85798813b7752226aef4b34031ca00886fe7dbdc3ced8bfeac62fe5ef6d4e"
+  },
+  "source_metadata": {
+    "state": [
+      3803,
+      3803,
+      0,
+      13
+    ],
+    "difficulty": 0,
+    "clock_diagnostics": {
+      "minute": 47,
+      "hour": 16,
+      "day": 3
+    },
+    "selected_flags": {
+      "1098": 0,
+      "1099": 0,
+      "1100": 0,
+      "1101": 0,
+      "1959": 0,
+      "2052": 0,
+      "2163": 1,
+      "2004": 0
+    },
+    "owned_item_ids": [
+      2,
+      5,
+      6,
+      7,
+      10,
+      11,
+      12,
+      16,
+      17,
+      19,
+      20,
+      21
+    ],
+    "physical_mould10": 1,
+    "physical13": 0,
+    "physical15": 0
+  },
+  "output_metadata": {
+    "state": [
+      3813,
+      3813,
+      0,
+      13
+    ],
+    "difficulty": 0,
+    "clock_diagnostics": {
+      "minute": 23,
+      "hour": 17,
+      "day": 3
+    },
+    "selected_flags": {
+      "1098": 1,
+      "1099": 1,
+      "1100": 1,
+      "1101": 1,
+      "1959": 1,
+      "2052": 1,
+      "2163": 1,
+      "2004": 0
+    },
+    "owned_item_ids": [
+      2,
+      5,
+      6,
+      7,
+      10,
+      11,
+      12,
+      16,
+      17,
+      19,
+      20,
+      21
+    ],
+    "physical_mould10": 1,
+    "physical13": 0,
+    "physical15": 0
+  },
+  "result": {
+    "ordinary_pixel_moves": 31,
+    "original_retries": 1,
+    "loop_iterations": 33
+  },
+  "state_contract": {
+    "saved_fields_compared": 236,
+    "changed_fields": [
+      {
+        "id": 1098,
+        "before": 0,
+        "after": 1
+      },
+      {
+        "id": 1099,
+        "before": 0,
+        "after": 1
+      },
+      {
+        "id": 1100,
+        "before": 0,
+        "after": 1
+      },
+      {
+        "id": 1101,
+        "before": 0,
+        "after": 1
+      },
+      {
+        "id": 1959,
+        "before": 0,
+        "after": 1
+      },
+      {
+        "id": 2052,
+        "before": 0,
+        "after": 1
+      }
+    ],
+    "other230_contracted_fields_retained": true,
+    "inventory_cells_compared": 40,
+    "inventory_changes": [],
+    "logged_event_predicates": 100,
+    "clock_diagnostics_separate": [
+      338,
+      339,
+      340,
+      341
+    ],
+    "corrected2163_retained": 1,
+    "held13_retained": true,
+    "no_forged15": true,
+    "producer_final_two_states": [
+      [
+        3813,
+        3813,
+        0,
+        13
+      ],
+      [
+        3813,
+        3813,
+        0,
+        13
+      ]
+    ],
+    "reload_final_two_states": [
+      [
+        3813,
+        3813,
+        0,
+        13
+      ],
+      [
+        3813,
+        3813,
+        0,
+        13
+      ]
+    ]
+  },
+  "first_observed_proof_rises": {
+    "2052": {
+      "shot": 12,
+      "clock_ms": 256033,
+      "state": [
+        3848,
+        3848,
+        0,
+        13
+      ]
+    },
+    "1098": {
+      "shot": 34,
+      "clock_ms": 581184,
+      "state": [
+        3940,
+        3940,
+        0,
+        13
+      ]
+    },
+    "1099": {
+      "shot": 45,
+      "clock_ms": 734965,
+      "state": [
+        3860,
+        3860,
+        0,
+        13
+      ]
+    },
+    "1100": {
+      "shot": 20,
+      "clock_ms": 385919,
+      "state": [
+        3940,
+        3940,
+        0,
+        13
+      ]
+    },
+    "1101": {
+      "shot": 39,
+      "clock_ms": 650209,
+      "state": [
+        3940,
+        3940,
+        0,
+        13
+      ]
+    },
+    "1959": {
+      "shot": 45,
+      "clock_ms": 734965,
+      "state": [
+        3860,
+        3860,
+        0,
+        13
+      ]
+    }
+  },
+  "producer": {
+    "control_summary": "complete=1 finish_id=37 acked=36 requests=37 steps=156/156 shots=47 bytes=3170 pending=0 clock_ms=777311 failed=0 reason=",
+    "returncode": 0,
+    "error": null,
+    "seconds": 22.893,
+    "protocol_complete": true,
+    "source_unchanged": true,
+    "copied_source_unchanged": true,
+    "source_save_sha256": "f8aa72d41922ce213e4a5a49e4b97b0912422f09c6d5e7404cdd6039169808ae",
+    "copied_save_sha256": "f8aa72d41922ce213e4a5a49e4b97b0912422f09c6d5e7404cdd6039169808ae",
+    "requests_sha256": "c42e530ebded9895b2446c88f65674498acfc536451f0800992486eae7c62dc8",
+    "log_sha256": "a3d56ace51cdf695dcd60ac5bb110fd73e1934524a62ab0dab45fa8432ee618a"
+  },
+  "reload": {
+    "control_summary": "complete=1 finish_id=2 acked=1 requests=2 steps=8/8 shots=2 bytes=238 pending=0 clock_ms=49499 failed=0 reason=",
+    "returncode": 0,
+    "error": null,
+    "seconds": 1.364,
+    "protocol_complete": true,
+    "source_unchanged": true,
+    "copied_source_unchanged": true,
+    "source_save_sha256": "206aba189238f7d7248d430003229a0b62305f59283eceb2869c38f2e08670ed",
+    "copied_save_sha256": "206aba189238f7d7248d430003229a0b62305f59283eceb2869c38f2e08670ed",
+    "requests_sha256": "a8901c31745c61c18a7c558dabe95ef87372f93403c1b93b37d687e212278d5b",
+    "log_sha256": "47cdd3848736f9ba334e7ba6d04a58a810594b61f9da941f4569ae73f4037e60"
+  },
+  "output_copy_hashes": {
+    "produced": "206aba189238f7d7248d430003229a0b62305f59283eceb2869c38f2e08670ed",
+    "reload_source": "206aba189238f7d7248d430003229a0b62305f59283eceb2869c38f2e08670ed",
+    "reload_copy": "206aba189238f7d7248d430003229a0b62305f59283eceb2869c38f2e08670ed",
+    "accepted_copy": "206aba189238f7d7248d430003229a0b62305f59283eceb2869c38f2e08670ed"
+  },
+  "input_and_resource_scope": "Normal19-token navigation/9-token start, captured-pixel arrow/settle events, one original3848 lever retry, original allfour win/normal3813 return/UI Save; no PUT or later2163 toggle.",
+  "historical_private_witness": {
+    "native_sha256": "b49eaa71885a02e9e096b9766f020576ef0a0381837cd036f0875bab49351e24",
+    "source_sha256": "f8aa72d41922ce213e4a5a49e4b97b0912422f09c6d5e7404cdd6039169808ae",
+    "output_sha256": "a43e1e35cfd6fe582cb100cdc7befe5f935c2a193ea24784188810be57bae82f",
+    "outer_receipt_sha256": "b07d0cb3dad1f3e35de37531784f3560cc34a293b3ceb4aa8210ab6e4de52596",
+    "result": {
+      "ordinary_pixel_moves": 13,
+      "original_retries": 0,
+      "loop_iterations": 14
+    },
+    "scope": "Earlier private b49 run only; not relabeled as public fc execution."
+  },
+  "retained_finite_and_structural_evidence": {
+    "CLI_guard_tests": 6,
+    "CLI_test_log_sha256": "16ffca1d3a6486e8f09700f4e36e30f8f5fb003f94b7db9bfe0e207b68800885",
+    "used_core_AST_mappings": 26,
+    "used_core_AST_report_sha256": "06d4f3599a7b181cace5a5c91e782e8836e11cda6dfc4d2f846c5c3228117982",
+    "exact_input_files": 3,
+    "no_tests_rerun_for_this_projection": true
+  },
+  "separate_static_source_witness": {
+    "baseline_commit": "9ae04c664e5d8518a0605fb15289917f82f36312",
+    "incoming_commit": "1cf19b3ef26edb38967f13228604d78ff70238a4",
+    "report_sha256": "7e0bcddf312d93f11c9ff2f3f11ac163c531e394a41c4f1fe36e71c30faeead7",
+    "pins_sha256": "c4f8e5c22f0ddadde98ca6cae2efae691c2f194aade4e535c4f190b6892661f0",
+    "generated_files_equal": 27,
+    "function_bodies_equal": 4606,
+    "host_source_closure_files_equal": 40,
+    "compile_tails_equal": true,
+    "new_build_or_native_execution": false,
+    "scope": "Static input comparison only. This runtime proof stays on actual9ae/fc; no incoming1cf binary/runtime acceptance is inferred."
+  },
+  "unverified": [
+    "Other source saves, random boards and profile shapes",
+    "Senior and alternate retry/failure/error branches not exercised by this run",
+    "A complete fresh campaign on this host",
+    "Physical macOS display/input/audio and final whole-game acceptance"
+  ],
+  "whole_game_complete": false,
+  "post_run_preflight_change": {
+    "scope": "Output-directory protection only; gameplay, transport, planner, input and win/save/reload guards unchanged from executed controller hashes above",
+    "frozen_source": "febb61414a8eb13befe460ea1b5b80b4e3b7b172",
+    "independent_delta_review": "ACCEPT; no P1/blocking finding",
+    "validation": "Case-alias regression fails in all three protected directories before fix on APFS; all seven finite CLI tests pass with fix",
+    "runtime_repeat": false
+  }
+}

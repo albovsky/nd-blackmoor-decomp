@@ -1,5 +1,9 @@
 # Handoff: recompiled GAME.EXE, state and next steps
 
+## Public Aeolus continuation, 2026-11-02 Pacific
+
+RECOMP-36 has a new public Aeolus invocation from genuine corrected m60f8 on actual9ae/fc:156/8producer/reload events, native0, output206aba at3813/view0/held13/day3 17:23. Actual1098–1101/1959/2052 and236/40saved-state checks pass;2163 remains1,15/2004 remain0. See AEOLUS.md/campaigns/aeolus-earned.json for local caller inputs, hashes and limits. B49/A43 remains historical; separate1cf static equality grants no new binary proof. Independent review/metadata/publication and later campaign/forge/Mac acceptance remain separate.
+
 ## Native generation cache, 2026-11-02 Pacific
 
 RECOMP-35 makes both builders check source/input/output fingerprints before reusing generated C. Five finite regression groups pass. Both actual patched pipelines reproduce the independently rebuilt current-main9ae binaries exactly: headlessfc2575 and Macd2f12. The latter completes45 ordinary earned-ending inputs and actual credits with normal exit0; its source is the historical genuine m77, separate from the unfinished new zero-save campaign. Sonnet accepts frozen db3adf23 without blockers; final delta5f53bfc0 is independently accepted without blockers. Guarded metadata refresh preserves all1832 peer claims. Old b49/c2fee gameplay remains explicitly historical. Whole-game acceptance remains open.
