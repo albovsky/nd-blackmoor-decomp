@@ -3,6 +3,8 @@ import re
 import struct
 import check_route
 
+PROFILE_DIFFICULTIES = {'junior': 0, 'senior': 2}
+
 
 def require(value, message):
     if not value:
@@ -29,7 +31,8 @@ def read_profile(path, profile):
 
 
 def check_profile(value, profile, *, won):
-    require(value['difficulty'] == profile['difficulty'] == 0, 'not the genuine Junior profile')
+    require(type(profile['difficulty']) is int and profile['difficulty'] in PROFILE_DIFFICULTIES.values()
+            and value['difficulty'] == profile['difficulty'], 'not the genuine selected difficulty profile')
     require(value['state'] == ([3813, 3813, 0, 13] if won else profile['state']), 'saved scene/art/view/held differs')
     require(value['inventory40'] == profile['inventory40'], 'saved inventory differs; real10/held13 must persist')
     expected = dict(profile['flags'])
