@@ -1,5 +1,6 @@
 """Finite fake-input/generator fixtures; no compiler, native game or owner assets."""
 import importlib.util
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -75,6 +76,42 @@ class GenerationCacheTests(unittest.TestCase):
         self.assertTrue(self.ensure(chunks=3, force=True))
         self.assertEqual(chunk.stat().st_mtime_ns, 1000000000)
         self.assertFalse(self.ensure(chunks=3))
+
+    def test_data_manifest_set_content_and_report_exclusion(self):
+        manifests = self.project / 'asm_data'
+        manifests.mkdir()
+        self.assertTrue(self.ensure())
+        self.assertFalse(self.ensure())
+        before = self.calls()
+        # Added in reverse order: fingerprint provenance must still be sorted.
+        later = manifests / 'data-020.json'
+        earlier = manifests / 'data-003.json'
+        later.write_text('{"ranges": [], "fixture": 20}\n')
+        earlier.write_text('{"ranges": [], "fixture": 3}\n')
+        self.assertTrue(self.ensure())
+        self.assertEqual(self.calls(), before + 1)
+        recorded = cache.fingerprint(self.project, 2, self.original)['data_manifests']
+        self.assertEqual(list(recorded), ['asm_data/data-003.json', 'asm_data/data-020.json'])
+        self.assertEqual(recorded['asm_data/data-003.json'], hashlib.sha256(earlier.read_bytes()).hexdigest())
+        before = self.calls()
+        times = (earlier.stat().st_atime_ns, earlier.stat().st_mtime_ns)
+        earlier.write_text('{"ranges": [], "fixture": "changed"}\n')
+        os.utime(earlier, ns=times)
+        self.assertTrue(self.ensure())
+        self.assertEqual(self.calls(), before + 1)
+        before = self.calls()
+        later.unlink()  # Only a finite temporary fake manifest, never project data.
+        self.assertTrue(self.ensure())
+        self.assertEqual(self.calls(), before + 1)
+        report = manifests / 'data-003-report.json'
+        report.write_text('{"fixture": "excluded report"}\n')
+        before = self.calls()
+        self.assertFalse(self.ensure())
+        report.write_text('{"fixture": "changed excluded report"}\n')
+        self.assertFalse(self.ensure())
+        self.assertEqual(self.calls(), before)
+        self.assertEqual(list(cache.fingerprint(self.project, 2, self.original)['data_manifests']),
+                         ['asm_data/data-003.json'])
 
     def test_missing_or_changed_outputs_and_missing_invalid_stamp_regenerate(self):
         self.ensure()

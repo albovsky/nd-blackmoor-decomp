@@ -14,8 +14,9 @@ import subprocess
 import sys
 import tempfile
 
-# Exact project files read by the retained e53 generation audit. Original image
-# bytes and CHUNKS are included separately. Headers affect compilation, not lifting.
+# Fixed project inputs; original_differential also reads the dynamic data
+# manifests fingerprinted below. Original image bytes and CHUNKS are separate.
+# Headers affect compilation, not lifting.
 INPUTS = (
     'recomp/lift_recomp.py',
     'scripts/lift_fl41.py',
@@ -44,6 +45,9 @@ def fingerprint(project, chunks, import_image):
     # changing which image either reader opens.
     return {'schema': 1, 'chunks': chunks,
             'project_inputs': {name: digest(project / name) for name in INPUTS},
+            'data_manifests': {path.relative_to(project).as_posix(): digest(path)
+                               for path in sorted((project / 'asm_data').glob('data-*.json'))
+                               if not path.name.endswith('-report.json')},
             'original_images': {'body_sha256': digest(body_image),
                                 'imports_sha256': digest(import_image)}}
 
