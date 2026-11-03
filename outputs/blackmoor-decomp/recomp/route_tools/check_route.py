@@ -290,9 +290,10 @@ DRAGON_LIGHT_SCENES = {
     'dragon-passage': (3332, 3338, 3339, 3342, 3343, 3417, 3418, 2903, 3326),
     'glyph-request': (1216, 1217, 1280, 1281, 3585, 3513, 3562, 3513, 3522, 3510),
 }
+SENIOR_GLYPH_REQUEST_SCENES = (1216, 1217, 1280, 1281, 3585, 3571, 3580, 3510)
 
 
-def dragon_light_configuration(route):
+def dragon_light_configuration(route, difficulty=0):
     _, retained, zero = post_key_configuration('saturn-column')
     zero = zero | {2001, 1357, 1804}
     passage = {1997, 2078, 1925, 1865}
@@ -304,11 +305,13 @@ def dragon_light_configuration(route):
     if route == 'glyph-request':
         expected = [(3326, 0), (3510, 0), (3510, 4), (1217, 0),
                     (3585, 0), (3562, 0), (3513, 0), (3510, 4), (3510, 4)]
+        if difficulty == 2:
+            expected[5:7] = [(3571, 0), (3580, 0)]
         return expected, retained | passage | request, zero
     raise ValueError('unknown dragon/light route')
 
 
-def verify_dragon_light_observations(route, log, observations, selected, clocks, positive, negative):
+def verify_dragon_light_observations(route, log, observations, selected, clocks, positive, negative, difficulty=0):
     first_one = {'dragon-passage': {2078: 2, 1997: 3, 1925: 4, 1865: 4},
                  'glyph-request': {1791: 3, 1349: 4, 1418: 4, 1408: 4, 1361: 5, 1388: 5}}[route]
     retained = positive - first_one.keys()
@@ -339,7 +342,8 @@ def verify_dragon_light_observations(route, log, observations, selected, clocks,
         raise ValueError('dragon/light observed clock gate was not retained')
     opened = [int(m[1]) for m in re.finditer(r'FILE open .*\\S(\d+)\.CIF\s+\[virtual \d+ ms\]', log)]
     cursor = 0
-    for scene in DRAGON_LIGHT_SCENES[route]:
+    scenes = SENIOR_GLYPH_REQUEST_SCENES if route == 'glyph-request' and difficulty == 2 else DRAGON_LIGHT_SCENES[route]
+    for scene in scenes:
         while cursor < len(opened) and opened[cursor] != scene:
             cursor += 1
         if cursor == len(opened):
@@ -1238,6 +1242,7 @@ def verify_senior_jigsaw_observations(log, observations, selected, positive, neg
 def verify(log, save, route='telescope-prep', *, glyph_scene=3588):
     if glyph_scene not in (3588, 3589) or (glyph_scene != 3588 and route != 'glyph-win'):
         raise ValueError('explicit glyph scene is valid only for glyph-win')
+    glyph_request_difficulty = 0
     if route == 'telescope-prep':
         expected = [(2010, 0), (2014, 0), (2026, 0), (2010, 2)]
         positive = {1834, 1843, 1905, 1949, 1953, 1993}
@@ -1302,7 +1307,11 @@ def verify(log, save, route='telescope-prep', *, glyph_scene=3588):
     elif route in POST_KEY_ROUTES:
         expected, positive, negative = post_key_configuration(route)
     elif route in DRAGON_LIGHT_ROUTES:
-        expected, positive, negative = dragon_light_configuration(route)
+        if route == 'glyph-request':
+            glyph_request_difficulty = int.from_bytes(save.read_bytes()[0x9034:0x9036], 'little', signed=True)
+            if glyph_request_difficulty not in (0, 2):
+                raise ValueError('unsupported original glyph-request difficulty')
+        expected, positive, negative = dragon_light_configuration(route, glyph_request_difficulty)
     elif route == 'glyph-win':
         expected, positive, negative = glyph_win_configuration(glyph_scene)
     elif route in WORD_PREREQUISITE_ROUTES:
@@ -1506,7 +1515,8 @@ def verify(log, save, route='telescope-prep', *, glyph_scene=3588):
     if route in POST_KEY_ROUTES:
         clock_diagnostics = verify_post_key_observations(route, log, observations, selected, clocks, positive, negative)
     if route in DRAGON_LIGHT_ROUTES:
-        clock_diagnostics = verify_dragon_light_observations(route, log, observations, selected, clocks, positive, negative)
+        clock_diagnostics = verify_dragon_light_observations(
+            route, log, observations, selected, clocks, positive, negative, glyph_request_difficulty)
     if route == 'glyph-win':
         clock_diagnostics = verify_glyph_win_observations(log, observations, selected, clocks, positive, negative, glyph_scene)
     if route in WORD_PREREQUISITE_ROUTES:
