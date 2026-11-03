@@ -1434,6 +1434,18 @@ class WordPrerequisiteRouteTests(unittest.TestCase):
 
 
 class WordPrerequisiteInputTests(unittest.TestCase):
+    def test_loulou_exit_waits_for_drakes_ambient_line(self):
+        spec = importlib.util.spec_from_file_location('word_story_wait', MODULE.with_name('story_route.py'))
+        story = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(story)
+        events = [(int(step.split(':', 1)[0].split('+')[1]), step.split(':', 1)[1])
+                  for step in story.leg_loulou_answer().split(';')]
+        enter = next(t for t, action in events if action == 'click:310,353,600')
+        exit_hover = next(t for t, action in events if action == 'move:92,181')
+        # S2333 gates this exit on channel12. MDM06 lasts 5138.5ms; allow
+        # completion and a tick before hovering/clicking the original exit.
+        self.assertGreaterEqual(exit_hover - enter, 6000)
+
     def test_retained_event_bodies_and_save_name_only_parameterization(self):
         import hashlib
         spec = importlib.util.spec_from_file_location('word_story', MODULE.with_name('story_route.py'))
@@ -1444,7 +1456,7 @@ class WordPrerequisiteInputTests(unittest.TestCase):
             ('loulou_barber', 'm31', 131, '8d3c38940e9c119ad08badfa403032099fbe1f23a35b80c21cebf97a7a53ef8d'),
             ('loulou_morning', 'm32', 26, '31fb45cf4e0053b0d3c09a1b1950c877de92482ce6504d8d33280573e9863830'),
             ('drake_magic', 'm34', 170, '4af23a6bde2483ffaf7961715f244e023948f01be238276803acd1a746fa3e33'),
-            ('loulou_answer', 'm35', 131, '843e2597868c8fa1175ec041c30528125f1348b604439c2d54105ef83231103c'))
+            ('loulou_answer', 'm35', 131, 'abd5715d5b8a6034b428332561bea404082174780349fe9219db06e3e8898d1c'))
         for name, save, count, digest in expected:
             with self.subTest(leg=name):
                 leg = getattr(story, 'leg_' + name)
