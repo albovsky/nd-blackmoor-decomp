@@ -550,3 +550,7 @@ RECOMP-54 adds `typing_live.py --profile senior --source-profile FILE --source-p
 ## Current Senior post-rune replacement, 2026-11-03 Pacific
 
 RECOMP-55 enables original mode2 for the strict `--context rune-passage` source while retaining the Junior default,3335/held5/1514=0/crest2/rawclock predicates and unchanged player policy. Actual current oil/Rune/wait50 then one51 win/save/fresh-held4 reload pass, with full409/40/order/assets checked. The historical3510/1514=1 source is a different envelope. Actual scene/time sequences are recorded; the common checker verifies an ordered subsequence and source/output mode, without claiming exclusion of every extra scene. See RECOMP-55 and PLAYABILITY-LOG for hashes and limits.
+
+## Current Senior Memory and Skull, 2026-11-03 Pacific
+
+The current6041 NewGame chain passes Memory to038ea962… then Skull to3dfcffe0…, both genuine UI saves and fresh-output-only reloads. The private Skull fair policy adds recent-denial avoidance before pair size within the existing captured-request hint groups; own visible cards/captions, originalSeniorA0, all input/bounds and postwin remain. Three prior no-win deals are retained; the next observed deal wins and adds only2008/2084 across full409 with unchanged40/bag. Final3510/view4/unheld/day3 23:07 retains real2/light and all prior wins. Cake source is this output; later Senior/Aeolus/ending remain unverified. See RECOMP-56 and PLAYABILITY-LOG for hashes, review and historical-fixture disclosure.

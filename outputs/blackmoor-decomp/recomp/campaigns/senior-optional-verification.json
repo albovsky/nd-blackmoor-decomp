@@ -30,17 +30,17 @@
     "source_sha256": "17ed4956b01e8e5c99a1988005fec5c08a29700e810b79c316537dc2ee08ea72"
   },
   "Skull": {
-    "accepted": false,
-    "actual_deal_pending": true,
+    "accepted": true,
+    "actual_deal_pending": false,
     "all_three_native_exit_zero": true,
     "entrypoint_sha256": "f282f9405d9958d74b22b5fd6e5309aac595ee261fbb0b6767773f6e4bd1f742",
-    "independent_review_pending": true,
+    "independent_review_pending": false,
     "manifest_sha256": "17e732321aad97209666ea74525cfde37ac622599b78127cf2c437cbb32e7f54",
     "mode": 2,
     "mode_patch_sha256": "24ade71d5360c544f6d428ff2f6dd6d241002082e3399b55d127b59c9fd9bdf0",
-    "next": "independent frozen delta review, then one normal new-policy deal",
+    "next": "bind Cake from this actual accepted output",
     "no_win_attempts_retained": true,
-    "normal_deals_completed": 3,
+    "normal_deals_completed": 4,
     "outer_guard_correction": "HICONTINUECHEAT auxiliary permitted only if present; source/output mandatory and strict unknown/symlink/3560/INI checks unchanged",
     "packet": "work/recomp-playability-20261101/release92bc-senior-skull-denial-prep-v1",
     "packet_pins_sha256": "7baeae652ab119940a951fef76550eeccbec9d10702f768f0f1a2814423e76f4",
@@ -55,7 +55,29 @@
     "review_result": "v1 REJECT mandatory auxiliary; frozen1c9e9016 v2delta ACCEPT/no newblocking; conditionalaux correction retained",
     "runtime_policy_changed": true,
     "scope": "bounded original Senior deals, one per invocation with no automatic retry",
-    "source_sha256": "038ea962bf01b2c75f149595f84e6d23e9b531f32fb47c3805c7793f0bd6e4ae"
+    "source_sha256": "038ea962bf01b2c75f149595f84e6d23e9b531f32fb47c3805c7793f0bd6e4ae",
+    "accepted_attempt": "release92bc-senior-skull-denial-solve04",
+    "output_sha256": "3dfcffe0bf39cc73442bde3dbbe865ef1a5178ddd32c16586e6a75c0bcdb0fc0",
+    "acceptance_receipt": "work/recomp-playability-20261101/release92bc-senior-skull-denial-solve04/receipt.json",
+    "acceptance_sha256": "4e918f3d4305c7c9a85e1921167060cf1ae71e092e826723aae1205bc1ab5444",
+    "saved_clock": {
+      "total_minutes": 1387,
+      "minute": 7,
+      "hour": 23,
+      "day": 3
+    },
+    "serialized_fields": 409,
+    "inventory_cells": 40,
+    "only_durable_event_changes": [
+      2008,
+      2084
+    ],
+    "bag_and_cells_unchanged": true,
+    "producer_steps": 412,
+    "reload_steps": 10,
+    "producer_native_exit": 0,
+    "reload_native_exit": 0,
+    "strategy_review": "c9d28b77 ACCEPT/noP1; old-v9 priority fixture is historical and not claimed passing under new policy"
   },
   "limitations": [
     "one observed board/deal per accepted game, not all RNG branches",
