@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""One first-time Junior glyph attempt using actual pixels and ordinary FIFO input.
+"""One first-time glyph attempt using actual pixels and ordinary FIFO input.
 
 The caller owns the pinned local atlas. No atlas/asset payload is distributed.
 The original game owns all swaps, scores, timers, wins, rewards and UI saves.
@@ -56,19 +56,33 @@ def verify_goal_assets(game_data, goal='standard'):
                 source_guard='exact archive and no selected loose override; typed configuration pinned')
 
 
-def source_state(path):
+def source_state(path, expected_difficulty=0):
+    io.require(type(expected_difficulty) is int and expected_difficulty in (0, 2),
+               'unsupported original glyph difficulty')
     _, one, zero = check_route.dragon_light_configuration('glyph-request')
     state = io.save_state(path, progression_flags=one | zero)
-    io.require(state['difficulty'] == 0 and [state[k] for k in ('scene', 'art', 'view', 'held')] == [3510, 3510, 4, -1]
+    io.require(state['difficulty'] == expected_difficulty and [state[k] for k in ('scene', 'art', 'view', 'held')] == [3510, 3510, 4, -1]
                and all(state['progression'].get(f) == 1 for f in one)
                and all(state['progression'].get(f) == 0 for f in zero),
-               'source must be a first-time pending Junior m28; repeat/Senior sources are refused')
+               'source must be a first-time pending Junior/Senior m28 in the expected original mode; repeat sources are refused')
     data = path.read_bytes()
     clock = {name: struct.unpack_from(fmt, data, offset)[0] for name, fmt, offset in (
         ('total_minutes', '<I', 0x2430), ('minute', '<H', 0x2434), ('hour', '<H', 0x2436), ('day', '<H', 0x2438))}
     io.require(clock['day'] == 2 and 16 <= clock['hour'] <= 19 and 0 <= clock['minute'] < 60
                and clock['total_minutes'] == clock['hour'] * 60 + clock['minute'], 'source clock gate differs')
     state['clock_diagnostics'] = clock
+    return state
+
+
+def output_state(path, expected_difficulty):
+    io.require(type(expected_difficulty) is int and expected_difficulty in (0, 2),
+               'unsupported original glyph difficulty')
+    _, one, zero = check_route.glyph_win_configuration()
+    state = io.save_state(path, progression_flags=one | zero)
+    io.require(state['difficulty'] == expected_difficulty
+               and [state[k] for k in ('scene', 'art', 'view', 'held')] == [3510, 3510, 4, -1]
+               and all(state['progression'][f] == 1 for f in one)
+               and all(state['progression'][f] == 0 for f in zero), 'actual UI save state/reward differs')
     return state
 
 
@@ -234,7 +248,8 @@ def main(argv=None):
                    'original data image pin differs')
         io.require(not (args.game_data / 'Documents5').exists()
                    and not any(path.is_symlink() for path in args.game_data.rglob('*')), 'seed contains saves or symlinks')
-        initial = source_state(args.source_save)
+        difficulty = io.save_state(args.source_save)['difficulty']
+        initial = source_state(args.source_save, expected_difficulty=difficulty)
         goal_contract = verify_goal_assets(args.game_data, args.goal)
         known_hashes = glyph_pixels.load_atlas(args.atlas, args.atlas_sha256)
         target = args.output.resolve() if args.output else Path(tempfile.mkdtemp(prefix='blackmoor-glyph-'))
@@ -249,7 +264,7 @@ def main(argv=None):
         receipt.update(native_sha256=args.native_sha256, source_sha256=args.save_sha256, atlas_sha256=args.atlas_sha256,
                        protected_inputs=protected, source_state=initial, glyph_goal=goal_contract, RC_FLAGS=rc_flags(), glyph_attempts=48,
                        glyph_requests_including_finish=64, timeout_seconds=args.timeout,
-                       scope='one first-time Junior game; no repeat/Senior or all-board guarantee')
+                       scope='one first-time original Junior0 or Senior2 game; no repeat or all-board guarantee')
         io.write_json(out / 'receipt.json', receipt)
         producer = io.Session(args, out / 'producer', args.source_save, rc_flags=rc_flags())
         error = None
@@ -263,11 +278,7 @@ def main(argv=None):
         saved = producer.saves / (args.save_name + '.SAV')
         checked = check_route.verify((producer.out / 'run.log').read_text(), saved, 'glyph-win',
                                      glyph_scene=goal_contract['scene'])
-        _, one, zero = check_route.glyph_win_configuration()
-        saved_state = io.save_state(saved, progression_flags=one | zero)
-        io.require(saved_state['difficulty'] == 0 and [saved_state[k] for k in ('scene', 'art', 'view', 'held')] == [3510, 3510, 4, -1]
-                   and all(saved_state['progression'][f] == 1 for f in one)
-                   and all(saved_state['progression'][f] == 0 for f in zero), 'actual UI save state/reward differs')
+        saved_state = output_state(saved, initial['difficulty'])
         reload = io.Session(args, out / 'reload', saved, rc_flags=rc_flags())
         error = None
         try:
