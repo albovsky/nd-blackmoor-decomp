@@ -67,7 +67,7 @@
       "source_profile_identical_to_first_attempt": true,
       "runtime_client_sha256": "4a5ef884486c998eee0b85749e1cee0e3e8168bddb2159853412a557fe665a50",
       "new_output": "release92bc-senior-grenny-second-v1",
-      "controlled_actual_test_pending": true
+      "controlled_actual_test_pending": false
     },
     "output_sha256": "dddeecde4cccb19b611a798fe3a27e5235d59c9b8be57a7d606fa76e488cec90",
     "acceptance_receipt_sha256": "8d28e26593e0d1c91b8830ab20c5cc7a9fe0f18bf8f4fffff8e7aa211926a68e",

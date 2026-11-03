@@ -1,5 +1,7 @@
 # Scripted routes on the native recompiled build
 
+Current release6041/a48 (2026-11-03): genuine New Game campaigns in Junior and Senior both pass all77 checkpoints, optional minigames, UI saves/fresh reloads and headless award/credits. Both actual Mac app endings pass, including root visual credits acceptance and offline audio checks. Whole-file x86 matching is met under AGENTS.md; no known progression blocker remains. Current receipts supersede the historical build-specific limits below. See [playability log](../PLAYABILITY-LOG.md) and [Senior ending evidence](campaigns/senior-ending-verification.json).
+
 ## Original harder glyph goal
 
 `route_tools/glyph_live.py --goal hard` selects originalS3589/5000points/41initial seconds; standardS3588 remains the default. Existing first-time Junior source/clock, pixels-only input and actual win/reward/save/reload guards remain. Root's genuine newm28→m29 on9ae/fc passes392/22producer/reload events, normal exits; closed board5000/time40, original1299/new2001/1357, physical4 twice and safe3510/view4 are pinned in [GLYPH-GOALS.md](GLYPH-GOALS.md) and [campaign metadata](campaigns/hard-glyph-earned.json). This is one Junior hard goal, not Senior selection or harder paid-repeat. Independent frozen review accepts ae05cf34 without blockers. Fifteen glyph groups and113 route checks pass. The same fresh m29 continues through the unchanged lit-word-clue route to newm30/S4389/held4 with a clean independent reload.
