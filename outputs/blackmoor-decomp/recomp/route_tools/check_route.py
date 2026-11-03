@@ -4,8 +4,9 @@
 python3 check_route.py RUN_LOG SAVE_FILE [--route telescope-prep|jane-jigsaw|telescope-use|seedlings|crank-repair|betty-key|venus-column|jupiter-column|moon-key|moon-column|nigel-computer|night-wait|goggles|ghost-hunt|afternoon-door|linda-passage|bul-key|slide-ball|saturn-column|dragon-passage|glyph-request|glyph-win|lit-word-clue|loulou-barber|loulou-morning|drake-magic|loulou-answer|light-depletion|paid-light-request|repeat-glyph-win|word-lock|right-fire-panel|ethel-interrogation|linda-curse|gargoyle-inspect|corbin-portrait|typing-crest]
 The caller supplies a checkpoint produced by this run's normal Load & Save UI.
 This checks recorded observations, a matching file-open line and save size;
-fresh-folder/write provenance and saved contents require separate replay evidence.
-No game state is read or changed.
+Fire-phosphorus also requires saved completion1840; other saved contents and
+fresh-folder/write provenance require separate replay evidence.
+No live game state is read or changed.
 """
 import argparse
 import json
@@ -1495,6 +1496,12 @@ def verify(log, save, route='telescope-prep', *, glyph_scene=3588):
         raise ValueError('this run did not open the requested checkpoint save')
     if not save.is_file() or save.stat().st_size != 170770:
         raise ValueError('checkpoint save is missing or has an unexpected length')
+    if route == 'fire-phosphorus':
+        # Original S3111/S3141 set1840 after both fire sides2059/2060.
+        # This is a saved-only proof; it does not assert an unlogged live phase.
+        offset = 0x1ee6 + 4 * 1840
+        if int.from_bytes(save.read_bytes()[offset:offset + 4], 'little') != 1:
+            raise ValueError('saved fire completion flag1840 is not1')
     result = {'route': route, 'scene': expected[-1][0], 'view': expected[-1][1],
             'flags_one': sorted(positive), 'flags_zero': sorted(negative),
             'save': save.name, 'telescope_complete': route in ('telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES + CREST_PREREQUISITE_ROUTES + TYPING_CREST_ROUTES + OIL_RUNE_ROUTES + RUNE_LIGHT_ROUTES + FIRE_ALCHEMY_ROUTES + ALCHEMY_WIN_ROUTES + LAB_MOULD_ROUTES}
