@@ -1,0 +1,34 @@
+{
+  "status": "unbound_private_templates_for_independent_review",
+  "whole_game_complete": false,
+  "native_sha256": "6041e31e9d486111f6a0b64a7ce9764d52c292f35339fa1a84f3be7c18d31de4",
+  "publisher_chat": "01a170c4-6fa4-7831-9a46-f076fbcfab37",
+  "future_sources_unbound": true,
+  "binding_rule": "Only bind actual accepted predecessor path/SHA/full409/40/order/rawclock/NewGame origins and metadata pins; no policy/bounds/guest state changes. Record exact deltas and actual receipts before merge.",
+  "templates": {
+    "Cake": {
+      "path": "work/recomp-playability-20261101/release92bc-senior-cake-envelope-template-v1",
+      "PINS_sha256": "e2494ef9987d378759c00426bc498eaa18cfd1ed12fbcb3f2010c74762abc0d7",
+      "source": null,
+      "actual_run": null
+    },
+    "Cake_return": {
+      "path": "work/recomp-playability-20261101/release92bc-senior-cake-template-v1",
+      "PINS_sha256": "afb7fad91eaaa396b151aa1e68e179013333bb833365abb64c19161dad3e4cf1",
+      "source": null,
+      "actual_run": null
+    },
+    "Fire_Nigel52_57": {
+      "path": "work/recomp-playability-20261101/release92bc-senior-post-optional52-57-template-v2",
+      "PINS_sha256": "726ffb03754177b94766f78bd705740322f96b522d6fc1e739e2367ee5525ad2",
+      "source": null,
+      "actual_run": null
+    },
+    "Alchemy_mould58_60": {
+      "path": "work/recomp-playability-20261101/release92bc-senior-alchemy-lab-mould-template-v1",
+      "PINS_sha256": "029dfe0b0254cd7a131d651366c74982570a2c0e35ddffdd678eb1bc05e81020",
+      "source": null,
+      "actual_run": null
+    }
+  }
+}
