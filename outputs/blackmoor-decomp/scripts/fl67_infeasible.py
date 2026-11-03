@@ -57,7 +57,8 @@ MAX_NODES = 6000
 SINK_MS = 3000                 # the check that a loop cannot run past its unrolled copies; unknown counts as can
 REP_EXACT = 64
 FAULT_LIMIT = 0xfff00000      # an access at or above it faults in the world (tests/fl41_world.py)
-ALLOCA_HELPER = bytes.fromhex('513d001000008d4c2408721481e9001000002d0010000085013d0010000073ec2bc88bc485018be18b088b400450c3')      # FL-78 (round 11): the CRT stack probe / alloca helper (0x50c920): it reads [new esp] (`test [ecx], eax`) before it moves esp there
+ALLOCA_HELPER_LEN = 47
+ALLOCA_HELPER_SHA256 = '4be32df90e8e3db3f5eed0d31857bddd88255c7ed09ae57e0e20e4510124a255'      # FL-78 (round 11): the CRT stack probe / alloca helper (0x50c920), pinned by length and SHA-256 (the bytes are not committed, AGENTS.md); it reads [new esp] (`test [ecx], eax`) before it moves esp there
 DATA_START = 0x537000         # first writable page of .data; the image below it is constant
 IMAGE_BASE = 0x400000
 FLAGS = ('cf', 'zf', 'sf', 'of', 'pf', 'af')
@@ -1627,11 +1628,12 @@ class Machine:
         return out
 
     def is_alloca(self, addr):
-        """FL-78 (round 11): the bytes at addr are the CRT alloca helper (ALLOCA_HELPER): it probes the new stack top with a read before it moves esp there, so after the call esp is an address that was read, and 0 is not (the first page is unmapped)"""
+        """FL-78 (round 11): the bytes at addr are the CRT alloca helper (ALLOCA_HELPER_LEN bytes with SHA-256 ALLOCA_HELPER_SHA256): it probes the new stack top with a read before it moves esp there, so after the call esp is an address that was read, and 0 is not (the first page is unmapped)"""
         if self.image is None or addr < IMAGE_BASE:
             return False
         off = addr - IMAGE_BASE
-        return self.image[off:off + len(ALLOCA_HELPER)] == ALLOCA_HELPER
+        chunk = bytes(self.image[off:off + ALLOCA_HELPER_LEN])
+        return len(chunk) == ALLOCA_HELPER_LEN and hashlib.sha256(chunk).hexdigest() == ALLOCA_HELPER_SHA256
 
     def is_pure(self, addr):
         if self.image is None:
