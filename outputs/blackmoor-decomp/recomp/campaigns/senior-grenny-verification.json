@@ -1,0 +1,38 @@
+{
+  "whole_game_complete": false,
+  "native_sha256": "6041e31e9d486111f6a0b64a7ce9764d52c292f35339fa1a84f3be7c18d31de4",
+  "publisher_chat": "01a170c4-6fa4-7831-9a46-f076fbcfab37",
+  "profile_selection": "explicit senior-grenny original2, Junior default retained",
+  "profile_fixture_groups_passed": 4,
+  "existing_Junior_groups_passed": 6,
+  "water_Ned_fountain": {
+    "accepted": true,
+    "packet": "work/recomp-playability-20261101/release92bc-senior-water-ned-fountain-prep-v1",
+    "BOUND_PINS_sha256": "17aba176666c2e9ef2b3ba95d6db3afe1387d730e57c7ee0216f2f8a66e416e8",
+    "manifest_sha256": "ebe978f47c7bfe39df0a4a6f99892c04ce641597d4a537bdfd1d1d5cb64f4199",
+    "source_sha256": "de51c391fb476778695682893df3f487021709216e26f5746f755a85d5311882",
+    "output_sha256": "a492abe66778c95b597e49f933960822a9e6d5e4c91649932f79fbfac2b8d4fd",
+    "acceptance_receipt_sha256": "3443b8c29199c202fd207d84644c9139da48aa954332769efe792575ba593160",
+    "state": [
+      2460,
+      2460,
+      0,
+      -1
+    ],
+    "saved_clock": {
+      "day": 4,
+      "hour": 10,
+      "minute": 30,
+      "total_minutes": 630
+    },
+    "serialized_fields": 409,
+    "item_cells": 40,
+    "full_standalone_ancestor_live_checker_claimed": false
+  },
+  "Grenny": {
+    "accepted": false,
+    "future_actual_run_pending": true,
+    "source_sha256": "a492abe66778c95b597e49f933960822a9e6d5e4c91649932f79fbfac2b8d4fd"
+  },
+  "independent_review_pending": true
+}

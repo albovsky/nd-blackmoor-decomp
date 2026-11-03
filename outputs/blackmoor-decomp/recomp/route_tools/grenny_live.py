@@ -146,18 +146,20 @@ def audit(session,profile,source,*,reload=False,minimum_clock=None):
 def main(argv=None):
     p=argparse.ArgumentParser(description=__doc__)
     for name in('native','game-exe','game-data','source-save','profile','output'):p.add_argument('--'+name,type=Path,required=True)
+    p.add_argument('--profile-name',choices=tuple(guard.PROFILE_DIFFICULTIES),default='junior-grenny',
+                   help='expected original difficulty profile; the saved mode is never changed')
     p.add_argument('--native-sha256',required=True);p.add_argument('--save-sha256',required=True)
     p.add_argument('--save-name',default='m65');p.add_argument('--timeout',type=int,default=300)
     args=p.parse_args(argv);active=None;created_output=False;receipt={'accepted':False,'no_historical_SAV_runtime_input':True}
     try:
         io.require(1<=args.timeout<=300 and re.fullmatch('[a-z0-9]{1,10}',args.save_name),'bounded timeout/lowercase UI filename required')
         for name in('native','game_exe','game_data','source_save','profile'):setattr(args,name,getattr(args,name).resolve(strict=True))
-        profile=guard.read(args.profile)
+        profile=guard.read(args.profile,profile_name=args.profile_name)
         io.require(args.native_sha256==profile['native_sha256']==io.digest(args.native)and args.save_sha256==profile['source_sha256'],
                    'explicit native/source/profile pin differs')
         io.require(io.digest(args.game_exe)==io.digest(args.game_data/'GAME.EXE')==io.ORIGINAL_SHA256,'immutable original differs')
         io.require(args.source_save.name.lower()!=args.save_name+'.sav','new output name equals source')
-        source=guard.source_state(args.source_save,profile)
+        source=guard.source_state(args.source_save,profile,profile_name=args.profile_name)
         io.require(not(args.game_data/'Documents5').exists()and not any(p.is_symlink()for p in args.game_data.rglob('*')),'seed has saves/symlinks')
         guard.check_data(args.game_data,profile.get('data_pins'))
         io.require(isinstance(profile.get('origin_receipts'),list)and profile['origin_receipts'],'accepted source origin pins required')
@@ -174,7 +176,7 @@ def main(argv=None):
         protected.update({str(args.game_data/rel):digest for rel,digest in profile['data_pins'].items()})
         protected.update({item['path']:item['sha256']for item in profile['origin_receipts']})
         out.mkdir(parents=True,exist_ok=False);created_output=True;receipt.update(native_sha256=args.native_sha256,source_sha256=args.save_sha256,
-          source_state=source,protected_inputs=protected,policy='v4 fixed ordinary crossing;20authored attempts/24pickup/12exits',
+          source_state=source,profile_name=args.profile_name,protected_inputs=protected,policy='v4 fixed ordinary crossing;20authored attempts/24pickup/12exits',
           original_NewGame_origin_preserved=True)
         io.write_json(out/'receipt.json',receipt)
         flags=','.join(map(str,sorted(guard.LIVE|set(range(338,342)))))

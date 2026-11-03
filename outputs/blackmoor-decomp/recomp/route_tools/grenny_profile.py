@@ -4,6 +4,8 @@ import re
 import struct
 import bul_live as io
 
+PROFILE_DIFFICULTIES={'junior-grenny':0,'senior-grenny':2}
+
 WIN={1978,2064,2226}
 ONE={1959,1960,1972,2017,2052}
 ZERO={1879,1973,1999,2004}
@@ -33,8 +35,11 @@ def snapshot(path,fields):
     return state
 
 
-def validate(profile):
-    io.require(profile.get('name')=='junior-grenny'and profile.get('difficulty')==0,'only the explicit Junior profile is supported')
+def validate(profile,profile_name='junior-grenny'):
+    difficulty=PROFILE_DIFFICULTIES.get(profile_name)
+    io.require(difficulty is not None and profile.get('name')==profile_name
+               and type(profile.get('difficulty'))is int and profile['difficulty']==difficulty,
+               'profile must match the selected original difficulty name/mode')
     for key in('native_sha256','source_sha256'):
         io.require(isinstance(profile.get(key),str)and re.fullmatch('[0-9a-f]{64}',profile[key]),'unbound '+key)
     io.require(profile['native_sha256']!=io.ORIGINAL_SHA256,'native is not the original data image')
@@ -55,7 +60,7 @@ def validate(profile):
     return profile
 
 
-def read(path):return validate(json.loads(path.read_text()))
+def read(path,profile_name='junior-grenny'):return validate(json.loads(path.read_text()),profile_name)
 
 
 def check_data(root,pins,*,runtime_saves=False):
@@ -71,8 +76,8 @@ def check_data(root,pins,*,runtime_saves=False):
                    and io.digest(path)==pins[name],'data file hash differs: '+name)
 
 
-def source_state(path,profile):
-    validate(profile);io.require(io.digest(path)==profile['source_sha256'],'actual source SHA differs')
+def source_state(path,profile,profile_name='junior-grenny'):
+    validate(profile,profile_name);io.require(io.digest(path)==profile['source_sha256'],'actual source SHA differs')
     state=snapshot(path,profile['flags'])
     io.require(state['difficulty']==profile['difficulty']and[state[k]for k in('scene','art','view','held')]==profile['source_state']
                and all(state[k]==profile[k]for k in('flags','inventory40','ordered_bag','clock')),'actual source profile differs')
@@ -87,7 +92,9 @@ def expected_output(source):
 
 def check_output(state,source):
     expected=expected_output(source)
-    io.require(state['difficulty']==source['difficulty']==0 and[state[k]for k in('scene','art','view','held')]==[2460,2460,0,-1],
+    io.require(type(source['difficulty'])is int and source['difficulty']in PROFILE_DIFFICULTIES.values()
+               and type(state['difficulty'])is int and state['difficulty']==source['difficulty']
+               and[state[k]for k in('scene','art','view','held')]==[2460,2460,0,-1],
                'safe original fountain output differs')
     io.require(all(state[k]==expected[k]for k in expected),'actual earned8/expanded events/full40/bag differs')
     io.require(clock_total(state['clock'])>=clock_total(source['clock']),'saved clock predates genuine source')
