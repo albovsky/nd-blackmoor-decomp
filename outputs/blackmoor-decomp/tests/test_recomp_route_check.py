@@ -1352,6 +1352,33 @@ class WordPrerequisiteRouteTests(unittest.TestCase):
         self.assertNotIn(1475, result['flags_one'])
         self.assertNotIn(1479, result['flags_one'])
 
+    def test_accepts_exact_authored_drake_goodbye_variants(self):
+        for departure in (1090, 1091, 1092):
+            with self.subTest(departure=departure):
+                save, frames = self.frames('drake-magic')
+                opened = (2332, 1000, 1067, 1068, 1071, departure, 2332)
+                result = checker.verify(self.observed_log('drake-magic', save, frames, opened),
+                                        save, 'drake-magic')
+                self.assertTrue({1525, 1526} <= set(result['flags_one']))
+                self.assertFalse(result['word_lock_won'])
+
+    def test_authored_drake_goodbye_still_requires_departure_and_dialogue(self):
+        for failure in ('missing_bye', 'unauthorized_bye', 'missing_dialogue', 'missing_answer'):
+            with self.subTest(failure=failure):
+                save, frames = self.frames('drake-magic')
+                opened = [2332, 1000, 1067, 1068, 1071, 1090, 2332]
+                if failure == 'missing_bye':
+                    opened.remove(1090)
+                elif failure == 'unauthorized_bye':
+                    opened[5] = 1093
+                elif failure == 'missing_dialogue':
+                    opened.remove(1067)
+                else:
+                    opened.remove(1068)
+                with self.assertRaisesRegex(ValueError, 'ordered.*authored'):
+                    checker.verify(self.observed_log('drake-magic', save, frames, opened),
+                                   save, 'drake-magic')
+
     def test_refuses_premature_or_missing_authored_progression(self):
         cases = (('lit-word-clue', 0, 1818, 1), ('lit-word-clue', 4, 2041, 0),
                  ('loulou-barber', 6, 1467, 1), ('loulou-barber', 4, 1569, 0),
