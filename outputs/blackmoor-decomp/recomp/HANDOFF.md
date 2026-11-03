@@ -58,7 +58,7 @@ RECOMP-21 adds five exact ordinary-input legs from public glowstick m29: lit wor
 
 ## Current Senior glyph acceptance, 2026-11-03 Pacific
 
-RECOMP-49 preserves original Junior0/Senior2 through the first-time glyph client, retaining the default Junior API and unchanged visible-pixel policy. Current fresh6041Senior wins hard3589/5000/41s, earns real4 and saves/reloads m29 `5abe401a…` at17:04; root full409/40/clock/asset audit912011a7… accepts both retained sessions. The older tool hashes and Junior-only descriptions below remain historical. Repeat glyph and later Senior chapters are still separate acceptance gates. PR342's Mac default-data isolation also passes actual earned Junior credits, warm reuse and explicit scratch startup; the verified bundle is now the default.
+RECOMP-49 preserves original Junior0/Senior2 through the first-time glyph client, retaining the default Junior API and unchanged visible-pixel policy. Current fresh6041Senior wins hard3589/5000/41s, earns real4 and saves/reloads m29 `5abe401a…` at saved17:03 (final live17:04); root full409/40/clock/asset audit912011a7… accepts both retained sessions. The older tool hashes and Junior-only descriptions below remain historical. Repeat glyph and later Senior chapters are still separate acceptance gates. PR342's Mac default-data isolation also passes actual earned Junior credits, warm reuse and explicit scratch startup; the verified bundle is now the default.
 
 ## Latest glyph progression, 2026-11-02 Pacific
 
