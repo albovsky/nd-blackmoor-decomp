@@ -107,6 +107,22 @@ int main(int argc,char **argv) {
         expect(!exists(o.support_directory),"explicit selection never initializes default clone");
         o.argument_directory="";expect(!choose(o,r),"empty explicit arg refuses even with env");
         o.argument_directory=nullptr;o.environment_directory="";expect(!choose(o,r),"empty explicit env refuses");
+        o.argument_directory=arg.c_str();o.environment_directory=nullptr;
+        std::string hard=arg+"/source hardlink";
+        expect(link((o.seed_directory+"/CDVideo/movie.bin").c_str(),hard.c_str())==0,"fixture explicit source hardlink");
+        expect(!choose(o,r),"explicit scratch containing a source hardlink refuses");
+        expect(unlink(hard.c_str())==0,"remove only fixture scratch hardlink");
+        std::string symbolic=arg+"/source symlink";
+        expect([[NSFileManager defaultManager] createSymbolicLinkAtPath:ns(symbolic)
+            withDestinationPath:ns(o.seed_directory+"/CDVideo/movie.bin") error:nullptr],"fixture explicit source symlink");
+        expect(!choose(o,r),"explicit scratch containing a source symlink refuses");
+        expect(unlink(symbolic.c_str())==0,"remove only fixture scratch symlink");
+        std::string scratch_alias=root+"/scratch alias";
+        expect([[NSFileManager defaultManager] createSymbolicLinkAtPath:ns(scratch_alias)
+            withDestinationPath:ns(env) error:nullptr],"fixture nonsource scratch root symlink");
+        o.argument_directory=scratch_alias.c_str();expect(!choose(o,r),"symlinked nonsource scratch root refuses");
+        std::string trailing=scratch_alias+"/";o.argument_directory=trailing.c_str();
+        expect(!choose(o,r),"trailing slash cannot hide nonsource scratch root symlink");
     } else if(mode=="wrong-incomplete") {
         auto wrong=o;wrong.expected_executable_sha256=std::string(64,'0');expect(!choose(wrong,r),"wrong owned executable refuses");
         expect(!exists(o.support_directory+"/DataClone-v1"),"wrong source not published");
@@ -116,7 +132,13 @@ int main(int argc,char **argv) {
     } else if(mode=="tamper") {
         expect(choose(o,r),"initial cache succeeds");
         if (r.directory.find(root+"/")!=0 || r.directory==o.seed_directory) return 1;
-        std::string chosen=r.directory;put(chosen+"/GAME.EXE","xyz");
+        std::string chosen=r.directory,sibling=root+"/cache sibling hardlink";
+        expect(link((chosen+"/Game.ini").c_str(),sibling.c_str())==0,"fixture completed-cache hardlink to sibling");
+        expect(!choose(o,r),"completed cache containing a shared hardlink refuses");
+        expect(get(chosen+"/Game.ini")=="original=1\n","hardlink refusal preserves completed cache bytes");
+        expect(unlink(sibling.c_str())==0,"remove only fixture sibling alias");
+        expect(choose(o,r)&&r.directory==chosen,"completed cache reusable after fixture alias removed");
+        put(chosen+"/GAME.EXE","xyz");
         expect(!choose(o,r),"wrong completed-cache executable refuses without source fallback");
         expect(get(chosen+"/GAME.EXE")=="xyz","wrong completed cache not silently replaced");
     } else if(mode=="aliases-failure") {

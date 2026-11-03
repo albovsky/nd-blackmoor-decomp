@@ -628,7 +628,7 @@ int main(int argc, char **argv)
         data_options.argument_directory = argument_game_dir;
         data_options.environment_directory = environment_game_dir;
         data_options.seed_directory = original_game_seed;
-        data_options.support_directory = application_support;
+        data_options.support_directory = application_support + " Data";
         data_options.save_directory = g.save_dir;
         data_options.expected_executable_sha256 = "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45";
         BlackmoorGameDataSelection data;
