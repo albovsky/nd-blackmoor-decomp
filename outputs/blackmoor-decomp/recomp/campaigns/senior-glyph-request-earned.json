@@ -1,0 +1,56 @@
+{
+  "scope": "Current6041 Senior unsolved glyph request and fresh reload",
+  "code_freeze": "e7d5a5e303957b1f711231598de74879a81d04ce",
+  "native_sha256": "6041e31e9d486111f6a0b64a7ce9764d52c292f35339fa1a84f3be7c18d31de4",
+  "source_sha256": "aa3976704ea979740a3d2f8152fd2c37a1f9c3576223eb814a41272048d39304",
+  "output_sha256": "012b75ce4c3ce12de5f1334b2753bcee184d4a45d9100b40714cb622bae7451d",
+  "accepted_receipt_sha256": "bfd3cdc30e50e2149a89ebba2da71b85f85cf12a12d05d5de255417acd51ef8a",
+  "difficulty": 2,
+  "state": [
+    3510,
+    3510,
+    4,
+    -1
+  ],
+  "clock": {
+    "day": 2,
+    "hour": 16,
+    "minute": 48,
+    "total_minutes": 1008
+  },
+  "bag": [
+    16,
+    7,
+    11,
+    12,
+    6,
+    19,
+    20,
+    17,
+    21
+  ],
+  "saved_fields": 409,
+  "item_presence_cells": 40,
+  "original_request_exit": [
+    3585,
+    3571,
+    3580,
+    3510
+  ],
+  "pending_zero": [
+    2001,
+    1357,
+    1804
+  ],
+  "light_item4_absent": true,
+  "producer_events": 113,
+  "reload_events": 10,
+  "returncodes": [
+    0,
+    0
+  ],
+  "original_assets_unchanged": true,
+  "independent_review": "ACCEPT/noP1/P2",
+  "glyph_solved": false,
+  "whole_game_complete": false
+}
