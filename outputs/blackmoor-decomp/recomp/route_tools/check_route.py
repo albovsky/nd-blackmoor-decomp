@@ -346,14 +346,16 @@ def verify_dragon_light_observations(route, log, observations, selected, clocks,
 GLYPH_WIN_ROUTES = ('glyph-win',)
 
 
-def glyph_win_configuration():
+def glyph_win_configuration(glyph_scene=3588):
+    if glyph_scene not in (3588, 3589):
+        raise ValueError('unsupported original glyph scene')
     _, pending, unmet = dragon_light_configuration('glyph-request')
-    expected = [(3510, 4), (3588, 0), (1294, 0), (1945, 0),
+    expected = [(3510, 4), (glyph_scene, 0), (1294, 0), (1945, 0),
                 (3510, 4), (3510, 4), (3510, 4)]
     return expected, (pending - {1418}) | {2001, 1357}, (unmet - {2001, 1357}) | {1418}
 
 
-def verify_glyph_win_observations(log, observations, selected, clocks, positive, negative):
+def verify_glyph_win_observations(log, observations, selected, clocks, positive, negative, glyph_scene=3588):
     retained, unmet = positive - {2001, 1357}, negative - {1418}
     previous = {1418: 1, 2001: 0, 1357: 0}
     for state, scope, flags in observations:
@@ -389,7 +391,7 @@ def verify_glyph_win_observations(log, observations, selected, clocks, positive,
     # Live solving can legitimately advance past the static request's gate.
     opened = [int(m[1]) for m in re.finditer(r'FILE open .*\\S(\d+)\.CIF\s+\[virtual \d+ ms\]', log)]
     cursor = 0
-    for alternatives in ((3588,), (1299,), (1294, 1295), (1945,), (3510,)):
+    for alternatives in ((glyph_scene,), (1299,), (1294, 1295), (1945,), (3510,)):
         while cursor < len(opened) and opened[cursor] not in alternatives:
             cursor += 1
         if cursor == len(opened):
@@ -1196,7 +1198,9 @@ def verify_lab_mould_observations(route, log, observations, selected, clocks, po
     return clocks[-1][1]
 
 
-def verify(log, save, route='telescope-prep'):
+def verify(log, save, route='telescope-prep', *, glyph_scene=3588):
+    if glyph_scene not in (3588, 3589) or (glyph_scene != 3588 and route != 'glyph-win'):
+        raise ValueError('explicit glyph scene is valid only for glyph-win')
     if route == 'telescope-prep':
         expected = [(2010, 0), (2014, 0), (2026, 0), (2010, 2)]
         positive = {1834, 1843, 1905, 1949, 1953, 1993}
@@ -1259,7 +1263,7 @@ def verify(log, save, route='telescope-prep'):
     elif route in DRAGON_LIGHT_ROUTES:
         expected, positive, negative = dragon_light_configuration(route)
     elif route == 'glyph-win':
-        expected, positive, negative = glyph_win_configuration()
+        expected, positive, negative = glyph_win_configuration(glyph_scene)
     elif route in WORD_PREREQUISITE_ROUTES:
         expected, positive, negative = word_prerequisite_configuration(route)
     elif route in WORD_LOCK_ROUTES:
@@ -1454,7 +1458,7 @@ def verify(log, save, route='telescope-prep'):
     if route in DRAGON_LIGHT_ROUTES:
         clock_diagnostics = verify_dragon_light_observations(route, log, observations, selected, clocks, positive, negative)
     if route == 'glyph-win':
-        clock_diagnostics = verify_glyph_win_observations(log, observations, selected, clocks, positive, negative)
+        clock_diagnostics = verify_glyph_win_observations(log, observations, selected, clocks, positive, negative, glyph_scene)
     if route in WORD_PREREQUISITE_ROUTES:
         clock_diagnostics = verify_word_prerequisite_observations(route, log, observations, selected, clocks, positive, negative)
     if route in WORD_LOCK_ROUTES:
@@ -1526,9 +1530,11 @@ if __name__ == '__main__':
     parser.add_argument('save_file', type=Path)
     parser.add_argument('--route', choices=('telescope-prep', 'jane-jigsaw', 'telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES + CREST_PREREQUISITE_ROUTES + TYPING_CREST_ROUTES + OIL_RUNE_ROUTES + RUNE_LIGHT_ROUTES + FIRE_ALCHEMY_ROUTES + ALCHEMY_WIN_ROUTES + LAB_MOULD_ROUTES,
                         default='telescope-prep')
+    parser.add_argument('--glyph-scene', type=int, choices=(3588, 3589), default=3588,
+                        help='explicit original board scene for glyph-win only')
     args = parser.parse_args()
     try:
         print(json.dumps(verify(args.run_log.read_text(), args.save_file,
-                                args.route), sort_keys=True))
+                                args.route, glyph_scene=args.glyph_scene), sort_keys=True))
     except (ValueError, OSError) as error:
         raise SystemExit('route verification failed: ' + str(error))
