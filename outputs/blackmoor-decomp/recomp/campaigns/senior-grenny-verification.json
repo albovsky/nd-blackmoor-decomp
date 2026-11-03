@@ -30,8 +30,8 @@
     "full_standalone_ancestor_live_checker_claimed": false
   },
   "Grenny": {
-    "accepted": false,
-    "future_actual_run_pending": true,
+    "accepted": true,
+    "future_actual_run_pending": false,
     "source_sha256": "a492abe66778c95b597e49f933960822a9e6d5e4c91649932f79fbfac2b8d4fd",
     "first_run": {
       "accepted": false,
@@ -56,7 +56,8 @@
       "crossing_pickup_put_exit_reload_policy_unchanged": true,
       "new_fixture_groups": 3,
       "all_groups_passed_afterfix": 13,
-      "independent_delta_review_pending": true
+      "independent_delta_review_pending": false,
+      "review": "d652d40f ACCEPT/noP1P2; P3 file-open indicates load began, held8/SAV/freshguards supply outcome proof; root cause not asserted"
     },
     "second_binding": {
       "path": "work/recomp-playability-20261101/release92bc-senior-grenny-binding-v2",
@@ -67,7 +68,34 @@
       "runtime_client_sha256": "4a5ef884486c998eee0b85749e1cee0e3e8168bddb2159853412a557fe665a50",
       "new_output": "release92bc-senior-grenny-second-v1",
       "controlled_actual_test_pending": true
-    }
+    },
+    "output_sha256": "dddeecde4cccb19b611a798fe3a27e5235d59c9b8be57a7d606fa76e488cec90",
+    "acceptance_receipt_sha256": "8d28e26593e0d1c91b8830ab20c5cc7a9fe0f18bf8f4fffff8e7aa211926a68e",
+    "full409_audit_sha256": "21f48087edbb8694b2a2910441f2720b2535f830c4dacce067fc480811596acd",
+    "saved_clock": {
+      "total_minutes": 647,
+      "minute": 47,
+      "hour": 10,
+      "day": 4
+    },
+    "only_three_flag_rises": [
+      1978,
+      2064,
+      2226
+    ],
+    "other406_unchanged": true,
+    "saved_only2127_retained_zero": true,
+    "item8_and_ordered_bag_append_only": true,
+    "producer_events": 154,
+    "producer_captures": 29,
+    "reload_events": 23,
+    "reload_captures": 7,
+    "both_native_exit": 0,
+    "ordinary_crossing_attempts": 2,
+    "ordinary_losses": 1,
+    "fresh_inventory_open_record_observed": true,
+    "inventory_open_presses": 1,
+    "realheld8_in_producer_and_fresh_reload": true
   },
   "independent_review_pending": false,
   "profile_review": "c43ff020 ACCEPT/noP1P2"

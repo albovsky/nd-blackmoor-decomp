@@ -1,0 +1,50 @@
+{
+  "whole_game_complete": false,
+  "status": "actual66\u201370 passed;71\u201374 active;forge and Mac sources unbound",
+  "publisher_chat": "01a170c4-6fa4-7831-9a46-f076fbcfab37",
+  "native_headless_sha256": "6041e31e9d486111f6a0b64a7ce9764d52c292f35339fa1a84f3be7c18d31de4",
+  "native_Mac_sha256": "a48d24d63c9d6e9b1fb3cf21f86c9a56720677d37130c6423e3db63540223113",
+  "templates": {
+    "knights_bell66_70": {
+      "path": "work/recomp-playability-20261101/release92bc-senior-knights-bell-prep-v1",
+      "pin_file": "BOUND-PINS.json",
+      "sha256": "29d32498537be688a47f163fbb9830b45e4165396b6e81f854d8bdb6ecebf5a4",
+      "actual_source_unbound": false,
+      "accepted": true,
+      "source_sha256": "dddeecde4cccb19b611a798fe3a27e5235d59c9b8be57a7d606fa76e488cec90",
+      "output_sha256": "e468212497c051d3691daf3a61077e47fcdd8525fdc31d5e7937b5a1920a08a0",
+      "acceptance_receipt_sha256": "a0cf4afd8a925965431f76c2c41342f35f58d4f86c30f82a59d21e0dd7eb3d9e",
+      "saved_clock": {
+        "day": 4,
+        "hour": 11,
+        "minute": 50,
+        "total_minutes": 710
+      }
+    },
+    "mercury_well71_74": {
+      "path": "work/recomp-playability-20261101/release92bc-senior-mercury-well-prep-v1",
+      "pin_file": "BOUND-PINS.json",
+      "sha256": "68f2b1d5e840851d47abbe6fc829794ace7f91bb0f54eeb7fe31410f09a50b20",
+      "actual_source_unbound": false,
+      "source_sha256": "e468212497c051d3691daf3a61077e47fcdd8525fdc31d5e7937b5a1920a08a0",
+      "actual_run": "release92bc-senior-mercury-well-v1",
+      "accepted": false,
+      "corrected_1672_guard": "actual corrected Junior73/74 retained1;73delta empty; frozen earlier map drop prose superseded"
+    },
+    "forge75_77": {
+      "path": "work/recomp-playability-20261101/release92bc-senior-forge-tail-template-v1",
+      "pin_file": "PINS.json",
+      "sha256": "43ade73d909054f07b54778f16a80b58f5985fdfb8b78fbe10873a009f63a935",
+      "actual_source_unbound": true
+    },
+    "Mac_ending": {
+      "path": "work/recomp-playability-20261101/release92bc-senior-mac-ending-template-v2",
+      "pin_file": "PINS.json",
+      "sha256": "6a87ed78822d526639af8d69bf0fdaa2471cf549186e9e38bb634fde14454797",
+      "actual_source_unbound": true
+    }
+  },
+  "independent_review_pending": true,
+  "Mac_GUI_not_run_until_root_checks_owner_unlocked": true,
+  "Mac_policy": "fresh explicit original3540 clone and isolated source77 save; defaultcache untouched; backgroundinactive/mute/ownstop/newcreditsframe/offlineWAV; no Juniorawardhash orscene6529 assumption"
+}
