@@ -1200,21 +1200,24 @@ def leg_loulou_answer(save=None):
     """m34 -> actual LEECH answer and word clue, safe m35; no word-lock win."""
     a = 'S2332.CIF'
     r = R().at(a, 0)
-    _observed_walk(r, 12000, '310,353 92,181 313,183 572,158 382,200 427,189 '
+    _observed_walk(r, 12000, '310,353')
+    # Entering S2333 can start MDM06 (5.138s). Its left exit requires
+    # channel12 to finish; retain the ordinary route after a ten-second wait.
+    _observed_walk(r, 27000, '92,181 313,183 572,158 382,200 427,189 '
                    '319,159 319,159 319,159 319,159 319,159 319,159 319,159 319,159 '
                    '404,198 420,192 292,185 106,161 311,165 296,157')
-    r.at(a, 115000).clicks('shot', 0)
-    _observed_walk(r, 117000, '313,164 581,164 534,163 311,164 329,163 329,163 '
+    r.at(a, 125000).clicks('shot', 0)
+    _observed_walk(r, 127000, '313,164 581,164 534,163 311,164 329,163 329,163 '
                    '495,163 318,163 318,163 318,163 163,162 324,196')
-    r.at(a, 177000).clicks('317,197', 0)
-    r.at(a, 182000).clicks('shot', 0)
-    for t, point, shot in ((187000, '310,176', 223000),
-                            (228000, '150,421', 264000), (269000, '150,421', 295000)):
+    r.at(a, 187000).clicks('317,197', 0)
+    r.at(a, 192000).clicks('shot', 0)
+    for t, point, shot in ((197000, '310,176', 233000),
+                            (238000, '150,421', 274000), (279000, '150,421', 305000)):
         r.at(a, t).clicks(point, 0)
         r.at(a, shot - 1000).clicks('shot', 0)
     out = [r.text()]
     if save:
-        out += [menu_to_save_screen(a, 299000), save_tail(a, 317000, save)]
+        out += [menu_to_save_screen(a, 309000), save_tail(a, 327000, save)]
     return ';'.join(out)
 
 
