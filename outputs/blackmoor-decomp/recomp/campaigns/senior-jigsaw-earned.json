@@ -1,0 +1,72 @@
+{
+  "scope": "Fresh current-build Senior opening and first observed jigsaw; campaign still incomplete",
+  "code_freeze": "44c3a783d6c41afab4e8368c707c14320111e535",
+  "native_source_freeze": "92bc2a69067eb4aa00f371d693d9198d6f67f121",
+  "native_sha256": "6041e31e9d486111f6a0b64a7ce9764d52c292f35339fa1a84f3be7c18d31de4",
+  "difficulty": 2,
+  "source_sha256": "6d6e1fe7ddbea72860361ed2fbcafec3a9411204e3f0724828a763a1728bd1aa",
+  "source_origin_receipt_sha256": "7f51c2c71f386d70c0bca9d1f416de4043c6a9670248d5c7107ddddc93be2c1f",
+  "zero_incoming_NewGame_receipt_sha256": "e830eeff4ef5b94b7be48ab4850c9bde0c67606045b537724cd379b036668239",
+  "output_sha256": "2e594565a5e9418f2e98119d2985a73cbcfda422a05457b230498bd56a3716a7",
+  "accepted_receipt_sha256": "2f16a14a72ff89f51875a5441a1e7c9b36efb21f05b45ba91b1e3e91557fefea",
+  "output_state": [
+    3510,
+    3510,
+    4,
+    -1
+  ],
+  "saved_clock": {
+    "day": 0,
+    "hour": 21,
+    "minute": 6,
+    "total_minutes": 1266
+  },
+  "bag_unchanged": [
+    12,
+    6,
+    17
+  ],
+  "saved_field_count": 396,
+  "item_presence_cells": 40,
+  "only_flag_changes": {
+    "1424": [
+      0,
+      1
+    ],
+    "1567": [
+      0,
+      1
+    ],
+    "1980": [
+      0,
+      1
+    ]
+  },
+  "producer_events": 267,
+  "reload_events": 8,
+  "both_returncodes": [
+    0,
+    0
+  ],
+  "original_right_press_release_pairs": 29,
+  "raw_pending_preserved": [
+    1234,
+    3578,
+    0,
+    -1
+  ],
+  "stable_win_required": [
+    1234,
+    1234,
+    0,
+    -1
+  ],
+  "stable_win_flag1980": 1,
+  "Junior_generator_byte_identical": true,
+  "independent_review": "ACCEPT/no P1/P2",
+  "unverified": [
+    "Other layouts/seeds/EA rows",
+    "Other transient timing",
+    "Remaining Senior campaign; fresh Junior Mac credits endpoint is separately accepted"
+  ]
+}

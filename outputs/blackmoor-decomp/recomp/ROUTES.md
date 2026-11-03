@@ -282,7 +282,7 @@ From loaded m8/S4408, use MENU75,448 → Exit Game275,425 → confirmation217,27
 
 ## Jane's telescope-loan jigsaw, verified 2026-11-01, 22:21 Pacific
 
-`story_route.py jane-jigsaw --save m9` follows m8 through the normal alternative greeting replies1200→1222→1225→1228→1289, re-talks to Jane and chooses her telescope request.1424=1 opens Junior1273→3575. The20 recorded pick/drop pairs solve the original timed jigsaw and reach3578→1234 with1980=1. Drop coordinates include the10,10 viewport origin; omitting it moved all pieces but failed the6-pixel snap tolerance. This is the first Junior layout, with no rotations; Senior and retry layouts are unverified.
+`story_route.py jane-jigsaw --save m9` follows m8 through the normal alternative greeting replies1200→1222→1225→1228→1289, re-talks to Jane and chooses her telescope request.1424=1 opens Junior1273→3575. The20 recorded pick/drop pairs solve the original timed jigsaw and reach3578→1234 with1980=1. Drop coordinates include the10,10 viewport origin; omitting it moved all pieces but failed the6-pixel snap tolerance. This original check covers the first Junior layout without rotations. Current Senior coverage is recorded under RECOMP-44 below; retry layouts remain unverified.
 
 After the win, the list includes another story topic and Bye is below the visible text. Drag the original left thumb (22,405, hold6000ms;5px moves down to456) before choosing150,430. The public route performs that drag, finishes Bye, returns to3510 view4 and saves m9. Final native run `jane-jigsaw-save-scroll/` takes18.33s; generated public INPUT is byte-identical to that exercised script. Fresh m9-only reload verifies the earned loan and original3507 delivery progress2037. Memory is a separate optional branch and remains unsolved.
 
@@ -523,3 +523,10 @@ The six named routes `fire-phosphorus`, `moving-room-entry`, `alchemy-snake-clue
 `route_tools/grenny_live.py` replaces the private cc7-bound controller. Supply explicit native/source hashes and a source profile through `--native`, `--native-sha256`, `--game-exe`, `--game-data`, `--source-save`, `--save-sha256`, `--profile`, `--output`; the ordinary UI output name defaults to m65. The profile records the actual source state/flags/full inventory/bag/clock, accepted source receipts and the complete immutable file inventory. Derive SELECT/PUT slots from that actual bag; do not reuse the old key slot.
 
 The fresh 6041 chain now earns m65 `f52c6f1e…` at S2460/unheld/day4 10:37 on its first crossing, preserving Cake and all earlier items. Actual held8 is checked before PUT and again after an independent output-only reload. See [RECOMP-43](../tasks/RECOMP-43-grenny-current-native.md) and `campaigns/grenny-earned.json` for hashes, verification and limits. Next are Mars/Jupiter and the remaining columns, then Bell.
+
+
+### 2026-11-03: original Senior jigsaw
+
+`story_route.py jane-jigsaw-senior --save m9` emits the observed twenty-piece Senior solution with 29 normal right-click down/up pairs. `check_route.py RUN_LOG SAVE --route jane-jigsaw-senior` requires original saved difficulty 2, instruction 1237→unsolved 3575→stable 1234/art1234 with 1980=1, then two safe 3510/view4/unheld observations. The raw 1234/art3578/1980=0 pending frame is retained and never counts as the win.
+
+The fresh current 6041 Senior campaign starts without any incoming saves and passes its opening six pairs, then m9 `2e594565…` at day 0 21:06. Producer 267/reload 8 events both exit 0, with 396 saved fields and full inventory guarded. Junior generator bytes remain unchanged. One observed layout is covered; other layouts and timing variants are not. See [RECOMP-44](../tasks/RECOMP-44-senior-jigsaw.md) and `campaigns/senior-jigsaw-earned.json`. Next are telescope/seedlings/crank; the Senior campaign and final earned Mac endpoint remain incomplete.
