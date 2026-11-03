@@ -70,6 +70,28 @@
     "Senior",
     "many-loss/exhaustion branch",
     "15-item source to full16-item bag",
-    "remaining story and final fresh earned Mac credits"
-  ]
+    "remaining story and final fresh earned Mac credits",
+    "2127 over many losses",
+    "isolated fixtures for PUT/save/reload audit; covered by this real run"
+  ],
+  "origin_receipts": [
+    {
+      "path": "work/recomp-playability-20261101/release92bc-water-ned-fountain-v1/receipt.json",
+      "sha256": "e48235670f8a44b4babbd09c5358eec22a876b13d7889227474f0e88968563f0"
+    },
+    {
+      "path": "work/recomp-playability-20261101/release92bc-water-ned-fountain-v1/m64/producer/receipt.json",
+      "sha256": "90ec6a468dd0dbc62bb39b2f4ad012204b9b7422793f10bd96c70e2d742bdf12"
+    },
+    {
+      "path": "work/recomp-playability-20261101/release92bc-water-ned-fountain-v1/m64/reload/receipt.json",
+      "sha256": "159d301dbdb5ab4da805b90d5249e650244ee4ea061cc0a5995a41b3049d680f"
+    }
+  ],
+  "flag_2127_unchanged": [
+    0,
+    0
+  ],
+  "acceptance_owner": "combined outer receipt; per-process accepted:false is not a failed process",
+  "clock_scope": "serialized save clocks"
 }
