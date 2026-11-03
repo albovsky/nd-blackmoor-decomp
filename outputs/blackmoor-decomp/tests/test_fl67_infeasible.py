@@ -258,7 +258,7 @@ class Invariants(unittest.TestCase):
                 for at in atoms:
                     for a in at.get('or', [at]):
                         self.assertIn(a['op'], P._INV_OPS)
-                        self.assertTrue(('val' in a) != ('mem2' in a))
+                        self.assertTrue(('val' in a) != ('mem2' in a or 'reg2' in a))
 
 
 # FL-75 programs (assembled with nasm, org 0x401000; the asm is in the comment). `tbl` and the callees sit behind the body, in the image.
@@ -1655,7 +1655,7 @@ class Fl78Forward(unittest.TestCase):
                     for at in atoms:
                         for a in at.get('or', [at]):
                             self.assertIn(a['op'], P._INV_OPS)
-                            self.assertTrue(('val' in a) != ('mem2' in a))
+                            self.assertTrue(('val' in a) != ('mem2' in a or 'reg2' in a))
 
 
 def manifest():
@@ -2274,6 +2274,173 @@ class Fl78Ranges(unittest.TestCase):
         self.assertEqual(Wn.prove_target(an, dom, T, ('dir', 'taken'))[0], 'unsat')
         an0.edge = {k: v for k, v in an0.edge.items() if k[2][0] != 'tail'}
         self.assertEqual(an0.direction(jne, 'taken')[0], 'unsat')
+
+
+def fp_program(consts, threshold=1.0, extra=b'', slot_read_first=False, jcc=b'\x76', back=None):
+    """FL-78 round 12: a synthetic x87 chain (hand written for this test, not a function of the game). push ebp; mov ebp,esp; sub esp,0x20; a = [C0] and b = [C1] into two locals; r = (b / a) * a - b computed with fdivr / fmul / fsub on the locals;
+    r into a third local and back; fcomp [t]; fnstsw ax; sahf; jcc over `mov eax,1; leave; ret`; xor eax,eax; leave; ret.
+    Returns (code, tail, labels): the constants are doubles in the image behind the code."""
+    def code_for(addr):
+        c = bytes.fromhex('5589e583ec20')
+        c += bytes.fromhex('dd05') + struct.pack('<I', addr[0]) + bytes.fromhex('dd5de0')            # fld [a]; fstp [ebp-0x20]
+        c += bytes.fromhex('dd05') + struct.pack('<I', addr[1]) + bytes.fromhex('dd5de8')            # fld [b]; fstp [ebp-0x18]
+        c += extra
+        c += bytes.fromhex('dd45e0dc7de8dc4de0dc65e8dd5df0dd45f0')                                   # fld [ebp-0x20]; fdivr [ebp-0x18]; fmul [ebp-0x20]; fsub [ebp-0x18]; fstp [ebp-0x10]; fld [ebp-0x10]
+        c += bytes.fromhex('dc1d') + struct.pack('<I', addr[2]) + bytes.fromhex('dfe09e')            # fcomp [t]; fnstsw ax; sahf
+        at = len(c)
+        c += jcc + b'\x07' + bytes.fromhex('b801000000c9c3') + bytes.fromhex('31c0c9c3')
+        if back == 'jcc':
+            c += bytes.fromhex('83f801') + b'\xeb' + struct.pack('<b', at - (len(c) + 5))          # cmp eax,1; jmp back to the conditional jump (a later path enters the chain's end)
+        elif back == 'top':
+            c += b'\xeb' + struct.pack('<b', -(len(c) + 2))                                         # jmp to the entry
+        elif back == 'indirect':
+            c += bytes.fromhex('ffe0')                                                               # jmp eax: the target can be anywhere
+        elif back == 'call':
+            c += b'\xe8' + struct.pack('<i', -(len(c) + 5))                                         # call the entry (recursion)
+        return c
+    probe = code_for((0, 0, 0))
+    tail = b''.join(struct.pack('<d', v) for v in (*consts, threshold))
+    addrs = [BASE + len(probe) + 8 * k for k in range(3)]
+    code = code_for(addrs)
+    end = len(code) - {None: 0, 'jcc': 5, 'top': 2, 'indirect': 2, 'call': 5}[back]          # the end of the xor / leave / ret tail
+    return code, tail, {'dead': end - 4 - 7, 'ret': end - 1}
+
+
+# FL-78 round 12: push ebp; mov ebp,esp; loop (3): push 1; mov dword [ebp-8],7; pop ecx; cmp ecx,1; jne never (28); cmp dword [ebp+8],0; jne loop; xor eax,eax; pop ebp; ret; never: mov eax,9; pop ebp; ret
+TIE_LOOP = bytes.fromhex('5589e56a01c745f8070000005983f901750a837d080075eb31c05dc3b8090000005dc3')
+
+
+# FL-78 round 12 (nasm, org 0x401000): push ebp; mov ebp,esp; mov edx,[ebp+8]; xor eax,eax; hdr: cmp eax,1; ja out; jmp [eax*4+tab]; c0: mov [edx],5; mov eax,1; jmp next; c1: cmp eax,1; jne dead; mov [edx],6; xor eax,eax;
+# next: cmp [ebp+12],0; jne hdr; out: xor eax,eax; pop ebp; ret; dead: mov eax,9; pop ebp; ret; tab: dd c0, c1   (the loop stores through a pointer, so its header has a fresh memory; the cells of tab are read from it)
+TABLE_LOOP = bytes.fromhex('5589e58b550831c083f8017727ff24853f104000c70205000000b801000000eb0d83f8017512c7020600000031c0837d0c0075d431c05dc3b8090000005dc31410400021104000')
+
+
+class Fl78TableEdge(unittest.TestCase):
+    """FL-78 round 12: the edge of a table jump to a target holds only if the address read is one of the cells that hold the target. At a generalised loop header the memory is a fresh array, so the value read alone says nothing about the index (0x516f69: state 10 is the only index that goes to 0x517243)."""
+    DEAD = BASE + 0x38
+
+    def analysis(self):
+        image = bytes(BASE - P.IMAGE_BASE) + TABLE_LOOP + bytes(64)
+        an = P.Analysis({'va': BASE, 'body': 63, 'callees': {}, 'imports': {}, 'sites': None}, image, 30000)
+        an.inv = {BASE + 8: [{'reg': 'eax', 'op': 'ule', 'val': 1}]}
+        return an
+
+    def test_the_handler_of_index_one_runs_only_with_index_one(self):
+        an = self.analysis()
+        an.run()
+        self.assertIn('gen', an.plan.values())
+        self.assertEqual(an.instruction(self.DEAD)[0], 'unsat')                              # c1 is entered with eax == 1, so `jne dead` is never taken
+        self.assertEqual(an.instruction(BASE + 0x21)[0], "sat")                              # c1 itself is reachable
+
+    def test_the_value_alone_does_not_say_which_cell_was_read(self):
+        an = self.analysis()
+        with mock.patch.object(P.Analysis, 'table_cond', lambda self_, st, here, last, target: z3.And(here, self_.M.mem_read(st.copy(), last.operands[0], 4) == target)):
+            an.run()
+        self.assertEqual(an.instruction(self.DEAD)[0], 'sat')                                # the previous condition: a fresh memory may hold the cell's value for any index
+
+    def test_without_the_bound_on_the_index_the_other_handler_is_reachable(self):
+        an = self.analysis()
+        an.inv = {}                                                                          # no invariant: eax is unknown at the header, `ja out` lets only 0 and 1 through, but the dispatch is still exact
+        an.run()
+        self.assertEqual(an.instruction(self.DEAD)[0], 'unsat')                              # (the range check in front of the jump is enough here: the address read is eax*4+tab, and only index 1 reads the cell of c1)
+
+
+class Fl78SpTie(unittest.TestCase):
+    """FL-78 round 12: a register atom may compare a register with another register plus a constant ({"reg": "esp", "op": "eq", "reg2": "ebp", "add": k}); it ties the stack pointer to the frame base at a generalised header, where both are otherwise fresh symbols."""
+
+    def analysis(self, atoms):
+        image = bytes(BASE - P.IMAGE_BASE) + TIE_LOOP + bytes(64)
+        an = P.Analysis({'va': BASE, 'body': len(TIE_LOOP), 'callees': {}, 'imports': {}, 'sites': None}, image, 20000)
+        an.inv = {BASE + 3: atoms} if atoms else {}
+        return an
+
+    def test_without_the_tie_the_store_may_hit_the_pushed_slot(self):
+        an = self.analysis([])
+        an.run()
+        self.assertIn('gen', an.plan.values())
+        self.assertEqual(an.instruction(BASE + 28)[0], 'sat')                                  # esp and ebp are independent at the header: [ebp-8] may be the slot of the push
+
+    def test_the_tie_keeps_the_slots_apart_and_is_checked_on_both_edges(self):
+        an = self.analysis([{'reg': 'esp', 'op': 'eq', 'reg2': 'ebp', 'add': 0}])
+        an.run()
+        self.assertEqual(an.instruction(BASE + 28)[0], 'unsat')
+        self.assertEqual(an.instruction(BASE + 24)[0], 'sat')                                  # the exit is still there
+
+    def test_a_wrong_tie_is_refused(self):
+        an = self.analysis([{'reg': 'esp', 'op': 'eq', 'reg2': 'ebp', 'add': -4}])             # esp == ebp at the header
+        with self.assertRaises(P.Unsupported) as ctx:
+            an.run()
+        self.assertIn('entry edge', str(ctx.exception))
+        an = self.analysis([{'reg': 'esp', 'op': 'eq', 'reg2': 'ebp', 'add': 4}])
+        with self.assertRaises(P.Unsupported):
+            an.run()
+
+
+class Fl78FpChain(unittest.TestCase):
+    """FL-78 round 12 (the shape of 0x511a1a, the FDIV probe, with a chain of its own): a function that is an x87 chain on constants of the image is decided for every precision and rounding of the control word (scripts/fl78_fpchain.py).
+    The test program is synthetic: r = (b / a) * a - b with a = 3, b = 1; the 12 control word values give results from -6e-8 to 1.2e-7, both signs and zero."""
+    EMPTY = {'instructions': {}, 'directions': {}}
+
+    def prove(self, consts=(3.0, 1.0), threshold=1.0, **kw):
+        import fl78_fpchain as FC
+        code, tail, labels = fp_program(consts, threshold, **kw)
+        img = image_of(code, tail)
+        row = {'va': BASE, 'body': len(code), 'callees': {}, 'imports': {}, 'sites': None}
+        _, insns = P.disassemble(img, BASE, len(code))
+        jcc = [i.address for i in insns if i.mnemonic.startswith('j')][0]
+        dead = BASE + labels['dead']                                                      # the mov eax,1 behind the jump
+        todo = {'missing': [dead, BASE + labels['ret']], 'untaken': [[jcc, 'taken'], [jcc, 'fall-through']]}
+        return FC.prove(row, img, todo), jcc, dead, insns
+
+    def test_the_fall_through_is_impossible_for_every_control_word(self):
+        got, jcc, dead, insns = self.prove()                                              # every result is <= 1.0: `jbe` is always taken
+        self.assertEqual(sorted(got['directions']), ['%s:fall-through' % hex(jcc)])
+        self.assertEqual(got['directions']['%s:fall-through' % hex(jcc)][0], 'unsat')
+        self.assertEqual(sorted(got['instructions']), [hex(dead)])                        # the mov 1 only the fall-through reaches; the final ret is also reached by the xor path
+        import fl78_fpchain as FC
+        code, tail, _ = fp_program((3.0, 1.0))
+        _, k, mn, flags, taken = FC.analyse({'va': BASE, 'body': len(code)}, image_of(code, tail))
+        self.assertEqual(len(flags), 12)                                                  # 3 precisions x 4 roundings
+        self.assertEqual(set(taken.values()), {True})
+
+    def test_a_threshold_that_some_control_word_exceeds_proves_nothing(self):
+        self.assertEqual(self.prove(threshold=0.0)[0], self.EMPTY)                        # some results are positive, some negative or zero: both ways
+        self.assertEqual(self.prove(threshold=1e-8)[0], self.EMPTY)                       # 24 bit precision rounded up gives 1.2e-7 > 1e-8
+
+    def test_the_other_direction_is_proved_when_every_control_word_falls_through(self):
+        got, jcc, dead, insns = self.prove(threshold=-1.0)                                # every result is above -1.0: `jbe` is never taken
+        self.assertEqual(sorted(got['directions']), ['%s:taken' % hex(jcc)])
+        self.assertEqual(sorted(got['instructions']), [hex(insns[-1].address)])           # the ret behind `xor eax, eax`, which only the taken jump reaches
+
+    def test_every_precision_and_rounding_is_needed(self):
+        import fl78_fpchain as FC
+        with mock.patch.object(FC, 'PRECISIONS', (53,)), mock.patch.object(FC, 'ROUNDINGS', FC.ROUNDINGS[:1]):
+            got, jcc, dead, _ = self.prove(threshold=0.0)                                 # nearest rounding at 53 bits alone gives 0.0 <= 0.0: a wrong proof
+        self.assertEqual(sorted(got['directions']), ['%s:fall-through' % hex(jcc)])
+        got, jcc, dead, _ = self.prove(threshold=0.0)
+        self.assertEqual(got['directions'], {})
+
+    def test_other_chains_are_refused(self):
+        self.assertEqual(self.prove(extra=bytes.fromhex('8b4508'))[0], self.EMPTY)                    # mov eax,[ebp+8] in the chain
+        self.assertEqual(self.prove(consts=(0.0, 1.0))[0], self.EMPTY)                                # division by zero
+        self.assertEqual(self.prove(consts=(float('inf'), 1.0))[0], self.EMPTY)
+        self.assertEqual(self.prove(consts=(5e-324, 1.0))[0], self.EMPTY)                             # a subnormal constant
+        self.assertEqual(self.prove(jcc=b'\x7c')[0], self.EMPTY)                                      # jl reads SF and OF, which sahf does not give
+
+    def test_a_chain_that_can_be_entered_after_its_top_is_refused(self):
+        """a later path that jumps back to the conditional jump (or into / to the top of the chain, or through an indirect jump or call) enters the jump with flags the chain did not compute"""
+        self.assertEqual(self.prove(back=None)[0]['directions'] != {}, True)                         # the same program without a way back is proved
+        for back in ('jcc', 'top', 'indirect', 'call'):
+            self.assertEqual(self.prove(back=back)[0], self.EMPTY, back)
+
+    def test_a_compare_that_leaves_a_value_on_the_x87_stack_is_refused(self):
+        import fl78_fpchain as FC
+        code, tail, labels = fp_program((3.0, 1.0))
+        fcom = code.replace(bytes.fromhex('dc1d'), bytes.fromhex('dc15'), 1)                          # fcom [t] instead of fcomp: st0 stays
+        self.assertNotEqual(fcom, code)
+        row = {'va': BASE, 'body': len(code), 'callees': {}, 'imports': {}, 'sites': None}
+        self.assertIsNone(FC.analyse(row, image_of(fcom, tail)))
+        self.assertIsNotNone(FC.analyse(row, image_of(code, tail)))
 
 
 if __name__ == '__main__':

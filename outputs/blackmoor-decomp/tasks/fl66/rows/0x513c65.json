@@ -1,0 +1,1 @@
+{"body": 67, "directions": [2, 2], "instructions": [21, 21], "kept": [[0, []], [4, []]], "pool": "upper57", "scenarios_run": 2, "scenarios_skipped_original_faults": 0, "source": "translated/original_methods_fl57_translated.c", "status": "tested_equivalent", "translation_sha256": "9a33f901983ea04cf7a25dcbdb7917d124e29c658a6ac4c4bc488aef66b35703"}

@@ -28,5 +28,42 @@
   "0x50ebfa": [
    {"reg": "esi", "op": "ne", "val": 0}
   ]
+ },
+ "0x516f69": {
+  "0x516fc0": [
+   {"reg": "eax", "op": "ule", "val": 11},
+   {"reg": "esi", "op": "ule", "val": 11},
+   {"reg": "edx", "op": "ule", "val": 11},
+   {"reg": "esp", "op": "eq", "reg2": "ebp", "add": -104}
+  ],
+  "0x516fa4": [
+   {"reg": "esp", "op": "eq", "reg2": "ebp", "add": -104},
+   {"reg": "edx", "op": "ule", "val": 11}
+  ],
+  "0x5170a6": [
+   {"reg": "esp", "op": "eq", "reg2": "ebp", "add": -104},
+   {"reg": "edx", "op": "ule", "val": 11}
+  ],
+  "0x51710a": [
+   {"reg": "esp", "op": "eq", "reg2": "ebp", "add": -104},
+   {"reg": "edx", "op": "ule", "val": 11}
+  ],
+  "0x517117": [
+   {"reg": "esp", "op": "eq", "reg2": "ebp", "add": -104},
+   {"reg": "edx", "op": "ule", "val": 11}
+  ],
+  "0x5171d7": [
+   {"reg": "esp", "op": "eq", "reg2": "ebp", "add": -104},
+   {"reg": "edx", "op": "ule", "val": 11}
+  ],
+  "0x517262": [
+   {"reg": "esp", "op": "eq", "reg2": "ebp", "add": -104}
+  ],
+  "0x5172ac": [
+   {"reg": "esp", "op": "eq", "reg2": "ebp", "add": -104}
+  ],
+  "0x51731a": [
+   {"reg": "esp", "op": "eq", "reg2": "ebp", "add": -104}
+  ]
  }
 }

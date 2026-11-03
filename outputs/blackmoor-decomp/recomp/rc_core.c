@@ -396,7 +396,13 @@ static void host_call(void *ctx, uint32_t target, Fl41Regs *regs)
     depth--;
 }
 
-const Fl41Host rc_host = { NULL, host_rd, host_wr, host_call, host_fret, &fpu };
+/* FL-78 (round 12): the cell through which a lifted callee that ends with FL41_FLAGS_OUT (0x513c65) hands its flags to the caller that calls with FL41_CALL_F (0x50f462); guest code runs one thread at a time and the cell is
+ * written and read between a callee's last instruction and the caller's next one.
+ * One global cell is safe only because the guest threads switch cooperatively and only inside call_stub (rc_threads_yield, an import call): FL41_FLAGS_OUT writes the cell as the callee's very last step and FL41_CALL_F reads and
+ * resets it right after the callee returns, with no import call (so no thread switch) in between, and a switch while the callee is still running finds the cell either empty or about to be rewritten by that same callee. Preemptive
+ * threads, or a yield point between the callee's last instruction and the caller's read, would need a cell per thread. */
+static uint32_t callee_flags_cell = FL41_NOFLAGS;
+const Fl41Host rc_host = { NULL, host_rd, host_wr, host_call, host_fret, &fpu, 0, &callee_flags_cell };
 
 /* a tail jump: the same as a call for the host (the target runs on the stack as it is, its return is the jumper's return) */
 void host_tailjump(uint32_t target, Fl41Regs *regs) { host_call(NULL, target, regs); }
