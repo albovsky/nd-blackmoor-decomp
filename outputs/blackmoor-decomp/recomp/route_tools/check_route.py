@@ -406,7 +406,8 @@ WORD_PREREQUISITE_SCENES = {
     'lit-word-clue': (3332, 3338, 3339, 3342, 3343, 3498, 2902, 2910, 2942, 2964, 4375, 4389),
     'loulou-barber': (3058, 2903, 3326, 3334, 3335, 3440, 1502, 1503, 1506, 1552, 3335),
     'loulou-morning': (3335,),
-    'drake-magic': (2332, 1000, 1067, 1068, 1071, 1092, 2332),
+    # Original0x44512a selects one of three authored Goodbye scenes.
+    'drake-magic': (2332, 1000, 1067, 1068, 1071, (1090, 1091, 1092), 2332),
     'loulou-answer': (3334, 3335, 3336, 1500, 1556, 1557, 1558, 3335),
 }
 WORD_PREREQUISITE_PHASES = {
@@ -489,7 +490,8 @@ def verify_word_prerequisite_observations(route, log, observations, selected, cl
     opened = [int(m[1]) for m in re.finditer(r'FILE open .*\\S(\d+)\.CIF\s+\[virtual \d+ ms\]', log)]
     cursor = 0
     for scene in WORD_PREREQUISITE_SCENES[route]:
-        while cursor < len(opened) and opened[cursor] != scene:
+        choices = scene if isinstance(scene, tuple) else (scene,)
+        while cursor < len(opened) and opened[cursor] not in choices:
             cursor += 1
         if cursor == len(opened):
             raise ValueError('missing ordered word-prerequisite authored scene opens')
