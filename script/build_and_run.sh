@@ -11,6 +11,12 @@ esac
 if /usr/bin/pgrep -f '/Contents/MacOS/BlackmoorRecompiled([[:space:]]|$)' >/dev/null; then
     printf 'Blackmoor Recompiled is already running; quit it normally before rebuilding or launching.\n' >&2
     exit 1
+else
+    query_status=$?
+    if [[ "$query_status" != 1 ]]; then
+        printf 'Cannot check for an existing game (pgrep status %s); no build or launch.\n' "$query_status" >&2
+        exit 1
+    fi
 fi
 project="$workspace/outputs/blackmoor-decomp"
 python_env="$workspace/work/tools/recomp-python"

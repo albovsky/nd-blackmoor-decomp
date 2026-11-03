@@ -31,6 +31,8 @@ if name == 'python':
 elif name == 'ditto':
     shutil.copytree(args[-2], args[-1])
 elif name == 'pgrep':
+    if os.environ.get('FAKE_QUERY_ERROR') == '1':
+        raise SystemExit(2)
     raise SystemExit(0 if os.environ.get('FAKE_USER_GAME') == '1' else 1)
 elif name == 'ps':
     app = next(item for item in rows if item['tool'] == 'app')
@@ -40,7 +42,7 @@ elif name == 'ps':
 """
 
 
-def scenario(launcher, arguments, *, running=False, python=True):
+def scenario(launcher, arguments, *, running=False, python=True, query_error=False):
     with tempfile.TemporaryDirectory(prefix='blackmoor-launcher-fakes-') as temporary:
         workspace = Path(temporary) / 'workspace with spaces'
         (workspace / 'script').mkdir(parents=True)
@@ -73,6 +75,7 @@ def scenario(launcher, arguments, *, running=False, python=True):
             command(venv / 'python3', 'python')
         out = workspace / 'calls.jsonl'
         env = dict(os.environ, FAKE_LOG=str(out), FAKE_USER_GAME=str(int(running)), TMPDIR=temporary,
+                   FAKE_QUERY_ERROR=str(int(query_error)),
                    PYTHONDONTWRITEBYTECODE='1')
         env.pop('BLACKMOOR_BUNDLE_PATH', None)
         result = subprocess.run(['/bin/bash', str(script), *arguments], cwd=workspace, env=env,
@@ -123,12 +126,15 @@ def main():
     result, calls = scenario(launcher, [], running=True)
     check(result.returncode == 1 and [row['tool'] for row in calls] == ['pgrep']
           and 'already running' in result.stderr, 'existing game was not preserved before build')
+    result, calls = scenario(launcher, [], query_error=True)
+    check(result.returncode == 1 and [row['tool'] for row in calls] == ['pgrep']
+          and 'Cannot check' in result.stderr, 'failed process query reached build or launch')
     result, calls = scenario(launcher, [], python=False)
     check(result.returncode == 1 and [row['tool'] for row in calls] == ['pgrep']
           and 'setup_recomp_python.sh' in result.stderr, 'missing local Python did not refuse before build')
     result, calls = scenario(launcher, ['--unknown-mode'])
     check(result.returncode == 2 and not calls, 'invalid mode reached a build or OS command')
-    print('PASS9 finite launcher shell-fake cases; no real build/install/app/device execution')
+    print('PASS10 finite launcher shell-fake cases; no real build/install/app/device execution')
 
 
 if __name__ == '__main__':
