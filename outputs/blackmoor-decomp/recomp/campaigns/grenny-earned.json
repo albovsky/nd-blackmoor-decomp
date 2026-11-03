@@ -1,0 +1,75 @@
+{
+  "scope": "Fresh Junior 92bc Grenny crossing and earned-save reload; not whole-game completion",
+  "code_freeze": "f432d7bf8d5abc1c7011d2387a269102c81778a5",
+  "native_source_freeze": "92bc2a69067eb4aa00f371d693d9198d6f67f121",
+  "native_sha256": "6041e31e9d486111f6a0b64a7ce9764d52c292f35339fa1a84f3be7c18d31de4",
+  "profile_sha256": "71792419d524347d7d2b3296710217195cbf7654052cc2d6ad6d97a689e807ad",
+  "source_sha256": "54d0e639be5625bdc23f417e4b058947cf806571a2dd195d4e1808eb6a513179",
+  "output_sha256": "f52c6f1e9784033bda32a2bef9e0bd8969bb4366a3ad8cfa3acf11ef89340a11",
+  "receipt_sha256": "e850d9c56268563903113a65757c15b78fd4b2350cc9f2049f7b43e6ca59743c",
+  "source_state": [
+    2460,
+    2460,
+    0,
+    -1
+  ],
+  "output_state": [
+    2460,
+    2460,
+    0,
+    -1
+  ],
+  "source_clock": {
+    "day": 4,
+    "hour": 10,
+    "minute": 26
+  },
+  "output_clock": {
+    "day": 4,
+    "hour": 10,
+    "minute": 37
+  },
+  "ordinary_attempts": 1,
+  "ordinary_losses": 0,
+  "producer_events": 129,
+  "producer_acks": 11,
+  "reload_events": 23,
+  "reload_acks": 6,
+  "both_returncodes": [
+    0,
+    0
+  ],
+  "realheld8_both_processes": true,
+  "saved_field_count": 339,
+  "only_saved_field_changes": {
+    "1978": [
+      0,
+      1
+    ],
+    "2064": [
+      0,
+      1
+    ],
+    "2226": [
+      0,
+      1
+    ]
+  },
+  "only_inventory_change": {
+    "8": [
+      0,
+      1
+    ]
+  },
+  "prior_items_retained_in_order": true,
+  "cake1_retained": true,
+  "asset_file_count": 3560,
+  "protected_inputs_unchanged": true,
+  "independent_review": "ACCEPT/no P1/P2 after delta fixes",
+  "unverified": [
+    "Senior",
+    "many-loss/exhaustion branch",
+    "15-item source to full16-item bag",
+    "remaining story and final fresh earned Mac credits"
+  ]
+}
