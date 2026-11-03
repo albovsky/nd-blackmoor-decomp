@@ -1,0 +1,3 @@
+# Versions used by the verified native recompiled build's source generator.
+pefile==2024.8.26
+capstone==5.0.9
