@@ -32,7 +32,33 @@
   "Grenny": {
     "accepted": false,
     "future_actual_run_pending": true,
-    "source_sha256": "a492abe66778c95b597e49f933960822a9e6d5e4c91649932f79fbfac2b8d4fd"
+    "source_sha256": "a492abe66778c95b597e49f933960822a9e6d5e4c91649932f79fbfac2b8d4fd",
+    "first_run": {
+      "accepted": false,
+      "directory": "release92bc-senior-grenny-first-v1",
+      "native_exit": 0,
+      "events": 117,
+      "captures": 23,
+      "ordinary_crossing_attempts": 2,
+      "crossing_win_flags": [
+        1978,
+        2064,
+        2226
+      ],
+      "final_scene": 2463,
+      "error": "realheld8 not observed after original pickup",
+      "new_save_produced": false,
+      "raw_failure_preserved": true
+    },
+    "inventory_open_correction": {
+      "source": "same2463pickuprectangle249,127..362,236/no difficulty gate; actualfailedtoolbaropensnoinventory, successJunior opensUIINVENTORY_OVL",
+      "new_behavior": "at most12 ordinary80ms toolbar presses, variable2100+17n capture; freshUIINVENTORY_OVL fileopen atclosedACK required beforefirstslot; stale/wrongresource/unknownscene refuse",
+      "crossing_pickup_put_exit_reload_policy_unchanged": true,
+      "new_fixture_groups": 3,
+      "all_groups_passed_afterfix": 13,
+      "independent_delta_review_pending": true
+    }
   },
-  "independent_review_pending": true
+  "independent_review_pending": false,
+  "profile_review": "c43ff020 ACCEPT/noP1P2"
 }

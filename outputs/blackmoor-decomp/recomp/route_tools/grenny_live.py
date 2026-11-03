@@ -63,6 +63,22 @@ def put_and_close(session,remaining_bag):
     return click(session,360,20,4000,'ordinary-close-inventory')
 
 
+def open_inventory(session):
+    # The frog movie reloads this scene. A queued toolbar click can be ignored;
+    # require the original inventory window to load before selecting its slot.
+    log=session.out/'run.log'
+    begin=log.stat().st_size
+    for attempt in range(12):
+        observation,image=send(session,
+            f'1:move:212,448;101:click:212,448,80;{2100+17*attempt}:shot:0,0',
+            'ordinary-short-inventory-open-'+str(attempt+1))
+        io.require(observation['state']==[2463,2463,0,-1], 'unknown scene while opening earned8 inventory')
+        if re.search(rb'FILE open [^\r\n]*\\UIINVENTORY_OVL\.CIF\s+\[virtual \d+ ms\]',
+                     log.read_bytes()[begin:], re.I):
+            return observation,image
+    raise ValueError('original inventory did not open within12 short toolbar presses; no slot selection or Save')
+
+
 def play(session,source,name):
     observation,image=send(session,story_route.load_save_prefix()+';'+(HERE/'grenny-start.txt').read_text().strip(),
                             'normal-fountain-to-Grenny')
@@ -74,7 +90,7 @@ def play(session,source,name):
         io.require(observation['state']==[2586,2586,0,-1],'crossing unfinished rather than authored reset')
     else:raise ValueError('20 ordinary randomized crossings unfinished; no reward/save claim')
     send(session,pickup_payload(),'ordinary-short-key8-pickup-retries-across-loop-frames')
-    click(session,212,448,4000,'ordinary-inventory-after-earned-key8')
+    open_inventory(session)
     observation,image=click(session,62,100,4000,'ordinary-select-authored-new8-first-slot')
     io.require(observation['state'][3]==8,'realheld8 not observed after original pickup')
     put_and_close(session,source['ordered_bag'])
