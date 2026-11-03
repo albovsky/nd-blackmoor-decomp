@@ -57,6 +57,16 @@
       "new_fixture_groups": 3,
       "all_groups_passed_afterfix": 13,
       "independent_delta_review_pending": true
+    },
+    "second_binding": {
+      "path": "work/recomp-playability-20261101/release92bc-senior-grenny-binding-v2",
+      "PINS_sha256": "198056a7ddf586935aca7a17f0699545b14b5048266665ca183e000266c55df6",
+      "source_profile_sha256": "23528df2d88607df36aa32e4d095760cbbed75825a8e090fd28afb6e6e4e27e8",
+      "outer_binding_sha256": "4062aea940c39ecd1b91f2098618c621ae04bc962d7f48797a1325bc046e9a3c",
+      "source_profile_identical_to_first_attempt": true,
+      "runtime_client_sha256": "4a5ef884486c998eee0b85749e1cee0e3e8168bddb2159853412a557fe665a50",
+      "new_output": "release92bc-senior-grenny-second-v1",
+      "controlled_actual_test_pending": true
     }
   },
   "independent_review_pending": false,
