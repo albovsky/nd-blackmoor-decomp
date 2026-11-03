@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""One first-paid Junior replacement glyph attempt through ordinary input.
+"""One first-paid replacement glyph attempt through ordinary input.
 
 Default: observed first-paid pending source. Optional rune-passage context
 starts from the genuine afternoon3335/held5 wait checkpoint; no abandoned
@@ -64,23 +64,43 @@ def rune_source_state(path):
     return state
 
 
-def source_state(path, context='first-paid'):
+def source_state(path, context='first-paid', expected_difficulty=0):
+    io.require(type(expected_difficulty) is int and expected_difficulty in (0, 2),
+               'unsupported original repeat glyph difficulty')
     if context == 'rune-passage':
+        io.require(expected_difficulty == 0, 'post-rune Senior source remains unverified')
         return rune_source_state(path)
     io.require(context == 'first-paid', 'unknown repeat context')
     _, one, zero = check_route.word_lock_configuration('paid-light-request')
     state = io.save_state(path, progression_flags=one | zero)
-    pending = (state['difficulty'] == 0 and [state[k] for k in ('scene', 'art', 'view', 'held')] == [3510, 3510, 4, -1]
+    pending = (state['difficulty'] == expected_difficulty and [state[k] for k in ('scene', 'art', 'view', 'held')] == [3510, 3510, 4, -1]
                and all(state['progression'].get(f) == 1 for f in one)
                and all(state['progression'].get(f) == 0 for f in zero)
                and inventory(path) == {4: 0, 5: 1, 13: 0})
-    io.require(pending, 'source must be the observed first-paid pending Junior shape with used5; first-time/Senior/later sources refused')
+    io.require(pending, 'source must be the observed first-paid pending Junior/Senior shape in the expected original mode with used5; first-time/later sources refused')
     data = path.read_bytes()
     clock = {name: struct.unpack_from(fmt, data, offset)[0] for name, fmt, offset in (
         ('total_minutes', '<I', 0x2430), ('minute', '<H', 0x2434), ('hour', '<H', 0x2436), ('day', '<H', 0x2438))}
     io.require(clock['day'] == 3 and clock['hour'] == 14 and 0 <= clock['minute'] < 60
                and clock['total_minutes'] == clock['hour'] * 60 + clock['minute'], 'source clock gate differs')
     state.update(clock_diagnostics=clock, inventory=inventory(path))
+    return state
+
+
+def output_state(path, expected_difficulty, context='first-paid'):
+    io.require(type(expected_difficulty) is int and expected_difficulty in (0, 2),
+               'unsupported original repeat glyph difficulty')
+    if context == 'rune-passage':
+        io.require(expected_difficulty == 0, 'post-rune Senior source remains unverified')
+    _, one, zero = configuration(context)
+    state = io.save_state(path, progression_flags=one | zero)
+    io.require(state['difficulty'] == expected_difficulty
+               and [state[k] for k in ('scene', 'art', 'view', 'held')] == [3510, 3510, 4, -1]
+               and all(state['progression'][f] == 1 for f in one)
+               and all(state['progression'][f] == 0 for f in zero), 'actual UI save state/reward differs')
+    io.require(inventory(path) == {4: 1, 5: 0, 13: 0}, 'UI save did not replace used5 with actual fresh4')
+    if context == 'rune-passage':
+        io.require(struct.unpack_from('<I', path.read_bytes(), 0x2ba + 4*2)[0] == 1, 'UI save lost retained crest2')
     return state
 
 
@@ -262,7 +282,8 @@ def main(argv=None):
                    'original data image pin differs')
         io.require(not (args.game_data / 'Documents5').exists()
                    and not any(path.is_symlink() for path in args.game_data.rglob('*')), 'seed contains saves or symlinks')
-        initial = source_state(args.source_save, args.context)
+        difficulty = io.save_state(args.source_save)['difficulty']
+        initial = source_state(args.source_save, args.context, expected_difficulty=difficulty)
         known_hashes = glyph_pixels.load_atlas(args.atlas, args.atlas_sha256)
         target = args.output.resolve() if args.output else Path(tempfile.mkdtemp(prefix='blackmoor-repeat-glyph-'))
         io.require(not (target == args.game_data or args.game_data in target.parents or target == args.source_save.parent
@@ -276,7 +297,7 @@ def main(argv=None):
         receipt.update(native_sha256=args.native_sha256, source_sha256=args.save_sha256, atlas_sha256=args.atlas_sha256,
                        protected_inputs=protected, source_state=initial, RC_FLAGS=rc_flags(args.context), glyph_attempts=48, context=args.context,
                        glyph_requests_including_finish=64, timeout_seconds=args.timeout,
-                       scope=('one first-paid Junior replacement; no Senior/later-repeat or all-board guarantee' if args.context == 'first-paid' else
+                       scope=('one first-paid original Junior0 or Senior2 replacement; no later-repeat or all-board guarantee' if args.context == 'first-paid' else
                               'one observed post-rune Junior paid replacement; no Senior/further-repeat or all-board guarantee'))
         io.write_json(out / 'receipt.json', receipt)
         producer = io.Session(args, out / 'producer', args.source_save, rc_flags=rc_flags(args.context))
@@ -291,14 +312,7 @@ def main(argv=None):
         saved = producer.saves / (args.save_name + '.SAV')
         route = 'repeat-glyph-win' if args.context == 'first-paid' else 'rune-light-replacement'
         checked = check_route.verify((producer.out / 'run.log').read_text(), saved, route)
-        _, one, zero = configuration(args.context)
-        saved_state = io.save_state(saved, progression_flags=one | zero)
-        io.require(saved_state['difficulty'] == 0 and [saved_state[k] for k in ('scene', 'art', 'view', 'held')] == [3510, 3510, 4, -1]
-                   and all(saved_state['progression'][f] == 1 for f in one)
-                   and all(saved_state['progression'][f] == 0 for f in zero), 'actual UI save state/reward differs')
-        io.require(inventory(saved) == {4: 1, 5: 0, 13: 0}, 'UI save did not replace used5 with actual fresh4')
-        if args.context == 'rune-passage':
-            io.require(struct.unpack_from('<I', saved.read_bytes(), 0x2ba + 4*2)[0] == 1, 'UI save lost retained crest2')
+        saved_state = output_state(saved, initial['difficulty'], args.context)
         reload = io.Session(args, out / 'reload', saved, rc_flags=rc_flags(args.context))
         error = None
         try:

@@ -522,9 +522,10 @@ WORD_LOCK_SCENES = {
     'repeat-glyph-win': (3588, 1299, 1295, 1949, 3510),
     'word-lock': (2910, 2942, 4375, 4389, 4376, 4377, 4378, 4379, 4380, 4387),
 }
+SENIOR_PAID_LIGHT_REQUEST_SCENES = (3345, 3346, 3500, 3505, 3510, 1200, 1282, 1281, 3585, 3580, 3522, 3510)
 
 
-def word_lock_configuration(route):
+def word_lock_configuration(route, difficulty=0):
     _, earned, zero = word_prerequisite_configuration('loulou-answer')
     retained, zero = earned - {2041}, zero - {1418, 2042}
     if route == 'light-depletion':
@@ -533,8 +534,12 @@ def word_lock_configuration(route):
                   (3335, 0), (3335, 0)]
         return states, retained | {1809}, zero | {1418, 2041, 2042}
     if route == 'paid-light-request':
+        if type(difficulty) is not int or difficulty not in (0, 2):
+            raise ValueError('unsupported original paid-light-request difficulty')
         states = [(3335, 0), (3335, 0), (3335, 0), (3345, 0), (3346, 0), (3505, 0),
                   (3510, 4), (1200, 0), (3585, 0), (3513, 0), (3510, 4), (3510, 4)]
+        if difficulty == 2:
+            states[9] = (3580, 0)
         return states, retained | {1809, 1418}, zero | {2041, 2042}
     if route == 'repeat-glyph-win':
         states = [(3510, 4), (3588, 0), (1295, 0), (1949, 0), (3510, 4), (3510, 4), (3510, 4)]
@@ -546,7 +551,7 @@ def word_lock_configuration(route):
     raise ValueError('unknown replacement-light/word-lock route')
 
 
-def verify_word_lock_observations(route, log, observations, selected, clocks, positive, negative):
+def verify_word_lock_observations(route, log, observations, selected, clocks, positive, negative, difficulty=0):
     up = {'light-depletion': {1809: 5}, 'paid-light-request': {1418: 8},
           'repeat-glyph-win': {}, 'word-lock': {2041: 4, **WORD_LOCK_STAGES}}[route]
     down = {'light-depletion': {2041: 6}, 'paid-light-request': {},
@@ -607,7 +612,8 @@ def verify_word_lock_observations(route, log, observations, selected, clocks, po
         raise ValueError('replacement-light/word-lock observed source clock gate differs')
     opened = [int(m[1]) for m in re.finditer(r'FILE open .*\\S(\d+)\.CIF\s+\[virtual \d+ ms\]', log)]
     cursor = 0
-    for scene in WORD_LOCK_SCENES[route]:
+    scenes = SENIOR_PAID_LIGHT_REQUEST_SCENES if route == 'paid-light-request' and difficulty == 2 else WORD_LOCK_SCENES[route]
+    for scene in scenes:
         while cursor < len(opened) and opened[cursor] != scene:
             cursor += 1
         if cursor == len(opened):
@@ -1249,6 +1255,7 @@ def verify(log, save, route='telescope-prep', *, glyph_scene=3588):
     if glyph_scene not in (3588, 3589) or (glyph_scene != 3588 and route != 'glyph-win'):
         raise ValueError('explicit glyph scene is valid only for glyph-win')
     glyph_request_difficulty = 0
+    paid_request_difficulty = 0
     if route == 'telescope-prep':
         expected = [(2010, 0), (2014, 0), (2026, 0), (2010, 2)]
         positive = {1834, 1843, 1905, 1949, 1953, 1993}
@@ -1323,7 +1330,14 @@ def verify(log, save, route='telescope-prep', *, glyph_scene=3588):
     elif route in WORD_PREREQUISITE_ROUTES:
         expected, positive, negative = word_prerequisite_configuration(route)
     elif route in WORD_LOCK_ROUTES:
-        expected, positive, negative = word_lock_configuration(route)
+        if route == 'paid-light-request':
+            if not save.is_file():
+                raise ValueError('checkpoint save is missing or has an unexpected length')
+            data = save.read_bytes()
+            if len(data) != 170770:
+                raise ValueError('checkpoint save is missing or has an unexpected length')
+            paid_request_difficulty = int.from_bytes(data[0x9034:0x9036], 'little', signed=True)
+        expected, positive, negative = word_lock_configuration(route, paid_request_difficulty)
     elif route in CREST_PREREQUISITE_ROUTES:
         expected, positive, negative = crest_prerequisite_configuration(route)
     elif route in TYPING_CREST_ROUTES:
@@ -1532,7 +1546,8 @@ def verify(log, save, route='telescope-prep', *, glyph_scene=3588):
         clock_diagnostics = verify_word_prerequisite_observations(
             route, log, observations, selected, clocks, positive, negative, difficulty)
     if route in WORD_LOCK_ROUTES:
-        clock_diagnostics = verify_word_lock_observations(route, log, observations, selected, clocks, positive, negative)
+        clock_diagnostics = verify_word_lock_observations(
+            route, log, observations, selected, clocks, positive, negative, paid_request_difficulty)
     if route in CREST_PREREQUISITE_ROUTES:
         clock_diagnostics = verify_crest_prerequisite_observations(route, log, observations, selected, clocks, positive, negative)
     if route in TYPING_CREST_ROUTES:

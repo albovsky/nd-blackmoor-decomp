@@ -57,3 +57,5 @@ Repeat producer/reload complete the8run table:248steps/6.308s and22steps/2.213s.
 - Repeat reload maximum FLAGS bytes: 656.
 
 Final evidence/ledger check logs and guarded refresh receipt use private `word-lock-` prefix. Review publication findings P2-1/P2-2 are addressed by committed scopes and the recorded read-only inventory audit. Coverage gaps remain explicit; code bytes still equal reviewed4fc14455.
+
+RECOMP-51 adds the separate original Senior2 first-paid profile, using3580 in the paid rules exit and preserving source/output mode. Historical Junior timings and tool hashes above remain historical; post-rune Senior stays separately unverified.
