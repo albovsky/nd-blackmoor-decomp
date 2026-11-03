@@ -1,6 +1,6 @@
 # Blackmoor Manor: matching-decompilation investigation
 
-**Status: incomplete.** The current recompiled ARM64 engine has a fresh Junior campaign through native Mac credits; the fresh Senior campaign passes the first replacement-light glyph win and fresh reload. The whole-file x86 match is met under the current Track M ruling. Both difficulties and remaining native acceptance gates must pass before the game is complete. See [PLAYABILITY-LOG.md](PLAYABILITY-LOG.md) for current gameplay evidence and [recomp/HANDOFF.md](recomp/HANDOFF.md) for the native build.
+**Status: incomplete.** The current recompiled ARM64 engine has a fresh Junior campaign through native Mac credits; the fresh Senior campaign passes the word lock, partial fire panel and truthful Ethel episode with fresh reloads. The whole-file x86 match is met under the current Track M ruling. Both difficulties and remaining native acceptance gates must pass before the game is complete. See [PLAYABILITY-LOG.md](PLAYABILITY-LOG.md) for current gameplay evidence and [recomp/HANDOFF.md](recomp/HANDOFF.md) for the native build.
 
 The new Mac frontend uses the installed GOG game as a read-only seed. Default launches prepare an independent writable copy at `~/Library/Application Support/Blackmoor Recompiled Data/DataClone-v1/game`; saves remain in `~/Library/Application Support/Blackmoor Recompiled`. Explicit `--game-dir` / `BLACKMOOR_GAME_DIR` scratch paths stay in place and must contain independent files. Startup refuses unsafe aliases or an invalid cache before running the guest.
 
