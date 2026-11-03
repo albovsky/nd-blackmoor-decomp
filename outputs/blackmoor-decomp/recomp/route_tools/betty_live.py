@@ -134,6 +134,22 @@ def check_saved(state, source, *, output):
     if not output: io.require(state == source, 'exact campaign source metadata differs')
 
 
+def verify_clone_inventory(game, seed_pins, allowed_saves):
+    """Permit the original startup's exact config copy beside UI saves."""
+    allowed = set(allowed_saves)
+    config = SAVE_DIR / 'GAME.INI'
+    if (game / config).is_file():
+        io.require('Game.ini' in seed_pins and
+                   io.digest(game / config) == seed_pins['Game.ini'],
+                   'copied configuration differs from the original seed')
+        allowed.add(str(config))
+    io.require(not any(p.is_symlink() for p in game.rglob('*')) and
+               {str(p.relative_to(game)) for p in game.rglob('*') if p.is_file()}
+               == set(seed_pins) | allowed, 'clone resource/save inventory differs')
+    for relative, expected in seed_pins.items():
+        io.require(io.digest(game / relative) == expected, 'clone resource changed: ' + relative)
+
+
 def verify_session(session, spec, *, producer):
     log = (session.out / 'run.log').read_text()
     io.require(session.receipt['returncode'] == 0 and not session.receipt.get('error'), 'session failed')
@@ -149,11 +165,7 @@ def verify_session(session, spec, *, producer):
     io.require(set(save_catalog) <= {session.source.name, 'm13.SAV', 'HICONTINUECHEAT.SAV'}
                and save_catalog.get(session.source.name) == session.source_hash, 'unexpected/changed original UI save')
     allowed_saves = {str((SAVE_DIR / name)) for name in save_catalog}
-    io.require(not any(p.is_symlink() for p in session.game.rglob('*')) and
-               {str(p.relative_to(session.game)) for p in session.game.rglob('*') if p.is_file()}
-               == set(session.args.seed_pins) | allowed_saves, 'clone resource/save inventory differs')
-    for relative, expected in session.args.seed_pins.items():
-        io.require(io.digest(session.game / relative) == expected, 'clone resource changed: ' + relative)
+    verify_clone_inventory(session.game, session.args.seed_pins, allowed_saves)
     if producer:
         opened = one_deal(log)
         io.require(all(n in opened for n in (2720, 2703, 2707, 2704, 2709, 2710, 2711, 2700)),

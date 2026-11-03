@@ -104,3 +104,26 @@ class BettyProfileGateTests(unittest.TestCase):
         for state, flag in ((2711, 0), (2703, 0), (2704, 1)):
             with self.assertRaises(ValueError):
                 betty.outcome({'state': [state, state, 0, -1], 'flags': {1963: flag}})
+
+    def test_allows_only_byte_identical_original_config_copy(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as folder:
+            game = Path(folder)
+            original = game / 'Game.ini'
+            original.write_bytes(b'synthetic fixture configuration')
+            seeds = {'Game.ini': betty.io.digest(original)}
+            saves = game / betty.SAVE_DIR
+            saves.mkdir(parents=True)
+            source = saves / 'm12.SAV'
+            source.write_bytes(b'fixture, never passed to native')
+            allowed = {str(source.relative_to(game))}
+            copied = saves / 'GAME.INI'
+            copied.write_bytes(original.read_bytes())
+            betty.verify_clone_inventory(game, seeds, allowed)
+            copied.write_bytes(b'changed configuration')
+            with self.assertRaisesRegex(ValueError, 'configuration'):
+                betty.verify_clone_inventory(game, seeds, allowed)
+            copied.write_bytes(original.read_bytes())
+            (game / 'unknown.CIF').write_bytes(b'unknown override')
+            with self.assertRaisesRegex(ValueError, 'inventory'):
+                betty.verify_clone_inventory(game, seeds, allowed)
