@@ -51,7 +51,13 @@ int main(void)
     c.host.eflags=0x884u; c.returned=0x41u; r=invoke(&c.host,1u);
     CHECK(c.entry_empty && c.published==0x41u && cell==FL41_NOFLAGS);
     CHECK(r.after && r.flags==0x41u && r.regs.eax==11u && r.regs.ecx==22u && r.regs.edx==33u);
-    puts("PASS transfer CF/ZF, consume, stale-entry reset, register return");
+    const uint32_t single_flags[]={1u,4u,0x40u,0x80u,0x800u};
+    for (size_t i=0; i<sizeof(single_flags)/sizeof(single_flags[0]); ++i) {
+        cell=0x8c5u; c.host.eflags=0x8c5u; c.returned=single_flags[i]; r=invoke(&c.host,1u);
+        CHECK(c.entry_empty && c.published==single_flags[i] && cell==FL41_NOFLAGS);
+        CHECK(r.after && r.flags==single_flags[i]);
+    }
+    puts("PASS individual flags, CF/ZF, consume, stale-entry reset, register return");
     cell=0x8c5u; c.host.eflags=0x41u; c.returned=0x884u; r=invoke(&c.host,1u);
     CHECK(c.entry_empty && c.published==0x884u && cell==FL41_NOFLAGS && r.after && r.flags==0x884u);
     puts("PASS transfer PF/SF/OF and clear old CF/ZF");
