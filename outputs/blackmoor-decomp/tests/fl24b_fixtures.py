@@ -83,7 +83,7 @@ def jcc_table(va, size):
     md.detail = True
     off = va - pe.image_base
     out = {}
-    for i in md.disasm(pe.image[off:off + size], va):
+    for i in od.disasm_code(md, pe.image[off:off + size], va):
         if i.mnemonic[0] == 'j' and i.mnemonic != 'jmp' or i.mnemonic.startswith('loop'):
             out[i.address] = (i.operands[0].imm, i.address + i.size, i.mnemonic)
     return out

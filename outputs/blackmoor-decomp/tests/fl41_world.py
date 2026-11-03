@@ -460,7 +460,7 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None, watch=Non
         import capstone as _cs
         _md = _cs.Cs(_cs.CS_ARCH_X86, _cs.CS_MODE_32)
         _md.detail = True
-        for _i in _md.disasm(pe.image[va - pe.image_base:va - pe.image_base + size], va):
+        for _i in od.disasm_code(_md, pe.image[va - pe.image_base:va - pe.image_base + size], va):
             if (_i.mnemonic == 'jmp' or (_i.mnemonic[0] == 'j' and _i.mnemonic != 'jecxz')) and _i.operands and _i.operands[0].type == _cs.x86_const.X86_OP_IMM and _i.operands[0].imm in stubs:
                 jump_out[_i.address] = _i.operands[0].imm
 
@@ -808,7 +808,7 @@ def frame_start(pe, va, body):
     md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
     md.detail = True
     off = va - pe.image_base
-    for i in md.disasm(pe.image[off:off + body], va):
+    for i in od.disasm_code(md, pe.image[off:off + body], va):
         read, written = i.regs_access()
         if i.mnemonic == 'push' and i.operands[0].type == X.X86_OP_REG and i.operands[0].reg == X.X86_REG_EBP:
             continue                  # saving ebp is not using it
@@ -830,7 +830,7 @@ def row_info(va, body, callees, imports=None, fs=False, sites=None, frame=False)
     magic, globs, rets = set(), set(), set()
     fpu = False
     reads_sw = False
-    for i in md.disasm(pe.image[off:off + body], va):
+    for i in od.disasm_code(md, pe.image[off:off + body], va):
         if i.mnemonic.startswith('f') and i.mnemonic != 'fs':
             fpu = True
         if i.mnemonic in ('fnstsw', 'fstsw'):
@@ -915,7 +915,7 @@ def cmp_decoders(row):
         return read
 
     out = {}
-    for i in md.disasm(pe.image[off:off + row['body']], row['va']):
+    for i in od.disasm_code(md, pe.image[off:off + row['body']], row['va']):
         if i.mnemonic in ('cmp', 'test') and len(i.operands) == 2:
             bits = i.operands[0].size * 8
             a, b = operand(i, i.operands[0], bits), operand(i, i.operands[1], bits)

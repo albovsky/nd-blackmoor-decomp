@@ -167,10 +167,45 @@ class Original:
                       calls=self.calls, executed=self.executed)
 
 
+_DATA_RANGES = None
+
+
+def data_ranges():
+    """FL-78 (round 11): the data inside .text, [(first address, end)] sorted, from the ranges of asm_data/data-*.json (the jump tables of the two CRT block copies, 0x50ed50 and 0x50fa90): a linear
+    disassembly of a body skips them (`disasm_code`). Only those two functions of the ledger contain such a range."""
+    global _DATA_RANGES
+    if _DATA_RANGES is None:
+        import json
+        out = []
+        for f in sorted((Path(__file__).resolve().parents[1] / 'asm_data').glob('data-*.json')):
+            if f.name.endswith('-report.json'):
+                continue
+            for r in json.loads(f.read_text()).get('ranges', []):
+                if r.get('section') == '.text':
+                    a = int(r['va'], 16)
+                    out.append((a, a + r['length']))
+        _DATA_RANGES = sorted(out)
+    return _DATA_RANGES
+
+
+def disasm_code(md, code, va):
+    """The instructions of the bytes `code` that lie at va, without the data ranges inside them (the disassembly resumes at the end of each range). Same as md.disasm(code, va) when there is none."""
+    end = va + len(code)
+    pos = va
+    for a, b in data_ranges():
+        if b <= pos or a >= end:
+            continue
+        if a > pos:
+            yield from md.disasm(code[pos - va:a - va], pos)
+        pos = max(pos, b)
+    if pos < end:
+        yield from md.disasm(code[pos - va:end - va], pos)
+
+
 def instruction_addresses(va, size):
-    """The addresses of the instructions in [va, va+size), by linear disassembly (functions without data in the body)."""
+    """The addresses of the instructions in [va, va+size), by linear disassembly (without the data ranges of data_ranges())."""
     import capstone
     pe = load_image()
     md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
     off = va - pe.image_base
-    return {i.address for i in md.disasm(pe.image[off:off + size], va)}
+    return {i.address for i in disasm_code(md, pe.image[off:off + size], va)}

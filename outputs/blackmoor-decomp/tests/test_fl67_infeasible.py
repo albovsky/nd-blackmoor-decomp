@@ -2142,5 +2142,135 @@ class Fl78Trap(unittest.TestCase):
         self.assertIn('frame-assumption', out['assumptions_used'])
 
 
+RANGE_PROGS = {
+    # FL-78 (round 11). rt_ok: a jump table in a data range of .text (T, 8 bytes) behind a range check, padding in front of it and dead code at the end; rt_unb: the same without the range check;
+    # std_ok / std_bare: `std; rep movsd; cld` and a bare `std`; tail_ok / tail_loop: a conditional jump to a callee outside the body (a tail call), behind which is dead code / a loop that this jump leaves
+    'rt_ok': (41, '8b4c240483f902731cff248d1110400090191040001f104000b801000000c3b802000000c331c0c390', {'pad': 16, 'T': 17, 'dead': 40}),
+    'rt_unb': (36, '8b4c2404ff248d0c10400090141040001a104000b801000000c3b802000000c331c0c390', {'pad': 11, 'T': 12, 'dead': 35}),
+    'std_ok': (43, 'bf00005400be00015400c7460409000000b902000000fdf3a5fc833d04005400097501c3b805000000c390', {'x': 36, 'dead': 42}),
+    'std_bare': (7, 'fdb801000000c3', {}),
+    'tail_ok': (10, '8b44240485c07503c390', {'dead': 9, 'callee': 11}),
+    'alloca': (17, '8b442404e80900000089e185c97401c39090513d001000008d4c2408721481e9001000002d0010000085013d0010000073ec2bc88bc485018be18b088b400450c3', {'dead': 16}),
+    'tail_fault': (29, '5589e5837d08007407b8010000005dc3837d0c007508a11000f0ff5dc390c3', {'X': 16, 'callee': 30}),
+    'tail_loop': (23, '8b4c240485c97501c3837c2408007508ba01000000ebf2', {'lp': 9, 'callee': 24}),
+}
+
+
+@unittest.skipUnless(HAVE_Z3, 'needs z3-solver, capstone')
+class Fl78Ranges(unittest.TestCase):
+    """FL-78 round 11 (the CRT block copies 0x50ed50 / 0x50fa90): data ranges inside the body, `std; rep movs; cld`, conditional tail calls."""
+
+    def analysis(self, name, ranges=(), callees=()):
+        import original_differential as od
+        body, hexcode, labels = RANGE_PROGS[name]
+        img = image_of(bytes.fromhex(hexcode))
+        row = {'va': BASE, 'body': body, 'callees': {BASE + labels[c]: 0 for c in callees}, 'imports': {}, 'sites': None}
+        with mock.patch.object(od, 'data_ranges', return_value=[(BASE + a, BASE + b) for a, b in ranges]):
+            an = P.Analysis(row, img, 20000)
+            an.run()
+        return an, labels
+
+    def test_the_disassembly_skips_a_data_range(self):
+        import original_differential as od
+        body, hexcode, labels = RANGE_PROGS['rt_ok']
+        img = image_of(bytes.fromhex(hexcode))
+        with mock.patch.object(od, 'data_ranges', return_value=[(BASE + 17, BASE + 25)]):
+            _, insns = P.disassemble(img, BASE, body)
+            addrs = [i.address - BASE for i in insns]
+        self.assertNotIn(17, addrs)
+        self.assertIn(16, addrs)
+        self.assertEqual(addrs[addrs.index(16) + 1], 25)                         # the next instruction is the first one after the range
+        _, plain = P.disassemble(img, BASE, body)
+        self.assertIn(17, [i.address - BASE for i in plain])                     # without the range the table is decoded as code
+
+    def test_a_table_in_a_data_range_has_all_its_cells_and_the_padding_in_front_is_dead(self):
+        an, labels = self.analysis('rt_ok', ranges=[(17, 25)])
+        self.assertEqual([len(t) for t in an.table.values()], [2])
+        self.assertEqual(an.instruction(BASE + labels['pad'])[0], 'unsat')       # the nop in front of the table does not run on into it and nothing jumps to it
+        self.assertEqual(an.instruction(BASE + labels['dead'])[0], 'unsat')
+        self.assertEqual(an.instruction(BASE + 25)[0], 'sat')                    # a case of the table
+        self.assertIn(BASE + 9, an.cut)                                          # (the jump at 9: the run must not index outside the range, checked per jump)
+
+    def test_a_table_in_a_data_range_needs_the_index_to_stay_inside_it(self):
+        with self.assertRaises(P.Unsupported) as ctx:
+            self.analysis('rt_unb', ranges=[(12, 20)])
+        self.assertIn('table escape', str(ctx.exception))
+        import original_differential as od
+        body, hexcode, labels = RANGE_PROGS['rt_ok']
+        row = {'va': BASE, 'body': body, 'callees': {}, 'imports': {}, 'sites': None}
+        with mock.patch.object(od, 'data_ranges', return_value=[(BASE + 17, BASE + 25)]):
+            an = P.Analysis(row, image_of(bytes.fromhex(hexcode)), 20000)
+            an.tight_tables = False
+            with self.assertRaises(P.Unsupported) as ctx:
+                an.run()                                                         # the whole-table fallback has no escape check: refused
+        self.assertIn('data range', str(ctx.exception))
+
+    def test_a_repeated_move_under_std_is_not_a_forward_copy(self):
+        an, labels = self.analysis('std_ok')
+        self.assertEqual(an.instruction(BASE + labels['x'])[0], 'sat')           # backwards, [0x540004] keeps its value: the compare can fail
+        self.assertEqual(an.instruction(BASE + labels['dead'])[0], 'unsat')
+        was = P.Machine.step
+        import original_differential as od
+        body, hexcode, labels = RANGE_PROGS['std_ok']
+        row = {'va': BASE, 'body': body, 'callees': {}, 'imports': {}, 'sites': None}
+        an = P.Analysis(row, image_of(bytes.fromhex(hexcode)), 20000)
+        an.M.after_std = set()                                                   # as if `rep movsd` did not know about the std in front of it
+        an.run()
+        self.assertEqual(an.instruction(BASE + labels['x'])[0], 'unsat')         # the forward copy: wrong for this program (what the guard prevents)
+
+    def test_a_std_that_is_not_followed_by_a_repeated_move_and_cld_is_refused(self):
+        with self.assertRaises(P.Unsupported) as ctx:
+            self.analysis('std_bare')
+        self.assertIn('std', str(ctx.exception))
+
+    def test_a_conditional_jump_to_a_callee_outside_the_body_ends_the_path(self):
+        an, labels = self.analysis('tail_ok', callees=['callee'])
+        self.assertEqual(an.instruction(BASE + labels['dead'])[0], 'unsat')
+        with self.assertRaises(P.Unsupported) as ctx:                            # a callee the row does not list: still refused
+            self.analysis('tail_ok')
+        self.assertIn('leaves the instruction set', str(ctx.exception))
+
+    def test_a_loop_that_a_conditional_tail_call_leaves_is_no_trap(self):
+        import fl71_window as Wn
+        an, labels = self.analysis('tail_loop', callees=['callee'])
+        an, dom = Wn.from_analysis(an)
+        first = [i for i in an.insns if i.mnemonic == 'jne'][0].address
+        self.assertEqual(Wn.prove_trap_loop(an, dom, ('dir', first, 'taken'))[0], 'unsupported')      # the loop is left by `jne callee` (an edge the graph does not keep)
+
+    def test_esp_is_not_zero_after_the_alloca_helper(self):
+        body, hexcode, labels = RANGE_PROGS['alloca']
+        row = {'va': BASE, 'body': body, 'callees': {}, 'imports': {}, 'sites': None}
+        an = P.Analysis(row, image_of(bytes.fromhex(hexcode)), 20000)
+        an.run()
+        self.assertEqual(an.instruction(BASE + labels['dead'])[0], 'unsat')               # `test esp, esp; je`: esp == 0 after the helper
+        self.assertIn('alloca-helper-leaves-esp-nonzero', an.assumptions())
+        other = bytes.fromhex(hexcode.replace('513d0010', '503d0010', 1))                  # the same call of a function that is not the helper (push eax instead of push ecx)
+        an = P.Analysis(row, image_of(other), 20000)
+        an.run()
+        self.assertEqual(an.instruction(BASE + labels['dead'])[0], 'sat')
+        self.assertNotIn('alloca-helper-leaves-esp-nonzero', an.assumptions())
+
+    def test_a_conditional_tail_call_is_a_normal_exit_for_the_fault_windows_and_the_direction_query(self):
+        """Review of round 11: `je X` (taken) then `cmp [ebp+0xc], 0; jne callee` is a run that returns normally through the tail call when [ebp+8] == 0 and [ebp+0xc] != 0 (the other way reads 0xfff00010 and faults). The dropped exit
+        edge was neither a completion of the forward window (prove_faults said unsat for the je) nor an edge for Analysis.direction (unsat 'unreachable block' for the jne)."""
+        import fl71_window as Wn
+        an0, labels = self.analysis('tail_fault', callees=['callee'])
+        an, dom = Wn.from_analysis(P.Analysis(an0.row, an0.image, 20000))
+        je = [i.address for i in an.insns if i.mnemonic == 'je'][0]
+        jne = [i.address for i in an.insns if i.mnemonic == 'jne'][0]
+        self.assertNotEqual(Wn.prove_faults(an, dom, ('dir', je, 'taken'))[0], 'unsat')
+        self.assertNotEqual(Wn.prove_faults(an, dom, ('dir', jne, 'taken'))[0], 'unsat')
+        self.assertEqual(an0.direction(jne, 'taken')[0], 'sat')
+        self.assertEqual(an0.direction(jne, 'fall')[0], 'sat')
+        T = Wn.block_of(an, jne, True)
+        self.assertNotEqual(Wn.prove_target(an, dom, T, ('dir', 'taken'))[0], 'unsat')           # the backward window too
+        for b in an.blocks.values():                                                  # without the exit the dropped edge is a dead end
+            b.pop('tail_exit', None)
+        self.assertEqual(Wn.prove_faults(an, dom, ('dir', je, 'taken'))[0], 'unsat')
+        self.assertEqual(Wn.prove_target(an, dom, T, ('dir', 'taken'))[0], 'unsat')
+        an0.edge = {k: v for k, v in an0.edge.items() if k[2][0] != 'tail'}
+        self.assertEqual(an0.direction(jne, 'taken')[0], 'unsat')
+
+
 if __name__ == '__main__':
     unittest.main()

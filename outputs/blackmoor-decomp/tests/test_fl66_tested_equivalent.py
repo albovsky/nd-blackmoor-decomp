@@ -181,6 +181,35 @@ class Replay(unittest.TestCase):
             self.assertEqual(T.check_row(key, scenarios=scen, lib=lib_of(text.replace(dispatch + ' ', '')))['status'], 'mismatch', key)
 
 
+    def test_the_block_copy_translation_follows_the_direction_flag_and_its_tables(self):
+        """FL-78 (round 11): 0x50fa90 (the CRT memcpy: `std; rep movsd; cld` for a copy that overlaps with the destination above the source, and jump tables inside .text that the lifter reads from asm_data/data-005.json):
+        the translation keeps the direction flag in df_ and steps backwards while it is set; a translation that ignores `std` (or whose table switch lacks a case) differs from the original on the overlapping copies."""
+        key = '0x50fa90'
+        pool = T.pool_of(key)
+        p = T.POOLS[pool]
+        W, _ = T.world(p['world'])
+        B, A = 0x20001000, 0x100fee0
+        scen = [(1, [(A, 4, B + 0x104 + da), (A + 4, 4, B + 0x100 + da), (A + 8, 4, n)]) for n in (8, 40, 64, 100) for da in range(4)] + \
+               [(1, [(A, 4, B + 0x400), (A + 4, 4, B + 0x100 + sa), (A + 8, 4, n)]) for n in (0, 1, 2, 3, 5, 9, 33) for sa in range(4)]
+        text = T.row_text(p['source'], key)
+        self.assertIn('df_ = 1u;', text)
+        self.assertIn('(df_ ? 4294967292u : 4u)', text)
+
+        def lib_of(t):
+            with tempfile.TemporaryDirectory() as tmp:
+                src = Path(tmp) / 'row.c'
+                src.write_text('#include "original_methods_fl41.h"\n' + t)
+                return W.build_library(tmp, [src])
+        res = T.check_row(key, scenarios=scen, lib=lib_of(text))
+        self.assertNotEqual(res['status'], 'mismatch')
+        bad = text.replace('df_ = 1u;', 'df_ = 0u;')                                             # `std` has no effect
+        self.assertEqual(T.check_row(key, scenarios=scen, lib=lib_of(bad))['status'], 'mismatch')
+        cases = [l for l in text.splitlines() if 'case 0x50fbf0u' in l]
+        self.assertTrue(cases)                                                                    # a table case of the 0x50fbd8 range
+        bad = text.replace(cases[0], '')
+        self.assertEqual(T.check_row(key, scenarios=scen, lib=lib_of(bad))['status'], 'mismatch')
+
+
 @unittest.skipUnless(od.available(), 'needs Unicorn and the pinned private work/original/GAME.EXE')
 class StartStateOverrides(unittest.TestCase):
     """FL-78 (round 10): a scenario can set the entry EFLAGS, the entry FPCW, the entry x87 stack and the st(0) a stubbed callee returns (tests/fl41_world.py EFLAGS_OVERRIDE, FCW_OVERRIDE, ST_OVERRIDE, FPRET_OVERRIDE)."""

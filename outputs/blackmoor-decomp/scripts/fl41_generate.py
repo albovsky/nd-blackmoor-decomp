@@ -67,7 +67,7 @@ def jcc_cmp_addresses(row, untaken):
     pe = W.od.load_image()
     md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
     off = row['va'] - pe.image_base
-    ins = list(md.disasm(pe.image[off:off + row['body']], row['va']))
+    ins = list(W.od.disasm_code(md, pe.image[off:off + row['body']], row['va']))
     want = {a for a, _ in untaken}
     out = set()
     for k, i in enumerate(ins):

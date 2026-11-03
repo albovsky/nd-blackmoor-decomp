@@ -57,6 +57,7 @@ MAX_NODES = 6000
 SINK_MS = 3000                 # the check that a loop cannot run past its unrolled copies; unknown counts as can
 REP_EXACT = 64
 FAULT_LIMIT = 0xfff00000      # an access at or above it faults in the world (tests/fl41_world.py)
+ALLOCA_HELPER = bytes.fromhex('513d001000008d4c2408721481e9001000002d0010000085013d0010000073ec2bc88bc485018be18b088b400450c3')      # FL-78 (round 11): the CRT stack probe / alloca helper (0x50c920): it reads [new esp] (`test [ecx], eax`) before it moves esp there
 DATA_START = 0x537000         # first writable page of .data; the image below it is constant
 IMAGE_BASE = 0x400000
 FLAGS = ('cf', 'zf', 'sf', 'of', 'pf', 'af')
@@ -1195,6 +1196,8 @@ class Machine:
         self.split = False      # the frame assumption holds for this function (set by Analysis)
         self.temps = None       # FL-78 (round 8): (L, delta) in a window run under the stack-discipline assumption (`Analysis.temps_info`): only the call temporaries (addresses below ebp - L) are in `frm`; delta = esp - ebp at the window's start
         self.cell_ops = set()   # FL-78 (round 9): the instructions that read a pointer cell (pointer_cell): the value they read must be a frame address (mem_read raises Unsupported otherwise)
+        self.by_addr = {}       # FL-78 (round 11): address -> instruction (set by Analysis; the `std` pattern check)
+        self.after_std = set()  # the addresses of the instructions that come right after a `std`
         self.after_call = {}    # call address -> bytes the next instruction `add esp, k` removes
         self.out_writes = {}    # FL-78: call address -> [(offset of the pushed frame pointer from esp at the call, bytes the callee writes through it)] (library_arg_lea kind 'out')
         self.pure = {}          # FL-78: callee address -> pure_callee (memoised): a call of one leaves memory as it was
@@ -1468,6 +1471,13 @@ class Machine:
             self.write(st, ops[0], z3.If(self.cond(st, m[3:]), bv(1, 8), bv(0, 8)))
         elif m == 'nop':
             pass
+        elif m == 'cld':
+            pass                                                       # (the direction flag is clear at every other point of the function: the Windows ABI)
+        elif m == 'std':                                               # FL-78 (round 11): only the CRT block copy pattern `std; rep movs?; cld`: the repeated move in between works in the unknown-count way (direction independent: memory, edi, esi unknown, ecx = 0)
+            n1 = self.by_addr.get(ins.address + ins.size)
+            n2 = self.by_addr.get(n1.address + n1.size) if n1 else None
+            if not (n1 and n2 and n1.mnemonic.split()[0] == 'rep' and n1.mnemonic.split()[-1] in ('movsb', 'movsw', 'movsd') and n2.mnemonic == 'cld'):
+                raise Unsupported('instruction std')
         elif m == 'leave':
             st.R['esp'] = st.R['ebp']
             st.R['ebp'] = self.pop(st)
@@ -1616,6 +1626,13 @@ class Machine:
         self.bounds[addr] = out
         return out
 
+    def is_alloca(self, addr):
+        """FL-78 (round 11): the bytes at addr are the CRT alloca helper (ALLOCA_HELPER): it probes the new stack top with a read before it moves esp there, so after the call esp is an address that was read, and 0 is not (the first page is unmapped)"""
+        if self.image is None or addr < IMAGE_BASE:
+            return False
+        off = addr - IMAGE_BASE
+        return self.image[off:off + len(ALLOCA_HELPER)] == ALLOCA_HELPER
+
     def is_pure(self, addr):
         if self.image is None:
             return False
@@ -1659,6 +1676,8 @@ class Machine:
                     arr = z3.Store(arr, ptr + k, fresh(8, 'x'))
             st.frm = arr
         st.R['esp'] = sp + pops if pops is not None else fresh(32, 'sp')
+        if op.type == X.X86_OP_IMM and self.is_alloca(op.imm & 0xffffffff):
+            st.pc = z3.And(st.pc, st.R['esp'] != 0)                                # FL-78 (round 11): assumption alloca-helper-leaves-esp-nonzero (a prefix of the run: this only removes states)
         self.unknown_flags(st)
         if op.type == X.X86_OP_IMM and (op.imm & 0xffffffff) in self.noreturn:
             st.pc = z3.BoolVal(False)                  # the callee never returns: no run continues past this call
@@ -1682,7 +1701,7 @@ class Machine:
             return
         if rep:
             ecx = z3.simplify(st.R['ecx'])
-            if kind in ('movs', 'stos') and z3.is_bv_value(ecx) and ecx.as_long() <= REP_EXACT:         # FL-70: a repeated store with a constant count is exact (the count is a known constant, the direction flag is clear)
+            if kind in ('movs', 'stos') and z3.is_bv_value(ecx) and ecx.as_long() <= REP_EXACT and ins.address not in self.after_std:         # FL-70: a repeated store with a constant count is exact (the count is a known constant, the direction flag is clear)
                 for _ in range(ecx.as_long()):
                     if kind == 'stos':
                         self.assume_ok(st, edi, size)
@@ -1784,10 +1803,11 @@ class Machine:
 # ---- the function ----------------------------------------------------------------------------------------------------------------------------------
 
 def disassemble(image, va, body):
+    import original_differential as od
     md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
     md.detail = True
     off = va - IMAGE_BASE
-    insns = list(md.disasm(image[off:off + body], va))
+    insns = list(od.disasm_code(md, image[off:off + body], va))             # FL-78 (round 11): without the data ranges inside .text (the jump tables of the CRT block copies)
     return md, insns
 
 
@@ -1801,6 +1821,8 @@ class Analysis:
         self.md, self.insns = disassemble(image, self.va, self.body)
         self.by_addr = {i.address: i for i in self.insns}
         self.M = Machine(row, image)
+        self.M.by_addr = self.by_addr
+        self.M.after_std = {i.address + i.size for i in self.insns if i.mnemonic == 'std'}
         targets = self.branch_targets()
         self.split_ok = SPLIT and not row.get('frame') and self.va not in targets             # a `frame` row starts with ebp = the entry frame address; a jump back to the entry runs the prologue again (FL-78 round 8 review: the frame base is pushed once per run only)
         self.esc_addrs = []                                                                   # FL-75: where the function forms an address of its frame
@@ -1858,6 +1880,8 @@ class Analysis:
                 out.add('x87-compare-model')
             if i.mnemonic == 'call' and i.operands[0].type == X.X86_OP_IMM and self.M.is_pure(i.operands[0].imm & 0xffffffff):
                 out.add('pure-callee:0x%x' % (i.operands[0].imm & 0xffffffff))
+            if i.mnemonic == 'call' and i.operands[0].type == X.X86_OP_IMM and self.M.is_alloca(i.operands[0].imm & 0xffffffff):
+                out.add('alloca-helper-leaves-esp-nonzero')
         return sorted(out)
 
     def branch_targets(self):
@@ -1891,6 +1915,16 @@ class Analysis:
         if op.type != X.X86_OP_MEM or op.mem.base or not op.mem.index or op.mem.scale != 4:
             return None
         base = op.mem.disp & 0xffffffff
+        near = self.range_table(base)
+        if near:                                           # FL-78 (round 11): a table in a data range of .text: all its cells (the index range is checked by the escape condition, see build_blocks)
+            out = []
+            for lo, hi in near:
+                for a in range(lo, hi, 4):
+                    t = int.from_bytes(self.image[a - IMAGE_BASE:a - IMAGE_BASE + 4], 'little')
+                    if not (self.va <= t < self.va + self.body) or t not in self.by_addr:
+                        return None
+                    out.append((a, t))
+            return out or None
         out = []
         for k in range(4096):
             a = base + 4 * k
@@ -1901,6 +1935,16 @@ class Analysis:
                 break
             out.append((a, t))
         return out or None
+
+    @staticmethod
+    def data_ranges():
+        import original_differential as od
+        return od.data_ranges()
+
+    @staticmethod
+    def range_table(base):
+        import original_differential as od
+        return [(lo, hi) for lo, hi in od.data_ranges() if lo - 4 <= base <= hi]
 
     def tighten(self, ins, tt):
         """FL-75: the table runs on into the next switch's table (every cell is a valid target), which makes spurious edges and irreducible loops. Cut it at the bound of the range check just in front of the jump
@@ -1933,6 +1977,10 @@ class Analysis:
                 if tt is None:
                     raise Unsupported('indirect jump at 0x%x' % ins.address)
                 tt = self.tighten(ins, tt)
+                if self.range_table(ins.operands[0].mem.disp & 0xffffffff):
+                    if not self.tight_tables:
+                        raise Unsupported('a jump table in a data range needs the check that no run indexes past it')
+                    self.cut[ins.address] = tt                    # FL-78 (round 11): the cells of the range are all there is; the run must not index outside them (table_escape, required unsat)
                 self.table[ins.address] = tt
                 for cell, _ in tt:
                     self.M.const_facts(cell, 4)
@@ -1970,11 +2018,17 @@ class Analysis:
                 succ = [('taken', last.operands[0].imm), ('fall', end)]
             else:
                 succ = [('fall', end)]
+            if any(lo <= end < hi for lo, hi in self.data_ranges()):
+                succ = [(k, t) for k, t in succ if k != 'fall']        # FL-78 (round 11): the padding in front of a jump table in .text does not run on into it
             keep = [(k, t) for k, t in succ if t in self.blocks]
-            if len(keep) != len(succ) and (m.startswith('j') and m != 'jmp' or m.startswith('loop') or m == 'jmp' and last.operands[0].type != X.X86_OP_IMM
-                                           or any(self.va <= t < self.va + self.body for k, t in succ if t not in self.blocks)):
+            tail_exit = (m.startswith('j') and m != 'jmp' and m != 'jecxz' and not m.startswith('loop') and last.operands[0].type == X.X86_OP_IMM and last.operands[0].imm in self.M.callees
+                         and not self.va <= last.operands[0].imm < self.va + self.body and len(keep) == 1 and keep[0][0] == 'fall')      # FL-78 (round 11): `jcc callee` out of the body is a conditional tail call: the run ends there (like `jmp callee`), the edge is not kept
+            if len(keep) != len(succ) and not tail_exit and (m.startswith('j') and m != 'jmp' or m.startswith('loop') or m == 'jmp' and last.operands[0].type != X.X86_OP_IMM
+                                                             or any(self.va <= t < self.va + self.body for k, t in succ if t not in self.blocks)):
                 raise Unsupported('a jump edge leaves the instruction set at 0x%x' % last.address)
             b['succ'] = keep           # only a jmp or a fall-through out of the body ends the path here
+            if tail_exit:
+                b['tail_exit'] = last.operands[0].imm        # FL-78 (round 11 review): the dropped `jcc callee` edge is a normal exit of the run (a tail call that returns): execute records it in `edge` (direction sees it) and run_forward completes the run there
         return
 
     def graph(self):
@@ -2274,6 +2328,8 @@ class Analysis:
                 else:
                     c = here
                 conds[(kind, t)] = z3.Or(conds[(kind, t)], c) if (kind, t) in conds else c
+            if self.blocks[a].get('tail_exit') is not None and br is not None:
+                self.edge[(node, 'taken', ('tail', self.blocks[a]['tail_exit']))] = z3.And(here, br)         # the exit edge to the callee (not a successor: nothing runs on from it in the graph)
             for (kind, t), c in conds.items():
                 self.edge[(node, kind, t)] = c
                 if t[0] == 'sink':

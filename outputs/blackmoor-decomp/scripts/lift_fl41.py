@@ -64,8 +64,9 @@ def md():
 def disasm(va, size):
     pe = od.load_image()
     off = va - pe.image_base
-    ins = list(md().disasm(pe.image[off:off + size], va))
-    if sum(i.size for i in ins) != size:
+    ins = list(od.disasm_code(md(), pe.image[off:off + size], va))
+    data = sum(min(b, va + size) - max(a, va) for a, b in od.data_ranges() if b > va and a < va + size)       # FL-78 (round 11): the data ranges inside the body (jump tables) are not instructions
+    if sum(i.size for i in ins) != size - data:
         raise Unsupported("disassembly stops at 0x%x" % (va + sum(i.size for i in ins)))
     return ins
 
@@ -343,6 +344,7 @@ class Ctx:
         self.fpret = {}
         self.fs = False
         self.fpu = any(i.mnemonic.startswith('f') and i.mnemonic != 'fs' for i in ins)
+        self.df = any(i.mnemonic == 'std' for i in ins)             # FL-78 (round 11): the direction flag is a variable of the translation (df_) only in a function that sets it
         self.lines = []
         self.temp = 0
 
@@ -436,6 +438,16 @@ def jump_table(ins, k, va, end):
     a = i.address
     table = m.disp & 0xffffffff
     count = None
+    near = [(lo, hi) for lo, hi in od.data_ranges() if lo - 4 <= table <= hi]
+    if near:                                                       # FL-78 (round 11): a table that sits in a data range of .text (asm_data/data-005.json): its entries are all the dwords of the range (the index may be negative, `neg ecx` /
+        img = od.load_image()                                      # a borrow of `sub ecx, 4`, or start at 1, the aligned case having a path of its own); a read outside the range gives a dword that is no case, and the translation traps
+        import struct
+        targets = []
+        for lo, hi in near:
+            targets += struct.unpack_from("<%dI" % ((hi - lo) // 4), img.image, lo - img.image_base)
+        if any(not (va <= t < end) for t in targets):
+            raise Unsupported("jump table leaves the function at 0x%x" % a)
+        return tuple(targets)
     window = ins[max(0, k - 14):k]
     index_reg = reg_name(i, m.index)
 
@@ -644,6 +656,8 @@ def lift_one(c, i):
     if mn in ("nop", "int3", "cld", "wait"):
         if mn == "int3":
             raise Unsupported("int3 inside the code at 0x%x" % a)
+        if mn == "cld" and c.df:
+            e("df_ = 0u;")
         return
     if mn in ARITH:
         bits = ops[0].size * 8
@@ -944,7 +958,8 @@ def lift_one(c, i):
     if mn in ("movsb", "movsw", "movsd", "stosb", "stosw", "stosd", "lodsb", "lodsw", "lodsd", "scasb", "scasw", "scasd", "cmpsb", "cmpsw", "cmpsd"):
         return lift_string(c, i, prefix, mn)
     if mn == "std":
-        raise Unsupported("std at 0x%x" % a)
+        e("df_ = 1u;")                                             # FL-78 (round 11): lift_string steps backwards while df_ is set
+        return
     if mn.startswith("f") and mn != "fs":
         return lift_x87(c, i, mn)
     raise Unsupported("%s at 0x%x" % (mn, a))
@@ -1116,14 +1131,15 @@ def lift_string(c, i, prefix, mn):
     e = c.emit
     kind, width = mn[:-1], {"b": 1, "w": 2, "d": 4}[mn[-1]]
     bits = width * 8
-    body = {"movs": ["WR%d(edi, RD%d(esi));" % (bits, bits), "esi += %du; edi += %du;" % (width, width)],
-            "stos": ["WR%d(edi, %s);" % (bits, {1: "eax & 0xffu", 2: "eax & 0xffffu", 4: "eax"}[width]), "edi += %du;" % width],
+    step = "(df_ ? %du : %du)" % ((-width) & 0xffffffff, width) if c.df else "%du" % width
+    body = {"movs": ["WR%d(edi, RD%d(esi));" % (bits, bits), "esi += %s; edi += %s;" % (step, step)],
+            "stos": ["WR%d(edi, %s);" % (bits, {1: "eax & 0xffu", 2: "eax & 0xffffu", 4: "eax"}[width]), "edi += %s;" % step],
             "lods": ["%s" % {1: "eax = (eax & 0xffffff00u) | RD8(esi);", 2: "eax = (eax & 0xffff0000u) | RD16(esi);", 4: "eax = RD32(esi);"}[width],
-                     "esi += %du;" % width],
+                     "esi += %s;" % step],
             "scas": ["{ uint32_t a_ = %s, b_ = RD%d(edi), r_;" % ({1: "eax & 0xffu", 2: "eax & 0xffffu", 4: "eax"}[width], bits),
-                     "  FL41_SUB(a_, b_, 0u, r_, %d); }" % bits, "edi += %du;" % width],
+                     "  FL41_SUB(a_, b_, 0u, r_, %d); }" % bits, "edi += %s;" % step],
             "cmps": ["{ uint32_t a_ = RD%d(esi), b_ = RD%d(edi), r_;" % (bits, bits),
-                     "  FL41_SUB(a_, b_, 0u, r_, %d); }" % bits, "esi += %du; edi += %du;" % (width, width)]}[kind]
+                     "  FL41_SUB(a_, b_, 0u, r_, %d); }" % bits, "esi += %s; edi += %s;" % (step, step)]}[kind]
     if not prefix:
         for line in body:
             e(line)
@@ -1173,7 +1189,7 @@ def lift(va, body_size):
     head = ["/* GAME.EXE 0x%x (%d bytes): machine translation of the original instructions, see the note at the top of this file. */" % (va, body_size),
             "void m%x_lifted(Fl41Regs *r, const Fl41Host *h)" % va, "{",
             "    FL41_PROLOGUE",
-            ] + (["    uint32_t esp0_ = esp;"] if TAIL_ESP0 else []) + (["    FL41_FPU_PROLOGUE"] if c.fpu else [])
+            ] + (["    uint32_t df_ = 0u;"] if c.df else []) + (["    uint32_t esp0_ = esp;"] if TAIL_ESP0 else []) + (["    FL41_FPU_PROLOGUE"] if c.fpu else [])
     tail = ["done:", "    FL41_EPILOGUE"] + (["    FL41_FPU_EPILOGUE"] if c.fpu else []) + ["}"]
     fs = any(any(op.type == X.X86_OP_MEM and op.mem.segment == X.X86_REG_FS for op in i.operands) for i in ins)
     return "\n".join(head + c.lines + tail) + "\n", dict(c.callees), dict(c.imports), fs, set(c.inline)
