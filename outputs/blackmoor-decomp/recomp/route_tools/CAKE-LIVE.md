@@ -2,7 +2,7 @@
 
 `cake_live.py` attempts the original CakeMixing3600 branch once, then requires baking, physical good-cake item1, an original UI save, and a fresh output-only Load that selects actual held1. It imports `bul_live.Session`, PPM validation and FIFO delivery, plus `story_route.R` and the existing Load/Save helpers. It contains no puzzle implementation, guest handler calls, hidden ingredient/board/RNG reads, clock edits, resource templates or save serialization.
 
-This candidate's gameplay body and producer/reload checks come from frozen private v3 SHA `54a13e4102ef4ffdb371e59b39dc122472a8a5458c5202720c39ff428d52e63b`. That controller produced separate accepted Senior and Junior optional branches on b49. Two new full public-client runs also pass on reviewed b49, one Junior and one Senior: original baking, physical item1, UI Save and fresh output-only actualheld1. Public evidence and the older private boundary are separate in `../campaigns/cake-optional.json` and RECOMP-32. Sonnet accepts frozen57584cee with no blocking finding.
+This candidate's gameplay body and producer/reload checks come from frozen private v3 SHA `54a13e4102ef4ffdb371e59b39dc122472a8a5458c5202720c39ff428d52e63b`. That controller produced separate accepted Senior and Junior optional branches on b49. Two new full public-client runs also pass on reviewed b49, one Junior and one Senior: original baking, physical item1, UI Save and fresh output-only actual held1. Public evidence and the older private boundary are separate in `../campaigns/cake-optional.json` and RECOMP-32. Sonnet accepts frozen57584cee with no blocking finding.
 
 ## Supported inputs
 
@@ -23,9 +23,9 @@ Historical mode accepts only b49 SHA `b49eaa71885a02e9e096b9766f020576ef0a038183
 
 ### Explicit source/native profile
 
-`--source-profile FILE.json` opts into a new caller-reviewed source/native pair. `--profile junior|senior`, `--save-sha256` and `--native-sha256` remain required; the JSON name/hash must match the CLI. Its only fields are `name`, `difficulty`, `source_sha256` and `clock`. Names/difficulties are exactly junior/0 or senior/2, and the source hash is64 lowercase hexadecimal characters. `clock` has exactly integer `total_minutes`, `minute`, `hour`, `day`: day1–65535, hour0–23, minute0–59 and total_minutes=60*hour+minute. These are expected serialized source values, never clock controls.
+`--source-profile FILE.json` opts into a new caller-reviewed source/native pair. `--profile junior|senior`, `--save-sha256` and `--native-sha256` remain required; the JSON name/hash must match the CLI. Its only fields are `name`, `difficulty`, `source_sha256` and `clock`. Names/difficulties are exactly junior/0 or senior/2, and the source hash is 64 lowercase hexadecimal characters. `clock` has exactly integer `total_minutes`, `minute`, `hour`, `day`: day 1–65535, hour 0–23, minute 0–59 and total_minutes=60*hour+minute. These are expected serialized source values, never clock controls.
 
-The JSON cannot specify scene, hand, prerequisites, inventory or outcomes. The actual pinned source must still be3510/3510/view4/held−1, have no cake0/1, and1338/1502/1503=0,1567=1. New ordinary alphanumeric SAV basenames are accepted; continue/authored-auxiliary sources and output-name reuse are refused. Existing s57/m51 output-name reservations remain. The selected native must match its explicit hash and must differ from the original GAME.EXE hash. New profiles/builds require their own ordinary execution/review; parameterization does not inherit historical acceptance. The JSON bytes/hash are recorded and protected against changes through both sessions.
+The JSON cannot specify scene, hand, prerequisites, inventory or outcomes. The actual pinned source must still be 3510/3510/view4/held−1, have no cake0/1, and have 1338/1502/1503=0,1567=1. Profiles are at most 4096 bytes. Ordinary SAV basenames contain 1–10 alphanumeric characters; continue/authored-auxiliary sources and output-name reuse are refused in both modes. Existing s57/m51 output-name reservations remain. The selected native must match its explicit hash and must differ from the original GAME.EXE hash. New profiles/builds require their own ordinary execution/review; parameterization does not inherit historical acceptance. The JSON bytes/hash are recorded and protected against changes through both sessions.
 
 For a newly earned source, supply its own verified hash and exact clock in the JSON; do not reuse the historical saves or their hashes. The unchanged default silent/virtual clock, one-attempt input/hover/drop/finish/bake/pickup policy, asset/effective-scene guards and save/reload checks apply:
 
@@ -38,7 +38,7 @@ python3 -B outputs/blackmoor-decomp/recomp/route_tools/cake_live.py \
   --save-name cakefc --output "$NEW_CAKE_OUTPUT"
 ```
 
-All40 raw saved inventory cells are now compared by the client: source cake0/1 must be0, output item1 must become1, and all other39 cells must match exactly. The receipt records this fixed delta and full source/output inventories; profiles cannot alter it. A successful original-UI save and fresh output-only actualheld1 reload remain mandatory.
+All 40 raw saved inventory cells are now compared by the client: source cake0/1 must be 0, output item1 must become 1, and all other 39 cells must match exactly. The receipt records this fixed delta and full source/output inventories; profiles cannot alter it. A successful original-UI save and fresh output-only actual held1 reload remain mandatory.
 
 ## Historical invocation
 
