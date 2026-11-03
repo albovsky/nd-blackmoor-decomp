@@ -128,7 +128,7 @@ def audit(session,profile,source,*,reload=False,minimum_clock=None):
     for observation in observations:
         flags=observation['flags'];scope=check_route.flag_scope(observation['scope'],include_clock=True)
         io.require(guard.LIVE|set(range(338,342))<=scope,'focused observations incomplete')
-        changing=guard.WIN|{2127}
+        changing=guard.WIN
         expected=guard.expected_output(source)['flags']if reload else source['flags']
         io.require(all(flags.get(f,0)==expected[str(f)]for f in guard.LIVE-changing),'inherited optional/prerequisite event changed')
         clocks.append((scope&set(range(338,342)),{'total_minutes':(flags.get(338,0)>>16)|((flags.get(339,0)&65535)<<16),

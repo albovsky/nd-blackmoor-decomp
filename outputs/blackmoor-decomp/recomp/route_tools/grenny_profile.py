@@ -7,7 +7,8 @@ import bul_live as io
 WIN={1978,2064,2226}
 ONE={1959,1960,1972,2017,2052}
 ZERO={1879,1973,1999,2004}
-LIVE=ONE|ZERO|WIN|{1335,1338,1345,1502,1503,1840,1988,2008,2072,2084,2127}
+# Internal readiness latch 2127 is checked only in completed saves.
+LIVE=ONE|ZERO|WIN|{1335,1338,1345,1502,1503,1840,1988,2008,2072,2084}
 
 
 def clock(data):

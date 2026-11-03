@@ -18,8 +18,11 @@ class GrennyPolicyTests(unittest.TestCase):
     def test_cake_bag_preserved_and_slots_from_current_order(self):
         bag=[1,13,10,5,2,16,7,11,12,6,19,20,17,21]
         source={'flags':{str(f):0 for f in profile.LIVE},'inventory40':[int(i in bag)for i in range(40)],'ordered_bag':bag}
+        source['flags']['2127']=0  # Internal readiness latch: durable checks only.
+        self.assertNotIn(2127,profile.LIVE)
         result=profile.expected_output(source)
         self.assertEqual(result['ordered_bag'],bag+[8]);self.assertEqual(result['inventory40'][1],1)
+        self.assertEqual(result['flags']['2127'],0)
         self.assertEqual(profile.first_free_slot(bag),(206,310))
         self.assertEqual(profile.item_slot(result,8),(206,310))
         self.assertEqual(bag,[1,13,10,5,2,16,7,11,12,6,19,20,17,21])
