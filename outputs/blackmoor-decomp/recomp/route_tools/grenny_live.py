@@ -137,7 +137,7 @@ def audit(session,profile,source,*,reload=False,minimum_clock=None):
     io.require(guard.clock_total(clocks[0][1])>=guard.clock_total(minimum_clock or source['clock']),'live clock predates source')
     io.require(observations[-1]['state']==[2460,2460,0,-1]and all(observations[-1]['flags'].get(f,0)==1 for f in guard.WIN),
                'final original safe win absent')
-    for rel,digest in profile['data_pins'].items():io.require(io.digest(session.game/rel)==digest,'clone data changed: '+rel)
+    guard.check_data(session.game,profile['data_pins'],runtime_saves=True)
     return {'control_summary':summary,'steps':total[0],'closed_shots':total[1],'capture_catalog':captures,
       'normal_result':results[0],'realheld8_observed':True,'log_sha256':io.digest(session.out/'run.log'),
       'requests_sha256':io.digest(session.out/'requests.txt')}
@@ -159,10 +159,7 @@ def main(argv=None):
         io.require(args.source_save.name.lower()!=args.save_name+'.sav','new output name equals source')
         source=guard.source_state(args.source_save,profile)
         io.require(not(args.game_data/'Documents5').exists()and not any(p.is_symlink()for p in args.game_data.rglob('*')),'seed has saves/symlinks')
-        io.require(isinstance(profile.get('data_pins'),dict)and profile['data_pins'],'effective data pins required')
-        io.require({str(p.relative_to(args.game_data))for p in(args.game_data/'Ciftree').rglob('*')if p.is_file()}==
-                   {k for k in profile['data_pins']if k.startswith('Ciftree/')},'effective data inventory differs')
-        for rel,digest in profile['data_pins'].items():io.require(io.digest(args.game_data/rel)==digest,'seed resource pin differs')
+        guard.check_data(args.game_data,profile.get('data_pins'))
         io.require(isinstance(profile.get('origin_receipts'),list)and profile['origin_receipts'],'accepted source origin pins required')
         for item in profile['origin_receipts']:io.require(io.digest(Path(item['path']))==item['sha256'],'origin receipt changed')
         origin=json.loads(Path(profile['origin_receipts'][0]['path']).read_text())

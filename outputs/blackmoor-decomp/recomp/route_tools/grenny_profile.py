@@ -58,6 +58,19 @@ def validate(profile):
 def read(path):return validate(json.loads(path.read_text()))
 
 
+def check_data(root,pins,*,runtime_saves=False):
+    """Check every cloned asset; only the game's save directory may be new."""
+    paths=list(root.rglob('*'))
+    io.require(not any(p.is_symlink()for p in paths),'data inventory contains a symlink')
+    files={str(p.relative_to(root)):p for p in paths if p.is_file()
+           and not(runtime_saves and p.relative_to(root).parts[0]=='Documents5')}
+    io.require(isinstance(pins,dict)and pins and set(pins)==set(files),
+               'complete data file inventory differs')
+    for name,path in files.items():
+        io.require(isinstance(pins[name],str)and re.fullmatch('[0-9a-f]{64}',pins[name])
+                   and io.digest(path)==pins[name],'data file hash differs: '+name)
+
+
 def source_state(path,profile):
     validate(profile);io.require(io.digest(path)==profile['source_sha256'],'actual source SHA differs')
     state=snapshot(path,profile['flags'])
