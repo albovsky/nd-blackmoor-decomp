@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The story routes of ROUTES.md as INPUT strings for rc_headless.
 
-  python3 story_route.py LEG [--save NAME]      LEG is one of: stairs, lock, slider, moon, telescope-prep, linda, jane-intro, jane-jigsaw, telescope-use, seedlings, crank-repair, betty-key, venus-column, jupiter-column, moon-key, moon-column, nigel-computer, night-wait, goggles, ghost-hunt, afternoon-door, linda-passage, bul-start, slide-ball, saturn-column, dragon-passage, glyph-request, lit-word-clue, loulou-barber, loulou-morning, drake-magic, loulou-answer, light-depletion, paid-light-request, word-lock, right-fire-panel, ethel-start, linda-curse, gargoyle-inspect, corbin-portrait, typing-start, oil-gargoyle, rune-passage, rune-light-wait, rune-light-start, fire-phosphorus, moving-room-entry, alchemy-snake-clue, nigel-library, nigel-snake, alchemy-return, slider-verify
+  python3 story_route.py LEG [--save NAME]      LEG is one of: stairs, lock, slider, moon, telescope-prep, linda, jane-intro, jane-jigsaw, telescope-use, seedlings, crank-repair, betty-key, venus-column, jupiter-column, moon-key, moon-column, nigel-computer, night-wait, goggles, ghost-hunt, afternoon-door, linda-passage, bul-start, slide-ball, saturn-column, dragon-passage, glyph-request, lit-word-clue, loulou-barber, loulou-morning, drake-magic, loulou-answer, light-depletion, paid-light-request, word-lock, right-fire-panel, ethel-start, linda-curse, gargoyle-inspect, corbin-portrait, typing-start, oil-gargoyle, rune-passage, rune-light-wait, rune-light-start, fire-phosphorus, moving-room-entry, alchemy-snake-clue, nigel-library, nigel-snake, alchemy-return, alchemy-win, lab-entry, mould-shape, slider-verify
   python3 story_route.py slider-verify          replays the recorded 105 slider moves on the puzzle rules and prints whether they solve it
 
 Each leg starts from a save made in the game's own Load & Save screen and (with --save NAME) ends by saving the next one, so the legs chain:
@@ -40,6 +40,9 @@ Each leg starts from a save made in the game's own Load & Save screen and (with 
    m31 --loulou-morning--> m32 (source-specific ordinary morning wait, safe S3335)
    m32 --drake-magic--> m34 (Drake magic-word knowledge, safe S2332; Barber already earned)
    m34 --loulou-answer--> m35 (original LEECH clue, safe S3335; word lock remains unsolved)
+   m57 --alchemy-win--> m58 (five original alchemy rounds, new1960, safe S3054; lab puzzles remain)
+   m58 --lab-entry--> m59 (original laboratory entry, safe S3804/held13)
+   m59 --mould-shape--> m60 (24-bar mould, original item10 grant, safe S3803/held13; forge remains)
 
 Steps are `anchor+ms:kind:args` (rc_headless.c). `click x,y,hold` is a move 1 s before the click; `mv:x,y` a bare move; `key:VK` a key press.
 A bare click on a hotspot needs a move onto it first or the game ignores it (the cursor must have been seen there), so every click has its move.
@@ -1714,6 +1717,75 @@ def leg_alchemy_return(save=None):
     return r.text() + ';' + _moving_room_entry(save, menu_at=166000)
 
 
+def leg_alchemy_win(save=None):
+    """m57: genuine1694/held13 -> five authored rounds -> safe3054/new1960.
+
+    The continuous Senior s62->s63 INPUT is retained exactly, including all
+    three key10 releases,600ms holds and the original scene-open anchors.
+    D6 has one difficulty-independent recipe; public m57 has the same entry
+    prerequisites. Only the optional UI save name is parameterized.
+    """
+    r = R().at('S3046.CIF', 24000).clicks('shot', 0)
+    r.at('S3046.CIF', 30000).clicks('328,99', 0)
+    r.at('S3046.CIF', 44000).clicks('shot', 0)
+    for start, keys, capture in (
+            (22000, '212,122 100,236 338,315', 39000),
+            (42000, '212,122 100,236 156,236 156,236 156,236 338,315', 68000),
+            (71000, '100,179 156,122 338,315', 88000),
+            (91000, '100,65 100,122 338,315', 108000),
+            (111000, '100,65 212,236 156,65 212,179 338,315', 134000)):
+        r.at('S3196.CIF', start).clicks(keys, 3000)
+        r.at('S3196.CIF', capture - 1000).clicks('shot', 0)
+    if save:
+        return ';'.join((r.text(), menu_to_save_screen('S3196.CIF', 153000),
+                         save_tail('S3196.CIF', 171000, save)))
+    return r.text()
+
+
+def leg_lab_entry(save=None):
+    """The exercised Senior s63->s64 entry, with only the UI save name changed."""
+    r = R().at('S3054.CIF', 12000).clicks('311,164', 0)
+    r.at('S3054.CIF', 44000).clicks('shot', 0)
+    r.at('S3054.CIF', 59000).clicks('shot', 0)
+    if save:
+        return ';'.join((r.text(), menu_to_save_screen('S3054.CIF', 75000),
+                         save_tail('S3054.CIF', 93000, save)))
+    return r.text()
+
+
+def leg_mould_shape(save=None):
+    """Retain Senior s64->s65, adding the effective-resource2163 correction.
+
+    The old23 strokes and every old offset remain. The same ordinary325,76
+    control exists in3801 and3880; the actual loose3876 gate needs this24th
+    bar. Taking the mould grants10, without lighting or pouring the forge.
+    """
+    r = R()
+    for start, point, capture in ((12000, '325,165', 21000), (26000, '252,219', 43000),
+                                  (48000, '306,190', 58000), (64000, '215,310', 86000)):
+        r.at('S3804.CIF', start).clicks(point, 0)
+        r.at('S3804.CIF', capture - 1000).clicks('shot', 0)
+    r.at('S3804.CIF', 104000).clicks('shot', 0)
+    r.at('S3801.CIF', 50000).clicks('37,76', 0)
+    r.at('S3801.CIF', 52500).clicks('shot', 0)
+    for i, point in enumerate(('68,76', '100,76', '214,76', '246,76', '356,76',
+            '388,76', '503,76', '68,173', '183,173', '214,173', '356,173',
+            '472,173', '503,173', '37,268', '68,270', '100,268', '214,270',
+            '246,268', '325,268', '388,268', '472,268', '503,270')):
+        start = 80000 + i * 5000
+        r.at('S3801.CIF', start).clicks(point, 0)
+        r.at('S3801.CIF', start + 2500).clicks('shot', 0)
+    r.at('S3801.CIF', 192000).clicks('325,76', 0)
+    r.at('S3801.CIF', 194500).clicks('shot', 0)
+    r.at('S3801.CIF', 199000).clicks('shot', 0)
+    r.at('S3801.CIF', 206000).clicks('311,355', 0)
+    r.at('S3801.CIF', 221000).clicks('shot', 0)
+    if save:
+        return ';'.join((r.text(), menu_to_save_screen('S3801.CIF', 235000),
+                         save_tail('S3801.CIF', 253000, save)))
+    return r.text()
+
+
 def verify_slider():
     """The puzzle rules of the body of S3450 (action_family_d3_runtime.c): five rows by six columns; types 0x10..0x13 are one-way edge arrows, 0x14 walls,
     1..10 the cell a piece of that number must rest on. A piece slides until a barrier or another piece stops it."""
@@ -1774,7 +1846,9 @@ if __name__ == '__main__':
             'rune-light-wait': leg_rune_light_wait, 'rune-light-start': leg_rune_light_start,
             'fire-phosphorus': leg_fire_phosphorus, 'moving-room-entry': leg_moving_room_entry,
             'alchemy-snake-clue': leg_alchemy_snake_clue, 'nigel-library': leg_nigel_library,
-            'nigel-snake': leg_nigel_snake, 'alchemy-return': leg_alchemy_return}
+            'nigel-snake': leg_nigel_snake, 'alchemy-return': leg_alchemy_return,
+            'alchemy-win': leg_alchemy_win, 'lab-entry': leg_lab_entry,
+            'mould-shape': leg_mould_shape}
     if leg not in legs:
         sys.exit(__doc__)
     print(legs[leg](save))

@@ -2246,5 +2246,232 @@ class FireAlchemyEntryTests(unittest.TestCase):
         self.assertIn('S4112.CIF+200000:move:150,438;S4112.CIF+201000:click:150,438,600', story.leg_nigel_snake())
 
 
+class AlchemyWinTests(unittest.TestCase):
+    setUp = PostKeyRouteTests.setUp
+    observed_log = PostKeyRouteTests.observed_log
+    opens = {'alchemy-win': (3190, 3196, 3193, 3054)}
+
+    def frames(self):
+        # Literal source phase from the prior public chapter; new phases below
+        # are independent of the candidate checker's configuration.
+        _, entry = FireAlchemyEntryTests.frames(self, 'alchemy-return')
+        source = dict(entry[-1]['flags'])
+        save = Path(self.folder.name) / 'm58.SAV'
+        save.write_bytes(bytes(170770))
+        frames = []
+        for i, scene in enumerate((3046, 3046, 3196, 3196, 3196, 3196, 3196, 3054, 3054)):
+            flags = dict(source)
+            flags.update({1960: int(i >= 7), 2053: int(i >= 7), 2132: 0})
+            frames.append({'scene': scene, 'art': scene, 'view': 0, 'held': 13,
+                           'flags': flags, 'scope': '338-341,1000-2250',
+                           'clock': (3, 16, 20+i)})
+        return save, frames
+
+    # The source fixture's helper accesses these literal earlier-stage sets.
+    prior = FireAlchemyEntryTests.prior
+    fire = FireAlchemyEntryTests.fire
+
+    def test_accepts_new_alchemy_reward_and_safe_return_without_later_lab_rewards(self):
+        save, frames = self.frames()
+        result = checker.verify(self.observed_log('alchemy-win', save, frames), save, 'alchemy-win')
+        self.assertEqual((result['scene'], result['view']), (3054, 0))
+        self.assertTrue(result['alchemy_won'])
+        self.assertTrue(result['alchemy_knowledge_ready'])
+        self.assertTrue({1694, 1960, 2053} <= set(result['flags_one']))
+        self.assertTrue({1959, 1973, 2004, 2017, 2052, 2132} <= set(result['flags_zero']))
+        self.assertFalse(set(range(338, 342)) & (set(result['flags_one']) | set(result['flags_zero'])))
+
+    def test_requires_new_win_instead_of_generic_finish_or_an_already_won_source(self):
+        for phase, flag, value in ((0, 1960, 1), (0, 2053, 1), (2, 1960, 1),
+                                   (7, 1960, 0), (8, 2053, 0), (8, 2132, 1)):
+            save, frames = self.frames()
+            frames[phase]['flags'][flag] = value
+            with self.subTest(phase=phase, flag=flag), self.assertRaises(ValueError):
+                checker.verify(self.observed_log('alchemy-win', save, frames), save, 'alchemy-win')
+
+    def test_requires_all_recipe_observations_and_original_win_resource(self):
+        for failure in ('missing_round', 'missing_win', 'wrong_order', 'explosion', 'bottom_exit'):
+            save, frames = self.frames()
+            opened = self.opens['alchemy-win']
+            if failure == 'missing_round':
+                frames.pop(5)
+            elif failure == 'missing_win':
+                opened = (3190, 3196, 3054)
+            elif failure == 'wrong_order':
+                opened = (3190, 3193, 3196, 3054)
+            elif failure == 'explosion':
+                opened = (3190, 3196, 3191, 3192, 6301, 3193, 3054)
+            else:
+                opened = (3190, 3196, 3049, 3046, 3193, 3054)
+            with self.subTest(failure=failure), self.assertRaises(ValueError):
+                checker.verify(self.observed_log('alchemy-win', save, frames, opened), save, 'alchemy-win')
+
+    def test_checks_extra_observations_real_item_full_scope_and_retained_flags(self):
+        for field, value in (('held', -1), ('art', 3046), ('scope', '338-341,1000-1693,1695-2250'),
+                             (1694, 0), (1510, 1), (1959, 1), (2132, 1), (1960, 2)):
+            save, frames = self.frames()
+            extra = dict(frames[2], scene=9998, art=9998, flags=dict(frames[2]['flags']))
+            if isinstance(field, int):
+                extra['flags'][field] = value
+            else:
+                extra[field] = value
+            frames.insert(3, extra)
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                checker.verify(self.observed_log('alchemy-win', save, frames), save, 'alchemy-win')
+
+    def test_requires_final_safe_pair_and_valid_clock_but_no_nigel_time_window(self):
+        for failure in ('safe_scene', 'safe_view', 'backwards_clock', 'clock_scope'):
+            save, frames = self.frames()
+            if failure == 'safe_scene':
+                frames[-1]['scene'] = frames[-1]['art'] = 3046
+            elif failure == 'safe_view':
+                frames[-1]['view'] = 1
+            elif failure == 'backwards_clock':
+                frames[-1]['clock'] = (3, 16, 0)
+            else:
+                frames[-1]['scope'] = '338-340,1000-2250'
+            with self.subTest(failure=failure), self.assertRaises(ValueError):
+                checker.verify(self.observed_log('alchemy-win', save, frames), save, 'alchemy-win')
+        save, frames = self.frames()
+        for frame in frames:
+            frame['clock'] = (3, 23, 0)
+        checker.verify(self.observed_log('alchemy-win', save, frames), save, 'alchemy-win')
+
+    def test_exact_exercised_continuous_body_and_only_parameterized_save_tail(self):
+        import hashlib
+        spec = importlib.util.spec_from_file_location('alchemy_win_story', MODULE.with_name('story_route.py'))
+        story = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(story)
+        self.assertTrue(hasattr(story, 'leg_alchemy_win'), 'missing alchemy-win ordinary input route')
+        body = story.leg_alchemy_win('s63')
+        self.assertEqual(hashlib.sha256((body+'\n').encode()).hexdigest(),
+                         '2ea235e3436451f1e67e01dd058496c40a36eb3ed6a65ae89465f875e589fa32')
+        self.assertEqual(len(body.split(';')), 71)
+        self.assertEqual(story.leg_alchemy_win('m58'), ';'.join((story.leg_alchemy_win(),
+                         story.menu_to_save_screen('S3196.CIF', 153000),
+                         story.save_tail('S3196.CIF', 171000, 'm58'))))
+        # Three distinct releases on key10 in round2 must remain three strokes.
+        for offset in (49000, 52000, 55000):
+            self.assertIn('S3196.CIF+%d:click:156,236,600' % offset, body)
+
+
+
+class LabMouldTests(unittest.TestCase):
+    setUp = PostKeyRouteTests.setUp
+    observed_log = PostKeyRouteTests.observed_log
+    opens = {'lab-entry': (2908, 3800, 3804),
+             'mould-shape': (3805, 3808, 3803, 3801, 3803)}
+    retained = set(range(1148, 1160)) | {1512, 1514, 1694, 1804, 1922, 1960,
+                    1875, 1972, 1989, 2003, 2014, 2018, 2053, 2059, 2156, 2159}
+    # Historical23 strokes, followed by the effective-resource2163 correction.
+    order = (2147, 2148, 2149, 2151, 2162, 2164, 2165, 2167, 2170, 2172, 2173,
+             2176, 2178, 2179, 2181, 2182, 2183, 2185, 2186, 2187, 2189, 2190, 2191, 2163)
+
+    def frames(self, route):
+        scenes = ((3054, 3804, 3804, 3804) if route == 'lab-entry' else
+                  (3804, 3805, 3808, 3803) + (3801,)*27 + (3803,)*2)
+        save = Path(self.folder.name) / ('m59.SAV' if route == 'lab-entry' else 'm60.SAV')
+        save.write_bytes(bytes(170770))
+        frames = []
+        for i, scene in enumerate(scenes):
+            flags = {f: 1 for f in self.retained}
+            if route == 'mould-shape':
+                flags.update({1876: int(i >= 2), 1888: int(i >= 4), 2234: int(i >= 6)})
+                flags.update({f: int(i >= 6+j) for j, f in enumerate(self.order)})
+            minutes = 16*60+29+i
+            frames.append({'scene': scene, 'art': scene, 'view': 0, 'held': 13,
+                           'flags': flags, 'scope': '338-341,1000-2250',
+                           'clock': (3, minutes//60, minutes%60)})
+        return save, frames
+
+    def test_accepts_serial_lab_and_corrected_mould_without_aeolus_or_forge_claim(self):
+        for route, final in (('lab-entry', 3804), ('mould-shape', 3803)):
+            save, frames = self.frames(route)
+            result = checker.verify(self.observed_log(route, save, frames), save, route)
+            with self.subTest(route=route):
+                self.assertEqual((result['scene'], result['view']), (final, 0))
+                self.assertTrue(result['alchemy_won'])
+                self.assertEqual(result['mould_prepared'], route == 'mould-shape')
+                self.assertTrue({1959, 1965, 1973, 1999, 2004, 2017, 2052} <= set(result['flags_zero']))
+                self.assertFalse(set(range(338, 342)) & (set(result['flags_one']) | set(result['flags_zero'])))
+        self.assertTrue(set(self.order) <= set(result['flags_one']))
+        self.assertNotIn(2163, result['flags_zero'])
+        self.assertEqual(len(set(self.order)), 24)
+
+    def test_requires_empty_source_every_authored_bar_and_explicit_new2163_phase(self):
+        for index, flag, value in ((0, 2147, 1), (5, 2163, 1), (6, 2147, 0),
+                (8, 2149, 0), (28, 2191, 0), (28, 2163, 1), (29, 2163, 0),
+                (32, 2163, 0), (20, 2150, 1), (32, 2192, 1), (7, 2147, 0)):
+            save, frames = self.frames('mould-shape')
+            frames[index]['flags'][flag] = value
+            with self.subTest(index=index, flag=flag), self.assertRaises(ValueError):
+                checker.verify(self.observed_log('mould-shape', save, frames), save, 'mould-shape')
+        save, frames = self.frames('lab-entry')
+        frames[-1]['flags'][2163] = 1
+        with self.assertRaises(ValueError):
+            checker.verify(self.observed_log('lab-entry', save, frames), save, 'lab-entry')
+
+    def test_requires_original_lab_observation_feedback_and_pending_future_gates(self):
+        for index, flag, value in ((0, 1876, 1), (2, 1876, 0), (3, 1888, 1),
+                (4, 1888, 0), (5, 2234, 1), (6, 2234, 0), (30, 1959, 1),
+                (31, 1973, 1), (32, 2004, 1), (32, 1098, 1), (32, 2067, 1)):
+            save, frames = self.frames('mould-shape')
+            frames[index]['flags'][flag] = value
+            with self.subTest(index=index, flag=flag), self.assertRaises(ValueError):
+                checker.verify(self.observed_log('mould-shape', save, frames), save, 'mould-shape')
+
+    def test_requires_ordered_resources_all_bar_captures_and_actual_safe_final_pair(self):
+        for failure in ('missing_resource', 'wrong_order', 'missing_correction_capture', 'safe_pair'):
+            save, frames = self.frames('mould-shape');opened = self.opens['mould-shape']
+            if failure == 'missing_resource':
+                opened = (3805, 3803, 3801, 3803)
+            elif failure == 'wrong_order':
+                opened = (3805, 3803, 3808, 3801, 3803)
+            elif failure == 'missing_correction_capture':
+                frames.pop(29)
+            else:
+                frames[-1]['scene'] = frames[-1]['art'] = 3801
+            with self.subTest(failure=failure), self.assertRaises(ValueError):
+                checker.verify(self.observed_log('mould-shape', save, frames, opened), save, 'mould-shape')
+
+    def test_extra_observations_enforce_scope_prerequisites_real13_and_clock(self):
+        for failure in ('scope', 'held', 'art', 'retained', 'future', 'local_binary', 'clock'):
+            save, frames = self.frames('mould-shape')
+            extra = dict(frames[2], scene=9998, art=9998, flags=dict(frames[2]['flags']))
+            if failure == 'scope': extra['scope'] = '338-341,1000-2162,2164-2250'
+            elif failure == 'held': extra['held'] = -1
+            elif failure == 'art': extra['art'] = 3801
+            elif failure == 'retained': extra['flags'][1960] = 0
+            elif failure == 'future': extra['flags'][2004] = 1
+            elif failure == 'local_binary': extra['flags'][1005] = 2
+            else: extra['clock'] = (3, 16, 0)
+            frames.insert(3, extra)
+            with self.subTest(failure=failure), self.assertRaises(ValueError):
+                checker.verify(self.observed_log('mould-shape', save, frames), save, 'mould-shape')
+
+    def test_retained_continuous_inputs_have_only_save_name_and_one_sourced_bar_delta(self):
+        import hashlib
+        spec = importlib.util.spec_from_file_location('lab_mould_story', MODULE.with_name('story_route.py'))
+        story = importlib.util.module_from_spec(spec);spec.loader.exec_module(story)
+        self.assertTrue(hasattr(story, 'leg_lab_entry'), 'missing ordinary lab-entry route')
+        self.assertTrue(hasattr(story, 'leg_mould_shape'), 'missing ordinary mould-shape route')
+        self.assertEqual(hashlib.sha256((story.leg_lab_entry('s64')+'\n').encode()).hexdigest(),
+                         'd6205060273a97b15b455f9159604a808e74b9f089ec414848ee8329c28e9769')
+        body = story.leg_mould_shape('s65')
+        correction = ('S3801.CIF+192000:move:325,76', 'S3801.CIF+193000:click:325,76,600',
+                      'S3801.CIF+195500:shot:0,0')
+        tokens = body.split(';')
+        for token in correction:
+            self.assertEqual(tokens.count(token), 1)
+            tokens.remove(token)
+        self.assertEqual(hashlib.sha256((';'.join(tokens)+'\n').encode()).hexdigest(),
+                         '318a2ec5fb0f19275ab2d33dc59f7134def432df585a1d98451c4f7d2e19b36c')
+        for function, save, anchor, menu, tail in (
+                (story.leg_lab_entry, 'm59', 'S3054.CIF', 75000, 93000),
+                (story.leg_mould_shape, 'm60', 'S3801.CIF', 235000, 253000)):
+            self.assertEqual(function(save), ';'.join((function(), story.menu_to_save_screen(anchor, menu),
+                                                       story.save_tail(anchor, tail, save))))
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -1083,6 +1083,119 @@ def verify_fire_alchemy_observations(route, log, observations, selected, clocks,
     return clocks[-1][1]
 
 
+ALCHEMY_WIN_ROUTES = ('alchemy-win',)
+
+
+def alchemy_win_configuration():
+    _, prior, zero = fire_alchemy_configuration('alchemy-return')
+    # This chapter ends at the first safe room beyond the alchemy door.
+    # Aeolus, well, forge and final lab rewards remain unearned.
+    zero |= {1959, 1973, 2004, 2017, 2052}
+    return ([(3046, 0)] * 2 + [(3196, 0)] * 5 + [(3054, 0)] * 2,
+            prior | {1960, 2053}, zero - {1960, 2053})
+
+
+def verify_alchemy_win_observations(log, observations, selected, clocks, positive, negative):
+    changing = {1960, 2053, 2132}
+    previous = {1960: 0, 2053: 0}
+    for state, scope, flags in observations:
+        if not (positive | negative) <= scope:
+            raise ValueError('RC_FLAGS did not observe every required alchemy event')
+        if any(flags.get(f, 0) != 1 for f in positive - changing):
+            raise ValueError('alchemy retained prerequisite differs')
+        if any(flags.get(f, 0) != 0 for f in negative - changing):
+            raise ValueError('unexpected alchemy future, failure or room event')
+        for f in previous:
+            value = flags.get(f, 0)
+            if value not in (0, 1) or value < previous[f]:
+                raise ValueError('alchemy original progression is not binary/monotone')
+            previous[f] = value
+        # 2053 is also set on exit/explosion, so it cannot establish a win.
+        # 3193 sets2132;3054 clears it before the final safe observations.
+        pulse = flags.get(2132, 0)
+        if (pulse not in (0, 1) or
+                (flags.get(1960, 0) == 1 and flags.get(2053, 0) != 1) or
+                (pulse and flags.get(1960, 0) != 1)):
+            raise ValueError('alchemy original win/door pulse differs')
+        if state[1] != state[0] or state[3] != 13:
+            raise ValueError('alchemy art or real held13 differs')
+    for i, (_, _, flags) in enumerate(selected):
+        if any(flags.get(f, 0) != int(i >= 7) for f in (1960, 2053)) or flags.get(2132, 0) != 0:
+            raise ValueError('alchemy source, five-round and new-win phases differ')
+    verify_clock_diagnostics(clocks)
+    opened = [int(m[1]) for m in re.finditer(r'FILE open .*\\S(\d+)\.CIF\s+\[virtual \d+ ms\]', log)]
+    if set(opened) & {3049, 3191, 3192, 6301}:
+        raise ValueError('alchemy took original exit or explosion branch')
+    cursor = 0
+    for scene in (3190, 3196, 3193, 3054):
+        while cursor < len(opened) and opened[cursor] != scene:
+            cursor += 1
+        if cursor == len(opened):
+            raise ValueError('missing ordered alchemy authored scene opens')
+        cursor += 1
+    return clocks[-1][1]
+
+
+LAB_MOULD_ROUTES = ('lab-entry', 'mould-shape')
+MOULD_BAR_ORDER = (2147, 2148, 2149, 2151, 2162, 2164, 2165, 2167, 2170, 2172, 2173,
+                   2176, 2178, 2179, 2181, 2182, 2183, 2185, 2186, 2187, 2189, 2190, 2191, 2163)
+MOULD_BAR_FLAGS = set(range(2147, 2152)) | set(range(2162, 2193))
+LAB_LOCAL_FLAGS = {1000, 1001, 1005}
+
+
+def lab_mould_configuration(route):
+    # A focused logged scope fits the existing1024-byte FLAGS buffer. Root's
+    # outer save audit separately retains all185 inherited alchemy predicates.
+    prior = set(range(1148, 1160)) | {1512, 1514, 1694, 1804, 1875, 1922, 1960,
+                1972, 1989, 2003, 2014, 2018, 2053, 2059, 2156, 2159}
+    zero = {1098, 1099, 1100, 1101, 1510, 1511, 1513, 1561, 1862, 1889, 1926,
+            1942, 1959, 1961, 1965, 1973, 1999, 2004, 2017, 2052, 2067, 2070, 2132}
+    zero |= set(range(2136, 2146))
+    progress = {1876, 1888, 2234}
+    if route == 'lab-entry':
+        return [(3054, 0)] + [(3804, 0)] * 3, prior, zero | progress | MOULD_BAR_FLAGS
+    if route == 'mould-shape':
+        return ([(s, 0) for s in (3804, 3805, 3808, 3803)] + [(3801, 0)] * 27 + [(3803, 0)] * 2,
+                prior | progress | set(MOULD_BAR_ORDER), zero | (MOULD_BAR_FLAGS - set(MOULD_BAR_ORDER)))
+    raise ValueError('unknown lab/mould route')
+
+
+def verify_lab_mould_observations(route, log, observations, selected, clocks, positive, negative):
+    phases = ({1876: 2, 1888: 4, 2234: 6} |
+              {flag: 6+i for i, flag in enumerate(MOULD_BAR_ORDER)}) if route == 'mould-shape' else {}
+    previous = {flag: 0 for flag in phases}
+    for state, scope, flags in observations:
+        if not (positive | negative | LAB_LOCAL_FLAGS) <= scope:
+            raise ValueError('RC_FLAGS did not observe every required lab/mould event')
+        if any(flags.get(f, 0) != 1 for f in positive - phases.keys()):
+            raise ValueError('lab/mould retained prerequisite differs')
+        if any(flags.get(f, 0) != 0 for f in negative):
+            raise ValueError('unexpected lab/mould bar, future or failure event')
+        if any(flags.get(f, 0) not in (0, 1) for f in LAB_LOCAL_FLAGS):
+            raise ValueError('lab/mould local input flag is not binary')
+        for f in previous:
+            value = flags.get(f, 0)
+            if value not in (0, 1) or value < previous[f]:
+                raise ValueError('lab/mould original progression is not binary/monotone')
+            previous[f] = value
+        if state[1] != state[0] or state[3] != 13:
+            raise ValueError('lab/mould art or real held13 differs')
+    for i, (_, _, flags) in enumerate(selected):
+        if any(flags.get(f, 0) != int(i >= phase) for f, phase in phases.items()):
+            raise ValueError('lab/mould empty-source, feedback or ordered bar phases differ')
+    verify_clock_diagnostics(clocks)
+    opened = [int(m[1]) for m in re.finditer(r'FILE open .*\\S(\d+)\.CIF\s+\[virtual \d+ ms\]', log)]
+    required = (2908, 3800, 3804) if route == 'lab-entry' else (3805, 3808, 3803, 3801, 3803)
+    cursor = 0
+    for scene in required:
+        while cursor < len(opened) and opened[cursor] != scene:
+            cursor += 1
+        if cursor == len(opened):
+            raise ValueError('missing ordered lab/mould authored scene opens')
+        cursor += 1
+    return clocks[-1][1]
+
+
 def verify(log, save, route='telescope-prep'):
     if route == 'telescope-prep':
         expected = [(2010, 0), (2014, 0), (2026, 0), (2010, 2)]
@@ -1161,6 +1274,10 @@ def verify(log, save, route='telescope-prep'):
         expected, positive, negative = rune_light_configuration(route)
     elif route in FIRE_ALCHEMY_ROUTES:
         expected, positive, negative = fire_alchemy_configuration(route)
+    elif route in ALCHEMY_WIN_ROUTES:
+        expected, positive, negative = alchemy_win_configuration()
+    elif route in LAB_MOULD_ROUTES:
+        expected, positive, negative = lab_mould_configuration(route)
     else:
         raise ValueError('unknown story route')
     observations = []
@@ -1229,7 +1346,7 @@ def verify(log, save, route='telescope-prep'):
             selected.append(observation)
     if len(selected) != len(expected):
         raise ValueError('missing ordered route observations')
-    if route in ('jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES + CREST_PREREQUISITE_ROUTES + TYPING_CREST_ROUTES + OIL_RUNE_ROUTES + RUNE_LIGHT_ROUTES + FIRE_ALCHEMY_ROUTES:
+    if route in ('jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES + CREST_PREREQUISITE_ROUTES + TYPING_CREST_ROUTES + OIL_RUNE_ROUTES + RUNE_LIGHT_ROUTES + FIRE_ALCHEMY_ROUTES + ALCHEMY_WIN_ROUTES + LAB_MOULD_ROUTES:
         # Earlier inventory shots can share scene/view/held cells. Check the
         # final two observations, rather than treating those as checkpoints.
         if any((state[0], state[2]) != expected[-1] for state, _, _ in observations[-2:]):
@@ -1352,6 +1469,10 @@ def verify(log, save, route='telescope-prep'):
         clock_diagnostics = verify_rune_light_observations(route, log, observations, selected, clocks, positive, negative)
     if route in FIRE_ALCHEMY_ROUTES:
         clock_diagnostics = verify_fire_alchemy_observations(route, log, observations, selected, clocks, positive, negative)
+    if route in ALCHEMY_WIN_ROUTES:
+        clock_diagnostics = verify_alchemy_win_observations(log, observations, selected, clocks, positive, negative)
+    if route in LAB_MOULD_ROUTES:
+        clock_diagnostics = verify_lab_mould_observations(route, log, observations, selected, clocks, positive, negative)
     for _, scope, flags in selected[-2:]:
         if not (positive | negative) <= scope:
             raise ValueError('RC_FLAGS did not observe every required event')
@@ -1370,7 +1491,7 @@ def verify(log, save, route='telescope-prep'):
         raise ValueError('checkpoint save is missing or has an unexpected length')
     result = {'route': route, 'scene': expected[-1][0], 'view': expected[-1][1],
             'flags_one': sorted(positive), 'flags_zero': sorted(negative),
-            'save': save.name, 'telescope_complete': route in ('telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES + CREST_PREREQUISITE_ROUTES + TYPING_CREST_ROUTES + OIL_RUNE_ROUTES + RUNE_LIGHT_ROUTES + FIRE_ALCHEMY_ROUTES}
+            'save': save.name, 'telescope_complete': route in ('telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES + CREST_PREREQUISITE_ROUTES + TYPING_CREST_ROUTES + OIL_RUNE_ROUTES + RUNE_LIGHT_ROUTES + FIRE_ALCHEMY_ROUTES + ALCHEMY_WIN_ROUTES + LAB_MOULD_ROUTES}
     if route in WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES:
         result['word_lock_won'] = route == 'word-lock'
     if route in TYPING_CREST_ROUTES:
@@ -1382,6 +1503,13 @@ def verify(log, save, route='telescope-prep'):
     if route in FIRE_ALCHEMY_ROUTES:
         result['alchemy_knowledge_ready'] = route == 'alchemy-return'
         result['alchemy_won'] = False
+    if route in ALCHEMY_WIN_ROUTES:
+        result['alchemy_knowledge_ready'] = True
+        result['alchemy_won'] = True
+    if route in LAB_MOULD_ROUTES:
+        result['alchemy_knowledge_ready'] = True
+        result['alchemy_won'] = True
+        result['mould_prepared'] = route == 'mould-shape'
     if route == 'glyph-request':
         result['glyph_pending'] = True
     if route == 'glyph-win':
@@ -1396,7 +1524,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('run_log', type=Path)
     parser.add_argument('save_file', type=Path)
-    parser.add_argument('--route', choices=('telescope-prep', 'jane-jigsaw', 'telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES + CREST_PREREQUISITE_ROUTES + TYPING_CREST_ROUTES + OIL_RUNE_ROUTES + RUNE_LIGHT_ROUTES + FIRE_ALCHEMY_ROUTES,
+    parser.add_argument('--route', choices=('telescope-prep', 'jane-jigsaw', 'telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES + CREST_PREREQUISITE_ROUTES + TYPING_CREST_ROUTES + OIL_RUNE_ROUTES + RUNE_LIGHT_ROUTES + FIRE_ALCHEMY_ROUTES + ALCHEMY_WIN_ROUTES + LAB_MOULD_ROUTES,
                         default='telescope-prep')
     args = parser.parse_args()
     try:
