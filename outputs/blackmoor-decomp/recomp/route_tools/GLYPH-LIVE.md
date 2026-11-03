@@ -1,7 +1,7 @@
-# First-time Junior glyph input client
+# First-time glyph input client
 
 `glyph_live.py` makes one bounded attempt from a genuine pending m28 at
-S3510/view4/held-1. It rejects Senior/repeat sources before opening the board.
+S3510/view4/held-1 in original Junior0 or Senior2 mode. It rejects unsupported modes and repeat sources before opening the board; the output must preserve the source mode.
 The original game owns all swaps, scoring, timers, win, reward and saves.
 
 ```sh
@@ -47,4 +47,4 @@ returns1 and retains refused evidence. There is no automatic retry, all-board
 or platform-timing guarantee. Private runtime captures/data must not be
 published. Root collection passed the final public m28 full-scope producer and fresh
 reload on native74229ec8 (RECOMP-19). That bounded run does not establish
-all-board success or repeat/Senior support.
+all-board success or repeat support. RECOMP-49 separately binds the actual current Senior source and unchanged original hard3589 goal. Historical campaign tool hashes remain historical; they are not current-tool freshness claims.
