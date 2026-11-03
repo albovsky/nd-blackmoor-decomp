@@ -542,3 +542,7 @@ The tool uses at most160 fixed rank requests in one deal. Only original1963 plus
 ## Current Senior Ethel acceptance, 2026-11-03 Pacific
 
 RECOMP-52 preserves original mode0/2 through the truthful Ethel client while retaining its Junior default, source gates and four146-event payloads. Current Senior39/40/41 save and fresh-reload pairs pass through3428 at15:27, with1932 earned at39 and1563/2154 at41. Source-bound bright-Jane waiting before39 is ordinary input; full409/40/order/clock/assets remain checked. See PLAYABILITY-LOG.md for canonical hashes and remaining limits.
+
+## Current Senior typing profile, 2026-11-03 Pacific
+
+RECOMP-54 adds `typing_live.py --profile senior --source-profile FILE --source-profile-sha256 SHA`, using an independently pinned mode2/source-hash/raw-clock profile and the exact ordinary key cycle in `typing-senior-keycycle.txt`. Junior remains the default and still requires its geometry/OCR inputs. Senior uses no OCR inputs or hidden score/balloon/RNG reads; original win/new2014/real2/examine6200/save/fresh-reload gates remain. Current genuine m45 passes one attempt to m47 c1f68e16…/raw03:17 with full409/40/order/assets checked. The >=60s scene-open interval is a lower bound alongside the game win, not a separate timer-parity proof. See RECOMP-54/PLAYABILITY-LOG for exact hashes and limitations.

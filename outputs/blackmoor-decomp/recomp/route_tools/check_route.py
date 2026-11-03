@@ -744,7 +744,7 @@ def typing_crest_configuration(route):
     raise ValueError('unknown portrait/typing-crest route')
 
 
-def verify_typing_crest_observations(route, log, observations, selected, clocks, positive, negative):
+def verify_typing_crest_observations(route, log, observations, selected, clocks, positive, negative, source_clock=None):
     up = {1863: 20} if route == 'corbin-portrait' else {2088: 5, 2014: 6}
     down = {1672: 7} if route == 'typing-crest' else {}
     changing = up.keys() | down.keys()
@@ -769,8 +769,16 @@ def verify_typing_crest_observations(route, log, observations, selected, clocks,
                 flags.get(f, 0) != int(i < phase) for f, phase in down.items()):
             raise ValueError('portrait/typing source and original progression phases differ')
     source = clocks[0][1]
-    if source['day'] != 3 or source['hour'] != 16:
-        raise ValueError('portrait/typing observed source clock gate differs')
+    if source_clock is None:
+        if source['day'] != 3 or source['hour'] != 16:
+            raise ValueError('portrait/typing observed source clock gate differs')
+    else:
+        if (not isinstance(source_clock, dict) or set(source_clock) != {'day', 'hour', 'minute', 'total_minutes'}
+                or any(type(v) is not int for v in source_clock.values()) or source_clock['day'] < 0
+                or not 0 <= source_clock['hour'] < 24 or not 0 <= source_clock['minute'] < 60
+                or source_clock['total_minutes'] != 60 * source_clock['hour'] + source_clock['minute']
+                or (source['day'], source['hour']) != (source_clock['day'], source_clock['hour'])):
+            raise ValueError('portrait/typing bound Senior source clock differs')
     if route == 'corbin-portrait':
         verify_clock_diagnostics(clocks)
     else:
@@ -1251,9 +1259,15 @@ def verify_senior_jigsaw_observations(log, observations, selected, positive, neg
         cursor += 1
 
 
-def verify(log, save, route='telescope-prep', *, glyph_scene=3588):
+def verify(log, save, route='telescope-prep', *, glyph_scene=3588, typing_source_clock=None):
     if glyph_scene not in (3588, 3589) or (glyph_scene != 3588 and route != 'glyph-win'):
         raise ValueError('explicit glyph scene is valid only for glyph-win')
+    if typing_source_clock is not None:
+        if route != 'typing-crest' or not save.is_file():
+            raise ValueError('explicit typing source clock is Senior typing-crest only')
+        data = save.read_bytes()
+        if len(data) != 170770 or int.from_bytes(data[0x9034:0x9036], 'little', signed=True) != 2:
+            raise ValueError('explicit typing source clock requires a complete Senior save')
     glyph_request_difficulty = 0
     paid_request_difficulty = 0
     if route == 'telescope-prep':
@@ -1551,7 +1565,8 @@ def verify(log, save, route='telescope-prep', *, glyph_scene=3588):
     if route in CREST_PREREQUISITE_ROUTES:
         clock_diagnostics = verify_crest_prerequisite_observations(route, log, observations, selected, clocks, positive, negative)
     if route in TYPING_CREST_ROUTES:
-        clock_diagnostics = verify_typing_crest_observations(route, log, observations, selected, clocks, positive, negative)
+        clock_diagnostics = verify_typing_crest_observations(
+            route, log, observations, selected, clocks, positive, negative, typing_source_clock)
     if route in OIL_RUNE_ROUTES:
         clock_diagnostics = verify_oil_rune_observations(route, log, observations, selected, clocks, positive, negative)
     if route in RUNE_LIGHT_ROUTES:
