@@ -139,6 +139,9 @@ Public story continuation now has `betty-key --save m13` and `venus-column --sav
 
 ## How to build and run
 
+The Codex Run action now uses the recompiled native game. Run `script/setup_recomp_python.sh` once to install the pinned build tools, then `script/build_and_run.sh`; it always mutes and leaves any existing game untouched. `--build-only` compiles/signs without launching, and `--verify --background --stop-after-ms 10000` checks this launch's own PID/path without activation. The existing direct `recomp/build_macos.sh` interface below remains available.
+
+
 * Linux/other: `GAME_EXE=work/original/GAME.EXE recomp/build_linux.sh [builddir]`. Mac app: `GAME_EXE=... BUILD_DIR=<dir> recomp/build_macos.sh` (needs Xcode tools, Homebrew FFmpeg, python3 with pefile and capstone; `RELIFT=1` regenerates the lifted C). In a git worktree `work/` is not present: symlink the main checkout's `work` into the worktree (the symlink is not tracked).
 * Headless: `GAME_EXE=work/original/GAME.EXE RC_GAMEDIR=<dir> RC_OUT=<out> MAX_IMPORTS=6000000 MAX_IDLE_POLLS=20000 INPUT="..." rc_headless`. `RC_GAMEDIR` is a **scratch copy** of the game folder (Ciftree, CDSound, CDVideo, Game.ini, Nancy.cid, display.drv): saves go to its `Documents5`. Other variables: `RC_FLAGS="1000-1030"`, `RC_TRACE_MS=from-to`, `SCRIPT_TAIL_MS`, `RC_REAL`. Long legs need `MAX_IDLE_POLLS=900000 MAX_IMPORTS=90000000` (slider) or `300000` (moon).
 * Routes: `route_tools/route_load.sh OUT SLOT_Y "steps"` loads a save from the main menu and runs the steps (anchor `S2010.CIF`); `python3 route_tools/story_route.py {stairs,lock,slider,moon} --save NAME` prints a leg's `INPUT`. Save chain: `m0` (bedroom after the suitcase) then `m1`, `m4`, `m5`, `m6` (the legs write them). The Load & Save list order is the game's, not by name: read the row y before each load (rows 42.5 px apart from y = 105).

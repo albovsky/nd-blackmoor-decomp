@@ -1,8 +1,10 @@
 # Blackmoor Manor: matching-decompilation investigation
 
-**Status: incomplete.** The current recompiled ARM64 engine has a fresh Junior campaign through native Mac credits; the fresh Senior campaign passes the word lock, partial fire panel and truthful Ethel episode with fresh reloads. The whole-file x86 match is met under the current Track M ruling. Both difficulties and remaining native acceptance gates must pass before the game is complete. See [PLAYABILITY-LOG.md](PLAYABILITY-LOG.md) for current gameplay evidence and [recomp/HANDOFF.md](recomp/HANDOFF.md) for the native build.
+**Status: incomplete.** The current recompiled ARM64 engine has a fresh Junior campaign through native Mac credits; the fresh Senior campaign reaches the typing prerequisite after Linda, gargoyle and Corbin save/reload pairs. The whole-file x86 match is met under the current Track M ruling. Both difficulties and remaining native acceptance gates must pass before the game is complete. See [PLAYABILITY-LOG.md](PLAYABILITY-LOG.md) for current gameplay evidence and [recomp/HANDOFF.md](recomp/HANDOFF.md) for the native build.
 
 The new Mac frontend uses the installed GOG game as a read-only seed. Default launches prepare an independent writable copy at `~/Library/Application Support/Blackmoor Recompiled Data/DataClone-v1/game`; saves remain in `~/Library/Application Support/Blackmoor Recompiled`. Explicit `--game-dir` / `BLACKMOOR_GAME_DIR` scratch paths stay in place and must contain independent files. Startup refuses unsafe aliases or an invalid cache before running the guest.
+
+Build dependencies can be installed once with `./script/setup_recomp_python.sh`. The Codex **Run** button and `./script/build_and_run.sh` then build and launch **Blackmoor Recompiled** directly with sound muted. `--build-only` builds without a window; `--verify --background --stop-after-ms 10000` performs a bounded hidden startup. An existing recompiled game is left untouched; quit it normally before rebuilding. macOS27, Xcode tools and external Homebrew FFmpeg remain required.
 
 The diagnostic integration notes below describe the earlier handwritten engine and are historical, rather than current recompiled-game coverage.
 
@@ -91,11 +93,9 @@ unzip "./Blackmoor Reconstruction.app.zip" -d "$preview_dir"
 open -n "$preview_dir/Blackmoor Reconstruction.app"
 ```
 
-In the original Codex workspace, `./script/build_and_run.sh` is the single
-build/run entrypoint and the Codex Run action uses it. It launches a clean local
-copy because the workspace's File Provider attaches Finder metadata to app
-packages after signing. The build also emits a signed app archive without that
-metadata. Escape exits the preview.
+The Codex Run action now launches the recompiled native game as described above.
+The remaining commands in this section are historical preview diagnostics.
+The old preview can still be built explicitly with its own build script.
 New Game is wired to a static scene preview; scene interactions and audio are
 still absent. Other menu commands expose an unimplemented-screen status.
 

@@ -44,6 +44,6 @@ work/tools/oracle-python/bin/python outputs/blackmoor-decomp/tests/phone_init_or
 work/tools/oracle-python/bin/python outputs/blackmoor-decomp/tests/hotspot_original_oracle.py
 ```
 
-Isolated Unicorn JIT and offline AVAudioEngine registration need scoped execution outside the restricted agent sandbox. They open no window or output audio device. `--inspect-scene-runtime` runs the new headless fixture; `script/build_and_run.sh` launches the still-incomplete GUI preview. Do not use its GUI launch until the owner explicitly unlocks the Mac.
+Isolated Unicorn JIT and offline AVAudioEngine registration need scoped execution outside the restricted agent sandbox. They open no window or output audio device. `--inspect-scene-runtime` runs the new headless fixture; `script/build_and_run.sh` now builds and directly launches Blackmoor Recompiled, with pinned dependencies installed by `script/setup_recomp_python.sh` (RECOMP-53); `--build-only` opens no window. Do not use its GUI launch until the owner explicitly unlocks the Mac.
 
 Builds use the current macOS27/Xcode27 and external Homebrew FFmpeg dependencies. The app is not yet a self-contained release for other Macs. The original GOG app/files are untouched. Private evidence/tools and existing prototypes are preserved in the permanent project; no legacy prototype is used by the native reconstruction.
