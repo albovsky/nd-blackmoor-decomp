@@ -27,6 +27,7 @@
 #include <string>
 #include <vector>
 #include "audio_capture.h"
+#include "macos_game_data.h"
 #include "muted_audio_pacer.h"
 #include "diagnostic_result.h"
 
@@ -578,14 +579,15 @@ static BlackmoorRecompApplicationDelegate *application_delegate;
 int main(int argc, char **argv)
 {
     @autoreleasepool {
-        g.game_dir = getenv("BLACKMOOR_GAME_DIR") ? getenv("BLACKMOOR_GAME_DIR")
-            : "/Applications/Nancy Drew - Curse of Blackmoor Manor.app/Contents/Resources/game/"
+        const char *argument_game_dir = nullptr;
+        const char *environment_game_dir = getenv("BLACKMOOR_GAME_DIR");
+        const char *original_game_seed = "/Applications/Nancy Drew - Curse of Blackmoor Manor.app/Contents/Resources/game/"
               "Nancy Drew Curse of the Blackmoor Manor.app/Contents/Resources/drive_c/GOG Games/Nancy Drew - Curse of Blackmoor Manor";
         std::string log_path, capture_path, input_path;
         bool capture_requested = false;
         for (int i = 1; i < argc; i++) {
             std::string a = argv[i];
-            if (a == "--game-dir" && i + 1 < argc) g.game_dir = argv[++i];
+            if (a == "--game-dir" && i + 1 < argc) argument_game_dir = argv[++i];
             else if (a == "--exe" && i + 1 < argc) g.exe = argv[++i];
             else if (a == "--save-dir" && i + 1 < argc) g.save_dir = argv[++i];
             else if (a == "--log" && i + 1 < argc) log_path = argv[++i];
@@ -617,11 +619,27 @@ int main(int argc, char **argv)
                                                            script_error, sizeof script_error));
             if (!g.input_script) { fprintf(stderr, "INPUT: %s\n", script_error); return 2; }
         }
-        if (g.exe.empty()) g.exe = getenv("GAME_EXE") ? getenv("GAME_EXE") : g.game_dir + "/GAME.EXE";
-        if (g.save_dir.empty()) {
-            NSArray *support = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES);
-            g.save_dir = std::string(((NSString *)support.firstObject).fileSystemRepresentation) + "/Blackmoor Recompiled";
+        NSArray *support = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES);
+        NSString *support_path = support.firstObject;
+        if (!support_path.length) { fputs("Application Support directory unavailable\n", stderr); return 2; }
+        std::string application_support = std::string(support_path.fileSystemRepresentation) + "/Blackmoor Recompiled";
+        if (g.save_dir.empty()) g.save_dir = application_support;
+        BlackmoorGameDataOptions data_options;
+        data_options.argument_directory = argument_game_dir;
+        data_options.environment_directory = environment_game_dir;
+        data_options.seed_directory = original_game_seed;
+        data_options.support_directory = application_support + " Data";
+        data_options.save_directory = g.save_dir;
+        data_options.expected_executable_sha256 = "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45";
+        BlackmoorGameDataSelection data;
+        std::string data_error;
+        if (!blackmoor_select_game_data(data_options, &data, &data_error)) {
+            fprintf(stderr, "GAME_DATA: %s\n", data_error.c_str()); return 2;
         }
+        g.game_dir = data.directory;
+        fprintf(stderr, "GAME_DATA mode=%s created=%d path=%s\n",
+                data.default_clone ? "default-clone" : "explicit", data.created, g.game_dir.c_str());
+        if (g.exe.empty()) g.exe = getenv("GAME_EXE") ? getenv("GAME_EXE") : g.game_dir + "/GAME.EXE";
         make_directories(g.save_dir);
         if (!file_exists(g.exe)) { fprintf(stderr, "GAME.EXE not found at %s (use --exe)\n", g.exe.c_str()); return 2; }
         if (!log_path.empty()) g.log = fopen(log_path.c_str(), "w");
