@@ -1,0 +1,27 @@
+# RECOMP-45: Bind the staged Betty route to the fresh Senior campaign
+
+The existing private staged Betty verifier accepts only the Junior source. The original Senior card-game row changes two AI/turn-history options, so a Junior success cannot stand in for a Senior playthrough. Add an explicit campaign profile for the original difficulty 2 and run the existing bounded ordinary-input policy from its newly earned checkpoint. The public `betty-key` result checker already accepts the shared authored win/reward path.
+
+## Bound source and behavior
+
+- Start from current main after PR #338, squash `dbb2d01f42a1362117d568c746e3157394c46397`. Root owns integration and native execution; workers prepare isolated candidates only.
+- Native source freeze remains `92bc2a69067eb4aa00f371d693d9198d6f67f121`; headless SHA `6041e31e9d486111f6a0b64a7ce9764d52c292f35339fa1a84f3be7c18d31de4`. Original GAME.EXE SHA remains `afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45`.
+- Actual m12 SHA `5b3d66539c9999a28db90c58fe50277c42ecc0c7c2954c2756bda808ae711774`: difficulty2, S2701/view0/unheld, day1 07:27, bag [20,12,6,17]. Accepted telescope/seedlings/crank receipt SHA `19ff1300233132caefa5eec7d1465332ea35aaaa2e654bd5a474ce66728ead15`. Its three producer/reload pairs preserve 402 saved fields and all40/bag. The preceding zero-source New Game, six fixed pairs and jigsaw receipts form the actual same-native lineage.
+- Bind all402 inherited fields plus saved completion fields1781/1998: 404 total. Permit only1781/1963/1998 to rise, physical19 to rise and bag append19. Require valid monotonic original time. No historical SAV is a runtime source.
+- Live scope contains only focused quest/ownership and clock gates. Saved board/pose/random fields remain serialized-only and never choose inputs. The original game owns cards, AI, randomness, time and rules.
+- Use at most160 fixed rank requests in one deal, with no automatic retry. Require original2709→2710→settled2711/new1963 before reward actions; observe real held19 before PUT/exit, safe2700 before normal UI Save, then fresh m13-only Load/realheld19/PUT. A loss or unfinished policy remains refused evidence.
+- Effective original S2704 F6 rows1/2 select difficulty0/2. Only body+0x21/+0x22 differ (Junior1/0; Senior0/1). Geometry and the player's request order match; rule equivalence or success on every deal is not claimed. Static source/profile pins are under private `release92bc-senior-betty-binding-v1/`.
+
+## Acceptance and limits
+
+Code freeze `f3f2b1673a96ca74e792da3c375859164c051100`, module SHA `628558c91ea8d8eb3453d3aee4c44423329f5b6e2afba0a66d7c17232bcc06dd`. Five new finite groups first fail without the module, then pass; all117 existing route checks pass (0.995s). A real-run output regression adds a sixth group: RED before the fix, all6 GREEN afterward (0.006s). It permits only the original startup's byte-identical save-folder GAME.INI copy and refuses changed config/unknown CIF files.
+
+Initial independent Sonnet high review of5d019612 rejects that config-copy false refusal and missing fixture (P1/P2). The corrective f3f2b167 delta receives independent ACCEPT/noP1/P2. Root accepts both findings as resolved. The initial reviewer separately confirms every other gate on the retained actual producer; root uses a corrected read-only audit and fresh reload rather than replaying a valid random deal. The original rawfalse record remains unchanged.
+
+Actual Senior wins its first deal after50 rank requests:177/177 input events,20 closed action captures, native exit0. New m13 `35f26d855148f020ca43d69e1e5b92cf24c4afb24b7085d4ba36345892b38967` is S2700/unheld/day1 08:26, bag[20,12,6,17,19]. The fresh earned-m13-only reload passes22 events/6 captures, native exit0, realheld19 then PUT, unchanged source bytes. All404 saved fields/full40/bag pass; only1781/1963/1998 rise, only item19 appears. All3560 original seed/clone assets and protected game/native/source/input pins remain unchanged. The authorized verifier-source correction is pinned separately from the original producer driver.
+
+Accepted combined receipt: `release92bc-senior-betty-accepted-v1/receipt.json`, SHA `e5db8b3b162f8a1756f1d4d51494e0c314a42bb5e2c05015d34f98452f5d4225`. Fresh reload verification SHA `24ab174a3bdee628dad4f7078fa5b503043bb74da067b347053b7b01e091561c`. Concrete profile SHA `8270e8afa1e89d607042f2d6b39b8980e01b6163d0590712adecf8155458e962`; fixed44-input-map SHA `0346dbd11b1d16b91bfaa871defba5cea049cf5d7d15ee237f78b896cc8763d5`. No native rebuild or engine/clock/ledger/evidence/x86 change.
+
+Unverified: other deals and success rates, a new native Junior run through this reusable profile client, cached-scene redeal detection and remaining per-group clicks after a mid-batch result. Extra symlink/missing-seed-config branches have not received separate fixtures. The original loss/unknown-result path refuses later reward/save actions. Next are the four fixed Venus/Jupiter/Moon-key/Moon-column pairs, carrying405 saved fields including newly checked1196.
+
+The fresh current-build Junior chain has separately passed both headless and native Mac credits; its evidence is in PLAYABILITY-LOG.md. Senior remains incomplete. Publication stays with root in original authorizing chat `01a170c4-6fa4-7831-9a46-f076fbcfab37`; HOW TO WORK 5 authorizes independent review followed by squash self-merge. Original request SHA `fdcf9db82c9fb1e422abf03c5eca7439f80f41742c553ea62df24aa40d6acabb`.
