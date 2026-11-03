@@ -32,7 +32,12 @@ typedef struct Fl41Host {
     /* FL-78 (round 10): the arithmetic flags (EFLAGS bits CF 0x1, PF 0x4, ZF 0x40, SF 0x80, OF 0x800) that the function finds at entry, for a function that tests what its caller left; zero in the game (a host that is initialised
      * with the fields above leaves it zero). The tests set it (tests/fl41_world.py EFLAGS_OVERRIDE). */
     uint32_t eflags;
+    /* FL-78 (round 12): where a callee hands its arithmetic flags to the caller that reads them (the cell holds the flags in the EFLAGS layout of `eflags` above, or FL41_NOFLAGS when no callee wrote it). NULL in the game's hosts (they are
+     * brace-initialised, so a host that does not name it leaves it NULL): `FL41_CALL_F` then leaves the flags as they were, which is what `FL41_CALL` does, and `FL41_FLAGS_OUT` does nothing. The tests give it a cell (tests/fl41_world.py). */
+    uint32_t *callee_flags;
 } Fl41Host;
+
+#define FL41_NOFLAGS 0x80000000u
 
 #define FL41_PROLOGUE                                                                                                                          \
     uint32_t eax = r->eax, ecx = r->ecx, edx = r->edx, ebx = r->ebx, esp = r->esp, ebp = r->ebp, esi = r->esi, edi = r->edi;                    \
@@ -59,6 +64,26 @@ typedef struct Fl41Host {
         eax = rr_.eax; ecx = rr_.ecx; edx = rr_.edx;                                                                                                       \
         if (rr_.esp == 0xfffffff0u) goto done; /* FL-72: the host marks a callee that never returns */                                                 \
     } while (0)
+
+/* FL-78 (round 12): a call whose callee's flags the caller reads before it writes them (`call f; je ...`, 0x50f48c calls 0x513c65 and tests the ZF that callee returns: scripts/lift_fl41.py writes this form for exactly those sites).
+ * The callee is a function that ends with FL41_FLAGS_OUT (lift_fl41.FLAG_RETURNERS) or a host that fills the cell; if nothing wrote it the flags stay as they were, as with FL41_CALL. The caller empties the cell again, so
+ * that the flags a function left for ITS caller are never taken for those of a later callee. */
+#define FL41_CALL_F(target)                                                                                                                    \
+    do {                                                                                                                                       \
+        Fl41Regs rr_ = {eax, ecx, edx, ebx, esp, ebp, esi, edi};                                                                               \
+        if (h->callee_flags) *h->callee_flags = FL41_NOFLAGS;                                                                                  \
+        h->call(h->ctx, (target), &rr_);                                                                                                       \
+        eax = rr_.eax; ecx = rr_.ecx; edx = rr_.edx;                                                                                                       \
+        if (rr_.esp == 0xfffffff0u) goto done;                                                                                                 \
+        if (h->callee_flags) {                                                                                                                 \
+            uint32_t fl_ = *h->callee_flags;                                                                                                   \
+            *h->callee_flags = FL41_NOFLAGS;                                                                                                   \
+            if (fl_ != FL41_NOFLAGS) { cf = fl_ & 1u; pf = (fl_ >> 2) & 1u; zf = (fl_ >> 6) & 1u; sf = (fl_ >> 7) & 1u; of = (fl_ >> 11) & 1u; }  \
+        }                                                                                                                                      \
+    } while (0)
+/* the end of a function whose callers read its flags (after `done:`, behind FL41_EPILOGUE) */
+#define FL41_FLAGS_OUT                                                                                                                         \
+    if (h->callee_flags) *h->callee_flags = cf | (pf << 2) | (zf << 6) | (sf << 7) | (of << 11);
 
 /* the address the thread information block (fs:[0]) has in the model, and the divide error: the host sees a call to 0xffffffff and the function stops */
 #define FL41_TIB 0x7d000000u

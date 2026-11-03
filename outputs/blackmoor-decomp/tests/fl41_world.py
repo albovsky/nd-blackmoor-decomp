@@ -245,7 +245,7 @@ def fpret_overrides(row, regs):
 STUB_WR = 0xffd00000       # FL-48: overrides at STUB_WR + 16*k (target address) and + 4 (value) make the k-th callee stub also store that dword (a callee may write any cell); both sides honour it
 # FL-72: a row may list callees that never return (`row['noreturn']`, tests/fl72_noreturn.json: AfxEndThread ends the thread): the run of both sides ends at such a call, after the callee's record, with esp as the call left it
 NORETURN_ESP = 0xfffffff0   # the host hands this esp back to the translation for such a call (the macro `FL41_CALL` then leaves the function)
-STUB_OVR = 0xfff00000      # FL-45: an override at STUB_OVR + 16*k + {0, 4, 8} sets eax, ecx, edx that the k-th callee stub returns (instead of the seeded draw); both sides honour it
+STUB_OVR = 0xfff00000      # FL-45: an override at STUB_OVR + 16*k + {0, 4, 8} sets eax, ecx, edx that the k-th callee stub returns (instead of the seeded draw); both sides honour it. FL-78 (round 12): + 12 sets the arithmetic flags the stub leaves (stub_flags)
 
 
 def split_stub_overrides(overrides):
@@ -263,6 +263,18 @@ def split_stub_overrides(overrides):
 
 def apply_stub_overrides(stub, k, eax, ecx_out, edx):
     return stub.get((k, 0), eax), stub.get((k, 1), ecx_out), stub.get((k, 2), edx)
+
+
+def stub_flags(stub, k):
+    """FL-78 (round 12): the arithmetic flags (EFLAGS bits CF PF ZF SF OF) that the k-th callee stub leaves for its caller, from an override at STUB_OVR + 16*k + 12; None (the flags stay as the call found them) when the scenario does not set them. A caller that tests them
+    after the call is translated with FL41_CALL_F (scripts/lift_fl41.py callee_flags_read)"""
+    return (stub[(k, 3)] & FLAG_MASK) if (k, 3) in stub else None
+
+
+def flags_out(row):
+    """FL-78 (round 12): a row that ends with FL41_FLAGS_OUT hands its flags to its caller (scripts/lift_fl41.py FLAG_RETURNERS); the run records them (trace.regs['flags'])"""
+    import lift_fl41 as L
+    return row['va'] in L.FLAG_RETURNERS
 
 
 def extra_stub_writes(stub, k):
@@ -480,6 +492,7 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None, watch=Non
         words = struct.unpack('<%dI' % LOGGED, uc.mem_read(esp + 4, 4 * LOGGED))
         eax, ecx_out, edx, writes = stub_effect(stub_rng, magic, ecx, words)
         eax, ecx_out, edx = apply_stub_overrides(stub_ovr, len(trace.calls), eax, ecx_out, edx)
+        flags_k = stub_flags(stub_ovr, len(trace.calls))
         writes = writes + extra_stub_writes(stub_ovr, len(trace.calls))
         writes = stub_filter(row, writes)
         if entry is not None and entry > esp:       # the function pushed words of its own before the jump: the target pops them and returns to the entry word (a function that popped more than it pushed hands its own stack over)
@@ -503,6 +516,8 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None, watch=Non
         uc.reg_write(X.UC_X86_REG_EAX, eax)
         uc.reg_write(X.UC_X86_REG_ECX, ecx_out)
         uc.reg_write(X.UC_X86_REG_EDX, edx)
+        if flags_k is not None:
+            uc.reg_write(X.UC_X86_REG_EFLAGS, 2 | flags_k)
         if address in row.get('noreturn', ()):
             trace.noreturn = True
             uc.emu_stop()
@@ -585,6 +600,8 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None, watch=Non
     at_end = []
     def span_end(uc_, address, size_, user):          # FL-58: a function that ends in a call that does not return (or a fragment with no `ret`) runs into the next function in the original; the run ends where the span ends
         at_end.append(address)
+        if prev[0] is not None:
+            trace.edges.add((prev[0], address))         # FL-78 (round 12): running off the end of the body is the fall-through of its last instruction (a final conditional jump); the translation reaches `done:` with the same state, and the digest compares it
         uc.emu_stop()
     if va + size not in stubs:           # (a callee that starts right after the function is played as a stub, not a fall-off)
         uc.hook_add(unicorn.UC_HOOK_CODE, span_end, begin=va + size, end=va + size)
@@ -605,6 +622,8 @@ def _run_original(row, seed, overrides=(), observe=False, probes=None, watch=Non
             mant, se = uc.reg_read(getattr(X, 'UC_X86_REG_FP%d' % ((top + k) & 7)))
             regs80.append((mant, se))
         trace.regs['fpu'] = (sw & ~0x200 if row.get('c1_free') else sw, uc.reg_read(X.UC_X86_REG_FPCW), tuple(regs80))
+    if flags_out(row):
+        trace.regs['flags'] = uc.reg_read(X.UC_X86_REG_EFLAGS) & FLAG_MASK
     return trace
 
 
@@ -629,7 +648,7 @@ class Fpu(ctypes.Structure):
 
 
 class Host(ctypes.Structure):
-    _fields_ = [('ctx', ctypes.c_void_p), ('rd', RD), ('wr', WR), ('call', CALL), ('fret', FRET), ('fpu', ctypes.POINTER(Fpu)), ('eflags', ctypes.c_uint32)]       # (eflags: FL-78 round 10, the arithmetic flags at entry, see EFLAGS_OVERRIDE)
+    _fields_ = [('ctx', ctypes.c_void_p), ('rd', RD), ('wr', WR), ('call', CALL), ('fret', FRET), ('fpu', ctypes.POINTER(Fpu)), ('eflags', ctypes.c_uint32), ('callee_flags', ctypes.POINTER(ctypes.c_uint32))]       # (eflags: FL-78 round 10, the arithmetic flags at entry, see EFLAGS_OVERRIDE; callee_flags: round 12, the cell of FL41_CALL_F / FL41_FLAGS_OUT)
 
 
 class Mem:
@@ -727,6 +746,7 @@ def run_native(lib, row, seed, overrides=()):
             return
         eax, ecx_out, edx, writes = stub_effect(stub_rng, magic, ecx, words)
         eax, ecx_out, edx = apply_stub_overrides(stub_ovr, len(trace.calls), eax, ecx_out, edx)
+        flags_k = stub_flags(stub_ovr, len(trace.calls))
         writes = writes + extra_stub_writes(stub_ovr, len(trace.calls))
         writes = stub_filter(row, writes)
         for at, data in writes:
@@ -744,6 +764,8 @@ def run_native(lib, row, seed, overrides=()):
         rr.contents.eax = eax
         rr.contents.ecx = ecx_out
         rr.contents.edx = edx
+        if flags_k is not None:
+            flags_cell.value = flags_k          # FL-78 (round 12): the stub hands its flags to a caller that calls with FL41_CALL_F (any other call form leaves the flags as they were, as the original's caller would not read them)
         if callee in row.get('noreturn', ()):
             rr.contents.esp = NORETURN_ESP
 
@@ -761,7 +783,8 @@ def run_native(lib, row, seed, overrides=()):
         for phys, mant, se in st0:                # FL-78 (round 10): registers of the stack at entry
             ctypes.memmove(ctypes.addressof(fpu) + 16 * phys, mant.to_bytes(8, 'little') + se.to_bytes(2, 'little'), 10)
             fpu.valid[phys] = 1
-    host = Host(None, RD(rd), WR(wr), CALL(call), FRET(lambda ctx: fret_last[0]), ctypes.pointer(fpu) if fpu is not None else None, regs.get('eflags', 0))
+    flags_cell = ctypes.c_uint32(0x80000000)            # FL41_NOFLAGS
+    host = Host(None, RD(rd), WR(wr), CALL(call), FRET(lambda ctx: fret_last[0]), ctypes.pointer(fpu) if fpu is not None else None, regs.get('eflags', 0), ctypes.pointer(flags_cell))
     sp = STACK_BASE + STACK_SIZE - 0x100 - 4 * (ARGS + 1)
     for k, v in enumerate([STOP, *args]):
         mem.write(sp + 4 * k, 4, v)
@@ -774,6 +797,8 @@ def run_native(lib, row, seed, overrides=()):
     r = Regs(regs['eax'], regs['ecx'], regs['edx'], regs['ebx'], sp, regs['ebp'], regs['esi'], regs['edi'])
     getattr(lib, 'm%x_lifted' % va)(ctypes.byref(r), ctypes.byref(host))
     trace.regs = {n: getattr(r, n) for n in ('eax', 'ecx', 'edx', 'ebx', 'esp', 'ebp', 'esi', 'edi')}
+    if flags_out(row):
+        trace.regs['flags'] = flags_cell.value & FLAG_MASK
     if fpu is not None:
         top = (fpu.sw >> 11) & 7
         raw = ctypes.string_at(ctypes.addressof(fpu), 128)

@@ -5,7 +5,6 @@
   "text": "The project stopped work on this pending function and recorded why. It is never ported, never tested equivalent and never added to the verified count. Approved by Glib on Oct 28, 2026 (stop the ledger tail)."
  },
  "reasons": {
-  "impossible_direction_unproved": "Every instruction runs on the original bytes and the translation agrees on all scenarios; the one jump direction left is impossible by construction, and the prover (run with the scenarios) did not discharge it.",
   "needs_callee_footprint_model": "One direction is infeasible by reading the code, but the proof needed a callee-footprint model that was removed after review found gaps.",
   "needs_multi_cell_or_aliased_state": "The search reached everything except a few jump directions that need three or more cells to line up (a pointer aliasing the function's own pushes, wrapped address arithmetic, tail jumps with moved stacks), and the prover answers reachable.",
   "partial_coverage_gate_not_built": "Scenarios cover part of the function; the remaining code sits behind a gate whose state was not built (see the note for the coverage reached).",
@@ -36,29 +35,21 @@
    "reason": "needs_multi_cell_or_aliased_state",
    "note": "x87 sin wrapper: the missing directions depend on the zero flag left by the caller before fnstcw, the control word from fnstcw, x87 status flags after the operation, and jumps to 0x513cbe and 0x513ccb outside the row span, whose edges the world does not record."
   },
-  "0x50f462": {
-   "reason": "needs_multi_cell_or_aliased_state",
-   "note": "The 50f46f fall-through needs the FPU control word at entry to differ from 0x27f, which fnstcw supplies and no override can set; the 50f491 and 50f4a9 directions depend on flags left by the call to 0x513c65. Coverage 17 of 18 instructions, 4 of 10 directions."
-  },
   "0x5110a9": {
    "reason": "needs_multi_cell_or_aliased_state",
-   "note": "Partial coverage; the remaining directions need several cells aligned. Coverage reached: 81 of 595 instructions, 13 of 192 jump directions."
-  },
-  "0x511a1a": {
-   "reason": "impossible_direction_unproved",
-   "note": "FDIV-bug probe: the fall-through at 0x511a4d needs x - (x/y)*y above a threshold, which cannot happen with fixed .rdata constants on a correct FPU. Scenarios reach 20 of 24 instructions and 1 of 2 directions; overriding the constants reaches 24 of 24 but the translation embeds them and then differs."
+   "note": "The printf _output state-table loop. 5115fa fall-through is proved by a window; 511152 taken, 5113a0 fall-through and 5114e4 taken are left. The main-loop invariant atoms time out in z3 at 120 s, and the table reads need a rule for a table of the constant image at a generalised loop header. All three are feasible with crafted format strings, so they are a scenario-generator item, not a prover rule."
   },
   "0x5152b9": {
    "reason": "needs_multi_cell_or_aliased_state",
-   "note": "Partial coverage; the remaining directions need several cells aligned. Coverage reached: 270 of 275 instructions, 68 of 74 jump directions."
+   "note": "515572 taken needs edi != -1 at 0x51545d, an index range invariant of the search loop at 0x5153xx; the loop plan did not settle. Same family as 0x516f69."
   },
   "0x516f69": {
    "reason": "needs_multi_cell_or_aliased_state",
-   "note": "Partial coverage; the remaining directions need several cells aligned. Coverage reached: 395 of 417 instructions, 128 of 140 jump directions."
+   "note": "Scenarios reach 395 of 417 instructions; the prover proves 516fc6 taken and 517246 fall-through. 517225 taken is left: it needs an invariant that ties the byte [edi] to '+' or '-' whenever the state in eax is 11; the digit-buffer pointer [ebp-0xc] is a stored pointer cell, so it needs an alias model for stores through that cell, and a register value-set atom alone is not inductive."
   },
   "0x519009": {
    "reason": "needs_multi_cell_or_aliased_state",
-   "note": "Partial coverage; the remaining directions need several cells aligned. Coverage reached: 49 of 177 instructions, 7 of 60 jump directions."
+   "note": "5190d2 taken needs the invariant counter > 0 at the header of the outer loop plus a footprint for the call to 0x518bd5, which receives a frame address through the pointer cell [ebp-4]; 51916c taken needs a value-range invariant for a 16-bit word computed by a loop. The prover answers sat for both."
   }
  }
 }

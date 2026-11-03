@@ -69,18 +69,6 @@
    ],
    "pool": "upper57"
   },
-  "0x50f462": {
-   "body": 77,
-   "directions": [
-    4,
-    10
-   ],
-   "instructions": [
-    17,
-    18
-   ],
-   "pool": "upper57"
-  },
   "0x5110a9": {
    "body": 1825,
    "directions": [
@@ -90,18 +78,6 @@
    "instructions": [
     81,
     595
-   ],
-   "pool": "upper57"
-  },
-  "0x511a1a": {
-   "body": 62,
-   "directions": [
-    1,
-    2
-   ],
-   "instructions": [
-    20,
-    24
    ],
    "pool": "upper57"
   },

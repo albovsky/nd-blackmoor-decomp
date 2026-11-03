@@ -4986,7 +4986,7 @@ L_50f476:
     edx = (uint32_t)(esp + 0x8u);  /* 0x50f47c: lea edx, [esp + 8] */
     { uint32_t a_ = ecx, b_ = 0x7ff00000u, r_; FL41_SUB(a_, b_, 0u, r_, 32); }  /* 0x50f480: cmp ecx, 0x7ff00000 */
     if (zf) { FL41_CALL(0x50f529u); esp = esp0_ + 4u; goto done; }  /* 0x50f486: je 0x50f529 */
-    esp -= 4u; WR32(esp, 0x50f491u); FL41_CALL(0x513c65u); esp += 4u;  /* 0x50f48c: call 0x513c65 */
+    esp -= 4u; WR32(esp, 0x50f491u); FL41_CALL_F(0x513c65u); esp += 4u;  /* 0x50f48c: call 0x513c65 */
     if (zf) { FL41_CALL(0x50f525u); esp = esp0_ + 4u; goto done; }  /* 0x50f491: je 0x50f525 */
     { uint32_t a_ = eax, b_ = 0x7ff00000u, r_; r_ = a_ & b_; FL41_LOGIC(r_, 32); }  /* 0x50f497: test eax, 0x7ff00000 */
     if (zf) { FL41_CALL(0x50f598u); esp = esp0_ + 4u; goto done; }  /* 0x50f49c: je 0x50f598 */
@@ -8270,6 +8270,7 @@ L_513c77:
     esp += 4u; goto done;  /* 0x513ca7: ret  */
 done:
     FL41_EPILOGUE
+    FL41_FLAGS_OUT
     FL41_FPU_EPILOGUE
 }
 

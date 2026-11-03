@@ -531,7 +531,9 @@ class Fpu(ctypes.Structure):
 
 
 class Host(ctypes.Structure):
-    _fields_ = [('ctx', ctypes.c_void_p), ('rd', RD), ('wr', WR), ('call', CALL), ('fret', FRET), ('fpu', ctypes.POINTER(Fpu))]
+    # Fl40Host of src/original_methods_fl40.h is the first six fields. The last two are the trailing fields of Fl41Host (src/original_methods_fl41.h: eflags, callee_flags), so that a source given to build_library(sources) that
+    # includes the fl41 header does not read this struct past its end. Both stay zero in this world (Host(...) below names six): the function finds the flags as they are and no callee hands any back (FL41_CALL_F then acts as FL41_CALL).
+    _fields_ = [('ctx', ctypes.c_void_p), ('rd', RD), ('wr', WR), ('call', CALL), ('fret', FRET), ('fpu', ctypes.POINTER(Fpu)), ('eflags', ctypes.c_uint32), ('callee_flags', ctypes.POINTER(ctypes.c_uint32))]
 
 
 class Mem:
