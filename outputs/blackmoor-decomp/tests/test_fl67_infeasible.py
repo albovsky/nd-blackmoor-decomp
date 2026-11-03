@@ -2150,7 +2150,7 @@ RANGE_PROGS = {
     'std_ok': (43, 'bf00005400be00015400c7460409000000b902000000fdf3a5fc833d04005400097501c3b805000000c390', {'x': 36, 'dead': 42}),
     'std_bare': (7, 'fdb801000000c3', {}),
     'tail_ok': (10, '8b44240485c07503c390', {'dead': 9, 'callee': 11}),
-    'alloca': (17, '8b442404e80900000089e185c97401c39090513d001000008d4c2408721481e9001000002d0010000085013d0010000073ec2bc88bc485018be18b088b400450c3', {'dead': 16}),
+    'alloca': (17, '8b442404e80900000089e185c97401c39090', {'dead': 16}),       # the caller only: the helper's own bytes are read from the owner's local original (AGENTS.md: no original bytes in the repository)
     'tail_fault': (29, '5589e5837d08007407b8010000005dc3837d0c007508a11000f0ff5dc390c3', {'X': 16, 'callee': 30}),
     'tail_loop': (23, '8b4c240485c97501c3837c2408007508ba01000000ebf2', {'lp': 9, 'callee': 24}),
 }
@@ -2238,13 +2238,17 @@ class Fl78Ranges(unittest.TestCase):
         self.assertEqual(Wn.prove_trap_loop(an, dom, ('dir', first, 'taken'))[0], 'unsupported')      # the loop is left by `jne callee` (an edge the graph does not keep)
 
     def test_esp_is_not_zero_after_the_alloca_helper(self):
+        img = P.load_image()
+        helper = bytes(img[0x50c920 - P.IMAGE_BASE:0x50c920 - P.IMAGE_BASE + P.ALLOCA_HELPER_LEN])
+        if len(helper) != P.ALLOCA_HELPER_LEN:
+            self.skipTest('needs the pinned private work/original/GAME.EXE')
         body, hexcode, labels = RANGE_PROGS['alloca']
         row = {'va': BASE, 'body': body, 'callees': {}, 'imports': {}, 'sites': None}
-        an = P.Analysis(row, image_of(bytes.fromhex(hexcode)), 20000)
+        an = P.Analysis(row, image_of(bytes.fromhex(hexcode) + helper), 20000)
         an.run()
         self.assertEqual(an.instruction(BASE + labels['dead'])[0], 'unsat')               # `test esp, esp; je`: esp == 0 after the helper
         self.assertIn('alloca-helper-leaves-esp-nonzero', an.assumptions())
-        other = bytes.fromhex(hexcode.replace('513d0010', '503d0010', 1))                  # the same call of a function that is not the helper (push eax instead of push ecx)
+        other = bytes.fromhex(hexcode) + bytes([helper[0] ^ 3]) + helper[1:]               # the same call of a function that is not the helper (push eax instead of push ecx)
         an = P.Analysis(row, image_of(other), 20000)
         an.run()
         self.assertEqual(an.instruction(BASE + labels['dead'])[0], 'sat')
