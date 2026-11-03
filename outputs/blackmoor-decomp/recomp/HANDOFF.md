@@ -2,7 +2,7 @@
 
 ## Latest alchemy and mould chapter, 2026-11-02 Pacific
 
-RECOMP-34 extends actual public m57 through the five-round alchemy win, lab entry and corrected24-positive/12-zero mould. Three producer/fresh-save-only reload pairs pass on reviewed b49, ending m60 at3803/view0/held13/day3 16:47 with owned10 and2163=1. No later corrective2163 click should be repeated. Full185 inherited fields and the later236-field saved contracts/inventory pass; focused logs fit without changing the logger. All113 finite route checks pass. Packet34 records exact inputs/source/CIF gates and pending review/metadata. Aeolus, forge and whole-game acceptance remain separate.
+RECOMP-34 extends actual public m57 through the five-round alchemy win, lab entry and corrected24-positive/12-zero mould. Three producer/fresh-save-only reload pairs pass on reviewed b49, ending m60 at3803/view0/held13/day3 16:47 with owned10 and2163=1. No later corrective2163 click should be repeated. Full185 inherited fields and the later236-field saved contracts/inventory pass; focused logs fit without changing the logger. All113 finite route checks pass. Sonnet accepts frozen ee0e8995 without blockers; the guarded mechanical refresh preserves all1832 peer claims and every non-evidence ledger field. Packet34 records exact inputs/source/CIF gates and accepted checker limits. Aeolus, forge and whole-game acceptance remain separate.
 
 ## Latest Cake verification, 2026-11-02 Pacific
 

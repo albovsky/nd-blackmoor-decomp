@@ -6,6 +6,8 @@ From genuine m57, `alchemy-win --save m58` wins the original five-round trial an
 
 All three current-source b49 producer/fresh-output-only reload pairs pass:78/9,33/9 and118/9 events, normal stop/exit0. Exact source/output/input/resource pins, logged scopes and full serialized-state contracts are in RECOMP-34 and its private packets. Later lab/mould logs use a focused scope because full inherited185 plus36bar fields exceed the fixed logger capacity; outer saved-state checks retain all inherited requirements. No Aeolus1959, forged15/2004 or later win is claimed by this chapter.
 
+The checker's `alchemy_won` and `mould_prepared` result fields label the accepted route. The checker validates its scoped observations and selected phases; root's separate outer audit establishes actual item10 ownership, all236 saved predicates, inventory and source/input/native hashes. Extra same-scene observations are checked for valid state but are not rejected by count. The exact exercised input and complete capture accounting establish this run's five-round schedule.
+
 ## Optional Cake Mixing
 
 `recomp/route_tools/cake_live.py` performs the original first-use Cake branch from pinned Junior m51 or Senior s57. Four normal right hovers verify3→2→1→0, then microwave/instruction/oven input enters3600. Original ingredient selection, phase2 finish, baking and pickup produce good-cake1. After normal room return/UI Save, a fresh output-only Load selects actualheld1. See `CAKE-LIVE.md` for guarded commands and original controls.
