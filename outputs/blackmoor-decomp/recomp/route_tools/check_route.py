@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Check an observed headless story leg, not merely its process exit.
 
-python3 check_route.py RUN_LOG SAVE_FILE [--route telescope-prep|jane-jigsaw|telescope-use|seedlings|crank-repair|betty-key|venus-column|jupiter-column|moon-key|moon-column|nigel-computer|night-wait|goggles|ghost-hunt|afternoon-door|linda-passage|bul-key|slide-ball|saturn-column|dragon-passage|glyph-request|glyph-win|lit-word-clue|loulou-barber|loulou-morning|drake-magic|loulou-answer|light-depletion|paid-light-request|repeat-glyph-win|word-lock|right-fire-panel|ethel-interrogation|linda-curse|gargoyle-inspect|corbin-portrait|typing-crest]
+python3 check_route.py RUN_LOG SAVE_FILE [--route telescope-prep|jane-jigsaw|jane-jigsaw-senior|telescope-use|seedlings|crank-repair|betty-key|venus-column|jupiter-column|moon-key|moon-column|nigel-computer|night-wait|goggles|ghost-hunt|afternoon-door|linda-passage|bul-key|slide-ball|saturn-column|dragon-passage|glyph-request|glyph-win|lit-word-clue|loulou-barber|loulou-morning|drake-magic|loulou-answer|light-depletion|paid-light-request|repeat-glyph-win|word-lock|right-fire-panel|ethel-interrogation|linda-curse|gargoyle-inspect|corbin-portrait|typing-crest]
 The caller supplies a checkpoint produced by this run's normal Load & Save UI.
 This checks recorded observations, a matching file-open line and save size;
-Fire-phosphorus also requires saved completion1840; other saved contents and
+Fire-phosphorus requires saved completion1840; Senior jigsaw also checks saved mode2/events. Other saved contents and
 fresh-folder/write provenance require separate replay evidence.
 No live game state is read or changed.
 """
@@ -1201,6 +1201,36 @@ def verify_lab_mould_observations(route, log, observations, selected, clocks, po
     return clocks[-1][1]
 
 
+def verify_senior_jigsaw_observations(log, observations, selected, positive, negative):
+    """Keep the observed mode2 pending-art frame distinct from the real win."""
+    required = positive | negative
+    previous_win = 0
+    for state, scope, flags in observations:
+        if not required <= scope:
+            raise ValueError('RC_FLAGS did not observe every required Senior jigsaw event')
+        win = flags.get(1980, 0)
+        if win not in (0, 1) or win < previous_win:
+            raise ValueError('Senior jigsaw loan flag is not binary/monotone')
+        previous_win = win
+        if any(flags.get(f, 0) != 0 for f in negative):
+            raise ValueError('unexpected Senior jigsaw progression flag')
+        if state[0] != state[1] and not (state == (1234, 3578, 0, -1) and win == 0):
+            raise ValueError('unrecognized Senior jigsaw pending art')
+    for _, _, flags in selected[:2]:
+        if flags.get(1980, 0) != 0 or any(flags.get(f, 0) != 1 for f in positive - {1980}):
+            raise ValueError('Senior instruction/puzzle did not precede the loan win')
+    if any(state != (3510, 3510, 4, -1) for state, _, _ in observations[-2:]):
+        raise ValueError('missing final safe Senior jigsaw observations')
+    opened = [int(m[1]) for m in re.finditer(r'FILE open .*\\S(\d+)\.CIF\s+\[virtual \d+ ms\]', log)]
+    cursor = 0
+    for scene in (1237, 3575, 3578, 1234, 3510):
+        while cursor < len(opened) and opened[cursor] != scene:
+            cursor += 1
+        if cursor == len(opened):
+            raise ValueError('missing ordered original Senior jigsaw win scene')
+        cursor += 1
+
+
 def verify(log, save, route='telescope-prep', *, glyph_scene=3588):
     if glyph_scene not in (3588, 3589) or (glyph_scene != 3588 and route != 'glyph-win'):
         raise ValueError('explicit glyph scene is valid only for glyph-win')
@@ -1210,6 +1240,10 @@ def verify(log, save, route='telescope-prep', *, glyph_scene=3588):
         negative = {1309, 1906, 1980, 2036, 2037}
     elif route == 'jane-jigsaw':
         expected = [(3575, 0), (1234, 0), (3510, 4)]
+        positive = {1424, 1567, 1570, 1905, 1980, 1993}
+        negative = {1309, 1906, 2036, 2037}
+    elif route == 'jane-jigsaw-senior':
+        expected = [(1237, 0), (3575, 0), (1234, 0), (3510, 4), (3510, 4)]
         positive = {1424, 1567, 1570, 1905, 1980, 1993}
         negative = {1309, 1906, 2036, 2037}
     elif route == 'telescope-use':
@@ -1334,6 +1368,9 @@ def verify(log, save, route='telescope-prep', *, glyph_scene=3588):
         if route == 'typing-crest' and len(selected) == 6 and pair == (1340, 0) and flags.get(2014, 0) == 1:
             pair = (1343, 0)
         if len(selected) < len(expected) and pair == expected[len(selected)]:
+            if route == 'jane-jigsaw-senior' and (state[0] != state[1] or
+                    (len(selected) == 2 and flags.get(1980, 0) != 1)):
+                continue
             # The accepted route observes the panel before opening inventory,
             # inside inventory, and finally with the real crank held.
             if route == 'crank-repair' and len(selected) == 3 and state[3] != 20:
@@ -1359,6 +1396,8 @@ def verify(log, save, route='telescope-prep', *, glyph_scene=3588):
         if any((state[0], state[2]) != expected[-1] for state, _, _ in observations[-2:]):
             raise ValueError('missing final safe route observations')
         selected[-2:] = observations[-2:]
+    if route == 'jane-jigsaw-senior':
+        verify_senior_jigsaw_observations(log, observations, selected, positive, negative)
     if route == 'jane-jigsaw':
         _, scope, flags = selected[0]
         if not {1424, 1980} <= scope:
@@ -1496,6 +1535,14 @@ def verify(log, save, route='telescope-prep', *, glyph_scene=3588):
         raise ValueError('this run did not open the requested checkpoint save')
     if not save.is_file() or save.stat().st_size != 170770:
         raise ValueError('checkpoint save is missing or has an unexpected length')
+    if route == 'jane-jigsaw-senior':
+        data = save.read_bytes()
+        if int.from_bytes(data[0x9034:0x9036], 'little', signed=True) != 2:
+            raise ValueError('saved jigsaw is not original Senior mode2')
+        for flag in positive | negative:
+            offset = 0x1ee6 + 4 * flag
+            if int.from_bytes(data[offset:offset + 4], 'little') != int(flag in positive):
+                raise ValueError('saved Senior jigsaw prerequisite/outcome differs')
     if route == 'fire-phosphorus':
         # Original S3111/S3141 set1840 after both fire sides2059/2060.
         # This is a saved-only proof; it does not assert an unlogged live phase.
@@ -1537,7 +1584,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('run_log', type=Path)
     parser.add_argument('save_file', type=Path)
-    parser.add_argument('--route', choices=('telescope-prep', 'jane-jigsaw', 'telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES + CREST_PREREQUISITE_ROUTES + TYPING_CREST_ROUTES + OIL_RUNE_ROUTES + RUNE_LIGHT_ROUTES + FIRE_ALCHEMY_ROUTES + ALCHEMY_WIN_ROUTES + LAB_MOULD_ROUTES,
+    parser.add_argument('--route', choices=('telescope-prep', 'jane-jigsaw', 'jane-jigsaw-senior', 'telescope-use', 'seedlings', 'crank-repair', 'betty-key', 'venus-column', 'jupiter-column', 'moon-key', 'moon-column') + GHOST_ROUTES + PASSAGE_ROUTES + POST_KEY_ROUTES + DRAGON_LIGHT_ROUTES + GLYPH_WIN_ROUTES + WORD_PREREQUISITE_ROUTES + WORD_LOCK_ROUTES + CREST_PREREQUISITE_ROUTES + TYPING_CREST_ROUTES + OIL_RUNE_ROUTES + RUNE_LIGHT_ROUTES + FIRE_ALCHEMY_ROUTES + ALCHEMY_WIN_ROUTES + LAB_MOULD_ROUTES,
                         default='telescope-prep')
     parser.add_argument('--glyph-scene', type=int, choices=(3588, 3589), default=3588,
                         help='explicit original board scene for glyph-win only')

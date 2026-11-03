@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The story routes of ROUTES.md as INPUT strings for rc_headless.
 
-  python3 story_route.py LEG [--save NAME]      LEG is one of: stairs, lock, slider, moon, telescope-prep, linda, jane-intro, jane-jigsaw, telescope-use, seedlings, crank-repair, betty-key, venus-column, jupiter-column, moon-key, moon-column, nigel-computer, night-wait, goggles, ghost-hunt, afternoon-door, linda-passage, bul-start, slide-ball, saturn-column, dragon-passage, glyph-request, lit-word-clue, loulou-barber, loulou-morning, drake-magic, loulou-answer, light-depletion, paid-light-request, word-lock, right-fire-panel, ethel-start, linda-curse, gargoyle-inspect, corbin-portrait, typing-start, oil-gargoyle, rune-passage, rune-light-wait, rune-light-start, fire-phosphorus, moving-room-entry, alchemy-snake-clue, nigel-library, nigel-snake, alchemy-return, alchemy-win, lab-entry, mould-shape, slider-verify
+  python3 story_route.py LEG [--save NAME]      LEG is one of: stairs, lock, slider, moon, telescope-prep, linda, jane-intro, jane-jigsaw, jane-jigsaw-senior, telescope-use, seedlings, crank-repair, betty-key, venus-column, jupiter-column, moon-key, moon-column, nigel-computer, night-wait, goggles, ghost-hunt, afternoon-door, linda-passage, bul-start, slide-ball, saturn-column, dragon-passage, glyph-request, lit-word-clue, loulou-barber, loulou-morning, drake-magic, loulou-answer, light-depletion, paid-light-request, word-lock, right-fire-panel, ethel-start, linda-curse, gargoyle-inspect, corbin-portrait, typing-start, oil-gargoyle, rune-passage, rune-light-wait, rune-light-start, fire-phosphorus, moving-room-entry, alchemy-snake-clue, nigel-library, nigel-snake, alchemy-return, alchemy-win, lab-entry, mould-shape, slider-verify
   python3 story_route.py slider-verify          replays the recorded 105 slider moves on the puzzle rules and prints whether they solve it
 
 Each leg starts from a save made in the game's own Load & Save screen and (with --save NAME) ends by saving the next one, so the legs chain:
@@ -328,6 +328,69 @@ def leg_jane_jigsaw(save=None):
     # The post-win Bye is below the text viewport. Drag the original UICO
     # thumb gradually while held, then release before choosing the last reply.
     out.append(R().at('S1234.CIF', 42000).clicks('22,405,6000', 6000).text())
+    out += ['S1234.CIF+%d:move:22,%d' % (43300 + i * 300, y)
+            for i, y in enumerate((410, 415, 420, 425, 430, 435, 440, 445, 450, 455, 456))]
+    out += ['S1234.CIF+51000:shot:0,0',
+            R().at('S1234.CIF', 53000).clicks('150,430,100', 6000).text(),
+            'S1234.CIF+70000:shot:0,0']
+    if save:
+        out += [menu_to_save_screen('S1234.CIF', 80000),
+                save_tail('S1234.CIF', 95000, save)]
+    return ';'.join(out)
+
+
+def leg_jane_jigsaw_senior(save=None):
+    """First Senior m8 -> timed rotated jigsaw, actual loan, safe Jane room.
+
+    This fixed observed layout uses original mode2/EA row16, twenty pieces
+    and 29 ordinary clockwise right presses/releases. It is separate from
+    the unrotated Junior route; other layouts have not been exercised.
+    """
+    out = [walk_to_jane()]
+    for scene, y in ((1200, 466), (1222, 446), (1225, 446), (1228, 433)):
+        out.append(R().at('S%d.CIF' % scene, 40000).clicks('150,%d,100' % y, 6000).text())
+    out += ['S1289.CIF+40000:shot:0,0',
+            R().at('S1289.CIF', 42000).clicks('312,233,100', 6000).text(),
+            'S1289.CIF+60000:shot:0,0',
+            R().at('S1289.CIF', 62000).clicks('150,452,100', 6000).text(),
+            'S1237.CIF+30000:shot:0,0',
+            R().at('S1237.CIF', 32000).clicks('322,154,100', 6000).text(),
+            'S3575.CIF+1500:shot:0,0']
+    # (ordinary pick, ordinary drop, number of clockwise right clicks).
+    pieces = [
+        ((405, 74), (170, 53), 2),
+        ((309, 65), (246, 55), 2),
+        ((225, 114), (321, 52), 2),
+        ((261, 129), (396, 55), 2),
+        ((354, 100), (460, 50), 0),
+        ((180, 95), (464, 103), 2),
+        ((352, 236), (393, 103), 2),
+        ((374, 165), (320, 104), 0),
+        ((358, 176), (247, 104), 2),
+        ((263, 195), (166, 105), 3),
+        ((319, 62), (171, 163), 0),
+        ((305, 148), (244, 161), 0),
+        ((218, 229), (320, 161), 2),
+        ((192, 129), (392, 159), 2),
+        ((527, 158), (459, 158), 0),
+        ((340, 136), (462, 207), 2),
+        ((290, 211), (396, 214), 2),
+        ((270, 104), (317, 211), 0),
+        ((238, 191), (243, 217), 2),
+        ((239, 106), (165, 211), 2),
+    ]
+    puzzle = R().at('S3575.CIF', 8000)
+    for i, (pick, drop, turns) in enumerate(pieces):
+        puzzle.clicks('%d,%d,100' % pick, 2000)
+        for _ in range(turns):
+            puzzle.o += ['S3575.CIF+%d:pointer:%d,%d,2' % (puzzle.t, *pick),
+                         'S3575.CIF+%d:pointer:%d,%d,0' % (puzzle.t + 250, *pick)]
+            puzzle.gap(1000)
+        puzzle.clicks('mv:%d,%d' % drop, 500).clicks('%d,%d,100' % drop, 2500)
+        if i in (0, 4, 9, 14, 19):
+            puzzle.o.append('S3575.CIF+%d:shot:0,0' % (puzzle.t - 500))
+    out += [puzzle.text(), 'S1234.CIF+40000:shot:0,0',
+            R().at('S1234.CIF', 42000).clicks('22,405,6000', 6000).text()]
     out += ['S1234.CIF+%d:move:22,%d' % (43300 + i * 300, y)
             for i, y in enumerate((410, 415, 420, 425, 430, 435, 440, 445, 450, 455, 456))]
     out += ['S1234.CIF+51000:shot:0,0',
@@ -1828,7 +1891,8 @@ if __name__ == '__main__':
     legs = {'stairs': leg_stairs, 'lock': leg_lock, 'slider': leg_slider,
             'moon': leg_moon, 'telescope-prep': leg_telescope_prep,
             'linda': leg_linda, 'jane-intro': leg_jane_intro,
-            'jane-jigsaw': leg_jane_jigsaw, 'telescope-use': leg_telescope_use,
+            'jane-jigsaw': leg_jane_jigsaw, 'jane-jigsaw-senior': leg_jane_jigsaw_senior,
+            'telescope-use': leg_telescope_use,
             'seedlings': leg_seedlings, 'crank-repair': leg_crank_repair,
             'betty-key': leg_betty_key, 'venus-column': leg_venus_column,
             'jupiter-column': leg_jupiter_column, 'moon-key': leg_moon_key,
