@@ -1,18 +1,25 @@
 {
-  "schema": "native-optional-game-verification/v1",
-  "whole_game_complete": false,
-  "native_sha256": "6041e31e9d486111f6a0b64a7ce9764d52c292f35339fa1a84f3be7c18d31de4",
-  "original_exe_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
-  "native_game_code_changed": false,
-  "private_artifacts_are_not_published": true,
-  "publisher_chat": "01a170c4-6fa4-7831-9a46-f076fbcfab37",
-  "Memory": {
-    "accepted": true,
+  "Cake": {
+    "accepted": false,
+    "existing_public_client_supports_mode2": true,
     "mode": 2,
-    "source_sha256": "17ed4956b01e8e5c99a1988005fec5c08a29700e810b79c316537dc2ee08ea72",
-    "output_sha256": "038ea962bf01b2c75f149595f84e6d23e9b531f32fb47c3805c7793f0bd6e4ae",
+    "quantity": 1,
+    "source_unbound": true
+  },
+  "Memory": {
     "acceptance_receipt": "work/recomp-playability-20261101/release92bc-senior-memory-solve02/accepted-audit/receipt.json",
     "acceptance_sha256": "56b5e1e72f62a0cf4b520f94658ceb905649a50920402cc48fce0d905821b03a",
+    "accepted": true,
+    "audit_json_key_correction_only": true,
+    "bag_and_cells_unchanged": true,
+    "first_unsaved_idle_cap_retained": true,
+    "inventory_cells": 40,
+    "mode": 2,
+    "only_durable_event_changes": [
+      1335,
+      1345
+    ],
+    "output_sha256": "038ea962bf01b2c75f149595f84e6d23e9b531f32fb47c3805c7793f0bd6e4ae",
     "saved_clock": {
       "day": 3,
       "hour": 20,
@@ -20,47 +27,46 @@
       "total_minutes": 1248
     },
     "serialized_fields": 409,
-    "inventory_cells": 40,
-    "only_durable_event_changes": [
-      1335,
-      1345
-    ],
-    "bag_and_cells_unchanged": true,
-    "first_unsaved_idle_cap_retained": true,
-    "audit_json_key_correction_only": true
+    "source_sha256": "17ed4956b01e8e5c99a1988005fec5c08a29700e810b79c316537dc2ee08ea72"
   },
   "Skull": {
     "accepted": false,
-    "scope": "one original Senior deal, visible own-hand/caption policy only",
-    "packet": "work/recomp-playability-20261101/release92bc-senior-skull-v9-prep-v2",
-    "packet_pins_sha256": "3fcd07abfd9931a405e1e369e753bf14fa0a99616d3c7f47dd49f8980f51f767",
-    "manifest_sha256": "76f6d42040bf4860a62730a71bce2ba5a70310f62c91c839fd9ceccb1dc4ff7b",
-    "entrypoint_sha256": "f282f9405d9958d74b22b5fd6e5309aac595ee261fbb0b6767773f6e4bd1f742",
-    "mode_patch_sha256": "24ade71d5360c544f6d428ff2f6dd6d241002082e3399b55d127b59c9fd9bdf0",
-    "source_sha256": "038ea962bf01b2c75f149595f84e6d23e9b531f32fb47c3805c7793f0bd6e4ae",
-    "mode": 2,
-    "runtime_policy_changed": false,
-    "only_functional_adapter_change": "add Senior CLI choice to existing v9; source/label/hash bindings also updated",
-    "independent_review_pending": true,
     "actual_deal_pending": true,
-    "outer_guard_correction": "HICONTINUECHEAT auxiliary permitted only if present; source/output mandatory and strict unknown/symlink/3560/INI checks unchanged",
-    "retained_inventory_dry_run": {
-      "v1_absent_aux_rejections": 4,
-      "v2_passes": 5,
-      "genuine_present_aux_passes": 1,
-      "native_game_replay": false
-    }
-  },
-  "Cake": {
-    "accepted": false,
+    "all_three_native_exit_zero": true,
+    "entrypoint_sha256": "f282f9405d9958d74b22b5fd6e5309aac595ee261fbb0b6767773f6e4bd1f742",
+    "independent_review_pending": true,
+    "manifest_sha256": "17e732321aad97209666ea74525cfde37ac622599b78127cf2c437cbb32e7f54",
     "mode": 2,
-    "quantity": 1,
-    "source_unbound": true,
-    "existing_public_client_supports_mode2": true
+    "mode_patch_sha256": "24ade71d5360c544f6d428ff2f6dd6d241002082e3399b55d127b59c9fd9bdf0",
+    "next": "independent frozen delta review, then one normal new-policy deal",
+    "no_win_attempts_retained": true,
+    "normal_deals_completed": 3,
+    "outer_guard_correction": "HICONTINUECHEAT auxiliary permitted only if present; source/output mandatory and strict unknown/symlink/3560/INI checks unchanged",
+    "packet": "work/recomp-playability-20261101/release92bc-senior-skull-denial-prep-v1",
+    "packet_pins_sha256": "7baeae652ab119940a951fef76550eeccbec9d10702f768f0f1a2814423e76f4",
+    "policy_delta": "one choose tuple: recent denial before pair size within existing visible request hint groups; otherwise unchanged v9",
+    "policy_sha256": "a954b8eb585ed3aaac670b4e8ac96275da9eaf20109ccaa82c4a54352870550e",
+    "retained_inventory_dry_run": {
+      "genuine_present_aux_passes": 1,
+      "native_game_replay": false,
+      "v1_absent_aux_rejections": 4,
+      "v2_passes": 5
+    },
+    "review_result": "v1 REJECT mandatory auxiliary; frozen1c9e9016 v2delta ACCEPT/no newblocking; conditionalaux correction retained",
+    "runtime_policy_changed": true,
+    "scope": "bounded original Senior deals, one per invocation with no automatic retry",
+    "source_sha256": "038ea962bf01b2c75f149595f84e6d23e9b531f32fb47c3805c7793f0bd6e4ae"
   },
   "limitations": [
     "one observed board/deal per accepted game, not all RNG branches",
     "logical native captures and ordinary inputs do not establish physical OS mouse/keyboard coverage",
     "no original resources, saves, screenshots or dumps are committed"
-  ]
+  ],
+  "native_game_code_changed": false,
+  "native_sha256": "6041e31e9d486111f6a0b64a7ce9764d52c292f35339fa1a84f3be7c18d31de4",
+  "original_exe_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+  "private_artifacts_are_not_published": true,
+  "publisher_chat": "01a170c4-6fa4-7831-9a46-f076fbcfab37",
+  "schema": "native-optional-game-verification/v1",
+  "whole_game_complete": false
 }
