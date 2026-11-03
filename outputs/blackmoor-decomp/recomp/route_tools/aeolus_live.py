@@ -139,6 +139,13 @@ def validate_output(output, source, seed, original):
     guard.require(not output.exists() and output != seed and seed not in output.parents
                   and source.parent not in output.parents and original.parent not in output.parents,
                   'output must be new and outside original/source/data directories')
+    # resolve() preserves case aliases on case-insensitive volumes. Compare the
+    # existing ancestors by filesystem identity before creating any directory.
+    protected = (seed, source.parent, original.parent)
+    for ancestor in output.parents:
+        if ancestor.exists():
+            guard.require(not any(ancestor.samefile(path) for path in protected),
+                          'output must be outside original/source/data directories')
 
 
 def preflight(args, output, manifest):

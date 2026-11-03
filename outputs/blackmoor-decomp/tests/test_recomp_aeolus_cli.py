@@ -113,5 +113,20 @@ class AeolusCliTests(unittest.TestCase):
                 self.assertEqual(module.main(argv),4);session.assert_not_called()
             self.assertFalse(output.exists())
 
+    def test_output_rejects_case_aliases_of_protected_directories(self):
+        module=self.module()
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory)
+            source=root/'Saves/source.SAV';seed=root/'Data';original=root/'Original/GAME.EXE'
+            for protected in (source.parent,seed,original.parent):protected.mkdir()
+            alias=root/'data'
+            if not alias.exists() or not alias.samefile(seed):
+                self.skipTest('filesystem is case-sensitive')
+            for name in ('saves','data','original'):
+                output=(root/name/'new'/'nested-run').resolve()
+                with self.subTest(name=name),self.assertRaises(ValueError):
+                    module.validate_output(output,source,seed,original)
+                self.assertFalse(output.exists())
+
 
 if __name__=='__main__':unittest.main()
