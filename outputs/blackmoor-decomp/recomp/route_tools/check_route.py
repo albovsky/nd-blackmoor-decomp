@@ -454,7 +454,9 @@ def word_prerequisite_configuration(route):
     raise ValueError('unknown word-prerequisite route')
 
 
-def verify_word_prerequisite_observations(route, log, observations, selected, clocks, positive, negative):
+def verify_word_prerequisite_observations(route, log, observations, selected, clocks, positive, negative, difficulty=0):
+    if difficulty not in (0, 2):
+        raise ValueError('unsupported original saved difficulty for word prerequisites')
     first_one = WORD_PREREQUISITE_PHASES[route]
     retained = positive - first_one.keys()
     previous = {f: 0 for f in first_one}
@@ -491,6 +493,10 @@ def verify_word_prerequisite_observations(route, log, observations, selected, cl
     source_day, source_hour = {'lit-word-clue': (2, 16), 'loulou-barber': (2, 17),
                                'loulou-morning': (2, 17), 'drake-magic': (3, 8),
                                'loulou-answer': (3, 8)}[route]
+    # Source-bound campaign profiles: Junior starts at16; the earned Senior
+    # source starts at17. These are verifier bindings, not NPC schedule rules.
+    if route == 'lit-word-clue' and difficulty == 2:
+        source_hour = 17
     if (source['day'], source['hour']) != (source_day, source_hour):
         raise ValueError('word-prerequisite observed source clock gate differs')
     if route == 'loulou-morning' and any(clock['day'] != 3 or clock['hour'] != 8
@@ -1520,7 +1526,11 @@ def verify(log, save, route='telescope-prep', *, glyph_scene=3588):
     if route == 'glyph-win':
         clock_diagnostics = verify_glyph_win_observations(log, observations, selected, clocks, positive, negative, glyph_scene)
     if route in WORD_PREREQUISITE_ROUTES:
-        clock_diagnostics = verify_word_prerequisite_observations(route, log, observations, selected, clocks, positive, negative)
+        if not save.is_file() or save.stat().st_size != 170770:
+            raise ValueError('checkpoint save is missing or has an unexpected length')
+        difficulty = int.from_bytes(save.read_bytes()[0x9034:0x9036], 'little', signed=True)
+        clock_diagnostics = verify_word_prerequisite_observations(
+            route, log, observations, selected, clocks, positive, negative, difficulty)
     if route in WORD_LOCK_ROUTES:
         clock_diagnostics = verify_word_lock_observations(route, log, observations, selected, clocks, positive, negative)
     if route in CREST_PREREQUISITE_ROUTES:
