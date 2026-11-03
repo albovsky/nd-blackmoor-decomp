@@ -1,0 +1,9 @@
+# RECOMP-55: Preserve Senior mode through the post-rune light replacement
+
+Start from maina9e2f463297460d023089a7465a21c67e17a11ec after PR348. The repeat-glyph client supports first-paid Senior but explicitly refuses Senior in its post-rune context. Add exact expected0/2 to rune_source_state, preserve the Junior API default, pass the validated source mode through the existing rune branch and require it on output. Remove only the rune-specific Senior refusals. First-paid behavior, strict3335/held5/1514=0/crest2/clock/flags/bag predicates, ordinary entry/pixel policy/fresh1299/real4/used5 handling and save/reload stay unchanged. No game/host/input/state/clock patch.
+
+Four new synthetic groups RED3APIerrors before code then GREEN0.015s. Existing4first-paid groups pass0.009s and23glyph groups pass0.037s; old indexed tests are unchanged. The old first-paid fixture still refuses as a rune source because its shape is wrong. No test weakens a gameplay guard.
+
+Historical Senior second-paid proof starts at3510 with1514=1, unlike this public3335/held5/1514=0 entry. It supports the original repeated win/light reward, not the new source envelope. Actual current47 c1f68e16…/raw03:17/crest2/full409/40 is now playing oil48/Rune49/ordinary source-derived afternoon50. Actual50 identity and rawclock must be earned and bound before the one adaptive51 attempt; no historical SAV import or source normalization. Require original new1299, actual fresh4, retained2, UI51 and fresh-only held4 reload, full409/40/order/assets/lineage and exact reviewed GAME.INI allowance. Frozen independent review and current native acceptance remain pending.
+
+Other post-rune shapes/boards/clocks/errors remain unverified. Root original authorizing chat01a170c4-6fa4-7831-9a46-f076fbcfab37 owns review/publication; workers prepare private candidates. Original game data/EXE and protected function ledger/evidence remain untouched. No whole-game completion claim.

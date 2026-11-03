@@ -42,7 +42,9 @@ def configuration(context='first-paid'):
     return check_route.rune_light_configuration('rune-light-replacement')
 
 
-def rune_source_state(path):
+def rune_source_state(path, expected_difficulty=0):
+    io.require(type(expected_difficulty) is int and expected_difficulty in (0, 2),
+               'unsupported original repeat glyph difficulty')
     _, one, zero = check_route.rune_light_configuration('rune-light-wait')
     state = io.save_state(path, progression_flags=one | zero)
     items = inventory(path)
@@ -51,11 +53,11 @@ def rune_source_state(path):
     expected_bag = {2, 6, 7, 11, 12, 16, 17, 19, 20, 21}
     io.require(all(value == int(i in expected_bag) for i, value in bag.items()),
                'post-rune source bag differs from the observed ten-item inventory layout')
-    io.require(state['difficulty'] == 0 and [state[k] for k in ('scene', 'art', 'view', 'held')] == [3335, 3335, 0, 5]
+    io.require(state['difficulty'] == expected_difficulty and [state[k] for k in ('scene', 'art', 'view', 'held')] == [3335, 3335, 0, 5]
                and all(state['progression'][f] == 1 for f in one)
                and all(state['progression'][f] == 0 for f in zero)
                and items == {4: 0, 5: 0, 13: 0} and struct.unpack_from('<I', data, 0x2ba + 4*2)[0] == 1,
-               'source must be the observed post-rune Junior afternoon wait checkpoint with real held5 and owned2')
+               'source must be the observed post-rune Junior/Senior afternoon wait shape in the expected original mode with real held5 and owned2')
     clock = {name: struct.unpack_from(fmt, data, offset)[0] for name, fmt, offset in (
         ('total_minutes', '<I', 0x2430), ('minute', '<H', 0x2434), ('hour', '<H', 0x2436), ('day', '<H', 0x2438))}
     io.require(clock['day'] == 3 and 14 <= clock['hour'] < 21 and 0 <= clock['minute'] < 60
@@ -68,8 +70,7 @@ def source_state(path, context='first-paid', expected_difficulty=0):
     io.require(type(expected_difficulty) is int and expected_difficulty in (0, 2),
                'unsupported original repeat glyph difficulty')
     if context == 'rune-passage':
-        io.require(expected_difficulty == 0, 'post-rune Senior source remains unverified')
-        return rune_source_state(path)
+        return rune_source_state(path, expected_difficulty=expected_difficulty)
     io.require(context == 'first-paid', 'unknown repeat context')
     _, one, zero = check_route.word_lock_configuration('paid-light-request')
     state = io.save_state(path, progression_flags=one | zero)
@@ -90,8 +91,6 @@ def source_state(path, context='first-paid', expected_difficulty=0):
 def output_state(path, expected_difficulty, context='first-paid'):
     io.require(type(expected_difficulty) is int and expected_difficulty in (0, 2),
                'unsupported original repeat glyph difficulty')
-    if context == 'rune-passage':
-        io.require(expected_difficulty == 0, 'post-rune Senior source remains unverified')
     _, one, zero = configuration(context)
     state = io.save_state(path, progression_flags=one | zero)
     io.require(state['difficulty'] == expected_difficulty
@@ -298,7 +297,7 @@ def main(argv=None):
                        protected_inputs=protected, source_state=initial, RC_FLAGS=rc_flags(args.context), glyph_attempts=48, context=args.context,
                        glyph_requests_including_finish=64, timeout_seconds=args.timeout,
                        scope=('one first-paid original Junior0 or Senior2 replacement; no later-repeat or all-board guarantee' if args.context == 'first-paid' else
-                              'one observed post-rune Junior paid replacement; no Senior/further-repeat or all-board guarantee'))
+                              'one selected post-rune original Junior0 or Senior2 paid replacement; no further-repeat or all-board guarantee'))
         io.write_json(out / 'receipt.json', receipt)
         producer = io.Session(args, out / 'producer', args.source_save, rc_flags=rc_flags(args.context))
         error = None
