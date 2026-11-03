@@ -1,0 +1,9 @@
+# RECOMP-52: Preserve Senior mode through Ethel's truthful response
+
+Start from main990e2c166d52dfd16e9386aef74dd481c93f5069 after PR345. Ethel's test client currently refuses original Senior2 at its source guard. Accept only explicit original0/2, preserve the default Junior API and independently pinned source identity, derive CLI mode read-only, and require that same mode on the truthful safe output. All partial-fire/held4/quest/day3/hour15/final-safe checks remain. Original four FIFO payloads, dialogue policy,146events and fresh-reload policy are unchanged; no game/host/input/clock/SAV-byte patch.
+
+Four synthetic groups RED16APIerrors against the old interface then GREEN privately0.007s and integrated0.008s. Existing117 route checks pass0.926s. The old indexed tests remain unchanged. Frozen independent Sonnet review and genuine actual40 source binding are pending; no unearned checkpoint or historical SAV is used at runtime.
+
+The enclosing room progression is genuine accepted38 0ec210b1… (day3 saved14:32) through unchanged word lock39 and partial fire40, then one truthful Ethel41/save/fresh reload. A source-derived ordinary wait in bright3510 may precede the unchanged dark-entry body so that the exercised later hour15 profile is reached; no clock rewrite or widened gate. Full409/40/order/assets and reviewed GAME.INI allowance stay strict. Source-backed output deltas include1932 at39, and1563 together with2154 at41; neither may be blindly retained0. Later Linda/gargoyle42/43 are separate fixed continuations, with2062 earned at43. All these fields already belong to409.
+
+Wider clocks/dialogue/error branches remain unverified. Root original authorizing chat01a170c4-6fa4-7831-9a46-f076fbcfab37 owns independent review/publication. Original game files and protected ledger/evidence are unchanged. Senior/whole-game completion remains open.

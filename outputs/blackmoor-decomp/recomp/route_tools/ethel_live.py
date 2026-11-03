@@ -16,18 +16,32 @@ import check_route
 import story_route
 
 
-def source_state(path):
+def source_state(path, expected_difficulty=0):
+    io.require(type(expected_difficulty) is int and expected_difficulty in (0, 2),
+               'unsupported original Ethel difficulty')
     _, one, zero = check_route.crest_prerequisite_configuration('right-fire-panel')
     state = io.save_state(path, progression_flags=one | zero)
-    io.require(state['difficulty'] == 0 and [state[k] for k in ('scene', 'art', 'view', 'held')] == [3141, 3141, 0, 4]
+    io.require(state['difficulty'] == expected_difficulty and [state[k] for k in ('scene', 'art', 'view', 'held')] == [3141, 3141, 0, 4]
                and all(state['progression'][f] == 1 for f in one)
-               and all(state['progression'][f] == 0 for f in zero), 'source must be the observed Junior right-fire partial m40')
+               and all(state['progression'][f] == 0 for f in zero), 'source must be the observed Junior/Senior right-fire partial m40 in the expected original mode')
     data = path.read_bytes()
     clock = {k: struct.unpack_from(fmt, data, offset)[0] for k, fmt, offset in (
         ('total_minutes', '<I', 0x2430), ('minute', '<H', 0x2434), ('hour', '<H', 0x2436), ('day', '<H', 0x2438))}
     io.require(clock['day'] == 3 and clock['hour'] == 15 and 0 <= clock['minute'] < 60
                and clock['total_minutes'] == clock['hour']*60 + clock['minute'], 'source clock gate differs')
     state['clock_diagnostics'] = clock
+    return state
+
+
+def output_state(path, expected_difficulty):
+    io.require(type(expected_difficulty) is int and expected_difficulty in (0, 2),
+               'unsupported original Ethel difficulty')
+    _, one, zero = check_route.crest_prerequisite_configuration('ethel-interrogation')
+    state = io.save_state(path, progression_flags=one | zero)
+    io.require(state['difficulty'] == expected_difficulty
+               and [state[k] for k in ('scene', 'art', 'view', 'held')] == [3428, 3428, 0, -1]
+               and all(state['progression'][f] == 1 for f in one)
+               and all(state['progression'][f] == 0 for f in zero), 'actual Ethel UI save state/flags differ')
     return state
 
 
@@ -101,7 +115,8 @@ def main(argv=None):
                    'original data image pin differs')
         io.require(not (args.game_data / 'Documents5').exists() and not any(p.is_symlink() for p in args.game_data.rglob('*')),
                    'seed contains saves or symlinks')
-        initial = source_state(args.source_save)
+        difficulty = io.save_state(args.source_save)['difficulty']
+        initial = source_state(args.source_save, expected_difficulty=difficulty)
         target = args.output.resolve() if args.output else Path(tempfile.mkdtemp(prefix='blackmoor-ethel-'))
         io.require(not (target == args.game_data or args.game_data in target.parents or target == args.source_save.parent
                         or args.source_save.parent in target.parents), 'output must be outside supplied data/save directories')
@@ -113,7 +128,7 @@ def main(argv=None):
                      Path(__file__), Path(io.__file__), Path(check_route.__file__), Path(story_route.__file__))}
         receipt.update(native_sha256=args.native_sha256, source_sha256=args.save_sha256, protected_inputs=protected,
                        source_state=initial, RC_FLAGS=rc_flags(), producer_payloads=4, producer_requests_including_finish=5,
-                       timeout_seconds=args.timeout, scope='one observed Junior Ethel truth/curiosity/Bye chain; no list/timing guarantee')
+                       timeout_seconds=args.timeout, scope='one observed original Junior0 or Senior2 Ethel truth/curiosity/Bye chain; no list/timing guarantee')
         io.write_json(out / 'receipt.json', receipt)
         producer = io.Session(args, out / 'producer', args.source_save, rc_flags=rc_flags())
         error = None
@@ -126,11 +141,7 @@ def main(argv=None):
         io.require(producer.receipt['wall_seconds'] <= args.timeout, 'producer exceeded Ethel deadline')
         saved = producer.saves / (args.save_name + '.SAV')
         checked = check_route.verify((producer.out / 'run.log').read_text(), saved, 'ethel-interrogation')
-        _, one, zero = check_route.crest_prerequisite_configuration('ethel-interrogation')
-        state = io.save_state(saved, progression_flags=one | zero)
-        io.require(state['difficulty'] == 0 and [state[k] for k in ('scene', 'art', 'view', 'held')] == [3428, 3428, 0, -1]
-                   and all(state['progression'][f] == 1 for f in one) and all(state['progression'][f] == 0 for f in zero),
-                   'actual Ethel UI save state/flags differ')
+        state = output_state(saved, initial['difficulty'])
         reload = io.Session(args, out / 'reload', saved, rc_flags=rc_flags())
         error = None
         try:
