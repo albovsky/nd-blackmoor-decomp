@@ -1,0 +1,412 @@
+{
+  "scope": "One root-executed first-time Junior optional harder-goal glyph win, original UI save and fresh-output-only reload. Hard goal is not Senior difficulty.",
+  "accepted": true,
+  "independent_review": "ACCEPT frozen ae05cf34f61082a9e2692f28e5d20411fba4b13d; no P1/P2 blockers",
+  "whole_game_complete": false,
+  "native_sha256": "fc2575b1939e53ce9900a7bd7fb6a49b799e88727585358ae37c47af5a26f0dd",
+  "native_project_source_freeze": "9ae04c664e5d8518a0605fb15289917f82f36312",
+  "original_sha256": "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45",
+  "private_evidence_id": "current-main9ae-hard-glyph-first-v1",
+  "source_save": "m28.SAV",
+  "source_sha256": "ccfda87ee1e10df70de405200f7d86203e0b89b950f97f0623d15bf5f9ef9e94",
+  "source_copy_sha256": "ccfda87ee1e10df70de405200f7d86203e0b89b950f97f0623d15bf5f9ef9e94",
+  "source_origin_receipt_sha256": "f3c801d856be4dd8ebd175c8c2fe3fd6a3bf0d560e408affebd84f9ae3cfd20e",
+  "output_save": "m29.SAV",
+  "output_sha256": "ecf9d52f4c124759c5d0a0371d732dfff27eac46237f0c5434547cfcad487a66",
+  "outer_receipt_sha256": "42865780c784dca6d949a4f3a9eefe013dbc9ad77517a1cd055bf773359d5b8c",
+  "producer_receipt_sha256": "f589b642cb6c015e49898feb561878d1c6416a6ef8a7f9b1432922ffa50ada56",
+  "reload_receipt_sha256": "daffa072bac891d913fea933a8fdd7d61809d9d96ae882db79f98c47ffc491b1",
+  "source_metadata": {
+    "difficulty": 0,
+    "difficulty_name": "Junior",
+    "state": [
+      3510,
+      3510,
+      4,
+      -1
+    ],
+    "clock_diagnostics": {
+      "total_minutes": 989,
+      "minute": 29,
+      "hour": 16,
+      "day": 2
+    },
+    "phase_flags": {
+      "1418": 1,
+      "2001": 0,
+      "1357": 0
+    }
+  },
+  "output_metadata": {
+    "difficulty": 0,
+    "state": [
+      3510,
+      3510,
+      4,
+      -1
+    ],
+    "clock_diagnostics": {
+      "total_minutes": 1004,
+      "hour": 16,
+      "minute": 44,
+      "day": 2
+    },
+    "phase_flags": {
+      "1418": 0,
+      "2001": 1,
+      "1357": 1
+    }
+  },
+  "goal": {
+    "name": "hard",
+    "scene": 3589,
+    "original_initial_seconds": 41,
+    "target_score": 5000,
+    "option_click": [
+      480,
+      213
+    ],
+    "typed_body_sha256": "a820b5c997a3d3c43312efcdbcd472c6b5b366c6787fde5638c4a38a04062eee",
+    "resource_sha256": "0fce4942a3f93ff122cf452e00b69713752741318d8e308ca273a210f12ae43a",
+    "container_sha256": "1e865b13a4c0cf13568fc312f48de6c5e2acb0278b933b2a972b6c1dce456161",
+    "effective_source_guard": "Exact owned archive hash and absence of scoped loose overrides; no target/timer injection."
+  },
+  "default_preserved": {
+    "goal": "standard",
+    "scene": 3588,
+    "original_initial_seconds": 61,
+    "target_score": 2500,
+    "ordinary_entry_input_sha256": "530a01dd5d99eed87ab1819e32092a42dd97c73cf183bbc686e069aeb517d3cd",
+    "repeat_client_unchanged": true,
+    "source_guard_unchanged": true
+  },
+  "controller_sha256": {
+    "check_route.py": "f5eb1d4774d5781bee7519fb7d127c2a2d2af9429b6b74571e14a1daf9f65a1f",
+    "glyph_live.py": "6d70979772ad3211eb694da3db45da0a7d3c785b3734ac71883fc90e473b094f",
+    "test_recomp_glyph_variants.py": "fd3a65f5ca6932b0b0ef03e5c5c72148cb5cd82c17dce68fabee01148fc51554"
+  },
+  "shared_helper_sha256": {
+    "glyph_pixels.py": "169d2b0227652f753f214bdf44b120cb0f80c7b2a3517c2ee18d72c647c24925",
+    "bul_live.py": "3a52e04b8bf642d90c3f00382fdc7b00c62791ad9f5a77fdf1cf6d81f933591d",
+    "story_route.py": "15e578a2c877e2f811c5051b583acd559a09fe2e4fcf56482c280577af619cc1"
+  },
+  "caller_local_atlas_sha256": "71dcbc74917c41535c459122e1a9c6ce3ea3bdc3d4f05ac58bab872cbfe56415",
+  "ordinary_entry_input_sha256": "69e9070b57071e52589288b775a83d22e69ef96de574574cf905f989cb1f4c51",
+  "first_closed_board": {
+    "capture_id": "producer/frames/shot006.ppm",
+    "sha256": "937dcd34659fe61387325221c388950ad235cb72cc883bd2217206a15cdfaf54",
+    "state": [
+      3589,
+      3589,
+      0,
+      -1
+    ],
+    "visible_target": 5000,
+    "visible_score": 0,
+    "visible_time_seconds": 40,
+    "interpretation": "The ordinary first capture follows a1-second settle. Source initial limit is41seconds; this image does not independently measure exact timer cadence."
+  },
+  "ordered_original_scene_opens": [
+    {
+      "scene": 3589,
+      "virtual_ms": 110360,
+      "log_line": 776
+    },
+    {
+      "scene": 1299,
+      "virtual_ms": 264167,
+      "log_line": 1761
+    },
+    {
+      "scene": 1294,
+      "virtual_ms": 265731,
+      "log_line": 1777
+    },
+    {
+      "scene": 1945,
+      "virtual_ms": 278949,
+      "log_line": 1804
+    },
+    {
+      "scene": 3510,
+      "virtual_ms": 305114,
+      "log_line": 1873
+    }
+  ],
+  "producer": {
+    "control_summary": "CONTROL SUMMARY complete=1 finish_id=44 acked=43 requests=44 steps=392/392 shots=51 bytes=7432 pending=0 clock_ms=362397 failed=0 reason=",
+    "returncode": 0,
+    "error": null,
+    "seconds": 8.151,
+    "protocol_complete": true,
+    "source_unchanged": true,
+    "copied_source_unchanged": true,
+    "requests_sha256": "767e989dd6885befef39a4ded5efb099d2876d51e7954f77f0634a297d78521e",
+    "log_sha256": "331e23a0f2119023edce6e535d02b3eb54c2afd35bb98147b437fa59b249544e",
+    "script_captures": 51,
+    "verified_capture_files": 85,
+    "pixel_plans": 34,
+    "transient_park_recaptures": 3,
+    "initial_saves": [
+      "m28.SAV"
+    ]
+  },
+  "reload": {
+    "control_summary": "CONTROL SUMMARY complete=1 finish_id=2 acked=1 requests=2 steps=22/22 shots=5 bytes=652 pending=0 clock_ms=100571 failed=0 reason=",
+    "returncode": 0,
+    "error": null,
+    "seconds": 2.815,
+    "protocol_complete": true,
+    "source_unchanged": true,
+    "copied_source_unchanged": true,
+    "requests_sha256": "250dcdd996244c8baff54ed3f0849e447fd573eaed0c4f6181f5b0587921be46",
+    "log_sha256": "64117cd30e5a5711b09cef503311ac846e9cee71d8e51d02133edb8d7c90e013",
+    "script_captures": 5,
+    "verified_capture_files": 9,
+    "initial_saves": [
+      "m29.SAV"
+    ],
+    "final_saves": [
+      "m29.SAV"
+    ]
+  },
+  "physical_reward_and_safe_states": [
+    {
+      "phase": "producer",
+      "shot": 43,
+      "state": [
+        1294,
+        1294,
+        0,
+        -1
+      ],
+      "phase_flags": {
+        "1418": 1,
+        "2001": 1,
+        "1357": 0
+      },
+      "capture_sha256": "1a3701b0c30a86a3667d8b370d5400194227fb97b645a1e7839a2011ace0d222"
+    },
+    {
+      "phase": "producer",
+      "shot": 45,
+      "state": [
+        1945,
+        1945,
+        0,
+        -1
+      ],
+      "phase_flags": {
+        "1418": 0,
+        "2001": 1,
+        "1357": 1
+      },
+      "capture_sha256": "63c12687cbba3a77308d67322cff0647bfe400fac9e952a1edf83a1da70d3aaa"
+    },
+    {
+      "phase": "producer",
+      "shot": 49,
+      "state": [
+        3510,
+        3510,
+        4,
+        4
+      ],
+      "phase_flags": {
+        "1418": 0,
+        "2001": 1,
+        "1357": 1
+      },
+      "capture_sha256": "3e4f9a066f57db083d0445d72ba466603d4958f5559c8a2345fe63471c4e8a0e"
+    },
+    {
+      "phase": "producer",
+      "shot": 50,
+      "state": [
+        3510,
+        3510,
+        4,
+        -1
+      ],
+      "phase_flags": {
+        "1418": 0,
+        "2001": 1,
+        "1357": 1
+      },
+      "capture_sha256": "0ff7f77b3a3e737020568d7079ef8e55c8e47008441ce0987fbaac370790370f"
+    },
+    {
+      "phase": "producer",
+      "shot": 51,
+      "state": [
+        3510,
+        3510,
+        4,
+        -1
+      ],
+      "phase_flags": {
+        "1418": 0,
+        "2001": 1,
+        "1357": 1
+      },
+      "capture_sha256": "9d364abd8945dc9a9acc23397eade6a5015214e4554fad93112f7c0ebf20d43c"
+    },
+    {
+      "phase": "reload",
+      "shot": 3,
+      "state": [
+        3510,
+        3510,
+        4,
+        4
+      ],
+      "phase_flags": {
+        "1418": 0,
+        "2001": 1,
+        "1357": 1
+      },
+      "capture_sha256": "ad454e91412d6a905a37f7048ec8fb6b51498062d24ba2b91c2be5f03da7b06b"
+    },
+    {
+      "phase": "reload",
+      "shot": 4,
+      "state": [
+        3510,
+        3510,
+        4,
+        -1
+      ],
+      "phase_flags": {
+        "1418": 0,
+        "2001": 1,
+        "1357": 1
+      },
+      "capture_sha256": "1c4fe84c7f6228ab751e8db66a5ad94d44bd69b717dae40a69a439d8daac57f8"
+    },
+    {
+      "phase": "reload",
+      "shot": 5,
+      "state": [
+        3510,
+        3510,
+        4,
+        -1
+      ],
+      "phase_flags": {
+        "1418": 0,
+        "2001": 1,
+        "1357": 1
+      },
+      "capture_sha256": "e0fa899bdc5a4a4f6fd153ff08e3ec49dd4aa9524c4462d823ed2ff7bde28d9e"
+    }
+  ],
+  "output_copy_hashes": {
+    "producer_ui_save": "ecf9d52f4c124759c5d0a0371d732dfff27eac46237f0c5434547cfcad487a66",
+    "accepted_checkpoint": "ecf9d52f4c124759c5d0a0371d732dfff27eac46237f0c5434547cfcad487a66",
+    "fresh_reload_copy": "ecf9d52f4c124759c5d0a0371d732dfff27eac46237f0c5434547cfcad487a66"
+  },
+  "acceptance_contract": {
+    "selected_actual_board_scene": 3589,
+    "ordered_original_win_and_reward": [
+      3589,
+      1299,
+      1294,
+      1945,
+      3510
+    ],
+    "source_phase_flags": {
+      "1418": 1,
+      "2001": 0,
+      "1357": 0
+    },
+    "final_phase_flags": {
+      "1418": 0,
+      "2001": 1,
+      "1357": 1
+    },
+    "physical_held_item": 4,
+    "producer_held4_shot": 49,
+    "reload_held4_shot": 3,
+    "producer_final_safe_shots": [
+      50,
+      51
+    ],
+    "reload_final_safe_shots": [
+      4,
+      5
+    ],
+    "safe_state": [
+      3510,
+      3510,
+      4,
+      -1
+    ],
+    "clock_diagnostics_separate": [
+      338,
+      339,
+      340,
+      341
+    ],
+    "continue_save_canonical": false,
+    "nested_receipt_owner": "Session acceptance is deferred to the combined outer receipt after verified fresh reload."
+  },
+  "retained_checks": {
+    "frozen_finite_glyph_groups": 15,
+    "existing_groups": 12,
+    "new_variant_groups": 3,
+    "finite_log_sha256": "47cd165cfb0e8658984bdbe22a5db1a46988177e880f1b9531d3b9369139019d",
+    "root_reports_integrated15_pass": true,
+    "root_reports_three_integrated_files_identical_to_run_candidate": true,
+    "no_tests_or_native_rerun_for_docs_projection": true,
+    "read_only_artifact_projection_sha256": "f89fd2e75aa4e75eb67f2ef3a8f105ee5802b69ae8a78907bf1c9b1bba58e5c5"
+  },
+  "limits": [
+    "First-time Junior only; no Senior selection or harder paid-repeat claim.",
+    "One actual board sequence; no all-board, alternate source or failure-I/O guarantee.",
+    "Original match bonuses may extend play beyond its41-second initial reserve; no guest clock, timer, score or RNG modification.",
+    "Actual run retains its9ae/fc native/source boundary; no later-build runtime equivalence is inferred.",
+    "Independent frozen review, final macOS gameplay and whole-game acceptance remain separate."
+  ],
+  "final_live_clock_diagnostics": {
+    "total_minutes": 1005,
+    "hour": 16,
+    "minute": 45,
+    "day": 2
+  },
+  "finite_validation": {
+    "glyph_groups": 15,
+    "route_checks": 113,
+    "passed": true
+  },
+  "fresh_campaign_continuation": {
+    "source": "m29.SAV",
+    "source_sha256": "ecf9d52f4c124759c5d0a0371d732dfff27eac46237f0c5434547cfcad487a66",
+    "output": "m30.SAV",
+    "output_sha256": "f42119a0dc2353907da6465922ce2ee249093f74540fd68c0ac6fa784b70d3cd",
+    "outer_receipt_sha256": "6e32c94ea9f4412169bffb11798fcdd4b718ece407cf3ed61a095311591e8ac5",
+    "route": "lit-word-clue",
+    "state": [
+      4389,
+      4389,
+      0,
+      4
+    ],
+    "saved_clock": {
+      "day": 2,
+      "hour": 17,
+      "minute": 4,
+      "total_minutes": 1024
+    },
+    "producer_events": 196,
+    "reload_events": 10,
+    "both_native_exit": 0,
+    "new_flags": [
+      1818,
+      1836,
+      2041,
+      2232
+    ],
+    "genuine_NewGame_origin_preserved": true,
+    "accepted": true
+  }
+}

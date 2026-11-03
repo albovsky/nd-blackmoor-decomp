@@ -20,6 +20,42 @@ import story_route
 MAX_GLYPH_REQUESTS = 64
 
 
+# Source-defined optional goals; independent of Junior/Senior difficulty.
+# Both E4 bodies share every byte except the time-limit/target fields.
+GLYPH_GOALS = {
+    'standard': {'scene': 3588, 'button_y': 152, 'time_limit_seconds': 61,
+                 'target_score': 2500,
+                 'typed_body_sha256': 'a927da8f2f65f34e57b2fcbf54f8537e083065f8c04cff5eb4d92071b57acf67'},
+    'hard': {'scene': 3589, 'button_y': 213, 'time_limit_seconds': 41,
+             'target_score': 5000,
+             'typed_body_sha256': 'a820b5c997a3d3c43312efcdbcd472c6b5b366c6787fde5638c4a38a04062eee'},
+}
+GOAL_CONTAINER_SHA256 = '1e865b13a4c0cf13568fc312f48de6c5e2acb0278b933b2a972b6c1dce456161'
+
+
+def goal_profile(goal='standard'):
+    io.require(goal in GLYPH_GOALS, 'unknown glyph goal')
+    return dict(GLYPH_GOALS[goal])
+
+
+def verify_goal_assets(game_data, goal='standard'):
+    """Enforce the byte-backed scene/time/target contract before native launch.
+
+    The exact archive pin plus absence of selected loose scene overrides binds
+    the recorded typed-body hashes/fields. No assets are extracted or shipped,
+    and no live score/timer/board memory is read.
+    """
+    profile = goal_profile(goal)
+    directory = Path(game_data) / 'Ciftree'
+    io.require(io.digest(directory / 'CIFTREE.DAT') == GOAL_CONTAINER_SHA256,
+               'glyph scene/time/target source container differs')
+    names = {path.name.lower() for path in directory.iterdir() if path.is_file()}
+    io.require(not names & {f's{scene}.cif' for scene in (1281, 3585, 3586, 3587, 3588, 3589)},
+               'glyph scene/time/target has an unreviewed loose override')
+    return dict(goal=goal, **profile, container_sha256=GOAL_CONTAINER_SHA256,
+                source_guard='exact archive and no selected loose override; typed configuration pinned')
+
+
 def source_state(path):
     _, one, zero = check_route.dragon_light_configuration('glyph-request')
     state = io.save_state(path, progression_flags=one | zero)
@@ -51,12 +87,13 @@ def numeric(items):
     return ';'.join(f'{t}:{kind}:{args}' for t, kind, args in items)
 
 
-def board_prefix():
+def board_prefix(goal='standard'):
+    profile = goal_profile(goal)
     r = story_route.R().at('S3510.CIF', 12000)
     r.clicks('200,330 shot 317,159 shot 354,227 shot', 8000)
     r.at('S3510.CIF', 76000).clicks('shot', 0)
-    r.at('S3510.CIF', 84000).clicks('480,152,300', 0)
-    r.o += ['S3588.CIF+500:move:635,385', 'S3588.CIF+1000:shot:0,0']
+    r.at('S3510.CIF', 84000).clicks(f"480,{profile['button_y']},300", 0)
+    r.o += [f"S{profile['scene']}.CIF+500:move:635,385", f"S{profile['scene']}.CIF+1000:shot:0,0"]
     return r.text()
 
 
@@ -113,15 +150,16 @@ def send(session, payload):
     return session.send(payload)
 
 
-def play(session, known_hashes, name):
-    observation, image = send(session, story_route.load_save_prefix() + ';' + board_prefix())
-    io.require(observation['state'] == [3588, 3588, 0, -1]
+def play(session, known_hashes, name, goal='standard'):
+    scene = goal_profile(goal)['scene']
+    observation, image = send(session, story_route.load_save_prefix() + ';' + board_prefix(goal))
+    io.require(observation['state'] == [scene, scene, 0, -1]
                and observation['flags'].get(2001, 0) == 0 and observation['flags'].get(1418) == 1,
                'ordinary prefix did not reach a first-time glyph board')
     for attempt in range(48):
         if observation['flags'].get(2001, 0) == 1:
             break
-        io.require(observation['state'] == [3588, 3588, 0, -1], 'natural glyph loss or unexpected active scene')
+        io.require(observation['state'] == [scene, scene, 0, -1], 'natural glyph loss or unexpected active scene')
         try:
             board, hashes = glyph_pixels.read_board(image, known_hashes)
         except ValueError as error:
@@ -178,6 +216,8 @@ def main(argv=None):
     for name in ('native-sha256', 'save-sha256', 'atlas-sha256'):
         parser.add_argument('--' + name, required=True)
     parser.add_argument('--save-name', default='m29')
+    parser.add_argument('--goal', choices=tuple(GLYPH_GOALS), default='standard',
+                        help='standard: S3588, 2500/61s; hard: S3589, 5000/41s; original timers unchanged')
     parser.add_argument('--output', type=Path, help='new retained evidence directory; default new scratch directory')
     parser.add_argument('--timeout', type=int, default=180, help='1-180 seconds per session')
     args = parser.parse_args(argv)
@@ -195,6 +235,7 @@ def main(argv=None):
         io.require(not (args.game_data / 'Documents5').exists()
                    and not any(path.is_symlink() for path in args.game_data.rglob('*')), 'seed contains saves or symlinks')
         initial = source_state(args.source_save)
+        goal_contract = verify_goal_assets(args.game_data, args.goal)
         known_hashes = glyph_pixels.load_atlas(args.atlas, args.atlas_sha256)
         target = args.output.resolve() if args.output else Path(tempfile.mkdtemp(prefix='blackmoor-glyph-'))
         io.require(not (target == args.game_data or args.game_data in target.parents or target == args.source_save.parent
@@ -206,21 +247,22 @@ def main(argv=None):
                      args.game_data / 'GAME.EXE', args.game_data / 'Game.ini', args.game_data / 'Ciftree' / 'CIFTREE.DAT',
                      Path(__file__), Path(glyph_pixels.__file__), Path(io.__file__), Path(check_route.__file__), Path(story_route.__file__))}
         receipt.update(native_sha256=args.native_sha256, source_sha256=args.save_sha256, atlas_sha256=args.atlas_sha256,
-                       protected_inputs=protected, source_state=initial, RC_FLAGS=rc_flags(), glyph_attempts=48,
+                       protected_inputs=protected, source_state=initial, glyph_goal=goal_contract, RC_FLAGS=rc_flags(), glyph_attempts=48,
                        glyph_requests_including_finish=64, timeout_seconds=args.timeout,
                        scope='one first-time Junior game; no repeat/Senior or all-board guarantee')
         io.write_json(out / 'receipt.json', receipt)
         producer = io.Session(args, out / 'producer', args.source_save, rc_flags=rc_flags())
         error = None
         try:
-            play(producer, known_hashes, args.save_name)
+            play(producer, known_hashes, args.save_name, args.goal)
         except (Exception, KeyboardInterrupt) as failure:
             error = str(failure) or type(failure).__name__
         finally:
             producer.close(error)
         io.require(producer.receipt['wall_seconds'] <= args.timeout, 'producer exceeded glyph deadline')
         saved = producer.saves / (args.save_name + '.SAV')
-        checked = check_route.verify((producer.out / 'run.log').read_text(), saved, 'glyph-win')
+        checked = check_route.verify((producer.out / 'run.log').read_text(), saved, 'glyph-win',
+                                     glyph_scene=goal_contract['scene'])
         _, one, zero = check_route.glyph_win_configuration()
         saved_state = io.save_state(saved, progression_flags=one | zero)
         io.require(saved_state['difficulty'] == 0 and [saved_state[k] for k in ('scene', 'art', 'view', 'held')] == [3510, 3510, 4, -1]
