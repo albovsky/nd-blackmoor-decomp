@@ -1,5 +1,6 @@
 """Small, device-free checks for false-positive route reports."""
 import importlib.util
+import struct
 import tempfile
 import unittest
 from pathlib import Path
@@ -2158,7 +2159,10 @@ class FireAlchemyEntryTests(unittest.TestCase):
             held = ((13, -1, -1, -1, -1, -1) if route == 'nigel-snake' else
                     (-1,) * 8 + (13,) * 10 if route == 'alchemy-return' else (13,) * len(scenes))
         save = Path(self.folder.name) / ('m%d.SAV' % number)
-        save.write_bytes(bytes(170770))
+        data = bytearray(170770)
+        # Every completed fire/knowledge fixture inherits the authored fire task.
+        struct.pack_into('<I', data, 0x1ee6 + 4 * 1840, 1)
+        save.write_bytes(data)
         frames = []
         for i, scene in enumerate(scenes):
             flags = {f: 1 for f in prior}
@@ -2187,6 +2191,17 @@ class FireAlchemyEntryTests(unittest.TestCase):
                 self.assertTrue({1932, 1935, 2014, 2003} <= set(result['flags_one']))
                 self.assertTrue({1687, 1960, 2053, 2132} <= set(result['flags_zero']))
                 self.assertFalse(set(range(338, 342)) & (set(result['flags_one']) | set(result['flags_zero'])))
+
+    def test_requires_saved_fire_completion_without_inventing_a_live_phase(self):
+        save, frames = self.frames('fire-phosphorus')
+        log = self.observed_log('fire-phosphorus', save, frames)
+        result = checker.verify(log, save, 'fire-phosphorus')
+        self.assertNotIn(1840, result['flags_one'])
+        data = bytearray(save.read_bytes())
+        struct.pack_into('<I', data, 0x1ee6 + 4 * 1840, 0)
+        save.write_bytes(data)
+        with self.assertRaisesRegex(ValueError, 'saved fire completion flag1840'):
+            checker.verify(log, save, 'fire-phosphorus')
 
     def test_requires_two_panel_win_retained_fire1514zero_and_effective_1875_phase(self):
         for index, flag, value in ((0, 1514, 1), (1, 1514, 1), (17, 1514, 1), (0, 1875, 1), (14, 1875, 0),
