@@ -71,6 +71,44 @@ def disasm(va, size):
     return ins
 
 
+# ---- the flags of a callee (FL-78, round 12) ----------------------------------------------------------------------------------------
+
+_FLAGS = ("CF", "PF", "ZF", "SF", "OF")
+_FLAG_TEST = {f: getattr(X, "X86_EFLAGS_TEST_" + f) for f in _FLAGS}
+_FLAG_WRITE = {f: sum(getattr(X, "X86_EFLAGS_%s_%s" % (k, f)) for k in ("MODIFY", "RESET", "SET", "UNDEFINED")) for f in _FLAGS}
+# the callees whose flags a caller reads (a scan of the call sites of every ledger function with `callee_flags_read` finds exactly one: 0x50f48c calls 0x513c65 and tests its ZF with `je 0x50f525`, tests/test_fl66_tested_equivalent.py
+# checks that the set is complete); such a callee ends with FL41_FLAGS_OUT, its caller calls with FL41_CALL_F
+FLAG_RETURNERS = {0x513c65}
+
+
+def callee_flags_read(ins, k):
+    """The arithmetic flags that the instruction list `ins` reads after the call at index k before every path has rewritten them (a set of 'CF' 'PF' 'ZF' 'SF' 'OF'): the callee's flags are then an input of the caller. A ret or a call ends a path
+    (the flags are not part of what a function hands on, and a callee that is called next is not taken to read them)."""
+    where = {i.address: n for n, i in enumerate(ins)}
+    seen, hit = set(), set()
+    todo = [(k + 1, frozenset(_FLAGS))]
+    while todo:
+        n, live = todo.pop()
+        if n >= len(ins) or not live or (n, live) in seen:
+            continue
+        seen.add((n, live))
+        i = ins[n]
+        hit |= {f for f in live if i.eflags & _FLAG_TEST[f]}
+        live = frozenset(f for f in live if not i.eflags & _FLAG_WRITE[f])
+        mn = i.mnemonic
+        if mn in ("ret", "call"):
+            continue
+        if mn == "jmp" or mn in ("loop", "loope", "loopne", "jecxz") or (mn[0] == "j" and mn[1:] in COND):
+            t = i.operands[0].imm if i.operands and i.operands[0].type == X.X86_OP_IMM else None
+            if t in where:
+                todo.append((where[t], live))
+            if mn != "jmp":
+                todo.append((n + 1, live))
+            continue
+        todo.append((n + 1, live))
+    return hit
+
+
 # ---- the callees -----------------------------------------------------------------------------------------------------------------
 
 _LEDGER = None
@@ -791,7 +829,7 @@ def lift_one(c, i):
         if net not in (-1, 0, 1):
             raise Unsupported("callee 0x%x changes the x87 stack by %d at 0x%x" % (t, net, a))
         e("esp -= 4u; WR32(esp, 0x%xu);" % (a + i.size))
-        e("FL41_CALL(0x%xu);" % t)
+        e("%s(0x%xu);" % ("FL41_CALL_F" if callee_flags_read(c.ins, c.ins.index(i)) else "FL41_CALL", t))        # FL-78 (round 12): the caller reads the flags the callee leaves
         if cleanup:
             e("esp += %du;" % cleanup)
         e("esp += 4u;")
@@ -1190,7 +1228,7 @@ def lift(va, body_size):
             "void m%x_lifted(Fl41Regs *r, const Fl41Host *h)" % va, "{",
             "    FL41_PROLOGUE",
             ] + (["    uint32_t df_ = 0u;"] if c.df else []) + (["    uint32_t esp0_ = esp;"] if TAIL_ESP0 else []) + (["    FL41_FPU_PROLOGUE"] if c.fpu else [])
-    tail = ["done:", "    FL41_EPILOGUE"] + (["    FL41_FPU_EPILOGUE"] if c.fpu else []) + ["}"]
+    tail = ["done:", "    FL41_EPILOGUE"] + (["    FL41_FLAGS_OUT"] if va in FLAG_RETURNERS else []) + (["    FL41_FPU_EPILOGUE"] if c.fpu else []) + ["}"]
     fs = any(any(op.type == X.X86_OP_MEM and op.mem.segment == X.X86_REG_FS for op in i.operands) for i in ins)
     return "\n".join(head + c.lines + tail) + "\n", dict(c.callees), dict(c.imports), fs, set(c.inline)
 

@@ -304,9 +304,7 @@ def run_window(an, order, S, T, query, frame=False, want_state=False, start=None
                 elif kind == 'fall' and br is not None:
                     c = z3.And(here, z3.Not(br))
                 elif kind == 'tbl':
-                    s2 = st.copy()
-                    v = M.mem_read(s2, last.operands[0], 4)
-                    c = z3.And(here, v == t)
+                    c = an.table_cond(st, here, last, t)
                     if last.address in an.cut and last.address not in esc_seen:       # FL-75: a table cut at its range check: the index may not leave the kept cells (checked below)
                         esc_seen.add(last.address)
                         escapes.append(an.table_escape(st, here, last))
@@ -482,8 +480,7 @@ def run_forward(an, order, S, mark, frame=False, start=None, inv=None, tie=None,
                 elif kind == 'fall' and br is not None:
                     c = z3.And(here, z3.Not(br))
                 elif kind == 'tbl':
-                    s2 = st.copy()
-                    c = z3.And(here, M.mem_read(s2, last.operands[0], 4) == t)
+                    c = an.table_cond(st, here, last, t)
                     if last.address in an.cut and last.address not in esc_seen:     # a table cut at its range check: the index may not leave the kept cells (checked below)
                         esc_seen.add(last.address)
                         escapes.append(an.table_escape(st, here, last))

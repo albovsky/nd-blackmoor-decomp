@@ -119,7 +119,7 @@ def load_plan_hints(va):
 
 def load_invariants(va):
     """{header block address: [atom, ...]} declared for the function at `va` in tests/fl73_invariants.json. An atom is {"mem": [register, displacement, size in bytes], "op": eq|ne|sge|sgt|sle|slt|uge|ugt|ule|ult, "val": n}
-    (or {"reg": register, "op": ..., "val": n | "reg2": register}, FL-78: a whole register; or {"or": [atom, ...]}, FL-75) and says that the `size` bytes at register+displacement, read in the state at the head of a generalised loop, compare so with n (or, with "mem2" in place of "val", with the same-size slot [register, displacement, size]). A header with atoms keeps them only if
+    (or {"reg": register, "op": ..., "val": n | "reg2": register [, "add": k]}, FL-78: a whole register, optionally compared with reg2 + k; or {"or": [atom, ...]}, FL-75) and says that the `size` bytes at register+displacement, read in the state at the head of a generalised loop, compare so with n (or, with "mem2" in place of "val", with the same-size slot [register, displacement, size]). A header with atoms keeps them only if
     `Analysis.verify_invariants` proves them: they hold on every entry edge, and every back edge preserves them (assuming them at the header)."""
     try:
         data = json.loads(INVARIANTS.read_text())
@@ -134,6 +134,8 @@ def inv_atom(M, st, at):
         return z3.Or(*alts) if len(alts) > 1 else alts[0]
     if 'reg' in at:                                                                # FL-78 (round 7): {"reg": register, "op": ..., "val": n} compares a whole register, in the state at the head of the loop, with n (or with the register "reg2")
         other = st.R[at['reg2']] if 'reg2' in at else bv(at['val'], 32)
+        if 'add' in at:                                                            # FL-78 (round 12): {"reg": "esp", "op": "eq", "reg2": "ebp", "add": -104}: the register is reg2 plus a constant (the tie of the stack pointer to the frame base at a loop header)
+            other = other + bv(at['add'], 32)
         return _INV_OPS[at['op']](st.R[at['reg']], other)
     reg, disp, size = at['mem']
     a = st.R[reg] + bv(disp, 32)
@@ -2323,10 +2325,7 @@ class Analysis:
                 elif kind == 'fall' and br is not None:
                     c = z3.And(here, z3.Not(br))
                 elif kind == 'tbl':
-                    op = last.operands[0]
-                    s2 = st.copy()
-                    v = self.M.mem_read(s2, op, 4)
-                    c = z3.And(here, v == t[0])
+                    c = self.table_cond(st, here, last, t[0])
                 else:
                     c = here
                 conds[(kind, t)] = z3.Or(conds[(kind, t)], c) if (kind, t) in conds else c
@@ -2342,6 +2341,15 @@ class Analysis:
                     continue
                 incoming[t].append((c, st))
                 self.preds.setdefault(t, set()).add(node)
+
+    def table_cond(self, st, here, last, target):
+        """the condition under which the table jump `last` goes to `target`: the value read is the target AND the address read is one of the cells that hold it. The cells are constants of the image, so the second conjunct adds nothing in a state where the memory is the start
+        memory; it matters at a generalised loop header, where the memory is a fresh array and the read value alone says nothing about which cell was read (FL-78 round 12, 0x516f69)."""
+        s2 = st.copy()
+        v = self.M.mem_read(s2, last.operands[0], 4)
+        ea = self.M.ea(s2, last.operands[0])
+        cells = [cell for cell, tgt in self.table[last.address] if tgt == target]
+        return z3.And(here, v == target, z3.Or(*[ea == cell for cell in cells]))
 
     def table_escape(self, st, here, last):
         """the condition under which the (cut) table jump `last` reads a cell outside the kept ones"""
@@ -2461,6 +2469,22 @@ def prove_row(key, targets, timeout_ms=30000, image=None, fail_fast=False):
     closed = []                             # FL-78: directions proved by the closed-loop rule: noted in out['plan'] (the proof record keeps it in the ledger)
     hexa = lambda a: int(a, 16) if isinstance(a, str) else a
     todo = {'missing': [hexa(a) for a in targets.get('missing', [])], 'untaken': [[hexa(a), n] for a, n in targets.get('untaken', [])]}
+    try:                                    # FL-78 (round 12): a function that is an x87 chain on image constants (scripts/fl78_fpchain.py): the jump it ends in is decided by the 12 control word values
+        import fl78_fpchain as FC
+        chained = FC.prove(row, image, todo)
+        if chained['instructions'] or chained['directions']:
+            out['instructions'].update(chained['instructions'])
+            out['directions'].update(chained['directions'])
+            out['assumptions_used'] = sorted(set(out['assumptions_used']) | {'x87-constant-chain'})
+            todo = {'missing': [a for a in todo['missing'] if hex(a) not in chained['instructions']],
+                    'untaken': [[a, n] for a, n in todo['untaken'] if '%s:%s' % (hex(a), n) not in chained['directions']]}
+            if not todo['missing'] and not todo['untaken']:
+                out['status'] = 'proved'
+                out['plan'] = {'x87-constant-chain': 'the chain is evaluated for every precision and rounding of the control word'}
+                return out
+    except Exception as ex:
+        if type(ex).__name__ not in ('Refused', 'Unsupported', 'KeyError', 'IndexError'):
+            raise
     try:                                    # FL-71: targets that a dominator window in front of them refutes (scripts/fl71_window.py); the whole-function analysis is for the rest
         import fl71_window as Wn
         an0, dom = Wn.prepare(key, image)

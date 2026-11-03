@@ -300,5 +300,179 @@ class StartStateOverrides(unittest.TestCase):
             W2.run_original(row, 1, [(W2.FPRET_OVERRIDE + 16 * len(row['callees']), 8, bits(1.0))])
 
 
+@unittest.skipUnless(od.available(), 'needs Unicorn and the pinned private work/original/GAME.EXE')
+class CalleeFlags(unittest.TestCase):
+    """FL-78 (round 12): a callee can hand its arithmetic flags to a caller that reads them (src/original_methods_fl41.h FL41_CALL_F / FL41_FLAGS_OUT, scripts/lift_fl41.py callee_flags_read and FLAG_RETURNERS, the stub override
+    STUB_OVR + 16*k + 12 of tests/fl41_world.py). 0x50f462 calls 0x513c65 and tests the ZF that callee returns (`test eax, 0` on its Inf/NaN path) with `je 0x50f525`."""
+    KEY, CALLEE = '0x50f462', '0x513c65'
+
+    @classmethod
+    def setUpClass(cls):
+        import lift_fl41 as L
+        cls.L = L
+        cls.pool = T.pool_of(cls.KEY)
+        cls.p = T.POOLS[cls.pool]
+        cls.W, _ = T.world(cls.p['world'])
+        cls.row = T.row_info(cls.pool, cls.KEY)
+        cls.text = T.row_text(cls.p['source'], cls.KEY)
+
+    def lib_of(self, t):
+        with tempfile.TemporaryDirectory() as tmp:
+            src = Path(tmp) / 'row.c'
+            src.write_text('#include "original_methods_fl41.h"\n' + t)
+            return self.W.build_library(tmp, [src])
+
+    def flag_reads(self, code):
+        import capstone
+        md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
+        md.detail = True
+        ins = list(md.disasm(bytes.fromhex(code), 0x1000))
+        k = next(n for n, i in enumerate(ins) if i.mnemonic == 'call')
+        return self.L.callee_flags_read(ins, k)
+
+    def test_the_lifter_finds_a_caller_that_reads_the_flags_of_its_callee(self):
+        call = 'e8000000009090'            # call +0 (to the next instruction, then two nops: only the instructions after the call matter)
+        self.assertEqual(self.flag_reads('e800000000' + '7402' + '9090'), {'ZF'})                      # call; je
+        self.assertEqual(self.flag_reads('e800000000' + '7f02' + '9090'), {'ZF', 'SF', 'OF'})          # call; jg
+        self.assertEqual(self.flag_reads('e800000000' + '83c404' + '7402' + '9090'), set())            # call; add esp, 4; je: the flags are the add's
+        self.assertEqual(self.flag_reads('e800000000' + '85c0' + '7402' + '9090'), set())              # call; test eax, eax; je
+        self.assertEqual(self.flag_reads('e800000000' + '40' + '7202' + '9090'), {'CF'})               # call; inc eax; jb: inc leaves CF alone, so the jb reads the callee's
+        self.assertEqual(self.flag_reads('e800000000' + '83d000' + '9090'), {'CF'})                    # call; adc eax, 0
+        self.assertEqual(self.flag_reads('e800000000' + 'eb02' + '9090' + '7402' + '9090'), {'ZF'})    # call; jmp over; je (a path through a jump)
+        self.assertEqual(self.flag_reads('e800000000' + 'c3'), set())                                  # call; ret
+
+    def test_exactly_one_call_of_the_image_reads_the_flags_of_its_callee(self):
+        """the scan of every ledger function: 0x50f48c (0x50f462, `je 0x50f525` after `call 0x513c65`) is the only call site; FLAG_RETURNERS is the set of those callees"""
+        from capstone import x86_const as X
+        L = self.L
+        pe = od.load_image()
+        found, callees = [], set()
+        for va, size in sorted(L.ledger_spans().items()):
+            try:
+                ins = L.disasm(va, size)
+            except L.Unsupported:
+                ins = list(od.disasm_code(L.md(), pe.image[va - pe.image_base:va - pe.image_base + size], va))       # the few spans that stop inside data: the instructions that do decode
+            for k, i in enumerate(ins):
+                if i.mnemonic == 'call' and i.operands and i.operands[0].type == X.X86_OP_IMM and L.callee_flags_read(ins, k):
+                    found.append((i.address, i.operands[0].imm))
+                    callees.add(i.operands[0].imm)
+        self.assertEqual(found, [(0x50f48c, 0x513c65)])
+        self.assertEqual(callees, L.FLAG_RETURNERS)
+
+    def test_the_committed_translations_use_the_flag_forms_exactly_where_the_lifter_does(self):
+        self.assertEqual(self.text.count('FL41_CALL_F('), 1)
+        self.assertIn('FL41_CALL_F(0x513c65u); esp += 4u;  /* 0x50f48c: call 0x513c65 */', self.text)
+        callee_text = T.row_text(self.p['source'], self.CALLEE)
+        self.assertEqual(callee_text.count('FL41_FLAGS_OUT'), 1)
+        was = self.L.BULK
+        self.L.BULK = True
+        try:
+            for key in (self.KEY, self.CALLEE):
+                fresh = self.L.lift(int(key, 16), T.pool_table(self.pool)[key]['body'])[0]
+                self.assertEqual(fresh.count('FL41_CALL_F('), 1 if key == self.KEY else 0, key)
+                self.assertEqual(fresh.count('FL41_FLAGS_OUT'), 1 if key == self.CALLEE else 0, key)
+        finally:
+            self.L.BULK = was
+
+    def scen(self, flags, callee_index=0, fcw=0x27f, eax=0x3ff00000):
+        W = self.W
+        ov = [(W.FCW_OVERRIDE, 4, fcw), (W.STUB_OVR + 16 * callee_index, 4, eax)]
+        if flags is not None:
+            ov.append((W.STUB_OVR + 16 * callee_index + 12, 4, flags))
+        return [(1, ov)]
+
+    def test_a_zero_flag_returned_by_the_callee_takes_the_je_after_the_call(self):
+        W = self.W
+        (seed, ov), = self.scen(0x40)
+        o = W.run_original(self.row, seed, ov)
+        self.assertIsNone(o.fault)
+        self.assertIn((0x50f491, 0x50f525), o.edges)                           # the je is taken ...
+        none = W.run_original(self.row, seed, self.scen(None)[0][1])
+        self.assertNotIn((0x50f491, 0x50f525), none.edges)                     # ... only because the callee said so
+        self.assertIn((0x50f491, 0x50f497), none.edges)
+        res = T.check_row(self.KEY, scenarios=self.scen(0x40) + self.scen(0) + self.scen(None))
+        self.assertNotEqual(res['status'], 'mismatch')
+        self.assertNotIn(['0x50f491', 'taken'], res['untaken'])
+        self.assertIn(['0x50f491', 'taken'], T.check_row(self.KEY, scenarios=self.scen(None) + self.scen(0))['untaken'])
+        # with the control word changed, the first stub call is 0x513c35 and the 0x513c65 call is the second one
+        res = T.check_row(self.KEY, scenarios=self.scen(0x40, 1, 0x37f))
+        self.assertNotEqual(res['status'], 'mismatch')
+        self.assertNotIn(['0x50f491', 'taken'], res['untaken'])
+
+    def test_a_translation_that_calls_without_the_flag_form_differs_and_the_old_one_agrees_where_nothing_is_returned(self):
+        call = 'FL41_CALL_F(0x513c65u);'
+        self.assertIn(call, self.text)
+        old = self.lib_of(self.text.replace(call, 'FL41_CALL(0x513c65u);'))
+        self.assertEqual(T.check_row(self.KEY, scenarios=self.scen(0x40), lib=old)['status'], 'mismatch')          # the defect: the je is not taken
+        self.assertEqual(T.check_row(self.KEY, scenarios=self.scen(0x40) + self.scen(None), lib=self.lib_of(self.text))['status'], 'partial')
+        # still accepted: without a flags override the stub leaves the flags as the call found them and the two forms agree
+        self.assertNotEqual(T.check_row(self.KEY, scenarios=self.scen(None), lib=old)['status'], 'mismatch')
+        self.assertNotEqual(T.check_row(self.KEY, scenarios=self.scen(None), lib=self.lib_of(self.text))['status'], 'mismatch')
+        # the callee side: a flag value of the override that is not a status bit (IF, DF) is ignored by both sides
+        a = self.W.run_original(self.row, 1, self.scen(0x40)[0][1])
+        b = self.W.run_original(self.row, 1, self.scen(0x40 | 0x200 | 0x400)[0][1])
+        self.assertEqual(a.digest(), b.digest())
+
+    def test_the_callee_hands_its_flags_to_the_cell_and_the_original_leaves_the_same_flags(self):
+        """0x513c65 (FL41_FLAGS_OUT): ZF is 0 for a finite operand (its `cmp eax, 0x7ff00000`) and 1 on the Inf/NaN path (`test eax, 0`); the run records the final flags of both sides (trace.regs['flags'])"""
+        W = self.W
+        pool = T.pool_of(self.CALLEE)
+        row = T.row_info(pool, self.CALLEE)
+        self.assertTrue(W.flags_out(row))
+        text = T.row_text(self.p['source'], self.CALLEE)
+        lib = T.library(pool)
+        P = 0x20000100
+        seen = {}
+        for name, hi in (('finite', 0x3ff00000), ('inf', 0x7ff00000), ('nan', 0x7ff80000)):
+            scen = [(W.REG_OVERRIDE + 8, 4, P), (P + 4, 4, hi), (P, 4, 0)]
+            o, n = W.run_original(row, 1, scen), W.run_native(lib, row, 1, scen)
+            self.assertIsNone(o.fault)
+            self.assertIsNone(n.fault)
+            self.assertEqual(o.digest(), n.digest(), name)
+            seen[name] = o.regs['flags']
+        self.assertEqual(seen['finite'] & 0x40, 0)
+        self.assertEqual(seen['inf'] & 0x40, 0x40)
+        self.assertEqual(seen['nan'] & 0x40, 0x40)
+        # a translation without FL41_FLAGS_OUT (the cell keeps its empty marker) disagrees with the original on the Inf path; the host without a cell (the game's hosts) is untouched
+        lib_without = self.lib_of(text.replace('    FL41_FLAGS_OUT\n', ''))
+        scen = [(W.REG_OVERRIDE + 8, 4, P), (P + 4, 4, 0x7ff00000), (P, 4, 0)]
+        self.assertNotEqual(W.run_native(lib_without, row, 1, scen).digest(), W.run_original(row, 1, scen).digest())
+        # the 0x513c65 row replays with the recorded coverage on its kept scenarios
+        res = T.check_row(self.CALLEE, scenarios=[T.norm(s) for s in SCEN[self.CALLEE]])
+        self.assertEqual(res['status'], 'tested_equivalent')
+
+    def test_a_host_without_a_cell_gets_the_old_behaviour(self):
+        """the game's hosts are brace-initialised and leave callee_flags NULL: FL41_CALL_F then behaves as FL41_CALL (the flags stay) and FL41_FLAGS_OUT does nothing; a C check with such a host"""
+        import subprocess
+        src = r'''
+#include "original_methods_fl41.h"
+static void call(void *ctx, uint32_t callee, Fl41Regs *r) { (void)ctx; (void)callee; (void)r; }
+static uint32_t rd(void *ctx, uint32_t a, int n) { (void)ctx; (void)a; (void)n; return 0; }
+static void wr(void *ctx, uint32_t a, int n, uint32_t v) { (void)ctx; (void)a; (void)n; (void)v; }
+static uint64_t fret(void *ctx) { (void)ctx; return 0; }
+int main(void)
+{
+    Fl41Host host = { NULL, rd, wr, call, fret, NULL };
+    const Fl41Host *h = &host;
+    Fl41Regs rg = {0, 0, 0, 0, 0x1000, 0, 0, 0}, *r = &rg;
+    FL41_PROLOGUE
+    zf = 1; cf = 0;
+    FL41_CALL_F(0x1234u);
+    if (!zf || cf) return 2;              /* the flags stayed */
+    done:
+    FL41_EPILOGUE
+    FL41_FLAGS_OUT
+    return host.callee_flags == NULL ? 0 : 3;
+}
+'''
+        with tempfile.TemporaryDirectory() as tmp:
+            c = Path(tmp) / 'host.c'
+            c.write_text(src)
+            exe = Path(tmp) / 'host'
+            built = subprocess.run(['cc', '-std=c11', '-Wall', '-Werror', '-Wno-unused-label', '-I', str(PROJECT / 'src'), str(c), '-o', str(exe)], capture_output=True, text=True)
+            self.assertEqual(built.returncode, 0, built.stderr)
+            self.assertEqual(subprocess.run([str(exe)]).returncode, 0)
+
+
 if __name__ == '__main__':
     unittest.main()
