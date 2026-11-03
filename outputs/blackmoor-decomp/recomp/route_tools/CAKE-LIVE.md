@@ -6,22 +6,41 @@ This candidate's gameplay body and producer/reload checks come from frozen priva
 
 ## Supported inputs
 
-The guard accepts only these exact genuine sources, with their original filenames. They are optional branches; they do not replace or splice into either earned story campaign.
+Without `--source-profile`, the guard accepts only these exact genuine sources, with their original filenames. They are optional branches; they do not replace or splice into either earned story campaign.
 
 | Profile | Source | Difficulty | Source room/art/view/held | Original clock | SHA-256 |
 | --- | --- | --- | --- | --- | --- |
 | senior | s57.SAV | 2 | 3510/3510/4/−1 | day3 14:36, total876 | `b0b49b4ca3692367e8da83c5a5b54957fed33a56e1aaaed68e3b26c01b0f9bb6` |
 | junior | m51.SAV | 0 | 3510/3510/4/−1 | day3 14:57, total897 | `ca0793b073a6358da3e3d58b3cda6ed3ce99875a50988cdeca77c6b7db6a5678` |
 
-Both begin without cake0/1 and with 1338/1502/1503=0,1567=1. The exact save hash preserves the other authored prerequisites. No other afternoon save is implicitly supported. The controls/rules on the exercised effective path are source-identical for these profiles; the client does not alter difficulty.
+Both begin without cake0/1 and with 1338/1502/1503=0,1567=1. The exact save hash preserves the other authored prerequisites. No other afternoon save is implicitly supported by historical mode. The controls/rules on the exercised effective path are source-identical for these profiles; the client does not alter difficulty.
 
 The Senior source was earned on the earlier cc7 campaign host; its b49 boundary is the separately observed ordinary Load into this optional branch. The Junior source is the retained public b49 producer. Neither branch establishes whole-campaign equivalence across native builds.
 
-The only accepted reviewed host is b49 SHA `b49eaa71885a02e9e096b9766f020576ef0a0381837cd036f0875bab49351e24`. The supplied GAME.EXE and seed copy must both have SHA `afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45`. CIFTREE.DAT must have SHA `1e865b13a4c0cf13568fc312f48de6c5e2acb0278b933b2a972b6c1dce456161`; Game.ini must have SHA `f8f892e828eca6086f5a25720e5e8e0c2ebbb7d81f1bb90bb8b73ea244419c79`. Case-insensitive loose overrides for the 15 scoped scenes are refused. The seed must contain no Documents5 saves or symlinks.
+Historical mode accepts only b49 SHA `b49eaa71885a02e9e096b9766f020576ef0a0381837cd036f0875bab49351e24`. The supplied GAME.EXE and seed copy must both have SHA `afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45`. CIFTREE.DAT must have SHA `1e865b13a4c0cf13568fc312f48de6c5e2acb0278b933b2a972b6c1dce456161`; Game.ini must have SHA `f8f892e828eca6086f5a25720e5e8e0c2ebbb7d81f1bb90bb8b73ea244419c79`. Case-insensitive loose overrides for the 15 scoped scenes are refused. The seed must contain no Documents5 saves or symlinks.
 
 `bul_live.py` remains pinned as a whole to `3a52e04b8bf642d90c3f00382fdc7b00c62791ad9f5a77fdf1cf6d81f933591d`. The four original-UI definitions in `STORY_API_SHA256` must retain exact source hashes; unrelated route additions may change the full story file. Receipts record full versions of story_route/check_route as well. This repeats the v3 helper-compatibility policy without shipping private helper copies or historical source paths. New native/data/helper versions need review and explicit proof; no cross-build equivalence is implied.
 
-## Invocation
+### Explicit source/native profile
+
+`--source-profile FILE.json` opts into a new caller-reviewed source/native pair. `--profile junior|senior`, `--save-sha256` and `--native-sha256` remain required; the JSON name/hash must match the CLI. Its only fields are `name`, `difficulty`, `source_sha256` and `clock`. Names/difficulties are exactly junior/0 or senior/2, and the source hash is64 lowercase hexadecimal characters. `clock` has exactly integer `total_minutes`, `minute`, `hour`, `day`: day1–65535, hour0–23, minute0–59 and total_minutes=60*hour+minute. These are expected serialized source values, never clock controls.
+
+The JSON cannot specify scene, hand, prerequisites, inventory or outcomes. The actual pinned source must still be3510/3510/view4/held−1, have no cake0/1, and1338/1502/1503=0,1567=1. New ordinary alphanumeric SAV basenames are accepted; continue/authored-auxiliary sources and output-name reuse are refused. Existing s57/m51 output-name reservations remain. The selected native must match its explicit hash and must differ from the original GAME.EXE hash. New profiles/builds require their own ordinary execution/review; parameterization does not inherit historical acceptance. The JSON bytes/hash are recorded and protected against changes through both sessions.
+
+For a newly earned source, supply its own verified hash and exact clock in the JSON; do not reuse the historical saves or their hashes. The unchanged default silent/virtual clock, one-attempt input/hover/drop/finish/bake/pickup policy, asset/effective-scene guards and save/reload checks apply:
+
+```sh
+python3 -B outputs/blackmoor-decomp/recomp/route_tools/cake_live.py \
+  --profile junior --source-profile "$SOURCE_PROFILE_JSON" \
+  --native "$RECOMP_NATIVE" --native-sha256 "$REVIEWED_NATIVE_SHA256" \
+  --game-exe "$GAME_EXE" --game-data "$GAME_DATA" \
+  --source-save "$FRESH_SOURCE_SAVE" --save-sha256 "$FRESH_SOURCE_SHA256" \
+  --save-name cakefc --output "$NEW_CAKE_OUTPUT"
+```
+
+All40 raw saved inventory cells are now compared by the client: source cake0/1 must be0, output item1 must become1, and all other39 cells must match exactly. The receipt records this fixed delta and full source/output inventories; profiles cannot alter it. A successful original-UI save and fresh output-only actualheld1 reload remain mandatory.
+
+## Historical invocation
 
 Run on macOS with a fresh APFS-clone-capable output location. Set the paths to your own reviewed host, legally owned data and genuine source. No executable, resource or save bytes are distributed here. The following invocation intentionally launches a headless original-game branch; it uses the default silent/virtual clock, without an output device or OS input.
 
@@ -67,4 +86,4 @@ Finite checks (no game/assets/process) after applying the candidate:
 python3 -B outputs/blackmoor-decomp/tests/test_recomp_cake_live.py
 ```
 
-The client enforces inventory0/1 itself. The statement that all other39 cells are unchanged is an external root read-only comparison of each genuine source/output pair, with script/report hashes in cake-optional.json; it is not a new general client guarantee. Only an error-free receipt with accepted:true grants checkpoint acceptance. A copied file beside a failed/partial receipt is retained diagnostic output and must not be consumed as a canonical checkpoint.
+The historical frozen client enforced inventory0/1 itself; its other39-cell result remains the separately pinned external root audit in cake-optional.json. The parameterized client additionally enforces the fixed full40 raw-cell contract described above. New source/native results remain pending their own actual runs and review. Only an error-free receipt with accepted:true grants checkpoint acceptance. A copied file beside a failed/partial receipt is retained diagnostic output and must not be consumed as a canonical checkpoint.

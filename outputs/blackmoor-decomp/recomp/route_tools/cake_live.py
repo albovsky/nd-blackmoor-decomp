@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""One optional CakeMixing attempt from either pinned afternoon source.
+"""One optional CakeMixing attempt from an explicitly pinned source.
 
 Ordinary input only: the original game owns ingredients, baking and rewards.
 Requires a reviewed native host, owner's data and an original-UI source save.
@@ -71,19 +71,81 @@ def verify_shared_helpers():
             'story_api_sha256': nodes}
 
 
-def source_guard(args):
+def validate_source_profile(profile):
+    require(isinstance(profile, dict) and set(profile) == {'name', 'difficulty', 'source_sha256', 'clock'},
+            'profile must pin only name, difficulty, source_sha256 and clock')
+    require(isinstance(profile['name'], str) and profile['name'] in PROFILES,
+            'unsupported Cake profile')
+    require(type(profile['difficulty']) is int
+            and profile['difficulty'] == PROFILES[profile['name']]['state']['difficulty'],
+            'profile name/difficulty differs')
+    require(isinstance(profile['source_sha256'], str)
+            and re.fullmatch('[0-9a-f]{64}', profile['source_sha256']) is not None,
+            'profile needs an explicit source SHA-256')
+    clock = profile['clock']
+    require(isinstance(clock, dict) and set(clock) == {'total_minutes', 'minute', 'hour', 'day'}
+            and all(type(v) is int for v in clock.values()), 'profile clock fields differ')
+    require(1 <= clock['day'] <= 65535 and 0 <= clock['hour'] < 24 and 0 <= clock['minute'] < 60
+            and clock['total_minutes'] == 60 * clock['hour'] + clock['minute'],
+            'invalid expected original clock')
+    return profile
+
+
+def load_source_profile(args):
+    if args.source_profile is not None:
+        require(args.source_profile.is_file(), 'source profile must be a regular JSON file')
+        with args.source_profile.open('rb') as stream:
+            raw = stream.read(4097)
+        require(0 < len(raw) <= 4096, 'source profile JSON exceeds bounded metadata size')
+        profile = validate_source_profile(json.loads(raw))
+        require(profile['name'] == args.profile and profile['source_sha256'] == args.save_sha256,
+                'explicit source profile name/hash differs from CLI pins')
+        return profile, hashlib.sha256(raw).hexdigest()
+    legacy = PROFILES[args.profile]
+    require(args.save_sha256 == legacy['save']['sha256'], 'historical source pin differs')
+    return validate_source_profile(dict(name=args.profile, difficulty=legacy['state']['difficulty'],
+                                       source_sha256=legacy['save']['sha256'],
+                                       clock=dict(legacy['state']['clock']))), None
+
+
+def validate_native_pin(expected, observed, explicit_profile=False):
+    require(isinstance(expected, str) and re.fullmatch('[0-9a-f]{64}', expected) is not None
+            and expected != ORIGINAL_SHA256 and expected == observed
+            and (explicit_profile or expected == NATIVE_SHA256),
+            'reviewed native pin differs; new builds require an explicit source profile')
+    return True
+
+
+def validate_save_names(source_name, save_name):
+    require(re.fullmatch(r'[A-Za-z0-9]{1,10}\.[Ss][Aa][Vv]', source_name) is not None
+            and Path(source_name).stem.casefold() not in ('continue', AUTHORED_AUXILIARY[:-4].casefold()),
+            'ordinary source save name required; reserved auxiliary/source refused')
+    require(re.fullmatch('[a-z0-9]{1,10}', save_name) is not None
+            and save_name not in ('s57', 'm51', 'continue', AUTHORED_AUXILIARY[:-4].casefold())
+            and save_name != Path(source_name).stem.casefold(),
+            'new optional save name must differ from source/reserved name')
+    return True
+
+
+def validate_inventory_delta(before, after):
+    require(set(before) == set(after) == set(range(40)) and before[0] == before[1] == 0,
+            'complete source/output inventory and absent cakes required')
+    expected = dict(before)
+    expected[1] = 1
+    require(after == expected, 'only good-cake item1 may change from zero to one')
+    return {'compared_cells': 40, 'changed_cells': {'1': {'before': 0, 'after': 1}}}
+
+
+def source_guard(args, profile):
     """Read-only preflight, before any directory creation or native launch."""
-    profile = PROFILES[args.profile]
     require(sys.platform == 'darwin', 'fresh APFS clone workflow requires macOS')
     require(1 <= args.timeout <= 300, 'timeout must be 1-300 seconds')
-    require(re.fullmatch('[a-z0-9]{1,10}', args.save_name) is not None,
-            'invalid new optional save name')
-    require(args.save_name not in ('s57', 'm51'), 'campaign source name cannot be reused')
-    require(args.source_save.name == profile['source_name'], 'source profile filename differs')
-    require(args.save_sha256 == profile['save']['sha256'] == io.digest(args.source_save),
+    validate_save_names(args.source_save.name, args.save_name)
+    if args.source_profile is None:
+        require(args.source_save.name == PROFILES[args.profile]['source_name'], 'historical source filename differs')
+    require(args.save_sha256 == profile['source_sha256'] == io.digest(args.source_save),
             'genuine source profile pin differs')
-    require(args.native_sha256 == NATIVE_SHA256 == io.digest(args.native),
-            'reviewed native pin differs; no cross-build equivalence assumed')
+    validate_native_pin(args.native_sha256, io.digest(args.native), args.source_profile is not None)
     require(io.digest(args.game_exe) == ORIGINAL_SHA256
             and io.digest(args.game_data / 'GAME.EXE') == ORIGINAL_SHA256,
             'original data image pin differs')
@@ -101,10 +163,12 @@ def source_guard(args):
 
 
 def validate_profile_state(state, profile):
-    expected = profile['state']
-    require([state[k] for k in ['difficulty', 'scene', 'art', 'view', 'held']] == [expected[k] for k in ['difficulty', 'scene', 'art', 'view', 'held']], 'source profile difficulty/room/view/held differs')
+    expected = profile['state'] if 'state' in profile else validate_source_profile(profile)
+    require(type(expected['difficulty']) is int and expected['difficulty'] in (0, 2), 'unsupported Cake difficulty')
+    require([state[k] for k in ['difficulty', 'scene', 'art', 'view', 'held']] == [expected['difficulty'], 3510, 3510, 4, -1], 'source profile difficulty/room/view/held differs')
     require(state['clock_diagnostics'] == expected['clock'], 'source profile clock differs')
     require(state['owned_cake_items'] == {'0': False, '1': False}, 'source already owns a cake')
+    require(set(state['item_presence']) == set(range(40)) and state['item_presence'][0] == state['item_presence'][1] == 0, 'source cake/raw inventory differs')
     require(state['progression'] == {1338: 0, 1502: 0, 1503: 0, 1567: 1}, 'source profile oven/entry flags differ')
     return True
 
@@ -128,6 +192,7 @@ def snapshot(path):
     s = io.save_state(path, progression_flags=[1338, 1502, 1503, 1567])
     s['clock_diagnostics'] = {n: struct.unpack_from(f, data, o)[0] for n, f, o in [('total_minutes', '<I', 0x2430), ('minute', '<H', 0x2434), ('hour', '<H', 0x2436), ('day', '<H', 0x2438)]}
     s['owned_cake_items'] = {str(i): item(data, i) for i in [0, 1]}
+    s['item_presence'] = {i: struct.unpack_from('<I', data, 0x2ba + 4 * i)[0] for i in range(40)}
     return s
 
 
@@ -244,6 +309,7 @@ def complete_attempt(args, out, source, old, protected, receipt):
         io.write_json(out / 'receipt.json', receipt)
         io.require(new['difficulty'] == old['difficulty'] and [new[k] for k in ['scene', 'art', 'view', 'held']] == [3520, 3520, 0, -1], 'safe original save state differs')
         io.require(new['owned_cake_items'] == {'0': False, '1': True} and new['progression'] == {1338: 1, 1502: 0, 1503: 0, 1567: 1}, 'real good cake or authored final resets absent')
+        receipt['inventory_delta'] = validate_inventory_delta(old['item_presence'], new['item_presence'])
         path = original_path_check((active.out / 'run.log').read_text())
         producer_receipt = active.out / 'receipt.json'
         active = io.Session(args, out / 'reload', saved, rc_flags=FLAGS)
@@ -265,7 +331,7 @@ def complete_attempt(args, out, source, old, protected, receipt):
         shutil.copy2(saved, accepted)
         io.require(io.digest(accepted) == produced_hash, 'accepted copy differs from original UI output')
         receipt.update(producer_save_catalog=producer_saves, reload_save_catalog=reload_saves, output_and_copy_hashes={'produced_output': produced_hash, 'reload_source': active.source_hash, 'reload_copy': io.digest(active.copy), 'accepted_copy': io.digest(accepted)}, auxiliary_policy='Only original-authored HICONTINUECHEAT.SAV may accompany required source/output after execution; hashes retained, never copied as canonical output or loaded as a source.')
-        receipt.update(accepted=True, result='actual original CakeMixing win→bake→physical1→safe UI save/freshheld1 reload', output_save=str(accepted), output_save_sha256=io.digest(accepted), output_state=new, original_path=path, producer_receipt_sha256=io.digest(producer_receipt), reload_receipt_sha256=io.digest(active.out / 'receipt.json'), limits='Pinned optional branch on reviewed b49 only; campaign/ending lineage unchanged; other sources/builds and Mac frontend are unverified.')
+        receipt.update(accepted=True, result='actual original CakeMixing win→bake→physical1→safe UI save/freshheld1 reload', output_save=str(accepted), output_save_sha256=io.digest(accepted), output_state=new, original_path=path, producer_receipt_sha256=io.digest(producer_receipt), reload_receipt_sha256=io.digest(active.out / 'receipt.json'), limits='One explicit pinned source/native optional branch only; campaign/ending lineage unchanged; other sources/builds and Mac frontend are unverified.')
         io.write_json(out / 'receipt.json', receipt)
         print(json.dumps(receipt))
         return 0
@@ -281,18 +347,24 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ('native', 'game-exe', 'game-data', 'source-save', 'output'):
         parser.add_argument('--' + name, type=Path, required=True)
-    parser.add_argument('--native-sha256', required=True, help='reviewed b49 host SHA-256')
+    parser.add_argument('--native-sha256', required=True, help='caller-reviewed host SHA-256; historical mode requires b49')
     parser.add_argument('--save-sha256', required=True, help='exact genuine profile source SHA-256')
     parser.add_argument('--profile', choices=sorted(PROFILES), required=True)
+    parser.add_argument('--source-profile', type=Path, help='explicit genuine source name/difficulty/hash/clock JSON')
     parser.add_argument('--save-name', default='cake32', help='new optional-branch UI name, 1-10 lowercase letters/digits')
     parser.add_argument('--timeout', type=int, default=300, help='per-session wall deadline, 1-300 seconds')
     args = parser.parse_args(argv)
     out = None
-    receipt = {'accepted': False, 'client_version': 'cake-live-v1', 'optional_branch_only': True}
+    receipt = {'accepted': False, 'client_version': 'cake-live-v2', 'optional_branch_only': True}
     try:
         for name in ('native', 'game_exe', 'game_data', 'source_save'):
             setattr(args, name, getattr(args, name).resolve(strict=True))
-        old, helpers = source_guard(args)
+        if args.source_profile is not None:
+            args.source_profile = args.source_profile.resolve(strict=True)
+        profile, profile_hash = load_source_profile(args)
+        old, helpers = source_guard(args, profile)
+        if profile_hash is not None:
+            require(io.digest(args.source_profile) == profile_hash, 'source profile changed during preflight')
         target = args.output.resolve()
         require(not (target == args.game_data or args.game_data in target.parents
                      or target == args.source_save.parent or args.source_save.parent in target.parents),
@@ -303,8 +375,14 @@ def main(argv=None):
                            args.game_data / 'GAME.EXE', args.game_data / 'Game.ini',
                            args.game_data / 'Ciftree/CIFTREE.DAT', Path(__file__),
                            Path(io.__file__), Path(story_route.__file__), Path(io.check_route.__file__))
+        if args.source_profile is not None:
+            protected_paths += (args.source_profile,)
         protected = {str(path): io.digest(path) for path in protected_paths}
-        receipt.update(profile=args.profile, native_sha256=args.native_sha256,
+        if profile_hash is not None:
+            require(protected[str(args.source_profile)] == profile_hash, 'source profile changed before launch')
+        receipt.update(profile=args.profile, source_profile=profile, source_profile_sha256=profile_hash,
+                       source_profile_path=str(args.source_profile) if args.source_profile is not None else None,
+                       native_sha256=args.native_sha256,
                        original_sha256=ORIGINAL_SHA256, source_save=str(args.source_save),
                        source_save_sha256=args.save_sha256, source_state=old,
                        controller_sha256=io.digest(Path(__file__)), shared_helpers=helpers,
