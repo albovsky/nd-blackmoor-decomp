@@ -63,6 +63,22 @@ def put_and_close(session,remaining_bag):
     return click(session,360,20,4000,'ordinary-close-inventory')
 
 
+def open_inventory(session):
+    # The frog movie reloads this scene. A queued toolbar click can be ignored;
+    # require the original inventory window to load before selecting its slot.
+    log=session.out/'run.log'
+    begin=log.stat().st_size
+    for attempt in range(12):
+        observation,image=send(session,
+            f'1:move:212,448;101:click:212,448,80;{2100+17*attempt}:shot:0,0',
+            'ordinary-short-inventory-open-'+str(attempt+1))
+        io.require(observation['state']==[2463,2463,0,-1], 'unknown scene while opening earned8 inventory')
+        if re.search(rb'FILE open [^\r\n]*\\UIINVENTORY_OVL\.CIF\s+\[virtual \d+ ms\]',
+                     log.read_bytes()[begin:], re.I):
+            return observation,image
+    raise ValueError('original inventory did not open within12 short toolbar presses; no slot selection or Save')
+
+
 def play(session,source,name):
     observation,image=send(session,story_route.load_save_prefix()+';'+(HERE/'grenny-start.txt').read_text().strip(),
                             'normal-fountain-to-Grenny')
@@ -74,7 +90,7 @@ def play(session,source,name):
         io.require(observation['state']==[2586,2586,0,-1],'crossing unfinished rather than authored reset')
     else:raise ValueError('20 ordinary randomized crossings unfinished; no reward/save claim')
     send(session,pickup_payload(),'ordinary-short-key8-pickup-retries-across-loop-frames')
-    click(session,212,448,4000,'ordinary-inventory-after-earned-key8')
+    open_inventory(session)
     observation,image=click(session,62,100,4000,'ordinary-select-authored-new8-first-slot')
     io.require(observation['state'][3]==8,'realheld8 not observed after original pickup')
     put_and_close(session,source['ordered_bag'])
@@ -146,18 +162,20 @@ def audit(session,profile,source,*,reload=False,minimum_clock=None):
 def main(argv=None):
     p=argparse.ArgumentParser(description=__doc__)
     for name in('native','game-exe','game-data','source-save','profile','output'):p.add_argument('--'+name,type=Path,required=True)
+    p.add_argument('--profile-name',choices=tuple(guard.PROFILE_DIFFICULTIES),default='junior-grenny',
+                   help='expected original difficulty profile; the saved mode is never changed')
     p.add_argument('--native-sha256',required=True);p.add_argument('--save-sha256',required=True)
     p.add_argument('--save-name',default='m65');p.add_argument('--timeout',type=int,default=300)
     args=p.parse_args(argv);active=None;created_output=False;receipt={'accepted':False,'no_historical_SAV_runtime_input':True}
     try:
         io.require(1<=args.timeout<=300 and re.fullmatch('[a-z0-9]{1,10}',args.save_name),'bounded timeout/lowercase UI filename required')
         for name in('native','game_exe','game_data','source_save','profile'):setattr(args,name,getattr(args,name).resolve(strict=True))
-        profile=guard.read(args.profile)
+        profile=guard.read(args.profile,profile_name=args.profile_name)
         io.require(args.native_sha256==profile['native_sha256']==io.digest(args.native)and args.save_sha256==profile['source_sha256'],
                    'explicit native/source/profile pin differs')
         io.require(io.digest(args.game_exe)==io.digest(args.game_data/'GAME.EXE')==io.ORIGINAL_SHA256,'immutable original differs')
         io.require(args.source_save.name.lower()!=args.save_name+'.sav','new output name equals source')
-        source=guard.source_state(args.source_save,profile)
+        source=guard.source_state(args.source_save,profile,profile_name=args.profile_name)
         io.require(not(args.game_data/'Documents5').exists()and not any(p.is_symlink()for p in args.game_data.rglob('*')),'seed has saves/symlinks')
         guard.check_data(args.game_data,profile.get('data_pins'))
         io.require(isinstance(profile.get('origin_receipts'),list)and profile['origin_receipts'],'accepted source origin pins required')
@@ -174,7 +192,7 @@ def main(argv=None):
         protected.update({str(args.game_data/rel):digest for rel,digest in profile['data_pins'].items()})
         protected.update({item['path']:item['sha256']for item in profile['origin_receipts']})
         out.mkdir(parents=True,exist_ok=False);created_output=True;receipt.update(native_sha256=args.native_sha256,source_sha256=args.save_sha256,
-          source_state=source,protected_inputs=protected,policy='v4 fixed ordinary crossing;20authored attempts/24pickup/12exits',
+          source_state=source,profile_name=args.profile_name,protected_inputs=protected,policy='v4 fixed ordinary crossing;20authored attempts/24pickup/12exits',
           original_NewGame_origin_preserved=True)
         io.write_json(out/'receipt.json',receipt)
         flags=','.join(map(str,sorted(guard.LIVE|set(range(338,342)))))

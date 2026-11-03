@@ -1,0 +1,102 @@
+{
+  "whole_game_complete": false,
+  "native_sha256": "6041e31e9d486111f6a0b64a7ce9764d52c292f35339fa1a84f3be7c18d31de4",
+  "publisher_chat": "01a170c4-6fa4-7831-9a46-f076fbcfab37",
+  "profile_selection": "explicit senior-grenny original2, Junior default retained",
+  "profile_fixture_groups_passed": 4,
+  "existing_Junior_groups_passed": 6,
+  "water_Ned_fountain": {
+    "accepted": true,
+    "packet": "work/recomp-playability-20261101/release92bc-senior-water-ned-fountain-prep-v1",
+    "BOUND_PINS_sha256": "17aba176666c2e9ef2b3ba95d6db3afe1387d730e57c7ee0216f2f8a66e416e8",
+    "manifest_sha256": "ebe978f47c7bfe39df0a4a6f99892c04ce641597d4a537bdfd1d1d5cb64f4199",
+    "source_sha256": "de51c391fb476778695682893df3f487021709216e26f5746f755a85d5311882",
+    "output_sha256": "a492abe66778c95b597e49f933960822a9e6d5e4c91649932f79fbfac2b8d4fd",
+    "acceptance_receipt_sha256": "3443b8c29199c202fd207d84644c9139da48aa954332769efe792575ba593160",
+    "state": [
+      2460,
+      2460,
+      0,
+      -1
+    ],
+    "saved_clock": {
+      "day": 4,
+      "hour": 10,
+      "minute": 30,
+      "total_minutes": 630
+    },
+    "serialized_fields": 409,
+    "item_cells": 40,
+    "full_standalone_ancestor_live_checker_claimed": false
+  },
+  "Grenny": {
+    "accepted": true,
+    "future_actual_run_pending": false,
+    "source_sha256": "a492abe66778c95b597e49f933960822a9e6d5e4c91649932f79fbfac2b8d4fd",
+    "first_run": {
+      "accepted": false,
+      "directory": "release92bc-senior-grenny-first-v1",
+      "native_exit": 0,
+      "events": 117,
+      "captures": 23,
+      "ordinary_crossing_attempts": 2,
+      "crossing_win_flags": [
+        1978,
+        2064,
+        2226
+      ],
+      "final_scene": 2463,
+      "error": "realheld8 not observed after original pickup",
+      "new_save_produced": false,
+      "raw_failure_preserved": true
+    },
+    "inventory_open_correction": {
+      "source": "same2463pickuprectangle249,127..362,236/no difficulty gate; actualfailedtoolbaropensnoinventory, successJunior opensUIINVENTORY_OVL",
+      "new_behavior": "at most12 ordinary80ms toolbar presses, variable2100+17n capture; freshUIINVENTORY_OVL fileopen atclosedACK required beforefirstslot; stale/wrongresource/unknownscene refuse",
+      "crossing_pickup_put_exit_reload_policy_unchanged": true,
+      "new_fixture_groups": 3,
+      "all_groups_passed_afterfix": 13,
+      "independent_delta_review_pending": false,
+      "review": "d652d40f ACCEPT/noP1P2; P3 file-open indicates load began, held8/SAV/freshguards supply outcome proof; root cause not asserted"
+    },
+    "second_binding": {
+      "path": "work/recomp-playability-20261101/release92bc-senior-grenny-binding-v2",
+      "PINS_sha256": "198056a7ddf586935aca7a17f0699545b14b5048266665ca183e000266c55df6",
+      "source_profile_sha256": "23528df2d88607df36aa32e4d095760cbbed75825a8e090fd28afb6e6e4e27e8",
+      "outer_binding_sha256": "4062aea940c39ecd1b91f2098618c621ae04bc962d7f48797a1325bc046e9a3c",
+      "source_profile_identical_to_first_attempt": true,
+      "runtime_client_sha256": "4a5ef884486c998eee0b85749e1cee0e3e8168bddb2159853412a557fe665a50",
+      "new_output": "release92bc-senior-grenny-second-v1",
+      "controlled_actual_test_pending": false
+    },
+    "output_sha256": "dddeecde4cccb19b611a798fe3a27e5235d59c9b8be57a7d606fa76e488cec90",
+    "acceptance_receipt_sha256": "8d28e26593e0d1c91b8830ab20c5cc7a9fe0f18bf8f4fffff8e7aa211926a68e",
+    "full409_audit_sha256": "21f48087edbb8694b2a2910441f2720b2535f830c4dacce067fc480811596acd",
+    "saved_clock": {
+      "total_minutes": 647,
+      "minute": 47,
+      "hour": 10,
+      "day": 4
+    },
+    "only_three_flag_rises": [
+      1978,
+      2064,
+      2226
+    ],
+    "other406_unchanged": true,
+    "saved_only2127_retained_zero": true,
+    "item8_and_ordered_bag_append_only": true,
+    "producer_events": 154,
+    "producer_captures": 29,
+    "reload_events": 23,
+    "reload_captures": 7,
+    "both_native_exit": 0,
+    "ordinary_crossing_attempts": 2,
+    "ordinary_losses": 1,
+    "fresh_inventory_open_record_observed": true,
+    "inventory_open_presses": 1,
+    "realheld8_in_producer_and_fresh_reload": true
+  },
+  "independent_review_pending": false,
+  "profile_review": "c43ff020 ACCEPT/noP1P2"
+}
