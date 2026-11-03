@@ -13,9 +13,8 @@ min_os="${MIN_MACOS:-27.0}"
 jobs="${JOBS:-$(sysctl -n hw.ncpu)}"
 mkdir -p "$build"
 export GAME_EXE="${GAME_EXE:-$project/../../work/original/GAME.EXE}"
-if [ ! -f "$build/rc_generated.c" ] || [ -n "${RELIFT:-}" ]; then
-    python3 -I "$here/lift_recomp.py" "$build" "${CHUNKS:-24}"
-fi
+# Validate the full generator-input fingerprint and expected output set before reuse.
+python3 -I "$here/generation_cache.py" "$build" "${CHUNKS:-24}" "${RELIFT:-}"
 cc=(xcrun --sdk macosx clang -arch arm64 "-mmacosx-version-min=$min_os")
 # the lifted functions: one compile each, in parallel, skipped when the object is newer than its source and than every header it includes
 newest_header="$(ls -t "$src/original_methods_fl41.h" "$src/original_methods_fl41_x87.h" "$here/rc_lift_prelude.h" "$here/rc_fl57_helpers.h" "$here/rc.h" | head -1)"

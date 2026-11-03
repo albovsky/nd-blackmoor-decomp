@@ -11,9 +11,8 @@ CC=${CC:-cc}
 JOBS=${JOBS:-$(nproc 2>/dev/null || echo 4)}
 CFLAGS="-O1 -fPIC -w -I$PROJECT/src -I$HERE -I$OUT"
 mkdir -p "$OUT"
-if [ ! -f "$OUT/rc_generated.c" ] || [ -n "${RELIFT:-}" ]; then
-    python3 -I "$HERE/lift_recomp.py" "$OUT" "${CHUNKS:-24}"
-fi
+# Validate the full generator-input fingerprint and expected output set before reuse.
+python3 -I "$HERE/generation_cache.py" "$OUT" "${CHUNKS:-24}" "${RELIFT:-}"
 ls "$OUT"/rc_lifted_*.c > "$OUT/lifted.list"
 cd "$OUT"
 # the lifted files: one compile each, in parallel, skipped when the object is newer than its source and than every header it includes
