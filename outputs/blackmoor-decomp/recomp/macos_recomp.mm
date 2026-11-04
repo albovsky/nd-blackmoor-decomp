@@ -502,12 +502,6 @@ bool stop_audio()
     return true;
 }
 
-bool file_exists(const std::string &path)
-{
-    struct stat st;
-    return stat(path.c_str(), &st) == 0;
-}
-
 NSString *const kGameFolderPreference = @"BlackmoorOriginalGameFolder";
 
 std::string remembered_game_folder()
@@ -611,13 +605,6 @@ bool write_primary_snapshot(const std::string &path)
     fprintf(stderr, "SNAPSHOT kind=logical-framebuffer width=%u height=%u path=%s\n", width, height, path.c_str());
     if (g.log) fprintf(g.log, "SNAPSHOT kind=logical-framebuffer width=%u height=%u path=%s\n", width, height, path.c_str());
     return true;
-}
-
-void make_directories(const std::string &path)
-{
-    for (size_t i = 1; i < path.size(); i++)
-        if (path[i] == '/') mkdir(path.substr(0, i).c_str(), 0755);
-    mkdir(path.c_str(), 0755);
 }
 
 }  // namespace
@@ -765,8 +752,14 @@ int main(int argc, char **argv)
                  data.default_clone ? "default-clone" : "explicit", data.created, g.game_dir.c_str(), g.save_dir.c_str());
         frontend_message(data_message);
         if (g.exe.empty()) g.exe = getenv("GAME_EXE") ? getenv("GAME_EXE") : g.game_dir + "/GAME.EXE";
-        make_directories(g.save_dir);
-        if (!file_exists(g.exe)) { fprintf(stderr, "GAME.EXE not found at %s (use --exe)\n", g.exe.c_str()); return 2; }
+        // Folder discovery/selection and explicit executable overrides are now
+        // final. Check the exact file passed to rc_start on every startup route.
+        std::string startup_error;
+        if (!blackmoor_check_startup(g.exe, data_options.expected_executable_sha256, g.save_dir, &startup_error)) {
+            frontend_message(startup_error.c_str());
+            if (g.log) fclose(g.log);
+            return 2;
+        }
         g.silent_diagnostics = capture_requested || !log_path.empty();
 
         RcPlatform plat;
