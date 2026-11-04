@@ -1,5 +1,9 @@
 # Handoff: recompiled GAME.EXE, state and next steps
 
+## Private portable macOS package, 2026-11-03
+
+Build from your own supported executable with `GAME_EXE=/absolute/path/to/GAME.EXE script/package_macos.sh`; see [INSTALL.md](INSTALL.md) and [SIGNING-SETUP.md](SIGNING-SETUP.md). Packaging never publishes binaries. RECOMP-49 records scope and verification; signing and actual platform results must be read from its evidence, not inferred from a successful build.
+
 ## Harder glyph goal, 2026-11-02 Pacific
 
 RECOMP-37 adds optional `--goal hard` without changing standard defaults or paid-repeat policy. Root's first-time Junior m28ccf→m29ecf on9ae/fc passes392/22events and normal exit0, originalS3589/1299→reward4, safe UI save and fresh-output-only held4 reload. The closed board shows target5000/time40. All three integrated source/test files match the actual-run candidate; root reports15finite glyph groups passing. See GLYPH-GOALS.md/campaigns/hard-glyph-earned.json for full pins and limits. Frozen ae05cf34 is independently accepted with no P1/P2;15glyph and113route checks pass, and guarded metadata preserves1838 peer claims. The same fresh campaign reachesm30/S4389/held4/day2 17:04 with its own save-only reload. Loulou progression is next; no Senior or whole-game claim.

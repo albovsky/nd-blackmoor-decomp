@@ -291,7 +291,7 @@ class SyntheticBundleTests(unittest.TestCase):
     def test_missing_licence_record_is_rejected(self):
         app = self.make_app()
         bundle.bundle_dependencies(app, self.prefix)
-        self.assertRejected(app, "missing licence record Contents/Resources/Licenses/FFmpeg/COPYING.LGPLv2.1")
+        self.assertRejected(app, "missing licence record Contents/Resources/licenses/FFmpeg/COPYING.LGPLv2.1")
 
     def test_gpl_build_record_is_rejected(self):
         app = self.bundled_app()

@@ -85,7 +85,43 @@ int main(int argc,char **argv) {
     char *created=mkdtemp(temp); if(!created||argc!=2)return 2;
     const std::string root=created; auto o=seed(root); BlackmoorGameDataSelection r;
     std::string mode=argv[1];
-    if(mode=="default") {
+    if(mode=="validation") {
+        std::string resolved,error;
+        const auto hash=o.expected_executable_sha256;
+        expect(blackmoor_validate_game_seed(o.seed_directory,hash,&resolved,&error),"valid seed accepted");
+        expect(resolved==o.seed_directory,"resolved seed is original, not runtime");
+        auto refuse_seed=[&](const std::string &path,const char *message) {
+            expect(!blackmoor_validate_game_seed(path,hash,&resolved,&error),"invalid seed refuses");
+            expect(resolved.empty()&&error.find(message)!=std::string::npos,"plain actionable refusal");
+            printf("FOLDER_REFUSED %s\n",error.c_str());
+        };
+        dir(root+"/empty");refuse_seed(root+"/empty","This folder is empty.");
+        dir(root+"/wrong");put(root+"/wrong/readme.txt","another game");
+        refuse_seed(root+"/wrong","This is not the game folder.");
+        dir(root+"/missing");put(root+"/missing/GAME.EXE","abc");
+        refuse_seed(root+"/missing","Some game files are missing");
+        auto other=seed(root+"/second");
+        put(other.seed_directory+"/GAME.EXE","xyz");
+        refuse_seed(other.seed_directory,"This game version is not supported.");
+        put(other.seed_directory+"/GAME.EXE","abc");
+        expect(blackmoor_find_game_seed(o.seed_directory,{other.seed_directory},hash,&resolved,&error)
+            &&resolved==o.seed_directory,"remembered valid seed wins over known location");
+        expect(blackmoor_find_game_seed(root+"/wrong",{root+"/empty",other.seed_directory},hash,&resolved,&error)
+            &&resolved==other.seed_directory,"unavailable remembered seed falls back to valid known location");
+        expect(!blackmoor_find_game_seed(root+"/wrong",{root+"/empty"},hash,&resolved,&error),"no candidate requests picker");
+        std::string wrapper=root+"/GOG.app";
+        std::string nested=wrapper+"/Contents/Resources/game/Nancy Drew Curse of the Blackmoor Manor.app/Contents/Resources/drive_c/GOG Games/Nancy Drew - Curse of Blackmoor Manor";
+        dir(nested);
+        expect([[NSFileManager defaultManager] copyItemAtPath:ns(o.seed_directory+"/GAME.EXE")
+            toPath:ns(nested+"/GAME.EXE") error:nullptr],"nested fixture executable");
+        for (const char *name : {"Game.ini","Ciftree","CDSound","CDVideo"})
+            expect([[NSFileManager defaultManager] copyItemAtPath:ns(o.seed_directory+"/"+name)
+                toPath:ns(nested+"/"+name) error:nullptr],"nested fixture resource");
+        expect(blackmoor_validate_game_seed(wrapper,hash,&resolved,&error)&&resolved==nested,"Mac app selection resolves nested seed");
+        o.protected_seed_directories={other.seed_directory};
+        o.argument_directory=other.seed_directory.c_str();
+        expect(!choose(o,r),"alternate remembered/known original cannot become writable scratch");
+    } else if(mode=="default") {
         expect(choose(o,r),"default selection succeeds");
         expect(r.default_clone&&r.created&&r.directory!=o.seed_directory,"default selects independent private data");
         if (r.directory.find(root+"/")!=0 || r.directory==o.seed_directory) return 1; // Never mutate an unexpected path, even on regression.

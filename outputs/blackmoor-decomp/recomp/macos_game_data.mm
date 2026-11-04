@@ -110,11 +110,12 @@ static bool required(NSString *game, const std::string &hash, std::string *error
         bool directory = [name isEqualToString:@"CDSound"] || [name isEqualToString:@"CDVideo"];
         if (!metadata([game stringByAppendingPathComponent:name], &st)
             || (directory ? !S_ISDIR(st.st_mode) : !S_ISREG(st.st_mode)))
-            return refuse(error, "missing required original data: " + text(name));
+            return refuse(error, "Some game files are missing (" + text(name)
+                + "). Choose the complete installed game folder, or reinstall your GOG copy and try again.");
     }
     std::string actual;
     if (!digest([game stringByAppendingPathComponent:@"GAME.EXE"], &actual) || actual != hash)
-        return refuse(error, "GAME.EXE does not match the trusted original hash");
+        return refuse(error, "This game version is not supported. Choose the GOG version of Nancy Drew: Curse of Blackmoor Manor.");
     return true;
 }
 static bool excluded(NSString *name, bool directory) {
@@ -188,6 +189,43 @@ static bool completed(NSFileManager *fm, NSString *package, const std::string &h
 }
 } // namespace
 
+bool blackmoor_validate_game_seed(const std::string &directory, const std::string &hash,
+                                  std::string *resolved, std::string *error) {
+    if (error) error->clear();
+    if (resolved) resolved->clear();
+    if (!hash_format(hash)) return refuse(error, "The app is missing its game-version check. Please rebuild the app.");
+    NSFileManager *fm = [NSFileManager defaultManager];
+    NSString *path = canonical(directory);
+    struct stat st;
+    if (!path || !metadata(path, &st) || !S_ISDIR(st.st_mode))
+        return refuse(error, "This folder cannot be opened. Choose an installed copy of Nancy Drew: Curse of Blackmoor Manor.");
+    // GOG's Mac wrapper has two nested applications. A copied Windows install
+    // already contains GAME.EXE at its root; no executable is ever launched.
+    NSString *nested = [path stringByAppendingPathComponent:@"Contents/Resources/game/Nancy Drew Curse of the Blackmoor Manor.app/Contents/Resources/drive_c/GOG Games/Nancy Drew - Curse of Blackmoor Manor"];
+    if (metadata([nested stringByAppendingPathComponent:@"GAME.EXE"], &st)) path = nested;
+    NSArray *names = [fm contentsOfDirectoryAtPath:path error:nullptr];
+    if (!names) return refuse(error, "This folder cannot be read. Check its permissions, then choose it again.");
+    if (!names.count) return refuse(error, "This folder is empty. Choose the folder where your GOG game is installed.");
+    if (!metadata([path stringByAppendingPathComponent:@"GAME.EXE"], &st))
+        return refuse(error, "This is not the game folder. Choose Nancy Drew: Curse of Blackmoor Manor, containing GAME.EXE, Ciftree, CDSound and CDVideo.");
+    if (!required(path, hash, error)) return false;
+    std::string tree_error;
+    if (!safe_tree(fm, path, false, &tree_error))
+        return refuse(error, "This game folder contains a link or an unreadable file. Choose a complete local copy of your GOG installation.");
+    if (resolved) *resolved = text(path);
+    return true;
+}
+
+bool blackmoor_find_game_seed(const std::string &remembered,
+                              const std::vector<std::string> &known, const std::string &hash,
+                              std::string *resolved, std::string *error) {
+    if (!remembered.empty() && blackmoor_validate_game_seed(remembered, hash, resolved, error)) return true;
+    for (const auto &candidate : known)
+        if (blackmoor_validate_game_seed(candidate, hash, resolved, error)) return true;
+    if (resolved) resolved->clear();
+    return refuse(error, "Choose your installed GOG copy of Nancy Drew: Curse of Blackmoor Manor. The app copies the files it needs and leaves your game folder unchanged.");
+}
+
 bool blackmoor_select_game_data(const Options &o, BlackmoorGameDataSelection *selection, std::string *error) {
     if (error) error->clear();
     if (!selection) return refuse(error, "missing game-data selection output");
@@ -196,6 +234,18 @@ bool blackmoor_select_game_data(const Options &o, BlackmoorGameDataSelection *se
     NSString *seed = canonical(o.seed_directory), *save = canonical(o.save_directory);
     if (!seed || !save || overlap(seed, save)) return refuse(error, "save directory overlaps the original or is empty");
     const char *explicit_path = o.argument_directory ? o.argument_directory : o.environment_directory;
+    // Also protect remembered/copied Windows installations when scratch
+    // overrides are used; those overrides still run their own scratch in place.
+    for (const auto &protected_path : o.protected_seed_directories) {
+        NSString *source = canonical(protected_path);
+        if (!source) continue;
+        if (overlap(source, save)) return refuse(error, "The save folder overlaps your original game folder. Choose a separate save folder.");
+        if (explicit_path) {
+            NSString *chosen = canonical(explicit_path);
+            if (chosen && overlap(source, chosen))
+                return refuse(error, "Explicit game data must be a separate scratch copy, outside your original game folder.");
+        }
+    }
     if (explicit_path) {
         NSString *raw = ns(explicit_path), *chosen = canonical(explicit_path);
         struct stat st;
@@ -218,9 +268,9 @@ bool blackmoor_select_game_data(const Options &o, BlackmoorGameDataSelection *se
         return true;
     }
     struct stat source_st;
-    if (!metadata(ns(o.seed_directory), &source_st) || !S_ISDIR(source_st.st_mode)
-        || !safe_tree(fm, seed, false, error) || !required(seed, o.expected_executable_sha256, error))
-        return refuse(error, "original data cannot initialize a safe default clone");
+    if (!metadata(ns(o.seed_directory), &source_st) || !S_ISDIR(source_st.st_mode))
+        return refuse(error, "The original game folder is unavailable. Choose your installed GOG game folder again.");
+    if (!safe_tree(fm, seed, false, error) || !required(seed, o.expected_executable_sha256, error)) return false;
     if (![fm createDirectoryAtPath:support withIntermediateDirectories:YES
             attributes:@{NSFilePosixPermissions:@0700} error:nullptr]) return refuse(error, "cannot create Application Support data root");
     NSString *stage = [support stringByAppendingPathComponent:[@".DataClone-v1.stage-" stringByAppendingString:NSUUID.UUID.UUIDString]];

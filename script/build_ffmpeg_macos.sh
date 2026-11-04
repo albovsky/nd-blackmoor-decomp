@@ -28,8 +28,10 @@
 # (make is incremental) and does nothing when a finished install with the same configuration exists.
 set -euo pipefail
 
-here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-workspace="$(cd "$here/.." && pwd)"
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")"
+pwd)"
+workspace="$(cd "$here/.."
+pwd)"
 
 version="9.0.1"
 tarball_name="ffmpeg-$version.tar.xz"

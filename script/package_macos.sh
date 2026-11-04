@@ -17,7 +17,7 @@
 # Signing: BLACKMOOR_SIGN_IDENTITY selects a Developer ID identity from the keychain and
 # BLACKMOOR_NOTARY_PROFILE a notarytool keychain profile. Without an identity the result is an
 # ad-hoc DMG whose file name and README say so; that is never reported as a trust success.
-# Nothing is uploaded anywhere, and neither value is ever printed.
+# Only configured Apple notarization uploads a private package; nothing is published publicly.
 #
 # Environment (all optional except GAME_EXE when the default path is absent):
 #   GAME_EXE                  owned original executable (default <workspace>/work/original/GAME.EXE)
@@ -30,8 +30,10 @@
 #   DEVELOPER_DIR, BUILD_DIR, CHUNKS, RELIFT, JOBS   passed through to the builds unchanged
 set -euo pipefail
 
-here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-workspace="$(cd "$here/.." && pwd)"
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")"
+pwd)"
+workspace="$(cd "$here/.."
+pwd)"
 expected_game_sha256="afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45"
 
 fail() {
@@ -59,6 +61,8 @@ out_root="${BLACKMOOR_PACKAGE_OUT:-$workspace/work/package}"
 if [[ ! -x "$python_bin" ]]; then
     fail "pinned Python not found: $python_bin (run script/setup_recomp_python.sh, or set BLACKMOOR_PYTHON)" 2
 fi
+python_directory="$(dirname "$python_bin")"
+export PATH="$python_directory:$PATH"
 
 # --- 2. a working Xcode: keep the active one when it can compile, otherwise pick an installed Xcode*.app
 sdk_ok=0

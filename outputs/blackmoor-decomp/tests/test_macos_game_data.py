@@ -44,5 +44,6 @@ class GameDataTests(unittest.TestCase):
     def test_wrong_completed_cache_is_not_silently_replaced(self):self.run_mode('tamper')
     def test_aliases_symlinks_and_copy_failure_never_touch_original(self):self.run_mode('aliases-failure')
     def test_competing_publication_reuses_only_completed_winner(self):self.run_mode('competing')
+    def test_folder_validation_messages_and_remembered_known_priority(self):self.run_mode('validation')
 
 if __name__=='__main__':unittest.main()

@@ -40,7 +40,7 @@ EXE_RPATH = "@executable_path/../Frameworks"
 DYLIB_RPATH = "@loader_path"
 # The only third-party code that may ship, and the only dylib names allowed in Contents/Frameworks.
 BUNDLED_LIB_RE = re.compile(r"^lib(avformat|avcodec|avutil|swscale|swresample)\.\d+\.dylib$")
-FFMPEG_LICENSE_SUBDIR = Path("Contents/Resources/Licenses/FFmpeg")
+FFMPEG_LICENSE_SUBDIR = Path("Contents/Resources/licenses/FFmpeg")
 FFMPEG_PREFIX_LICENSE_SUBDIR = Path("share/blackmoor-licenses/ffmpeg")
 FFMPEG_LICENSE_FILES = ("COPYING.LGPLv2.1", "COPYING.LGPLv3", "LICENSE.md")
 FFMPEG_REQUIRED_DECODERS = {"binkvideo", "binkaudio_dct", "binkaudio_rdft"}
@@ -562,7 +562,7 @@ def layout_violations(app, executable, resource_suffixes):
             if FORBIDDEN_NAME_RE.search(name):
                 problems.append("forbidden file name: %s" % posix)
                 continue
-            if posix.startswith("Contents/Resources/Licenses/"):
+            if posix.startswith("Contents/Resources/licenses/"):
                 if lower.endswith(FORBIDDEN_SUFFIXES) or is_macho(path):
                     problems.append("non-text file among licences: %s" % posix)
                 continue
@@ -800,7 +800,7 @@ def make_readme(adhoc, notarised, min_macos):
         lines += ["This build is Developer-ID signed but was not notarised.", ""]
     lines += [
         "Third-party notices (FFmpeg, LGPL) are inside the app:",
-        "  Blackmoor Recompiled.app/Contents/Resources/Licenses/FFmpeg/",
+        "  Blackmoor Recompiled.app/Contents/Resources/licenses/FFmpeg/",
         "",
     ]
     return "\n".join(lines)
@@ -847,6 +847,8 @@ def package_command(args):
     notarise = bool(profile)
     sign_with = "-" if adhoc else identity
     hardened = {"always": True, "never": False}.get(args.hardened_runtime, not adhoc)
+    if not adhoc and not hardened:
+        raise BundleError("Developer ID packaging requires hardened runtime")
     if adhoc and hardened:
         # Verified: with library validation an ad-hoc app cannot load its own ad-hoc bundled
         # dylibs ("mapping process and mapped file have different Team IDs").

@@ -11,6 +11,7 @@ outputs/**/*.zip
 outputs/*.zip
 *.log
 outputs/**/*.app/
+outputs/**/*.dmg
 
 # Local agent session state (e.g. superpowers SDD ledgers).
 .superpowers/
