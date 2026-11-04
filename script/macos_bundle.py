@@ -799,14 +799,16 @@ def make_readme(adhoc, notarised, min_macos):
         "Blackmoor Recompiled",
         "====================",
         "",
-        "A native Apple-silicon build of the Blackmoor engine. It does NOT contain the game:",
-        "you need your own legally owned copy of the original game installed on this Mac or on",
+        "This private Apple-silicon build contains game code rebuilt from the owner's GAME.EXE.",
+        "It includes no original game files or GAME.EXE. You need your own GOG copy installed on this Mac or on",
         "a drive. The app checks remembered and known locations, or asks you to choose the folder; your choice is",
         "remembered, the folder is only read, and your saves go to",
         "~/Library/Application Support (never into the game folder).",
         "",
         "Install: drag \"Blackmoor Recompiled\" onto the Applications shortcut.",
         "Requires macOS %s or later on an Apple-silicon Mac." % min_macos,
+        "Keep the app and DMG on Glib's Macs or with testers he names; do not upload them publicly.",
+        "Public distribution remains a separate question for Glib.",
         "",
     ]
     if adhoc:
