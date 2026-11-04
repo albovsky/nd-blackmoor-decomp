@@ -66,6 +66,5 @@ else
 fi
 
 export BLACKMOOR_REQUIRE_ORACLE=1
-exec "$oracle_python" -m unittest discover \
-    -s outputs/blackmoor-decomp/tests -p 'test_*.py' \
+exec "$oracle_python" "$workspace/script/run_test_suite.py" \
     ${arguments[@]+"${arguments[@]}"}

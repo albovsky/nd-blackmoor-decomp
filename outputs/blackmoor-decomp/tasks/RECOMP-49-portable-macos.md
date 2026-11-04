@@ -111,3 +111,22 @@ invalid-operation results while retaining finite arithmetic and all existing
 comparisons; 14 direct/differential tests pass, including the original coverage
 checks. No story or ledger data is changed. A missing Z3 dependency explained
 the older held-row discrepancy; restoring it makes that unchanged check pass.
+
+Owner exception for generated tracking (same authorizing chat): when asked
+whether to apply the prepared evidence/ledger refresh while keeping every
+function status and all totals unchanged, the owner replied "Apply generated
+refresh (Recommended)". Root may regenerate that tracking and independently
+review it; no new port acceptance, reclassification or coverage grant is allowed.
+The proposed and applied refresh retains all 4,188 `(status, class)` pairs and
+every ledger count (2,210 ported, 128 not needed, 1,850 pending).
+
+The x87 reference model explicitly requires Intel `long double` and instructions;
+its ARM fallback is not bit-exact. Existing Rosetta runs the unchanged reference
+checks with a private modern x86 Python, an explicit x86 compiler and a separate
+cache. Two previously failing x87-state comparisons pass there. The canonical
+runner routes the FL40-and-later reference/model tests to that process, keeps
+native port and gameplay tests on ARM64, preserves every discovered test ID and
+duplicate, and propagates failure from either process. This is an isolated
+original-x86 oracle check, not an Intel player build. No test body is skipped or
+weakened. The obsolete FL59 expectation now pins exactly the two CRT copy rows
+that FL78 already translates; its no-port-credit assertion remains unchanged.
