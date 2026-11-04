@@ -285,6 +285,26 @@ static bool writable_directory(const std::string &path, const char *role, std::s
     return refuse(error, std::string(role) + " " + path + " is not writable (" + strerror(errno) + "); the game cannot save there. "
                          "Fix its permissions or pass a writable --save-dir. Existing saves were not changed.");
 }
+// The files the game rewrites (saves and the preferences copy) must be writable too, or its Load/Save stalls without a message.
+static bool writable_game_files(const std::string &folder, std::string *error) {
+    DIR *d = opendir(folder.c_str());
+    if (!d) return true;
+    std::vector<std::string> names;
+    while (struct dirent *e = readdir(d)) {
+        size_t n = strlen(e->d_name);
+        bool save = n > 4 && strcasecmp(e->d_name + n - 4, ".SAV") == 0;
+        if (save || strcasecmp(e->d_name, "GAME.INI") == 0) names.push_back(e->d_name);
+    }
+    closedir(d);
+    for (const std::string &name : names) {
+        std::string path = folder + "/" + name;
+        struct stat st;
+        if (stat(path.c_str(), &st) == 0 && S_ISREG(st.st_mode) && access(path.c_str(), W_OK) != 0)
+            return refuse(error, "the save file " + path + " is not writable (" + strerror(errno) + "); the game cannot overwrite it. "
+                                 "Fix its permissions or pass a writable --save-dir. Existing saves were not changed.");
+    }
+    return true;
+}
 static std::vector<std::string> subdirectories(const std::string &path, bool documents_only) {
     std::vector<std::string> names;
     DIR *d = opendir(path.c_str());
@@ -322,7 +342,17 @@ bool blackmoor_prepare_save_directory(const std::string &directory, std::string 
             std::string inner = folder + "/" + game;
             if (!writable_directory(inner, "the save folder", error)) return false;
             sweep_dead_save_temps(inner);
+            if (!writable_game_files(inner, error)) return false;
         }
     }
+    return true;
+}
+
+bool blackmoor_check_startup(const std::string &executable, const std::string &expected_sha256, const std::string &save_directory,
+                             std::string *error) {
+    std::string detail;
+    if (!blackmoor_verify_executable(executable, expected_sha256, &detail)) return refuse(error, "GAME_EXE: " + detail);
+    if (!blackmoor_prepare_save_directory(save_directory, &detail)) return refuse(error, "SAVE_DIR: " + detail);
+    if (error) error->clear();
     return true;
 }

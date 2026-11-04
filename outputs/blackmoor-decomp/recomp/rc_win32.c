@@ -805,7 +805,9 @@ static int tx_open(const char *h, int exists, mode_t mode, char *tmp, size_t cap
     if (exists && access(h, W_OK) != 0) return errno;
     tmp_path_for(h, tmp, cap);
     *fd = open(tmp, O_RDWR | O_CREAT | O_EXCL, mode);
-    return *fd < 0 ? errno : 0;
+    if (*fd < 0) return errno;
+    fchmod(*fd, mode); /* keep the replaced file's permissions despite the umask */
+    return 0;
 }
 /* Writes every byte or reports the errno of the first failure; *done is what reached the file. A short write is a failure, not a success. */
 static int file_write_all(FileObj *f, const uint8_t *data, uint32_t n, uint32_t *done)
@@ -880,6 +882,7 @@ API(CopyFileA)
     if (stat(hd, &st) == 0 && a[2]) { last_error = 80; RET(0); }
     FILE *in = fopen(hs, "rb");
     if (!in) { last_error = 2; RET(0); }
+    if (stat(hd, &st) == 0 && access(hd, W_OK) != 0) { fclose(in); save_fault("copy", hd, EACCES); last_error = 5; RET(0); }
     char tmp[1700];
     tmp_path_for(hd, tmp, sizeof tmp);
     FILE *out = fopen(tmp, "wb");

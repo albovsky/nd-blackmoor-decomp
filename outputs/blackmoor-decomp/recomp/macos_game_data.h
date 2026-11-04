@@ -30,4 +30,9 @@ bool blackmoor_verify_executable(const std::string &path, const std::string &exp
 // under it: the directory, an existing Documents*/ subfolder or an existing game save folder inside it that is not writable. Existing
 // saves are never opened for writing here. It also sweeps the temp files of dead processes that an interrupted save left behind.
 bool blackmoor_prepare_save_directory(const std::string &directory, std::string *error);
+
+// The whole startup gate in its required order: the resolved executable first (so a refusal creates nothing), then the save directory. The error
+// is already prefixed "GAME_EXE: " or "SAVE_DIR: " for the launcher's stderr.
+bool blackmoor_check_startup(const std::string &executable, const std::string &expected_sha256, const std::string &save_directory,
+                             std::string *error);
 #endif

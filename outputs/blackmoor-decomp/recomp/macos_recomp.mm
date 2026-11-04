@@ -627,12 +627,10 @@ int main(int argc, char **argv)
         fprintf(stderr, "GAME_DATA mode=%s created=%d path=%s\n",
                 data.default_clone ? "default-clone" : "explicit", data.created, g.game_dir.c_str());
         if (g.exe.empty()) g.exe = getenv("GAME_EXE") ? getenv("GAME_EXE") : g.game_dir + "/GAME.EXE";
-        std::string executable_error;
-        if (!blackmoor_verify_executable(g.exe, data_options.expected_executable_sha256, &executable_error)) {
-            fprintf(stderr, "GAME_EXE: %s\n", executable_error.c_str()); return 2;
+        std::string startup_error;
+        if (!blackmoor_check_startup(g.exe, data_options.expected_executable_sha256, g.save_dir, &startup_error)) {
+            fprintf(stderr, "%s\n", startup_error.c_str()); return 2;
         }
-        std::string save_error;
-        if (!blackmoor_prepare_save_directory(g.save_dir, &save_error)) { fprintf(stderr, "SAVE_DIR: %s\n", save_error.c_str()); return 2; }
         if (!log_path.empty()) g.log = fopen(log_path.c_str(), "w");
         g.silent_diagnostics = capture_requested || !log_path.empty();
 

@@ -7,11 +7,15 @@
 #include <signal.h>
 #include <sys/resource.h>
 #include <sys/wait.h>
+#include <ftw.h>
 
 static unsigned checks, failures;
 #define EXPECT(cond, what) do { checks++; if (!(cond)) { failures++; fprintf(stderr, "FAIL %s (line %d)\n", what, __LINE__); } } while (0)
 
 static char dir[256];
+
+static int remove_one(const char *path, const struct stat *st, int flag, struct FTW *ftw) { (void)st; (void)flag; (void)ftw; return remove(path); }
+static void remove_tree(const char *root) { nftw(root, remove_one, 16, FTW_DEPTH | FTW_PHYS); }
 
 static void put(const char *name, const void *data, size_t n)
 {
@@ -51,6 +55,41 @@ static int begin(const char *name, FileObj *f)
     return tx_open(h, exists, exists ? st.st_mode & 07777 : 0644, f->tmp, sizeof f->tmp, &f->fd);
 }
 
+
+/* A flat fake guest: 0x10000..0x110000 backed by host memory, plus a tiny handle table. Only what the file APIs touch. */
+uint8_t *rc_pages[RC_NPAGES];
+static uint8_t guest[0x100000];
+#define GUEST_BASE 0x10000u
+static void guest_init(void)
+{
+    for (uint32_t i = 0; i < sizeof guest / RC_PAGE; i++) rc_pages[(GUEST_BASE >> 12) + i] = guest + (size_t)i * RC_PAGE;
+}
+static uint8_t *gp(uint32_t va) { return guest + (va - GUEST_BASE); }
+uint32_t rc_rd_slow(uint32_t a, int bytes) { uint32_t v = 0; memcpy(&v, gp(a), (size_t)bytes); return v; }
+void rc_wr_slow(uint32_t a, int bytes, uint32_t v) { memcpy(gp(a), &v, (size_t)bytes); }
+void *rc_ptr(uint32_t va, uint32_t bytes) { (void)bytes; return gp(va); }
+void rc_read(uint32_t va, void *dst, size_t n) { memcpy(dst, gp(va), n); }
+void rc_write(uint32_t va, const void *src, size_t n) { memcpy(gp(va), src, n); }
+size_t rc_cstr(uint32_t va, char *out, size_t cap) { snprintf(out, cap, "%s", (const char *)gp(va)); return strlen(out); }
+void rc_thread_close(RcGuestThread *t) { (void)t; }
+static struct { int kind; void *obj; } handles[64];
+uint32_t rc_handle_new(int kind, void *obj) { for (uint32_t i = 1; i < 64; i++) if (!handles[i].kind) { handles[i].kind = kind; handles[i].obj = obj; return 0x100 + i * 4; } return 0; }
+void *rc_handle_obj(uint32_t h, int kind) { uint32_t i = (h - 0x100) / 4; return h >= 0x104 && i < 64 && handles[i].kind == kind ? handles[i].obj : NULL; }
+int rc_handle_kind(uint32_t h) { uint32_t i = (h - 0x100) / 4; return h >= 0x104 && i < 64 ? handles[i].kind : 0; }
+void rc_handle_close(uint32_t h) { uint32_t i = (h - 0x100) / 4; if (h >= 0x104 && i < 64) handles[i].kind = 0; }
+
+static uint32_t guest_string(uint32_t va, const char *s) { memcpy(gp(va), s, strlen(s) + 1); return va; }
+#define NAME_VA 0x20000u
+#define NAME2_VA 0x21000u
+#define DATA_VA 0x30000u
+#define OUT_VA 0x28000u
+static uint32_t call(int (*api)(Fl41Regs *, const uint32_t *, uint32_t *), uint32_t a0, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4)
+{
+    uint32_t args[8] = {a0, a1, a2, a3, a4, 0, 0, 0}, ret = 0xdeadbeefu;
+    if (api(NULL, args, &ret) != 0) { fprintf(stderr, "api stopped\n"); exit(2); }
+    return ret;
+}
+
 void rc_log(const char *fmt, ...) { (void)fmt; }
 
 static uint8_t pattern(size_t i) { return (uint8_t)(i * 31u + 7u); }
@@ -58,7 +97,8 @@ static uint8_t pattern(size_t i) { return (uint8_t)(i * 31u + 7u); }
 int main(void)
 {
     signal(SIGXFSZ, SIG_IGN);
-    snprintf(dir, sizeof dir, "/private/tmp/blackmoor-save-fixture.XXXXXX");
+    const char *tmpdir = getenv("TMPDIR");
+    snprintf(dir, sizeof dir, "%s/blackmoor-save-fixture.XXXXXX", tmpdir && *tmpdir ? tmpdir : "/tmp");
     if (!mkdtemp(dir)) return 2;
     enum { OLD = 170770, NEW = 170770 };
     static uint8_t old_bytes[OLD], new_bytes[NEW], got[NEW + 4096];
@@ -142,6 +182,77 @@ int main(void)
         chmod(path, 0644);
     }
 
+
+    /* 7. the same guarantees through the real KERNEL32 entry points the game calls */
+    guest_init();
+    {
+        char save[300], game[300];
+        snprintf(game, sizeof game, "%s/game", dir);
+        snprintf(save, sizeof save, "%s/saves", dir);
+        mkdir(game, 0755); mkdir(save, 0755);
+        char slot_dir[400];
+        snprintf(slot_dir, sizeof slot_dir, "%s/Documents5", save); mkdir(slot_dir, 0755);
+        snprintf(slot_dir, sizeof slot_dir, "%s/Documents5/The Curse of Blackmoor Manor", save); mkdir(slot_dir, 0755);
+        have_plat = 1; rc_plat.game_dir = game; rc_plat.save_dir = save;
+        char slot[460];
+        snprintf(slot, sizeof slot, "%s/m0.SAV", slot_dir);
+        FILE *o = fopen(slot, "wb"); fwrite(old_bytes, 1, OLD, o); fclose(o);
+        uint32_t name = guest_string(NAME_VA, "C:\\GAME\\Documents5\\The Curse of Blackmoor Manor\\m0.SAV");
+        memcpy(gp(DATA_VA), new_bytes, NEW);
+        static uint8_t again[NEW + 4096];
+        struct stat sst;
+
+        uint32_t h = call(api_CreateFileA, name, 0x40000000u, 0, 0, 2);
+        EXPECT(h != 0xffffffffu, "CreateFileA(CREATE_ALWAYS) opens the replacement");
+        EXPECT(stat(slot, &sst) == 0 && sst.st_size == OLD, "CreateFileA no longer truncates the slot");
+        EXPECT(call(api_WriteFile, h, DATA_VA, NEW, OUT_VA, 0) == 1 && rc_rd(OUT_VA, 4) == NEW, "WriteFile writes everything");
+        EXPECT(call(api_CloseHandle, h, 0, 0, 0, 0) == 1, "CloseHandle commits");
+        o = fopen(slot, "rb"); size_t got_n = fread(again, 1, sizeof again, o); fclose(o);
+        EXPECT(got_n == NEW && !memcmp(again, new_bytes, NEW), "the slot holds the new bytes after CloseHandle");
+
+        o = fopen(slot, "wb"); fwrite(old_bytes, 1, OLD, o); fclose(o);
+        h = call(api_CreateFileA, name, 0x40000000u, 0, 0, 2);
+        setrlimit(RLIMIT_FSIZE, &small);
+        uint32_t ok = call(api_WriteFile, h, DATA_VA, NEW, OUT_VA, 0);
+        setrlimit(RLIMIT_FSIZE, &saved);
+        EXPECT(ok == 0 && rc_rd(OUT_VA, 4) < NEW, "WriteFile reports the short write and the count that reached the file");
+        EXPECT(last_error == 112, "WriteFile sets ERROR_DISK_FULL");
+        EXPECT(call(api_CloseHandle, h, 0, 0, 0, 0) == 0, "CloseHandle reports the failed save");
+        o = fopen(slot, "rb"); got_n = fread(again, 1, sizeof again, o); fclose(o);
+        EXPECT(got_n == OLD && !memcmp(again, old_bytes, OLD), "the slot keeps the old bytes after the failed API save");
+
+        /* CopyFileA is replace-or-nothing too, and refuses a read-only destination */
+        char src[460], dst[460];
+        snprintf(src, sizeof src, "%s/GAME.INI", game); snprintf(dst, sizeof dst, "%s/GAME.INI", slot_dir);
+        o = fopen(src, "wb"); fwrite("[A]\nx=1\n", 1, 9, o); fclose(o);
+        o = fopen(dst, "wb"); fwrite("old ini", 1, 7, o); fclose(o);
+        uint32_t from = guest_string(NAME2_VA, "C:\\GAME\\GAME.INI");
+        uint32_t to = guest_string(NAME_VA, "C:\\GAME\\Documents5\\The Curse of Blackmoor Manor\\GAME.INI");
+        EXPECT(call(api_CopyFileA, from, to, 0, 0, 0) == 1, "CopyFileA replaces an existing writable file");
+        o = fopen(dst, "rb"); got_n = fread(again, 1, 64, o); fclose(o);
+        EXPECT(got_n == 9 && !memcmp(again, "[A]\nx=1\n", 9), "CopyFileA delivered the new contents");
+        if (geteuid() != 0) {
+            chmod(dst, 0444);
+            EXPECT(call(api_CopyFileA, from, to, 0, 0, 0) == 0 && last_error == 5, "CopyFileA refuses a read-only destination");
+            chmod(dst, 0644);
+        }
+
+        /* an interrupted overwrite's temp is not listed by the game's file searches */
+        char stray[560];
+        snprintf(stray, sizeof stray, "%s/.rcsave-999999-0.tmp", slot_dir);
+        o = fopen(stray, "wb"); fwrite("partial", 1, 7, o); fclose(o);
+        uint32_t pattern = guest_string(NAME_VA, "C:\\GAME\\Documents5\\The Curse of Blackmoor Manor\\*.*");
+        unsigned listed = 0, stray_listed = 0;
+        uint32_t fh = call(api_FindFirstFileA, pattern, OUT_VA, 0, 0, 0);
+        for (int more = fh != 0xffffffffu; more; more = (int)call(api_FindNextFileA, fh, OUT_VA, 0, 0, 0)) {
+            listed++;
+            if (!strncmp((char *)gp(OUT_VA + 44), TMP_PREFIX, sizeof TMP_PREFIX - 1)) stray_listed++;
+        }
+        EXPECT(listed == 2 && stray_listed == 0, "FindFirstFileA/FindNextFileA list the slot and GAME.INI but not the temp");
+    }
+
+    /* clean up the private directory */
+    remove_tree(dir);
     printf("SAVE_FIXTURE checks=%u failures=%u\n", checks, failures);
     return failures ? 1 : 0;
 }
