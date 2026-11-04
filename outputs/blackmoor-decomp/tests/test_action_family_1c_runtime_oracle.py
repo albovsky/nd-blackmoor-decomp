@@ -4,6 +4,7 @@ Skips with a clear message when the local original evidence (work/original/GAME.
 (--workers N), the native-only refusal checks and the planted-mutant sweep (tests/action_family_1c_runtime_mutation_check.py) are done by
 hand (see the oracle's docstring)."""
 import importlib.util
+import os
 import shutil
 import subprocess
 import sys
@@ -13,6 +14,20 @@ from pathlib import Path
 PROJECT = Path(__file__).resolve().parents[1]
 ROOT = PROJECT.parents[1]
 ORACLE = PROJECT / 'tests/action_family_1c_runtime_original_oracle.py'
+
+
+def oracle_environment():
+    environment = dict(os.environ)
+    if sys.platform == 'darwin':
+        adapter = PROJECT / 'tests/macos_allocation_cc.py'
+        compiler = environment.get('BLACKMOOR_A1C_REAL_CC') or environment.get('CC')
+        if not compiler or Path(compiler).resolve() == adapter.resolve():
+            compiler = shutil.which('clang') or shutil.which('cc')
+        if not compiler:
+            raise RuntimeError('allocation oracle: no C compiler')
+        environment['BLACKMOOR_A1C_REAL_CC'] = compiler
+        environment['CC'] = str(adapter)
+    return environment
 
 
 def oracle_ready(test):
@@ -29,13 +44,14 @@ class QuickOracleAgainstTheOriginal(unittest.TestCase):
     def test_quick_scenarios_against_the_original_dispatcher(self):
         oracle_ready(self)
         done = subprocess.run([sys.executable, str(ORACLE), '--quick-only', '--fail-fast'], capture_output=True, text=True,
-                              cwd=str(PROJECT / 'tests'))
+                              cwd=str(PROJECT / 'tests'), env=oracle_environment())
         self.assertEqual(done.returncode, 0, done.stdout[-2500:] + done.stderr[-1500:])
         self.assertIn('"mismatches": 0', done.stdout)
 
     def test_native_only_refusals_match_the_originals_failure_paths(self):
         oracle_ready(self)
-        done = subprocess.run([sys.executable, str(ORACLE), '--refusals-only'], capture_output=True, text=True, cwd=str(PROJECT / 'tests'))
+        done = subprocess.run([sys.executable, str(ORACLE), '--refusals-only'], capture_output=True, text=True,
+                              cwd=str(PROJECT / 'tests'), env=oracle_environment())
         self.assertEqual(done.returncode, 0, done.stdout[-2500:] + done.stderr[-1500:])
         self.assertIn('"mismatches": 0', done.stdout)
 

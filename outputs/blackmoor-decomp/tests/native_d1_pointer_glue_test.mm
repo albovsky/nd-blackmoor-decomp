@@ -63,12 +63,13 @@ static bool add_unknown_earlier_member(std::vector<uint8_t> &bytes)
     if (bytes.size() < 12 || std::memcmp(bytes.data(), "DATA", 4) != 0 ||
         std::memcmp(bytes.data() + 8, "SCEN", 4) != 0) return false;
     const size_t start = bytes.size();
-    bytes.resize(start + 8 + 50, 0);
+    const size_t body_size = D0_BODY_BYTES;
+    bytes.resize(start + 8u + 50u + body_size + (body_size & 1u), 0);
     std::memcpy(bytes.data() + start, "ACT", 3);
-    put_be32(bytes, start + 4, 50);
-    const char label[] = "NATIVE-02 opaque earlier receiver";
+    put_be32(bytes, start + 4, static_cast<uint32_t>(50u + body_size));
+    const char label[] = "NATIVE-02 unbound earlier receiver";
     std::memcpy(bytes.data() + start + 8, label, sizeof(label));
-    bytes[start + 8 + 48] = 0xcf; /* Tangram precedes D1 in 0x4f0059. */
+    bytes[start + 8 + 48] = SESSION_AD0_TYPE; /* Piano has earlier dispatch priority; no D0 receiver exists here. */
     bytes[start + 8 + 49] = 1;
     put_be32(bytes, 4, static_cast<uint32_t>(bytes.size() - 8));
     return true;
@@ -119,10 +120,8 @@ struct Fixture {
         }
         app.scene = session_scene;
         if (unknown) {
-            /* The executor correctly refuses opaque CF rows. Keep the real
-             * S4376 session and binding, and give the actual app callbacks a
-             * parsed scene view containing that possible earlier owner. This
-             * is a negative scope fixture, not a claim CF can execute. */
+            /* Opaque CF cannot enter a live executor. Use a known-layout D0
+             * owner with earlier dispatch priority, a host sink and no D0 receiver. */
             if (!add_unknown_earlier_member(bytes)) return false;
             app.scene = scene_resource_open_memory(bytes.data(), bytes.size(), error, sizeof(error));
             if (app.scene == nullptr) return false;
@@ -164,9 +163,10 @@ struct Fixture {
         if (app.ad1 == nullptr || session_ad1_begin_scene(app.ad1, session_scene) != D1_OK) return false;
 
         std::vector<uint8_t> types;
-        for (size_t row = 0; row < scene_resource_action_count(session_scene); ++row) {
+        SceneResource *const dispatch_scene = unknown ? app.scene : session_scene;
+        for (size_t row = 0; row < scene_resource_action_count(dispatch_scene); ++row) {
             SceneActionInfo info{};
-            if (scene_resource_action_at(session_scene, row, &info) != SCENE_RESOURCE_OK) return false;
+            if (scene_resource_action_at(dispatch_scene, row, &info) != SCENE_RESOURCE_OK) return false;
             if (info.type == SESSION_AD1_TYPE) {
                 if (d1_row != SIZE_MAX) return false;
                 d1_row = row;
@@ -185,13 +185,12 @@ struct Fixture {
             }
         }
         if (d1_row == SIZE_MAX) return false;
-        if (unknown) types.push_back(0xcf);
         /* Same scene-derived guard used by nav_begin_scene, never forced clear. */
         app.nav_members_idle = session_navigation_members_idle(types.data(), types.size()) != 0;
         world.event_flags = flags.data(); world.event_flag_count = flags.size();
         conditions.event_flags = flags.data(); conditions.event_flag_count = flags.size();
         SceneSessionConfig config{};
-        config.scene = session_scene; config.scene_id = scene_id;
+        config.scene = dispatch_scene; config.scene_id = scene_id;
         config.action_core_world = &world; config.conditions = &conditions;
         config.action_bindings = bindings.data(); config.action_binding_count = bindings.size();
         config.prepare_tick = prepare; config.advance_media_one = media;
@@ -442,6 +441,18 @@ static int exercise(const char *path, const char *kind, const char *game_directo
     if (std::strcmp(kind, "scene4377") == 0) {
         const int status = exercise_s4377_miss_release(f);
         if (status != 0) return status;
+    }
+    if (unknown) {
+        bool live_earlier_owner = false;
+        for (size_t row = 0; row < native_action_count(&f.app); ++row) {
+            SceneActionInfo info{};
+            if (native_action_at(&f.app, row, &info) == SCENE_RESOURCE_OK && info.type == SESSION_AD0_TYPE)
+                live_earlier_owner = true;
+        }
+        if (!live_earlier_owner || f.app.nav_members_idle) {
+            std::fprintf(stderr, "FAIL: unbound earlier receiver must be present in authoritative live slots\n");
+            return 1;
+        }
     }
     /* S4376 row 1 tile 0: original inclusive hit rect (200,238,249,303).
      * Coordinates include the app's (10,10) viewport origin. Expectations are

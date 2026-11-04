@@ -22,6 +22,7 @@ EXPECTED = [
     'test_m4ccdab_reset_object',
     'test_m47e2a5_release_surfaces',
     'test_m423259_find_by_name',
+    'test_m423259_frame_boundary',
     'test_m4e89eb_layout_slots',
     'test_m4e444d_find_name',
     'test_m4b617a_arm_piece',
@@ -101,6 +102,10 @@ class Fl19aDirect(unittest.TestCase):
     def test_find_by_name_423259(self):
         """FL-19: direct test of m423259_find_by_name (original 0x423259)"""
         self.check('test_m423259_find_by_name')
+
+    def test_find_by_name_423259_frame_boundary(self):
+        """FL-19: direct regression test of m423259_find_by_name for names that fill the original's 0x28 byte local"""
+        self.check('test_m423259_frame_boundary')
 
     def test_layout_slots_4e89eb(self):
         """FL-19: direct test of m4e89eb_layout_slots (original 0x4e89eb)"""

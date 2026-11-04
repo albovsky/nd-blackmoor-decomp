@@ -1,5 +1,6 @@
 #include "original_methods_fl30a.h"
 
+#include <math.h>
 #include <string.h>
 
 static uint32_t rd32(const uint8_t *base, ptrdiff_t off)
@@ -233,9 +234,23 @@ void m44b3c8_sum_kinds(uint32_t index, const Fl30aWorld *world, const Fl18Host *
                 } else {
                     float count = (float)value;
                     v = (float)(((double)count / 100.0) * (double)f);
+                    if (value == 0 && isinf(f)) {
+                        /* 0x44b597 FMUL produces x87's negative indefinite. */
+                        const uint32_t indefinite = 0xffc00000u;
+                        memcpy(&v, &indefinite, sizeof v);
+                    }
                 }
             }
-            wrf32(world->tab_58c91d, (ptrdiff_t)res(host, rec)[0] * 4, (float)((double)v + (double)rdf32(world->tab_58c91d, (ptrdiff_t)res(host, rec)[0] * 4)));
+            {
+                float total = rdf32(world->tab_58c91d, (ptrdiff_t)res(host, rec)[0] * 4);
+                float sum = (float)((double)v + (double)total);
+                if (isinf(v) && isinf(total) && signbit(v) != signbit(total)) {
+                    /* 0x44b614 FADD: opposite infinities use the same NaN. */
+                    const uint32_t indefinite = 0xffc00000u;
+                    memcpy(&sum, &indefinite, sizeof sum);
+                }
+                wrf32(world->tab_58c91d, (ptrdiff_t)res(host, rec)[0] * 4, sum);
+            }
         }
     }
     call1(host, 0x42ba3a, 0, index & 0xffffu);

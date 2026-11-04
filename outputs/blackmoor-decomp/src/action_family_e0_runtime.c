@@ -891,7 +891,9 @@ int e0_render_plan(E0Object *o, const uint8_t *b, size_t body_length, const E0Ho
             if (d + 16u > E0_BODY_CAPACITY || B_LIGHT_SRC + (size_t)i * 16u + 16u > E0_BODY_CAPACITY)
                 return E0_ERR_BOUNDS;
             rd_rect(b, d, dst);
-            if (dst[3] - dst[1] != 0) {
+            /* 0x472bd7/0x472cc6 use 32-bit SUB/TEST/JZ. Only equality
+             * matters; compare endpoints without C signed-overflow UB. */
+            if (dst[3] != dst[1]) {
                 rd_rect(b, B_LIGHT_SRC + (size_t)i * 16u, src);
                 rc = add_blit(plan, E0_BLIT_SHEET_KEYED, E0_ROLE_ROUND_LIGHT, src, vx, vy, dst);
                 if (rc != E0_OK) return rc;
@@ -903,7 +905,7 @@ int e0_render_plan(E0Object *o, const uint8_t *b, size_t body_length, const E0Ho
             if (d + 16u > E0_BODY_CAPACITY || B_ACTIVE_SRC + last * 16u + 16u > E0_BODY_CAPACITY)
                 return E0_ERR_BOUNDS;
             rd_rect(b, d, dst);
-            if (dst[3] - dst[1] != 0) {
+            if (dst[3] != dst[1]) {
                 int rc;
                 if (o->blink != 0u) {
                     rc = add_blit(plan, E0_BLIT_BG_KEYED, E0_ROLE_ACTIVE_ERASE, dst, vx, vy, dst);

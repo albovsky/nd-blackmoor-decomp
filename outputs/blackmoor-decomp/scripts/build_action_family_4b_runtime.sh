@@ -12,5 +12,6 @@ mkdir -p "$(dirname "$output")"
 xcrun --sdk macosx clang -arch arm64 -std=c11 \
     -Wall -Wextra -Wpedantic -Werror -O2 -g -fPIC -dynamiclib \
     ${A4B_CFLAGS:-} \
-    "$source_dir/session_bindings_a4b.c" "$source_dir/action_family_4b.c" -o "$output"
+    "$source_dir/session_bindings_a4b.c" "$source_dir/action_family_4b.c" \
+    "$source_dir/scene_resource.c" "$source_dir/hiff.c" -o "$output"
 printf '%s\n' "$output"

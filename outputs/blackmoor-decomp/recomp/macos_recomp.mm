@@ -86,7 +86,7 @@ struct Recomp {
     std::atomic<unsigned> background_activations{0};
     id activation_observer = nil;
     FILE *log = nullptr;
-    std::string game_dir, exe, save_dir;
+    std::string game_dir, exe, save_dir, data_support_dir;
     AVAudioEngine *engine = nil;
     std::atomic<bool> audio_stopping{false};
     std::atomic<unsigned> audio_callbacks{0};
@@ -421,7 +421,21 @@ void start_audio()
         }];
     [g.engine attachNode:source];
     NSError *error = nil;
-    if (![g.engine connect:source to:g.engine.mainMixerNode format:format error:&error] || ![g.engine startAndReturnError:&error]) {
+    BOOL connected = NO;
+    if (@available(macOS 27.0, *)) {
+        connected = [g.engine connect:source to:g.engine.mainMixerNode format:format error:&error];
+    } else {
+        // The error-returning connection API is new in macOS 27. Earlier
+        // systems use the original API, which reports failures as exceptions.
+        @try {
+            [g.engine connect:source to:g.engine.mainMixerNode format:format];
+            connected = YES;
+        } @catch (NSException *exception) {
+            error = [NSError errorWithDomain:@"BlackmoorAudio" code:1
+                userInfo:@{NSLocalizedDescriptionKey:exception.reason ?: @"The audio device could not be connected."}];
+        }
+    }
+    if (!connected || ![g.engine startAndReturnError:&error]) {
         if (g.log) fprintf(g.log, "audio engine: %s\n", error.localizedDescription.UTF8String);
         source_enabled->store(false);
         [g.engine stop];
@@ -488,6 +502,61 @@ bool stop_audio()
     return true;
 }
 
+NSString *const kGameFolderPreference = @"BlackmoorOriginalGameFolder";
+
+std::string remembered_game_folder()
+{
+    id value = [[NSUserDefaults standardUserDefaults] objectForKey:kGameFolderPreference];
+    return [value isKindOfClass:NSString.class] ? std::string([value fileSystemRepresentation]) : std::string();
+}
+
+std::vector<std::string> known_game_folders()
+{
+    const std::string home = NSHomeDirectory().fileSystemRepresentation;
+    return {
+        "/Applications/Nancy Drew - Curse of Blackmoor Manor.app",
+        home + "/Applications/Nancy Drew - Curse of Blackmoor Manor.app",
+        home + "/GOG Games/Nancy Drew - Curse of Blackmoor Manor",
+        home + "/GOG Games/Nancy Drew Curse of Blackmoor Manor",
+        home + "/Games/Nancy Drew - Curse of Blackmoor Manor",
+        home + "/Games/Nancy Drew Curse of Blackmoor Manor"
+    };
+}
+
+void remember_game_folder(const std::string &path)
+{
+    [[NSUserDefaults standardUserDefaults] setObject:[NSString stringWithUTF8String:path.c_str()]
+                                            forKey:kGameFolderPreference];
+}
+
+bool choose_game_folder(std::string *path)
+{
+    // This function is never called by the background diagnostic path.
+    if (g.background) return false;
+    [NSApplication sharedApplication];
+    for (;;) {
+        NSOpenPanel *panel = [NSOpenPanel openPanel];
+        panel.title = @"Choose Game Folder";
+        panel.message = @"Choose your GOG copy of Nancy Drew: Curse of Blackmoor Manor. Select the installed game folder or its Mac app. Your original files will stay unchanged.";
+        panel.prompt = @"Choose Folder";
+        panel.canChooseDirectories = YES;
+        panel.canChooseFiles = NO;
+        panel.allowsMultipleSelection = NO;
+        panel.treatsFilePackagesAsDirectories = YES;
+        if ([panel runModal] != NSModalResponseOK) return false;
+        std::string error;
+        if (blackmoor_validate_game_seed(panel.URL.path.fileSystemRepresentation,
+                                         BLACKMOOR_GAME_SHA256, path, &error)
+            && blackmoor_validate_seed_destinations(*path, g.data_support_dir, g.save_dir, &error)) return true;
+        NSAlert *alert = [[NSAlert alloc] init];
+        alert.messageText = @"Please choose another game folder";
+        alert.informativeText = [NSString stringWithUTF8String:error.c_str()];
+        [alert addButtonWithTitle:@"Try Again"];
+        [alert addButtonWithTitle:@"Cancel"];
+        if ([alert runModal] != NSAlertFirstButtonReturn) return false;
+    }
+}
+
 // Called only after successful game-thread join. rc_main has also joined all
 // guest workers, and stop_audio has joined the mixer/capture producers.
 bool write_primary_snapshot(const std::string &path)
@@ -541,9 +610,23 @@ bool write_primary_snapshot(const std::string &path)
 }  // namespace
 
 @interface BlackmoorRecompApplicationDelegate : NSObject <NSApplicationDelegate>
+- (void)chooseGameFolder:(id)sender;
 @end
 
 @implementation BlackmoorRecompApplicationDelegate
+- (void)chooseGameFolder:(id)sender
+{
+    (void)sender;
+    if (g.background) return;
+    std::string selected;
+    if (!choose_game_folder(&selected)) return;
+    remember_game_folder(selected);
+    NSAlert *alert = [[NSAlert alloc] init];
+    alert.messageText = @"Game folder saved";
+    alert.informativeText = @"This original folder will be checked on the next launch. The app keeps its completed working copy and saved games in Application Support.";
+    [alert addButtonWithTitle:@"OK"];
+    [alert runModal];
+}
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender
 {
     (void)sender;
@@ -611,27 +694,72 @@ int main(int argc, char **argv)
         if (!support_path.length) { fputs("Application Support directory unavailable\n", stderr); return 2; }
         std::string application_support = std::string(support_path.fileSystemRepresentation) + "/Blackmoor Recompiled";
         if (g.save_dir.empty()) g.save_dir = application_support;
+        g.data_support_dir = application_support + " Data";
+        if (!log_path.empty()) g.log = fopen(log_path.c_str(), "w");
+        std::string seed_path;
+        std::string seed_error;
+        std::string remembered = remembered_game_folder();
+        if (!remembered.empty() && !blackmoor_validate_seed_destinations(remembered,
+                g.data_support_dir, g.save_dir, &seed_error)) {
+            [[NSUserDefaults standardUserDefaults] removeObjectForKey:kGameFolderPreference];
+            remembered.clear();
+        }
+        auto known = known_game_folders();
+        const bool explicit_data = argument_game_dir || environment_game_dir;
+        const bool found_seed = blackmoor_find_game_seed(remembered, known, BLACKMOOR_GAME_SHA256,
+                                                        &seed_path, &seed_error);
         BlackmoorGameDataOptions data_options;
         data_options.argument_directory = argument_game_dir;
         data_options.environment_directory = environment_game_dir;
-        data_options.seed_directory = original_game_seed;
+        data_options.seed_directory = seed_path.empty() ? original_game_seed : seed_path;
         data_options.support_directory = application_support + " Data";
         data_options.save_directory = g.save_dir;
-        data_options.expected_executable_sha256 = "afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45";
+        data_options.expected_executable_sha256 = BLACKMOOR_GAME_SHA256;
+        // Protect the nested original as well as the GOG wrapper directory.
+        data_options.protected_seed_directories = known;
+        if (!remembered.empty()) data_options.protected_seed_directories.push_back(remembered);
         BlackmoorGameDataSelection data;
         std::string data_error;
-        if (!blackmoor_select_game_data(data_options, &data, &data_error)) {
-            fprintf(stderr, "GAME_DATA: %s\n", data_error.c_str()); return 2;
+        // A completed private copy needs no mounted/installed original. Try that
+        // before asking for a seed, preserving the previous offline behavior.
+        bool selected = false;
+        if (!found_seed && !explicit_data)
+            selected = blackmoor_select_game_data(data_options, &data, &data_error);
+        if (!found_seed && !explicit_data && !selected) {
+            if (g.background || !choose_game_folder(&seed_path)) {
+                frontend_message(("GAME_DATA: " + seed_error).c_str());
+                if (g.log) fclose(g.log);
+                return 2;
+            }
+            data_options.seed_directory = seed_path;
         }
+        if (!selected) selected = blackmoor_select_game_data(data_options, &data, &data_error);
+        if (!selected) {
+            frontend_message(("GAME_DATA: " + data_error).c_str());
+            if (!g.background) {
+                NSAlert *alert = [[NSAlert alloc] init];
+                alert.messageText = @"The game could not be prepared";
+                alert.informativeText = [NSString stringWithUTF8String:data_error.c_str()];
+                [alert runModal];
+            }
+            if (g.log) fclose(g.log);
+            return 2;
+        }
+        if (!explicit_data && !seed_path.empty()) remember_game_folder(seed_path);
         g.game_dir = data.directory;
-        fprintf(stderr, "GAME_DATA mode=%s created=%d path=%s\n",
-                data.default_clone ? "default-clone" : "explicit", data.created, g.game_dir.c_str());
+        char data_message[4096];
+        snprintf(data_message, sizeof data_message, "GAME_DATA mode=%s created=%d path=%s saves=%s",
+                 data.default_clone ? "default-clone" : "explicit", data.created, g.game_dir.c_str(), g.save_dir.c_str());
+        frontend_message(data_message);
         if (g.exe.empty()) g.exe = getenv("GAME_EXE") ? getenv("GAME_EXE") : g.game_dir + "/GAME.EXE";
+        // Folder discovery/selection and explicit executable overrides are now
+        // final. Check the exact file passed to rc_start on every startup route.
         std::string startup_error;
         if (!blackmoor_check_startup(g.exe, data_options.expected_executable_sha256, g.save_dir, &startup_error)) {
-            fprintf(stderr, "%s\n", startup_error.c_str()); return 2;
+            frontend_message(startup_error.c_str());
+            if (g.log) fclose(g.log);
+            return 2;
         }
-        if (!log_path.empty()) g.log = fopen(log_path.c_str(), "w");
         g.silent_diagnostics = capture_requested || !log_path.empty();
 
         RcPlatform plat;
@@ -663,6 +791,18 @@ int main(int argc, char **argv)
             return g.background_failed.load(std::memory_order_acquire) ? 6 : 3;
         }
         record_background_status("opened");
+        NSMenuItem *app_menu_item = NSApp.mainMenu.itemArray.firstObject;
+        NSMenu *app_menu = app_menu_item.submenu;
+        if (app_menu) {
+            app_menu_item.title = @"Blackmoor Recompiled";
+            app_menu.title = @"Blackmoor Recompiled";
+            NSMenuItem *choose = [[NSMenuItem alloc] initWithTitle:@"Choose Game Folder..."
+                action:@selector(chooseGameFolder:) keyEquivalent:@""];
+            choose.target = application_delegate;
+            choose.enabled = !g.background;
+            [app_menu insertItem:choose atIndex:0];
+            [app_menu insertItem:NSMenuItem.separatorItem atIndex:1];
+        }
         if (g.background_failed.load(std::memory_order_acquire)) {
             blackmoor_macos_close(g.platform);
             g.platform = nullptr;

@@ -21,6 +21,7 @@ import shutil
 import subprocess
 import tempfile
 import unittest
+from sanitizer_support import sanitizer_environment
 
 PROJECT = Path(__file__).resolve().parents[1]
 SRC = PROJECT / 'src'
@@ -602,15 +603,15 @@ MUTANTS = {
         'render: one light too few': ('for (int16_t i = 0; i < o->round; ++i) {\n            const size_t d', 'for (int16_t i = 0; i < o->round - 1; ++i) {\n            const size_t d'),
         'render: light destination stride': ('const size_t d = B_LIGHT_DST + (size_t)i * 16u;', 'const size_t d = B_LIGHT_DST + (size_t)i * 8u;'),
         'render: light source stride': ('rd_rect(b, B_LIGHT_SRC + (size_t)i * 16u, src);', 'rd_rect(b, B_LIGHT_SRC + (size_t)i * 8u, src);'),
-        'render: light skipped for negative height': ('if (dst[3] - dst[1] != 0) {\n                rd_rect(b, B_LIGHT_SRC', 'if (dst[3] - dst[1] > 0) {\n                rd_rect(b, B_LIGHT_SRC'),
-        'render: light drawn at zero height': ('if (dst[3] - dst[1] != 0) {\n                rd_rect(b, B_LIGHT_SRC', 'if (1) {\n                rd_rect(b, B_LIGHT_SRC'),
+        'render: light skipped for negative height': ('if (dst[3] != dst[1]) {\n                rd_rect(b, B_LIGHT_SRC', 'if (dst[3] > dst[1]) {\n                rd_rect(b, B_LIGHT_SRC'),
+        'render: light drawn at zero height': ('if (dst[3] != dst[1]) {\n                rd_rect(b, B_LIGHT_SRC', 'if (1) {\n                rd_rect(b, B_LIGHT_SRC'),
         'render: light kind': ('add_blit(plan, E0_BLIT_SHEET_KEYED, E0_ROLE_ROUND_LIGHT, src, vx, vy, dst);', 'add_blit(plan, E0_BLIT_BG_KEYED, E0_ROLE_ROUND_LIGHT, src, vx, vy, dst);'),
         'render: light from the destination': ('rd_rect(b, B_LIGHT_SRC + (size_t)i * 16u, src);\n                rc = add_blit(plan, E0_BLIT_SHEET_KEYED, E0_ROLE_ROUND_LIGHT, src, vx, vy, dst);', 'rd_rect(b, B_LIGHT_SRC + (size_t)i * 16u, src);\n                rc = add_blit(plan, E0_BLIT_SHEET_KEYED, E0_ROLE_ROUND_LIGHT, dst, vx, vy, dst);'),
         'render: active light for round 0': ('if (o->round > 0) {\n            const size_t last', 'if (o->round >= 0) {\n            const size_t last'),
         'render: active light of the wrong round': ('const size_t last = (size_t)(o->round - 1);', 'const size_t last = (size_t)(o->round - 2);'),
         'render: active destination stride': ('const size_t d = B_ACTIVE_DST + last * 16u;', 'const size_t d = B_ACTIVE_DST + last * 8u;'),
         'render: active source stride': ('rd_rect(b, B_ACTIVE_SRC + last * 16u, src);', 'rd_rect(b, B_ACTIVE_SRC + last * 8u, src);'),
-        'render: active light zero height drawn': ('rd_rect(b, d, dst);\n            if (dst[3] - dst[1] != 0) {\n                int rc;', 'rd_rect(b, d, dst);\n            if (1) {\n                int rc;'),
+        'render: active light zero height drawn': ('rd_rect(b, d, dst);\n            if (dst[3] != dst[1]) {\n                int rc;', 'rd_rect(b, d, dst);\n            if (1) {\n                int rc;'),
         'render: active light blink inverted': ('if (o->blink != 0u) {\n                    rc = add_blit', 'if (o->blink == 0u) {\n                    rc = add_blit'),
         'render: active erase kind': ('add_blit(plan, E0_BLIT_BG_KEYED, E0_ROLE_ACTIVE_ERASE, dst, vx, vy, dst);', 'add_blit(plan, E0_BLIT_SHEET_KEYED, E0_ROLE_ACTIVE_ERASE, dst, vx, vy, dst);'),
         'render: active erase source': ('E0_ROLE_ACTIVE_ERASE, dst, vx, vy, dst);', 'E0_ROLE_ACTIVE_ERASE, src, vx, vy, dst);'),
@@ -830,7 +831,7 @@ class UnitTests(unittest.TestCase):
                    f'-I{SRC}', str(TEST_C), *[str(SRC / s) for s in SOURCES], '-lm', '-o', str(out)]
             if subprocess.run(cmd, capture_output=True, text=True).returncode != 0:
                 continue
-            env = dict(os.environ, ASAN_OPTIONS='detect_leaks=1')
+            env = sanitizer_environment(cc)
             done = subprocess.run([str(out)], capture_output=True, text=True, env=env)
             self.assertEqual(done.returncode, 0, done.stdout[-400:] + done.stderr[-400:])
             self.assertGreaterEqual(done.stdout.count('PASS'), EXPECTED_UNIT_TESTS)

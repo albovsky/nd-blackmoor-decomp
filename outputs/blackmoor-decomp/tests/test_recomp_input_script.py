@@ -43,7 +43,8 @@ class InputScriptTests(unittest.TestCase):
         (files / 'nul.input').write_bytes(b'100:move:1,2\x00;200:key:65\n')
         (files / 'oversize.input').write_bytes(b' ' * 65537)
         inputs = [HERE / 'recomp_input_script_fixture.c', Path(__file__),
-                  MODULE / 'rc_input_script.c', MODULE / 'rc_input_script.h']
+                  MODULE / 'rc_input_script.c', MODULE / 'rc_input_script.h',
+                  MODULE / 'rc_pointer_input.h']
         receipt = {'command': command, 'build_exit_code': result.returncode,
                    'sha256': {str(p): hashlib.sha256(p.read_bytes()).hexdigest() for p in inputs},
                    'native_sha256': hashlib.sha256(cls.executable.read_bytes()).hexdigest(),

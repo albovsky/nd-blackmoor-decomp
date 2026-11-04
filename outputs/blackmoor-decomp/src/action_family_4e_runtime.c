@@ -10,6 +10,13 @@
 /* a / 100 * slot, with the x87 rounding of 0x44b4ef..0x44b534 (fdiv, fmul in 53 bits, then fstp to float). */
 static float scaled(int16_t amount, double slot)
 {
+    if (amount == 0 && isinf(slot)) {
+        /* 0x44b597 FMUL: x87 stores negative indefinite for zero times infinity. */
+        const uint32_t indefinite = 0xffc00000u;
+        float value;
+        memcpy(&value, &indefinite, sizeof value);
+        return value;
+    }
     return (float)(((double)(float)amount / PERCENT_DIVISOR) * slot);
 }
 
@@ -62,7 +69,13 @@ ActionFamily4EStatus action_family_4e_runtime_visit(const ActionFamily4EDecoded 
             term = 0.0f;
         }
         ++o->terms_added;
-        *target = (float)((double)term + (double)*target);
+        if (isinf(term) && isinf(*target) && signbit(term) != signbit(*target)) {
+            /* 0x44b614 FADD uses the same indefinite for opposite infinities. */
+            const uint32_t indefinite = 0xffc00000u;
+            memcpy(target, &indefinite, sizeof *target);
+        } else {
+            *target = (float)((double)term + (double)*target);
+        }
     }
     return ACTION_FAMILY_4E_OK;
 }

@@ -757,6 +757,9 @@ static void t_object_pack(void)
     o.wait_deadline = 0x0badf00du;
     o.set_count = 0x789a;
     o.scene = 0x7bcd;
+    /* Pack must initialize both outputs, including holes, on reused storage. */
+    memset(img, 0xa5, sizeof img);
+    memset(mask, 0xa5, sizeof mask);
     e0_object_pack(&o, img, mask);
     for (size_t i = 0; i < E0_IMAGE_BYTES; ++i) modelled += mask[i];
     CHECK(modelled == 3560u);
@@ -2970,6 +2973,17 @@ static void t_render_plan_d6(void)
         const int32_t ls[4] = {300, 400, 309, 409}, ld[4] = {20, 329, 29, 320};
         expect_blit(&plan, 4, E0_BLIT_SHEET_KEYED, E0_ROLE_ROUND_LIGHT, ls, ld);
     }
+    /* Original SUB/TEST/JZ at 0x472bd7 and 0x472cc6 only checks whether the
+     * endpoints differ. Both overflow directions still have nonzero height. */
+    fx_init(&f, 0);
+    start(&f);
+    put_rect(f.body, 0x15e, 10, INT32_MAX, 19, INT32_MIN);
+    put_rect(f.body, 0x1fe, 50, INT32_MIN, 59, INT32_MAX);
+    CHECK(e0_render_plan(&f.obj, f.body, f.body_len, &f.host, &plan) == E0_OK && plan.count == 7);
+    CHECK(plan.blit[4].role == E0_ROLE_ROUND_LIGHT && plan.blit[5].role == E0_ROLE_ACTIVE_LIGHT);
+    put_rect(f.body, 0x15e, 10, INT32_MIN, 19, INT32_MIN);
+    put_rect(f.body, 0x1fe, 50, INT32_MAX, 59, INT32_MAX);
+    CHECK(e0_render_plan(&f.obj, f.body, f.body_len, &f.host, &plan) == E0_OK && plan.count == 5);
     /* the exit button pressed: the pressed source is blitted and the callback sets waiting */
     fx_init(&f, 0);
     start(&f);

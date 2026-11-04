@@ -21,6 +21,7 @@ import shutil
 import subprocess
 import tempfile
 import unittest
+from sanitizer_support import sanitizer_environment
 
 PROJECT = Path(__file__).resolve().parents[1]
 SRC = PROJECT / 'src'
@@ -484,7 +485,7 @@ class UnitTests(unittest.TestCase):
                    f'-I{SRC}', str(TEST_C), *[str(SRC / s) for s in SOURCES], '-lm', '-o', str(out)]
             if subprocess.run(cmd, capture_output=True, text=True).returncode != 0:
                 continue
-            env = dict(os.environ, ASAN_OPTIONS='detect_leaks=1')
+            env = sanitizer_environment(cc)
             done = subprocess.run([str(out)], capture_output=True, text=True, env=env)
             self.assertEqual(done.returncode, 0, done.stdout[-400:] + done.stderr[-400:])
             self.assertGreaterEqual(done.stdout.count('PASS'), EXPECTED_UNIT_TESTS)
@@ -500,7 +501,7 @@ class UnitTests(unittest.TestCase):
                     jobs.append((filename, name, old, new))
 
         san_cc = sanitizer_compiler(self.tmp.name)
-        env = dict(os.environ, ASAN_OPTIONS='detect_leaks=1')
+        env = sanitizer_environment(san_cc) if san_cc else dict(os.environ)
 
         def build_and_run(index_job):
             index, (filename, name, old, new) = index_job

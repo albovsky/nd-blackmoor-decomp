@@ -46,7 +46,11 @@ class Fl59Handports(unittest.TestCase):
         ported = {e['va'] for e in ledger if e['status'] == 'ported'}
         self.assertFalse(set(TABLE) & ported)
         for name in ('fl41_translated.json', 'fl57_translated.json', 'fl41_corpus.json'):
-            self.assertFalse(set(TABLE) & set(json.loads((Path(__file__).resolve().parent / name).read_text())), name)
+            # FL-78 now translates the two CRT copy rows; translation membership
+            # grants no port credit. Keep the exact overlap pinned.
+            expected = {'0x50ed50', '0x50fa90'} if name == 'fl57_translated.json' else set()
+            translated = set(json.loads((Path(__file__).resolve().parent / name).read_text()))
+            self.assertEqual(set(TABLE) & translated, expected, name)
 
     def test_the_recursive_call_runs_natively(self):
         self.assertEqual(SOURCE.count('FL41_CALL_LIFTED(m4d8dca_lifted);'), 2)

@@ -6,6 +6,7 @@
 #include <string.h>
 #include "rc_internal.h"
 #include "rc_input_script.h"
+#include "rc_pointer_input.h"
 
 #define CHECK(condition) do { if (!(condition)) { \
     fprintf(stderr, "%s:%d: CHECK(%s) failed\n", __FILE__, __LINE__, #condition); \
@@ -74,6 +75,13 @@ void rc_input_key(uint32_t key, int down)
     Event *event = record('K');
     event->key = key; event->down = down;
 }
+#ifndef RECOMP_INPUT_SCRIPT_CUSTOM_POINTER
+void rc_input_pointer_mask(int32_t x, int32_t y, uint32_t buttons)
+{
+    Event *event = record('P');
+    event->x = x; event->y = y; event->buttons = buttons;
+}
+#endif
 static int shot(void *user, unsigned number, uint32_t at)
 {
     CHECK(user == &shot_cookie && at == now && main_thread);
