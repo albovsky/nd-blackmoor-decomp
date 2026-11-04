@@ -23,7 +23,9 @@ static char g_msg[256];
     } while (0)
 
 #define SELF_OFF 0x1000u
-#define SELF_SZ 0x2000
+/* Keep the full 0x2000-byte object after the prefix used by negative offsets.
+ * Slot 3's word is at SELF_OFF + 3 * 0x5bb + 0x132, beyond 0x2000 total. */
+#define SELF_SZ (SELF_OFF + 0x2000u)
 #define VA_A 0x20010000u
 #define VA_B 0x20020000u
 #define VA_V 0x20030000u
@@ -705,12 +707,12 @@ static void test_m423142_insert(void)
     CK(call_is(3, 0x51dc43, 0, 1, 7, 0, 0, 0));       /* strlen("value") + 2 */
     /* a chain of two nodes (A at VA_A, B at VA_A + 0x60): the new node goes into the cell at B + 0x25 */
     setup_423142(0xffffffffu, NEWNODE, NEWNODE, "x", "");
-    set32(SELF, (size_t)-4, VA_A);
+    set32(SELF - 4, 0, VA_A);
     set32(fx.a, 0x25, VA_A + 0x60);
     set32(fx.a, 0x60 + 0x25, 0);
     memcpy(expa, fx.a, sizeof expa);
     r = m423142_insert(SELF, VA_V, VA_V + 0x40, &fx.host);
-    CK(r == 1 && get32(SELF, (size_t)-4) == VA_A);
+    CK(r == 1 && get32(SELF - 4, 0) == VA_A);
     set32(expa, 0x60 + 0x25, NEWNODE);
     CK(memcmp(expa, fx.a, sizeof expa) == 0);
     CK(L.n == 4 && call_is(3, 0x51dc43, 0, 1, 2, 0, 0, 0) && fx.b[0x200] == 0 && get32(fx.b, 0x100) == NEWBUF && fx.b[0x104] == 'x' && fx.b[0x105] == 0);
