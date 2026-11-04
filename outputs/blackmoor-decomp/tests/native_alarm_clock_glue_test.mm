@@ -22,6 +22,7 @@ static int sink_channel(void *, int16_t) { return 0; }
 static int sink_busy(void *, int16_t, int32_t *busy) { *busy = 0; return 0; }
 static int sink_idle(void *) { return 0; }
 static int transition_target = -1;
+static constexpr uint8_t unbound_clock_owner_type = 0xd9;
 static int sink_transition(void *, const AlcTransition *t) { transition_target = t->scene; return 0; }
 static SceneSessionCallbackStatus prepare_clock(void *, SceneConditionState *, SceneExecutorFrameInput *,
                                                 SceneSessionFailure *) { return SCENE_SESSION_CALLBACK_OK; }
@@ -109,22 +110,26 @@ struct ClockFixture {
     {
         if (!load(game_directory)) return false;
         if (unknown) {
-            /* Ownership metadata only: CF executes nowhere in this fixture.
-             * The executor keeps the real scene; callbacks see an opaque owner. */
+            /* D9 has a known 35-byte layout but no receiver in this fixture.
+             * Opaque CF cannot enter a live executor at all. Publish this
+             * possible owner into the live view used by native_action_at. */
             const size_t offset = bytes.size();
             if (offset < 12 || std::memcmp(bytes.data(), "DATA", 4) != 0) return false;
-            bytes.resize(offset + 58u, 0);
+            bytes.resize(offset + 58u + 35u + 1u, 0);  /* odd HIFF payload needs one pad byte */
             std::memcpy(bytes.data() + offset, "ACT", 3);
-            bytes[offset + 7u] = 50;
-            const char name[] = "NATIVE-06 opaque earlier owner";
+            bytes[offset + 7u] = 50 + 35;
+            const char name[] = "NATIVE-06 unbound earlier owner";
             std::memcpy(bytes.data() + offset + 8u, name, sizeof(name));
-            bytes[offset + 56u] = 0xcf;
+            bytes[offset + 56u] = unbound_clock_owner_type;
             bytes[offset + 57u] = 1;
             const uint32_t length = static_cast<uint32_t>(bytes.size() - 8u);
             for (unsigned i = 0; i < 4; ++i) bytes[4u + i] = static_cast<uint8_t>(length >> (24u - 8u * i));
             char error[256]{};
             app.scene = scene_resource_open_memory(bytes.data(), bytes.size(), error, sizeof(error));
-            if (app.scene == nullptr) return false;
+            if (app.scene == nullptr) {
+                std::fprintf(stderr, "clock fixture metadata: %s\n", error);
+                return false;
+            }
         }
         app.current_scene_id = 2175;
         app.scene_destination = {10, 10, 629, 384};
@@ -162,9 +167,10 @@ struct ClockFixture {
         app.aaa = session_aaa_create(&host);
         if (app.aaa == nullptr || session_aaa_begin_scene(app.aaa, session_scene) != ALC_OK || !derive_priority()) return false;
         std::vector<uint8_t> bound;
-        for (size_t i = 0; i < scene_resource_action_count(session_scene); ++i) {
+        SceneResource *const dispatch_scene = unknown ? app.scene : session_scene;
+        for (size_t i = 0; i < scene_resource_action_count(dispatch_scene); ++i) {
             SceneActionInfo action{};
-            if (scene_resource_action_at(session_scene, i, &action) != SCENE_RESOURCE_OK) return false;
+            if (scene_resource_action_at(dispatch_scene, i, &action) != SCENE_RESOURCE_OK) return false;
             if (action.type == 0x61 || std::find(bound.begin(), bound.end(), action.type) != bound.end()) continue;
             bound.push_back(action.type);
             SceneSessionActionBinding binding{};
@@ -176,13 +182,18 @@ struct ClockFixture {
         world.event_flags = flags.data(); world.event_flag_count = flags.size();
         conditions.event_flags = flags.data(); conditions.event_flag_count = flags.size();
         SceneSessionConfig config{};
-        config.scene = session_scene; config.scene_id = 2175;
+        config.scene = dispatch_scene; config.scene_id = 2175;
         config.action_core_world = &world; config.conditions = &conditions;
         config.action_bindings = bindings.data(); config.action_binding_count = bindings.size();
         config.prepare_tick = prepare_clock; config.advance_media_one = advance_clock_media;
         config.provider_context = &app;
         SceneSessionFailure failure{};
-        if (scene_session_create(&config, &app.session, &failure) != SCENE_SESSION_OK) return false;
+        const int created = scene_session_create(&config, &app.session, &failure);
+        if (created != SCENE_SESSION_OK) {
+            std::fprintf(stderr, "clock fixture create=%d provider=%d row=%zu detail=%d\n",
+                         created, failure.provider, failure.action_index, failure.detail_status);
+            return false;
+        }
         extension.evaluate_leaf = clock_sound_condition;
         if (scene_session_set_condition_extension(app.session, &extension) != SCENE_SESSION_OK) return false;
         SceneSessionPointerHost pointer_host{};
@@ -465,10 +476,17 @@ static int refuse(ClockFixture &f, const char *mode)
                         "each nonzero original guard retains explicit priority limit");
         }
     } else if (std::strcmp(mode, "unknown") == 0) {
+        bool live_unbound_owner = false;
+        for (size_t row = 0; row < native_action_count(&f.app); ++row) {
+            SceneActionInfo action{};
+            if (native_action_at(&f.app, row, &action) == SCENE_RESOURCE_OK && action.type == unbound_clock_owner_type)
+                live_unbound_owner = true;
+        }
+        CHECK_CLOCK(live_unbound_owner && !f.app.nav_members_idle, "unbound owner must be present in the authoritative live slots");
         int32_t candidate = -2;
         const int status = native_pointer_scan(&f.app, nullptr, 0, &candidate);
         std::printf("CLOCK_UNKNOWN status=%d candidate=%d\n", status, candidate);
-        CHECK_CLOCK(status == SESSION_INPUT_LIMIT_PRIORITY_PATH && candidate == -1, "opaque owner retains explicit priority limit");
+        CHECK_CLOCK(status == SESSION_INPUT_LIMIT_PRIORITY_PATH && candidate == -1, "unbound owner retains explicit priority limit");
     } else {
         for (unsigned mode_index = 0; mode_index < 2; ++mode_index) {
             f.app.captions.lifecycle.g.overlay_ui = mode_index == 0 ? 2 : 0;

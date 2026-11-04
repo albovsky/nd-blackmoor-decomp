@@ -181,3 +181,27 @@ oracle or mutation runs, export `CC` to the absolute path of
 `BLACKMOOR_A1C_REAL_CC` to a chosen real compiler. The unittest invocation also
 handles an already-selected adapter and rejects using the adapter as its own
 real compiler, so it cannot recurse indefinitely.
+
+The complete diagnostic also exposed failures printed on separate lines, which
+root's early same-line counter missed. Root corrected that report and the draft
+PR body; no complete-suite pass was claimed. The queued final rerun was stopped
+before launch while the diagnostic continued. FL18's 22 Python methods all
+failed because its first synthetic case wrote at offset 65,532 beyond a 64-byte
+array. LLDB identifies `set16` at fixture line 207 through `__memcpy_chk`.
+Using the intended in-buffer prefix offset retains every assertion and case:
+all 22 checks pass, and all 21 C cases pass ASan/UBSan. Production FL18 code and
+the original differential checks are unchanged.
+
+The clock's unknown-owner fixture modified only `app.scene`, but the current
+native adapter reads authoritative session slots when a session exists. Its
+synthetic CF record therefore never reached the view under test. Opaque CF is
+also rejected at executor construction (the existing
+`test_opaque_action_fails_creation_without_fake_eligibility` checks that rule).
+The fixture now supplies a known-layout, unbound D9 owner with a zero-filled
+35-byte body and correct HIFF padding, plus a host sink, to the actual session.
+It asserts that this owner is present in live slots before retaining the same
+priority-limit/candidate/state assertions. All 12 clock checks pass in 72.705
+seconds, muted/offline. A negative control restores the old session view and
+fails the new live-owner precondition. No production app, story or original
+resource is changed. These two fixture repairs require independent review and
+the same authorized source-checksum refresh, without any new status or credit.

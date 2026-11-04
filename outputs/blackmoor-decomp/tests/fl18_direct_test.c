@@ -204,7 +204,7 @@ static void test_m4c924d_count_up(void)
     CK(get32(dwords + 32, 8) == 0xcafe0001u && get16(words + 16, 4) == 1);
     /* negative index, word non-zero: no call, only the word moves (16-bit wrap) */
     reset_log();
-    set16(words + 16, (size_t)(-2 * 2) & 0xffff, 0);
+    set16(words, 16 - 2 * 2, 0);
     memset(words, 0, sizeof words);
     set16(words, 16 - 4, 0xffff);
     m4c924d_count_up(-2, &w, &h);
