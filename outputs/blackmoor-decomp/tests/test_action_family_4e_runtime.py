@@ -83,6 +83,11 @@ def executor_scene():
 
 # each mutant must be caught by the unit cases
 KERNEL_MUTANTS = {
+    'scaled invalid result has wrong NaN sign': ('const uint32_t indefinite = 0xffc00000u;\n        float value;',
+                                                'const uint32_t indefinite = 0x7fc00000u;\n        float value;'),
+    'opposite infinities have wrong NaN sign': ('const uint32_t indefinite = 0xffc00000u;\n            memcpy(target,',
+                                               'const uint32_t indefinite = 0x7fc00000u;\n            memcpy(target,'),
+    'same-sign infinities treated as invalid': ('signbit(term) != signbit(*target)', '1'),
     'target range starts at 29': ('decoded->option_00 < ACTION_FAMILY_4E_FIRST_TARGET', 'decoded->option_00 < ACTION_FAMILY_4E_FIRST_TARGET - 1u'),
     'target range starts at 31': ('decoded->option_00 < ACTION_FAMILY_4E_FIRST_TARGET', 'decoded->option_00 < ACTION_FAMILY_4E_FIRST_TARGET + 1u'),
     'target range ends at 38': ('decoded->option_00 > ACTION_FAMILY_4E_LAST_TARGET', 'decoded->option_00 >= ACTION_FAMILY_4E_LAST_TARGET'),

@@ -39,14 +39,17 @@ class SuiteRouting(unittest.TestCase):
         self.assertEqual(reference, [])
 
     def test_every_existing_x87_host_test_routes_to_reference(self):
+        count = 0
         for source in path.parents[1].joinpath('outputs/blackmoor-decomp/tests').glob('test_*.py'):
             text = source.read_text()
             if source.name == Path(__file__).name or not ('X87_HOST' in text or 'x86 host' in text):
                 continue
             with self.subTest(source=source.name):
+                count += 1
                 native, reference = routing.split_suite(unittest.TestSuite([marker(source.stem)]), True)
                 self.assertEqual(native.countTestCases(), 0)
                 self.assertEqual(len(reference), 1)
+        self.assertGreater(count, 0)
 
     def test_letter_suffixed_reference_modules_route(self):
         native, reference = routing.split_suite(unittest.TestSuite([marker('test_fl45a_reference')]), True)

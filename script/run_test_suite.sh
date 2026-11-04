@@ -11,7 +11,7 @@
 #
 # The exit status combines native and reference checks. Extra arguments go to
 # unittest. On Apple Silicon, run_test_suite.py gives the original x87 model its
-# required Intel reference host; it verifies every selected test passed with no
+# required Intel reference host; it verifies every reference test passed with no
 # skips. The same checks without the rebuild:
 #   script/run_test_suite.sh --no-build
 set -euo pipefail

@@ -231,6 +231,7 @@ static void test_non_finite_slots(void)
     const Triple inf_term[] = {{31, 50}};
     const Triple inf_zero[] = {{31, 0}};
     const Triple opposite_inf[] = {{31, 100}, {32, 100}};
+    const Triple same_inf[] = {{31, 100}, {31, 100}};
     uint32_t bits;
     unsigned direction;
 
@@ -254,6 +255,8 @@ static void test_non_finite_slots(void)
         CHECK("non_finite", visit(b, raw, body(raw, 34, opposite_inf, 2, 0), &r) == SCENE_ACTION_HANDLER_OK);
         memcpy(&bits, &w.float_values[4], sizeof bits);
         CHECK("non_finite", bits == 0xffc00000u);
+        CHECK("non_finite", visit(b, raw, body(raw, 34, same_inf, 2, 0), &r) == SCENE_ACTION_HANDLER_OK);
+        CHECK("non_finite", w.float_values[4] == w.float_values[1]);
     }
     session_a4e_destroy(b);
 }

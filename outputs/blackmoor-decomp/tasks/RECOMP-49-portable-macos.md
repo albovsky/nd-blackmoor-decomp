@@ -161,3 +161,14 @@ wrapper flags into the driver's call redirection. It refuses partial wrapper
 sets and preserves the real selected compiler. Both unchanged oracle/refusal
 tests pass in 4.362 seconds with this placement. No historical execution receipt
 is rehashed or relabeled. The standalone original oracle is otherwise unchanged.
+
+The independent Sonnet review approved `db2865f0` with no P1. Root addressed
+its nonblocking arithmetic-coverage finding: the existing nonfinite case also
+checks same-sign infinities in both directions, and three additional mutants
+force the wrong sign in each invalid-result branch or incorrectly reject
+same-sign infinity addition. All existing and added unit mutants, sanitizer
+cases and normal unit cases pass (three checks, 28.879 seconds). Removing only
+the compatibility guard would be equivalent on Intel, so the mutants change the
+observable result instead and remain meaningful on either host. The final
+scoped compiler adapter and these review follow-ups receive a separate frozen
+read-only review before merge.
