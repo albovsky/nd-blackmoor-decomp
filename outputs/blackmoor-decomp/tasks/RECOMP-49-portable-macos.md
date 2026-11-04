@@ -10,13 +10,14 @@ Apple notarization is authorized when credentials exist. No credentials in logs.
 The authorizing user message begins "You are Codex (gpt-6.1-sol, xhigh) finishing
 the native Mac port" and says "Work on your own branch and own PR" and
 "squash-merge your own PR when clean". This root chat is the publisher. PR #352
-is the source-only candidate. The later engine-scope question has no answer;
-neither elapsed time nor GitHub's conflict-free state permits disregarding the
-user's green-suite condition or prohibition on engine work.
+is the source-only candidate. The owner's later scope extension below permits
+bounded fixes for confirmed baseline suite blockers with independent review.
+The green-suite condition remains a merge requirement.
 
 Root owns shared `recomp/build_macos.sh`, `macos_recomp.mm`, game-data modules,
-tests, INSTALL/HANDOFF and final integration. Story, engine, ledger and original
-files are out of scope. Preserve explicit scratch overrides and background quiet
+tests, INSTALL/HANDOFF and final integration. Story, ledger and original files
+are out of scope. Engine changes are limited to the confirmed baseline blockers
+covered by the owner's scope extension below. Preserve explicit scratch overrides and background quiet
 behavior; no foreground launches or audible playback. No deletion command, shell
 command chains or pipelines. Every variable assignment occupies its own line.
 
@@ -71,3 +72,22 @@ now exposes actual signed overflow at `src/action_family_e0_runtime.c:894`.
 Production engine repair is expressly pending the owner's asynchronous scope
 answer; the current authorization still forbids it. No new skip or relaxed
 assertion is permitted as a workaround.
+
+Owner scope extension (reply to the engine-blocker question in this same chat):
+"Allow bounded fixes for confirmed baseline suite blockers, with independent
+review; keep story and ledger unchanged." This supersedes the pending-engine
+restriction above for confirmed blockers only. Root owns the E0 overflow and
+pack-mask regression fixture. A separate Sonnet worker owns the sanitizer/leak
+harness follow-up: `sanitizer_support.py` and the A1C, A76, A77, D3, E4, EB, EE,
+F5 Python test modules only. Retain every mutant, remove hollow forced-LSan
+aborts, use the demonstrated macOS `leaks --atExit` fallback for leak-only
+mutants, and fail visibly if neither checker works. Do not silently downgrade
+unexpected Linux LSan failures. No story/ledger edits; no other production module
+is assigned to this worker. Root alone publishes and merges.
+
+The canonical suite then stopped in `m423259_find_by_name` at its checked copy
+into a 72-byte frame. A second Sonnet worker owns only `original_methods_fl19a.c`
+and narrowly related FL19a fixtures to investigate the allocation against the
+original 0x4c-byte frame, reproduce the crash, and make the smallest correction.
+Both production fixes require an independent frozen-commit review. No changes
+to function evidence, acceptance entries, ledger, story or campaign content.
