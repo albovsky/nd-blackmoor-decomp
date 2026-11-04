@@ -806,7 +806,7 @@ static int tx_open(const char *h, int exists, mode_t mode, char *tmp, size_t cap
     tmp_path_for(h, tmp, cap);
     *fd = open(tmp, O_RDWR | O_CREAT | O_EXCL, mode);
     if (*fd < 0) return errno;
-    fchmod(*fd, mode); /* keep the replaced file's permissions despite the umask */
+    if (exists) (void)fchmod(*fd, mode); /* keep the replaced file's exact permissions despite the umask; best effort, a new file keeps the umask default */
     return 0;
 }
 /* Writes every byte or reports the errno of the first failure; *done is what reached the file. A short write is a failure, not a success. */
@@ -882,7 +882,9 @@ API(CopyFileA)
     if (stat(hd, &st) == 0 && a[2]) { last_error = 80; RET(0); }
     FILE *in = fopen(hs, "rb");
     if (!in) { last_error = 2; RET(0); }
-    if (stat(hd, &st) == 0 && access(hd, W_OK) != 0) { fclose(in); save_fault("copy", hd, EACCES); last_error = 5; RET(0); }
+    int existing = stat(hd, &st) == 0;
+    mode_t dest_mode = st.st_mode & 07777;
+    if (existing && access(hd, W_OK) != 0) { fclose(in); save_fault("copy", hd, EACCES); last_error = 5; RET(0); }
     char tmp[1700];
     tmp_path_for(hd, tmp, sizeof tmp);
     FILE *out = fopen(tmp, "wb");
@@ -892,6 +894,7 @@ API(CopyFileA)
     int err = 0;
     while (!err && (n = fread(buf, 1, sizeof buf, in)) > 0) if (fwrite(buf, 1, n, out) != n) err = errno ? errno : EIO;
     if (!err && ferror(in)) err = EIO;
+    if (!err && existing) (void)fchmod(fileno(out), dest_mode);
     if (!err && (fflush(out) != 0 || fsync(fileno(out)) != 0)) err = errno ? errno : EIO;
     fclose(in);
     if (fclose(out) != 0 && !err) err = errno ? errno : EIO;

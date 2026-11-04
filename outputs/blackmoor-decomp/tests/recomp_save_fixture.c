@@ -237,6 +237,28 @@ int main(void)
             chmod(dst, 0644);
         }
 
+        /* replaced files keep their exact mode, new ones follow the umask */
+        {
+            mode_t old_mask = umask(077);
+            chmod(slot, 0664);
+            h = call(api_CreateFileA, name, 0x40000000u, 0, 0, 2);
+            call(api_WriteFile, h, DATA_VA, 10, OUT_VA, 0);
+            call(api_CloseHandle, h, 0, 0, 0, 0);
+            EXPECT(stat(slot, &sst) == 0 && (sst.st_mode & 07777) == 0664, "an overwritten slot keeps mode 0664 under a restrictive umask");
+            chmod(dst, 0600);
+            call(api_CopyFileA, from, to, 0, 0, 0);
+            EXPECT(stat(dst, &sst) == 0 && (sst.st_mode & 07777) == 0600, "CopyFileA keeps the destination's mode");
+            uint32_t fresh = guest_string(NAME2_VA, "C:\\GAME\\Documents5\\The Curse of Blackmoor Manor\\new.SAV");
+            h = call(api_CreateFileA, fresh, 0x40000000u, 0, 0, 2);
+            call(api_WriteFile, h, DATA_VA, 10, OUT_VA, 0);
+            call(api_CloseHandle, h, 0, 0, 0, 0);
+            char fresh_path[480];
+            snprintf(fresh_path, sizeof fresh_path, "%s/new.SAV", slot_dir);
+            EXPECT(stat(fresh_path, &sst) == 0 && (sst.st_mode & 07777) == 0600, "a new file honours the umask");
+            unlink(fresh_path);
+            umask(old_mask);
+        }
+
         /* an interrupted overwrite's temp is not listed by the game's file searches */
         char stray[560];
         snprintf(stray, sizeof stray, "%s/.rcsave-999999-0.tmp", slot_dir);
