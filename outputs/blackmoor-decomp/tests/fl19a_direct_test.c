@@ -166,6 +166,7 @@ static int is_call(int k, uint32_t callee, uintptr_t this_ptr, int n)
             failures++;                          \
         } else                                   \
             printf("PASS %s\n", #fn);            \
+        fflush(stdout);                          \
     } while (0)
 
 static uint8_t g_obj[OBJ], g_exp[OBJ];
@@ -410,6 +411,69 @@ static void test_m423259_find_by_name(void)
     reset_log();
     queue_return(0x423368, 5);
     CK(m423259_find_by_name(g_obj, name, &h) == 0 && L.n == 1);
+}
+
+/* Regression: the original's 'first' local is 0x28 bytes (ebp-0x28 .. ebp: 0x4232a3/0x4232aa copy the name into it with rep movs, the
+ * frame is sub esp,0x68 with 'second' at ebp-0x4c), so a name of up to 39 characters plus its NUL is stored without leaving the frame.
+ * The native frame was 0x48 bytes, so a copy of more than 36 bytes overran 'first' (the fortified memcpy trapped). 'second' is copied
+ * last and sits 0x24 bytes below 'first', so an entry text of 37 characters or more overwrites the head of 'first' with its own tail
+ * from byte 36 on (the terminating NUL included). */
+static void test_m423259_frame_boundary(void)
+{
+    static uint8_t node[0x80], tail[0x80];
+    Fl18Host h = host();
+    uint8_t name[48];
+    char want[48];
+    int len, elen, i;
+    /* a long name against a short entry text: nothing overlaps, 'first' is the whole name and the call finds no match */
+    for (len = 33; len <= 39; len++) {
+        reset_log();
+        memset(node, 0, sizeof node);
+        memset(g_obj, 0, OBJ);
+        for (i = 0; i < len; i++) name[i] = (uint8_t)((i & 1) ? 'a' + (i % 13) : 'A' + (i % 13));
+        name[len] = 0;
+        set32(node, 0, 0x2222);
+        memcpy(node + 4, "zz", 3);
+        set32(node, 0x25, 0);
+        set32(g_obj, 7 * 4, 0x00900000u);
+        L.lower = 1;
+        add_region(0x00900000u, node, sizeof node);
+        queue_return(0x423368, 7);
+        CK(m423259_find_by_name(g_obj, name, &h) == 0);
+        CK(L.n == 3 && is_call(1, 0x50d0bc, 0, 1) && is_call(2, 0x50d0bc, 0, 1));
+        CK(strlen(L.c[1].text) == (size_t)len && memcmp(L.c[1].text, name, (size_t)len) == 0 && strcmp(L.c[2].text, "zz") == 0);
+        CK(name[len] == 0 && name[0] == 'A');
+    }
+    /* an entry text of 37..39 characters (the next-node pointer at +0x25 is part of it: its four non-zero bytes are text): 'first'
+     * starts with the tail of that text from byte 36 on, 'second' is the whole text, and the chain goes on to the next node */
+    for (elen = 37; elen <= 39; elen++) {
+        reset_log();
+        memset(node, 0, sizeof node);
+        memset(tail, 0, sizeof tail);
+        memset(g_obj, 0, OBJ);
+        for (i = 0; i < elen; i++) want[i] = (char)((i & 1) ? 'a' + (i % 13) : 'A' + (i % 13));
+        want[elen] = 0;
+        memcpy(want + 33, "DCBA", 4);       /* the pointer 0x41424344 */
+        memcpy(node + 4, want, (size_t)elen + 1);
+        set32(node, 0, 0x1111);
+        set32(node, 0x25, 0x41424344u);
+        set32(tail, 0, 0x2222);
+        memcpy(tail + 4, "zz", 3);
+        memcpy(name, "qqqqqqqq", 9);
+        set32(g_obj, 7 * 4, 0x00900000u);
+        L.lower = 1;
+        add_region(0x00900000u, node, sizeof node);
+        add_region(0x41424344u, tail, sizeof tail);
+        queue_return(0x423368, 7);
+        CK(m423259_find_by_name(g_obj, name, &h) == 0);
+        CK(L.n == 5 && is_call(1, 0x50d0bc, 0, 1) && is_call(2, 0x50d0bc, 0, 1));
+        /* the first call lower-cases 'first' in place, and its head is the tail of 'second': the second call sees that tail lower-cased */
+        CK(strcmp(L.c[1].text, want + 36) == 0);
+        for (i = 36; want[i] != 0; i++)
+            if (want[i] >= 'A' && want[i] <= 'Z') want[i] = (char)(want[i] + 32);
+        CK(strcmp(L.c[2].text, want) == 0);
+        CK(strcmp(L.c[3].text, "qqqqqqqq") == 0 && strcmp(L.c[4].text, "zz") == 0);
+    }
 }
 
 static void test_m4e89eb_layout_slots(void)
@@ -927,6 +991,7 @@ int main(void)
     RUN(test_m4ccdab_reset_object);
     RUN(test_m47e2a5_release_surfaces);
     RUN(test_m423259_find_by_name);
+    RUN(test_m423259_frame_boundary);
     RUN(test_m4e89eb_layout_slots);
     RUN(test_m4e444d_find_name);
     RUN(test_m4b617a_arm_piece);

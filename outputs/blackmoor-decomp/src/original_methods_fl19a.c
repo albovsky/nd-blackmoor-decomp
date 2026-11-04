@@ -231,7 +231,7 @@ void m47e2a5_release_surfaces(uint8_t *self, const Fl18Host *host)
  * result is the dword [node], else node := the dword [node+0x25]. The result is 0 when the chain ends. */
 uint32_t m423259_find_by_name(uint8_t *self, const uint8_t *name, const Fl18Host *host)
 {
-    uint8_t frame[0x48];
+    uint8_t frame[0x4c];    /* ebp-0x4c .. ebp: 'first' at ebp-0x28 keeps its 0x28 bytes, a name of up to 39 characters fits */
     uint8_t *second = frame, *first = frame + 0x24;
     uint32_t index = call1(host, 0x423368, (uintptr_t)self, (uintptr_t)name);
     uint32_t node = rd32(self, (ptrdiff_t)(int32_t)index * 4);

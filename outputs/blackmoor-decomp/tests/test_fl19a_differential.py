@@ -330,6 +330,36 @@ class Fl19aDifferential(DiffBase):
                       executed=executed, returns=True)
         self.finish(0x423259, 271, executed)
 
+    def test_423259_find_by_name_frame_boundary(self):
+        """FL-19: differential regression test of m423259_find_by_name for names of 34..39 characters: the original's first local is
+        the 0x28 bytes ebp-0x28 .. ebp, the second sits 0x24 bytes below it and its tail overwrites the head of the first. A node is
+        placed at offset 0x101 of its region, so that the next-node pointer at +0x25 has no zero byte and the entry text can run on
+        through it to 37..39 characters (the last node's pointer is 0, which ends its text at 33)."""
+        rng = random.Random(0x42325c)
+        base = 0x101
+        for length in range(34, 40):
+            for entry_length in (length, 39, 8):
+                for variant in range(4):
+                    name = cstring(rng, length, length)
+                    mutated = bytearray(name)
+                    mutated[rng.randrange(length)] = ord('x')
+                    other = cstring(rng, entry_length, entry_length)
+                    texts = [(name, bytes(mutated), other, name)[variant], name, cstring(rng, 39, 39)]
+                    this = bytearray(rng.randbytes(0x100))
+                    nodes = [Area('n%d' % k, od.region_va(2 + k), bytearray(rng.randbytes(0x180)), image=False) for k in range(3)]
+                    struct.pack_into('<I', this, 4, nodes[0].va + base)
+                    for k, node in enumerate(nodes):
+                        node.data[base + 4:base + 4 + len(texts[k])] = texts[k]
+                        struct.pack_into('<I', node.data, base + 0x25, nodes[k + 1].va + base if k < 2 else 0)
+                        if len(texts[k]) < 38:
+                            node.data[base + 4 + 37] = 0      # the pointer bytes replaced the NUL: end the text after them
+                    areas = [Area('self', od.region_va(0), this, image=False), Area('name', od.region_va(1), bytearray(name), image=False),
+                             *nodes]
+                    stubs = {0x423368: od.Stub(0x423368, args=1, this=True, cleanup=4, results=[1]),
+                             0x50d0bc: od.Stub(0x50d0bc, args=1, deref=(0, 8))}
+                    self.pair(F_423259, 0x423259, 271, areas, stubs, {}, ecx=od.region_va(0), stack=[od.region_va(1)], cleanup=4,
+                              p1='name', returns=True)
+
     # ---- 0x4e89eb ----
     def test_4e89eb_layout_slots(self):
         """FL-19: differential test of m4e89eb_layout_slots (original 0x4e89eb)"""
