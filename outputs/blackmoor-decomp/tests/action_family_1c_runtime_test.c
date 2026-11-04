@@ -541,6 +541,46 @@ static void test_rect_and_entry_limits(void)
     PASS(n);
 }
 
+/* The cases above give the oversized counts a file that holds one entry, so a loader without the 0x1000-entry guard still refuses
+ * them at the first short read. Here the file really holds every announced entry (one rectangle each): only the guard refuses it. */
+static void test_oversized_entry_count_with_complete_entries(void)
+{
+    const char *n = "oversized entry count over a complete file";
+    const int32_t counts[] = {C1C_MAX_ENTRIES, C1C_MAX_ENTRIES + 1, C1C_MAX_ENTRIES + 2, 2 * C1C_MAX_ENTRIES};
+    size_t s;
+    for (s = 0; s < sizeof counts / sizeof counts[0]; ++s) {
+        Bytes f = {0, 0, 0};
+        Rig r;
+        C1cObject o;
+        C1cHost h;
+        C1cOutcome out;
+        uint8_t body[C1C_BODY_BYTES];
+        int32_t i;
+        const int accepted = counts[s] <= C1C_MAX_ENTRIES;
+        iv_header(&f, "M", counts[s]);
+        for (i = 0; i < counts[s]; ++i) {
+            int32_t d[6] = {0, 0, i, 0, i, 0};
+            iv_entry(&f, (int16_t)i, 1, 0, 0, 0);
+            iv_rect(&f, d);
+        }
+        rig_init(&r, "M", &f);
+        h = host_of(&r);
+        make_body(body, "X", 0);
+        {
+            const int status = ready(&o, &r, &h, body, &out);
+            CHECK(n, status == (accepted ? C1C_OK : C1C_ERR_FILE));
+            CHECK(n, (o.iv != NULL) == accepted);
+            CHECK(n, r.opens == 1 && r.closes == 1);
+            if (accepted) {
+                CHECK(n, o.iv->count == counts[s] && o.iv->entries[counts[s] - 1].id == (int16_t)(counts[s] - 1));
+            }
+        }
+        c1c_free_iv(&o);
+        free(f.p);
+    }
+    PASS(n);
+}
+
 static void test_short_reads(void)
 {
     const char *n = "short reads leave nothing loaded";
@@ -1465,6 +1505,7 @@ int main(void)
     test_load_read_sizes();
     test_repeated_ids();
     test_rect_and_entry_limits();
+    test_oversized_entry_count_with_complete_entries();
     test_short_reads();
     test_names();
     test_phase_other();

@@ -32,7 +32,7 @@ CORPUS_SOURCES = KERNEL_SOURCES + ['scene_resource.c', 'hiff.c']
 EXECUTOR_SOURCES = CORPUS_SOURCES + ['scene_executor.c', 'scene_conditions.c', 'scene_dependencies.c', 'action_family_64.c',
                                      'action_core.c']
 RESOURCES = ROOT / 'work/analysis/hiff-resources'
-EXPECTED_UNIT_TESTS = 29
+EXPECTED_UNIT_TESTS = 30
 
 sys.path.insert(0, str(PROJECT / 'tests'))
 import test_scene_executor as base  # noqa: E402
@@ -635,8 +635,13 @@ GLUE_PRELUDE = r'''
 #include <cstring>
 #include <string>
 #include <dirent.h>
+#include "scene_resource.h"
 #include "scene_session.h"
+#include "session_bindings_a35.h"
+#include "session_bindings_a35_bink.h"
+#include "action_family_35.h"
 #include "session_bindings_a1c.h"
+#include "interactive_video_input.h"
 #define D9_SLOT_FIRST 0x18
 #define D9_SLOT_LAST 0x3f
 struct StandInRect { int left = 0, top = 0, right = 0, bottom = 0; };
@@ -645,17 +650,22 @@ struct StandInView { StandInInventory inventory; };
 struct StandInNewGame { StandInView view; };
 struct NativeApp {
     std::string game_directory; StandInRect scene_destination; StandInNewGame new_game;
-    SessionA1cBinding *a1c = nullptr; std::array<bool, 0x40> a1c_slot_used{}; bool a1c_wait_logged = false; bool a1c_fills_logged = false;
+    SceneResource *scene = nullptr; SessionA35Binding *a35 = nullptr; SessionA35Bink *movie_bink = nullptr;
+    size_t movie_owner_row = SIZE_MAX; std::array<uint8_t, C1C_NAME_BYTES> movie_name{};
+    SessionA1cBinding *a1c = nullptr; std::array<bool, 0x40> a1c_slot_used{}; bool a1c_fills_logged = false;
+    InteractiveVideoInputState a1c_input{}; uint64_t a1c_input_generation = 1; const C1cIv *a1c_seen_iv = nullptr;
+    A35Rect a1c_origin_rectangle{};
     std::array<bool, 0x40> ad1_slot_used{}, ad3_slot_used{}, ad9_slot_used{}, aaa_slot_used{}, ad0_slot_used{}, aea_slot_used{},
         af6_slot_used{}, ae0_slot_used{}, ae4_slot_used{}, af5_slot_used{}, aeb_slot_used{}, ada_slot_used{}, aee_slot_used{};
 };
 static void record(NativeApp *, const char *, ...) __attribute__((format(printf, 2, 3)));
 static void record(NativeApp *, const char *, ...) {}
+static int native_action_at(const NativeApp *, size_t, SceneActionInfo *) { return SCENE_RESOURCE_ERR_NOT_FOUND; }
 '''
 
 
 def glue_regions(app):
-    start = app.index('/* Raw 0x1c (RT-57)')
+    start = app.index('/* Native IV consumers observe the actual A35 controller')
     end = app.index('/* RT-44: raw 0x4e recomputes')
     creation = '    C1cHost a1c_host{};\n    native_a1c_fill_host(app, &a1c_host);\n    app->a1c = session_a1c_create(&a1c_host);'
     assert creation in app
@@ -680,6 +690,8 @@ class AppGlue(unittest.TestCase):
         if cxx is None:
             self.skipTest('no C++ compiler')
         functions, creation, begin = glue_regions(self.app)
+        for symbol in ('native_a1c_movie_view', 'native_a1c_open_iv', 'native_a1c_fill_host', 'native_a1c_handler', 'native_a1c_render'):
+            self.assertIn(symbol + '(', functions, 'glue region lost ' + symbol)
         source = (GLUE_PRELUDE + functions + '\nstatic void create_for_syntax_check(NativeApp *app)\n{\n' + creation + '\n}\n' +
                   '\nstatic bool begin_for_syntax_check(NativeApp *app)\n{\n' + begin + '    return true;\n}\n' +
                   '\nstatic void cleanup_for_syntax_check(NativeApp *app)\n{\n    session_a1c_destroy(app->a1c);\n}\n')
@@ -726,7 +738,14 @@ class AppGlue(unittest.TestCase):
         self.assertEqual(self.app.count('static bool native_a1c_render(NativeApp *app);'), 1)
         self.assertEqual(self.app.count('app->a1c_slot_used.fill(false);'), 1)
         self.assertIn('hotspot fills not drawn', self.app)
-        self.assertIn('waits for a movie player', self.app)
+        # the player is no longer a wait-forever stand-in: the host callbacks read the actual A35 controller (a95402d5)
+        self.assertEqual(self.app.count('static int native_a1c_movie_view(NativeApp *app, A35Snapshot *snapshot, A35Rect *origin)'), 1)
+        self.assertEqual(self.app.count('session_a35_snapshot(app->a35, app->movie_owner_row, snapshot)'), 1)
+        for field, callback in (('player_state', 'native_a1c_player_state'), ('player_name', 'native_a1c_player_name'),
+                                ('player_hotspot', 'native_a1c_player_hotspot'), ('player_origin', 'native_a1c_player_origin')):
+            self.assertEqual(self.app.count(f'host->{field} = {callback};'), 1, field)
+        self.assertIn('*state = available != 0 ? snapshot.shown : 0; /* player +0x240 */', self.app)
+        self.assertIn('app->a1c_seen_iv = nullptr;', self.app)
 
     def test_file_path_follows_the_ciftree_rule(self):
         self.assertIn('app->game_directory + "/Ciftree"', self.app)

@@ -64,6 +64,7 @@ def run_unit(binary, env=None):
 
 MUTANTS = {KERNEL: {}, BINDING: {}}
 SANITIZED = set()   # mutants that can only be seen by the memory sanitizers (run in a sanitizer build)
+LEAK_ONLY = {'binding old rows kept'}   # mutants that only leak: nothing but a leak checker can see them (LeakSanitizer, or `leaks` on macOS)
 
 
 def add(table, name, old, new):
@@ -326,6 +327,38 @@ def sanitizer_compiler(tmp):
     return None
 
 
+def asan_options(tmp, cc):
+    """ASAN_OPTIONS for the sanitizer builds: leak checking is requested wherever the runtime supports it. It is probed, not
+    assumed: a program that leaks must stop with a LeakSanitizer report. Where the probe cannot see that (macOS aborts with
+    "detect_leaks is not supported on this platform"), only the leak check is left out; ASan and UBSan stay on."""
+    probe = Path(tmp) / 'probe_leak.c'
+    probe.write_text('#include <stdlib.h>\nint main(void){ volatile char *p = malloc(7); p[0] = 1; p = 0; return 0; }\n')
+    out = Path(tmp) / 'probe_leak'
+    built = subprocess.run([cc, '-g', '-O0', *SANITIZE, str(probe), '-o', str(out)], capture_output=True, text=True)
+    if built.returncode == 0:
+        done = subprocess.run([str(out)], capture_output=True, text=True, env=dict(os.environ, ASAN_OPTIONS='detect_leaks=1'))
+        if done.returncode != 0 and 'LeakSanitizer' in done.stderr:
+            return 'detect_leaks=1'
+    return 'detect_leaks=0'
+
+
+def leaks_tool_works(tmp, cc):
+    """Where LeakSanitizer does not exist (macOS), the system `leaks --atExit` tool can still judge an unsanitized build. Probed the
+    same way: a program that leaks must fail under it and one that does not must pass."""
+    if shutil.which('leaks') is None:
+        return False
+    verdicts = []
+    for name, body in (('leaky', 'volatile char *p = malloc(7); p[0] = 1; p = 0;'), ('clean', 'char *p = malloc(7); p[0] = 1; free(p);')):
+        source = Path(tmp) / f'probe_{name}.c'
+        source.write_text(f'#include <stdlib.h>\nint main(void){{ {body} return 0; }}\n')
+        binary = Path(tmp) / f'probe_{name}'
+        if subprocess.run([cc, '-g', '-O0', str(source), '-o', str(binary)], capture_output=True, text=True).returncode != 0:
+            return False
+        done = subprocess.run(['leaks', '--atExit', '--', str(binary)], capture_output=True, text=True)
+        verdicts.append((done.returncode != 0 and ' leak' in done.stdout) if name == 'leaky' else done.returncode == 0)
+    return all(verdicts)
+
+
 def support_objects(tmp, cc, extra):
     """The unmutated support sources, compiled once."""
     objects = []
@@ -365,7 +398,7 @@ class UnitTests(unittest.TestCase):
         out = Path(self.tmp.name) / 'a76_test_san'
         built = compile_c(out, TEST_C, SOURCES, extra=SANITIZE, cc=san_cc)
         self.assertEqual(built.returncode, 0, built.stderr)
-        env = dict(os.environ, ASAN_OPTIONS='detect_leaks=1')
+        env = dict(os.environ, ASAN_OPTIONS=asan_options(self.tmp.name, san_cc))
         code, results = run_unit(out, env)
         self.assertEqual(code, 0, str(results)[-400:])
         self.assertGreaterEqual(len(results), EXPECTED_UNIT_TESTS)
@@ -380,7 +413,7 @@ class UnitTests(unittest.TestCase):
 
     def test_known_gaps_are_exactly_the_survivors(self):
         names = {name for table in MUTANTS.values() for name in table}
-        for name in tuple(EQUIVALENT) + KNOWN_GAPS + tuple(SANITIZED):
+        for name in tuple(EQUIVALENT) + KNOWN_GAPS + tuple(SANITIZED) + tuple(LEAK_ONLY):
             self.assertIn(name, names, f'stale entry: {name}')
         for name, reason in EQUIVALENT.items():
             self.assertTrue(reason.strip(), f'equivalent mutant without a reason: {name}')
@@ -398,18 +431,28 @@ class UnitTests(unittest.TestCase):
         cc = san_cc or compiler()
         extra = SANITIZE if san_cc else ()
         objects = support_objects(self.tmp.name, cc, extra)
-        env = dict(os.environ, ASAN_OPTIONS='detect_leaks=1')
+        options = asan_options(self.tmp.name, san_cc) if san_cc else 'detect_leaks=0'
+        env = dict(os.environ, ASAN_OPTIONS=options)
+        # leak-only mutants: LeakSanitizer where it works, else the `leaks` tool on an unsanitized build, else they cannot be judged here
+        by_leaks = options != 'detect_leaks=1' and leaks_tool_works(self.tmp.name, compiler())
+        unjudged = [job for job in jobs if job[1] in LEAK_ONLY] if options != 'detect_leaks=1' and not by_leaks else []
+        jobs = [job for job in jobs if job not in unjudged]
 
         def build_and_run(index_job):
             index, (filename, name, old, new) = index_job
             work = mutated_copy(self.tmp.name, f'mut{index}', filename, old, new)
             binary = work / 'mut_test'
-            built = compile_c(binary, TEST_C, [KERNEL, BINDING], src_dir=work, optimize='-O0', extra=extra, cc=cc, objects=objects,
-                              werror=False)  # a mutant may legitimately warn (always-true tests, unused values)
+            use_leaks = by_leaks and name in LEAK_ONLY
+            if use_leaks:
+                built = compile_c(binary, TEST_C, SOURCES, src_dir=work, optimize='-O0', werror=False)
+            else:
+                built = compile_c(binary, TEST_C, [KERNEL, BINDING], src_dir=work, optimize='-O0', extra=extra, cc=cc,
+                                  objects=objects, werror=False)  # a mutant may legitimately warn (always-true tests, unused values)
             if built.returncode != 0:
                 return name, 'build', built.stderr[-300:]
             try:
-                done = subprocess.run([str(binary)], capture_output=True, text=True, timeout=120, env=env)
+                command = ['leaks', '--atExit', '--', str(binary)] if use_leaks else [str(binary)]
+                done = subprocess.run(command, capture_output=True, text=True, timeout=120, env=env)
                 verdict = 'killed' if done.returncode != 0 else 'survived'
             except subprocess.TimeoutExpired:
                 verdict = 'killed'
@@ -423,7 +466,8 @@ class UnitTests(unittest.TestCase):
         for name, verdict, detail in outcomes:
             with self.subTest(name):
                 self.assertEqual(verdict, 'killed', f'mutant {verdict}: {name} {detail}')
-        print(f'mutants killed: {killed} of {len(jobs)} ({len(EQUIVALENT)} equivalent, {len(KNOWN_GAPS)} open gaps, not run)')
+        print(f'mutants killed: {killed} of {len(jobs)} ({len(EQUIVALENT)} equivalent, {len(KNOWN_GAPS)} open gaps, not run;'
+              f' {len(unjudged)} leak-only mutants without any leak checker here, not run)')
 
 
 class Corpus(unittest.TestCase):
