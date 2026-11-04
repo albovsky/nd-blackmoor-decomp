@@ -67,7 +67,19 @@ def main():
         (out / 'spctl.txt').write_text(assessed.stdout + assessed.stderr)
         proof['quarantined_spctl_returncode'] = assessed.returncode
         proof['quarantined_spctl_output'] = assessed.stdout + assessed.stderr
+        proof['trusted_quarantined_launch_eligible'] = assessed.returncode == 0
         command(['/usr/bin/codesign', '--verify', '--deep', '--strict', app])
+        if assessed.returncode:
+            # An ad-hoc build is expected to be blocked by Gatekeeper. Preserve
+            # that result and its quarantined copy. Exercise the local build in
+            # a separate copy without imported extended attributes; this never
+            # counts as a trusted quarantined launch or disables Gatekeeper.
+            local = out / 'local-build'
+            local.mkdir()
+            local_app = local / app.name
+            command(['/usr/bin/ditto', '--noextattr', '--norsrc', app, local_app])
+            app = local_app
+            proof['local_unquarantined_runtime_copy'] = str(app)
         binaries = [app / 'Contents/MacOS/BlackmoorRecompiled'] + sorted((app / 'Contents/Frameworks').glob('*.dylib'))
         loads = ''.join(command(['/usr/bin/otool', '-L', binary]).stdout for binary in binaries)
         (out / 'otool.txt').write_text(loads)
@@ -122,17 +134,34 @@ def main():
                 time.sleep(3)
                 maps = command(['/usr/bin/vmmap', str(process.pid)], check=False)
                 (out / (name + '-vmmap.txt')).write_text(maps.stdout + maps.stderr)
-                result = process.wait(timeout=timeout_ms / 1000 + 30)
+                try:
+                    result = process.wait(timeout=timeout_ms / 1000 + 30)
+                except subprocess.TimeoutExpired:
+                    process.terminate()
+                    try:
+                        process.wait(timeout=5)
+                    except subprocess.TimeoutExpired:
+                        process.kill()
+                        process.wait()
+                    raise
             log = run_log.read_text() if run_log.exists() else ''
             if result or 'BACKGROUND result=failed' in log:
                 raise AssertionError(f'{name} runtime failed: {result}; see {out}')
-            if str(isolated_home / 'Library/Application Support/Blackmoor Recompiled') not in log:
+            data_line = next(line for line in log.splitlines() if line.startswith('GAME_DATA mode='))
+            actual_save_root = Path(data_line.split(' saves=', 1)[1]).resolve()
+            if actual_save_root != (isolated_home / 'Library/Application Support/Blackmoor Recompiled').resolve():
                 raise AssertionError('Foundation save path was not isolated')
+            if maps.returncode or any(path in maps.stdout for path in ('/opt/homebrew/', '/usr/local/')):
+                raise AssertionError('could not prove loaded library independence with vmmap')
+            for library in ('libavformat.', 'libavcodec.', 'libavutil.', 'libswscale.', 'libswresample.'):
+                if 'Contents/Frameworks/' + library not in maps.stdout:
+                    raise AssertionError('bundled library not observed: ' + library)
             if not all(x in log for x in ('active=0', 'key=0', 'visible=0', 'activations=0')):
                 raise AssertionError('background contract missing')
             with wave.open(str(out / (name + '.wav')), 'rb') as audio:
                 frames = audio.getnframes()
-            proof[name] = {'returncode': result, 'pcm_frames': frames, 'log_sha256': sha(run_log)}
+            proof[name] = {'returncode': result, 'pcm_frames': frames, 'log_sha256': sha(run_log),
+                           'vmmap_sha256': sha(out / (name + '-vmmap.txt'))}
             return log
 
         log = launch('main-menu')
@@ -141,7 +170,7 @@ def main():
         print(next(line for line in log.splitlines() if 'MAIN.CIF' in line))
         proof['homebrew_file_access_denied'] = policy
         if args.save:
-            saves = isolated_home / 'Library/Application Support/Blackmoor Recompiled/Documents5/Game'
+            saves = isolated_home / 'Library/Application Support/Blackmoor Recompiled/Documents5/The Curse of Blackmoor Manor'
             saves.mkdir(parents=True, exist_ok=True)
             shutil.copy2(args.save, saves / 'm77.SAV')
             sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'recomp/route_tools'))

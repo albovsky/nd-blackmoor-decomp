@@ -42,3 +42,16 @@ root resolves findings, merges current main before PR, squash-merges clean PR.
 Unverified branches must be recorded, particularly real Developer ID/notary
 path when identities are absent, actual macOS 11 execution, interactive picker
 UI, second Mac and hardware audio. No new complete-game/ledger claim.
+
+Full-suite baseline repairs (root audit, same authorized PR): the unchanged
+baseline reproduces stale A1C AppGlue text anchors, a surviving entry-limit mutant,
+and macOS-unsupported unconditional LeakSanitizer settings in the A76/A77 tests.
+A separate Sonnet worker may edit only `tests/test_action_family_1c_runtime.py`,
+`tests/action_family_1c_runtime_test.c`, `tests/test_action_family_76_runtime.py`
+and `tests/test_action_family_77_runtime.py` to repair those harnesses. Preserve
+every behavioral assertion and mutant; add a real oversized-count fixture to
+detect the existing entry-limit mutant rather than removing it. Probe runtime
+LeakSanitizer support, retaining ASan/UBSan cases on macOS. No production engine,
+story or ledger edit is authorized. Root installs missing oracle dependencies;
+no test gate or skip is added to hide a missing dependency. Other full-suite
+failures require separate evidence before scope changes.

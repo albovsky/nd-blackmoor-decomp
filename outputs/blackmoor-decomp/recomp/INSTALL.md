@@ -21,7 +21,8 @@ Your original folder stays unchanged. The app makes its own working copy in:
 
 `~/Library/Application Support/Blackmoor Recompiled Data/DataClone-v1/game`
 
-It does not import old saves. New saves and preferences live in:
+After setup, the completed working copy also works while the original installation
+is unavailable. It does not import old saves. New saves and preferences live in:
 
 `~/Library/Application Support/Blackmoor Recompiled`
 
@@ -31,9 +32,10 @@ Keep the complete data folder; the app checks its completion receipt at startup.
 ## Choose another game folder
 
 Use **Blackmoor Recompiled > Choose Game Folder...**, select a supported installed
-copy, then quit and reopen the app. Your saves stay where they are. A completed
+copy. It will be checked on the next launch. Your saves stay where they are. A completed
 working copy of the same supported version is reused; choosing a folder does not
 replace your saved games or import files from an older save folder.
+The chooser refuses the app's own working-data and save folders.
 
 ## If macOS warns
 

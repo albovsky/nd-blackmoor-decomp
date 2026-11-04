@@ -14,9 +14,11 @@ ffmpeg_prefix="${FFMPEG_PREFIX:-/opt/homebrew}"
 min_os="${MIN_MACOS:-11.0}"
 jobs="${JOBS:-$(sysctl -n hw.ncpu)}"
 mkdir -p "$build"
-if [[ -z "${DEVELOPER_DIR:-}" ]]; then
-    if [[ -d /Applications/Xcode.app/Contents/Developer ]]; then
-        export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
+if ! xcrun --sdk macosx --show-sdk-path >/dev/null 2>&1; then
+    if [[ -z "${DEVELOPER_DIR:-}" ]]; then
+        if [[ -d /Applications/Xcode.app/Contents/Developer ]]; then
+            export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
+        fi
     fi
 fi
 export GAME_EXE="${GAME_EXE:-$project/../../work/original/GAME.EXE}"
@@ -92,6 +94,8 @@ cat > "$stage/Blackmoor Recompiled.app/Contents/Info.plist" <<'PLIST'
 </dict></plist>
 PLIST
 /usr/libexec/PlistBuddy -c "Set :LSMinimumSystemVersion $min_os" "$stage/Blackmoor Recompiled.app/Contents/Info.plist"
+source_commit="$(git -C "$here" rev-parse HEAD)"
+/usr/libexec/PlistBuddy -c "Add :BlackmoorSourceCommit string $source_commit" "$stage/Blackmoor Recompiled.app/Contents/Info.plist"
 /usr/bin/codesign --force --sign - "$stage/Blackmoor Recompiled.app"
 /usr/bin/codesign --verify --strict "$stage/Blackmoor Recompiled.app"
 if [ -L "$bundle" ]; then

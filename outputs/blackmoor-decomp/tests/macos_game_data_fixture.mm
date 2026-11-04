@@ -121,6 +121,13 @@ int main(int argc,char **argv) {
         o.protected_seed_directories={other.seed_directory};
         o.argument_directory=other.seed_directory.c_str();
         expect(!choose(o,r),"alternate remembered/known original cannot become writable scratch");
+        o.argument_directory=nullptr;
+        expect(choose(o,r),"working clone prepared for picker overlap case");
+        expect(blackmoor_validate_game_seed(r.directory,hash,&resolved,&error),"working copy contains valid game files");
+        expect(!blackmoor_validate_seed_destinations(resolved,o.support_directory,o.save_directory,&error),
+            "picker rejects a working copy before remembering it");
+        expect(blackmoor_validate_seed_destinations(o.seed_directory,o.support_directory,o.save_directory,&error),
+            "original installation has separate data and save destinations");
     } else if(mode=="default") {
         expect(choose(o,r),"default selection succeeds");
         expect(r.default_clone&&r.created&&r.directory!=o.seed_directory,"default selects independent private data");
@@ -135,6 +142,10 @@ int main(int argc,char **argv) {
         BlackmoorGameDataSelection again;expect(choose(o,again),"completed clone reusable");
         expect(!again.created&&again.directory==r.directory,"same completed clone reused");
         expect(get(r.directory+"/Award.BMP")=="new earned award"&&get(r.directory+"/Game.ini")=="personal preference changed\n","reuse preserves outputs/preferences");
+        auto unavailable=o;
+        unavailable.seed_directory=root+"/unmounted original";
+        expect(choose(unavailable,again)&&!again.created&&again.directory==r.directory,
+            "completed working copy is usable when the original is unavailable");
     } else if(mode=="explicit") {
         std::string arg=root+"/arg scratch",env=root+"/env scratch";dir(arg);dir(env);
         o.argument_directory=arg.c_str();o.environment_directory=env.c_str();

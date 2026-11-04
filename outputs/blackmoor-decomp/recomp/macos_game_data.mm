@@ -226,6 +226,14 @@ bool blackmoor_find_game_seed(const std::string &remembered,
     return refuse(error, "Choose your installed GOG copy of Nancy Drew: Curse of Blackmoor Manor. The app copies the files it needs and leaves your game folder unchanged.");
 }
 
+bool blackmoor_validate_seed_destinations(const std::string &seed, const std::string &support,
+                                          const std::string &save, std::string *error) {
+    NSString *source = canonical(seed), *data = canonical(support), *saves = canonical(save);
+    if (!source || !data || !saves || overlap(source, data) || overlap(source, saves))
+        return refuse(error, "Choose your original GOG installation, outside the app's working-data and saved-game folders in Application Support.");
+    return true;
+}
+
 bool blackmoor_select_game_data(const Options &o, BlackmoorGameDataSelection *selection, std::string *error) {
     if (error) error->clear();
     if (!selection) return refuse(error, "missing game-data selection output");

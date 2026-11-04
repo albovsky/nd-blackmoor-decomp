@@ -43,8 +43,11 @@ Do not upload this derived game binary, the DMG or generated C to any public hos
    extra entitlements. It submits to Apple with `notarytool submit --wait`,
    requires **Accepted**, staples and validates the app, makes the DMG, then
    notarizes and staples the DMG. It verifies signatures and Gatekeeper assessment
-   and prints the local DMG's path, SHA-256 and size. Missing selections produce
-   the ad-hoc fallback; invalid supplied credentials must fail visibly.
+   and prints the local DMG's path, SHA-256 and size. With both selections absent,
+   it produces the ad-hoc fallback. Identity alone produces a signed, unnotarized
+   build that still needs notarization; a profile alone or invalid supplied
+   credentials fails visibly. Only an exact Developer ID Application name or
+   certificate identity hash is accepted.
    The ad-hoc fallback omits hardened runtime: library validation rejects shared
    libraries without a Developer ID team. No entitlement disables library validation.
 

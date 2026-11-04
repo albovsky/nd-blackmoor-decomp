@@ -45,7 +45,6 @@ jobs="${JOBS:-$(sysctl -n hw.ncpu)}"
 python_bin="${BLACKMOOR_PYTHON:-$workspace/work/tools/recomp-python/bin/python3}"
 
 src_dir="$work_root/src-$version"
-build_dir="$work_root/build-$version-macos$min_os"
 prefix="$work_root/prefix-$version-macos$min_os"
 license_dir="$prefix/share/blackmoor-licenses/ffmpeg"
 
@@ -163,10 +162,25 @@ for configure_arg in "${configure_args[@]}"; do
     printf -v quoted_arg ' %q' "$configure_arg"
     configure_command="$configure_command$quoted_arg"
 done
+compiler_text="$("$cc_path" --version)"
+build_fingerprint="$("$python_bin" -I - "$configure_command" "$compiler_text" "$sdk_path/SDKSettings.json" "$tarball_sha256" <<'PYTHON'
+import hashlib
+from pathlib import Path
+import sys
+
+identity = hashlib.sha256()
+for value in sys.argv[1:]:
+    identity.update(value.encode())
+    identity.update(b'\0')
+identity.update(Path(sys.argv[3]).read_bytes())
+print(identity.hexdigest())
+PYTHON
+)"
+build_dir="$work_root/build-$version-macos$min_os-$build_fingerprint"
 
 if [[ -f "$license_dir/BUILD-INFO.json" ]]; then
     if "$python_bin" -I "$here/macos_bundle.py" ffmpeg-stamp-matches --prefix "$prefix" \
-        --sha256 "$tarball_sha256" --configure "$configure_command"; then
+        --sha256 "$tarball_sha256" --configure "$configure_command" --build-fingerprint "$build_fingerprint"; then
         printf 'FFmpeg %s already built at %s\n' "$version" "$prefix"
         exit 0
     fi
@@ -179,12 +193,11 @@ cd "$build_dir"
 make -j "$jobs"
 make install
 
-compiler_text="$("$cc_path" --version)"
 compiler_version="${compiler_text%%$'\n'*}"
 "$python_bin" -I "$here/macos_bundle.py" ffmpeg-record \
     --prefix "$prefix" --source "$src_dir" --version "$version" \
     --url "$tarball_url" --sha256 "$tarball_sha256" \
     --configure "$configure_command" --min-macos "$min_os" \
-    --compiler "$compiler_version" --sdk "$sdk_path"
+    --compiler "$compiler_version" --sdk "$sdk_path" --build-fingerprint "$build_fingerprint"
 "$python_bin" -I "$here/macos_bundle.py" ffmpeg-check --prefix "$prefix" --min-macos "$min_os"
 printf 'FFmpeg %s ready: %s\n' "$version" "$prefix"

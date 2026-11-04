@@ -264,6 +264,7 @@ def ffmpeg_record(args):
         "architecture": "arm64",
         "compiler": args.compiler,
         "sdk": args.sdk,
+        "build_fingerprint": args.build_fingerprint,
         "components": components,
         "recorded_utc": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
     }
@@ -308,6 +309,8 @@ def ffmpeg_stamp_matches(args):
     if record.get("source_sha256") != args.sha256:
         return 1
     if record.get("configure_command") != args.configure:
+        return 1
+    if record.get("build_fingerprint") != args.build_fingerprint:
         return 1
     return 0
 
@@ -751,6 +754,17 @@ def sign_app(app, identity, hardened):
         run(codesign_command(identity, hardened) + [str(path)])
     run(codesign_command(identity, hardened) + [str(app)])
     run(["codesign", "--verify", "--deep", "--strict", "--verbose=2", str(app)])
+    if identity != "-":
+        teams = set()
+        for path in signing_files(app) + [Path(app)]:
+            details = run(["codesign", "--display", "--verbose=4", str(path)])
+            text = details.stdout + details.stderr
+            team = re.search(r"(?m)^TeamIdentifier=([A-Z0-9]{10})$", text)
+            if not team or "Authority=Developer ID Application:" not in text or not re.search(r"flags=0x[0-9a-fA-F]+\([^)]*\bruntime\b", text):
+                raise BundleError("Developer ID signature lacks its team, authority or hardened runtime: " + str(path))
+            teams.add(team.group(1))
+        if len(teams) != 1:
+            raise BundleError("nested signatures do not share the app's Developer ID team")
 
 
 def submit_for_notarisation(artifact, profile, log_path):
@@ -766,12 +780,18 @@ def submit_for_notarisation(artifact, profile, log_path):
         if identifier:
             run(["xcrun", "notarytool", "log", identifier, "--keychain-profile", profile, str(log_path)], check=False)
         raise BundleError("notarisation of %s ended with status %r (log: %s)" % (Path(artifact).name, status, log_path))
+    print("notarytool: Accepted (%s)" % Path(artifact).name)
     return outcome
 
 
 def sign_identity_available(identity):
     result = run(["security", "find-identity", "-v", "-p", "codesigning"], check=False)
-    return identity in result.stdout
+    if result.returncode:
+        return False
+    for digest, name in re.findall(r'^\s*\d+\)\s+([0-9A-Fa-f]{40})\s+"(Developer ID Application:[^"\n]+)"\s*$', result.stdout, re.MULTILINE):
+        if identity == name or identity.upper() == digest.upper():
+            return True
+    return False
 
 
 def make_readme(adhoc, notarised, min_macos):
@@ -781,7 +801,7 @@ def make_readme(adhoc, notarised, min_macos):
         "",
         "A native Apple-silicon build of the Blackmoor engine. It does NOT contain the game:",
         "you need your own legally owned copy of the original game installed on this Mac or on",
-        "a drive. On first launch the app asks you to choose the game's folder; your choice is",
+        "a drive. The app checks remembered and known locations, or asks you to choose the folder; your choice is",
         "remembered, the folder is only read, and your saves go to",
         "~/Library/Application Support (never into the game folder).",
         "",
@@ -793,7 +813,7 @@ def make_readme(adhoc, notarised, min_macos):
         lines += [
             "THIS BUILD IS NOT NOTARISED. It is signed ad hoc, not with a Developer ID, so macOS",
             "will warn on first launch. Open System Settings > Privacy & Security and choose",
-            "\"Open Anyway\" after the first blocked launch, or Control-click the app and choose Open.",
+            "\"Open Anyway\" after the first blocked launch, if you trust this local development build.",
             "",
         ]
     elif not notarised:
@@ -916,6 +936,7 @@ def package_command(args):
     manifest = {
         "dmg": dmg.name, "dmg_sha256": digest, "dmg_bytes": size, "signing_mode": mode,
         "hardened_runtime": hardened, "notarized": notarise, "minimum_macos": args.min_macos,
+        "source_commit": read_app_executable(app)[0].get("BlackmoorSourceCommit"),
         "bundled_libraries": bundled,
         "gatekeeper_app_accepted": app_assess.returncode == 0,
         "gatekeeper_dmg_accepted": dmg_assess.returncode == 0,
@@ -953,12 +974,14 @@ def build_parser():
     record.add_argument("--min-macos", default=DEFAULT_MIN_MACOS)
     record.add_argument("--compiler", default="unknown")
     record.add_argument("--sdk", default="unknown")
+    record.add_argument("--build-fingerprint", default="")
     record.set_defaults(func=ffmpeg_record)
 
     stamp = sub.add_parser("ffmpeg-stamp-matches")
     stamp.add_argument("--prefix", required=True)
     stamp.add_argument("--sha256", required=True)
     stamp.add_argument("--configure", required=True)
+    stamp.add_argument("--build-fingerprint", default="")
     stamp.set_defaults(func=ffmpeg_stamp_matches)
 
     check = sub.add_parser("ffmpeg-check")

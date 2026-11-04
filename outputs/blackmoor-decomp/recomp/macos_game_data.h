@@ -14,6 +14,8 @@ bool blackmoor_validate_game_seed(const std::string &directory, const std::strin
 bool blackmoor_find_game_seed(const std::string &remembered,
                               const std::vector<std::string> &known, const std::string &hash,
                               std::string *resolved, std::string *error);
+bool blackmoor_validate_seed_destinations(const std::string &seed, const std::string &support,
+                                          const std::string &save, std::string *error);
 
 // Null means absent; an explicitly supplied empty directory is an error.
 struct BlackmoorGameDataOptions {
