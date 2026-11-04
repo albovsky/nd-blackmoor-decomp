@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Adapt the allocation oracle's GNU wrapper flags to its macOS test driver."""
 import os
+from pathlib import Path
 import shutil
 import sys
 
@@ -9,6 +10,8 @@ def main():
     compiler = os.environ.get('BLACKMOOR_A1C_REAL_CC') or shutil.which('clang') or shutil.which('cc')
     if not compiler:
         raise SystemExit('allocation oracle: no C compiler')
+    if Path(compiler).resolve() == Path(__file__).resolve():
+        raise SystemExit('allocation oracle: the real compiler cannot be this adapter')
     arguments = sys.argv[1:]
     wrappers = {f'-Wl,--wrap={name}' for name in ('calloc', 'malloc', 'free')}
     present = wrappers.intersection(arguments)

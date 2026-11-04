@@ -172,3 +172,12 @@ the compatibility guard would be equivalent on Intel, so the mutants change the
 observable result instead and remain meaningful on either host. The final
 scoped compiler adapter and these review follow-ups receive a separate frozen
 read-only review before merge.
+
+That follow-up approved `8ef0baa8` with no P1. Historical raw oracle `.py` and
+`function-execution.json` remain byte-identical to main; the test driver's own
+checksum is included in the authorized generated refresh. For standalone Mac
+oracle or mutation runs, export `CC` to the absolute path of
+`outputs/blackmoor-decomp/tests/macos_allocation_cc.py` first; optionally export
+`BLACKMOOR_A1C_REAL_CC` to a chosen real compiler. The unittest invocation also
+handles an already-selected adapter and rejects using the adapter as its own
+real compiler, so it cannot recurse indefinitely.

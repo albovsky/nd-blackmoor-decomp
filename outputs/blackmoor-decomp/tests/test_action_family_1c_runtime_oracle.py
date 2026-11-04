@@ -19,8 +19,14 @@ ORACLE = PROJECT / 'tests/action_family_1c_runtime_original_oracle.py'
 def oracle_environment():
     environment = dict(os.environ)
     if sys.platform == 'darwin':
-        environment['BLACKMOOR_A1C_REAL_CC'] = os.environ.get('CC') or shutil.which('clang') or shutil.which('cc')
-        environment['CC'] = str(PROJECT / 'tests/macos_allocation_cc.py')
+        adapter = PROJECT / 'tests/macos_allocation_cc.py'
+        compiler = environment.get('BLACKMOOR_A1C_REAL_CC') or environment.get('CC')
+        if not compiler or Path(compiler).resolve() == adapter.resolve():
+            compiler = shutil.which('clang') or shutil.which('cc')
+        if not compiler:
+            raise RuntimeError('allocation oracle: no C compiler')
+        environment['BLACKMOOR_A1C_REAL_CC'] = compiler
+        environment['CC'] = str(adapter)
     return environment
 
 
