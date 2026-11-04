@@ -48,6 +48,7 @@ def main():
     parser.add_argument('--probe', type=Path, required=True)
     parser.add_argument('--save', type=Path)
     parser.add_argument('--out', type=Path, required=True)
+    parser.add_argument('--expected-source-commit', required=True)
     args = parser.parse_args()
     out = args.out.resolve()
     out.mkdir(parents=True, exist_ok=False)
@@ -62,6 +63,19 @@ def main():
             command(['/usr/bin/ditto', '--noextattr', '--norsrc', volume / app.name, app])
         finally:
             command(['/usr/bin/hdiutil', 'detach', volume])
+        manifest_path = args.dmg.parent / 'package-manifest.json'
+        manifest = json.loads(manifest_path.read_text())
+        metadata = plistlib.loads((app / 'Contents/Info.plist').read_bytes())
+        if manifest['dmg_sha256'] != proof['dmg_sha256'] or manifest['source_commit'] != args.expected_source_commit \
+                or metadata.get('BlackmoorSourceCommit') != args.expected_source_commit:
+            raise AssertionError('DMG, manifest and frozen source commit do not agree')
+        executable = app / 'Contents/MacOS/BlackmoorRecompiled'
+        if sha(executable) != manifest['app_files_sha256']['Contents/MacOS/BlackmoorRecompiled']:
+            raise AssertionError('copied executable differs from the package manifest')
+        proof['source_commit'] = args.expected_source_commit
+        proof['native_sha256'] = sha(executable)
+        proof['package_manifest_sha256'] = sha(manifest_path)
+        print('SOURCE_COMMIT', proof['source_commit'])
         command(['/usr/bin/xattr', '-w', 'com.apple.quarantine', '0083;00000000;BlackmoorPackaging;', app])
         assessed = command(['/usr/sbin/spctl', '--assess', '--type', 'execute', '--verbose=2', app], check=False)
         (out / 'spctl.txt').write_text(assessed.stdout + assessed.stderr)

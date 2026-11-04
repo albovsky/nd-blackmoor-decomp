@@ -55,3 +55,12 @@ LeakSanitizer support, retaining ASan/UBSan cases on macOS. No production engine
 story or ledger edit is authorized. Root installs missing oracle dependencies;
 no test gate or skip is added to hide a missing dependency. Other full-suite
 failures require separate evidence before scope changes.
+
+Root also confirmed the identical unconditional LeakSanitizer abort in the AA,
+D0, D3, DA, E0, E4, EB, EE and F5 unit harnesses. A shared test-only capability
+probe supplies their environment while retaining every ASan/UBSan assertion and
+mutant. Nine direct sanitizer checks run all existing cases; eight pass and E0
+now exposes actual signed overflow at `src/action_family_e0_runtime.c:894`.
+Production engine repair is expressly pending the owner's asynchronous scope
+answer; the current authorization still forbids it. No new skip or relaxed
+assertion is permitted as a workaround.

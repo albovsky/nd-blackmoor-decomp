@@ -27,6 +27,7 @@ import shutil
 import subprocess
 import tempfile
 import unittest
+from sanitizer_support import sanitizer_environment
 
 PROJECT = Path(__file__).resolve().parents[1]
 SRC = PROJECT / 'src'
@@ -399,7 +400,7 @@ def run_mutant(root, index, cc, objects, flags, filename, old, new, extra_link=(
     if linked.returncode != 0:
         return 'build', linked.stderr[-300:]
     verdict = 'survived'
-    env = dict(os.environ, ASAN_OPTIONS='detect_leaks=1')
+    env = sanitizer_environment()
     proc = subprocess.Popen(['stdbuf', '-oL', str(binary)] if shutil.which('stdbuf') else [str(binary)],
                             stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True, env=env)
     try:
@@ -496,7 +497,7 @@ class UnitTests(unittest.TestCase):
                    f'-I{SRC}', str(TEST_C), *[str(SRC / s) for s in SOURCES], '-lm', '-o', str(out)]
             if subprocess.run(cmd, capture_output=True, text=True).returncode != 0:
                 continue
-            env = dict(os.environ, ASAN_OPTIONS='detect_leaks=1')
+            env = sanitizer_environment()
             done = subprocess.run([str(out)], capture_output=True, text=True, env=env)
             self.assertEqual(done.returncode, 0, done.stdout[-400:] + done.stderr[-400:])
             self.assertGreaterEqual(done.stdout.count('PASS'), EXPECTED_UNIT_TESTS)

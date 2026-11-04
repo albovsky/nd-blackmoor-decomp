@@ -21,6 +21,7 @@ import shutil
 import subprocess
 import tempfile
 import unittest
+from sanitizer_support import sanitizer_environment
 
 PROJECT = Path(__file__).resolve().parents[1]
 SRC = PROJECT / 'src'
@@ -424,7 +425,7 @@ class UnitTests(unittest.TestCase):
         out = Path(self.tmp.name) / 'aee_test_san'
         built = compile_c(out, TEST_C, SOURCES, extra=SANITIZE, cc=san_cc)
         self.assertEqual(built.returncode, 0, built.stderr)
-        env = dict(os.environ, ASAN_OPTIONS='detect_leaks=1')
+        env = sanitizer_environment()
         code, results = run_unit(out, env)
         self.assertEqual(code, 0, str(results)[-400:])
         self.assertGreaterEqual(len(results), EXPECTED_UNIT_TESTS)
