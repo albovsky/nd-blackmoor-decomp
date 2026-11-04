@@ -69,7 +69,7 @@ static bool add_unknown_earlier_member(std::vector<uint8_t> &bytes)
     put_be32(bytes, start + 4, static_cast<uint32_t>(50u + body_size));
     const char label[] = "NATIVE-02 unbound earlier receiver";
     std::memcpy(bytes.data() + start + 8, label, sizeof(label));
-    bytes[start + 8 + 48] = SESSION_AD0_TYPE; /* Piano precedes D1; no D0 receiver exists here. */
+    bytes[start + 8 + 48] = SESSION_AD0_TYPE; /* Piano has earlier dispatch priority; no D0 receiver exists here. */
     bytes[start + 8 + 49] = 1;
     put_be32(bytes, 4, static_cast<uint32_t>(bytes.size() - 8));
     return true;
@@ -121,7 +121,7 @@ struct Fixture {
         app.scene = session_scene;
         if (unknown) {
             /* Opaque CF cannot enter a live executor. Use a known-layout D0
-             * owner with a host sink and no D0 receiver, ahead of D1. */
+             * owner with earlier dispatch priority, a host sink and no D0 receiver. */
             if (!add_unknown_earlier_member(bytes)) return false;
             app.scene = scene_resource_open_memory(bytes.data(), bytes.size(), error, sizeof(error));
             if (app.scene == nullptr) return false;

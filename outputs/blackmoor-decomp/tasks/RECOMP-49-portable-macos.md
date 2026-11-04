@@ -229,3 +229,11 @@ in 1.781 seconds with their original assertions. Independent frozen Sonnet
 review and the authorized generated checksum refresh are required before the
 final clean canonical run. Existing audio-output and unlocked-desktop opt-ins
 remain off under the owner's quiet/locked-Mac restrictions.
+
+Independent read-only Sonnet review approved frozen `42c7154c`, with no P1/P2.
+Root checked the exact first-parent diff: only these four test fixtures and this
+packet changed, and every prior refusal assertion remains. Root accepts the
+review. Its receipt-header omission is corrected by including `rc_pointer_input.h`
+in the input-script build receipt. D1 comments now explicitly distinguish
+dispatch priority from the appended row's physical position. No extra owner
+removal mutant, hardware audio or interactive-dialog result is claimed.
