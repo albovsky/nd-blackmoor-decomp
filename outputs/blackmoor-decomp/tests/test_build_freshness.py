@@ -15,6 +15,7 @@ Missing artifacts are not this test's concern; the owning tests skip.
 from __future__ import annotations
 
 import fnmatch
+import json
 import os
 import stat
 import tempfile
@@ -156,6 +157,40 @@ class BuildGraphDerivationTests(unittest.TestCase):
 
     def derive(self, **kwargs):
         return bg.derive_graph(self.project, **kwargs)
+
+    def test_python_image_builder_tracks_sources_and_rejects_extra_outputs(self) -> None:
+        write_script(self.project, "build_game_exe.sh", '''#!/bin/bash
+set -eu
+project="$(cd "$(dirname "$0")/.." && pwd)"
+out="$project/build/game"
+python3 "$project/scripts/link_image.py" prepare --out "$out"
+python3 "$project/scripts/link_image.py" verify "$out/GAME.linked.exe"
+''')
+        for name in ("link_image.py", "data_asm.py"):
+            write_source(self.project, "scripts/" + name, "# generator\n")
+        manifest = {"functions": [{"source": "FUN_00401000.s"}]}
+        reconstructed = {"asm_batches": [{"manifest": "asm/batch.json", "report": "asm/report.json"}],
+                         "data_batches": [{"manifest": "asm_data/data-001.json", "report": "asm_data/report.json"}]}
+        for name, value in (("image/reconstructed.json", reconstructed), ("asm/batch.json", manifest),
+                            ("asm/report.json", {}), ("asm_data/report.json", {}),
+                            ("asm_data/data-001.json", {"batch": "001", "layout": "data-001.layout"})):
+            write_source(self.project, name, json.dumps(value))
+        code = write_source(self.project, "asm/FUN_00401000.s", ".text\nret\n")
+        layout = write_source(self.project, "asm_data/data-001.layout", "masked\n")
+        graph = self.derive()
+        result = graph.scripts["build_game_exe.sh"]
+        self.assertTrue(result.ok, result.error)
+        by_path = {a.path: a for a in result.artifacts}
+        final = self.project / "build/game/GAME.linked.exe"
+        self.assertIn(code, by_path[final].inputs)
+        self.assertIn(layout, by_path[final].inputs)
+        for name in ("src/FUN_00401000.s", "obj/FUN_00401000.o", "src/data-001.s", "obj/data-001.o", "GAME.linked.exe"):
+            write_source(self.project, "build/game/" + name)
+        self.assertEqual(bg.unknown_build_outputs(graph, []), [])
+        write_source(self.project, "build/game/unexpected.bin")
+        self.assertEqual(bg.unknown_build_outputs(graph, []), ["game/unexpected.bin"])
+        os.utime(final, ns=(10**9, 10**9))
+        self.assertTrue(any("GAME.linked.exe" in message for message in bg.stale_messages(graph)))
 
     def test_shell_variables_and_multiline_commands_are_expanded(self) -> None:
         write_source(self.project, "src/a.c", '#include "a.h"\n')

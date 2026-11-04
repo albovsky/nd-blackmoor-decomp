@@ -22,7 +22,9 @@ The recorded command lines are then interpreted:
   produced under SRC;
 * assembler, `python3`, `codesign`: assembler outputs as for the compiler;
   the others write nothing the freshness check follows (their invocations are
-  kept in `ScriptResult.python_steps` for the report).
+  kept in `ScriptResult.python_steps` for the report). The whole-file Python
+  image builder has a manifest-based adapter that enumerates its generated
+  sources, objects and linked files with their committed inputs.
 
 A script is *derivable* only if it ran to completion, every recorded command
 was understood, every `.o` input has a producer, every quoted include was
@@ -41,6 +43,7 @@ older than a library another builder refreshed later.
 from __future__ import annotations
 
 import fnmatch
+import json
 import os
 import re
 import shutil
@@ -494,6 +497,73 @@ def _derive_script(sandbox: _Sandbox, includes: _Includes, project: Path, name: 
     return result
 
 
+def _derive_link_image(project: Path, script: Path) -> ScriptResult:
+    """Model the Python generator's exact output set from its committed manifests.
+
+    The shell spy cannot execute this builder: the Python shim deliberately does
+    not extract data or write the response files consumed by xargs/ld/objcopy.
+    Keep every generated file individually accounted for, including its inputs,
+    rather than exempting the builder or allowing everything under build/game.
+    The real build and byte equality are exercised by test_link_image.BuildTests.
+    """
+    result = ScriptResult(name=script.name)
+    try:
+        text = script.read_text(encoding="utf-8")
+        required = ('out="$project/build/game"', '"$project/scripts/link_image.py" prepare',
+                    '"$project/scripts/link_image.py" verify "$out/GAME.linked.exe"')
+        if not all(fragment in text for fragment in required):
+            raise Underivable("the image builder contract changed; update its output model")
+        generator_inputs = set((project / "scripts").glob("*.py"))
+        generator_inputs.update((project / "image").glob("*.json"))
+        index = project / "function-index.json"
+        if index.exists():
+            generator_inputs.add(index)
+        reconstructed = json.loads((project / "image/reconstructed.json").read_text())
+        outputs: Dict[Path, Set[Path]] = {}
+        all_inputs = set(generator_inputs)
+
+        def inside(relative: str, parent: Path = project) -> Path:
+            path = (parent / relative).resolve()
+            if not path.is_relative_to(project) or not path.is_file():
+                raise Underivable(f"missing or external image-builder input: {relative}")
+            return path
+
+        def pair(stem: str, inputs: Set[Path]) -> None:
+            if Path(stem).name != stem or stem in ("", ".", ".."):
+                raise Underivable(f"invalid generated image stem: {stem!r}")
+            for relative in (f"src/{stem}.s", f"obj/{stem}.o"):
+                path = project / "build/game" / relative
+                if path in outputs:
+                    raise Underivable(f"duplicate generated image output: {relative}")
+                outputs[path] = set(inputs)
+            all_inputs.update(inputs)
+
+        for kind in ("asm_batches", "data_batches"):
+            for batch in reconstructed[kind]:
+                manifest = inside(batch["manifest"])
+                report = inside(batch["report"])
+                data = json.loads(manifest.read_text())
+                common = generator_inputs | {manifest, report}
+                if kind == "asm_batches":
+                    for function in data["functions"]:
+                        source = inside(function["source"], manifest.parent)
+                        pair(source.stem, common | {source})
+                else:
+                    layout = inside(data["layout"], manifest.parent)
+                    pair(f"data-{data['batch']}", common | {layout})
+        if not outputs:
+            raise Underivable("the image builder has no source batches")
+        for name in ("GAME.linked.exe", "game.pe", "link.ld", "link-report.json", "assemble.list",
+                     "link.rsp", "link.map", "objcopy.rsp"):
+            outputs[project / "build/game" / name] = all_inputs
+        result.artifacts = tuple(Artifact(path, script, frozenset(inputs))
+                                 for path, inputs in sorted(outputs.items()))
+    except (OSError, ValueError, KeyError, Underivable) as error:
+        result.ok = False
+        result.error = str(error)
+    return result
+
+
 def derive_graph(project: Path, variants: Optional[Dict[str, List[List[str]]]] = None) -> BuildGraph:
     """Derive artifacts and inputs for every scripts/build_*.sh under `project`."""
     project = Path(project).resolve()
@@ -502,6 +572,9 @@ def derive_graph(project: Path, variants: Optional[Dict[str, List[List[str]]]] =
     try:
         includes = _Includes(project)
         for script in sorted((project / "scripts").glob("build_*.sh")):
+            if script.name == "build_game_exe.sh":
+                graph.scripts[script.name] = _derive_link_image(project, script)
+                continue
             argument_sets: List[List[str]] = [[], *(variants or {}).get(script.name, [])]
             graph.scripts[script.name] = _derive_script(sandbox, includes, project, script.name, argument_sets)
     finally:
