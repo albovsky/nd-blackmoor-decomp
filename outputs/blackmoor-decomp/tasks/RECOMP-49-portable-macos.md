@@ -97,8 +97,17 @@ reviewed independently before root's follow-up. Real clean/leaking controls and
 D3/A1C leak-only mutants demonstrate the macOS fallback. Root requires an
 available checker in every affected sweep and makes tool errors/timeouts fail
 visibly after one serialized retry; only a consistent positive leak report may
-kill a mutant. No existing mutant, threshold or assertion is removed. E4/EB's
+kill a mutant. No existing mutant, threshold or assertion is removed. E4's
 generic mutation generator does not explicitly remove `free`; that inherited
 coverage gap remains recorded, without a new complete-leak-coverage claim.
 The implementer was stopped after disregarding the no-chained-commands rule.
 Its unfinished EB/EE/F5 run is not counted as passing. Root owns the final run.
+
+The later diagnostic found an ARM64 NaN-sign mismatch in `m44b3c8_sum_kinds`.
+The original FMUL at 0x44b597 and FADD at 0x44b614 produce 0xffc00000 for
+zero times either infinity and opposite infinities in either order. Four
+original-only synthetic probes confirm those bits. Root preserves those exact
+invalid-operation results while retaining finite arithmetic and all existing
+comparisons; 14 direct/differential tests pass, including the original coverage
+checks. No story or ledger data is changed. A missing Z3 dependency explained
+the older held-row discrepancy; restoring it makes that unchanged check pass.

@@ -474,6 +474,22 @@ static void test_m44b3c8_sum_kinds(void)
     CK(L.n == 5);
     CKC(0, 0x50ca3e, 0, 3, 0x63888b, 0x549088, 0xff);
     CKC(2, 0x50ca3e, 0, 3, 0x63888b, 0x549088, 0x65);
+    /* The original FMUL/FADD store the negative x87 indefinite NaN for
+     * 0 * infinity and opposite infinities, in either sign/order. */
+    for (unsigned negative = 0; negative < 2; ++negative) {
+        kinds_setup(0x1e);
+        set32(g_tab, 4 * 0x1f, negative ? 0xff800000u : 0x7f800000u);
+        trip(0, 0x1f, 0);
+        m44b3c8_sum_kinds(1, &g_w, &g_host);
+        CK(get32(g_tab, 4 * 0x1e) == 0xffc00000u);
+        kinds_setup(0x1e);
+        set32(g_tab, 4 * 0x1f, negative ? 0xff800000u : 0x7f800000u);
+        set32(g_tab, 4 * 0x20, negative ? 0x7f800000u : 0xff800000u);
+        trip(0, 0x1f, 100);
+        trip(1, 0x20, 100);
+        m44b3c8_sum_kinds(1, &g_w, &g_host);
+        CK(get32(g_tab, 4 * 0x1e) == 0xffc00000u);
+    }
 }
 
 /* ---- 0x47ef0f latch_hit_counter ---------------------------------------------------------------------------------------------- */

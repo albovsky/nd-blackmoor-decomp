@@ -125,7 +125,7 @@ def leaks_verdict(binary, timeout=120, env=None):
     """Judge an actual leak report. Tool errors and timeouts cannot kill a mutant.
 
     Serialize scans to avoid contention, retry a failed scan once, then fail the
-    test visibly. Program exit status is judged by the preceding ordinary run.
+    test visibly. This helper judges the leak report rather than program status.
     """
     problem = None
     for _attempt in range(2):
