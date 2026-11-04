@@ -174,6 +174,81 @@ int main(int argc,char **argv) {
         }
         expect([[NSFileManager defaultManager] createSymbolicLinkAtPath:ns(o.seed_directory+"/Ciftree/unsafe") withDestinationPath:ns(root) error:nullptr],"fixture resource link");
         expect(!choose(o,r),"resource symlink refuses copy");
+    } else if(mode=="executable") {
+        // The executable that will actually start is verified, whichever route chose it (default clone, --game-dir, --exe, GAME_EXE).
+        std::string error;
+        const std::string trusted=o.expected_executable_sha256;
+        expect(blackmoor_verify_executable(o.seed_directory+"/GAME.EXE",trusted,&error),"matching executable accepted");
+        std::string wrong=root+"/wrong.exe";put(wrong,"abd"); // differs from "abc" in the final byte
+        expect(!blackmoor_verify_executable(wrong,trusted,&error),"final-byte-different executable refused");
+        expect(error.find(wrong)!=std::string::npos&&error.find(trusted)!=std::string::npos,"refusal names the file and the required SHA-256");
+        expect(error.find("owned original")!=std::string::npos,"refusal explains the required original");
+        expect(!blackmoor_verify_executable(root+"/absent.exe",trusted,&error)&&error.find("absent.exe")!=std::string::npos,"missing executable refused with its path");
+        expect(!blackmoor_verify_executable(root,trusted,&error),"a directory is not an executable");
+        std::string empty=root+"/empty.exe";put(empty,"");
+        expect(!blackmoor_verify_executable(empty,trusted,&error),"empty executable refused");
+        // An explicit game directory skips the default-clone hash check, so the resolved executable must be checked separately.
+        std::string scratch=root+"/explicit scratch";dir(scratch);put(scratch+"/GAME.EXE","abd");
+        o.argument_directory=scratch.c_str();
+        expect(choose(o,r)&&r.directory==scratch,"explicit data selection itself does not look at the executable");
+        expect(!blackmoor_verify_executable(r.directory+"/GAME.EXE",trusted,&error),"explicit directory executable still refused");
+        put(scratch+"/GAME.EXE","abc");
+        expect(blackmoor_verify_executable(r.directory+"/GAME.EXE",trusted,&error),"correct explicit directory executable accepted");
+        expect(get(wrong)=="abd","verification never modifies the executable");
+        // the launcher's gate: the executable is judged before the save directory exists, and both refusals carry their prefix
+        std::string new_saves=root+"/gate/saves";
+        expect(!blackmoor_check_startup(wrong,trusted,new_saves,&error)&&error.find("GAME_EXE: ")==0,"gate refuses a wrong executable with its prefix");
+        expect(!exists(new_saves),"a refused executable creates no save directory");
+        expect(blackmoor_check_startup(o.seed_directory+"/GAME.EXE",trusted,new_saves,&error)&&exists(new_saves),"gate accepts the original and prepares the saves");
+        expect(chmod(new_saves.c_str(),0555)==0,"fixture read-only gate saves");
+        if (geteuid()!=0) expect(!blackmoor_check_startup(o.seed_directory+"/GAME.EXE",trusted,new_saves,&error)&&error.find("SAVE_DIR: ")==0,"gate refuses an unwritable save directory with its prefix");
+        expect(chmod(new_saves.c_str(),0755)==0,"restore gate saves");
+    } else if(mode=="save-dir") {
+        std::string error;
+        std::string save=root+"/nested/saves";
+        expect(blackmoor_prepare_save_directory(save,&error)&&exists(save),"missing save directory is created");
+        expect(blackmoor_prepare_save_directory(save,&error),"existing writable save directory accepted");
+        std::string folder=save+"/Documents5/The Curse of Blackmoor Manor";dir(folder);
+        put(folder+"/m0.SAV","good save");
+        expect(blackmoor_prepare_save_directory(save,&error),"writable game save folder accepted");
+        expect(get(folder+"/m0.SAV")=="good save","preparation never alters a save");
+        // stale temp of a dead process is swept, one of a live process is kept
+        std::string stale=folder+"/.rcsave-999999-0.tmp",live=folder+"/.rcsave-"+std::to_string(getpid())+"-0.tmp";
+        put(stale,"partial");put(live,"in progress");
+        expect(blackmoor_prepare_save_directory(save,&error),"preparation with leftover temps");
+        expect(!exists(stale),"dead process temp removed");
+        expect(exists(live),"live process temp kept");
+        expect(unlink(live.c_str())==0,"remove fixture live temp");
+        if (geteuid()!=0) {
+            expect(chmod(folder.c_str(),0555)==0,"fixture read-only game save folder");
+            expect(!blackmoor_prepare_save_directory(save,&error),"read-only game save folder refused");
+            expect(error.find(folder)!=std::string::npos&&error.find("not writable")!=std::string::npos,"refusal names the folder and the permission problem");
+            expect(get(folder+"/m0.SAV")=="good save","refused folder keeps the existing save");
+            expect(chmod(folder.c_str(),0755)==0,"restore fixture folder");
+            std::string documents=save+"/Documents5";
+            expect(chmod(documents.c_str(),0555)==0,"fixture read-only Documents folder");
+            expect(!blackmoor_prepare_save_directory(save,&error)&&error.find(documents)!=std::string::npos,"read-only Documents folder refused");
+            expect(chmod(documents.c_str(),0755)==0,"restore fixture Documents folder");
+            expect(chmod(save.c_str(),0555)==0,"fixture read-only save directory");
+            expect(!blackmoor_prepare_save_directory(save,&error)&&error.find(save)!=std::string::npos,"read-only save directory refused");
+            expect(chmod(save.c_str(),0755)==0,"restore fixture save directory");
+            expect(blackmoor_prepare_save_directory(save,&error),"restored directories accepted again");
+        }
+        std::string blocked=root+"/regular file";put(blocked,"x");
+        expect(!blackmoor_prepare_save_directory(blocked,&error)&&error.find(blocked)!=std::string::npos,"a file is not a save directory");
+        expect(!blackmoor_prepare_save_directory(blocked+"/child",&error),"directory under a file cannot be created");
+        if (geteuid()!=0) {
+            // a read-only existing save or preferences file in a writable folder stalls the game's Load/Save silently, so it is refused too
+            std::string slot=folder+"/m0.SAV";
+            expect(chmod(slot.c_str(),0444)==0,"fixture read-only save");
+            expect(!blackmoor_prepare_save_directory(save,&error)&&error.find(slot)!=std::string::npos,"read-only save file refused with its path");
+            expect(chmod(slot.c_str(),0644)==0,"restore fixture save");
+            std::string ini=folder+"/GAME.INI";put(ini,"x");expect(chmod(ini.c_str(),0444)==0,"fixture read-only ini");
+            expect(!blackmoor_prepare_save_directory(save,&error)&&error.find(ini)!=std::string::npos,"read-only GAME.INI refused with its path");
+            expect(chmod(ini.c_str(),0644)==0,"restore fixture ini");
+            expect(blackmoor_prepare_save_directory(save,&error),"writable files accepted again");
+        }
+        expect(!blackmoor_prepare_save_directory("",&error),"empty save directory refused");
     } else if(mode=="competing") {
         BlackmoorGameDataSelection a,b;bool first=false,second=false;
         std::thread x([&]{@autoreleasepool{first=choose(o,a);}}),y([&]{@autoreleasepool{second=choose(o,b);}});x.join();y.join();

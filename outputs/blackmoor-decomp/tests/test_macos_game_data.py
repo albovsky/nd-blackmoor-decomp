@@ -44,5 +44,7 @@ class GameDataTests(unittest.TestCase):
     def test_wrong_completed_cache_is_not_silently_replaced(self):self.run_mode('tamper')
     def test_aliases_symlinks_and_copy_failure_never_touch_original(self):self.run_mode('aliases-failure')
     def test_competing_publication_reuses_only_completed_winner(self):self.run_mode('competing')
+    def test_resolved_executable_hash_is_verified_on_every_route(self):self.run_mode('executable')
+    def test_unwritable_save_directories_are_refused_with_their_path(self):self.run_mode('save-dir')
 
 if __name__=='__main__':unittest.main()

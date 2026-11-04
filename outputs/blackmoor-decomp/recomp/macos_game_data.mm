@@ -4,6 +4,10 @@
 #include <cerrno>
 #include <cstdlib>
 #include <cstdio>
+#include <cstring>
+#include <dirent.h>
+#include <signal.h>
+#include <strings.h>
 #include <sys/stat.h>
 #include <sys/stdio.h>
 #include <unistd.h>
@@ -247,5 +251,108 @@ bool blackmoor_select_game_data(const Options &o, BlackmoorGameDataSelection *se
     if (!selection->created) [fm removeItemAtPath:stage error:nullptr];
     if (!ok) return false;
     selection->directory = text([package stringByAppendingPathComponent:@"game"]);
+    return true;
+}
+
+bool blackmoor_verify_executable(const std::string &path, const std::string &expected, std::string *error) {
+    if (error) error->clear();
+    struct stat st;
+    if (stat(path.c_str(), &st) != 0)
+        return refuse(error, "GAME.EXE not found at " + path + " (" + strerror(errno) + "); use --exe or --game-dir with the owned original");
+    if (!S_ISREG(st.st_mode)) return refuse(error, "the executable " + path + " is not a regular file");
+    std::string actual;
+    if (!digest(ns(path), &actual)) return refuse(error, "cannot read the executable " + path + ": " + strerror(errno));
+    if (actual != expected)
+        return refuse(error, "the executable " + path + " has SHA-256 " + actual + "; this port runs only the owned original GAME.EXE with SHA-256 " + expected);
+    return true;
+}
+
+namespace {
+// A temp file of an interrupted save is named .rcsave-<pid>-<n>.tmp by rc_win32.c; only one whose process is gone is removed.
+static void sweep_dead_save_temps(const std::string &directory) {
+    DIR *d = opendir(directory.c_str());
+    if (!d) return;
+    std::vector<std::string> stale;
+    while (struct dirent *e = readdir(d)) {
+        int pid = 0;
+        if (sscanf(e->d_name, ".rcsave-%d-", &pid) == 1 && pid > 0 && kill(pid, 0) != 0 && errno == ESRCH) stale.push_back(e->d_name);
+    }
+    closedir(d);
+    for (const std::string &name : stale) unlink((directory + "/" + name).c_str());
+}
+static bool writable_directory(const std::string &path, const char *role, std::string *error) {
+    if (access(path.c_str(), W_OK | X_OK) == 0) return true;
+    return refuse(error, std::string(role) + " " + path + " is not writable (" + strerror(errno) + "); the game cannot save there. "
+                         "Fix its permissions or pass a writable --save-dir. Existing saves were not changed.");
+}
+// The files the game rewrites (saves and the preferences copy) must be writable too, or its Load/Save stalls without a message.
+static bool writable_game_files(const std::string &folder, std::string *error) {
+    DIR *d = opendir(folder.c_str());
+    if (!d) return true;
+    std::vector<std::string> names;
+    while (struct dirent *e = readdir(d)) {
+        size_t n = strlen(e->d_name);
+        bool save = n > 4 && strcasecmp(e->d_name + n - 4, ".SAV") == 0;
+        if (save || strcasecmp(e->d_name, "GAME.INI") == 0) names.push_back(e->d_name);
+    }
+    closedir(d);
+    for (const std::string &name : names) {
+        std::string path = folder + "/" + name;
+        struct stat st;
+        if (stat(path.c_str(), &st) == 0 && S_ISREG(st.st_mode) && access(path.c_str(), W_OK) != 0)
+            return refuse(error, "the save file " + path + " is not writable (" + strerror(errno) + "); the game cannot overwrite it. "
+                                 "Fix its permissions or pass a writable --save-dir. Existing saves were not changed.");
+    }
+    return true;
+}
+static std::vector<std::string> subdirectories(const std::string &path, bool documents_only) {
+    std::vector<std::string> names;
+    DIR *d = opendir(path.c_str());
+    if (!d) return names;
+    while (struct dirent *e = readdir(d)) {
+        if (!strcmp(e->d_name, ".") || !strcmp(e->d_name, "..")) continue;
+        if (documents_only && strncasecmp(e->d_name, "Documents", 9) != 0) continue;
+        struct stat st;
+        if (stat((path + "/" + e->d_name).c_str(), &st) == 0 && S_ISDIR(st.st_mode)) names.push_back(e->d_name);
+    }
+    closedir(d);
+    return names;
+}
+} // namespace
+
+bool blackmoor_prepare_save_directory(const std::string &directory, std::string *error) {
+    if (error) error->clear();
+    if (directory.empty()) return refuse(error, "the save directory is empty");
+    int make_error = 0;
+    for (size_t i = 1; i <= directory.size(); ++i) {
+        if (i != directory.size() && directory[i] != '/') continue;
+        if (mkdir(directory.substr(0, i).c_str(), 0755) != 0 && errno != EEXIST && !make_error) make_error = errno;
+    }
+    struct stat st;
+    if (stat(directory.c_str(), &st) != 0)
+        return refuse(error, "cannot create the save directory " + directory + " (" + strerror(make_error ? make_error : errno) + ")");
+    if (!S_ISDIR(st.st_mode)) return refuse(error, "the save directory " + directory + " is not a directory");
+    if (!writable_directory(directory, "the save directory", error)) return false;
+    sweep_dead_save_temps(directory);
+    for (const std::string &documents : subdirectories(directory, true)) {
+        std::string folder = directory + "/" + documents;
+        if (!writable_directory(folder, "the save folder", error)) return false;
+        sweep_dead_save_temps(folder);
+        for (const std::string &game : subdirectories(folder, false)) {
+            std::string inner = folder + "/" + game;
+            if (!writable_directory(inner, "the save folder", error)) return false;
+            sweep_dead_save_temps(inner);
+            if (!writable_game_files(inner, error)) return false;
+        }
+    }
+    return true;
+}
+
+bool blackmoor_check_startup(const std::string &executable, const std::string &expected_sha256, const std::string &save_directory,
+                             std::string *error) {
+    std::string detail;
+    if (!blackmoor_verify_executable(executable, expected_sha256, &detail)) return refuse(error, "GAME_EXE: " + detail);
+    if (!blackmoor_prepare_save_directory(save_directory, &detail)) return refuse(error, "SAVE_DIR: " + detail);
+    if (error) error->clear();
     return true;
 }
