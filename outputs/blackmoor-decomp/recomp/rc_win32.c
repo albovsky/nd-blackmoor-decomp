@@ -772,8 +772,74 @@ API(GetWindowsDirectoryA) { (void)r; put_buf(a[0], "C:\\WINDOWS", a[1]); RET(10)
 API(GetSystemDirectoryA) { (void)r; put_buf(a[0], "C:\\WINDOWS\\SYSTEM32", a[1]); RET(19); }
 
 /* ------------------------------------------------------------------ files */
-typedef struct FileObj { char path[1536]; int fd; int64_t pos; } FileObj;
+/* A file the guest creates or truncates is written to a sibling temp file and only replaces the real one when CloseHandle finds every write and the
+ * final flush complete (tmp[0] set); a failed or interrupted overwrite therefore leaves the previous file byte-for-byte intact. */
+typedef struct FileObj { char path[1536]; char tmp[1536]; int fd; int64_t pos; int failed; int fail_errno; } FileObj;
+#define TMP_PREFIX ".rcsave-"
 
+static uint32_t win_error_of(int err)
+{
+    switch (err) {
+    case ENOSPC: case EFBIG: case EDQUOT: return 112;
+    case EACCES: case EPERM: case EROFS: return 5;
+    default: return 29;
+    }
+}
+static void save_fault(const char *op, const char *path, int err)
+{
+    rc_log("  SAVE_ERROR %s %s: %s", op, path, strerror(err));
+    fprintf(stderr, "SAVE_ERROR %s %s: %s\n", op, path, strerror(err));
+}
+/* A name the game's *.SAV / *.* searches never list (FindFirstFileA skips TMP_PREFIX); the pid lets the launcher sweep temps of dead processes. */
+static void tmp_path_for(const char *target, char *out, size_t cap)
+{
+    static unsigned seq;
+    const char *slash = strrchr(target, '/');
+    int dirlen = slash ? (int)(slash - target) : 0;
+    snprintf(out, cap, "%.*s%s" TMP_PREFIX "%d-%u.tmp", dirlen, target, slash ? "/" : "", (int)getpid(), seq++);
+}
+
+/* Opens the temp file that stands for the replacement of host path h (mode: the permissions to keep). Returns 0 or the errno. */
+static int tx_open(const char *h, int exists, mode_t mode, char *tmp, size_t cap, int *fd)
+{
+    if (exists && access(h, W_OK) != 0) return errno;
+    tmp_path_for(h, tmp, cap);
+    *fd = open(tmp, O_RDWR | O_CREAT | O_EXCL, mode);
+    return *fd < 0 ? errno : 0;
+}
+/* Writes every byte or reports the errno of the first failure; *done is what reached the file. A short write is a failure, not a success. */
+static int file_write_all(FileObj *f, const uint8_t *data, uint32_t n, uint32_t *done)
+{
+    int err = 0;
+    *done = 0;
+    while (*done < n) {
+        ssize_t w = pwrite(f->fd, data + *done, n - *done, (off_t)(f->pos + *done));
+        if (w < 0 && errno == EINTR) continue;
+        if (w <= 0) { err = w < 0 ? errno : EIO; break; }
+        *done += (uint32_t)w;
+    }
+    f->pos += *done;
+    if (err && !f->failed) { f->failed = 1; f->fail_errno = err; save_fault("write", f->path, err); }
+    return err;
+}
+/* Closes a file object. A temp-backed file becomes the real file by one rename, only when no write failed and the flush succeeded; any failure
+ * discards the temp and reports ERROR_WRITE_FAULT/DISK_FULL/ACCESS_DENIED, so the previous file is never replaced by a truncated one. */
+static uint32_t file_finish(FileObj *f)
+{
+    if (!f->tmp[0]) { close(f->fd); return 1; }
+    int err = f->failed ? f->fail_errno : 0;
+    if (!err && fsync(f->fd) != 0) { err = errno; save_fault("flush", f->path, err); }
+    if (close(f->fd) != 0 && !err) { err = errno; save_fault("close", f->path, err); }
+    if (!err && rename(f->tmp, f->path) != 0) { err = errno; save_fault("replace", f->path, err); }
+    if (err) {
+        unlink(f->tmp);
+        rc_log("  SAVE_ERROR discarded the unfinished replacement of %s; the previous file is unchanged", f->path);
+        fprintf(stderr, "SAVE_ERROR discarded the unfinished replacement of %s; the previous file is unchanged\n", f->path);
+        last_error = win_error_of(err);
+        return 0;
+    }
+    return 1;
+}
 API(GetFileAttributesA)
 {
     (void)r;
@@ -814,12 +880,20 @@ API(CopyFileA)
     if (stat(hd, &st) == 0 && a[2]) { last_error = 80; RET(0); }
     FILE *in = fopen(hs, "rb");
     if (!in) { last_error = 2; RET(0); }
-    FILE *out = fopen(hd, "wb");
-    if (!out) { fclose(in); last_error = 5; RET(0); }
+    char tmp[1700];
+    tmp_path_for(hd, tmp, sizeof tmp);
+    FILE *out = fopen(tmp, "wb");
+    if (!out) { int e = errno; fclose(in); save_fault("copy", hd, e); last_error = win_error_of(e); RET(0); }
     char buf[65536];
     size_t n;
-    while ((n = fread(buf, 1, sizeof buf, in)) > 0) fwrite(buf, 1, n, out);
-    fclose(in); fclose(out);
+    int err = 0;
+    while (!err && (n = fread(buf, 1, sizeof buf, in)) > 0) if (fwrite(buf, 1, n, out) != n) err = errno ? errno : EIO;
+    if (!err && ferror(in)) err = EIO;
+    if (!err && (fflush(out) != 0 || fsync(fileno(out)) != 0)) err = errno ? errno : EIO;
+    fclose(in);
+    if (fclose(out) != 0 && !err) err = errno ? errno : EIO;
+    if (!err && rename(tmp, hd) != 0) err = errno;
+    if (err) { unlink(tmp); save_fault("copy", hd, err); last_error = win_error_of(err); RET(0); }
     RET(1);
 }
 API(DeleteFileA) { (void)r; char s[1024]; rc_cstr(a[0], s, sizeof s); fs_log("delete", s); RET(1); }
@@ -834,14 +908,16 @@ API(CreateFileA)
     struct stat st;
     int exists = ok && stat(h, &st) == 0;
     if (!ok || (disp == 1 && exists)) { last_error = !ok ? 2 : 80; RET(0xffffffffu); }
+    char tmp[1536] = "";
+    int fd;
     if (!exists || disp == 2 || disp == 5) {
         if (!(acc & 0x40000000u)) { last_error = 2; RET(0xffffffffu); }
-        int fd = open(h, O_RDWR | O_CREAT | O_TRUNC, 0644);
+        int e = tx_open(h, exists, exists ? (st.st_mode & 07777) : 0644, tmp, sizeof tmp, &fd);
+        if (e) { save_fault(exists ? "open" : "create", h, e); last_error = win_error_of(e); RET(0xffffffffu); }
+    } else {
+        fd = open(h, (acc & 0x40000000u) ? O_RDWR : O_RDONLY);
         if (fd < 0) { last_error = 5; RET(0xffffffffu); }
-        close(fd);
     }
-    int fd = open(h, (acc & 0x40000000u) ? O_RDWR : O_RDONLY);
-    if (fd < 0) { last_error = 5; RET(0xffffffffu); }
     files_opened++;
     if (!file_first_data[0]) {
         const char *dot = strrchr(win, '.');
@@ -849,6 +925,7 @@ API(CreateFileA)
     }
     FileObj *f = (FileObj *)calloc(1, sizeof *f);
     snprintf(f->path, sizeof f->path, "%s", h);
+    snprintf(f->tmp, sizeof f->tmp, "%s", tmp);
     f->fd = fd;
     RET(rc_handle_new(RC_H_FILE, f));
 }
@@ -889,11 +966,11 @@ API(WriteFile)
     uint32_t n = a[2];
     uint8_t *tmp = (uint8_t *)malloc(n ? n : 1u);
     rc_read(a[1], tmp, n);
-    ssize_t w = pwrite(f->fd, tmp, n, (off_t)f->pos);
+    uint32_t done;
+    int err = file_write_all(f, tmp, n, &done);
     free(tmp);
-    if (w < 0) { last_error = 29; RET(0); }
-    f->pos += n;
-    if (a[3]) rc_w32(a[3], n);
+    if (a[3]) rc_w32(a[3], done);
+    if (err) { last_error = win_error_of(err); RET(0); }
     RET(1);
 }
 API(SetFilePointer)
@@ -962,12 +1039,13 @@ API(CloseHandle)
 {
     (void)r;
     FileObj *f = file_of(a[0]);
-    if (f) { close(f->fd); free(f); }
+    uint32_t ok = 1;
+    if (f) { ok = file_finish(f); free(f); }
     else if (rc_handle_kind(a[0]) == RC_H_THREAD) rc_thread_close(thread_of(a[0]));
     else if (rc_handle_kind(a[0]) == RC_H_EVENT) free(rc_handle_obj(a[0], RC_H_EVENT));
     else if (rc_handle_kind(a[0]) == RC_H_MAP) { MapObj *m = (MapObj *)rc_handle_obj(a[0], RC_H_MAP); if (m->fd >= 0) close(m->fd); free(m); }
     rc_handle_close(a[0]);
-    RET(1);
+    RET(ok);
 }
 
 /* Events are consumed under the guest token. Waits hand off to other guest
@@ -1096,6 +1174,7 @@ API(FindFirstFileA)
         struct dirent *e;
         while ((e = readdir(d))) {
             if (!strcmp(e->d_name, ".") || !strcmp(e->d_name, "..")) continue;
+            if (!strncmp(e->d_name, TMP_PREFIX, sizeof TMP_PREFIX - 1)) continue;
             if (!wild(pat, e->d_name)) continue;
             if (count == cap) { cap = cap ? cap * 2 : 16; names = (char **)realloc(names, (size_t)cap * sizeof *names); }
             names[count++] = strdup(e->d_name);
@@ -1159,6 +1238,7 @@ API(MessageBoxA)
     if (a[1]) rc_cstr(a[1], text, sizeof text);
     if (a[2]) rc_cstr(a[2], cap, sizeof cap);
     rc_log("  MessageBoxA('%s', '%s')", text, cap);
+    fprintf(stderr, "GAME_MESSAGE_BOX '%s' (%s); no dialog is shown, the guest stops\n", text, cap);
     rc_abort("MessageBoxA: '%s'", text);
 }
 API(SHGetSpecialFolderPathA)
