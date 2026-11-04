@@ -56,6 +56,8 @@ def main(options=None):
         sys.path.insert(0, str(TESTS))
         program = unittest.main(module=None, argv=['unittest', *request['names'], *request['options']], exit=False)
         result = program.result
+        Path(request['result']).write_text(json.dumps({'tests_run': result.testsRun,
+                                                       'successful': result.wasSuccessful()}))
         if result.wasSuccessful() and result.testsRun != len(request['names']):
             raise RuntimeError('the reference runner did not execute every selected test')
         return int(not result.wasSuccessful())
@@ -69,9 +71,10 @@ def main(options=None):
                                'with Unicorn, Capstone, pefile and z3-solver (see recomp/PORTABILITY-VERIFICATION.md)')
         probe = subprocess.run(['/usr/bin/arch', '-x86_64', str(interpreter), '-c',
                                 'import platform,sys,unicorn,capstone,pefile,z3\n'
-                                'assert platform.machine()=="x86_64" and sys.version_info >= (3,10)'],
+                                'assert platform.machine()=="x86_64" and sys.version_info >= (3,10)\n'
+                                'print("blackmoor-x87-ready")'],
                                capture_output=True, text=True)
-        if probe.returncode:
+        if probe.returncode or probe.stdout.strip() != 'blackmoor-x87-ready':
             raise RuntimeError('x87 reference Python is not usable: ' + probe.stderr[-1000:])
 
     loader = ArchitectureLoader(separate)
@@ -87,13 +90,21 @@ def main(options=None):
             compiler.write_text('#!/bin/sh\nexec /usr/bin/xcrun --sdk macosx clang -arch x86_64 "$@"\n')
             compiler.chmod(0o755)
             request = directory / 'tests.json'
-            request.write_text(json.dumps({'names': [test.id() for test in loader.reference], 'options': options}))
+            receipt = directory / 'result.json'
+            request.write_text(json.dumps({'names': [test.id() for test in loader.reference], 'options': options,
+                                           'result': str(receipt)}))
             environment = dict(os.environ, CC=str(compiler), FL66_CACHE=str(directory / 'cache'))
             environment['PATH'] = str(directory) + os.pathsep + environment.get('PATH', '')
             print(f'Running all {len(loader.reference)} x87 reference checks under existing Rosetta support.', flush=True)
             result = subprocess.run(['/usr/bin/arch', '-x86_64', str(interpreter), str(Path(__file__).resolve()),
                                      '--x87-child', str(request)], env=environment)
-            reference_ok = result.returncode == 0
+            reference_ok = False
+            if result.returncode == 0 and receipt.is_file():
+                completed = json.loads(receipt.read_text())
+                reference_ok = (completed.get('successful') is True and
+                                completed.get('tests_run') == len(loader.reference))
+            if not reference_ok:
+                print('Reference checks did not return a complete passing result.', file=sys.stderr)
     return int(not (native_ok and reference_ok))
 
 
