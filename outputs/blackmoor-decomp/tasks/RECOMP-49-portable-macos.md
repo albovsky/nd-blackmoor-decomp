@@ -151,3 +151,13 @@ mismatch in `action_family_4e_runtime.c`. Root applies the same original FMUL
 0x44b597/FADD 0x44b614 negative-indefinite rule there, with all finite arithmetic
 and existing mutant anchors retained. Four bit-exact cases fail before this
 fix; the full A4E tests and independent frozen review are required afterward.
+
+All eight A4E tests now pass in 108.168 seconds, including every existing mutant,
+sanitizer and original comparison. The final A1C compatibility placement keeps
+the raw original oracle and its recorded execution evidence byte-identical:
+`test_action_family_1c_runtime_oracle.py` scopes the Mac compiler adapter to its
+own subprocesses; `macos_allocation_cc.py` translates the three GNU allocator
+wrapper flags into the driver's call redirection. It refuses partial wrapper
+sets and preserves the real selected compiler. Both unchanged oracle/refusal
+tests pass in 4.362 seconds with this placement. No historical execution receipt
+is rehashed or relabeled. The standalone original oracle is otherwise unchanged.
