@@ -36,6 +36,7 @@ EXPECTED_UNIT_TESTS = 30
 
 sys.path.insert(0, str(PROJECT / 'tests'))
 import test_scene_executor as base  # noqa: E402
+from sanitizer_support import leak_sanitizer_available, leaks_verdict, require_leak_checker, sanitizer_leak_status  # noqa: E402
 
 
 def compiler():
@@ -52,24 +53,17 @@ def compile_c(output, main_c, sources, src_dir=SRC, extra=(), werror=True, cc=No
 
 
 def sanitizers_work(tmp):
-    """(a compiler with an ASan/UBSan runtime or None, whether LeakSanitizer works). The default compiler may lack the runtime
-    (clang without compiler-rt), so gcc is tried too."""
-    probe = Path(tmp) / 'probe.c'
-    probe.write_text('#include <stdlib.h>\nint main(void){ volatile char *p = malloc(7); p[0] = 1; p = 0; return 0; }\n')
-    out = Path(tmp) / 'probe'
+    """(a compiler with an ASan/UBSan runtime or None, whether LeakSanitizer works with it). The default compiler may lack the
+    runtime (clang without compiler-rt), so gcc is tried too; the shared probe raises when LeakSanitizer should work and does not."""
     for cc in dict.fromkeys(c for c in (compiler(), shutil.which('gcc'), shutil.which('cc')) if c):
-        built = subprocess.run([cc, '-g', '-O0', *SANITIZE, str(probe), '-o', str(out)], capture_output=True, text=True)
-        if built.returncode != 0:
-            continue
-        env = dict(os.environ, ASAN_OPTIONS='detect_leaks=1')
-        done = subprocess.run([str(out)], capture_output=True, text=True, env=env)
-        return cc, done.returncode != 0 and 'LeakSanitizer' in done.stderr
+        if sanitizer_leak_status(cc) != 'absent':
+            return cc, leak_sanitizer_available(cc)
     return None, False
 
 
 def run_unit(binary, leaks=False):
     env = dict(os.environ, ASAN_OPTIONS='detect_leaks=1' if leaks else 'detect_leaks=0')
-    done = subprocess.run([str(binary)], capture_output=True, text=True, env=env)
+    done = subprocess.run([str(binary)], capture_output=True, text=True, errors='replace', env=env)
     results = {}
     for line in done.stdout.splitlines():
         status, _, rest = line.partition(' ')
@@ -509,33 +503,43 @@ class UnitTests(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertGreaterEqual(sum(status == 'PASS' for status, _ in results.values()), EXPECTED_UNIT_TESTS)
 
-    def _run_mutant(self, tag, filename, old, new):
+    def _run_mutant(self, tag, filename, old, new, by_leaks=False):
         work = mutated_copy(self.tmp.name, filename, old, new, tag)
         binary = work / 'mut_test'
-        built = compile_c(binary, TEST_C, KERNEL_SOURCES, src_dir=work, extra=SANITIZE if self.san else (), werror=False,
-                          cc=self.san)
+        if by_leaks:  # `leaks --atExit` needs an unsanitized build
+            built = compile_c(binary, TEST_C, KERNEL_SOURCES, src_dir=work, werror=False)
+        else:
+            built = compile_c(binary, TEST_C, KERNEL_SOURCES, src_dir=work, extra=SANITIZE if self.san else (), werror=False,
+                              cc=self.san)
         if built.returncode != 0:
             return 'does not build: ' + built.stderr[-300:], None
+        if by_leaks:
+            return None, 0 if leaks_verdict(binary) == 'survived' else 1
         code, _ = run_unit(binary, leaks=self.leaks)
         return None, code
 
     def test_mutations_are_detected(self):
         """The cases must fail when a recovered rule is deliberately broken (the oracle has its own mutants against the original;
-        these also cover the host-status mapping the oracle cannot reach). Leak mutants need LeakSanitizer."""
+        these also cover the host-status mapping the oracle cannot reach). Leak-tagged mutants are judged by LeakSanitizer, else by
+        `leaks --atExit` on an unsanitized build; with neither the test fails instead of dropping them."""
         jobs = []
-        skipped = []
         for filename, mutations in MUTANTS.items():
             for name, entry in mutations.items():
-                if len(entry) == 3 and not self.leaks:
-                    skipped.append(name)
-                    continue
-                jobs.append((filename, name, entry[0], entry[1]))
+                jobs.append((filename, name, entry[0], entry[1], len(entry) == 3))
+        by_leaks = False
+        if any(job[4] for job in jobs):
+            by_leaks = require_leak_checker(self.san, compiler()) == 'leaks'
+        if by_leaks:
+            baseline = Path(self.tmp.name) / 'a1c_leaks_baseline'
+            built = compile_c(baseline, TEST_C, KERNEL_SOURCES)
+            self.assertEqual(built.returncode, 0, built.stderr[-600:])
+            self.assertEqual(leaks_verdict(baseline), 'survived', 'the unmutated build must pass `leaks --atExit`')
         survivors, broken = [], []
 
         def run(job):
-            filename, name, old, new = job
+            filename, name, old, new, leak_only = job
             tag = 'mut_' + re.sub(r'\W', '_', filename + name)
-            return job, self._run_mutant(tag, filename, old, new)
+            return job, self._run_mutant(tag, filename, old, new, by_leaks and leak_only)
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=min(8, os.cpu_count() or 2)) as pool:
             for job, (problem, code) in pool.map(run, jobs):
@@ -545,7 +549,8 @@ class UnitTests(unittest.TestCase):
                     survivors.append(job[1])
         self.assertEqual(broken, [], 'mutants that do not build')
         self.assertEqual(survivors, [], 'mutants that survived')
-        self.assertGreaterEqual(len(jobs) + len(skipped), 250)
+        self.assertGreaterEqual(len(jobs), 250)
+        print(f'mutants judged: {len(jobs)} ({sum(job[4] for job in jobs)} leak-tagged by {"leaks --atExit" if by_leaks else "LeakSanitizer"})')
 
     def test_equivalent_mutants_survive(self):
         """The recorded equivalent mutants build and leave every unit case green (so the recorded reason is still true)."""

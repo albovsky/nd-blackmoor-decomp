@@ -91,3 +91,14 @@ and narrowly related FL19a fixtures to investigate the allocation against the
 original 0x4c-byte frame, reproduce the crash, and make the smallest correction.
 Both production fixes require an independent frozen-commit review. No changes
 to function evidence, acceptance entries, ledger, story or campaign content.
+
+Final harness review: the nine-file candidate was frozen as `dd6f115e` and
+reviewed independently before root's follow-up. Real clean/leaking controls and
+D3/A1C leak-only mutants demonstrate the macOS fallback. Root requires an
+available checker in every affected sweep and makes tool errors/timeouts fail
+visibly after one serialized retry; only a consistent positive leak report may
+kill a mutant. No existing mutant, threshold or assertion is removed. E4/EB's
+generic mutation generator does not explicitly remove `free`; that inherited
+coverage gap remains recorded, without a new complete-leak-coverage claim.
+The implementer was stopped after disregarding the no-chained-commands rule.
+Its unfinished EB/EE/F5 run is not counted as passing. Root owns the final run.

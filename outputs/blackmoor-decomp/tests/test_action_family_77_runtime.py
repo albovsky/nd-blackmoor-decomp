@@ -22,6 +22,7 @@ import shutil
 import subprocess
 import tempfile
 import unittest
+from sanitizer_support import sanitizer_environment
 
 PROJECT = Path(__file__).resolve().parents[1]
 SRC = PROJECT / 'src'
@@ -44,21 +45,6 @@ def compile_c(output, main_c, sources, src_dir=SRC, extra=(), optimize='-O1'):
 
 
 SANITIZE = ['-fsanitize=address,undefined', '-fno-sanitize-recover=undefined']
-
-
-def asan_options(tmp, cc):
-    """ASAN_OPTIONS for the sanitizer build: leak checking is requested wherever the runtime supports it. It is probed, not
-    assumed: a program that leaks must stop with a LeakSanitizer report. Where the probe cannot see that (macOS aborts with
-    "detect_leaks is not supported on this platform"), only the leak check is left out; ASan and UBSan stay on."""
-    probe = Path(tmp) / 'probe_leak.c'
-    probe.write_text('#include <stdlib.h>\nint main(void){ volatile char *p = malloc(7); p[0] = 1; p = 0; return 0; }\n')
-    out = Path(tmp) / 'probe_leak'
-    built = subprocess.run([cc, '-g', '-O0', *SANITIZE, str(probe), '-o', str(out)], capture_output=True, text=True)
-    if built.returncode == 0:
-        done = subprocess.run([str(out)], capture_output=True, text=True, env=dict(os.environ, ASAN_OPTIONS='detect_leaks=1'))
-        if done.returncode != 0 and 'LeakSanitizer' in done.stderr:
-            return 'detect_leaks=1'
-    return 'detect_leaks=0'
 
 
 def run_unit(binary):
@@ -347,7 +333,7 @@ class UnitTests(unittest.TestCase):
                    f'-I{SRC}', str(TEST_C), *[str(SRC / s) for s in SOURCES], '-lm', '-o', str(out)]
             if subprocess.run(cmd, capture_output=True, text=True).returncode != 0:
                 continue
-            env = dict(os.environ, ASAN_OPTIONS=asan_options(self.tmp.name, cc))
+            env = sanitizer_environment(cc)
             done = subprocess.run([str(out)], capture_output=True, text=True, env=env)
             self.assertEqual(done.returncode, 0, done.stdout[-400:] + done.stderr[-400:])
             self.assertGreaterEqual(done.stdout.count('PASS'), EXPECTED_UNIT_TESTS)

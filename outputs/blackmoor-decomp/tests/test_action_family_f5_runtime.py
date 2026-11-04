@@ -24,7 +24,7 @@ import shutil
 import subprocess
 import tempfile
 import unittest
-from sanitizer_support import sanitizer_environment
+from sanitizer_support import leak_checker, leaks_verdict, require_leak_checker, sanitizer_environment
 
 PROJECT = Path(__file__).resolve().parents[1]
 SRC = PROJECT / 'src'
@@ -677,7 +677,7 @@ class UnitTests(unittest.TestCase):
                    f'-I{SRC}', str(TEST_C), *[str(SRC / s) for s in SOURCES], '-lm', '-o', str(out)]
             if subprocess.run(cmd, capture_output=True, text=True).returncode != 0:
                 continue
-            env = sanitizer_environment()
+            env = sanitizer_environment(cc)
             done = subprocess.run([str(out)], capture_output=True, text=True, env=env)
             self.assertEqual(done.returncode, 0, done.stdout[-400:] + done.stderr[-400:])
             self.assertGreaterEqual(done.stdout.count('PASS'), EXPECTED_UNIT_TESTS)
@@ -705,9 +705,24 @@ class UnitTests(unittest.TestCase):
                 if name not in EQUIVALENT and name not in KNOWN_GAPS:
                     jobs.append((filename, name, old, new))
         san_cc = sanitizer_compiler(self.tmp.name)
-        if san_cc is None:
-            jobs = [job for job in jobs if job[1] not in SANITIZED]
-        env = dict(os.environ, ASAN_OPTIONS='detect_leaks=1')
+        if san_cc is None and any(job[1] in SANITIZED for job in jobs):  # never drop them silently
+            self.fail('mutants only the ASan/UBSan runtime can judge, and no compiler here has it: ' +
+                      ', '.join(sorted(job[1] for job in jobs if job[1] in SANITIZED)))
+        env = sanitizer_environment(san_cc) if san_cc else dict(os.environ)
+        # A mutant that only leaks is invisible to ASan/UBSan. Where LeakSanitizer is unavailable (macOS) every mutant that
+        # survives the sanitizer run is judged again by `leaks --atExit` on an unsanitized build of the same mutation.
+        by_leaks = require_leak_checker(san_cc, compiler()) == 'leaks'
+        # the unmutated source must pass under exactly the environment that judges the mutants, or every "kill" is hollow
+        baseline = Path(self.tmp.name) / 'f5_baseline'
+        built = compile_c(baseline, TEST_C, SOURCES, optimize='-O0', extra=SANITIZE if san_cc else (), cc=san_cc)
+        self.assertEqual(built.returncode, 0, built.stderr[-400:])
+        done = subprocess.run([str(baseline)], capture_output=True, text=True, env=env)
+        self.assertEqual(done.returncode, 0, 'the unmutated build must pass under the sweep environment: ' + done.stderr[-400:])
+        if by_leaks:
+            plain = Path(self.tmp.name) / 'f5_baseline_plain'
+            built = compile_c(plain, TEST_C, SOURCES, optimize='-O0')
+            self.assertEqual(built.returncode, 0, built.stderr[-400:])
+            self.assertEqual(leaks_verdict(plain), 'survived', 'the unmutated build must pass `leaks --atExit`')
 
         def build_and_run(index_job):
             index, (filename, name, old, new) = index_job
@@ -718,10 +733,16 @@ class UnitTests(unittest.TestCase):
             if built.returncode != 0:
                 return name, 'build', built.stderr[-300:]
             try:
-                done = subprocess.run([str(binary)], capture_output=True, text=True, timeout=120, env=env)
+                done = subprocess.run([str(binary)], capture_output=True, text=True, errors='replace', timeout=120, env=env)
                 verdict = 'killed' if done.returncode != 0 else 'survived'
             except subprocess.TimeoutExpired:
                 verdict = 'killed'
+            if verdict == 'survived' and by_leaks:
+                plain = work / 'mut_plain'
+                built = compile_c(plain, TEST_C, SOURCES, src_dir=work, optimize='-O0')
+                if built.returncode != 0:
+                    return name, 'build', built.stderr[-300:]
+                verdict = leaks_verdict(plain)
             shutil.rmtree(work, ignore_errors=True)
             return name, verdict, ''
 
@@ -732,7 +753,8 @@ class UnitTests(unittest.TestCase):
         for name, verdict, detail in outcomes:
             with self.subTest(name):
                 self.assertEqual(verdict, 'killed', f'mutant {verdict}: {name} {detail}')
-        print(f'mutants killed: {killed} of {len(jobs)} ({len(EQUIVALENT)} equivalent, {len(KNOWN_GAPS)} open gaps, not run)')
+        print(f'mutants killed: {killed} of {len(jobs)} ({len(EQUIVALENT)} equivalent, {len(KNOWN_GAPS)} open gaps, not run;'
+              f' survivors re-judged by {"leaks --atExit" if by_leaks else "LeakSanitizer" if san_cc and leak_checker(san_cc, None) else "no leak checker"})')
 
 
 class Corpus(unittest.TestCase):

@@ -29,7 +29,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
-from sanitizer_support import sanitizer_environment
+from sanitizer_support import leak_checker, leaks_verdict, require_leak_checker, sanitizer_environment
 
 PROJECT = Path(__file__).resolve().parents[1]
 SRC = PROJECT / 'src'
@@ -313,7 +313,7 @@ class UnitTests(unittest.TestCase):
             cmd = [cc, '-std=c11', '-g', '-O1', *SANITIZE, f'-I{SRC}', str(TEST_C), *[str(SRC / s) for s in SOURCES], '-lm', '-o', str(out)]
             if subprocess.run(cmd, capture_output=True, text=True).returncode != 0:
                 continue
-            env = sanitizer_environment()
+            env = sanitizer_environment(cc)
             done = subprocess.run([str(out)], capture_output=True, text=True, env=env)
             self.assertEqual(done.returncode, 0, done.stdout[-400:] + done.stderr[-400:])
             self.assertGreaterEqual(done.stdout.count('PASS'), EXPECTED_UNIT_TESTS)
@@ -358,14 +358,51 @@ def build_objects(tmp, cc, flags):
     return objs
 
 
+def build_mutant(work, filename, text, cc, flags, objs):
+    """Compile one (possibly mutated) kernel or binding source against the unmutated objects; the binary, or None when it does
+    not compile or link."""
+    work.mkdir()
+    source = work / filename
+    source.write_text(text)
+    obj = work / 'mut.o'
+    built = subprocess.run([cc, '-std=c11', '-O0', '-g', *flags, f'-I{SRC}', '-c', str(source), '-o', str(obj)],
+                           capture_output=True, text=True)
+    if built.returncode != 0:
+        return None
+    parts = [str(obj if name == filename else objs[name]) for name in (KERNEL, BINDING)]
+    binary = work / 'mut_test'
+    linked = subprocess.run([cc, *flags, str(objs['test']), *parts, str(objs['scene']), str(objs['hiff']), '-lm', '-o',
+                             str(binary)], capture_output=True, text=True)
+    return binary if linked.returncode == 0 else None
+
+
 def run_sweep(limit=None, only=None):
     with tempfile.TemporaryDirectory() as tmp:
         cc = sanitizer_compiler(tmp)
         flags = SANITIZE if cc else []
         cc = cc or compiler()
         objs = build_objects(tmp, cc, flags)
-        env = dict(os.environ, ASAN_OPTIONS='detect_leaks=1')
+        env = sanitizer_environment(cc) if flags else dict(os.environ)
         texts = {name: (SRC / name).read_text() for name in MUTATED_FILES}
+        # A mutant that only leaks is invisible to ASan/UBSan. Where LeakSanitizer is unavailable (macOS) every mutant that
+        # survives the sanitizer run is judged again by `leaks --atExit` on an unsanitized build of the same mutation.
+        by_leaks = require_leak_checker(cc if flags else None, compiler()) == 'leaks'
+        plain_cc = compiler()
+        plain_objs = None
+        if by_leaks:
+            (Path(tmp) / 'plain').mkdir()
+            plain_objs = build_objects(Path(tmp) / 'plain', plain_cc, [])
+        # the unmutated source must pass under exactly the environment that judges the mutants, or every "kill" is hollow
+        base = build_mutant(Path(tmp) / 'baseline', KERNEL, texts[KERNEL], cc, flags, objs)
+        if base is None:
+            raise AssertionError('the unmutated source does not build for the sweep')
+        done = subprocess.run([str(base)], capture_output=True, text=True, env=env)
+        if done.returncode != 0:
+            raise AssertionError('the unmutated source fails under the sweep environment: ' + (done.stdout + done.stderr)[-400:])
+        if by_leaks:
+            plain_base = build_mutant(Path(tmp) / 'baseline_plain', KERNEL, texts[KERNEL], plain_cc, [], plain_objs)
+            if plain_base is None or leaks_verdict(plain_base) != 'survived':
+                raise AssertionError('the unmutated source does not pass `leaks --atExit`')
         jobs = []
         for key, filename, number, new_line in all_mutants():
             lines = texts[filename].split('\n')
@@ -381,27 +418,20 @@ def run_sweep(limit=None, only=None):
         def one(item):
             index, (key, filename, text) = item
             work = Path(tmp) / f'm{index}'
-            work.mkdir()
-            source = work / filename
-            source.write_text(text)
-            obj = work / 'mut.o'
-            built = subprocess.run([cc, '-std=c11', '-O0', '-g', *flags, f'-I{SRC}', '-c', str(source), '-o', str(obj)],
-                                   capture_output=True, text=True)
-            if built.returncode != 0:
-                shutil.rmtree(work, ignore_errors=True)
-                return key, 'invalid'
-            parts = [str(obj if name == filename else objs[name]) for name in (KERNEL, BINDING)]
-            binary = work / 'mut_test'
-            linked = subprocess.run([cc, *flags, str(objs['test']), *parts, str(objs['scene']), str(objs['hiff']), '-lm', '-o',
-                                     str(binary)], capture_output=True, text=True)
-            if linked.returncode != 0:
+            binary = build_mutant(work, filename, text, cc, flags, objs)
+            if binary is None:
                 shutil.rmtree(work, ignore_errors=True)
                 return key, 'invalid'
             try:
-                done = subprocess.run([str(binary)], capture_output=True, text=True, timeout=60, env=env)
+                done = subprocess.run([str(binary)], capture_output=True, text=True, errors='replace', timeout=60, env=env)
                 verdict = 'killed' if done.returncode != 0 else 'survived'
             except subprocess.TimeoutExpired:
                 verdict = 'killed'  # a hang is a detected difference
+            if verdict == 'survived' and by_leaks:
+                plain = build_mutant(work / 'plain', filename, text, plain_cc, [], plain_objs)
+                if plain is None:
+                    raise AssertionError(f'{key}: builds with sanitizers but not without; cannot be judged by `leaks --atExit`')
+                verdict = leaks_verdict(plain, timeout=60)
             shutil.rmtree(work, ignore_errors=True)
             return key, verdict
 

@@ -831,7 +831,7 @@ class UnitTests(unittest.TestCase):
                    f'-I{SRC}', str(TEST_C), *[str(SRC / s) for s in SOURCES], '-lm', '-o', str(out)]
             if subprocess.run(cmd, capture_output=True, text=True).returncode != 0:
                 continue
-            env = sanitizer_environment()
+            env = sanitizer_environment(cc)
             done = subprocess.run([str(out)], capture_output=True, text=True, env=env)
             self.assertEqual(done.returncode, 0, done.stdout[-400:] + done.stderr[-400:])
             self.assertGreaterEqual(done.stdout.count('PASS'), EXPECTED_UNIT_TESTS)
