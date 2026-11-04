@@ -168,7 +168,7 @@ python3 "$project/scripts/link_image.py" verify "$out/GAME.linked.exe"
 ''')
         for name in ("link_image.py", "data_asm.py"):
             write_source(self.project, "scripts/" + name, "# generator\n")
-        manifest = {"functions": [{"source": "FUN_00401000.s"}]}
+        manifest = {"functions": [{"source": "FUN_00401000.s"}, {"source": "FUN_00401001.s"}]}
         reconstructed = {"asm_batches": [{"manifest": "asm/batch.json", "report": "asm/report.json"}],
                          "data_batches": [{"manifest": "asm_data/data-001.json", "report": "asm_data/report.json"}]}
         for name, value in (("image/reconstructed.json", reconstructed), ("asm/batch.json", manifest),
@@ -176,6 +176,7 @@ python3 "$project/scripts/link_image.py" verify "$out/GAME.linked.exe"
                             ("asm_data/data-001.json", {"batch": "001", "layout": "data-001.layout"})):
             write_source(self.project, name, json.dumps(value))
         code = write_source(self.project, "asm/FUN_00401000.s", ".text\nret\n")
+        write_source(self.project, "asm/FUN_00401001.s", ".text\nret\n")
         layout = write_source(self.project, "asm_data/data-001.layout", "masked\n")
         graph = self.derive()
         result = graph.scripts["build_game_exe.sh"]
@@ -184,7 +185,12 @@ python3 "$project/scripts/link_image.py" verify "$out/GAME.linked.exe"
         final = self.project / "build/game/GAME.linked.exe"
         self.assertIn(code, by_path[final].inputs)
         self.assertIn(layout, by_path[final].inputs)
-        for name in ("src/FUN_00401000.s", "obj/FUN_00401000.o", "src/data-001.s", "obj/data-001.o", "GAME.linked.exe"):
+        shared = {self.project / "asm/batch.json", self.project / "asm/report.json"}
+        for stem in ("FUN_00401000", "FUN_00401001"):
+            for name in (f"src/{stem}.s", f"obj/{stem}.o"):
+                self.assertTrue(shared <= by_path[self.project / "build/game" / name].inputs)
+        for name in ("src/FUN_00401000.s", "obj/FUN_00401000.o", "src/FUN_00401001.s", "obj/FUN_00401001.o",
+                     "src/data-001.s", "obj/data-001.o", "GAME.linked.exe"):
             write_source(self.project, "build/game/" + name)
         self.assertEqual(bg.unknown_build_outputs(graph, []), [])
         write_source(self.project, "build/game/unexpected.bin")
