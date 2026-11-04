@@ -24,8 +24,16 @@
 #define MAX_FILES 8
 #define MAX_EVENTS 16384
 
-/* Every allocation of the library (kernel, binding, driver) goes through the linker wrappers below (-Wl,--wrap=calloc,malloc,free), so
- * the oracle can compare the live block count with the file tables the original keeps. */
+/* Every allocation of the library (kernel, binding, driver) goes through these
+ * wrappers: GNU linker --wrap, or test-only call redirection on macOS. */
+#ifdef __APPLE__
+#undef calloc
+#undef malloc
+#undef free
+#define __real_calloc calloc
+#define __real_malloc malloc
+#define __real_free free
+#endif
 extern void *__real_calloc(size_t, size_t);
 extern void *__real_malloc(size_t);
 extern void __real_free(void *);
@@ -60,6 +68,12 @@ void __wrap_free(void *p)
     if (p != NULL) --g_live;
     __real_free(p);
 }
+
+#ifdef __APPLE__
+#define calloc __wrap_calloc
+#define malloc __wrap_malloc
+#define free __wrap_free
+#endif
 
 long a1co_live(void) { return g_live; }
 

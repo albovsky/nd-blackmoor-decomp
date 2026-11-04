@@ -9,10 +9,11 @@
 #    Unicorn) from the workspace root, with BLACKMOOR_REQUIRE_ORACLE=1 so a
 #    missing oracle is a failure rather than a skip.
 #
-# The exit status is unittest's. Extra arguments go straight to unittest.
-# The same suite without the wrapper:
-#   work/tools/oracle-python/bin/python -m unittest discover \
-#       -s outputs/blackmoor-decomp/tests -p 'test_*.py'
+# The exit status combines native and reference checks. Extra arguments go to
+# unittest. On Apple Silicon, run_test_suite.py gives the original x87 model its
+# required Intel reference host; it verifies every selected test passed with no
+# skips. The same checks without the rebuild:
+#   script/run_test_suite.sh --no-build
 set -euo pipefail
 
 workspace="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"

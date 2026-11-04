@@ -130,3 +130,24 @@ duplicate, and propagates failure from either process. This is an isolated
 original-x86 oracle check, not an Intel player build. No test body is skipped or
 weakened. The obsolete FL59 expectation now pins exactly the two CRT copy rows
 that FL78 already translates; its no-port-credit assertion remains unchanged.
+
+Follow-up independent review of `d2e37b22` found no P1 and approved the routing
+and generated refresh, subject to the real complete-suite result. Root also
+confirmed that the override/acceptance file is byte-identical to main and all
+oracle/acceptance claims, excluding source-file checksums, are unchanged. The
+apparent coverage-field changes in a positional leaf diff were shifted evidence
+list entries, not changed claims. Root strengthened the child receipt to compare
+the actual executed IDs (preserving duplicates), reject skips/expected failures,
+and require success plus exact count and zero exit. Seven routing/receipt tests
+pass; discovery-only options are consumed before forwarding explicit IDs.
+
+The clean full run exposed two additional baseline portability blockers. The
+A1C allocation oracle used GNU linker `--wrap` options that Apple's linker
+rejects. A test-only macOS call redirection preserves the same three wrappers,
+real libc calls, counters and allocation-failure injections; both unchanged
+original comparison/refusal tests now pass. No production A1C source is changed.
+The A4E original comparison also confirmed the separately noted x87 NaN-sign
+mismatch in `action_family_4e_runtime.c`. Root applies the same original FMUL
+0x44b597/FADD 0x44b614 negative-indefinite rule there, with all finite arithmetic
+and existing mutant anchors retained. Four bit-exact cases fail before this
+fix; the full A4E tests and independent frozen review are required afterward.

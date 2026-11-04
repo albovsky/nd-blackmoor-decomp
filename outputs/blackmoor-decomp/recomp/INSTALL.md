@@ -54,7 +54,8 @@ Install Xcode (including its command-line tools), Python 3, and the pinned build
 Python with `script/setup_recomp_python.sh` once. From the repository root:
 
 ```sh
-GAME_EXE="/absolute/path/to/your/GAME.EXE" script/package_macos.sh
+export GAME_EXE="/absolute/path/to/your/GAME.EXE"
+script/package_macos.sh
 ```
 
 The script refuses an unsupported executable. It downloads and builds a pinned

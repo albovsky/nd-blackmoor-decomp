@@ -230,6 +230,9 @@ static void test_non_finite_slots(void)
     const Triple nan_term[] = {{30, 50}, {100, 1}};
     const Triple inf_term[] = {{31, 50}};
     const Triple inf_zero[] = {{31, 0}};
+    const Triple opposite_inf[] = {{31, 100}, {32, 100}};
+    uint32_t bits;
+    unsigned direction;
 
     fresh(&w);
     w.float_values[0] = NAN;          /* the x87 compare is unordered: treated like the unset marker */
@@ -242,6 +245,16 @@ static void test_non_finite_slots(void)
     CHECK("non_finite", isinf(w.float_values[3]) && w.float_values[3] > 0.0f);
     CHECK("non_finite", visit(b, raw, body(raw, 34, inf_zero, 1, 0), &r) == SCENE_ACTION_HANDLER_OK);
     CHECK("non_finite", isnan(w.float_values[4]));   /* 0 / 100 * inf */
+    for (direction = 0u; direction < 2u; ++direction) {
+        w.float_values[1] = direction ? -INFINITY : INFINITY;
+        CHECK("non_finite", visit(b, raw, body(raw, 34, inf_zero, 1, 0), &r) == SCENE_ACTION_HANDLER_OK);
+        memcpy(&bits, &w.float_values[4], sizeof bits);
+        CHECK("non_finite", bits == 0xffc00000u);  /* original x87 indefinite */
+        w.float_values[2] = -w.float_values[1];
+        CHECK("non_finite", visit(b, raw, body(raw, 34, opposite_inf, 2, 0), &r) == SCENE_ACTION_HANDLER_OK);
+        memcpy(&bits, &w.float_values[4], sizeof bits);
+        CHECK("non_finite", bits == 0xffc00000u);
+    }
     session_a4e_destroy(b);
 }
 

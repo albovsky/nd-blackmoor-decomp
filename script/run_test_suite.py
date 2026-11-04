@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Run native checks and the Intel-only x87 reference model without dropping tests."""
 import json
+import argparse
 import os
 from pathlib import Path
 import platform
@@ -28,10 +29,45 @@ def split_suite(suite, separate_x87):
     for test in cases(suite):
         # FL40 and later test the original-x86 translation/proof model. Its
         # headers explicitly require Intel long double and x87 instructions.
-        match = re.fullmatch(r'test_fl(\d+)(?:_.*)?', type(test).__module__)
+        match = re.fullmatch(r'test_fl(\d+)[a-z]?(?:_.*)?', type(test).__module__)
         target = reference if separate_x87 and match and int(match[1]) >= 40 else native
         target.append(test)
     return unittest.TestSuite(native), reference
+
+
+class RecordingResult(unittest.TextTestResult):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.executed_ids = []
+
+    def startTest(self, test):
+        self.executed_ids.append(test.id())
+        super().startTest(test)
+
+
+class RecordingRunner(unittest.TextTestRunner):
+    resultclass = RecordingResult
+
+
+def reference_passed(returncode, completed, expected_ids):
+    return (returncode == 0 and isinstance(completed, dict)
+            and completed.get('successful') is True
+            and completed.get('tests_run') == len(expected_ids)
+            and sorted(completed.get('executed_ids', [])) == sorted(expected_ids)
+            and completed.get('skipped') == []
+            and completed.get('expected_failures') == []
+            and completed.get('unexpected_successes') == [])
+
+
+def reference_options(options):
+    # Discovery has already selected the exact IDs. Its directory/pattern flags
+    # are not valid options for unittest's subsequent explicit-ID invocation.
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument('-s', '--start-directory')
+    parser.add_argument('-p', '--pattern')
+    parser.add_argument('-t', '--top-level-directory')
+    _, remaining = parser.parse_known_args(options)
+    return remaining
 
 
 class ArchitectureLoader(unittest.TestLoader):
@@ -43,7 +79,8 @@ class ArchitectureLoader(unittest.TestLoader):
     def discover(self, *args, **kwargs):
         complete = super().discover(*args, **kwargs)
         native, self.reference = split_suite(complete, self.separate_x87)
-        assert native.countTestCases() + len(self.reference) == complete.countTestCases()
+        if native.countTestCases() + len(self.reference) != complete.countTestCases():
+            raise RuntimeError('suite routing changed the number of discovered tests')
         print(f'Suite routing: native={native.countTestCases()} x87={len(self.reference)} '
               f'total={complete.countTestCases()}', flush=True)
         return native
@@ -54,13 +91,19 @@ def main(options=None):
     if options[:1] == ['--x87-child']:
         request = json.loads(Path(options[1]).read_text())
         sys.path.insert(0, str(TESTS))
-        program = unittest.main(module=None, argv=['unittest', *request['names'], *request['options']], exit=False)
+        program = unittest.main(module=None, argv=['unittest', *request['names'], *request['options']],
+                                testRunner=RecordingRunner, exit=False)
         result = program.result
-        Path(request['result']).write_text(json.dumps({'tests_run': result.testsRun,
-                                                       'successful': result.wasSuccessful()}))
-        if result.wasSuccessful() and result.testsRun != len(request['names']):
-            raise RuntimeError('the reference runner did not execute every selected test')
-        return int(not result.wasSuccessful())
+        completed = {'tests_run': result.testsRun, 'successful': result.wasSuccessful(),
+                     'executed_ids': result.executed_ids,
+                     'skipped': [(test.id(), reason) for test, reason in result.skipped],
+                     'expected_failures': [test.id() for test, _ in result.expectedFailures],
+                     'unexpected_successes': [test.id() for test in result.unexpectedSuccesses]}
+        Path(request['result']).write_text(json.dumps(completed))
+        if not reference_passed(0, completed, request['names']):
+            print('Reference checks require every selected test to execute and pass without skips.', file=sys.stderr)
+            return 1
+        return 0
 
     separate = platform.system() == 'Darwin' and platform.machine().lower() in ('arm64', 'aarch64')
     interpreter = Path(os.environ.get('BLACKMOOR_X87_PYTHON',
@@ -91,7 +134,8 @@ def main(options=None):
             compiler.chmod(0o755)
             request = directory / 'tests.json'
             receipt = directory / 'result.json'
-            request.write_text(json.dumps({'names': [test.id() for test in loader.reference], 'options': options,
+            request.write_text(json.dumps({'names': [test.id() for test in loader.reference],
+                                           'options': reference_options(options),
                                            'result': str(receipt)}))
             environment = dict(os.environ, CC=str(compiler), FL66_CACHE=str(directory / 'cache'))
             environment['PATH'] = str(directory) + os.pathsep + environment.get('PATH', '')
@@ -101,8 +145,8 @@ def main(options=None):
             reference_ok = False
             if result.returncode == 0 and receipt.is_file():
                 completed = json.loads(receipt.read_text())
-                reference_ok = (completed.get('successful') is True and
-                                completed.get('tests_run') == len(loader.reference))
+                reference_ok = reference_passed(result.returncode, completed,
+                                                 [test.id() for test in loader.reference])
             if not reference_ok:
                 print('Reference checks did not return a complete passing result.', file=sys.stderr)
     return int(not (native_ok and reference_ok))

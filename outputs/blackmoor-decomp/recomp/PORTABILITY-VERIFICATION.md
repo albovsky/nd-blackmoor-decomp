@@ -1,9 +1,8 @@
 # Private macOS package verification — 2026-11-03
 
-The local portable package is built and its quiet runtime proof passes. Signing
-trust and the repository-wide suite are separate: this artifact is **ad hoc and
-not notarized**, and a baseline legacy-engine overflow currently prevents a
-green full-suite result. No complete-release or merged-PR claim is made here.
+The local portable package is built and its quiet runtime proof passes. This
+artifact is **ad hoc and not notarized**. The full regression suite is running
+on frozen source `d2e37b22`; no passing-suite or merged-PR claim is made yet.
 
 ## Pinned local artifact
 
@@ -156,12 +155,53 @@ The initial headless attempt used a relative executable path while its runner
 changed directories and failed before game startup. The successful fresh run used
 absolute paths. Neither receipt was relabeled or overwritten.
 
-The full `script/run_test_suite.sh` run is still collecting its final results.
-Baseline harness problems and absent oracle NumPy/Capstone were diagnosed
-separately; no production engine changes were made. After restoring usable
-ASan/UBSan execution, an unchanged legacy test exposes signed overflow at
-`src/action_family_e0_runtime.c:894`. The owner was asked how to reconcile this
-with the explicit prohibition on engine changes. No test was weakened to hide it.
+The owner explicitly authorized bounded, independently reviewed fixes for
+confirmed baseline suite blockers. These cover two overflowing E0 height-zero
+predicates, the FL19 name-buffer frame size (72 to the original 76 bytes), and
+the original x87 invalid-operation NaN sign in FL30a. New regression cases fail
+before the fixes and pass afterward. E0 also passes 40 original-executable
+scenarios and 6,505 state comparisons with zero failures. Independent Sonnet
+reviews accepted the bounded production changes. These legacy modules are not
+linked into the Recompiled app; its executable and DMG above are unchanged.
+
+Test-only repairs retain the existing mutants and assertions, correct an
+undersized FL28a fixture, model the exact generated whole-file build outputs,
+restore missing oracle dependencies, and replace unsupported macOS LeakSanitizer
+execution with checked `leaks --atExit` controls. ASan and UBSan remain enabled.
+Unexpected checker failures fail the tests. E4's inherited generic mutation
+generator has no explicit free-removal mutant; no broader leak-coverage claim is
+made. The NaN fix does not establish both-NaN payload priority or repair the
+separate legacy `action_family_4e_runtime.c` arithmetic path.
+
+The owner also explicitly approved the generated evidence/ledger refresh.
+An independent comparison finds every one of the 4,188 `(status, class)` pairs
+and every count unchanged: 2,210 ported, 128 not needed, 1,850 pending. No
+acceptance override, story content or coverage grant is changed. The ten
+unfinished functions remain unfinished.
+
+The final canonical command is `script/run_test_suite.sh -v`, including its
+normal rebuild. Discovery selects 7,899 tests: 7,027 native checks and 872
+original-x86 reference checks. Final results are pending. Failed and interrupted
+diagnostic runs remain private and are not counted as passes.
+
+### Original-x86 reference test host
+
+The existing FL40-and-later reference model explicitly needs Intel 80-bit
+`long double` and x87 instructions. Its ARM fallback is not bit-exact. The
+canonical runner executes those unchanged reference tests under existing
+Rosetta support, with a private x86 Python, an explicit x86 compiler and an
+isolated cache; native port and gameplay tests remain ARM64. Every discovered
+test ID and duplicate is preserved. A child must report the exact completed
+count and success, in addition to exiting zero. A real mixed native/reference
+run passes, and a zero-exit child that executes no tests is rejected.
+
+For a developer running the entire suite on Apple Silicon, the private test
+environment used here is CPython 3.13.14 x86_64 with Unicorn 2.1.4, Capstone
+5.0.7, pefile 2024.8.26 and z3-solver 4.15.4.0. The runner defaults to
+`work/tools/oracle-x87-python313/bin/python3`; `BLACKMOOR_X87_PYTHON` may select
+another x86 Python 3.10+ with those dependencies. Missing or unusable reference
+support fails visibly. This is isolated original-x86 oracle testing, not an
+Intel player build. Players and the package build do not need this environment.
 
 ## Remaining limits
 

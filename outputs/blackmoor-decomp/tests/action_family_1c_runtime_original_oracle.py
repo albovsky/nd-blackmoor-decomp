@@ -515,7 +515,12 @@ def build_driver(src_dir, out, strict=True, sanitize=False):
            f'-I{src_dir}', str(PROJECT / 'tests/action_family_1c_runtime_oracle_driver.c'),
            *[str(Path(src_dir) / s) for s in ('session_bindings_a1c.c', 'action_family_1c_runtime.c', 'action_family_1c.c',
                                               'action_core.c')],
-           '-Wl,--wrap=calloc', '-Wl,--wrap=malloc', '-Wl,--wrap=free', '-lm', '-o', str(out)]
+           *([] if sys.platform == 'darwin' else ['-Wl,--wrap=calloc', '-Wl,--wrap=malloc', '-Wl,--wrap=free']),
+           '-lm', '-o', str(out)]
+    if sys.platform == 'darwin':
+        # Apple's linker has no GNU --wrap. Redirect only these test translation
+        # units, retaining the driver's real-libc calls and allocation counters.
+        cmd[1:1] = ['-Dcalloc=__wrap_calloc', '-Dmalloc=__wrap_malloc', '-Dfree=__wrap_free']
     if sanitize or os.environ.get('A1C_SANITIZE'):
         cmd[1:1] = ['-fsanitize=address,undefined', '-fno-sanitize-recover=undefined', '-fno-omit-frame-pointer']
     done = subprocess.run(cmd, capture_output=True, text=True)

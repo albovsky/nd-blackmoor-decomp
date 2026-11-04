@@ -41,7 +41,8 @@ Do not upload this derived game binary, the DMG or generated C to any public hos
 4. Build from your own supported GAME.EXE:
 
    ```sh
-   GAME_EXE="/absolute/path/to/your/GAME.EXE" script/package_macos.sh
+   export GAME_EXE="/absolute/path/to/your/GAME.EXE"
+   script/package_macos.sh
    ```
 
    With Developer ID, the script signs every nested binary inside-out with hardened runtime and no
