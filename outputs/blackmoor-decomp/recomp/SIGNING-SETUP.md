@@ -1,5 +1,10 @@
 # Signing setup for Glib
 
+A profile is just a name for the Apple notarization login saved in the build
+Mac's Keychain. Players do not need it. The certificate signs the app; this saved
+login lets the build tool submit it to Apple for notarization without putting a
+password in a script. This Mac already has a Developer ID Application certificate.
+
 The package can be built locally without signing credentials. That produces an
 explicitly labeled ad-hoc DMG, which does not pass Gatekeeper on a fresh Mac.
 Do not upload this derived game binary, the DMG or generated C to any public host.

@@ -12,9 +12,9 @@ green full-suite result. No complete-release or merged-PR claim is made here.
 | App source commit | `8a4c38b4ef7f9b4e0dfbddc87f80995ba5ddd7ce` |
 | Native executable SHA-256 | `dbfe26db6cc771009a66a039d5fbb7660e09cd1608173662c368a462a34eb65c` |
 | Original GAME.EXE SHA-256 | `afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45` |
-| DMG SHA-256 | `3e4f3de71a719281c7b68f590025b80b680d27de8d2e9f1ec22d38d014376783` |
-| DMG bytes | `6246119` |
-| Local folder | `outputs/blackmoor-decomp/build/private-release-8a4c38b4/` in the main checkout |
+| DMG SHA-256 | `472c08b388e23674fdc79b8e5a885c1b375156a678da4f56dceaa24c55b9400f` |
+| DMG bytes | `6246206` |
+| Local folder | `outputs/blackmoor-decomp/build/private-release-8a4c38b4-final/` in the main checkout |
 | DMG filename | `Blackmoor-Recompiled-0.1-arm64-ADHOC-UNNOTARIZED.dmg` |
 
 The app and manifest both record the source commit. The runtime proof refuses a
@@ -27,8 +27,8 @@ Generated C, original files, saves and built artifacts remain outside git.
 
 ```text
 package: AD-HOC SIGNED, NOT NOTARIZED (Gatekeeper will warn; this is not a trust success)
-SHA256: 3e4f3de71a719281c7b68f590025b80b680d27de8d2e9f1ec22d38d014376783
-bytes: 6246119
+SHA256: 472c08b388e23674fdc79b8e5a885c1b375156a678da4f56dceaa24c55b9400f
+bytes: 6246206
 ```
 
 `otool -L` was run on the executable and every bundled dylib. Every external load
@@ -71,6 +71,11 @@ hash and license texts are in `Contents/Resources/licenses/FFmpeg/`.
 Compiler/SDK/configuration fingerprints select separate FFmpeg object directories.
 The source tarball's GPG signature was not independently checked.
 
+An additional offline check compiled the existing Bink adapter against this LGPL
+prefix. The first decoded frames of `diff`, `OPEN_A` and `toast` were byte-identical
+to the existing FFmpeg 9.0.1 CLI reference (all 620×375 RGBA). No window or audio
+output was used; this is three first-frame comparisons, not full-movie parity.
+
 ## Quiet copied-app proof
 
 The runtime checker mounted the DMG read-only, copied the app outside the repo,
@@ -94,7 +99,7 @@ The successful launches ran directly with `--background --mute --log` and
 with no Homebrew mappings. The actual main-menu log includes:
 
 ```text
-FILE open C:\GAME\Ciftree\MAIN.CIF  [virtual 10277 ms]
+FILE open C:\GAME\Ciftree\MAIN.CIF  [virtual 9373 ms]
 BACKGROUND stage=opened active=0 key=0 visible=0 activations=0
 ```
 
@@ -118,7 +123,7 @@ GAME_FOLDER accepted=0 Some game files are missing (Game.ini). Choose the comple
 GAME_FOLDER accepted=0 This game version is not supported. Choose the GOG version of Nancy Drew: Curse of Blackmoor Manor.
 SEED_LISTING_BEFORE cfe9b29709a5c0ef432da9db1cbb66da438b13697087aaea3984a1e65229088a
 SEED_LISTING_AFTER  cfe9b29709a5c0ef432da9db1cbb66da438b13697087aaea3984a1e65229088a
-QUIET_RUNTIME_PROOF_PASS /private/tmp/blackmoor-fresh-proof-20261103-d
+QUIET_RUNTIME_PROOF_PASS /private/tmp/blackmoor-fresh-proof-20261103-e
 ```
 
 That inventory covers names, types, permissions, sizes, modification times and
@@ -129,10 +134,12 @@ seven Foundation fixture groups. Interactive panel/menu clicking was not run.
 ## Checks and review
 
 The 36 package checks, seven data-selection groups and six credentialed-workflow
-checks pass. Signing-workflow tests use fake external services and never count as
+checks also pass together: `Ran 49 tests in 23.162s / OK`. Signing-workflow tests use fake external services and never count as
 real signing/notarization evidence. Independent review found no P1; its release
 code P2 findings were fixed. The final runtime proof pins the rebuilt artifact,
-superseding earlier failed/stale proofs A–C, which are retained privately.
+superseding earlier failed/stale proofs A–C, which are retained privately. Proof
+D also passed on the same native executable. Final proof E repeats it after the
+DMG README was clarified to state the derived-code/private-distribution limit.
 
 The existing earned-ending headless runner passed on its unchanged pinned native
 `6041e31e9d486111f6a0b64a7ce9764d52c292f35339fa1a84f3be7c18d31de4`:
@@ -159,7 +166,8 @@ with the explicit prohibition on engine changes. No test was weakened to hide it
 ## Remaining limits
 
 A Developer ID Application certificate is installed, but no notary profile has
-been selected. No real Developer ID/notary/staple/accepted Gatekeeper result is
+been selected. A names-only, noninteractive query found no matching profile in
+the file-based or data-protection keychain; no password data was requested. No real Developer ID/notary/staple/accepted Gatekeeper result is
 claimed. [SIGNING-SETUP.md](SIGNING-SETUP.md) gives Glib the keychain setup and two
 environment variables. No credentials or profile contents were saved here.
 

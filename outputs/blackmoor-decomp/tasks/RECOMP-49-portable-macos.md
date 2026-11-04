@@ -7,6 +7,13 @@ Only this authorizing chat publishes repository changes. No game bytes, lifted C
 apps, DMGs, saves or resource dumps may be committed or uploaded publicly.
 Apple notarization is authorized when credentials exist. No credentials in logs.
 
+The authorizing user message begins "You are Codex (gpt-6.1-sol, xhigh) finishing
+the native Mac port" and says "Work on your own branch and own PR" and
+"squash-merge your own PR when clean". This root chat is the publisher. PR #352
+is the source-only candidate. The later engine-scope question has no answer;
+neither elapsed time nor GitHub's conflict-free state permits disregarding the
+user's green-suite condition or prohibition on engine work.
+
 Root owns shared `recomp/build_macos.sh`, `macos_recomp.mm`, game-data modules,
 tests, INSTALL/HANDOFF and final integration. Story, engine, ledger and original
 files are out of scope. Preserve explicit scratch overrides and background quiet
