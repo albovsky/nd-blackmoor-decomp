@@ -22,7 +22,7 @@ Your original folder stays unchanged. The app makes its own working copy in:
 `~/Library/Application Support/Blackmoor Recompiled Data/DataClone-v1/game`
 
 After setup, the completed working copy also works while the original installation
-is unavailable. It does not import old saves. New saves and preferences live in:
+is unavailable. It does not import old saves. New saves live in:
 
 `~/Library/Application Support/Blackmoor Recompiled`
 

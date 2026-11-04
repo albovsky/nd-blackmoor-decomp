@@ -2,7 +2,7 @@
 
 ## Private portable macOS package, 2026-11-03
 
-Build from your own supported executable with `GAME_EXE=/absolute/path/to/GAME.EXE script/package_macos.sh`; see [INSTALL.md](INSTALL.md) and [SIGNING-SETUP.md](SIGNING-SETUP.md). Packaging never publishes binaries. RECOMP-49 records scope and verification; signing and actual platform results must be read from its evidence, not inferred from a successful build.
+Export `GAME_EXE` to your own supported executable, then run `script/package_macos.sh`; see [INSTALL.md](INSTALL.md) and [SIGNING-SETUP.md](SIGNING-SETUP.md). Packaging never publishes binaries. RECOMP-49 records scope and verification; signing and actual platform results must be read from its evidence, not inferred from a successful build.
 
 ## Harder glyph goal, 2026-11-02 Pacific
 

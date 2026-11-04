@@ -1,66 +1,58 @@
-# Signing setup for Glib
+# Finish Apple signing and approval
 
-A profile is just a name for the Apple notarization login saved in the build
-Mac's Keychain. Players do not need it. The certificate signs the app; this saved
-login lets the build tool submit it to Apple for notarization without putting a
-password in a script. This Mac already has a Developer ID Application certificate.
+This Mac already has a Developer ID Application certificate. The remaining
+setup is an Apple notarization login saved in Keychain. A **profile** is just
+the name you give that saved login; players never need it. Apple notarization
+is needed for Gatekeeper to accept the app on other Macs.
 
-The package can be built locally without signing credentials. That produces an
-explicitly labeled ad-hoc DMG, which does not pass Gatekeeper on a fresh Mac.
-Do not upload this derived game binary, the DMG or generated C to any public host.
-
-1. Join the [Apple Developer Program](https://developer.apple.com/programs/), or
-   use your existing membership. In Xcode's account settings or your developer
-   account, create a **Developer ID Application** certificate. Install it with its
-   private key in your login keychain. An Apple Development certificate is not
-   sufficient. Check available identities:
+1. Use your existing [Apple Developer Program](https://developer.apple.com/programs/)
+   membership. If setting up another build Mac, install a **Developer ID
+   Application** certificate with its private key in the login keychain.
+   Find the certificate's identity hash and team:
 
    ```sh
    security find-identity -v -p codesigning
    ```
 
-2. Store notarization credentials in your own keychain. Choose a profile name
-   such as `blackmoor-notary`. Run this locally and answer Apple's prompts for
-   your Apple ID, team ID and app-specific password:
+2. In your own Terminal, save the notarization login:
 
    ```sh
    xcrun notarytool store-credentials blackmoor-notary
    ```
 
-   Do not put passwords, API keys or profile contents in this repository, shell
-   scripts, chat or build logs. Do not use shell tracing while packaging.
+   Answer the private prompts for your Apple ID, the same team as the
+   certificate, and an app-specific password. Never paste passwords, keys or
+   profile contents into chat, this repository or build logs.
 
-3. Export exactly these two selections, using the certificate's identity hash
-   from step 1 and the profile name from step 2:
+3. Export these two selections, using the identity hash from step 1:
 
    ```sh
    export BLACKMOOR_SIGN_IDENTITY="YOUR_DEVELOPER_ID_IDENTITY_HASH"
    export BLACKMOOR_NOTARY_PROFILE="blackmoor-notary"
    ```
 
-4. Build from your own supported GAME.EXE:
+4. Build from your own supported executable, after the one-time prerequisites
+   in [INSTALL.md](INSTALL.md):
 
    ```sh
    export GAME_EXE="/absolute/path/to/your/GAME.EXE"
    script/package_macos.sh
    ```
 
-   With Developer ID, the script signs every nested binary inside-out with hardened runtime and no
-   extra entitlements. It submits to Apple with `notarytool submit --wait`,
-   requires **Accepted**, staples and validates the app, makes the DMG, then
-   notarizes and staples the DMG. It verifies signatures and Gatekeeper assessment
-   and prints the local DMG's path, SHA-256 and size. With both selections absent,
-   it produces the ad-hoc fallback. Identity alone produces a signed, unnotarized
-   build that still needs notarization; a profile alone or invalid supplied
-   credentials fails visibly. Only an exact Developer ID Application name or
-   certificate identity hash is accepted.
-   The ad-hoc fallback omits hardened runtime: library validation rejects shared
-   libraries without a Developer ID team. No entitlement disables library validation.
+The script signs every nested binary with hardened runtime and no extra
+entitlements, submits to Apple, requires **Accepted**, staples and validates
+both the app and DMG, and checks Gatekeeper. It prints the local DMG's path,
+SHA-256 and size. Invalid supplied credentials fail visibly.
 
-5. Keep the DMG on your disk for your own Macs and testers you name. Confirm a
-   quarantined copy passes Gatekeeper on another Mac before relying on that
-   platform result. No account is created and no second Mac is accessed by this
-   workflow. Public distribution remains your separate decision.
+With both selections absent, it makes a clearly labeled **AD-HOC, UNNOTARIZED**
+package that Gatekeeper rejects on another Mac. That fallback omits hardened
+runtime because ad-hoc libraries have no Developer ID team; no entitlement
+disables library validation. An identity alone still needs notarization.
 
-See Apple's [notarization workflow](https://developer.apple.com/documentation/security/notarizing-macos-software-before-distribution)
-and [Developer ID guidance](https://developer.apple.com/developer-id/).
+Keep the derived app, DMG and generated C on your disk for your own Macs and
+named testers. Never commit them or upload them to a public host. Public
+distribution remains a separate question for Glib. A second Mac, macOS 11 and
+real speakers still need separate verification.
+
+Apple's [notarization workflow](https://developer.apple.com/documentation/security/notarizing-macos-software-before-distribution)
+and [Developer ID guide](https://developer.apple.com/developer-id/) explain the account setup.
