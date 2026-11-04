@@ -1,9 +1,11 @@
 /* Focused device-free checks: real planner plus the existing fake INPUT host. */
 #include "rc_pointer_input.h"
-/* Reuse the frozen, unchanged fixture's fake clock/anchors/input/log/status helpers. */
+/* Reuse the base fixture's helpers, with this fixture's full pointer planner. */
+#define RECOMP_INPUT_SCRIPT_CUSTOM_POINTER 1
 #define main rc_input_script_base_fixture_main
 #include "recomp_input_script_fixture.c"
 #undef main
+#undef RECOMP_INPUT_SCRIPT_CUSTOM_POINTER
 
 struct ExpectedMessage { uint32_t message, wparam; };
 struct PlanCase {

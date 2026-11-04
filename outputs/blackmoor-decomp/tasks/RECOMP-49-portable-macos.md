@@ -205,3 +205,27 @@ seconds, muted/offline. A negative control restores the old session view and
 fails the new live-owner precondition. No production app, story or original
 resource is changed. These two fixture repairs require independent review and
 the same authorized source-checksum refresh, without any new status or credit.
+
+The diagnostic native batch finished: 7,023 tests, 28 failures, one setup error
+and 13 existing conditional skips. The failures comprise A1C (2), A4E (1),
+FL18 (22), clock (1), piano ownership (1) and D1 ownership (1). The input-script
+fixture setup error prevented four tests from running. This is a failed
+diagnostic, not completion evidence; the separate 872-test x87 reference batch
+passed with no skips. No test has been deleted, disabled or weakened.
+
+Piano and D1 had the same stale-session-view fixture mistake as clock. Their
+synthetic owners now enter the authoritative session through known-layout rows
+and pending host sinks, with no receiver object for the extra owner. Piano
+retains unknown-owner and duplicate-owner refusal assertions; D1 retains the
+earlier-owner priority refusal and unchanged frame assertions. New preconditions
+prove those owners are visible to the actual adapter. All 14 piano checks pass
+in 76.086 seconds and all nine D1 checks pass in 16.986 seconds. Original resource
+files and production app/engine code are unchanged by these repairs.
+
+The input-script fake host now implements the existing pointer-mask callback.
+The pointer planner fixture selects its own full implementation rather than
+defining the callback twice. All ten input-control/script/pointer checks pass
+in 1.781 seconds with their original assertions. Independent frozen Sonnet
+review and the authorized generated checksum refresh are required before the
+final clean canonical run. Existing audio-output and unlocked-desktop opt-ins
+remain off under the owner's quiet/locked-Mac restrictions.

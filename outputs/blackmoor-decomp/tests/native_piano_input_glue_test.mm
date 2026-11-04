@@ -32,10 +32,19 @@ static int transition_target = -1;
 static int sink_transition(void *, const D0Transition *t) { transition_target = t->scene; return 0; }
 static int observed_hover = -2;
 static unsigned phase2_dispatches = 0;
+static size_t synthetic_piano_owner_row = SIZE_MAX;
+static constexpr uint8_t unbound_piano_owner_type = 0xd9;
 static int observe_piano_handler(void *context, size_t row, const SceneActionInfo *action,
                                  const SceneActionRuntimeState *before, SceneActionHandlerResult *out)
 {
     NativeApp *app = static_cast<NativeApp *>(context);
+    if (row == synthetic_piano_owner_row) {
+        /* This appended owner has no row in the real piano binding. Only
+         * synthetic metadata uses this sink; every original row runs below. */
+        out->phase = before->phase;
+        out->disposition = SCENE_ACTION_HANDLER_PENDING;
+        return SCENE_ACTION_HANDLER_OK;
+    }
     observed_hover = session_ad0_object(app->ad0)->hover;
     if (before->phase == 2u) ++phase2_dispatches;
     return native_ad0_handler(context, row, action, before, out);
@@ -131,10 +140,10 @@ struct PianoFixture {
     }
     bool add_owner(bool duplicate)
     {
-        /* Negative ownership metadata only; the real executor still uses the
-         * original scene. No injected row executes or produces puzzle effects. */
+        /* Publish a possible owner into the live session, with a host sink
+         * instead of puzzle execution. CF is opaque and cannot enter it. */
         const SceneActionInfo original = action();
-        const size_t body_size = duplicate ? original.typed_body_length : 0u;
+        const size_t body_size = duplicate ? original.typed_body_length : 35u;
         const size_t start = bytes.size();
         if (start < 12 || std::memcmp(bytes.data(), "DATA", 4) != 0) return false;
         bytes.resize(start + 58u + body_size + (body_size & 1u), 0); /* HIFF odd-payload pad. */
@@ -145,7 +154,7 @@ struct PianoFixture {
         put_be32(start + 4u, static_cast<uint32_t>(50u + body_size));
         const char name[] = "NATIVE09 ownership-negative";
         std::memcpy(bytes.data() + start + 8u, name, sizeof(name));
-        bytes[start + 56u] = duplicate ? SESSION_AD0_TYPE : 0xcf;
+        bytes[start + 56u] = duplicate ? SESSION_AD0_TYPE : unbound_piano_owner_type;
         bytes[start + 57u] = 1;
         if (duplicate) std::memcpy(bytes.data() + start + 58u, original.typed_body, body_size);
         put_be32(4u, static_cast<uint32_t>(bytes.size() - 8u));
@@ -157,6 +166,7 @@ struct PianoFixture {
     bool initialize(const char *directory, const char *owner = nullptr, bool real_audio = false, int scene_id = 3395)
     {
         if (!load(directory, scene_id) || (owner != nullptr && !add_owner(std::strcmp(owner, "duplicate") == 0))) { std::fprintf(stderr, "piano fixture resource load failed\n"); return false; }
+        synthetic_piano_owner_row = owner != nullptr ? scene_resource_action_count(session_scene) : SIZE_MAX;
         app.current_scene_id = scene_id;
         app.scene_destination = {10, 10, 629, 384};
         app.bar_missing = true;
@@ -200,9 +210,10 @@ struct PianoFixture {
         }
         app.nav_members_idle = session_navigation_members_idle(types.data(), types.size()) != 0;
         std::vector<uint8_t> bound;
-        for (size_t i = 0; i < scene_resource_action_count(session_scene); ++i) {
+        SceneResource *const dispatch_scene = owner != nullptr ? app.scene : session_scene;
+        for (size_t i = 0; i < scene_resource_action_count(dispatch_scene); ++i) {
             SceneActionInfo a{};
-            if (scene_resource_action_at(session_scene, i, &a) != SCENE_RESOURCE_OK) return false;
+            if (scene_resource_action_at(dispatch_scene, i, &a) != SCENE_RESOURCE_OK) return false;
             if (a.type == 0x0a || a.type == 0x15 || a.type == 0x4d || a.type == 0x61 || a.type == 0x64 ||
                 a.type == 0x6a || a.type == 0x6b || a.type == 0x71 ||
                 std::find(bound.begin(), bound.end(), a.type) != bound.end()) continue;
@@ -215,7 +226,7 @@ struct PianoFixture {
         world.event_flags = flags.data(); world.event_flag_count = flags.size();
         conditions.event_flags = flags.data(); conditions.event_flag_count = flags.size();
         SceneSessionConfig config{};
-        config.scene = session_scene; config.scene_id = scene_id;
+        config.scene = dispatch_scene; config.scene_id = scene_id;
         config.action_core_world = &world; config.conditions = &conditions;
         config.action_bindings = bindings.data(); config.action_binding_count = bindings.size();
         config.prepare_tick = prepare_piano; config.advance_media_one = advance_piano_media; config.provider_context = &app;
@@ -402,6 +413,18 @@ static int restricted(const char *directory, const char *kind)
     for (unsigned index = 0; index < count; ++index) {
         PianoFixture f;
         CHECK(f.initialize(directory, owner ? (index == 0 ? "unknown" : "duplicate") : nullptr), "restricted fixture initializes");
+        if (owner) {
+            size_t piano_owners = 0u;
+            bool other_owner = false;
+            for (size_t row = 0; row < native_action_count(&f.app); ++row) {
+                SceneActionInfo action{};
+                CHECK(native_action_at(&f.app, row, &action) == SCENE_RESOURCE_OK, "live owner slot is readable");
+                if (action.type == SESSION_AD0_TYPE) ++piano_owners;
+                if (action.type == unbound_piano_owner_type) other_owner = true;
+            }
+            CHECK(piano_owners == (index == 0 ? 1u : 2u) && (index != 0 || other_owner),
+                  "unknown or duplicate owners must be present in authoritative live slots");
+        }
         const D0Object before = *f.object();
         if (!owner && std::strcmp(kind, "guards") == 0) {
             if (index == 0) f.app.cursor_provider.guard_5b5158 = 1;
