@@ -19,6 +19,7 @@ Fix the root cause minimally: preserve protection of the remembered installation
 - outputs/blackmoor-decomp/recomp/macos_recomp.mm (startup only)
 - existing outputs/blackmoor-decomp/tests/test_macos_game_data.py and macos_game_data_fixture.mm if appropriate
 - a narrowly scoped new startup regression test/fixture beside them when needed to exercise actual app startup rather than only helper behavior
+- outputs/blackmoor-decomp/function-evidence.json and function-ledger.json (root-generated source fingerprints and fixture registration only; function entries and counts must remain unchanged)
 - this packet (root owns initial wording; update only if needed for final evidence)
 
 Do not modify macos_game_data API or other production files unless root explicitly agrees after evidence. Do not touch QA-004, piano logic, GAME.EXE, work/gamedata, work/original, original source record or prior QA evidence. Never commit game assets, saves, generated build artifacts or raw resource dumps.

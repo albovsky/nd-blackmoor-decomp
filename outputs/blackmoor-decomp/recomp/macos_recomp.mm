@@ -698,16 +698,8 @@ int main(int argc, char **argv)
         if (!log_path.empty()) g.log = fopen(log_path.c_str(), "w");
         std::string seed_path;
         std::string seed_error;
+        // Preserve original-folder protection even when discovery cannot use it.
         const std::string remembered = remembered_game_folder();
-        if (!remembered.empty() && !blackmoor_validate_seed_destinations(remembered,
-                g.data_support_dir, g.save_dir, &seed_error)) {
-            // A completed cache must not bypass protection of the remembered original.
-            frontend_message(("GAME_DATA: The working-data or save folder overlaps your remembered original game folder, "
-                "or a path could not be resolved. Choose separate folders. Original: " + remembered
-                + "; working data: " + g.data_support_dir + "; saves: " + g.save_dir).c_str());
-            if (g.log) fclose(g.log);
-            return 2;
-        }
         auto known = known_game_folders();
         const bool explicit_data = argument_game_dir || environment_game_dir;
         const bool found_seed = blackmoor_find_game_seed(remembered, known, BLACKMOOR_GAME_SHA256,

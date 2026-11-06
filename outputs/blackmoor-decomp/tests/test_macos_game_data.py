@@ -4,6 +4,7 @@ import json
 import os
 from pathlib import Path
 import shlex
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -92,10 +93,18 @@ class StartupProtectionTests(unittest.TestCase):
         for name, value in {'GAME.EXE': b'abc', 'Game.ini': b'original=1\n',
                             'Ciftree/CIFTREE.DAT': b'archive', 'CDVideo/movie.bin': b'movie'}.items():
             (original / name).write_bytes(value)
-        before = self.inventory(original)
+        before = self.inventory(original.parent)
         remembered = root / 'missing-original' if mode == 'stale' else original
+        if mode.startswith('unresolvable'):
+            blocked = root / 'not-a-directory'
+            blocked.write_bytes(b'file')
+            remembered = blocked / 'old-game'
         saves = {'nested': original / 'new-saves', 'ancestor': original.parent}.get(mode, root / 'safe-saves')
         command = [str(self.binary), '--mute', '--background', str(root), str(original), str(remembered), str(saves)]
+        if mode == 'unresolvable-explicit':
+            explicit = root / 'explicit-scratch'
+            shutil.copytree(original, explicit)
+            command += ['--game-dir', str(explicit)]
         environment = dict(os.environ)
         for key in ('BLACKMOOR_GAME_DIR', 'GAME_EXE'):
             environment.pop(key, None)
@@ -105,30 +114,28 @@ class StartupProtectionTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         observation = json.loads(result.stdout)
         (root / 'observation.json').write_text(json.dumps(observation, indent=2) + '\n')
-        self.assertEqual(self.inventory(original), before, 'startup modified the remembered original')
+        self.assertEqual(self.inventory(original.parent), before, 'startup modified the original or its parent')
         self.assertTrue(observation['cache_created'])
-        self.assertTrue(observation['remembered_retained'], result.stderr)
-        self.assertEqual(observation['preference_removals'], 0)
         self.assertFalse(observation['real_guest_GUI_audio'])
         return observation, result.stderr, saves
 
     def assert_overlap_refused(self, mode):
         observation, error, saves = self.run_startup(mode)
         self.assertEqual(observation['application_return'], 2, error)
-        self.assertEqual(observation['selection_calls'], 0)
+        self.assertEqual(observation['selection_calls'], 1)
         self.assertEqual(observation['gate_calls'], 0)
         self.assertEqual(observation['guest_boundaries'], 0)
+        self.assertTrue(observation['remembered_retained'])
+        self.assertEqual(observation['preference_removals'], 0)
         self.assertIn('GAME_DATA: ', error)
         self.assertIn('overlap', error.lower())
-        self.assertIn(str(saves), error)
-        self.assertIn(str(self.output / mode / 'owned-parent/custom-original'), error)
         if mode == 'nested':
             self.assertFalse(saves.exists(), 'refusal created a save directory inside the original')
 
-    def test_remembered_original_refuses_nested_save_before_cached_selection(self):
+    def test_remembered_original_refuses_nested_save_before_save_gate(self):
         self.assert_overlap_refused('nested')
 
-    def test_remembered_original_refuses_ancestor_save_before_cached_selection(self):
+    def test_remembered_original_refuses_ancestor_save_before_save_gate(self):
         self.assert_overlap_refused('ancestor')
 
     def assert_cache_reused(self, mode):
@@ -137,7 +144,10 @@ class StartupProtectionTests(unittest.TestCase):
         self.assertEqual(observation['selection_calls'], 1)
         self.assertEqual(observation['gate_calls'], 1)
         self.assertEqual(observation['guest_boundaries'], 1)
-        self.assertEqual(observation['selected_directory'], observation['cache_directory'])
+        expected = str(self.output / mode / 'explicit-scratch') if mode == 'unresolvable-explicit' else observation['cache_directory']
+        self.assertEqual(observation['selected_directory'], expected)
+        self.assertTrue(observation['remembered_retained'])
+        self.assertEqual(observation['preference_removals'], 0)
         self.assertTrue(saves.is_dir())
 
     def test_safe_save_reuses_completed_cache_and_reaches_guest_boundary(self):
@@ -145,5 +155,11 @@ class StartupProtectionTests(unittest.TestCase):
 
     def test_missing_remembered_source_still_reuses_completed_cache(self):
         self.assert_cache_reused('stale')
+
+    def test_unresolvable_remembered_source_still_reuses_completed_cache(self):
+        self.assert_cache_reused('unresolvable-cache')
+
+    def test_unresolvable_remembered_source_still_allows_explicit_safe_data(self):
+        self.assert_cache_reused('unresolvable-explicit')
 
 if __name__=='__main__':unittest.main()

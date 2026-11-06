@@ -80,7 +80,8 @@ static NSString *fixture_ns(const std::string &value) {
 
 int main(int argc, char **argv) {
     @autoreleasepool {
-        if (argc != 7 || strcmp(argv[1], "--mute") || strcmp(argv[2], "--background")) return 90;
+        if ((argc != 7 && argc != 9) || strcmp(argv[1], "--mute") || strcmp(argv[2], "--background")
+            || (argc == 9 && strcmp(argv[7], "--game-dir"))) return 90;
         const std::string root = argv[3], original = argv[4], remembered = argv[5], saves = argv[6];
         fixture_home = fixture_ns(root + "/home");
         fixture_support_paths = @[fixture_ns(root + "/support")];
@@ -105,6 +106,7 @@ int main(int argc, char **argv) {
         IMP prior = method_setImplementation(method, (IMP)only_memory_defaults);
         std::vector<std::string> arguments = {argv[0], "--mute", "--background", "--save-dir", saves,
                                               "--log", root + "/startup.log", "--stop-after-ms", "1"};
+        if (argc == 9) arguments.insert(arguments.end(), {"--game-dir", argv[8]});
         std::vector<char *> raw;
         for (auto &argument : arguments) raw.push_back(argument.data());
         int result = -1;
