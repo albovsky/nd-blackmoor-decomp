@@ -28,6 +28,7 @@ struct BlackmoorMacPlatform {
 @property(nonatomic, strong) NSImage *frameImage;
 @property(nonatomic, assign) BlackmoorMacPlatform *platform;
 @property(nonatomic, assign) NSEventModifierFlags previousModifiers;
+@property(nonatomic, assign) BOOL softwareCursorEnabled;
 @end
 
 @interface BlackmoorWindowOwner : NSObject <NSWindowDelegate>
@@ -59,6 +60,8 @@ static void set_display_mode(BlackmoorMacPlatform *platform, NativeDisplayMode m
     platform->owner.fitItem.state = mode == NATIVE_DISPLAY_FIT ? NSControlStateValueOn : NSControlStateValueOff;
     platform->owner.stretchItem.state = mode == NATIVE_DISPLAY_STRETCH ? NSControlStateValueOn : NSControlStateValueOff;
     platform->view.needsDisplay = YES;
+    if (platform->view.softwareCursorEnabled)
+        [platform->view.window invalidateCursorRectsForView:platform->view];
 }
 
 static void install_display_menu(BlackmoorMacPlatform *platform)
@@ -139,6 +142,33 @@ static unsigned virtual_key(NSEvent *event)
 @implementation BlackmoorFrameView
 - (BOOL)isFlipped { return YES; }
 - (BOOL)acceptsFirstResponder { return YES; }
+- (void)resetCursorRects
+{
+    [super resetCursorRects];
+    if (!self.softwareCursorEnabled || !self.platform || self.platform->stopped || !self.frameImage) return;
+    // Cursor rectangles belong to this view. AppKit restores the normal cursor
+    // outside the picture and across focus changes; there is no global hide count.
+    NSRect rect = NSIntersectionRect(surface_rect(self.platform, self.bounds), self.visibleRect);
+    if (NSIsEmptyRect(rect)) return;
+    static NSCursor *cursor;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        NSBitmapImageRep *pixels = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:nullptr
+            pixelsWide:16 pixelsHigh:16 bitsPerSample:8 samplesPerPixel:4 hasAlpha:YES
+            isPlanar:NO colorSpaceName:NSDeviceRGBColorSpace bytesPerRow:64 bitsPerPixel:32];
+        if (!pixels) return;
+        memset(pixels.bitmapData, 0, pixels.bytesPerRow * pixels.pixelsHigh);
+        NSImage *image = [[NSImage alloc] initWithSize:NSMakeSize(16, 16)];
+        [image addRepresentation:pixels];
+        cursor = [[NSCursor alloc] initWithImage:image hotSpot:NSZeroPoint];
+    });
+    if (cursor) [self addCursorRect:rect cursor:cursor];
+}
+- (void)setFrameSize:(NSSize)size
+{
+    [super setFrameSize:size];
+    if (self.softwareCursorEnabled) [self.window invalidateCursorRectsForView:self];
+}
 - (void)drawRect:(NSRect)dirtyRect
 {
     (void)dirtyRect;
@@ -330,10 +360,22 @@ int blackmoor_macos_present(BlackmoorMacPlatform *p,
         kCGImageAlphaLast, provider, nullptr, false, kCGRenderingIntentDefault);
     CGDataProviderRelease(provider); CGColorSpaceRelease(color);
     if (!image) return 0;
+    const bool first_frame = p->view.frameImage == nil;
     p->view.frameImage = [[NSImage alloc] initWithCGImage:image size:NSMakeSize(p->width, p->height)];
     CGImageRelease(image);
     p->view.needsDisplay = YES;
+    if (first_frame && p->view.softwareCursorEnabled)
+        [p->view.window invalidateCursorRectsForView:p->view];
     return 1;
+}
+
+void blackmoor_macos_set_software_cursor(BlackmoorMacPlatform *p, int enabled)
+{
+    if (!p || p->stopped || ![NSThread isMainThread]) return;
+    const BOOL value = enabled != 0;
+    if (p->view.softwareCursorEnabled == value) return;
+    p->view.softwareCursorEnabled = value;
+    [p->view.window invalidateCursorRectsForView:p->view];
 }
 
 void blackmoor_macos_run(BlackmoorMacPlatform *p)
@@ -345,6 +387,7 @@ void blackmoor_macos_stop(BlackmoorMacPlatform *p)
 {
     if (!p || p->stopped || ![NSThread isMainThread]) return;
     p->stopped = true;
+    if (p->view.softwareCursorEnabled) [p->view.window invalidateCursorRectsForView:p->view];
     [p->owner.timer invalidate];
     [NSApp stop:nil];
     NSEvent *wake = [NSEvent otherEventWithType:NSEventTypeApplicationDefined

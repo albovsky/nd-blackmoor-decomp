@@ -33,6 +33,13 @@ CLANG = ["xcrun", "--sdk", "macosx", "clang", "-arch", "arm64"]
 HAVE_TOOLCHAIN = sys.platform == "darwin" and shutil.which("xcrun") is not None
 
 
+def install_synthetic_icon(app):
+    """A synthetic ICNS container; actual artwork decode is tested by the builder."""
+    resources = app / "Contents/Resources"
+    resources.mkdir(parents=True, exist_ok=True)
+    (resources / "AppIcon.icns").write_bytes(b"icns" + (16).to_bytes(4, "big") + b"TEST" + (8).to_bytes(4, "big"))
+
+
 def real_ffmpeg_prefix() -> pathlib.Path | None:
     given = os.environ.get("BLACKMOOR_FFMPEG_PREFIX")
     if given:
@@ -142,7 +149,9 @@ class SyntheticBundleTests(unittest.TestCase):
         with open(app / "Contents/Info.plist", "wb") as handle:
             plistlib.dump({"CFBundleExecutable": "BlackmoorRecompiled", "CFBundleName": "Blackmoor Recompiled",
                            "CFBundleIdentifier": "test.blackmoor", "CFBundleVersion": "0.1",
+                           "CFBundleIconFile": "AppIcon.icns",
                            "LSMinimumSystemVersion": plist_min}, handle)
+        install_synthetic_icon(app)
         return app
 
     def bundled_app(self, **kwargs):
@@ -265,8 +274,43 @@ class SyntheticBundleTests(unittest.TestCase):
 
     def test_harmless_icon_resource_passes(self):
         app = self.bundled_app()
-        self.add_resource(app, "AppIcon.icns", b"icns" + bytes(32))
         self.assertEqual(self.problems(app), [])
+
+    def test_missing_icon_declaration_is_rejected(self):
+        app = self.bundled_app()
+        path = app / "Contents/Info.plist"
+        data = plistlib.loads(path.read_bytes())
+        data.pop("CFBundleIconFile")
+        path.write_bytes(plistlib.dumps(data))
+        self.assertRejected(app, "missing or unsafe CFBundleIconFile")
+
+    def test_missing_or_corrupt_declared_icon_is_rejected(self):
+        app = self.bundled_app()
+        path = app / "Contents/Resources/AppIcon.icns"
+        saved = self.root / "saved-icon.icns"
+        path.rename(saved)
+        self.assertRejected(app, "cannot read declared icon")
+        for contents in (b"", b"icns" + bytes(4), b"icns" + (17).to_bytes(4, "big") + bytes(8),
+                         b"xxxx" + (16).to_bytes(4, "big") + bytes(8)):
+            with self.subTest(contents=contents):
+                path.write_bytes(contents)
+                self.assertRejected(app, "invalid declared ICNS header or length")
+
+    def test_declared_icon_cannot_escape_resources(self):
+        app = self.bundled_app()
+        path = app / "Contents/Info.plist"
+        data = plistlib.loads(path.read_bytes())
+        for name in ("../AppIcon.icns", "/tmp/AppIcon.icns", "nested/AppIcon.icns", "bad\\icon.icns", 7):
+            with self.subTest(name=name):
+                data["CFBundleIconFile"] = name
+                path.write_bytes(plistlib.dumps(data))
+                self.assertRejected(app, "missing or unsafe CFBundleIconFile")
+        data["CFBundleIconFile"] = "Outside.icns"
+        path.write_bytes(plistlib.dumps(data))
+        target = self.root / "outside.icns"
+        target.write_bytes((app / "Contents/Resources/AppIcon.icns").read_bytes())
+        (app / "Contents/Resources/Outside.icns").symlink_to(target)
+        self.assertRejected(app, "declared icon leaves bundle Resources")
 
     def test_byte_identical_game_file_is_rejected_even_when_renamed(self):
         app = self.bundled_app()
@@ -440,7 +484,9 @@ class RealFfmpegBuildTests(unittest.TestCase):
                          "-Wl,-rpath," + str(prefix / "lib")])
             with open(staged / "Contents/Info.plist", "wb") as handle:
                 plistlib.dump({"CFBundleExecutable": "BlackmoorRecompiled", "CFBundleVersion": "0.1",
+                               "CFBundleIconFile": "AppIcon.icns",
                                "LSMinimumSystemVersion": "11.0"}, handle)
+            install_synthetic_icon(staged)
             out = root / "out"
             out.mkdir()
             cleaned = {key: value for key, value in os.environ.items()
@@ -484,7 +530,9 @@ class RealFfmpegBuildTests(unittest.TestCase):
             run(CLANG + ["-mmacosx-version-min=11.0", "-Wl,-headerpad_max_install_names", str(source), "-o", str(executable),
                          "-L" + str(prefix / "lib"), "-lavutil", "-Wl,-rpath," + str(prefix / "lib")])
             with open(app / "Contents/Info.plist", "wb") as handle:
-                plistlib.dump({"CFBundleExecutable": "BlackmoorRecompiled", "LSMinimumSystemVersion": "11.0"}, handle)
+                plistlib.dump({"CFBundleExecutable": "BlackmoorRecompiled", "CFBundleIconFile": "AppIcon.icns",
+                               "LSMinimumSystemVersion": "11.0"}, handle)
+            install_synthetic_icon(app)
             bundle.bundle_dependencies(app, prefix)
             bundle.copy_ffmpeg_licenses(app, prefix)
             self.assertEqual((app / "Contents/Frameworks" / libutil.name).is_file(), True)
