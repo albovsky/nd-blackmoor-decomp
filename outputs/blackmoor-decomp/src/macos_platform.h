@@ -38,6 +38,10 @@ BlackmoorMacPlatform *blackmoor_macos_open(
 /* Copy an opaque RGBA8 engine framebuffer; source may be released afterwards. */
 int blackmoor_macos_present(BlackmoorMacPlatform *platform,
                             const uint8_t *rgba, size_t capacity, size_t row_bytes);
+/* Opt in only when the framebuffer draws its own cursor. Suppress the system
+ * cursor over the visible game picture after the first frame, never globally.
+ * Other platform clients retain their default system cursor. */
+void blackmoor_macos_set_software_cursor(BlackmoorMacPlatform *platform, int enabled);
 void blackmoor_macos_run(BlackmoorMacPlatform *platform);
 void blackmoor_macos_stop(BlackmoorMacPlatform *platform);
 void blackmoor_macos_set_title(BlackmoorMacPlatform *platform, const char *title);

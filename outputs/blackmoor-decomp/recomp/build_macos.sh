@@ -87,6 +87,7 @@ cat > "$stage/Blackmoor Recompiled.app/Contents/Info.plist" <<'PLIST'
 <key>CFBundleExecutable</key><string>BlackmoorRecompiled</string>
 <key>CFBundleIdentifier</key><string>com.blackmoor.recompiled</string>
 <key>CFBundleName</key><string>Blackmoor Recompiled</string>
+<key>CFBundleIconFile</key><string>AppIcon.icns</string>
 <key>CFBundlePackageType</key><string>APPL</string>
 <key>CFBundleVersion</key><string>0.1</string>
 <key>LSMinimumSystemVersion</key><string>11.0</string>
@@ -96,6 +97,9 @@ PLIST
 /usr/libexec/PlistBuddy -c "Set :LSMinimumSystemVersion $min_os" "$stage/Blackmoor Recompiled.app/Contents/Info.plist"
 source_commit="$(git -C "$here" rev-parse HEAD)"
 /usr/libexec/PlistBuddy -c "Add :BlackmoorSourceCommit string $source_commit" "$stage/Blackmoor Recompiled.app/Contents/Info.plist"
+# Extract the owner's game icon at build time; no proprietary image is committed.
+python3 -I "$here/build_game_icon.py" --exe "$GAME_EXE" \
+    --output "$stage/Blackmoor Recompiled.app/Contents/Resources/AppIcon.icns"
 /usr/bin/codesign --force --sign - "$stage/Blackmoor Recompiled.app"
 /usr/bin/codesign --verify --strict "$stage/Blackmoor Recompiled.app"
 if [ -L "$bundle" ]; then

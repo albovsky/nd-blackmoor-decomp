@@ -786,6 +786,8 @@ int main(int argc, char **argv)
             if (g.log) fclose(g.log);
             return g.background_failed.load(std::memory_order_acquire) ? 6 : 3;
         }
+        // The original game draws its cursor into the framebuffer.
+        blackmoor_macos_set_software_cursor(g.platform, 1);
         record_background_status("opened");
         NSMenuItem *app_menu_item = NSApp.mainMenu.itemArray.firstObject;
         NSMenu *app_menu = app_menu_item.submenu;
