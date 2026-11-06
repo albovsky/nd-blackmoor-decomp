@@ -20,6 +20,7 @@ import zlib
 
 ORIGINAL_SHA256 = 'afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45'
 PEFILE_VERSION = '2024.8.26'
+MAX_SOURCE_PNG_BYTES = 1024 * 1024
 ICONSET_SIZES = (
     ('icon_16x16.png', 16), ('icon_16x16@2x.png', 32),
     ('icon_32x32.png', 32), ('icon_32x32@2x.png', 64),
@@ -84,14 +85,13 @@ def extract_icons(pe) -> list[IconImage]:
     return parse_group(resource_bytes(pe, 14, 128), {key: resource_bytes(pe, 3, key) for key in (1, 2)})
 
 
-def make_png(image: IconImage) -> bytes:
+def dib_rgba(image: IconImage) -> bytes:
     """Decode only parse_group's validated bottom-up 4bpp palette/XOR/AND DIB."""
     size = image.size
     xor_stride = size // 2
     mask_start = 104 + xor_stride * size
     rows = bytearray()
     for y in range(size - 1, -1, -1):
-        rows.append(0)  # PNG filter: None.
         for x in range(size):
             packed = image.data[104 + y * xor_stride + x // 2]
             index = (packed >> (4 if x % 2 == 0 else 0)) & 15
@@ -99,6 +99,15 @@ def make_png(image: IconImage) -> bytes:
             alpha = 0 if image.data[mask_start + y * 4 + x // 8] & (128 >> (x % 8)) else 255
             # RGBQUAD's fourth byte is reserved, not an alpha component.
             rows.extend((image.data[palette + 2], image.data[palette + 1], image.data[palette], alpha))
+    return bytes(rows)
+
+
+def make_png(image: IconImage) -> bytes:
+    pixels = dib_rgba(image)
+    size = image.size
+    stride = size * 4
+    rows = b''.join(b'\0' + pixels[y * stride:(y + 1) * stride] for y in range(size))
+
     def chunk(tag, data):
         return struct.pack('>I', len(data)) + tag + data + struct.pack('>I', zlib.crc32(tag + data))
     header = struct.pack('>IIBBBBB', size, size, 8, 6, 0, 0, 0)
@@ -119,6 +128,106 @@ def png_size(path: Path) -> tuple[int, int]:
     if len(header) != 24 or header[:16] != b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR':
         raise IconError(f'invalid PNG produced by native conversion: {path.name}')
     return struct.unpack_from('>II', header, 16)
+
+
+def decode_png(data: bytes, size: int) -> bytes:
+    """Read only bounded 16/32px native 8-bit RGB/RGBA PNGs into straight RGBA."""
+    if size not in (16, 32) or len(data) > MAX_SOURCE_PNG_BYTES:
+        raise IconError('native PNG exceeds the source-image size limit')
+    if data[:8] != b'\x89PNG\r\n\x1a\n':
+        raise IconError('invalid native PNG signature')
+    offset = 8
+    channels = 0
+    compressed = bytearray()
+    saw_data = False
+    data_ended = False
+    ended = False
+    while offset < len(data):
+        if len(data) - offset < 12:
+            raise IconError('truncated native PNG chunk length')
+        length, tag = struct.unpack_from('>I4s', data, offset)
+        if any(not (65 <= value <= 90 or 97 <= value <= 122) for value in tag) or tag[2] & 32:
+            raise IconError('invalid native PNG chunk type')
+        end = offset + length + 12
+        if end > len(data):
+            raise IconError('invalid native PNG chunk length')
+        payload = data[offset + 8:end - 4]
+        if zlib.crc32(tag + payload) != struct.unpack_from('>I', data, end - 4)[0]:
+            raise IconError('invalid native PNG chunk CRC')
+        if not channels and tag != b'IHDR':
+            raise IconError('native PNG must start with IHDR')
+        if tag == b'IHDR':
+            if channels or length != 13:
+                raise IconError('invalid native PNG IHDR')
+            width, height, bits, color, compression, filtering, interlace = struct.unpack('>IIBBBBB', payload)
+            if (width, height) != (size, size):
+                raise IconError('native PNG dimensions differ from the source icon')
+            if bits != 8 or color not in (2, 6) or (compression, filtering, interlace) != (0, 0, 0):
+                raise IconError('unsupported native PNG encoding; need noninterlaced 8-bit RGB/RGBA')
+            channels = 4 if color == 6 else 3
+        elif tag == b'IDAT':
+            if data_ended:
+                raise IconError('invalid native PNG nonconsecutive IDAT chunks')
+            saw_data = True
+            compressed.extend(payload)
+        elif tag == b'IEND':
+            if length or not saw_data:
+                raise IconError('invalid native PNG IEND or missing IDAT')
+            if end != len(data):
+                raise IconError('invalid native PNG trailing bytes after IEND')
+            ended = True
+            break
+        else:
+            if tag == b'tRNS':
+                raise IconError('unsupported native PNG transparency chunk')
+            if not tag[0] & 32:
+                raise IconError('unsupported native PNG critical chunk')
+            if saw_data:
+                data_ended = True
+        offset = end
+    if not ended:
+        raise IconError('native PNG is missing IEND')
+    stride = size * channels
+    expected = (stride + 1) * size
+    try:
+        inflater = zlib.decompressobj()
+        raw = inflater.decompress(compressed, expected + 1)
+    except zlib.error as error:
+        raise IconError(f'native PNG decompression failed: {error}') from error
+    if len(raw) != expected or not inflater.eof or inflater.unused_data or inflater.unconsumed_tail:
+        raise IconError('native PNG decompression length or stream mismatch')
+    previous = bytearray(stride)
+    pixels = bytearray()
+    for y in range(size):
+        start = y * (stride + 1)
+        kind = raw[start]
+        if kind > 4:
+            raise IconError('unsupported native PNG row filter')
+        row = bytearray(raw[start + 1:start + 1 + stride])
+        for x in range(stride):
+            left = row[x - channels] if x >= channels else 0
+            up = previous[x]
+            upper_left = previous[x - channels] if x >= channels else 0
+            if kind == 1:
+                predictor = left
+            elif kind == 2:
+                predictor = up
+            elif kind == 3:
+                predictor = (left + up) // 2
+            elif kind == 4:
+                guess = left + up - upper_left
+                a = abs(guess - left)
+                b = abs(guess - up)
+                c = abs(guess - upper_left)
+                predictor = left if a <= b and a <= c else up if b <= c else upper_left
+            else:
+                predictor = 0
+            row[x] = (row[x] + predictor) & 255
+        for x in range(0, stride, channels):
+            pixels.extend(row[x:x + 3])
+            pixels.append(row[x + 3] if channels == 4 else 255)
+        previous = row
+    return bytes(pixels)
 
 
 def convert_icons(images: list[IconImage], output: Path) -> None:
@@ -153,6 +262,18 @@ def convert_icons(images: list[IconImage], output: Path) -> None:
         for name, size in ICONSET_SIZES:
             if png_size(decoded / name) != (size, size):
                 raise IconError(f'ICNS round-trip returned wrong size for {name}')
+        for image in images:
+            path = decoded / f'icon_{image.size}x{image.size}.png'
+            with path.open('rb') as stream:
+                actual = decode_png(stream.read(MAX_SOURCE_PNG_BYTES + 1), image.size)
+            expected = dib_rgba(image)
+            for offset in range(0, len(expected), 4):
+                alpha_matches = actual[offset + 3] == expected[offset + 3]
+                rgb_matches = not expected[offset + 3] or actual[offset:offset + 3] == expected[offset:offset + 3]
+                if not alpha_matches or not rgb_matches:
+                    pixel = offset // 4
+                    raise IconError(f'ICNS round-trip pixel mismatch for {image.size}px icon at '
+                                    f'({pixel % image.size}, {pixel // image.size})')
         candidate.replace(output)
 
 

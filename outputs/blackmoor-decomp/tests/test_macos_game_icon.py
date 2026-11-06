@@ -141,6 +141,45 @@ def resources():
     return group, icons
 
 
+def png_chunk(tag, payload):
+    return struct.pack('>I', len(payload)) + tag + payload + struct.pack('>I', zlib.crc32(tag + payload))
+
+
+def native_png(size, rgba, *, color=6, filters=(0,)):
+    """Independent test encoder, including inverse row filters and RGB input."""
+    channels = 4 if color == 6 else 3
+    pixels = rgba if channels == 4 else bytes(value for n, value in enumerate(rgba) if n % 4 != 3)
+    stride = size * channels
+    raw = bytearray()
+    previous = bytes(stride)
+    for y in range(size):
+        row = pixels[y * stride:(y + 1) * stride]
+        kind = filters[y % len(filters)]
+        raw.append(kind)
+        for x, value in enumerate(row):
+            left = row[x - channels] if x >= channels else 0
+            up = previous[x]
+            upper_left = previous[x - channels] if x >= channels else 0
+            paeth = min((left, up, upper_left), key=lambda candidate: abs(left + up - upper_left - candidate))
+            raw.append((value - (0, left, up, (left + up) // 2, paeth)[kind]) % 256)
+        previous = row
+    header = struct.pack('>IIBBBBB', size, size, 8, color, 0, 0, 0)
+    return b'\x89PNG\r\n\x1a\n' + png_chunk(b'IHDR', header) + png_chunk(b'IDAT', zlib.compress(raw)) + png_chunk(b'IEND', b'')
+
+
+def conversion_images():
+    # A controlled blue=0 palette makes the native trailing-blue defect harmless
+    # without excluding any pixel. The full varied palette remains in PNG tests
+    # and the explicit native-rejection test below.
+    group, payloads = resources()
+    for key, value in payloads.items():
+        data = bytearray(value)
+        for offset in range(40, 104, 4):
+            data[offset] = 0
+        payloads[key] = bytes(data)
+    return icon.parse_group(group, payloads)
+
+
 def fake_pe(group, icons, language=1033):
     payloads = {100: group, **{200 + key: value for key, value in icons.items()}}
     def resource(kind, entries):
@@ -232,13 +271,75 @@ class IconParsingTests(unittest.TestCase):
             icon.extract_icons(pe)
 
 
+class NativePngTests(unittest.TestCase):
+    def test_rgb_rgba_and_all_five_filters(self):
+        for size in (16, 32):
+            expected = expected_pixels(size)
+            for color in (2, 6):
+                with self.subTest(size=size, color=color):
+                    data = native_png(size, expected, color=color, filters=(0, 1, 2, 3, 4))
+                    opaque = bytes(value if n % 4 != 3 else 255 for n, value in enumerate(expected))
+                    self.assertEqual(icon.decode_png(data, size), expected if color == 6 else opaque)
+
+    def test_rejects_unsupported_and_malformed_native_pngs(self):
+        size = 16
+        rgba = expected_pixels(size)
+        header = struct.pack('>IIBBBBB', size, size, 8, 6, 0, 0, 0)
+        raw = b''.join(b'\0' + rgba[y * size * 4:(y + 1) * size * 4] for y in range(size))
+        compressed = zlib.compress(raw)
+        signature = b'\x89PNG\r\n\x1a\n'
+        end = png_chunk(b'IEND', b'')
+        def assemble(ihdr=header, payload=compressed):
+            return signature + png_chunk(b'IHDR', ihdr) + png_chunk(b'IDAT', payload) + end
+        valid = assemble()
+        cases = [
+            ('signature', b'not a PNG', 'signature'),
+            ('truncated', valid[:-1], 'length|truncated'),
+            ('CRC', valid[:-1] + bytes([valid[-1] ^ 1]), 'CRC'),
+            ('trailing', valid + b'x', 'trailing'),
+            ('oversized', signature + bytes(1024 * 1024), 'limit'),
+            ('chunk length', signature + struct.pack('>I4s', 0xffffffff, b'IHDR'), 'length|truncated'),
+            ('missing end', valid[:-12], 'IEND'),
+            ('missing data', signature + png_chunk(b'IHDR', header) + end, 'IDAT'),
+            ('short header', assemble(header[:-1]), 'IHDR'),
+            ('duplicate header', signature + png_chunk(b'IHDR', header) + valid[8:], 'IHDR'),
+            ('critical chunk', valid[:33] + png_chunk(b'ABCD', b'') + valid[33:], 'critical'),
+            ('invalid type', valid[:33] + png_chunk(b'AB1D', b'') + valid[33:], 'type'),
+            ('reserved type bit', valid[:33] + png_chunk(b'abcd', b'') + valid[33:], 'type'),
+            ('missing header', signature + png_chunk(b'IDAT', compressed) + end, 'IHDR'),
+            ('transparency chunk', valid[:33] + png_chunk(b'tRNS', bytes(6)) + valid[33:], 'transparency'),
+            ('nonconsecutive data', signature + png_chunk(b'IHDR', header) + png_chunk(b'IDAT', compressed[:5])
+             + png_chunk(b'tEXt', b'key\0value') + png_chunk(b'IDAT', compressed[5:]) + end, 'IDAT'),
+            ('invalid end', valid[:-12] + png_chunk(b'IEND', b'x'), 'IEND'),
+            ('bad zlib', assemble(payload=b'not zlib'), 'decompression'),
+            ('truncated zlib', assemble(payload=compressed[:-1]), 'decompression'),
+            ('trailing zlib', assemble(payload=compressed + b'x'), 'decompression'),
+            ('short pixels', assemble(payload=zlib.compress(raw[:-1])), 'decompression'),
+            ('long pixels', assemble(payload=zlib.compress(raw + b'x')), 'decompression'),
+            ('bounded inflate', assemble(payload=zlib.compress(bytes(1000000))), 'decompression'),
+            ('filter', assemble(payload=zlib.compress(b'\5' + raw[1:])), 'filter'),
+        ]
+        for index, value, label in ((0, 17, 'dimensions'), (2, 16, 'encoding'), (3, 3, 'encoding'),
+                                    (4, 1, 'encoding'), (5, 1, 'encoding'), (6, 1, 'encoding')):
+            fields = [size, size, 8, 6, 0, 0, 0]
+            fields[index] = value
+            cases.append((label + str(index), assemble(struct.pack('>IIBBBBB', *fields)), label))
+        for label, data, message in cases:
+            with self.subTest(case=label):
+                with self.assertRaisesRegex(icon.IconError, 'PNG.*(' + message + ')'):
+                    icon.decode_png(data, size)
+        # Native ancillary metadata is permitted, with its CRC still checked.
+        metadata = valid[:33] + png_chunk(b'tEXt', b'key\0value') + valid[33:]
+        self.assertEqual(icon.decode_png(metadata, size), rgba)
+
+
 @unittest.skipUnless(sys.platform == 'darwin', 'native sips/iconutil require macOS')
 class NativeConversionTests(unittest.TestCase):
     def test_synthetic_conversion_and_atomic_failure(self):
-        group, payloads = resources()
+        images = conversion_images()
         with tempfile.TemporaryDirectory() as scratch:
             output = Path(scratch) / 'AppIcon.icns'
-            icon.convert_icons(icon.parse_group(group, payloads), output)
+            icon.convert_icons(images, output)
             self.assertGreater(output.stat().st_size, 8)
             self.assertEqual(output.read_bytes()[:4], b'icns')
             decoded = Path(scratch) / 'decoded.iconset'
@@ -248,20 +349,79 @@ class NativeConversionTests(unittest.TestCase):
                 self.assertEqual((width, height), (size, size))
                 self.assertIn(0, set(rgba[3::4]))
                 self.assertIn(255, set(rgba[3::4]))
-            # iconutil's small-image roundtrip clears trailing blue bytes for
-            # some arbitrary palettes (observed last 1/3 pixels at 16/32px).
-            # The varied stdlib PNG test checks every RGBA byte; here every
-            # synthetic alpha is exact. The hash-pinned owner test below checks
-            # every final visible RGB and alpha, including all edge pixels.
-            # This helper does not promise generic final-ICNS RGB losslessness.
-            for size in (16, 32):
-                assert_pixels(self, (decoded / f'icon_{size}x{size}.png').read_bytes(),
-                              expected_pixels(size), size, check_rgb=False)
+            for image in images:
+                assert_pixels(self, (decoded / f'icon_{image.size}x{image.size}.png').read_bytes(),
+                              dib_pixels(image), image.size)
             before = output.read_bytes()
             with patch.object(icon, 'run_tool', side_effect=icon.IconError('conversion failed')):
                 with self.assertRaisesRegex(icon.IconError, 'conversion failed'):
-                    icon.convert_icons(icon.parse_group(group, payloads), output)
+                    icon.convert_icons(images, output)
             self.assertEqual(output.read_bytes(), before)
+
+    def test_correct_size_wrong_native_pixels_are_refused_atomically(self):
+        images = conversion_images()
+        original_tool = icon.run_tool
+        for size in (16, 32):
+            for corruption in ('alpha', 'RGB', 'CRC'):
+                with self.subTest(size=size, corruption=corruption), tempfile.TemporaryDirectory() as scratch:
+                    output = Path(scratch) / 'AppIcon.icns'
+                    before = b'existing icon must survive a failed build'
+                    output.write_bytes(before)
+                    def corrupt(command):
+                        original_tool(command)
+                        if command[:3] == ['/usr/bin/iconutil', '-c', 'iconset']:
+                            expected = dib_pixels(next(image for image in images if image.size == size))
+                            wrong = bytearray(expected)
+                            visible = next(n for n in range(0, len(wrong), 4) if wrong[n + 3])
+                            if corruption != 'CRC':
+                                wrong[visible + (3 if corruption == 'alpha' else 0)] ^= 1
+                            data = native_png(size, wrong)
+                            if corruption == 'CRC':
+                                data = data[:-1] + bytes([data[-1] ^ 1])
+                            path = Path(command[-1]) / f'icon_{size}x{size}.png'
+                            path.write_bytes(data)
+                    with patch.object(icon, 'run_tool', side_effect=corrupt):
+                        with self.assertRaisesRegex(icon.IconError, 'pixel mismatch|PNG.*CRC'):
+                            icon.convert_icons(images, output)
+                    self.assertEqual(output.read_bytes(), before)
+
+    def test_varied_native_palette_is_refused_if_roundtrip_changes_pixels(self):
+        images = icon.parse_group(*resources())
+        original_tool = icon.run_tool
+        mismatches = []
+        def observe(command):
+            original_tool(command)
+            if command[:3] == ['/usr/bin/iconutil', '-c', 'iconset']:
+                for image in images:
+                    actual = png_pixels((Path(command[-1]) / f'icon_{image.size}x{image.size}.png').read_bytes())[2]
+                    expected = expected_pixels(image.size)
+                    mismatches.extend(n for n in range(0, len(expected), 4)
+                                      if actual[n + 3] != expected[n + 3] or expected[n + 3] and actual[n:n + 3] != expected[n:n + 3])
+        with tempfile.TemporaryDirectory() as scratch:
+            output = Path(scratch) / 'AppIcon.icns'
+            before = b'preserve prior icon on actual native palette corruption'
+            output.write_bytes(before)
+            error = None
+            with patch.object(icon, 'run_tool', side_effect=observe):
+                try:
+                    icon.convert_icons(images, output)
+                except icon.IconError as caught:
+                    error = caught
+            if mismatches:
+                # macOS 27.2: native iconutil clears trailing blue bytes for this
+                # palette (last 1/3 pixels at 16/32px). The production gate must
+                # reject every such discrepancy, including those edge pixels.
+                self.assertIsNotNone(error, 'native corruption was silently published')
+                self.assertIn('pixel mismatch', str(error))
+                self.assertEqual(output.read_bytes(), before)
+            else:
+                # A future native tool may fix the defect; accept only exact pixels.
+                self.assertIsNone(error)
+                decoded = Path(scratch) / 'decoded.iconset'
+                decode_icns(output, decoded)
+                for image in images:
+                    assert_pixels(self, (decoded / f'icon_{image.size}x{image.size}.png').read_bytes(),
+                                  expected_pixels(image.size), image.size)
 
     @unittest.skipUnless(os.environ.get('BLACKMOOR_ICON_EXE'), 'set BLACKMOOR_ICON_EXE for owner-original conversion')
     def test_owned_original_conversion(self):
