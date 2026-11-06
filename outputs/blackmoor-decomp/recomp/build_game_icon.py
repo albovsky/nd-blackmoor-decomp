@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Build AppIcon.icns from the owner's hash-pinned GAME.EXE; assets stay local.
+"""Build AppIcon.icns from verified owned game sources; asset bytes stay local.
 
 Uses pefile==2024.8.26 (requirements-build.txt), a strict 4bpp DIB decoder,
 then macOS sips/iconutil for PNG resizing and ICNS packaging.
-The original group 128 / language 1033 contains distinct 16px and 32px icons.
+An optional owner record preserves its Mac app's declared ICNS byte for byte.
+Without that installed source, group 128 / language 1033 supplies 16px and 32px icons.
 Larger macOS representations are scaled from the original 32px image.
 """
 from __future__ import annotations
@@ -11,16 +12,20 @@ from __future__ import annotations
 import argparse
 from dataclasses import dataclass
 import hashlib
+import json
 from pathlib import Path
+import plistlib
 import struct
 import subprocess
 import sys
 import tempfile
 import zlib
+from xml.parsers.expat import ExpatError
 
 ORIGINAL_SHA256 = 'afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45'
 PEFILE_VERSION = '2024.8.26'
 MAX_SOURCE_PNG_BYTES = 1024 * 1024
+MAX_OWNER_ICON_BYTES = 16 * 1024 * 1024
 ICONSET_SIZES = (
     ('icon_16x16.png', 16), ('icon_16x16@2x.png', 32),
     ('icon_32x32.png', 32), ('icon_32x32@2x.png', 64),
@@ -277,11 +282,91 @@ def convert_icons(images: list[IconImage], output: Path) -> None:
         candidate.replace(output)
 
 
-def build_icon(exe: Path, output: Path) -> None:
+def _read_owner_file(path: Path, limit: int) -> bytes:
+    try:
+        with path.open('rb') as stream:
+            data = stream.read(limit + 1)
+    except OSError as error:
+        raise IconError(f'cannot read owner icon source {path}: {error}') from error
+    if len(data) > limit:
+        raise IconError(f'owner icon source exceeds size limit: {path.name}')
+    return data
+
+
+def copy_owner_icon(owner_record: Path, output: Path) -> bool:
+    """Prefer the declared owned Mac icon; absence alone selects the EXE fallback."""
+    if not owner_record.exists():
+        return False
+    try:
+        record = json.loads(_read_owner_file(owner_record, 65536))
+    except ValueError as error:
+        raise IconError(f'invalid owner source record: {error}') from error
+    if not isinstance(record, dict):
+        raise IconError('invalid owner source record: expected an object')
+    bundle_name = record.get('bundle')
+    if bundle_name is None or bundle_name == '':
+        return False
+    if not isinstance(bundle_name, str) or any(ord(char) < 32 for char in bundle_name):
+        raise IconError('invalid owner source bundle path')
+    bundle = Path(bundle_name)
+    if not bundle.is_absolute():
+        bundle = owner_record.parent / bundle
+    if not bundle.exists():
+        return False
+    if not bundle.is_dir() or bundle.suffix.lower() != '.app':
+        raise IconError('owner source bundle is not a Mac .app')
+    try:
+        info = plistlib.loads(_read_owner_file(bundle / 'Contents/Info.plist', 65536))
+    except (ValueError, ExpatError) as error:
+        raise IconError(f'invalid owner bundle Info.plist: {error}') from error
+    name = info.get('CFBundleIconFile') if isinstance(info, dict) else None
+    if (not isinstance(name, str) or not name or name in ('.', '..') or len(name) > 255
+            or '/' in name or chr(92) in name or any(ord(char) < 32 or ord(char) == 127 for char in name)):
+        raise IconError('unsafe or missing owner icon name in CFBundleIconFile')
+    if not Path(name).suffix:
+        name += '.icns'
+    if Path(name).suffix.lower() != '.icns':
+        raise IconError('owner icon name must identify an ICNS file')
+    resources = (bundle / 'Contents/Resources').resolve()
+    source = resources / name
+    if not resources.is_relative_to(bundle.resolve()) or source.resolve().parent != resources:
+        raise IconError('unsafe owner icon path outside bundle Resources')
+    if output.suffix.lower() != '.icns' or output.is_symlink():
+        raise IconError('icon output must be a regular .icns path, not a symlink')
+    if output.resolve().is_relative_to(bundle.resolve()):
+        raise IconError('refusing to write an icon inside the owner bundle')
+    data = _read_owner_file(source, MAX_OWNER_ICON_BYTES)
+    if len(data) <= 8 or data[:4] != b'icns' or struct.unpack_from('>I', data, 4)[0] != len(data):
+        raise IconError('invalid owner ICNS header or length')
+    if sys.platform != 'darwin':
+        raise IconError('validating the owner icon requires macOS iconutil')
+    output.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix='.blackmoor-owner-icon-', dir=output.parent) as scratch:
+        root = Path(scratch)
+        candidate = root / 'AppIcon.icns'
+        candidate.write_bytes(data)
+        decoded = root / 'decoded.iconset'
+        run_tool(['/usr/bin/iconutil', '-c', 'iconset', str(candidate), '-o', str(decoded)])
+        images = list(decoded.glob('*.png'))
+        if not images:
+            raise IconError('owner ICNS has no decoded image representations')
+        for image in images:
+            width, height = png_size(image)
+            if width != height or not 1 <= width <= 1024:
+                raise IconError('unsupported owner ICNS image dimensions')
+        if _read_owner_file(candidate, MAX_OWNER_ICON_BYTES) != data:
+            raise IconError('native decoder changed the owner ICNS bytes')
+        candidate.replace(output)
+    return True
+
+
+def build_icon(exe: Path, output: Path, owner_record: Path | None = None) -> None:
     data = exe.read_bytes()
     actual = hashlib.sha256(data).hexdigest()
     if actual != ORIGINAL_SHA256:
         raise IconError(f'GAME.EXE SHA-256 mismatch: expected {ORIGINAL_SHA256}, got {actual}')
+    if owner_record is not None and copy_owner_icon(owner_record, output):
+        return
     try:
         import pefile
     except ImportError as error:
@@ -301,9 +386,10 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--exe', required=True, type=Path)
     parser.add_argument('--output', required=True, type=Path)
+    parser.add_argument('--owner-record', type=Path, help='optional owner-source JSON; prefer its Mac bundle icon')
     args = parser.parse_args()
     try:
-        build_icon(args.exe, args.output)
+        build_icon(args.exe, args.output, owner_record=args.owner_record)
     except (IconError, OSError) as error:
         print(f'game icon: {error}', file=sys.stderr)
         return 1

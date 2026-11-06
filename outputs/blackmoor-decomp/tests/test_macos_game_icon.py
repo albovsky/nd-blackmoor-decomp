@@ -3,8 +3,10 @@ from __future__ import annotations
 
 import hashlib
 import importlib.util
+import json
 import os
 from pathlib import Path
+import plistlib
 import struct
 import subprocess
 import sys
@@ -442,6 +444,147 @@ class NativeConversionTests(unittest.TestCase):
                 self.assertGreater(len(colors), 1)
                 assert_pixels(self, (decoded / f'icon_{image.size}x{image.size}.png').read_bytes(), expected, image.size)
             self.assertEqual(hashlib.sha256(exe.read_bytes()).hexdigest(), before)
+
+
+@unittest.skipUnless(sys.platform == 'darwin', 'owner ICNS validation requires macOS iconutil')
+class OwnerIconTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.scratch = tempfile.TemporaryDirectory()
+        cls.addClassCleanup(cls.scratch.cleanup)
+        source = Path(cls.scratch.name) / 'Synthetic.icns'
+        icon.convert_icons(conversion_images(), source)
+        cls.icon_bytes = source.read_bytes()
+
+    def make_bundle(self, root, *, name='AppIcon.icns'):
+        bundle = root / 'Owned.app'
+        resources = bundle / 'Contents/Resources'
+        resources.mkdir(parents=True)
+        source = resources / 'AppIcon.icns'
+        source.write_bytes(self.icon_bytes)
+        (bundle / 'Contents/Info.plist').write_bytes(plistlib.dumps({'CFBundleIconFile': name}))
+        record = root / 'owner.json'
+        record.write_text(json.dumps({'bundle': str(bundle)}))
+        return record, source
+
+    def test_owner_record_preserves_icns_bytes_without_conversion(self):
+        for name in ('AppIcon.icns', 'AppIcon'):
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as scratch:
+                root = Path(scratch)
+                record, source = self.make_bundle(root, name=name)
+                output = root / 'output/AppIcon.icns'
+                exe = root / 'synthetic.exe'
+                exe.write_bytes(b'synthetic executable for owner-copy wiring')
+                digest = hashlib.sha256(exe.read_bytes()).hexdigest()
+                with patch.object(icon, 'ORIGINAL_SHA256', digest), patch.object(icon, 'convert_icons', side_effect=AssertionError('owner icon must not be converted')):
+                    icon.build_icon(exe, output, owner_record=record)
+                self.assertEqual(output.read_bytes(), self.icon_bytes)
+                self.assertEqual(hashlib.sha256(output.read_bytes()).digest(), hashlib.sha256(source.read_bytes()).digest())
+                self.assertEqual(source.read_bytes(), self.icon_bytes)
+
+    def test_absent_record_or_bundle_selects_fallback(self):
+        with tempfile.TemporaryDirectory() as scratch:
+            root = Path(scratch)
+            output = root / 'AppIcon.icns'
+            record = root / 'owner.json'
+            self.assertFalse(icon.copy_owner_icon(record, output))
+            for data in ({}, {'bundle': str(root / 'Absent.app')}):
+                record.write_text(json.dumps(data))
+                self.assertFalse(icon.copy_owner_icon(record, output))
+            self.assertFalse(output.exists())
+
+    def test_malformed_owner_icon_preserves_existing_output(self):
+        for data in (b'', b'BAD!', b'icns' + struct.pack('>I', 8), b'icns' + struct.pack('>I', 12) + b'xxxx'):
+            with self.subTest(data=data), tempfile.TemporaryDirectory() as scratch:
+                root = Path(scratch)
+                record, source = self.make_bundle(root)
+                source.write_bytes(data)
+                output = root / 'AppIcon.icns'
+                output.write_bytes(b'previous icon')
+                with self.assertRaises(icon.IconError):
+                    icon.copy_owner_icon(record, output)
+                self.assertEqual(output.read_bytes(), b'previous icon')
+        for failure in ('missing icon', 'invalid record', 'invalid plist'):
+            with self.subTest(failure=failure), tempfile.TemporaryDirectory() as scratch:
+                root = Path(scratch)
+                record, source = self.make_bundle(root)
+                if failure == 'missing icon':
+                    (source.parent.parent / 'Info.plist').write_bytes(plistlib.dumps({'CFBundleIconFile': 'Missing.icns'}))
+                elif failure == 'invalid record':
+                    record.write_text('{invalid JSON')
+                else:
+                    (source.parent.parent / 'Info.plist').write_bytes(b'<?xml version="1.0"?><plist><dict>')
+                output = root / 'AppIcon.icns'
+                output.write_bytes(b'previous icon')
+                with self.assertRaises(icon.IconError):
+                    icon.copy_owner_icon(record, output)
+                self.assertEqual(output.read_bytes(), b'previous icon')
+        with tempfile.TemporaryDirectory() as scratch:
+            root = Path(scratch)
+            record, source = self.make_bundle(root)
+            output = root / 'AppIcon.icns'
+            output.write_bytes(b'previous icon')
+            with patch.object(icon, 'run_tool', side_effect=icon.IconError('native decode failed')):
+                with self.assertRaisesRegex(icon.IconError, 'native decode failed'):
+                    icon.copy_owner_icon(record, output)
+            with source.open('wb') as stream:
+                stream.write(b'icns' + struct.pack('>I', icon.MAX_OWNER_ICON_BYTES + 1))
+                stream.truncate(icon.MAX_OWNER_ICON_BYTES + 1)
+            with self.assertRaisesRegex(icon.IconError, 'limit'):
+                icon.copy_owner_icon(record, output)
+            self.assertEqual(output.read_bytes(), b'previous icon')
+
+    def test_unsafe_icon_paths_and_owner_output_are_refused(self):
+        for name in ('../outside.icns', '/tmp/outside.icns', '..' + chr(92) + 'outside.icns', '', 123):
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as scratch:
+                root = Path(scratch)
+                record, source = self.make_bundle(root, name=name)
+                output = root / 'AppIcon.icns'
+                output.write_bytes(b'previous icon')
+                with self.assertRaisesRegex(icon.IconError, 'icon name'):
+                    icon.copy_owner_icon(record, output)
+                self.assertEqual(output.read_bytes(), b'previous icon')
+        with tempfile.TemporaryDirectory() as scratch:
+            root = Path(scratch)
+            record, source = self.make_bundle(root, name='Linked.icns')
+            outside = root / 'outside.icns'
+            outside.write_bytes(self.icon_bytes)
+            (source.parent / 'Linked.icns').symlink_to(outside)
+            with self.assertRaisesRegex(icon.IconError, 'icon path'):
+                icon.copy_owner_icon(record, root / 'output.icns')
+            (source.parent.parent / 'Info.plist').write_bytes(plistlib.dumps({'CFBundleIconFile': 'AppIcon.icns'}))
+            with self.assertRaisesRegex(icon.IconError, 'owner bundle'):
+                icon.copy_owner_icon(record, source)
+            self.assertEqual(source.read_bytes(), self.icon_bytes)
+
+    def test_wrong_exe_rejects_before_owner_copy(self):
+        with tempfile.TemporaryDirectory() as scratch:
+            root = Path(scratch)
+            record, source = self.make_bundle(root)
+            exe = root / 'wrong.exe'
+            exe.write_bytes(b'not the owned original')
+            output = root / 'AppIcon.icns'
+            with patch.object(icon, 'copy_owner_icon', side_effect=AssertionError('must check EXE first')):
+                with self.assertRaisesRegex(icon.IconError, 'SHA-256'):
+                    icon.build_icon(exe, output, owner_record=record)
+            self.assertFalse(output.exists())
+
+    @unittest.skipUnless(os.environ.get('BLACKMOOR_ICON_EXE') and os.environ.get('BLACKMOOR_ICON_OWNER_RECORD'), 'set BLACKMOOR_ICON_EXE and BLACKMOOR_ICON_OWNER_RECORD for owned Mac icon copy')
+    def test_owned_mac_icon_copy(self):
+        record = Path(os.environ['BLACKMOOR_ICON_OWNER_RECORD'])
+        bundle = Path(json.loads(record.read_text())['bundle'])
+        if not bundle.is_dir():
+            self.skipTest('owned Mac app unavailable')
+        info = plistlib.loads((bundle / 'Contents/Info.plist').read_bytes())
+        source = bundle / 'Contents/Resources' / info['CFBundleIconFile']
+        original = source.read_bytes()
+        self.assertEqual(len(original), 2260608)
+        self.assertEqual(hashlib.sha256(original).hexdigest(), '122bc09eed3b47e31623ab9758591a1842f9e0fab7054b4c0031c95fca7b464a')
+        with tempfile.TemporaryDirectory() as scratch:
+            output = Path(scratch) / 'AppIcon.icns'
+            icon.build_icon(Path(os.environ['BLACKMOOR_ICON_EXE']), output, owner_record=record)
+            self.assertEqual(output.read_bytes(), original)
+        self.assertEqual(source.read_bytes(), original)
 
 
 if __name__ == '__main__':
