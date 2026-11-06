@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Build AppIcon.icns from the owner's hash-pinned GAME.EXE; assets stay local.
 
-Uses pefile==2024.8.26 (requirements-build.txt), then macOS sips/iconutil.
+Uses pefile==2024.8.26 (requirements-build.txt), a strict 4bpp DIB decoder,
+then macOS sips/iconutil for PNG resizing and ICNS packaging.
 The original group 128 / language 1033 contains distinct 16px and 32px icons.
 Larger macOS representations are scaled from the original 32px image.
 """
@@ -15,6 +16,7 @@ import struct
 import subprocess
 import sys
 import tempfile
+import zlib
 
 ORIGINAL_SHA256 = 'afd337a2468e0cd540f487db2c121ccb9ccb9757836578c15d2d8a52f3485c45'
 PEFILE_VERSION = '2024.8.26'
@@ -82,13 +84,25 @@ def extract_icons(pe) -> list[IconImage]:
     return parse_group(resource_bytes(pe, 14, 128), {key: resource_bytes(pe, 3, key) for key in (1, 2)})
 
 
-def make_ico(images: list[IconImage]) -> bytes:
-    offset = 6 + 16 * len(images)
-    directory = bytearray(struct.pack('<HHH', 0, 1, len(images)))
-    for image in images:
-        directory.extend(struct.pack('<BBBBHHII', image.size, image.size, 16, 0, 1, 4, len(image.data), offset))
-        offset += len(image.data)
-    return bytes(directory) + b''.join(image.data for image in images)
+def make_png(image: IconImage) -> bytes:
+    """Decode only parse_group's validated bottom-up 4bpp palette/XOR/AND DIB."""
+    size = image.size
+    xor_stride = size // 2
+    mask_start = 104 + xor_stride * size
+    rows = bytearray()
+    for y in range(size - 1, -1, -1):
+        rows.append(0)  # PNG filter: None.
+        for x in range(size):
+            packed = image.data[104 + y * xor_stride + x // 2]
+            index = (packed >> (4 if x % 2 == 0 else 0)) & 15
+            palette = 40 + index * 4
+            alpha = 0 if image.data[mask_start + y * 4 + x // 8] & (128 >> (x % 8)) else 255
+            # RGBQUAD's fourth byte is reserved, not an alpha component.
+            rows.extend((image.data[palette + 2], image.data[palette + 1], image.data[palette], alpha))
+    def chunk(tag, data):
+        return struct.pack('>I', len(data)) + tag + data + struct.pack('>I', zlib.crc32(tag + data))
+    header = struct.pack('>IIBBBBB', size, size, 8, 6, 0, 0, 0)
+    return b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', header) + chunk(b'IDAT', zlib.compress(rows, 9)) + chunk(b'IEND', b'')
 
 
 def run_tool(command: list[str]) -> None:
@@ -119,15 +133,9 @@ def convert_icons(images: list[IconImage], output: Path) -> None:
         iconset = root / 'AppIcon.iconset'
         iconset.mkdir()
         bases = {}
-        # Keep an ICO holding both exact original payloads as well as per-size sources.
-        (root / 'original.ico').write_bytes(make_ico(images))
         for image in images:
-            source = root / f'original-{image.size}.ico'
-            source.write_bytes(make_ico([image]))
             base = root / f'original-{image.size}.png'
-            run_tool(['/usr/bin/sips', '-s', 'format', 'png', str(source), '--out', str(base)])
-            if png_size(base) != (image.size, image.size):
-                raise IconError(f'native ICO decode returned wrong size for {image.size}px icon')
+            base.write_bytes(make_png(image))
             bases[image.size] = base
         for name, size in ICONSET_SIZES:
             source = bases[16 if size == 16 else 32]
