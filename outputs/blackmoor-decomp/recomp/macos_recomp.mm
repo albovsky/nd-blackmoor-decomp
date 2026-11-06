@@ -698,12 +698,8 @@ int main(int argc, char **argv)
         if (!log_path.empty()) g.log = fopen(log_path.c_str(), "w");
         std::string seed_path;
         std::string seed_error;
-        std::string remembered = remembered_game_folder();
-        if (!remembered.empty() && !blackmoor_validate_seed_destinations(remembered,
-                g.data_support_dir, g.save_dir, &seed_error)) {
-            [[NSUserDefaults standardUserDefaults] removeObjectForKey:kGameFolderPreference];
-            remembered.clear();
-        }
+        // Preserve original-folder protection even when discovery cannot use it.
+        const std::string remembered = remembered_game_folder();
         auto known = known_game_folders();
         const bool explicit_data = argument_game_dir || environment_game_dir;
         const bool found_seed = blackmoor_find_game_seed(remembered, known, BLACKMOOR_GAME_SHA256,
