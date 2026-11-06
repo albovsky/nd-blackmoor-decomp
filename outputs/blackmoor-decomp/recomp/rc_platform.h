@@ -48,6 +48,9 @@ void rc_get_stats(uint64_t *native_calls, uint64_t *fallback_calls, uint64_t *im
 /* Input, from any thread. Coordinates are the game's 640x480 client coordinates. */
 void rc_input_mouse(int32_t x, int32_t y, int left_down);
 void rc_input_key(uint32_t virtual_key, int down);
+/* Thread-safe host view of Win32 ShowCursor: nonnegative counter is visible.
+ * The guest still receives the original signed display-count return values. */
+int rc_system_cursor_visible(void);
 
 /* The primary surface as the game last drew it: RGB565, width x height, pitch in bytes. The pointer stays valid while the game runs. */
 int rc_get_primary(const uint16_t **pixels, uint32_t *width, uint32_t *height, uint32_t *pitch_bytes);

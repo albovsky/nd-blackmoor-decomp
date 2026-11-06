@@ -75,7 +75,7 @@ static unsigned char tls_used[256];
 static _Thread_local uint32_t last_error;
 static uint32_t cmdline_ptr;
 static uint32_t dc_handle, cursor_h, icon_h, image_h, accel_h, gdi_h, menu_h, key_h;
-static int32_t cursor_count;
+static atomic_int cursor_count;
 
 typedef struct SeenFile { char name[64]; uint32_t at; } SeenFile;
 static SeenFile seen[256];
@@ -1785,7 +1785,17 @@ API(GetCursorPos)
     rc_w32(a[0], (uint32_t)x); rc_w32(a[0] + 4, (uint32_t)y); RET(1);
 }
 API(SetCursor) { UNUSED; RET(0); }
-API(ShowCursor) { (void)r; cursor_count += a[0] ? 1 : -1; RET((uint32_t)cursor_count); }
+int rc_system_cursor_visible(void)
+{
+    return atomic_load_explicit(&cursor_count, memory_order_relaxed) >= 0;
+}
+API(ShowCursor)
+{
+    (void)r;
+    int delta = a[0] ? 1 : -1;
+    int previous = atomic_fetch_add_explicit(&cursor_count, delta, memory_order_relaxed);
+    RET((uint32_t)previous + (uint32_t)delta);
+}
 
 /* rectangles */
 API(SetRect) { (void)r; uint32_t v[4] = {a[1], a[2], a[3], a[4]}; rc_write(a[0], v, 16); RET(1); }

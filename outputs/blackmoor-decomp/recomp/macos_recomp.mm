@@ -76,6 +76,7 @@ struct Recomp {
     uint32_t pointer_buttons = 0;
     int32_t pointer_x = 0, pointer_y = 0;
     bool muted = false;
+    int logged_cursor_visibility = -1;
     bool background = false, terminate_requested = false;
     uint32_t stop_after_ms = 0;
     uint64_t stop_deadline_ms = 0;
@@ -294,6 +295,13 @@ void present_primary()
 
 void on_tick(void *, uint32_t)
 {
+    if (g.platform) {
+        const int visible = rc_system_cursor_visible();
+        blackmoor_macos_set_software_cursor(g.platform, !visible);
+        if (g.log && visible != g.logged_cursor_visibility)
+            fprintf(g.log, "CURSOR guest_system_visible=%d software_surface=%d\n", visible, !visible);
+        g.logged_cursor_visibility = visible;
+    }
     if (g.capture_failed.load(std::memory_order_acquire) && !g.capture_reported) {
         g.capture_reported = true;
         const char *message = "audio capture stopped accepting samples; details at shutdown\n";
@@ -786,8 +794,6 @@ int main(int argc, char **argv)
             if (g.log) fclose(g.log);
             return g.background_failed.load(std::memory_order_acquire) ? 6 : 3;
         }
-        // The original game draws its cursor into the framebuffer.
-        blackmoor_macos_set_software_cursor(g.platform, 1);
         record_background_status("opened");
         NSMenuItem *app_menu_item = NSApp.mainMenu.itemArray.firstObject;
         NSMenu *app_menu = app_menu_item.submenu;

@@ -97,8 +97,9 @@ PLIST
 /usr/libexec/PlistBuddy -c "Set :LSMinimumSystemVersion $min_os" "$stage/Blackmoor Recompiled.app/Contents/Info.plist"
 source_commit="$(git -C "$here" rev-parse HEAD)"
 /usr/libexec/PlistBuddy -c "Add :BlackmoorSourceCommit string $source_commit" "$stage/Blackmoor Recompiled.app/Contents/Info.plist"
-# Extract the owner's game icon at build time; no proprietary image is committed.
+# Preserve the declared GOG app icon, with an EXE-only fallback; art stays local.
 python3 -I "$here/build_game_icon.py" --exe "$GAME_EXE" \
+    --owner-record "$project/../../work/analysis/game-source.json" \
     --output "$stage/Blackmoor Recompiled.app/Contents/Resources/AppIcon.icns"
 /usr/bin/codesign --force --sign - "$stage/Blackmoor Recompiled.app"
 /usr/bin/codesign --verify --strict "$stage/Blackmoor Recompiled.app"
