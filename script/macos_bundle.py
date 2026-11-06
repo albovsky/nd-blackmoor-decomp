@@ -228,6 +228,34 @@ def read_app_executable(app):
     return plist, executable
 
 
+def icon_violations(app, plist):
+    """Require the build's declared local icon; artwork decoding stays in the builder."""
+    name = plist.get("CFBundleIconFile")
+    if (not isinstance(name, str) or not name or len(name) > 255 or name in (".", "..")
+            or "/" in name or "\\" in name or any(ord(c) < 32 or ord(c) == 127 for c in name)):
+        return ["missing or unsafe CFBundleIconFile"]
+    if not Path(name).suffix:
+        name += ".icns"
+    if Path(name).suffix.lower() != ".icns":
+        return ["CFBundleIconFile must name an ICNS file"]
+    resources = (Path(app) / "Contents/Resources").resolve()
+    icon = resources / name
+    if not resources.is_relative_to(Path(app).resolve()) or icon.resolve().parent != resources:
+        return ["declared icon leaves bundle Resources"]
+    if not icon.is_file():
+        return ["cannot read declared icon: not a regular file"]
+    try:
+        with icon.open("rb") as handle:
+            header = handle.read(8)
+            size = os.fstat(handle.fileno()).st_size
+    except OSError as error:
+        return ["cannot read declared icon: %s" % error]
+    if (not 8 < size <= 16 * 1024 * 1024 or len(header) != 8
+            or header[:4] != b"icns" or int.from_bytes(header[4:8], "big") != size):
+        return ["invalid declared ICNS header or length"]
+    return []
+
+
 # --------------------------------------------------------------------------------------------
 # FFmpeg prefix: record, stamp, check
 # --------------------------------------------------------------------------------------------
@@ -661,6 +689,7 @@ def verify_bundle(app, min_macos, game_dir=None, resource_suffixes=DEFAULT_RESOU
         plist, executable = read_app_executable(app)
     except BundleError as error:
         return [str(error)]
+    problems += icon_violations(app, plist)
     declared = plist.get("LSMinimumSystemVersion")
     if declared is None or version_tuple(declared) != min_os:
         problems.append("Info.plist LSMinimumSystemVersion is %r, expected %s" % (declared, min_macos))

@@ -42,6 +42,7 @@
 
 - Use the existing script/package_macos.sh and script/macos_bundle.py workflow, minimal LGPL FFmpeg and macOS11 deployment target to build a self-contained Apple-silicon app/DMG. Architecture/version confirmation is pending; Apple silicon is this port's supported baseline. Do not assume Intel compatibility.
 - Bundle non-system dylibs, rewrite install names, include FFmpeg licences/source information, verify deployment targets/signatures/content, and mount-check the final DMG. Do not upload to notarization/public release services or include assets in Git. Name the ad-hoc/non-notarized package accurately.
+- Require a safe CFBundleIconFile, an existing ICNS inside Resources and a bounded matching container header/length in package verification. Reject missing declarations, missing/corrupt icons and escaping paths. Synthetic package fixtures use a structural test container; the actual icon builder independently validates artwork decoding.
 - Create a private local transfer archive containing that DMG, a read-only copy of the owned game data outside the app, and simple first-launch/folder-choice instructions. Preserve original files, exclude real user saves and keep all proprietary payloads local/uncommitted. Add optional save-transfer instructions without touching owner saves. Update Desktop only after the reviewed merge; keep a backup and do not launch the game.
 
 ## Completion
